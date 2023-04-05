@@ -1,0 +1,12 @@
+export const usdcTreasuryId = '0x0a82641002dd04f5679e6eb9d24d0ce28309bbd5665b0bc66627d22c7661651b';
+export const usdcMetaDataId = '0xf984f0ad7ca1a891491c049a2be383c245c29f91f0e13bca5c1ca01ccb220552';
+
+export const ethTreasuryId = '0x3740ea911206183ba4a0d438e2ff3ca6e3e49bdae652ad05b4341136a9ae3152';
+export const ethMetaDataId = '0x9f9a799879f32a3aee0c0aa5a11a505b8d3c8c18c789bf2832968e573088a858';
+
+export const coinDecimalsRegistryId = '0x1a6a91f1a239bfbeb40d50d54bc4694e12fc90a41e709db562da322653e13e22';
+
+export const marketId = '0x85f343bc6c224ca1ca266d042cbb8ab9bf1ef745c752771c90b2ad3a1b759607';
+export const adminCapId = '0xfa40e1c1dea04a174d5693e4afa277ca10c9ab46d58733e5954990181e24f7df';
+
+export const packageId = '0x3b2e37e57dead98f7f90ec0542565073825f5057fc32f41c9d4ffd8618fba875';
