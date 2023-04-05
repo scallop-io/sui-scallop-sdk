@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { ScallopSui } from '../src';
-import { packageId, marketId, coinDecimalsRegistryId, adminCapId } from './object-ids';
+import { packageId, marketId, coinDecimalsRegistryId, adminCapId, usdcTreasuryId } from './object-ids';
 import { SHINAMI_DEVNET_FULLNODE } from './shinami-fullnodes'
 dotenv.config();
 
@@ -15,6 +15,9 @@ dotenv.config();
       fullnodeUrl: SHINAMI_DEVNET_FULLNODE
     }
   });
-  const res = await scallopSui.openObligation();
-  console.log(res)
+  const txBuilder = scallopSui.createTxBuilder();
+  txBuilder.initMarketForTest(usdcTreasuryId);
+  txBuilder.suiTxBlock.txBlock.setGasBudget(2 * 10**6);
+  const res = await scallopSui.submitTxn(txBuilder);
+  console.log(res);
 })();

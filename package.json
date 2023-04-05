@@ -41,6 +41,7 @@
     "@scallop-dao/sui-kit": "../sui-toolkit"
   },
   "devDependencies": {
+    "@mysten/sui.js": "^0.30.0",
     "dotenv": "^16.0.3",
     "tsup": "^6.7.0",
     "typescript": "^5.0.3"
