@@ -10,3 +10,5 @@ export const marketId = '0x85f343bc6c224ca1ca266d042cbb8ab9bf1ef745c752771c90b2a
 export const adminCapId = '0xfa40e1c1dea04a174d5693e4afa277ca10c9ab46d58733e5954990181e24f7df';
 
 export const packageId = '0x3b2e37e57dead98f7f90ec0542565073825f5057fc32f41c9d4ffd8618fba875';
+
+export const obligationId = '0x8921f3727368bf625a18de30290f65e20d8e12336a1f0c38c4cd4f7f342e005c';

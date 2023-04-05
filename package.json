@@ -1,0 +1,48 @@
+{
+  "name": "@scallop-dao/scallop-sui",
+  "author": "Scallop Dao",
+  "version": "0.1.0",
+  "description": "Tookit for interacting with Scallop on SUI",
+  "keywords": [
+    "sui",
+    "scallop dao",
+    "move",
+    "Scallop"
+  ],
+  "license": "Apache-2.0",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "publish": "npm run clean && npm run build && npm publish",
+    "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
+    "build": "npm run build:types && npm run build:tsup",
+    "build:tsup": "tsup ./src/index.ts --format esm,cjs --sourcemap",
+    "build:types": "tsc --build"
+  },
+  "dependencies": {
+    "@scallop-dao/sui-kit": "../sui-toolkit"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.3",
+    "tsup": "^6.7.0",
+    "typescript": "^5.0.3"
+  }
+}
