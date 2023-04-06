@@ -77,7 +77,7 @@ export class ScallopTxBuilder {
     );
   }
 
-  takeCollateralEntry(obligationId: string, obligationKeyId: string, withdarwAmount: number, collateralType: string) {
+  takeCollateralEntry(obligationId: SuiTxArg, obligationKeyId: SuiTxArg, withdarwAmount: number, collateralType: string) {
     const target = `${this.packageId}::withdraw_collateral::withdraw_collateral_entry`;
     return this.suiTxBlock.moveCall(
       target,
@@ -86,7 +86,7 @@ export class ScallopTxBuilder {
     );
   }
 
-  borrow(obligationId: string, obligationKeyId: string, borrowAmount: number, debtType: string) {
+  borrow(obligationId: SuiTxArg, obligationKeyId: SuiTxArg, borrowAmount: number, debtType: string) {
     const target = `${this.packageId}::borrow::borrow`;
     return this.suiTxBlock.moveCall(
       target,
@@ -95,7 +95,7 @@ export class ScallopTxBuilder {
     );
   }
 
-  borrowEntry(obligationId: string, obligationKeyId: string, borrowAmount: number, debtType: string) {
+  borrowEntry(obligationId: SuiTxArg, obligationKeyId: SuiTxArg, borrowAmount: number, debtType: string) {
     const target = `${this.packageId}::borrow::borrow_entry`;
     this.suiTxBlock.moveCall(
       target,
@@ -105,15 +105,17 @@ export class ScallopTxBuilder {
     return this.suiTxBlock;
   }
 
-  repay(obligationId: string, repayCoin: number) {
+  repay(obligationId: SuiTxArg, repayCoin: SuiTxArg, debtType: string) {
     const target = `${this.packageId}::repay::repay`;
-    this.suiTxBlock.moveCall(target, [obligationId, this.marketId, repayCoin, SUI_CLOCK_OBJECT_ID]);
+    const typeArgs = [debtType];
+    this.suiTxBlock.moveCall(target, [obligationId, this.marketId, repayCoin, SUI_CLOCK_OBJECT_ID], typeArgs);
     return this.suiTxBlock;
   }
 
-  deposit(coinId: SuiTxArg) {
+  deposit(coinId: SuiTxArg, coinType: string) {
     const target = `${this.packageId}::mint::mint`;
-    return this.suiTxBlock.moveCall(target, [this.marketId, coinId, SUI_CLOCK_OBJECT_ID]);
+    const typeArgs = [coinType];
+    return this.suiTxBlock.moveCall(target, [this.marketId, coinId, SUI_CLOCK_OBJECT_ID], typeArgs);
   }
 
   depositEntry(coinId: SuiTxArg, coinType: string) {
@@ -123,30 +125,30 @@ export class ScallopTxBuilder {
     return this.suiTxBlock;
   }
 
-  withdraw(marketCoinId: string) {
+  withdraw(marketCoinId: SuiTxArg, coinType: string) {
     const target = `${this.packageId}::redeem::redeem`;
-    return this.suiTxBlock.moveCall(target, [this.marketId, marketCoinId, SUI_CLOCK_OBJECT_ID]);
+    const typeArgs = [coinType];
+    return this.suiTxBlock.moveCall(target, [this.marketId, marketCoinId, SUI_CLOCK_OBJECT_ID], typeArgs);
   }
 
-  withdrawEntry(marketCoinId: string) {
+  withdrawEntry(marketCoinId: SuiTxArg) {
     const target = `${this.packageId}::redeem::redeem_entry`;
     this.suiTxBlock.moveCall(target, [this.marketId, marketCoinId, SUI_CLOCK_OBJECT_ID]);
     return this.suiTxBlock;
   }
 
   // TODO: remove this after test is done
-  mintTestCoin(treasuryId: string, coinName: 'btc' | 'eth' | 'usdc') {
+  mintTestCoin(treasuryId: SuiTxArg, coinName: 'btc' | 'eth' | 'usdc') {
     const target = `${this.packageId}::${coinName}::mint`;
     return this.suiTxBlock.moveCall(target, [treasuryId]);
   }
 
   // TODO: remove this after test is done
-  initMarketForTest(usdcTreasuryId: string) {
+  initMarketForTest(usdcTreasuryId: SuiTxArg) {
     // Require adminCap for this action
     if (!this.adminCapId) throw new Error('adminCapId is required for initMarketForTest');
     const target = `${this.packageId}::app_test::init_market`;
     this.suiTxBlock.moveCall(target, [this.marketId, this.adminCapId, usdcTreasuryId, SUI_CLOCK_OBJECT_ID]);
     return this.suiTxBlock;
   }
-
 }
