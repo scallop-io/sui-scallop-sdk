@@ -2,6 +2,7 @@ import { SuiKit, SuiKitParams, SuiTxBlock } from '@scallop-dao/sui-kit'
 import { ScallopTxBuilder, TxBuilderParams } from './scallop-tx-builder'
 // This is a bug related to pnpm and typescript. See https://github.com/microsoft/TypeScript/issues/47663
 import type { } from '@mysten/sui.js'
+import { getMoveObject, getObjectId, getObjectFields } from '@mysten/sui.js'
 
 export type ScallopSuiParams = TxBuilderParams & { suiConfig?: SuiKitParams };
 
@@ -43,6 +44,46 @@ export class ScallopSui {
   async openObligation() {
     const txBuilder = new ScallopTxBuilder(this.txBuilderParams);
     const txn = txBuilder.openObligationEntry();
+    return this.submitTxn(txBuilder);
+  }
+
+  async getObligations() {
+    const owner = this.suiKit.currentAddress();
+    const keyObjectRefs = await this.suiKit.rpcProvider.provider.getOwnedObjects({
+      owner,
+      filter: {
+        StructType: `${this.txBuilderParams.packageId}::obligation::ObligationKey`,
+      }
+    });
+    const keyIds = keyObjectRefs.data.map((keyObject) => keyObject?.data?.objectId).filter((id) => id !== undefined) as string[];
+    const keyObjects = await this.suiKit.rpcProvider.provider.multiGetObjects({
+      ids: keyIds,
+      options: {
+        showContent: true
+      }
+    });
+    const obligations: {id: string, keyId: string}[] = [];
+    for(const keyObject of keyObjects) {
+      const keyId = getObjectId(keyObject);
+      const fields = getObjectFields(keyObject) as any;
+      const obligationId = fields['ownership']['fields']['of'];
+      obligations.push({id: obligationId, keyId})
+    }
+    return obligations;
+  }
+
+  async addCollateral(obligationId: string, amount: number, coinType: string) {
+    const txBuilder = new ScallopTxBuilder(this.txBuilderParams);
+    const coins = await this.suiKit.selectCoinsWithAmount(amount, coinType);
+    const [sendCoin, leftCoin] = txBuilder.suiTxBlock.takeAmountFromCoins(coins, amount);
+    txBuilder.addCollateral(obligationId, sendCoin, coinType);
+    txBuilder.transferObjects([leftCoin], this.suiKit.currentAddress());
+    return this.submitTxn(txBuilder);
+  }
+
+  async takeCollateral(obligationId: string, obligationKeyId: string, amount: number, coinType: string) {
+    const txBuilder = new ScallopTxBuilder(this.txBuilderParams);
+    const txn = txBuilder.takeCollateralEntry(obligationId, obligationKeyId, amount, coinType);
     return this.submitTxn(txBuilder);
   }
 

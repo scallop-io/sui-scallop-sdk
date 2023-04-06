@@ -43,6 +43,14 @@ export class ScallopTxBuilder {
     return this.suiTxBlock;
   }
 
+  registerCoinDecimals(coinMetaId: string) {
+    const target = `${this.packageId}::coin_decimals_registry::register_decimals`;
+    this.suiTxBlock.moveCall(target, [this.coinDecimalsRegistryId, coinMetaId]);
+    return this.suiTxBlock;
+  }
+
+
+
   openObligation() {
     const target = `${this.packageId}::open_obligation::open_obligation`;
     return this.suiTxBlock.moveCall(target, []);
@@ -51,21 +59,6 @@ export class ScallopTxBuilder {
   openObligationEntry() {
     const target = `${this.packageId}::open_obligation::open_obligation_entry`;
     this.suiTxBlock.moveCall(target, []);
-    return this.suiTxBlock;
-  }
-
-  // TODO: remove this after test is done
-  initMarketForTest(usdcTreasuryId: string) {
-    // Require adminCap for this action
-    if (!this.adminCapId) throw new Error('adminCapId is required for initMarketForTest');
-    const target = `${this.packageId}::app_test::init_market`;
-    this.suiTxBlock.moveCall(target, [this.marketId, this.adminCapId, usdcTreasuryId, SUI_CLOCK_OBJECT_ID]);
-    return this.suiTxBlock;
-  }
-
-  registerCoinDecimals(coinMetaId: string) {
-    const target = `${this.packageId}::coin_decimals_registry::register_decimals`;
-    this.suiTxBlock.moveCall(target, [this.coinDecimalsRegistryId, coinMetaId]);
     return this.suiTxBlock;
   }
 
@@ -146,4 +139,14 @@ export class ScallopTxBuilder {
     const target = `${this.packageId}::${coinName}::mint`;
     return this.suiTxBlock.moveCall(target, [treasuryId]);
   }
+
+  // TODO: remove this after test is done
+  initMarketForTest(usdcTreasuryId: string) {
+    // Require adminCap for this action
+    if (!this.adminCapId) throw new Error('adminCapId is required for initMarketForTest');
+    const target = `${this.packageId}::app_test::init_market`;
+    this.suiTxBlock.moveCall(target, [this.marketId, this.adminCapId, usdcTreasuryId, SUI_CLOCK_OBJECT_ID]);
+    return this.suiTxBlock;
+  }
+
 }
