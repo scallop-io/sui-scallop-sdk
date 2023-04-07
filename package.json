@@ -38,10 +38,10 @@
     "build:types": "tsc --build"
   },
   "dependencies": {
-    "@scallop-dao/sui-kit": "../sui-toolkit"
+    "@mysten/sui.js": "^0.31.0",
+    "@scallop-dao/sui-kit": "^0.30.6"
   },
   "devDependencies": {
-    "@mysten/sui.js": "^0.30.0",
     "dotenv": "^16.0.3",
     "tsup": "^6.7.0",
     "typescript": "^5.0.3"
