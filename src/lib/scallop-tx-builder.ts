@@ -143,6 +143,13 @@ export class ScallopTxBuilder {
     return this.suiTxBlock.moveCall(target, [treasuryId]);
   }
 
+  mintTestCoinEntry(treasuryId: SuiTxArg, coinName: 'btc' | 'eth' | 'usdc', recipient: string) {
+    const target = `${this.packageId}::${coinName}::mint`;
+    const coin =  this.suiTxBlock.moveCall(target, [treasuryId]);
+    this.suiTxBlock.transferObjects([coin], recipient);
+    return this.suiTxBlock;
+  }
+
   // TODO: remove this after test is done
   initMarketForTest(usdcTreasuryId: SuiTxArg) {
     // Require adminCap for this action
