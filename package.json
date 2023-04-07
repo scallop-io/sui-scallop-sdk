@@ -1,6 +1,5 @@
 {
-  "name": "@scallop-dao/scallop-sui",
-  "author": "Scallop Dao",
+  "name": "@scallop-io/sui-sdk",
   "version": "0.1.0",
   "description": "Tookit for interacting with Scallop on SUI",
   "keywords": [
@@ -9,13 +8,19 @@
     "move",
     "Scallop"
   ],
+  "author": "team@scallop.io",
+  "homepage": "https://github.com/scallop-io/sui-scallop-sdk#readme",
+  "bugs": "https://github.com/scallop-io/sui-scallop-sdk/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scallop-io/sui-scallop-sdk.git"
+  },
   "license": "Apache-2.0",
-  "files": [
-    "dist",
-    "src"
-  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -27,13 +32,14 @@
       "require": "./dist/index.js"
     }
   },
-  "publishConfig": {
-    "access": "public"
-  },
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
-    "publish": "npm run clean && npm run build && npm publish",
+    "publish": "pnpm run clean && pnpm run build && pnpm publish",
     "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
-    "build": "npm run build:types && npm run build:tsup",
+    "build": "pnpm run build:types && pnpm run build:tsup",
     "build:tsup": "tsup ./src/index.ts --format esm,cjs --sourcemap",
     "build:types": "tsc --build"
   },
