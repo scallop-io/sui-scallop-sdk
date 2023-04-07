@@ -54,7 +54,7 @@ export class ScallopSui {
         StructType: `${this.txBuilderParams.packageId}::obligation::ObligationKey`,
       }
     });
-    const keyIds = keyObjectRefs.data.map((keyObject) => keyObject?.data?.objectId).filter((id) => id !== undefined) as string[];
+    const keyIds = keyObjectRefs.data.map((ref: any) => ref?.data?.objectId).filter((id: any) => id !== undefined) as string[];
     const keyObjects = await this.suiKit.getObjects(keyIds);
     const obligations: {id: string, keyId: string}[] = [];
     for(const keyObject of keyObjects) {
