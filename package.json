@@ -37,7 +37,6 @@
     "src"
   ],
   "scripts": {
-    "publish": "pnpm run clean && pnpm run build && pnpm publish",
     "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
     "build": "pnpm run build:types && pnpm run build:tsup",
     "build:tsup": "tsup ./src/index.ts --format esm,cjs --sourcemap",
