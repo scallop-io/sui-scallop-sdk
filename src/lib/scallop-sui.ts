@@ -46,7 +46,7 @@ export class ScallopSui {
     return this.submitTxn(txBuilder);
   }
 
-  async getObligations(address: string) {
+  async getObligations(address?: string) {
     const owner = address || this.suiKit.currentAddress();
     const keyObjectRefs = await this.suiKit.rpcProvider.provider.getOwnedObjects({
       owner,
