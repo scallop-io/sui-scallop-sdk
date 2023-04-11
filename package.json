@@ -4,9 +4,9 @@
   "description": "Tookit for interacting with Scallop on SUI",
   "keywords": [
     "sui",
-    "scallop dao",
+    "scallop labs",
     "move",
-    "Scallop"
+    "blockchain"
   ],
   "author": "team@scallop.io",
   "homepage": "https://github.com/scallop-io/sui-scallop-sdk#readme",
