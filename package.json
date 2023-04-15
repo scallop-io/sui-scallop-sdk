@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Tookit for interacting with Scallop on SUI",
   "keywords": [
     "sui",
@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@mysten/sui.js": "^0.32.0",
-    "@scallop-dao/sui-kit": "^0.32.0"
+    "@scallop-dao/sui-kit": "^0.32.5"
   },
   "devDependencies": {
     "dotenv": "^16.0.3",
