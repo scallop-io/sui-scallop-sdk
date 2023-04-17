@@ -4,6 +4,7 @@ export type TxBuilderParams = {
   packageId: string;
   marketId: string;
   coinDecimalsRegistryId: string;
+  priceFeedsId: string;
   adminCapId?: string;
 }
 export class ScallopTxBuilder {
@@ -11,6 +12,7 @@ export class ScallopTxBuilder {
   public packageId: string;
   public marketId: string;
   public coinDecimalsRegistryId: string;
+  public priceFeedsId: string;
   public adminCapId?: string;
 
   constructor(params: TxBuilderParams) {
@@ -19,6 +21,7 @@ export class ScallopTxBuilder {
     this.marketId = params.marketId;
     this.coinDecimalsRegistryId = params.coinDecimalsRegistryId;
     this.adminCapId = params.adminCapId;
+    this.priceFeedsId = params.priceFeedsId;
   }
 
   // return the transactionBlock compitable with @mysten/sui.js
@@ -68,20 +71,20 @@ export class ScallopTxBuilder {
     this.suiTxBlock.moveCall(target, [obligationId, this.marketId, coinId], typeArgs);
     return this.suiTxBlock;
   }
-  takeCollateral(obligationId: SuiTxArg, obligationKeyId: SuiTxArg, withdarwAmount: number, collateralType: string) {
+  takeCollateral(obligationId: SuiTxArg, obligationKeyId: SuiTxArg, withdrawAmount: number, collateralType: string) {
     const target = `${this.packageId}::withdraw_collateral::withdraw_collateral`;
     return this.suiTxBlock.moveCall(
       target,
-      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, withdarwAmount, SUI_CLOCK_OBJECT_ID],
+      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, withdrawAmount, this.priceFeedsId, SUI_CLOCK_OBJECT_ID],
       [collateralType]
     );
   }
 
-  takeCollateralEntry(obligationId: SuiTxArg, obligationKeyId: SuiTxArg, withdarwAmount: number, collateralType: string) {
+  takeCollateralEntry(obligationId: SuiTxArg, obligationKeyId: SuiTxArg, withdrawAmount: number, collateralType: string) {
     const target = `${this.packageId}::withdraw_collateral::withdraw_collateral_entry`;
     return this.suiTxBlock.moveCall(
       target,
-      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, withdarwAmount, SUI_CLOCK_OBJECT_ID],
+      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, withdrawAmount, this.priceFeedsId, SUI_CLOCK_OBJECT_ID],
       [collateralType]
     );
   }
@@ -90,7 +93,7 @@ export class ScallopTxBuilder {
     const target = `${this.packageId}::borrow::borrow`;
     return this.suiTxBlock.moveCall(
       target,
-      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, borrowAmount, SUI_CLOCK_OBJECT_ID],
+      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, borrowAmount, this.priceFeedsId, SUI_CLOCK_OBJECT_ID],
       [debtType]
     );
   }
@@ -99,7 +102,7 @@ export class ScallopTxBuilder {
     const target = `${this.packageId}::borrow::borrow_entry`;
     this.suiTxBlock.moveCall(
       target,
-      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, borrowAmount, SUI_CLOCK_OBJECT_ID],
+      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, borrowAmount, this.priceFeedsId, SUI_CLOCK_OBJECT_ID],
       [debtType]
     );
     return this.suiTxBlock;
@@ -131,9 +134,10 @@ export class ScallopTxBuilder {
     return this.suiTxBlock.moveCall(target, [this.marketId, marketCoinId, SUI_CLOCK_OBJECT_ID], typeArgs);
   }
 
-  withdrawEntry(marketCoinId: SuiTxArg) {
+  withdrawEntry(marketCoinId: SuiTxArg, coinType: string) {
     const target = `${this.packageId}::redeem::redeem_entry`;
-    this.suiTxBlock.moveCall(target, [this.marketId, marketCoinId, SUI_CLOCK_OBJECT_ID]);
+    const typeArgs = [coinType];
+    this.suiTxBlock.moveCall(target, [this.marketId, marketCoinId, SUI_CLOCK_OBJECT_ID], typeArgs);
     return this.suiTxBlock;
   }
 
@@ -151,11 +155,11 @@ export class ScallopTxBuilder {
   }
 
   // TODO: remove this after test is done
-  initMarketForTest(usdcTreasuryId: SuiTxArg) {
+  initMarketForTest(usdcTreasuryId: SuiTxArg, coinMetaUsdc: SuiTxArg, coinMetaEth: SuiTxArg, priceFeedCap: SuiTxArg) {
     // Require adminCap for this action
     if (!this.adminCapId) throw new Error('adminCapId is required for initMarketForTest');
     const target = `${this.packageId}::app_test::init_market`;
-    this.suiTxBlock.moveCall(target, [this.marketId, this.adminCapId, usdcTreasuryId, SUI_CLOCK_OBJECT_ID]);
+    this.suiTxBlock.moveCall(target, [this.marketId, this.adminCapId, usdcTreasuryId, this.coinDecimalsRegistryId, coinMetaUsdc, coinMetaEth, priceFeedCap, this.priceFeedsId, SUI_CLOCK_OBJECT_ID]);
     return this.suiTxBlock;
   }
 }
