@@ -1,14 +1,17 @@
-export const usdcTreasuryId = '0x0a82641002dd04f5679e6eb9d24d0ce28309bbd5665b0bc66627d22c7661651b';
-export const usdcMetaDataId = '0xf984f0ad7ca1a891491c049a2be383c245c29f91f0e13bca5c1ca01ccb220552';
+export const usdcTreasuryId = '0xa1ec08a94410ba755f26d041a102eb6002b01678c4d014e6833cbf764f576337';
+export const usdcMetaDataId = '0x76debb9198ccda7cc66471ba959b8b9285b2c31dc63884daf7631945a45794c1';
 
-export const ethTreasuryId = '0x3740ea911206183ba4a0d438e2ff3ca6e3e49bdae652ad05b4341136a9ae3152';
-export const ethMetaDataId = '0x9f9a799879f32a3aee0c0aa5a11a505b8d3c8c18c789bf2832968e573088a858';
+export const ethTreasuryId = '0xaa6e06c868a8e5c66ce8ab24728be8957e51c952b24aaadd8060a2113f00127a';
+export const ethMetaDataId = '0x040f4cb13205e5980d4ac02d27d329b1308d8be70f1b747cac2e95c4450e0ca3';
 
-export const coinDecimalsRegistryId = '0x1a6a91f1a239bfbeb40d50d54bc4694e12fc90a41e709db562da322653e13e22';
+export const coinDecimalsRegistryId = '0xf4873124c00a84a0dda2f6220a0a3972f8ba1631e76d29359c4d84b1b06e3b0b';
 
-export const marketId = '0x85f343bc6c224ca1ca266d042cbb8ab9bf1ef745c752771c90b2ad3a1b759607';
-export const adminCapId = '0xfa40e1c1dea04a174d5693e4afa277ca10c9ab46d58733e5954990181e24f7df';
+export const marketId = '0x3cc5ff42721b19429348e6a81317e5f9c4b03d7932762649716537f0f7bb6e04';
+export const adminCapId = '0xdffa4a6427fcdebe09bdd9abc621b54586b87f383fb64d4d2ee23cdda31d92b3';
 
-export const packageId = '0x3b2e37e57dead98f7f90ec0542565073825f5057fc32f41c9d4ffd8618fba875';
+export const packageId = '0xf6d2052e5c30fd27628fa005c71bbf22393606197a001281e44ad9933770ccbf';
 
-export const obligationId = '0x8921f3727368bf625a18de30290f65e20d8e12336a1f0c38c4cd4f7f342e005c';
+export const obligationId = '0xfccd9f1dd6821bfb3d7529b657410cf338fec2ef432fdc5f927b4ace0c11e9ba';
+
+export const priceFeedsId = '0x10e8b9c54430d0319345d6529a343db417fbb30ecd90bd4baeb2a0ac6fa5e94d';
+export const priceFeedsCapId = '0x0989b54721b18d68866b02395ecd67ff1946a6288e966167b26908dab106f11d';
