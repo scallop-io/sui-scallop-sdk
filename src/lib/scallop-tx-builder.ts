@@ -165,6 +165,7 @@ export class ScallopTxBuilder {
   initMarketForTest(usdcTreasuryId: SuiTxArg, coinMetaUsdc: SuiTxArg, coinMetaEth: SuiTxArg) {
     // Require adminCap for this action
     if (!this.adminCapId) throw new Error('adminCapId is required for initMarketForTest');
+    if (!this.priceFeedCapId) throw new Error('priceFeedCapId is required for initMarketForTest');
     const target = `${this.packageId}::app_test::init_market`;
     this.suiTxBlock.moveCall(target, [this.marketId, this.adminCapId, usdcTreasuryId, this.coinDecimalsRegistryId, coinMetaUsdc, coinMetaEth, this.priceFeedCapId, this.priceFeedsId, SUI_CLOCK_OBJECT_ID]);
     return this.suiTxBlock;
