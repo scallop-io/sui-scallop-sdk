@@ -1,13 +1,13 @@
 {
-  "name": "@scallop-dao/scallop-sui",
+  "name": "@scallop-io/scallop-sui",
   "author": "Scallop Dao",
   "version": "0.1.0",
   "description": "Tookit for interacting with Scallop on SUI",
   "keywords": [
     "sui",
-    "scallop dao",
+    "scallop labs",
     "move",
-    "Scallop"
+    "blockchain"
   ],
   "license": "Apache-2.0",
   "files": [

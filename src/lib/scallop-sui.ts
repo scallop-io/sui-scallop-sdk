@@ -57,6 +57,8 @@ export class ScallopSui {
     sender = sender || this.suiKit.currentAddress();
     txBuilder.transferObjects([leftCoin], sender);
     txBuilder.transferObjects([obligationKey], sender);
+
+    txBuilder.suiTxBlock.txBlock.setGasBudget(3 * 10 ** 9);
     return this.submitTxn(txBuilder);
   }
 
