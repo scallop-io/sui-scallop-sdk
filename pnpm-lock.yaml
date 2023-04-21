@@ -2,11 +2,11 @@ lockfileVersion: '6.0'
 
 dependencies:
   '@mysten/sui.js':
-    specifier: ^0.32.0
-    version: 0.32.0(typescript@5.0.3)
+    specifier: ^0.32.1
+    version: 0.32.1(typescript@5.0.3)
   '@scallop-dao/sui-kit':
-    specifier: ^0.32.5
-    version: 0.32.5(@mysten/sui.js@0.32.0)
+    specifier: ^0.32.10
+    version: 0.32.10(@mysten/sui.js@0.32.1)
 
 devDependencies:
   dotenv:
@@ -256,8 +256,8 @@ packages:
       bs58: 5.0.0
     dev: false
 
-  /@mysten/sui.js@0.32.0(typescript@5.0.3):
-    resolution: {integrity: sha512-HuvV+oKxkhVvdeVnDacApS+ga5VPUWMHPuDofepsynGibe2Ho1GKt5bcn047CXpBy0sloR9slY1oXvs44v9FHQ==}
+  /@mysten/sui.js@0.32.1(typescript@5.0.3):
+    resolution: {integrity: sha512-HD3D/3g//dx5e/1W42krEv4+Zl5PP0faH229jFOhnOktIRGxRrDfb6eU2+juclTug2e68JseTiX2QulIh+2/FQ==}
     engines: {node: '>=16'}
     dependencies:
       '@mysten/bcs': 0.7.0
@@ -320,13 +320,13 @@ packages:
     resolution: {integrity: sha512-Aq58f5HiWdyDlFffbbSjAlv596h/cOnt2DO1w3DOC7OJ5EHs0hd/nycJfiu9RJbT6Yk6F1knnRRXNSpxoIVZ9Q==}
     dev: false
 
-  /@scallop-dao/sui-kit@0.32.5(@mysten/sui.js@0.32.0):
-    resolution: {integrity: sha512-x4/Mxw0+FeqsfuXnrb1Yn0RiYhm/egyuuih3oXFnyUq5hp0lrqDA0WsjI/BWjatqI3oBnrN4vN059k2IoK5QCw==}
+  /@scallop-dao/sui-kit@0.32.10(@mysten/sui.js@0.32.1):
+    resolution: {integrity: sha512-U7JRdj0ZxQs4hpe2raWpz+3URmbK1W8S/Accb6sjmJajpoR13JRsutm6MuDIELhUtg/VJJzYrqLOcHLrO36+LA==}
     engines: {node: '>=16'}
     peerDependencies:
-      '@mysten/sui.js': ^0.32.0
+      '@mysten/sui.js': ^0.32.1
     dependencies:
-      '@mysten/sui.js': 0.32.0(typescript@5.0.3)
+      '@mysten/sui.js': 0.32.1(typescript@5.0.3)
       '@scure/bip39': 1.2.0
       assert: 2.0.0
       colorts: 0.1.63
