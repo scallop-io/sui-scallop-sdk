@@ -52,8 +52,6 @@ export class ScallopTxBuilder {
     return this.suiTxBlock;
   }
 
-
-
   openObligation() {
     const target = `${this.packageId}::open_obligation::open_obligation`;
     return this.suiTxBlock.moveCall(target, []);
@@ -62,6 +60,12 @@ export class ScallopTxBuilder {
   openObligationEntry() {
     const target = `${this.packageId}::open_obligation::open_obligation_entry`;
     this.suiTxBlock.moveCall(target, []);
+    return this.suiTxBlock;
+  }
+
+  returnObligationHotPotato(obligation: SuiTxArg, obligationHotPotato: SuiTxArg) {
+    const target = `${this.packageId}::open_obligation::return_obligation`;
+    this.suiTxBlock.moveCall(target, [obligation, obligationHotPotato]);
     return this.suiTxBlock;
   }
 

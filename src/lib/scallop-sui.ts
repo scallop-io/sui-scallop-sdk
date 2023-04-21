@@ -46,8 +46,22 @@ export class ScallopSui {
     return this.submitTxn(txBuilder);
   }
 
-  async getObligations(address?: string) {
-    const owner = address || this.suiKit.currentAddress();
+  async openObligationAndAddCollateral(amount: number, coinType: string, sender?: string) {
+    const txBuilder = new ScallopTxBuilder(this.txBuilderParams);
+    const [obligation, obligationKey, hotPotato] = txBuilder.openObligation();
+    const coins = await this.suiKit.selectCoinsWithAmount(amount, coinType);
+    const [sendCoin, leftCoin] = txBuilder.suiTxBlock.takeAmountFromCoins(coins, amount);
+    txBuilder.addCollateral(obligation, sendCoin, coinType);
+    txBuilder.returnObligationHotPotato(obligation, hotPotato);
+
+    sender = sender || this.suiKit.currentAddress();
+    txBuilder.transferObjects([leftCoin], sender);
+    txBuilder.transferObjects([obligationKey], sender);
+    return this.submitTxn(txBuilder);
+  }
+
+  async getObligations() {
+    const owner = this.suiKit.currentAddress();
     const keyObjectRefs = await this.suiKit.rpcProvider.provider.getOwnedObjects({
       owner,
       filter: {
