@@ -6,6 +6,7 @@ export type TxBuilderParams = {
   coinDecimalsRegistryId: string;
   priceFeedsId: string;
   adminCapId?: string;
+  priceFeedCapId?: string;
 }
 export class ScallopTxBuilder {
   public suiTxBlock: SuiTxBlock;
@@ -14,6 +15,7 @@ export class ScallopTxBuilder {
   public coinDecimalsRegistryId: string;
   public priceFeedsId: string;
   public adminCapId?: string;
+  public priceFeedCapId?: string;
 
   constructor(params: TxBuilderParams) {
     this.suiTxBlock = new SuiTxBlock();
@@ -22,6 +24,7 @@ export class ScallopTxBuilder {
     this.coinDecimalsRegistryId = params.coinDecimalsRegistryId;
     this.adminCapId = params.adminCapId;
     this.priceFeedsId = params.priceFeedsId;
+    this.priceFeedCapId = params.priceFeedCapId;
   }
 
   // return the transactionBlock compitable with @mysten/sui.js
@@ -159,11 +162,11 @@ export class ScallopTxBuilder {
   }
 
   // TODO: remove this after test is done
-  initMarketForTest(usdcTreasuryId: SuiTxArg, coinMetaUsdc: SuiTxArg, coinMetaEth: SuiTxArg, priceFeedCap: SuiTxArg) {
+  initMarketForTest(usdcTreasuryId: SuiTxArg, coinMetaUsdc: SuiTxArg, coinMetaEth: SuiTxArg) {
     // Require adminCap for this action
     if (!this.adminCapId) throw new Error('adminCapId is required for initMarketForTest');
     const target = `${this.packageId}::app_test::init_market`;
-    this.suiTxBlock.moveCall(target, [this.marketId, this.adminCapId, usdcTreasuryId, this.coinDecimalsRegistryId, coinMetaUsdc, coinMetaEth, priceFeedCap, this.priceFeedsId, SUI_CLOCK_OBJECT_ID]);
+    this.suiTxBlock.moveCall(target, [this.marketId, this.adminCapId, usdcTreasuryId, this.coinDecimalsRegistryId, coinMetaUsdc, coinMetaEth, this.priceFeedCapId, this.priceFeedsId, SUI_CLOCK_OBJECT_ID]);
     return this.suiTxBlock;
   }
 }
