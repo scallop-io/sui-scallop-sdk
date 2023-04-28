@@ -4,18 +4,21 @@ export type TxBuilderParams = {
   packageId: string;
   marketId: string;
   coinDecimalsRegistryId: string;
-  priceFeedsId: string;
+  switchboardBundleId: string;
+  switchboardRegistryId: string;
+  switchboardAggregatorIds: string[];
   adminCapId?: string;
-  priceFeedCapId?: string;
 }
 export class ScallopTxBuilder {
   public suiTxBlock: SuiTxBlock;
   public packageId: string;
   public marketId: string;
   public coinDecimalsRegistryId: string;
-  public priceFeedsId: string;
+  public switchboardBundleId: string;
+  public switchboardRegistryId: string;
+  public switchboardAggregatorIds: string[];
+  public switchboardRegistryCapId?: string;
   public adminCapId?: string;
-  public priceFeedCapId?: string;
 
   constructor(params: TxBuilderParams) {
     this.suiTxBlock = new SuiTxBlock();
@@ -23,8 +26,9 @@ export class ScallopTxBuilder {
     this.marketId = params.marketId;
     this.coinDecimalsRegistryId = params.coinDecimalsRegistryId;
     this.adminCapId = params.adminCapId;
-    this.priceFeedsId = params.priceFeedsId;
-    this.priceFeedCapId = params.priceFeedCapId;
+    this.switchboardBundleId = params.switchboardBundleId;
+    this.switchboardRegistryId = params.switchboardRegistryId;
+    this.switchboardAggregatorIds = params.switchboardAggregatorIds;
   }
 
   // return the transactionBlock compitable with @mysten/sui.js
@@ -55,6 +59,15 @@ export class ScallopTxBuilder {
     return this.suiTxBlock;
   }
 
+  registerSwitchboardAggregator(aggregatorId: string) {
+    if (!this.switchboardRegistryCapId) {
+      throw new Error('switchboardRegistryCapId is required to register aggregator');
+    };
+    const target = `${this.packageId}::switchboard_registry::register_aggregator`;
+    this.suiTxBlock.moveCall(target, [this.switchboardRegistryCapId, this.switchboardRegistryId, aggregatorId]);
+    return this.suiTxBlock;
+  }
+
   openObligation() {
     const target = `${this.packageId}::open_obligation::open_obligation`;
     return this.suiTxBlock.moveCall(target, []);
@@ -82,7 +95,7 @@ export class ScallopTxBuilder {
     const target = `${this.packageId}::withdraw_collateral::withdraw_collateral`;
     return this.suiTxBlock.moveCall(
       target,
-      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, withdrawAmount, this.priceFeedsId, SUI_CLOCK_OBJECT_ID],
+      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, withdrawAmount, this.switchboardBundleId, SUI_CLOCK_OBJECT_ID],
       [collateralType]
     );
   }
@@ -91,25 +104,27 @@ export class ScallopTxBuilder {
     const target = `${this.packageId}::withdraw_collateral::withdraw_collateral_entry`;
     return this.suiTxBlock.moveCall(
       target,
-      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, withdrawAmount, this.priceFeedsId, SUI_CLOCK_OBJECT_ID],
+      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, withdrawAmount, this.switchboardBundleId, SUI_CLOCK_OBJECT_ID],
       [collateralType]
     );
   }
 
   borrow(obligationId: SuiTxArg, obligationKeyId: SuiTxArg, borrowAmount: number, debtType: string) {
+    this._bundleSwitchboardAggregators(this.switchboardAggregatorIds);
     const target = `${this.packageId}::borrow::borrow`;
     return this.suiTxBlock.moveCall(
       target,
-      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, borrowAmount, this.priceFeedsId, SUI_CLOCK_OBJECT_ID],
+      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, borrowAmount, this.switchboardBundleId, SUI_CLOCK_OBJECT_ID],
       [debtType]
     );
   }
 
   borrowEntry(obligationId: SuiTxArg, obligationKeyId: SuiTxArg, borrowAmount: number, debtType: string) {
+    this._bundleSwitchboardAggregators(this.switchboardAggregatorIds);
     const target = `${this.packageId}::borrow::borrow_entry`;
     this.suiTxBlock.moveCall(
       target,
-      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, borrowAmount, this.priceFeedsId, SUI_CLOCK_OBJECT_ID],
+      [obligationId, obligationKeyId, this.marketId, this.coinDecimalsRegistryId, borrowAmount, this.switchboardBundleId, SUI_CLOCK_OBJECT_ID],
       [debtType]
     );
     return this.suiTxBlock;
@@ -136,12 +151,14 @@ export class ScallopTxBuilder {
   }
 
   withdraw(marketCoinId: SuiTxArg, coinType: string) {
+    this._bundleSwitchboardAggregators(this.switchboardAggregatorIds);
     const target = `${this.packageId}::redeem::redeem`;
     const typeArgs = [coinType];
     return this.suiTxBlock.moveCall(target, [this.marketId, marketCoinId, SUI_CLOCK_OBJECT_ID], typeArgs);
   }
 
   withdrawEntry(marketCoinId: SuiTxArg, coinType: string) {
+    this._bundleSwitchboardAggregators(this.switchboardAggregatorIds);
     const target = `${this.packageId}::redeem::redeem_entry`;
     const typeArgs = [coinType];
     this.suiTxBlock.moveCall(target, [this.marketId, marketCoinId, SUI_CLOCK_OBJECT_ID], typeArgs);
@@ -161,13 +178,11 @@ export class ScallopTxBuilder {
     return this.suiTxBlock;
   }
 
-  // TODO: remove this after test is done
-  initMarketForTest(usdcTreasuryId: SuiTxArg, coinMetaUsdc: SuiTxArg, coinMetaEth: SuiTxArg) {
-    // Require adminCap for this action
-    if (!this.adminCapId) throw new Error('adminCapId is required for initMarketForTest');
-    if (!this.priceFeedCapId) throw new Error('priceFeedCapId is required for initMarketForTest');
-    const target = `${this.packageId}::app_test::init_market`;
-    this.suiTxBlock.moveCall(target, [this.marketId, this.adminCapId, usdcTreasuryId, this.coinDecimalsRegistryId, coinMetaUsdc, coinMetaEth, this.priceFeedCapId, this.priceFeedsId, SUI_CLOCK_OBJECT_ID]);
+  _bundleSwitchboardAggregators(aggregatorIds: SuiTxArg[]) {
+    const target = `${this.packageId}::switchboard_adaptor::bundle_switchboard_aggregators`;
+    for (const aggregatorId of aggregatorIds) {
+      this.suiTxBlock.moveCall(target, [this.switchboardBundleId, this.switchboardRegistryId, aggregatorId]);
+    }
     return this.suiTxBlock;
   }
 }
