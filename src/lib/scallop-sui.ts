@@ -135,6 +135,12 @@ export class ScallopSui {
     return this.submitTxn(txBuilder);
   }
 
+  async registerSwitchboardAggregator(aggregatorId: string) {
+    const txBuilder = new ScallopTxBuilder(this.txBuilderParams);
+    txBuilder.registerSwitchboardAggregator(aggregatorId);
+    return this.submitTxn(txBuilder);
+  }
+
   // TODO: remove this after test is done
   async mintTestCoin(treasuryId: string, coinName: 'eth' | 'btc' | 'usdc') {
     const txBuilder = new ScallopTxBuilder(this.txBuilderParams);
