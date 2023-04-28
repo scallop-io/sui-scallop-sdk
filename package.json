@@ -47,8 +47,8 @@
     "watch": "pnpm run clean & pnpm run watch:types & pnpm run watch:tsup"
   },
   "dependencies": {
-    "@mysten/sui.js": "^0.32.1",
-    "@scallop-dao/sui-kit": "^0.32.10"
+    "@mysten/sui.js": "^0.32.2",
+    "@scallop-dao/sui-kit": "^0.32.11"
   },
   "devDependencies": {
     "dotenv": "^16.0.3",
