@@ -1,4 +1,4 @@
-import { SuiKit, SuiKitParams, SuiTxBlock } from '@scallop-dao/sui-kit'
+import { SuiKit, SuiKitParams, SuiTxBlock } from '@scallop-io/sui-kit'
 import { ScallopTxBuilder, TxBuilderParams } from './scallop-tx-builder'
 // This is a bug related to pnpm and typescript. See https://github.com/microsoft/TypeScript/issues/47663
 import type { } from '@mysten/sui.js'

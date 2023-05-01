@@ -1,4 +1,4 @@
-import { SuiTxBlock, SUI_CLOCK_OBJECT_ID, SuiTxArg } from '@scallop-dao/sui-kit';
+import { SuiTxBlock, SUI_CLOCK_OBJECT_ID, SuiTxArg } from '@scallop-io/sui-kit';
 
 export type TxBuilderParams = {
   packageId: string;
