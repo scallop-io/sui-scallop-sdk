@@ -4,9 +4,9 @@ dependencies:
   '@mysten/sui.js':
     specifier: ^0.32.2
     version: 0.32.2
-  '@scallop-dao/sui-kit':
-    specifier: ^0.32.11
-    version: 0.32.11(@mysten/sui.js@0.32.2)
+  '@scallop-io/sui-kit':
+    specifier: ^0.33.0
+    version: 0.33.0(@mysten/sui.js@0.32.2)
 
 devDependencies:
   dotenv:
@@ -282,9 +282,9 @@ packages:
       fastq: 1.15.0
     dev: true
 
-  /@scallop-dao/sui-kit@0.32.11(@mysten/sui.js@0.32.2):
-    resolution: {integrity: sha512-+WAKrhMtdtqD2f9mYtxsveUH7FHmG4sdgWxLRfN7yvSzLEypXAzx8EoOSJ0p6FGq++heArg/V6yfI0Fk04aNxg==}
-    engines: {node: '>=16'}
+  /@scallop-io/sui-kit@0.33.0(@mysten/sui.js@0.32.2):
+    resolution: {integrity: sha512-AkF48okaL0EQYGDIliEOx1Vn4tuCDw0Vhr3YXE6PAenbZjt5juzFQ6OHFIxzrDyho35rzy6zGf0LpG7GBV4cqg==}
+    engines: {node: '>=18'}
     peerDependencies:
       '@mysten/sui.js': ^0.32.2
     dependencies:
