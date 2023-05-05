@@ -2,11 +2,11 @@ lockfileVersion: '6.0'
 
 dependencies:
   '@mysten/sui.js':
-    specifier: ^0.32.2
-    version: 0.32.2
-  '@scallop-io/sui-kit':
     specifier: ^0.33.0
-    version: 0.33.0(@mysten/sui.js@0.32.2)
+    version: 0.33.0
+  '@scallop-io/sui-kit':
+    specifier: ^0.33.1
+    version: 0.33.1(@mysten/sui.js@0.33.0)
 
 devDependencies:
   dotenv:
@@ -14,10 +14,10 @@ devDependencies:
     version: 16.0.3
   tsup:
     specifier: ^6.7.0
-    version: 6.7.0(typescript@5.0.3)
+    version: 6.7.0(typescript@5.0.4)
   typescript:
-    specifier: ^5.0.3
-    version: 5.0.3
+    specifier: ^5.0.4
+    version: 5.0.4
 
 packages:
 
@@ -232,8 +232,8 @@ packages:
       bs58: 5.0.0
     dev: false
 
-  /@mysten/sui.js@0.32.2:
-    resolution: {integrity: sha512-/Hm4xkGolJhqj8FvQr7QSHDTlxIvL52mtbOao9f75YjrBh7y1Uh9kbJSY7xiTF1NY9sv6p5hUVlYRJuM0Hvn9A==}
+  /@mysten/sui.js@0.33.0:
+    resolution: {integrity: sha512-vPswzowPoxYmexN+jKrSQ5uKWv8AoX30c11t8VAODCCXeCziq7Y27TEcYFsQmWJBIMU/hYw75kGj9oorJyXyKw==}
     engines: {node: '>=16'}
     dependencies:
       '@mysten/bcs': 0.7.1
@@ -282,13 +282,13 @@ packages:
       fastq: 1.15.0
     dev: true
 
-  /@scallop-io/sui-kit@0.33.0(@mysten/sui.js@0.32.2):
-    resolution: {integrity: sha512-AkF48okaL0EQYGDIliEOx1Vn4tuCDw0Vhr3YXE6PAenbZjt5juzFQ6OHFIxzrDyho35rzy6zGf0LpG7GBV4cqg==}
+  /@scallop-io/sui-kit@0.33.1(@mysten/sui.js@0.33.0):
+    resolution: {integrity: sha512-hHQH2TjO3ENBzlLPltyOa0AnRVe2q2d9Wuhn/Pb4/XL94zO8kzzakK+HhsjvXiTFiCqYCPrzJC9nhHekdCPpvw==}
     engines: {node: '>=18'}
     peerDependencies:
-      '@mysten/sui.js': ^0.32.2
+      '@mysten/sui.js': ^0.33.0
     dependencies:
-      '@mysten/sui.js': 0.32.2
+      '@mysten/sui.js': 0.33.0
       '@scure/bip39': 1.2.0
       assert: 2.0.0
       colorts: 0.1.63
@@ -1144,7 +1144,7 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
-  /tsup@6.7.0(typescript@5.0.3):
+  /tsup@6.7.0(typescript@5.0.4):
     resolution: {integrity: sha512-L3o8hGkaHnu5TdJns+mCqFsDBo83bJ44rlK7e6VdanIvpea4ArPcU3swWGsLVbXak1PqQx/V+SSmFPujBK+zEQ==}
     engines: {node: '>=14.18'}
     hasBin: true
@@ -1174,7 +1174,7 @@ packages:
       source-map: 0.8.0-beta.0
       sucrase: 3.31.0
       tree-kill: 1.2.2
-      typescript: 5.0.3
+      typescript: 5.0.4
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -1184,8 +1184,8 @@ packages:
     resolution: {integrity: sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw==}
     dev: false
 
-  /typescript@5.0.3:
-    resolution: {integrity: sha512-xv8mOEDnigb/tN9PSMTwSEqAnUvkoXMQlicOb0IUVDBSQCgBSaAAROUZYy2IcUy5qU6XajK5jjjO7TMWqBTKZA==}
+  /typescript@5.0.4:
+    resolution: {integrity: sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==}
     engines: {node: '>=12.20'}
     hasBin: true
     dev: true
