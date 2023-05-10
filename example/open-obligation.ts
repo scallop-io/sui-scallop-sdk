@@ -1,7 +1,13 @@
 import * as dotenv from 'dotenv';
 import { ScallopSui } from '../src';
-import { packageId, marketId, coinDecimalsRegistryId, adminCapId, priceFeedsId } from './object-ids';
-import { SHINAMI_DEVNET_FULLNODE } from './shinami-fullnodes'
+import {
+  packageId,
+  marketId,
+  coinDecimalsRegistryId,
+  adminCapId,
+  priceFeedsId,
+} from './object-ids';
+import { SHINAMI_DEVNET_FULLNODE } from './shinami-fullnodes';
 dotenv.config();
 
 (async () => {
@@ -13,9 +19,9 @@ dotenv.config();
     priceFeedsId,
     suiConfig: {
       mnemonics: process.env.MNEMONICS,
-      fullnodeUrl: SHINAMI_DEVNET_FULLNODE
-    }
+      fullnodeUrl: SHINAMI_DEVNET_FULLNODE,
+    },
   });
   const res = await scallopSui.openObligation();
-  console.log(res)
+  console.log(res);
 })();
