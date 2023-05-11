@@ -44,7 +44,11 @@
     "watch:tsup": "tsup ./src/index.ts --format esm,cjs --clean --splitting --watch",
     "watch:types": "tsc --watch",
     "watch": "pnpm run clean & pnpm run watch:types & pnpm run watch:tsup",
-    "format:fix": "prettier --write '**/*.{ts,json,md}'",
+    "test": "pnpm test:typecheck && pnpm test:unit",
+    "test:typecheck": "tsc -p ./test",
+    "test:unit": "vitest run --test-timeout=5000",
+    "test:watch": "vitest",
+    "format:fix": "prettier  --ignore-path 'dist/* docs/*' --write '**/*.{ts,json,md}'",
     "lint:fix": "eslint . --ext .ts --fix",
     "prepare": "husky install",
     "commit": "commit",
@@ -58,6 +62,7 @@
     "@commitlint/cli": "^17.6.3",
     "@commitlint/config-conventional": "^17.6.3",
     "@commitlint/prompt-cli": "^17.6.3",
+    "@types/node": "^20.1.2",
     "@typescript-eslint/eslint-plugin": "^5.59.5",
     "@typescript-eslint/parser": "^5.59.5",
     "dotenv": "^16.0.3",
@@ -69,7 +74,8 @@
     "prettier": "^2.8.8",
     "tsup": "^6.7.0",
     "typedoc": "^0.24.7",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "vitest": "^0.31.0"
   },
   "lint-staged": {
     "**/*.ts": [
