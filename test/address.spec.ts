@@ -1,15 +1,15 @@
 import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
 import { NetworkType } from '@scallop-io/sui-kit';
-import { ScallopAddressBuilder } from '../src';
+import { ScallopAddress } from '../src';
 import type { AddressesInterface } from '../src';
 
 dotenv.config();
 
-const NETWORK: NetworkType = 'devnet';
+const NETWORK: NetworkType = 'testnet';
 
-describe('Scallop Address Build handle the addresses', () => {
-  const addressBuilder = new ScallopAddressBuilder({
+describe('Test Scallop Address', () => {
+  const addressBuilder = new ScallopAddress({
     auth: process.env.API_KEY,
     network: NETWORK,
   });
@@ -34,6 +34,7 @@ describe('Scallop Address Build handle the addresses', () => {
     } else {
       oldAddresses = addressBuilder.getAddresses();
     }
+    // TODO: update to laterst addresses format
     const testAddresse: AddressesInterface = JSON.parse(`
         {
             "core": {
