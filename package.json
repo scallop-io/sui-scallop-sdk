@@ -56,7 +56,8 @@
   },
   "dependencies": {
     "@mysten/sui.js": "^0.33.0",
-    "@scallop-io/sui-kit": "^0.33.1"
+    "@scallop-io/sui-kit": "^0.33.1",
+    "axios": "^1.4.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.3",
@@ -127,6 +128,7 @@
     "rules": {
       "prettier/prettier": "warn",
       "@typescript-eslint/no-explicit-any": "off",
+      "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
         {

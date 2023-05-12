@@ -1,13 +1,13 @@
 import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
 import { NetworkType } from '@scallop-io/sui-kit';
-import { Scallop } from '../dist';
+import { Scallop } from '../src';
 
 dotenv.config();
 
 const NETWORK: NetworkType = 'testnet';
 
-describe('Scallop', () => {
+describe('Scallop interact with contract', () => {
   const scallopSDK = new Scallop({
     suiConfig: {
       secretKey: process.env.SECRE_KEY,
@@ -16,8 +16,6 @@ describe('Scallop', () => {
   });
 
   it('Initialize test', async () => {
-    console.log(scallopSDK);
-
     expect(!!scallopSDK).toBe(true);
   });
 });
