@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { API_BASE_URL } from '../constants';
-import type { AddressBuilderParams } from 'src/types/model';
+import type { AddressParams } from 'src/types/model';
 import type { AddressesInterface, AddressStringPath } from 'src/types/data';
 import type { NetworkType } from '@scallop-io/sui-kit';
 
@@ -175,7 +175,7 @@ const NEW_ADDRESSES: AddressesInterface = {
 /**
  * it provides methods for managing addresses.
  */
-export class ScallopAddressBuilder {
+export class ScallopAddress {
   private _apiClient: AxiosInstance;
   private _id?: string;
   private readonly _auth?: string;
@@ -184,9 +184,9 @@ export class ScallopAddressBuilder {
   private _addressesMap: Map<NetworkType, AddressesInterface>;
 
   /**
-   * @param params - The address builder parameters.
+   * @param params - The address parameters.
    */
-  public constructor(params?: AddressBuilderParams) {
+  public constructor(params?: AddressParams) {
     const { id, auth, network } = params ?? {};
 
     if (auth) this._auth = auth;
@@ -432,7 +432,7 @@ export class ScallopAddressBuilder {
 
   /**
    * Create a new address through the API and synchronize it back to the
-   * builder. If the `network` is not specified, the mainnet is used by default.
+   * instance. If the `network` is not specified, the mainnet is used by default.
    * If no `addresses` is provided, an addresses with all empty strings is created
    * by default.
    *
@@ -487,8 +487,8 @@ export class ScallopAddressBuilder {
   }
 
   /**
-   * It doesn't read the data stored in the address builder, but reads and
-   * synchronizes the data from the API into builder.
+   * It doesn't read the data stored in the address instance, but reads and
+   * synchronizes the data from the API into instance.
    *
    * @param id - The ID of the addresses to get.
    * @returns The addresses.
@@ -525,7 +525,7 @@ export class ScallopAddressBuilder {
 
   /**
    * Update the address through the API and synchronize it back to the
-   * builder. If the `network` is not specified, the mainnet is used by default.
+   * instance. If the `network` is not specified, the mainnet is used by default.
    * If no `addresses` is provided, an addresses with all empty strings is created
    * by default.
    *
@@ -587,7 +587,7 @@ export class ScallopAddressBuilder {
 
   /**
    * Deletes all addresses of a specified id through the API and synchronizes
-   * them back to the builder.
+   * them back to the instance.
    *
    * @param id - The ID of the addresses to delete.
    * @param auth - The authentication api key.

@@ -7,15 +7,20 @@ dotenv.config();
 
 const NETWORK: NetworkType = 'testnet';
 
-describe('Scallop interact with contract', () => {
+describe('Test Scallop interact with contract', () => {
   const scallopSDK = new Scallop({
-    suiConfig: {
-      secretKey: process.env.SECRE_KEY,
-      networkType: NETWORK,
-    },
+    secretKey: process.env.SECRE_KEY,
+    networkType: NETWORK,
   });
 
-  it('Initialize test', async () => {
+  it('Should get Scallop instance', async () => {
     expect(!!scallopSDK).toBe(true);
+  });
+
+  it('Should get market query data', async () => {
+    const client = await scallopSDK.createScallopClient();
+    const marketData = await client.queryMarket();
+    console.log(marketData);
+    expect(!!marketData).toBe(true);
   });
 });

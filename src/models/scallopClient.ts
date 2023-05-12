@@ -1,4 +1,6 @@
 import { SuiKit } from '@scallop-io/sui-kit';
+import { ScallopAddress } from './addressBuilder';
+import { ScallopTxBuilder } from './txBuilder';
 
 /**
  * ### Scallop Client
@@ -14,13 +16,39 @@ import { SuiKit } from '@scallop-io/sui-kit';
  */
 export class ScallopClient {
   private _suiKit: SuiKit;
+  private _address: ScallopAddress;
+  private _txBuilder: ScallopTxBuilder;
 
-  public constructor(suiKit: SuiKit) {
+  public constructor(
+    suiKit: SuiKit,
+    address: ScallopAddress,
+    txBuilder: ScallopTxBuilder
+  ) {
     this._suiKit = suiKit;
+    this._address = address;
+    this._txBuilder = txBuilder;
   }
 
-  public async queryMarket() {}
+  /**
+   * Query market data.
+   *
+   * @return Market data
+   */
+  public async queryMarket() {
+    const queryTxn = this._txBuilder.queryMarket(
+      this._address.get('core.packages.query.id'),
+      this._address.get('core.market')
+    );
+    const queryResult = await this._suiKit.inspectTxn(queryTxn);
+    const queryData = queryResult.events[0].parsedJson;
+    return queryData;
+  }
 
+  /**
+   * Query obligation data.
+   *
+   * @return Obligation data
+   */
   public async queryObligation() {}
 
   public async openObligation() {}
