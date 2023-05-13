@@ -4,6 +4,10 @@ import {
   SUPPORT_PACKAGES,
 } from '../constants/common';
 
+export type SupportCoinType = (typeof SUPPORT_COINS)[number];
+export type SupportOracleType = (typeof SUPPORT_ORACLES)[number];
+export type SupportPackageType = (typeof SUPPORT_PACKAGES)[number];
+
 export interface AddressesInterface {
   core: {
     market: string;
@@ -11,13 +15,13 @@ export interface AddressesInterface {
     coinDecimalsRegistry: string;
     coins: Partial<
       Record<
-        (typeof SUPPORT_COINS)[number],
+        SupportCoinType,
         {
           id: string;
           treasury: string;
           metaData: string;
           oracle: {
-            [K in (typeof SUPPORT_ORACLES)[number]]: K extends (typeof SUPPORT_ORACLES)[0]
+            [K in SupportOracleType]: K extends (typeof SUPPORT_ORACLES)[0]
               ? string
               : K extends (typeof SUPPORT_ORACLES)[1]
               ? string
@@ -32,7 +36,7 @@ export interface AddressesInterface {
       >
     >;
     oracles: {
-      [K in (typeof SUPPORT_ORACLES)[number]]: K extends (typeof SUPPORT_ORACLES)[0]
+      [K in SupportOracleType]: K extends (typeof SUPPORT_ORACLES)[0]
         ? {}
         : K extends (typeof SUPPORT_ORACLES)[1]
         ? {
@@ -49,7 +53,7 @@ export interface AddressesInterface {
     } & { xOracle: string; xOracleCap: string };
     packages: Partial<
       Record<
-        (typeof SUPPORT_PACKAGES)[number],
+        SupportPackageType,
         {
           id: string;
           upgradeCap: string;
