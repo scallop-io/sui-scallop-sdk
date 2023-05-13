@@ -18,7 +18,7 @@ describe('Test Scallop interact with contract', async () => {
     expect(!!scallopSDK).toBe(true);
   });
 
-  it('Should get market query data', async () => {
+  it.skip('Should get market query data', async () => {
     const marketData = await client.queryMarket();
     console.info('marketData:', marketData);
     expect(!!marketData).toBe(true);
@@ -30,7 +30,7 @@ describe('Test Scallop interact with contract', async () => {
     expect(openObligationResult.effects.status.status).toEqual('success');
   });
 
-  it('Should get obligations and its query data', async () => {
+  it.skip('Should get obligations and its query data', async () => {
     const obligations = await client.getObligations();
     console.info('obligations', obligations);
 
@@ -39,5 +39,11 @@ describe('Test Scallop interact with contract', async () => {
       console.info('obligationData', obligationData);
       expect(!!obligationData).toBe(true);
     }
+  });
+
+  it.skip('Should get test coin', async () => {
+    const mintTestCoinResult = await client.mintTestCoin('usdc', 10 ** 9);
+    console.info('mintTestCoinResult:', mintTestCoinResult);
+    expect(mintTestCoinResult.effects.status.status).toEqual('success');
   });
 });

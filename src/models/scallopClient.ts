@@ -2,6 +2,7 @@ import { normalizeSuiAddress } from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress } from './addressBuilder';
 import { ScallopTxBuilder } from './txBuilder';
+import type { SupportCoinType } from 'src/types';
 
 /**
  * ### Scallop Client
@@ -124,4 +125,37 @@ export class ScallopClient {
   public async withdraw() {}
   public async borrow() {}
   public async repay() {}
+
+  /**
+   * Mint and get test coin.
+   *
+   * @remarks
+   *  Only be used on the test network.
+   *
+   * @param coinName - Types of coins supported on the test network.
+   * @param amount - The amount of coins minted and received.
+   * @param receiveAddress - The wallet address that receives the coins.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @return Transaction block response or transaction block
+   */
+  public async mintTestCoin(
+    coinName: Exclude<SupportCoinType, 'sui'>,
+    amount: number,
+    receiveAddress: string = this._walletAddress,
+    sign: boolean = true
+  ) {
+    const recipient = receiveAddress || this._walletAddress;
+    this._txBuilder.mintTestCoinEntry(
+      this._address.get('core.packages.testCoin.id'),
+      this._address.get(`core.coins.${coinName}.treasury`),
+      coinName,
+      amount,
+      recipient
+    );
+    if (sign) {
+      return this._suiKit.signAndSendTxn(this._txBuilder.suiTxBlock);
+    } else {
+      return this._txBuilder.txBlock;
+    }
+  }
 }
