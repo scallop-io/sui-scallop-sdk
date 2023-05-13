@@ -52,7 +52,8 @@ export class Scallop {
    * @param walletAddress - When user cannot provide a secret key or mnemonic, the scallop client cannot directly derive the address of the transaction the user wants to sign. This argument specifies the wallet address for signing the transaction.
    * @return Scallop Client
    */
-  public async createScallopClient() {
-    return new ScallopClient(this.suiKit, this.address, this.tx);
+  public async createScallopClient(walletAddress?: string) {
+    await this.address.read();
+    return new ScallopClient(this.suiKit, this.address, this.tx, walletAddress);
   }
 }
