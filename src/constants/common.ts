@@ -1,6 +1,6 @@
 export const API_BASE_URL = 'https://sui.api.scallop.io';
 
-export const ADDRESSES_ID = '645345e36a73c38b35dc485f';
+export const ADDRESSES_ID = '645f2a57a7ace142bb6d7c17';
 
 export const SUPPORT_COINS = ['usdc', 'eth', 'btc', 'usdt', 'sui'] as const;
 
