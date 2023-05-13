@@ -2,7 +2,11 @@ import { normalizeSuiAddress } from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress } from './addressBuilder';
 import { ScallopTxBuilder } from './txBuilder';
-import type { SupportCoinType } from 'src/types';
+import type {
+  SupportCoinType,
+  MarketInterface,
+  ObligationInterface,
+} from 'src/types';
 
 /**
  * ### Scallop Client
@@ -48,7 +52,7 @@ export class ScallopClient {
       this._address.get('core.market')
     );
     const queryResult = await this._suiKit.inspectTxn(queryTxn);
-    const queryData = queryResult.events[0].parsedJson;
+    const queryData: MarketInterface = queryResult.events[0].parsedJson;
     return queryData;
   }
 
@@ -95,7 +99,7 @@ export class ScallopClient {
       obligationId
     );
     const queryResult = await this._suiKit.inspectTxn(queryTxn);
-    const queryData = queryResult.events[0].parsedJson;
+    const queryData: ObligationInterface = queryResult.events[0].parsedJson;
     return queryData;
   }
 

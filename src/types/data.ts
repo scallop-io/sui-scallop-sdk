@@ -8,6 +8,80 @@ export type SupportCoinType = (typeof SUPPORT_COINS)[number];
 export type SupportOracleType = (typeof SUPPORT_ORACLES)[number];
 export type SupportPackageType = (typeof SUPPORT_PACKAGES)[number];
 
+export interface MarketInterface {
+  collaterals: {
+    collateralFactor: {
+      value: string;
+    };
+    liquidationDiscount: {
+      value: string;
+    };
+    liquidationFactor: {
+      value: string;
+    };
+    liquidationPanelty: {
+      value: string;
+    };
+    liquidationReserveFactor: {
+      value: string;
+    };
+    maxCollateralAmount: string;
+    totalCollateralAmount: string;
+    type: {
+      name: string;
+    };
+  }[];
+  pools: {
+    baseBorrowRatePerSec: {
+      value: string;
+    };
+    borrowIndex: string;
+    cash: string;
+    debt: string;
+    highSlope: {
+      value: string;
+    };
+    interestRate: {
+      value: string;
+    };
+    kink: {
+      value: string;
+    };
+    lastUpdated: string;
+    lowSlope: {
+      value: string;
+    };
+    marketCoinSupply: string;
+    minBorrowAmount: string;
+    reserve: string;
+    reserveFactor: {
+      value: string;
+    };
+    borrowWeight: {
+      value: string;
+    };
+    type: {
+      name: string;
+    };
+  }[];
+}
+
+export interface ObligationInterface {
+  collaterals: {
+    type: {
+      name: string;
+    };
+    amount: string;
+  }[];
+  debts: {
+    type: {
+      name: string;
+    };
+    amount: string;
+    borrowIndex: string;
+  }[];
+}
+
 export interface AddressesInterface {
   core: {
     market: string;
