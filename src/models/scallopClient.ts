@@ -1,12 +1,15 @@
-import { normalizeSuiAddress } from '@mysten/sui.js';
+import { normalizeSuiAddress, SUI_TYPE_ARG } from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ScallopAddress } from './addressBuilder';
+import { ScallopAddress } from './scallopAddress';
+import { ScallopUtils } from './scallopUtils';
 import { ScallopTxBuilder } from './txBuilder';
 import type {
+  SupportAssetCoinType,
+  SupportCollateralCoinType,
   SupportCoinType,
   MarketInterface,
   ObligationInterface,
-} from 'src/types';
+} from '../types';
 
 /**
  * ### Scallop Client
@@ -17,19 +20,19 @@ import type {
  *
  * ```typescript
  * const clent  = new Scallop(<parameters>);
- * client.<depoist>();
+ * client.<interact functions>();
  * ```
  */
 export class ScallopClient {
   private _suiKit: SuiKit;
   private _address: ScallopAddress;
-  private _txBuilder: ScallopTxBuilder;
   private _walletAddress: string;
+
+  public utils: ScallopUtils;
 
   public constructor(
     suiKit: SuiKit,
     address: ScallopAddress,
-    txBuilder: ScallopTxBuilder,
     walletAddress?: string
   ) {
     const normalizedWalletAddress = normalizeSuiAddress(
@@ -37,8 +40,9 @@ export class ScallopClient {
     );
     this._suiKit = suiKit;
     this._address = address;
-    this._txBuilder = txBuilder;
     this._walletAddress = normalizedWalletAddress;
+
+    this.utils = new ScallopUtils(this._suiKit);
   }
 
   /**
@@ -47,7 +51,8 @@ export class ScallopClient {
    * @return Market data
    */
   public async queryMarket() {
-    const queryTxn = this._txBuilder.queryMarket(
+    const txBuilder = new ScallopTxBuilder();
+    const queryTxn = txBuilder.queryMarket(
       this._address.get('core.packages.query.id'),
       this._address.get('core.market')
     );
@@ -94,7 +99,8 @@ export class ScallopClient {
    * @return Obligation data
    */
   public async queryObligation(obligationId: string) {
-    const queryTxn = this._txBuilder.queryObligation(
+    const txBuilder = new ScallopTxBuilder();
+    const queryTxn = txBuilder.queryObligation(
       this._address.get('core.packages.query.id'),
       obligationId
     );
@@ -110,25 +116,333 @@ export class ScallopClient {
    * @return Transaction block response or transaction block
    */
   public async openObligation(sign: boolean = true) {
-    this._txBuilder.openObligationEntry(
+    const txBuilder = new ScallopTxBuilder();
+    txBuilder.openObligationEntry(
       this._address.get('core.packages.protocol.id')
     );
     if (sign) {
-      return this._suiKit.signAndSendTxn(this._txBuilder.suiTxBlock);
+      return this._suiKit.signAndSendTxn(txBuilder.suiTxBlock);
     } else {
-      return this._txBuilder.txBlock;
+      return txBuilder.txBlock;
     }
   }
 
-  public async openObligationAndDepositCollateral() {}
-  public async depositCollateral() {}
+  /**
+   * Deposit collateral into the specific pool.
+   *
+   * @param coinName - Types of collateral coin.
+   * @param amount - The amount of coins would depoist.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param obligationId - The obligation object.
+   * @param walletAddress - The wallet address of the owner.
+   * @return Transaction block response or transaction block
+   */
+  public async depositCollateral(
+    coinName: SupportCollateralCoinType,
+    amount: number,
+    sign: boolean = true,
+    obligationId?: string,
+    walletAddress?: string
+  ) {
+    const txBuilder = new ScallopTxBuilder();
+    const coinType =
+      coinName === 'sui'
+        ? SUI_TYPE_ARG
+        : `${this._address.get(
+            `core.coins.${coinName}.id`
+          )}::${coinName}::${coinName.toUpperCase()}`;
+    const ownerAddress = walletAddress || this._walletAddress;
+    const coins = await this.utils.selectCoins(ownerAddress, amount, coinType);
+    const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
+    if (obligationId) {
+      txBuilder.addCollateral(
+        this._address.get('core.packages.protocol.id'),
+        this._address.get('core.market'),
+        obligationId,
+        takeCoin,
+        coinType
+      );
+      txBuilder.suiTxBlock.transferObjects([leftCoin], ownerAddress);
+    } else {
+      const [obligation, obligationKey, hotPotato] = txBuilder.openObligation(
+        this._address.get('core.packages.protocol.id')
+      );
 
-  public async withdrawCollateral() {}
+      txBuilder.addCollateral(
+        this._address.get('core.packages.protocol.id'),
+        this._address.get('core.market'),
+        obligation,
+        takeCoin,
+        coinType
+      );
+      txBuilder.returnObligation(
+        this._address.get('core.packages.protocol.id'),
+        obligation,
+        hotPotato
+      );
+      txBuilder.suiTxBlock.transferObjects([leftCoin], ownerAddress);
+      txBuilder.suiTxBlock.transferObjects([obligationKey], ownerAddress);
+    }
 
-  public async depositl() {}
-  public async withdraw() {}
-  public async borrow() {}
-  public async repay() {}
+    if (sign) {
+      return this._suiKit.signAndSendTxn(txBuilder.suiTxBlock);
+    } else {
+      return txBuilder.txBlock;
+    }
+  }
+
+  /**
+   * Withdraw collateral from the specific pool.
+   *
+   * @param coinName - Types of collateral coin.
+   * @param amount - The amount of coins would depoist.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param obligationId - The obligation object.
+   * @param obligationKey - The obligation key object to verifying obligation authority.
+   * @param walletAddress - The wallet address of the owner.
+   * @return Transaction block response or transaction block
+   */
+  public async withdrawCollateral(
+    coinName: SupportCollateralCoinType,
+    amount: number,
+    sign: boolean = true,
+    obligationId: string,
+    obligationKey: string
+  ) {
+    const txBuilder = new ScallopTxBuilder();
+    const coinType =
+      coinName === 'sui'
+        ? SUI_TYPE_ARG
+        : `${this._address.get(
+            `core.coins.${coinName}.id`
+          )}::${coinName}::${coinName.toUpperCase()}`;
+
+    txBuilder.takeCollateralEntry(
+      this._address.get('core.packages.protocol.id'),
+      this._address.get('core.market'),
+      this._address.get('core.coinDecimalsRegistry'),
+      this._address.get('core.oracles.xOracle'),
+      obligationId,
+      obligationKey,
+      amount,
+      coinType
+    );
+
+    if (sign) {
+      return this._suiKit.signAndSendTxn(txBuilder.suiTxBlock);
+    } else {
+      return txBuilder.txBlock;
+    }
+  }
+
+  /**
+   * Deposit asset into the specific pool.
+   *
+   * @param coinName - Types of asset coin.
+   * @param amount - The amount of coins would depoist.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param walletAddress - The wallet address of the owner.
+   * @return Transaction block response or transaction block
+   */
+  public async deposit(
+    coinName: SupportAssetCoinType,
+    amount: number,
+    sign: boolean = true,
+    walletAddress?: string
+  ) {
+    const txBuilder = new ScallopTxBuilder();
+    const coinType =
+      //@ts-ignore
+      coinName === 'sui'
+        ? SUI_TYPE_ARG
+        : `${this._address.get(
+            `core.coins.${coinName}.id`
+          )}::${coinName}::${coinName.toUpperCase()}`;
+    const ownerAddress = walletAddress || this._walletAddress;
+    const coins = await this.utils.selectCoins(ownerAddress, amount, coinType);
+    const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
+
+    txBuilder.depositEntry(
+      this._address.get('core.packages.protocol.id'),
+      this._address.get('core.market'),
+      takeCoin,
+      coinType
+    );
+    txBuilder.suiTxBlock.transferObjects([leftCoin], ownerAddress);
+
+    if (sign) {
+      return this._suiKit.signAndSendTxn(txBuilder.suiTxBlock);
+    } else {
+      return txBuilder.txBlock;
+    }
+  }
+
+  /**
+   * Withdraw asset from the specific pool, must return market coin.
+   *
+   * @param coinName - Types of asset coin.
+   * @param amount - The amount of coins would withdraw.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param walletAddress - The wallet address of the owner.
+   * @return Transaction block response or transaction block
+   */
+  public async withdraw(
+    coinName: SupportAssetCoinType,
+    amount: number,
+    sign: boolean = true,
+    walletAddress?: string
+  ) {
+    const txBuilder = new ScallopTxBuilder();
+    const coinType =
+      //@ts-ignore
+      coinName === 'sui'
+        ? SUI_TYPE_ARG
+        : `${this._address.get(
+            `core.coins.${coinName}.id`
+          )}::${coinName}::${coinName.toUpperCase()}`;
+    const MarketCoinType = `${this._address.get(
+      'core.packages.protocol.id'
+    )}::reserve::MarketCoin<${
+      //@ts-ignore
+      coinName === 'sui'
+        ? '0x2'
+        : this._address.get('core.packages.testCoin.id')
+    }::${coinName}::${coinName.toUpperCase()}>`;
+
+    const ownerAddress = walletAddress || this._walletAddress;
+    const marketCoins = await this.utils.selectCoins(
+      ownerAddress,
+      amount,
+      MarketCoinType
+    );
+    const [takeCoin, leftCoin] = txBuilder.takeCoins(
+      marketCoins,
+      amount,
+      MarketCoinType
+    );
+
+    txBuilder.updatePrice(
+      this._address.get('core.packages.xOracle.id'),
+      this._address.get('core.oracles.xOracle'),
+      this._address.get('core.packages.switchboard.id'),
+      this._address.get('core.oracles.switchboard.registry'),
+      this._address.get(`core.coins.${coinName}.oracle.switchboard`),
+      coinType
+    );
+
+    txBuilder.withdrawEntry(
+      this._address.get('core.packages.protocol.id'),
+      this._address.get('core.market'),
+      takeCoin,
+      coinType
+    );
+    txBuilder.suiTxBlock.transferObjects([leftCoin], ownerAddress);
+
+    if (sign) {
+      return this._suiKit.signAndSendTxn(txBuilder.suiTxBlock);
+    } else {
+      return txBuilder.txBlock;
+    }
+  }
+
+  /**
+   * borrow asset from the specific pool.
+   *
+   * @param coinName - Types of asset coin.
+   * @param amount - The amount of coins would borrow.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param obligationId - The obligation object.
+   * @param obligationKey - The obligation key object to verifying obligation authority.
+   * @param walletAddress - The wallet address of the owner.
+   * @return Transaction block response or transaction block
+   */
+  public async borrow(
+    coinName: SupportAssetCoinType,
+    amount: number,
+    sign: boolean = true,
+    obligationId: string,
+    obligationKey: string
+  ) {
+    const txBuilder = new ScallopTxBuilder();
+    const coinType =
+      //@ts-ignore
+      coinName === 'sui'
+        ? SUI_TYPE_ARG
+        : `${this._address.get(
+            `core.coins.${coinName}.id`
+          )}::${coinName}::${coinName.toUpperCase()}`;
+
+    txBuilder.updatePrice(
+      this._address.get('core.packages.xOracle.id'),
+      this._address.get('core.oracles.xOracle'),
+      this._address.get('core.packages.switchboard.id'),
+      this._address.get('core.oracles.switchboard.registry'),
+      this._address.get(`core.coins.${coinName}.oracle.switchboard`),
+      coinType
+    );
+
+    txBuilder.borrowEntry(
+      this._address.get('core.packages.protocol.id'),
+      this._address.get('core.market'),
+      this._address.get('core.coinDecimalsRegistry'),
+      this._address.get('core.oracles.xOracle'),
+      obligationId,
+      obligationKey,
+      amount,
+      coinType
+    );
+
+    if (sign) {
+      return this._suiKit.signAndSendTxn(txBuilder.suiTxBlock);
+    } else {
+      return txBuilder.txBlock;
+    }
+  }
+
+  /**
+   * Repay asset into the specific pool.
+   *
+   * @param coinName - Types of asset coin.
+   * @param amount - The amount of coins would repay.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param obligationId - The obligation object.
+   * @param walletAddress - The wallet address of the owner.
+   * @return Transaction block response or transaction block
+   */
+  public async repay(
+    coinName: SupportAssetCoinType,
+    amount: number,
+    sign: boolean = true,
+    obligationId: string,
+    walletAddress?: string
+  ) {
+    const txBuilder = new ScallopTxBuilder();
+    const coinType =
+      //@ts-ignore
+      coinName === 'sui'
+        ? SUI_TYPE_ARG
+        : `${this._address.get(
+            `core.coins.${coinName}.id`
+          )}::${coinName}::${coinName.toUpperCase()}`;
+    const ownerAddress = walletAddress || this._walletAddress;
+    const coins = await this.utils.selectCoins(ownerAddress, amount, coinType);
+    const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
+
+    txBuilder.repay(
+      this._address.get('core.packages.protocol.id'),
+      this._address.get('core.market'),
+      obligationId,
+      takeCoin,
+      coinType
+    );
+    txBuilder.suiTxBlock.transferObjects([leftCoin], ownerAddress);
+
+    if (sign) {
+      return this._suiKit.signAndSendTxn(txBuilder.suiTxBlock);
+    } else {
+      return txBuilder.txBlock;
+    }
+  }
 
   /**
    * Mint and get test coin.
@@ -148,18 +462,20 @@ export class ScallopClient {
     receiveAddress: string = this._walletAddress,
     sign: boolean = true
   ) {
+    const txBuilder = new ScallopTxBuilder();
     const recipient = receiveAddress || this._walletAddress;
-    this._txBuilder.mintTestCoinEntry(
+    txBuilder.mintTestCoinEntry(
       this._address.get('core.packages.testCoin.id'),
       this._address.get(`core.coins.${coinName}.treasury`),
       coinName,
       amount,
       recipient
     );
+
     if (sign) {
-      return this._suiKit.signAndSendTxn(this._txBuilder.suiTxBlock);
+      return this._suiKit.signAndSendTxn(txBuilder.suiTxBlock);
     } else {
-      return this._txBuilder.txBlock;
+      return txBuilder.txBlock;
     }
   }
 }
