@@ -1,10 +1,14 @@
 import {
-  SUPPORT_COINS,
+  SUPPORT_ASSET_COINS,
+  SUPPORT_COLLATERAL_COINS,
   SUPPORT_ORACLES,
   SUPPORT_PACKAGES,
 } from '../constants/common';
 
-export type SupportCoinType = (typeof SUPPORT_COINS)[number];
+export type SupportAssetCoinType = (typeof SUPPORT_ASSET_COINS)[number];
+export type SupportCollateralCoinType =
+  (typeof SUPPORT_COLLATERAL_COINS)[number];
+export type SupportCoinType = SupportAssetCoinType | SupportCollateralCoinType;
 export type SupportOracleType = (typeof SUPPORT_ORACLES)[number];
 export type SupportPackageType = (typeof SUPPORT_PACKAGES)[number];
 
