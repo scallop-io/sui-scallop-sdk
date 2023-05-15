@@ -1,8 +1,11 @@
 import axios, { AxiosInstance } from 'axios';
 import { API_BASE_URL } from '../constants';
-import type { AddressParams } from 'src/types/model';
-import type { AddressesInterface, AddressStringPath } from 'src/types/data';
 import type { NetworkType } from '@scallop-io/sui-kit';
+import type {
+  ScallopAddressParams,
+  AddressesInterface,
+  AddressStringPath,
+} from 'src/types';
 
 /**
  * it provides methods for managing addresses.
@@ -15,11 +18,8 @@ export class ScallopAddress {
   private _addresses?: AddressesInterface;
   private _addressesMap: Map<NetworkType, AddressesInterface>;
 
-  /**
-   * @param params - The address parameters.
-   */
-  public constructor(params?: AddressParams) {
-    const { id, auth, network } = params ?? {};
+  public constructor(params: ScallopAddressParams) {
+    const { id, auth, network } = params;
 
     if (auth) this._auth = auth;
     this._id = id;
