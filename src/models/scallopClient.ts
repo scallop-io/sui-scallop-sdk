@@ -217,6 +217,32 @@ export class ScallopClient {
             `core.coins.${coinName}.id`
           )}::${coinName}::${coinName.toUpperCase()}`;
 
+    // update prices
+    const obligation = await this.queryObligation(obligationId);
+    const collateralCoinTypes = obligation.collaterals.map((collateral) => {
+      return `0x${collateral.type.name}`;
+    });
+    const debtCoinTypes = obligation.debts.map((debt) => {
+      return `0x${debt.type.name}`;
+    });
+    const updateCoinTypes = [
+      ...new Set([...collateralCoinTypes, ...debtCoinTypes, coinType]),
+    ];
+
+    for (const updateCoinType of updateCoinTypes) {
+      const updateCoin = updateCoinType
+        .split('::')[2]
+        .toLowerCase() as SupportCoinType;
+      txBuilder.updatePrice(
+        this._address.get('core.packages.xOracle.id'),
+        this._address.get('core.oracles.xOracle'),
+        this._address.get('core.packages.switchboard.id'),
+        this._address.get('core.oracles.switchboard.registry'),
+        this._address.get(`core.coins.${updateCoin}.oracle.switchboard`),
+        updateCoinType
+      );
+    }
+
     txBuilder.takeCollateralEntry(
       this._address.get('core.packages.protocol.id'),
       this._address.get('core.market'),
@@ -321,15 +347,6 @@ export class ScallopClient {
       MarketCoinType
     );
 
-    txBuilder.updatePrice(
-      this._address.get('core.packages.xOracle.id'),
-      this._address.get('core.oracles.xOracle'),
-      this._address.get('core.packages.switchboard.id'),
-      this._address.get('core.oracles.switchboard.registry'),
-      this._address.get(`core.coins.${coinName}.oracle.switchboard`),
-      coinType
-    );
-
     txBuilder.withdrawEntry(
       this._address.get('core.packages.protocol.id'),
       this._address.get('core.market'),
@@ -372,14 +389,31 @@ export class ScallopClient {
             `core.coins.${coinName}.id`
           )}::${coinName}::${coinName.toUpperCase()}`;
 
-    txBuilder.updatePrice(
-      this._address.get('core.packages.xOracle.id'),
-      this._address.get('core.oracles.xOracle'),
-      this._address.get('core.packages.switchboard.id'),
-      this._address.get('core.oracles.switchboard.registry'),
-      this._address.get(`core.coins.${coinName}.oracle.switchboard`),
-      coinType
-    );
+    // update prices
+    const obligation = await this.queryObligation(obligationId);
+    const collateralCoinTypes = obligation.collaterals.map((collateral) => {
+      return `0x${collateral.type.name}`;
+    });
+    const debtCoinTypes = obligation.debts.map((debt) => {
+      return `0x${debt.type.name}`;
+    });
+    const updateCoinTypes = [
+      ...new Set([...collateralCoinTypes, ...debtCoinTypes, coinType]),
+    ];
+
+    for (const updateCoinType of updateCoinTypes) {
+      const updateCoin = updateCoinType
+        .split('::')[2]
+        .toLowerCase() as SupportCoinType;
+      txBuilder.updatePrice(
+        this._address.get('core.packages.xOracle.id'),
+        this._address.get('core.oracles.xOracle'),
+        this._address.get('core.packages.switchboard.id'),
+        this._address.get('core.oracles.switchboard.registry'),
+        this._address.get(`core.coins.${updateCoin}.oracle.switchboard`),
+        updateCoinType
+      );
+    }
 
     txBuilder.borrowEntry(
       this._address.get('core.packages.protocol.id'),
