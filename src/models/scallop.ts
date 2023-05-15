@@ -4,6 +4,7 @@ import { ScallopAddress } from './scallopAddress';
 import { ScallopClient } from './scallopClient';
 import { ADDRESSES_ID } from '../constants';
 import type { ScallopParams } from 'src/types/model';
+import type { NetworkType } from '@scallop-io/sui-kit';
 
 /**
  * ### Scallop
@@ -38,10 +39,14 @@ export class Scallop {
 
   /**
    * Create an instance to collect the addresses, making it more eazy to get object addresses from lending contract.
+   *
+   * @param id - The API id of the addresses.
+   * @param auth - The authentication API key.
+   * @param network - Specifies which network's addresses you want to set.
    * @return Scallop Address
    */
-  public createAddress() {
-    return new ScallopAddress();
+  public createAddress(id: string, auth: string, network: NetworkType) {
+    return new ScallopAddress({ id, auth, network });
   }
 
   /**

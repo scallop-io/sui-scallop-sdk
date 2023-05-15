@@ -36,9 +36,9 @@ export class ScallopAddress {
   }
 
   /**
-   * Get addresses api id.
+   * Get addresses API id.
    *
-   * @returns The addresses api id.
+   * @returns The addresses API id.
    */
   public getId() {
     return this._id;
@@ -273,7 +273,7 @@ export class ScallopAddress {
    *
    * @param network - Specifies which network's addresses you want to set.
    * @param addresses - The addresses be setted to the tartget network.
-   * @param auth - The authentication api key.
+   * @param auth - The authentication API key.
    * @returns The addresses.
    */
   public async create(
@@ -321,7 +321,7 @@ export class ScallopAddress {
    * It doesn't read the data stored in the address instance, but reads and
    * synchronizes the data from the API into instance.
    *
-   * @param id - The ID of the addresses to get.
+   * @param id - The id of the addresses to get.
    * @returns The addresses.
    */
   public async read(id?: string) {
@@ -364,7 +364,7 @@ export class ScallopAddress {
    * at a time, and does not provide an addresses map for setting addresses
    * across all networks at once.
    *
-   * @param id - The ID of the addresses to update.
+   * @param id - The id of the addresses to update.
    * @param network - Specifies which network's addresses you want to set.
    * @param addresses - The addresses be setted to the tartget network.
    * @param auth - The authentication api key.
@@ -420,8 +420,8 @@ export class ScallopAddress {
    * Deletes all addresses of a specified id through the API and synchronizes
    * them back to the instance.
    *
-   * @param id - The ID of the addresses to delete.
-   * @param auth - The authentication api key.
+   * @param id - The id of the addresses to delete.
+   * @param auth - The authentication API key.
    */
   public async delete(id?: string, auth?: string) {
     const apiKey = auth || this._auth || undefined;
