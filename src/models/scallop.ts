@@ -1,10 +1,9 @@
-import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopTxBuilder } from './txBuilder';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopClient } from './scallopClient';
 import { ADDRESSES_ID } from '../constants';
-import type { ScallopParams } from 'src/types/model';
 import type { NetworkType } from '@scallop-io/sui-kit';
+import type { ScallopParams } from 'src/types';
 
 /**
  * ### Scallop
@@ -18,11 +17,11 @@ import type { NetworkType } from '@scallop-io/sui-kit';
  * ```
  */
 export class Scallop {
-  public suiKit: SuiKit;
+  public params: ScallopParams;
   public address: ScallopAddress;
 
   public constructor(params: ScallopParams) {
-    this.suiKit = new SuiKit(params);
+    this.params = params;
     this.address = new ScallopAddress({
       id: ADDRESSES_ID,
       network: params?.networkType,
@@ -57,6 +56,6 @@ export class Scallop {
    */
   public async createScallopClient(walletAddress?: string) {
     await this.address.read();
-    return new ScallopClient(this.suiKit, this.address, walletAddress);
+    return new ScallopClient(this.params, this.address, walletAddress);
   }
 }

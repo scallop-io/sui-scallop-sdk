@@ -6,10 +6,12 @@ import type { AddressesInterface } from '../src';
 
 dotenv.config();
 
+const TEST_ADDRESSES_ID = '6462a088a7ace142bb6d7e9b';
 const NETWORK: NetworkType = 'testnet';
 
 describe('Test Scallop Address', () => {
   const addressBuilder = new ScallopAddress({
+    id: TEST_ADDRESSES_ID,
     auth: process.env.API_KEY,
     network: NETWORK,
   });

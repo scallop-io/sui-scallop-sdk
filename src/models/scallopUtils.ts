@@ -1,5 +1,6 @@
 import { SUI_TYPE_ARG } from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
+import type { ScallopParams } from 'src/types';
 
 /**
  * ### Scallop Utils
@@ -16,8 +17,8 @@ import { SuiKit } from '@scallop-io/sui-kit';
 export class ScallopUtils {
   private _suiKit: SuiKit;
 
-  public constructor(suiKit: SuiKit) {
-    this._suiKit = suiKit;
+  public constructor(params: ScallopParams) {
+    this._suiKit = new SuiKit(params);
   }
 
   /**
