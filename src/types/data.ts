@@ -161,8 +161,3 @@ export type AddressStringPath = Join<
   AddressPathsProps<AddressesInterface>,
   '.'
 >;
-
-export type TestnetAddressStringPath = Join<
-  AddressPathsProps<AddressesInterface>,
-  '.'
->;

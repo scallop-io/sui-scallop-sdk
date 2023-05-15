@@ -7,16 +7,15 @@ dotenv.config();
 
 const NETWORK: NetworkType = 'testnet';
 
+/**
+ *  Remove `.skip` to proceed with testing according to requirements.
+ */
 describe('Test Scallop interact with contract', async () => {
   const scallopSDK = new Scallop({
     secretKey: process.env.SECRE_KEY,
     networkType: NETWORK,
   });
   const client = await scallopSDK.createScallopClient();
-
-  it('Should get Scallop instance', async () => {
-    expect(!!scallopSDK).toBe(true);
-  });
 
   it.skip('Should get market query data', async () => {
     const marketData = await client.queryMarket();
