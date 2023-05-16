@@ -5,6 +5,7 @@ node_modules/
 
 # build / generate output
 dist/
+docs/
 
 #misc
 .DS_Store
@@ -12,6 +13,7 @@ dist/
 *.pem
 
 # dotenv environment variables file
+.env
 .env.local
 .env.test
 .env.development.local
@@ -28,6 +30,3 @@ yarn-error.log*
 .pnpm-debug.log*
 logs/
 *.log*
-
-# env
-.env
