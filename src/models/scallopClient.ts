@@ -199,7 +199,6 @@ export class ScallopClient {
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param obligationId - The obligation object.
    * @param obligationKey - The obligation key object to verifying obligation authority.
-   * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block
    */
   public async withdrawCollateral(
@@ -368,7 +367,6 @@ export class ScallopClient {
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param obligationId - The obligation object.
    * @param obligationKey - The obligation key object to verifying obligation authority.
-   * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block
    */
   public async borrow(
@@ -491,8 +489,8 @@ export class ScallopClient {
   public async mintTestCoin(
     coinName: Exclude<SupportCoinType, 'sui'>,
     amount: number,
-    receiveAddress: string = this.walletAddress,
-    sign: boolean = true
+    sign: boolean = true,
+    receiveAddress?: string
   ) {
     const txBuilder = new ScallopTxBuilder();
     const recipient = receiveAddress || this.walletAddress;

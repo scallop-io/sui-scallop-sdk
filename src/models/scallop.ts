@@ -3,7 +3,7 @@ import { ScallopAddress } from './scallopAddress';
 import { ScallopClient } from './scallopClient';
 import { ADDRESSES_ID } from '../constants';
 import type { NetworkType } from '@scallop-io/sui-kit';
-import type { ScallopParams } from 'src/types';
+import type { ScallopParams } from '../types';
 
 /**
  * ### Scallop

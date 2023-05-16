@@ -5,7 +5,7 @@ import type {
   ScallopAddressParams,
   AddressesInterface,
   AddressStringPath,
-} from 'src/types';
+} from '../types';
 
 /**
  * it provides methods for managing addresses.
