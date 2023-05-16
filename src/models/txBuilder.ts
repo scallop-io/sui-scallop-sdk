@@ -6,7 +6,7 @@ import {
 } from '@mysten/sui.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { SUI_COIN_TYPE_ARG_REGEX } from '../constants';
-import type { SupportCoinType } from 'src/types';
+import type { SupportCoinType } from '../types';
 
 /**
  * it provides methods for build transaction.

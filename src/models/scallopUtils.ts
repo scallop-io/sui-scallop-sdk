@@ -1,6 +1,6 @@
 import { SUI_TYPE_ARG } from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
-import type { ScallopParams } from 'src/types';
+import type { ScallopParams } from '../types';
 
 /**
  * ### Scallop Utils
