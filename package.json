@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-sdk",
-  "version": "0.1.7",
+  "version": "0.33.0",
   "description": "Tookit for interacting with Scallop on SUI",
   "keywords": [
     "sui",
