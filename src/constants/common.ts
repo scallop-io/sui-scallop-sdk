@@ -2,8 +2,20 @@ export const API_BASE_URL = 'https://sui.api.scallop.io';
 
 export const ADDRESSES_ID = '645f2a57a7ace142bb6d7c17';
 
-export const SUPPORT_ASSET_COINS = ['usdc', 'usdt'] as const;
-export const SUPPORT_COLLATERAL_COINS = ['eth', 'btc', 'sui'] as const;
+export const SUPPORT_ASSET_COINS = [
+  'eth',
+  'btc',
+  'usdc',
+  'usdt',
+  'sui',
+] as const;
+export const SUPPORT_COLLATERAL_COINS = [
+  'eth',
+  'btc',
+  'usdc',
+  'usdt',
+  'sui',
+] as const;
 
 export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
 
