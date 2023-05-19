@@ -232,12 +232,26 @@ export class ScallopClient {
       const updateCoin = updateCoinType
         .split('::')[2]
         .toLowerCase() as SupportCoinType;
+
+      const [vaaFromFeeId] = await this._utils.getVaas([
+        this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`),
+      ]);
+
       txBuilder.updatePrice(
         this.address.get('core.packages.xOracle.id'),
         this.address.get('core.oracles.xOracle'),
+        this.address.get('core.packages.pyth.id'),
+        this.address.get('core.oracles.pyth.registry'),
+        this.address.get('core.oracles.pyth.state'),
+        this.address.get('core.oracles.pyth.wormholeState'),
+        this.address.get(`core.coins.${updateCoin}.oracle.pyth.feedObject`),
+        vaaFromFeeId,
         this.address.get('core.packages.switchboard.id'),
         this.address.get('core.oracles.switchboard.registry'),
         this.address.get(`core.coins.${updateCoin}.oracle.switchboard`),
+        this.address.get('core.packages.supra.id'),
+        this.address.get('core.oracles.supra.registry'),
+        this.address.get(`core.oracles.supra.holder`),
         updateCoinType
       );
     }
@@ -401,12 +415,26 @@ export class ScallopClient {
       const updateCoin = updateCoinType
         .split('::')[2]
         .toLowerCase() as SupportCoinType;
+
+      const [vaaFromFeeId] = await this._utils.getVaas([
+        this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`),
+      ]);
+
       txBuilder.updatePrice(
         this.address.get('core.packages.xOracle.id'),
         this.address.get('core.oracles.xOracle'),
+        this.address.get('core.packages.pyth.id'),
+        this.address.get('core.oracles.pyth.registry'),
+        this.address.get('core.oracles.pyth.state'),
+        this.address.get('core.oracles.pyth.wormholeState'),
+        this.address.get(`core.coins.${updateCoin}.oracle.pyth.feedObject`),
+        vaaFromFeeId,
         this.address.get('core.packages.switchboard.id'),
         this.address.get('core.oracles.switchboard.registry'),
         this.address.get(`core.coins.${updateCoin}.oracle.switchboard`),
+        this.address.get('core.packages.supra.id'),
+        this.address.get('core.oracles.supra.registry'),
+        this.address.get(`core.oracles.supra.holder`),
         updateCoinType
       );
     }
