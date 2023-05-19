@@ -65,7 +65,7 @@ describe('Test Scallop interact with contract', async () => {
     if (obligations.length === 0) throw Error('Obligation is required.');
     const withdrawCollateralResult = await client.withdrawCollateral(
       'eth',
-      10 ** 8,
+      10 ** 7,
       true,
       obligations[0].id,
       obligations[0].keyId
