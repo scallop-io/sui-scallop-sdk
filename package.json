@@ -55,9 +55,9 @@
     "doc": "typedoc --out docs src/index.ts"
   },
   "dependencies": {
-    "@mysten/sui.js": "^0.34.0",
+    "@mysten/sui.js": "^0.34.1",
     "@pythnetwork/price-service-client": "^1.4.1",
-    "@scallop-io/sui-kit": "^0.34.0",
+    "@scallop-io/sui-kit": "^0.34.1",
     "axios": "^1.4.0"
   },
   "devDependencies": {
