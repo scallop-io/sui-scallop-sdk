@@ -5,6 +5,7 @@ import {
   SUI_CLOCK_OBJECT_ID,
 } from '@mysten/sui.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
+import { Buffer } from 'node:buffer';
 import { SUI_COIN_TYPE_ARG_REGEX } from '../constants';
 import type { SupportCoinType } from '../types';
 
@@ -427,18 +428,36 @@ export class ScallopTxBuilder {
    *
    * @param xOraclePackageId - The xOracle package id.
    * @param xOracleId - The xOracle Id from xOracle package.
+   * @param pythPackageId - The pyth package id.
+   * @param pythRegistryId - The registry id from pyth package.
+   * @param pythStateId - The price state id from pyth package.
+   * @param pythWormholeStateId - The whormhole state id from pyth package.
+   * @param pythFeedObjectId - The feed object id from pyth package.
+   * @param pythVaaFromFeeId - The vaa from pyth api with feed id.
    * @param switchboardPackageId - The switchboard package id.
    * @param switchboardRegistryId - The registry id from switchboard package.
    * @param switchboardAggregatorId - The aggregator id from switchboard package.
+   * @param supraPackageId - The supra package id.
+   * @param supraRegistryId - The registry id from supra package.
+   * @param supraHolderId - The holder id from supra package.
    * @param coinType - The type of coin.
    * @returns Sui-Kit type transaction block.
    */
   public updatePrice(
     xOraclePackageId: string,
     xOracleId: TransactionArgument | string,
+    pythPackageId: string,
+    pythRegistryId: TransactionArgument | string,
+    pythStateId: TransactionArgument | string,
+    pythWormholeStateId: TransactionArgument | string,
+    pythFeedObjectId: TransactionArgument | string,
+    pythVaaFromFeeId: TransactionArgument | string,
     switchboardPackageId: string,
     switchboardRegistryId: TransactionArgument | string,
     switchboardAggregatorId: TransactionArgument | string,
+    supraPackageId: string,
+    supraRegistryId: TransactionArgument | string,
+    supraHolderId: TransactionArgument | string,
     coinType: string
   ) {
     const request = this.priceUpdateRequest(
@@ -446,11 +465,28 @@ export class ScallopTxBuilder {
       xOracleId,
       coinType
     );
+    this.updatePythPrice(
+      pythPackageId,
+      request,
+      pythStateId,
+      pythWormholeStateId,
+      pythFeedObjectId,
+      pythVaaFromFeeId,
+      pythRegistryId,
+      coinType
+    );
     this.updateSwitchboardPrice(
       switchboardPackageId,
       request,
       switchboardAggregatorId,
       switchboardRegistryId,
+      coinType
+    );
+    this.updateSupraPrice(
+      supraPackageId,
+      request,
+      supraHolderId,
+      supraRegistryId,
       coinType
     );
     this.confirmPriceUpdateRequest(
@@ -589,8 +625,36 @@ export class ScallopTxBuilder {
   ) {
     const target = `${packageId}::x_oracle::confirm_price_update_request`;
     const typeArgs = [coinType];
-    this.suiTxBlock.moveCall(target, [xOracleId, request], typeArgs);
+    this.suiTxBlock.moveCall(
+      target,
+      [xOracleId, request, SUI_CLOCK_OBJECT_ID],
+      typeArgs
+    );
     return this.suiTxBlock;
+  }
+
+  /**
+   * Construct a transaction block for update supra price.
+   *
+   * @param packageId - The supra package id.
+   * @param request - The result of the request.
+   * @param holderId - The holder id from supra package.
+   * @param registryId - The registry id from supra package.
+   * @param coinType - The type of coin.
+   * @returns Sui-Kit type transaction block.
+   */
+  private updateSupraPrice(
+    packageId: string,
+    request: TransactionArgument,
+    holderId: TransactionArgument | string,
+    registryId: TransactionArgument | string,
+    coinType: string
+  ) {
+    this.suiTxBlock.moveCall(
+      `${packageId}::rule::set_price`,
+      [request, holderId, registryId, SUI_CLOCK_OBJECT_ID],
+      [coinType]
+    );
   }
 
   /**
@@ -613,6 +677,46 @@ export class ScallopTxBuilder {
     this.suiTxBlock.moveCall(
       `${packageId}::rule::set_price`,
       [request, aggregatorId, registryId],
+      [coinType]
+    );
+  }
+
+  /**
+   * Construct a transaction block for update pyth price.
+   *
+   * @param packageId - The pyth package id.
+   * @param request - The result of the request.
+   * @param stateId - The price state id from pyth package.
+   * @param wormholeStateId - The whormhole state id from pyth package.
+   * @param feedObjectId - The feed object id from pyth package.
+   * @param vaaFromFeeId - The vaa from pyth api with feed id.
+   * @param registryId - The registry id from pyth package.
+   * @param coinType - The type of coin.
+   * @returns Sui-Kit type transaction block.
+   */
+  private updatePythPrice(
+    packageId: string,
+    request: TransactionArgument,
+    stateId: TransactionArgument | string,
+    wormholeStateId: TransactionArgument | string,
+    feedObjectId: TransactionArgument | string,
+    vaaFromFeeId: TransactionArgument | string,
+    registryId: TransactionArgument | string,
+    coinType: string
+  ) {
+    const [updateFee] = this.suiTxBlock.splitSUIFromGas([1]);
+    this.suiTxBlock.moveCall(
+      `${packageId}::rule::set_price`,
+      [
+        request,
+        wormholeStateId,
+        stateId,
+        feedObjectId,
+        registryId,
+        this.suiTxBlock.pure([...Buffer.from(vaaFromFeeId, 'base64')]),
+        updateFee,
+        SUI_CLOCK_OBJECT_ID,
+      ],
       [coinType]
     );
   }
