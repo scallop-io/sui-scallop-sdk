@@ -115,7 +115,11 @@ export interface AddressesInterface {
     >;
     oracles: {
       [K in SupportOracleType]: K extends (typeof SUPPORT_ORACLES)[0]
-        ? {}
+        ? {
+            registry: string;
+            registryCap: string;
+            holder: string;
+          }
         : K extends (typeof SUPPORT_ORACLES)[1]
         ? {
             registry: string;
@@ -123,6 +127,8 @@ export interface AddressesInterface {
           }
         : K extends (typeof SUPPORT_ORACLES)[2]
         ? {
+            registry: string;
+            registryCap: string;
             state: string;
             wormhole: string;
             wormholeState: string;

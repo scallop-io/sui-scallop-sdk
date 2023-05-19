@@ -1,5 +1,6 @@
 import { SUI_TYPE_ARG } from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
+import { PriceServiceConnection } from '@pythnetwork/price-service-client';
 import type { ScallopParams } from '../types';
 
 /**
@@ -39,5 +40,22 @@ export class ScallopUtils {
       coinType
     );
     return coins.map((c) => c.objectId);
+  }
+
+  /**
+   * @description Fetch price feed VAAs of interest from the Pyth.
+   * @param priceIds Array of hex-encoded price ids.
+   * @return Array of base64 encoded VAAs.
+   */
+  public async getVaas(priceIds: string[]) {
+    const connection = new PriceServiceConnection(
+      'https://xc-testnet.pyth.network',
+      {
+        priceFeedRequestConfig: {
+          binary: true,
+        },
+      }
+    );
+    return await connection.getLatestVaas(priceIds);
   }
 }

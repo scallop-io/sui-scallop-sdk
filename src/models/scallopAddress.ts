@@ -191,12 +191,18 @@ export class ScallopAddress {
           oracles: {
             xOracle: '',
             xOracleCap: '',
-            supra: {},
+            supra: {
+              registry: '',
+              registryCap: '',
+              holder: '',
+            },
             switchboard: {
               registry: '',
               registryCap: '',
             },
             pyth: {
+              registry: '',
+              registryCap: '',
               state: '',
               wormhole: '',
               wormholeState: '',

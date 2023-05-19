@@ -1,6 +1,6 @@
 export const API_BASE_URL = 'https://sui.api.scallop.io';
 
-export const ADDRESSES_ID = '645f2a57a7ace142bb6d7c17';
+export const ADDRESSES_ID = '6462a088a7ace142bb6d7e9b';
 
 export const SUPPORT_ASSET_COINS = [
   'eth',
@@ -26,6 +26,7 @@ export const SUPPORT_PACKAGES = [
   'x',
   'protocol',
   'query',
+  'supra',
   'pyth',
   'switchboard',
   'xOracle',
