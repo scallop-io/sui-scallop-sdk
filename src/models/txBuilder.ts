@@ -7,7 +7,7 @@ import {
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { Buffer } from 'node:buffer';
 import { SUI_COIN_TYPE_ARG_REGEX } from '../constants';
-import type { SupportCoinType } from '../types';
+import type { SupportCoins } from '../types';
 
 /**
  * it provides methods for build transaction.
@@ -513,7 +513,7 @@ export class ScallopTxBuilder {
   public mintTestCoin(
     packageId: string,
     treasuryId: TransactionArgument | string,
-    coinName: SupportCoinType,
+    coinName: SupportCoins,
     amount: number
   ) {
     const target = `${packageId}::${coinName}::mint`;
@@ -536,7 +536,7 @@ export class ScallopTxBuilder {
   public mintTestCoinEntry(
     packageId: string,
     treasuryId: TransactionArgument | string,
-    coinName: SupportCoinType,
+    coinName: SupportCoins,
     amount: number,
     recipient: string
   ) {
