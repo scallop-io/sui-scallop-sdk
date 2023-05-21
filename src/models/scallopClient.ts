@@ -5,9 +5,9 @@ import { ScallopUtils } from './scallopUtils';
 import { ScallopTxBuilder } from './txBuilder';
 import type {
   ScallopParams,
-  SupportAssetCoinType,
-  SupportCollateralCoinType,
-  SupportCoinType,
+  SupportAssetCoins,
+  SupportCollateralCoins,
+  SupportCoins,
   MarketInterface,
   ObligationInterface,
 } from '../types';
@@ -138,7 +138,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block
    */
   public async depositCollateral(
-    coinName: SupportCollateralCoinType,
+    coinName: SupportCollateralCoins,
     amount: number,
     sign: boolean = true,
     obligationId?: string,
@@ -202,7 +202,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block
    */
   public async withdrawCollateral(
-    coinName: SupportCollateralCoinType,
+    coinName: SupportCollateralCoins,
     amount: number,
     sign: boolean = true,
     obligationId: string,
@@ -231,7 +231,7 @@ export class ScallopClient {
     for (const updateCoinType of updateCoinTypes) {
       const updateCoin = updateCoinType
         .split('::')[2]
-        .toLowerCase() as SupportCoinType;
+        .toLowerCase() as SupportCoins;
 
       const [vaaFromFeeId] = await this._utils.getVaas([
         this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`),
@@ -284,7 +284,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block
    */
   public async deposit(
-    coinName: SupportAssetCoinType,
+    coinName: SupportAssetCoins,
     amount: number,
     sign: boolean = true,
     walletAddress?: string
@@ -326,7 +326,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block
    */
   public async withdraw(
-    coinName: SupportAssetCoinType,
+    coinName: SupportAssetCoins,
     amount: number,
     sign: boolean = true,
     walletAddress?: string
@@ -384,7 +384,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block
    */
   public async borrow(
-    coinName: SupportAssetCoinType,
+    coinName: SupportAssetCoins,
     amount: number,
     sign: boolean = true,
     obligationId: string,
@@ -414,7 +414,7 @@ export class ScallopClient {
     for (const updateCoinType of updateCoinTypes) {
       const updateCoin = updateCoinType
         .split('::')[2]
-        .toLowerCase() as SupportCoinType;
+        .toLowerCase() as SupportCoins;
 
       const [vaaFromFeeId] = await this._utils.getVaas([
         this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`),
@@ -468,7 +468,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block
    */
   public async repay(
-    coinName: SupportAssetCoinType,
+    coinName: SupportAssetCoins,
     amount: number,
     sign: boolean = true,
     obligationId: string,
@@ -515,7 +515,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block
    */
   public async mintTestCoin(
-    coinName: Exclude<SupportCoinType, 'sui'>,
+    coinName: Exclude<SupportCoins, 'sui'>,
     amount: number,
     sign: boolean = true,
     receiveAddress?: string
