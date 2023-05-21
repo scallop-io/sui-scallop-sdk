@@ -5,10 +5,9 @@ import {
   SUPPORT_PACKAGES,
 } from '../constants/common';
 
-export type SupportAssetCoinType = (typeof SUPPORT_ASSET_COINS)[number];
-export type SupportCollateralCoinType =
-  (typeof SUPPORT_COLLATERAL_COINS)[number];
-export type SupportCoinType = SupportAssetCoinType | SupportCollateralCoinType;
+export type SupportAssetCoins = (typeof SUPPORT_ASSET_COINS)[number];
+export type SupportCollateralCoins = (typeof SUPPORT_COLLATERAL_COINS)[number];
+export type SupportCoins = SupportAssetCoins | SupportCollateralCoins;
 export type SupportOracleType = (typeof SUPPORT_ORACLES)[number];
 export type SupportPackageType = (typeof SUPPORT_PACKAGES)[number];
 
@@ -93,7 +92,7 @@ export interface AddressesInterface {
     coinDecimalsRegistry: string;
     coins: Partial<
       Record<
-        SupportCoinType,
+        SupportCoins,
         {
           id: string;
           treasury: string;
