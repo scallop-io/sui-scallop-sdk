@@ -1,5 +1,6 @@
 import {
   normalizeSuiAddress,
+  TransactionArgument,
   SUI_TYPE_ARG,
   SUI_FRAMEWORK_ADDRESS,
 } from '@mysten/sui.js';
@@ -501,6 +502,55 @@ export class ScallopClient {
       coinType
     );
     txBuilder.suiTxBlock.transferObjects([leftCoin], ownerAddress);
+
+    if (sign) {
+      return this.suiKit.signAndSendTxn(txBuilder.suiTxBlock);
+    } else {
+      return txBuilder.txBlock;
+    }
+  }
+
+  /**
+   * FlashLoan asset from the specific pool.
+   *
+   * @param coinName - Types of asset coin.
+   * @param amount - The amount of coins would repay.
+   * @param callback - The callback function to build transaction block and return coin argument.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @return Transaction block response or transaction block
+   */
+  public async flashLoan(
+    coinName: SupportAssetCoins,
+    amount: number,
+    callback: (
+      txBlock: ScallopTxBuilder,
+      coin: TransactionArgument
+    ) => TransactionArgument,
+    sign: boolean = true
+  ) {
+    const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
+    const coinType =
+      coinName === 'sui'
+        ? SUI_TYPE_ARG
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
+
+    const [coin, loan] = txBuilder.borrowFlashLoan(
+      this.address.get('core.version'),
+      this.address.get('core.packages.protocol.id'),
+      this.address.get('core.market'),
+      amount,
+      coinType
+    );
+
+    txBuilder.repayFlashLoan(
+      this.address.get('core.version'),
+      this.address.get('core.packages.protocol.id'),
+      this.address.get('core.market'),
+      callback(txBuilder, coin),
+      loan,
+      coinType
+    );
 
     if (sign) {
       return this.suiKit.signAndSendTxn(txBuilder.suiTxBlock);

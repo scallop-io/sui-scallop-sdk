@@ -450,6 +450,61 @@ export class ScallopTxBuilder {
   }
 
   /**
+   * Construct a transaction block for borrow asset coin with flash loan from specific pool.
+   *
+   * @param versionId - The protocol version id.
+   * @param packageId - The protocol package id.
+   * @param marketId - The market Id from protocol package.
+   * @param amount - The specified amount of coin.
+   * @param coinType - The type of asset coin.
+   * @returns Sui-Kit type transaction block.
+   */
+  public borrowFlashLoan(
+    versionId: string,
+    packageId: string,
+    marketId: TransactionArgument | string,
+    amount: number,
+    coinType: string
+  ) {
+    const target = `${packageId}::flash_loan::borrow_flash_loan`;
+    const typeArgs = [coinType];
+    return this.suiTxBlock.moveCall(
+      target,
+      [versionId, marketId, amount],
+      typeArgs
+    );
+  }
+
+  /**
+   * Construct a transaction block for repay asset coin with flash loan into specific pool.
+   *
+   * @param versionId - The protocol version id.
+   * @param packageId - The protocol package id.
+   * @param marketId - The market Id from protocol package.
+   * @param coinId - The balance corresponds to the specified amount of coin id.
+   * @param loan -  The loan object that is passed around between parties.
+   * @param coinType - The type of asset coin.
+   * @returns Sui-Kit type transaction block.
+   */
+  public repayFlashLoan(
+    versionId: string,
+    packageId: string,
+    marketId: TransactionArgument | string,
+    coinId: TransactionArgument | string,
+    loan: TransactionArgument,
+    coinType: string
+  ) {
+    const target = `${packageId}::flash_loan::repay_flash_loan`;
+    const typeArgs = [coinType];
+    this.suiTxBlock.moveCall(
+      target,
+      [versionId, marketId, coinId, loan],
+      typeArgs
+    );
+    return this.suiTxBlock;
+  }
+
+  /**
    * Construct a transaction block for update the price.
    *
    * @param rules - The oracle rules.
