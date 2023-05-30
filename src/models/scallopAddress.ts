@@ -118,6 +118,8 @@ export class ScallopAddress {
       // TODO: change to new format version
       this._addressesMap.set(targetNetwork, {
         core: {
+          version: '',
+          versionCap: '',
           market: '',
           adminCap: '',
           coinDecimalsRegistry: '',

@@ -127,6 +127,7 @@ export class ScallopClient {
   public async openObligation(sign: boolean = true) {
     const txBuilder = new ScallopTxBuilder();
     txBuilder.openObligationEntry(
+      this.address.get('core.version'),
       this.address.get('core.packages.protocol.id')
     );
     if (sign) {
@@ -164,6 +165,7 @@ export class ScallopClient {
     const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
     if (obligationId) {
       txBuilder.addCollateral(
+        this.address.get('core.version'),
         this.address.get('core.packages.protocol.id'),
         this.address.get('core.market'),
         obligationId,
@@ -173,10 +175,12 @@ export class ScallopClient {
       txBuilder.suiTxBlock.transferObjects([leftCoin], ownerAddress);
     } else {
       const [obligation, obligationKey, hotPotato] = txBuilder.openObligation(
+        this.address.get('core.version'),
         this.address.get('core.packages.protocol.id')
       );
 
       txBuilder.addCollateral(
+        this.address.get('core.version'),
         this.address.get('core.packages.protocol.id'),
         this.address.get('core.market'),
         obligation,
@@ -238,10 +242,10 @@ export class ScallopClient {
     for (const updateCoinType of updateCoinTypes) {
       const updateCoin = this._utils.getCoinNameFromCoinTpe(updateCoinType);
 
-      const [vaaFromFeeId] = await this._utils.getVaas([
-        this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`),
-        this._isTestnet,
-      ]);
+      const [vaaFromFeeId] = await this._utils.getVaas(
+        [this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`)],
+        this._isTestnet
+      );
 
       txBuilder.updatePrice(
         this._isTestnet ? ['supra', 'pyth', 'switchboard'] : ['pyth'],
@@ -264,6 +268,7 @@ export class ScallopClient {
     }
 
     txBuilder.takeCollateralEntry(
+      this.address.get('core.version'),
       this.address.get('core.packages.protocol.id'),
       this.address.get('core.market'),
       this.address.get('core.coinDecimalsRegistry'),
@@ -307,6 +312,7 @@ export class ScallopClient {
     const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
 
     txBuilder.depositEntry(
+      this.address.get('core.version'),
       this.address.get('core.packages.protocol.id'),
       this.address.get('core.market'),
       takeCoin,
@@ -362,6 +368,7 @@ export class ScallopClient {
     );
 
     txBuilder.withdrawEntry(
+      this.address.get('core.version'),
       this.address.get('core.packages.protocol.id'),
       this.address.get('core.market'),
       takeCoin,
@@ -440,6 +447,7 @@ export class ScallopClient {
     }
 
     txBuilder.borrowEntry(
+      this.address.get('core.version'),
       this.address.get('core.packages.protocol.id'),
       this.address.get('core.market'),
       this.address.get('core.coinDecimalsRegistry'),
@@ -485,6 +493,7 @@ export class ScallopClient {
     const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
 
     txBuilder.repay(
+      this.address.get('core.version'),
       this.address.get('core.packages.protocol.id'),
       this.address.get('core.market'),
       obligationId,
