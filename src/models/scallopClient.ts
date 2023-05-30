@@ -1,4 +1,8 @@
-import { normalizeSuiAddress, SUI_TYPE_ARG } from '@mysten/sui.js';
+import {
+  normalizeSuiAddress,
+  SUI_TYPE_ARG,
+  SUI_FRAMEWORK_ADDRESS,
+} from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -30,11 +34,13 @@ export class ScallopClient {
   public walletAddress: string;
 
   private _utils: ScallopUtils;
+  private _isTestnet: boolean;
 
   public constructor(
     params: ScallopParams,
     address: ScallopAddress,
-    walletAddress?: string
+    walletAddress?: string,
+    isTestnet?: boolean
   ) {
     this.suiKit = new SuiKit(params);
     this.address = address;
@@ -43,6 +49,9 @@ export class ScallopClient {
     );
     this.walletAddress = normalizedWalletAddress;
     this._utils = new ScallopUtils(params);
+    this._isTestnet =
+      isTestnet ||
+      (params.networkType ? params.networkType === 'testnet' : false);
   }
 
   /**
@@ -145,12 +154,11 @@ export class ScallopClient {
     walletAddress?: string
   ) {
     const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : `${this.address.get(
-            `core.coins.${coinName}.id`
-          )}::${coinName}::${coinName.toUpperCase()}`;
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
     const ownerAddress = walletAddress || this.walletAddress;
     const coins = await this._utils.selectCoins(ownerAddress, amount, coinType);
     const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
@@ -209,12 +217,11 @@ export class ScallopClient {
     obligationKey: string
   ) {
     const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : `${this.address.get(
-            `core.coins.${coinName}.id`
-          )}::${coinName}::${coinName.toUpperCase()}`;
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
 
     // update prices
     const obligation = await this.queryObligation(obligationId);
@@ -229,15 +236,15 @@ export class ScallopClient {
     ];
 
     for (const updateCoinType of updateCoinTypes) {
-      const updateCoin = updateCoinType
-        .split('::')[2]
-        .toLowerCase() as SupportCoins;
+      const updateCoin = this._utils.getCoinNameFromCoinTpe(updateCoinType);
 
       const [vaaFromFeeId] = await this._utils.getVaas([
         this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`),
+        this._isTestnet,
       ]);
 
       txBuilder.updatePrice(
+        this._isTestnet ? ['supra', 'pyth', 'switchboard'] : ['pyth'],
         this.address.get('core.packages.xOracle.id'),
         this.address.get('core.oracles.xOracle'),
         this.address.get('core.packages.pyth.id'),
@@ -290,13 +297,11 @@ export class ScallopClient {
     walletAddress?: string
   ) {
     const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
-      //@ts-ignore
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : `${this.address.get(
-            `core.coins.${coinName}.id`
-          )}::${coinName}::${coinName.toUpperCase()}`;
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
     const ownerAddress = walletAddress || this.walletAddress;
     const coins = await this._utils.selectCoins(ownerAddress, amount, coinType);
     const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
@@ -332,19 +337,17 @@ export class ScallopClient {
     walletAddress?: string
   ) {
     const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
-      //@ts-ignore
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : `${this.address.get(
-            `core.coins.${coinName}.id`
-          )}::${coinName}::${coinName.toUpperCase()}`;
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
     const MarketCoinType = `${this.address.get(
       'core.packages.protocol.id'
-    )}::reserve::MarketCoin<${
-      //@ts-ignore
-      coinName === 'sui' ? '0x2' : this.address.get('core.packages.testCoin.id')
-    }::${coinName}::${coinName.toUpperCase()}>`;
+    )}::reserve::MarketCoin<${this._utils.parseCoinTpe(
+      coinName === 'sui' ? SUI_FRAMEWORK_ADDRESS : coinPackageId,
+      coinName
+    )}>`;
 
     const ownerAddress = walletAddress || this.walletAddress;
     const marketCoins = await this._utils.selectCoins(
@@ -391,13 +394,11 @@ export class ScallopClient {
     obligationKey: string
   ) {
     const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
-      //@ts-ignore
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : `${this.address.get(
-            `core.coins.${coinName}.id`
-          )}::${coinName}::${coinName.toUpperCase()}`;
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
 
     // update prices
     const obligation = await this.queryObligation(obligationId);
@@ -412,15 +413,14 @@ export class ScallopClient {
     ];
 
     for (const updateCoinType of updateCoinTypes) {
-      const updateCoin = updateCoinType
-        .split('::')[2]
-        .toLowerCase() as SupportCoins;
-
-      const [vaaFromFeeId] = await this._utils.getVaas([
-        this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`),
-      ]);
+      const updateCoin = this._utils.getCoinNameFromCoinTpe(updateCoinType);
+      const [vaaFromFeeId] = await this._utils.getVaas(
+        [this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`)],
+        this._isTestnet
+      );
 
       txBuilder.updatePrice(
+        this._isTestnet ? ['supra', 'pyth', 'switchboard'] : ['pyth'],
         this.address.get('core.packages.xOracle.id'),
         this.address.get('core.oracles.xOracle'),
         this.address.get('core.packages.pyth.id'),
@@ -475,13 +475,11 @@ export class ScallopClient {
     walletAddress?: string
   ) {
     const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
-      //@ts-ignore
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : `${this.address.get(
-            `core.coins.${coinName}.id`
-          )}::${coinName}::${coinName.toUpperCase()}`;
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
     const ownerAddress = walletAddress || this.walletAddress;
     const coins = await this._utils.selectCoins(ownerAddress, amount, coinType);
     const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);

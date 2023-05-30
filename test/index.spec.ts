@@ -75,7 +75,7 @@ describe('Test Scallop interact with contract', async () => {
   });
 
   it.skip('Should depoist asset successfully', async () => {
-    const depositResult = await client.deposit('usdc', 10 ** 10, true);
+    const depositResult = await client.deposit('usdc', 10 ** 6, true);
     console.info('depositResult:', depositResult);
     expect(depositResult.effects.status.status).toEqual('success');
   });
