@@ -7,7 +7,7 @@ import {
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { Buffer } from 'node:buffer';
 import { SUI_COIN_TYPE_ARG_REGEX } from '../constants';
-import type { SupportCoins } from '../types';
+import type { SupportCoins, SupportOracleType } from '../types';
 
 /**
  * it provides methods for build transaction.
@@ -426,6 +426,7 @@ export class ScallopTxBuilder {
   /**
    * Construct a transaction block for update the price.
    *
+   * @param rules - The oracle rules.
    * @param xOraclePackageId - The xOracle package id.
    * @param xOracleId - The xOracle Id from xOracle package.
    * @param pythPackageId - The pyth package id.
@@ -444,6 +445,7 @@ export class ScallopTxBuilder {
    * @returns Sui-Kit type transaction block.
    */
   public updatePrice(
+    rules: SupportOracleType[],
     xOraclePackageId: string,
     xOracleId: TransactionArgument | string,
     pythPackageId: string,
@@ -465,30 +467,36 @@ export class ScallopTxBuilder {
       xOracleId,
       coinType
     );
-    this.updatePythPrice(
-      pythPackageId,
-      request,
-      pythStateId,
-      pythWormholeStateId,
-      pythFeedObjectId,
-      pythVaaFromFeeId,
-      pythRegistryId,
-      coinType
-    );
-    this.updateSwitchboardPrice(
-      switchboardPackageId,
-      request,
-      switchboardAggregatorId,
-      switchboardRegistryId,
-      coinType
-    );
-    this.updateSupraPrice(
-      supraPackageId,
-      request,
-      supraHolderId,
-      supraRegistryId,
-      coinType
-    );
+    if (rules.includes('pyth')) {
+      this.updatePythPrice(
+        pythPackageId,
+        request,
+        pythStateId,
+        pythWormholeStateId,
+        pythFeedObjectId,
+        pythVaaFromFeeId,
+        pythRegistryId,
+        coinType
+      );
+    }
+    if (rules.includes('switchboard')) {
+      this.updateSwitchboardPrice(
+        switchboardPackageId,
+        request,
+        switchboardAggregatorId,
+        switchboardRegistryId,
+        coinType
+      );
+    }
+    if (rules.includes('supra')) {
+      this.updateSupraPrice(
+        supraPackageId,
+        request,
+        supraHolderId,
+        supraRegistryId,
+        coinType
+      );
+    }
     this.confirmPriceUpdateRequest(
       xOraclePackageId,
       xOracleId,
