@@ -112,4 +112,24 @@ describe('Test Scallop interact with contract', async () => {
     console.info('repayResult:', repayResult);
     expect(repayResult.effects.status.status).toEqual('success');
   });
+
+  it.skip('Should flash loan successfully', async () => {
+    const flashLoanResult = await client.flashLoan(
+      'usdc',
+      10 ** 9,
+      (txBlock, coin) => {
+        txBlock.mintTestCoinEntry(
+          client.address.get('core.packages.testCoin.id'),
+          client.address.get(`core.coins.usdc.treasury`),
+          'usdc',
+          10 ** 9,
+          client.walletAddress
+        );
+        return coin;
+      },
+      true
+    );
+    console.info('flashLoanResult:', flashLoanResult);
+    expect(flashLoanResult.effects.status.status).toEqual('success');
+  });
 });
