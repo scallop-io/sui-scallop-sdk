@@ -64,24 +64,26 @@ export class ScallopTxBuilder {
    * Construct a transaction block for open obligation and take
    * key, id and hot potato obligation objects.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @returns Sui-Kit type transaction block.
    */
-  public openObligation(packageId: string) {
+  public openObligation(versionId: string, packageId: string) {
     const queryTarget = `${packageId}::open_obligation::open_obligation`;
-    return this.suiTxBlock.moveCall(queryTarget, []);
+    return this.suiTxBlock.moveCall(queryTarget, [versionId]);
   }
 
   /**
    * Construct a transaction block for open obligation and share obligation
    * and transfer obligation key object to owner.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @returns Sui-Kit type transaction block.
    */
-  public openObligationEntry(packageId: string) {
+  public openObligationEntry(versionId: string, packageId: string) {
     const queryTarget = `${packageId}::open_obligation::open_obligation_entry`;
-    this.suiTxBlock.moveCall(queryTarget, []);
+    this.suiTxBlock.moveCall(queryTarget, [versionId]);
     return this.suiTxBlock;
   }
 
@@ -106,6 +108,7 @@ export class ScallopTxBuilder {
   /**
    * Construct a transaction block for add collateral coin into specific pool.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @param marketId - The market Id from protocol package.
    * @param obligationId - The obligation object id.
@@ -114,6 +117,7 @@ export class ScallopTxBuilder {
    * @returns Sui-Kit type transaction block.
    */
   public addCollateral(
+    versionId: string,
     packageId: string,
     marketId: TransactionArgument | string,
     obligationId: TransactionArgument | string,
@@ -124,7 +128,7 @@ export class ScallopTxBuilder {
     const typeArgs = [coinType];
     this.suiTxBlock.moveCall(
       target,
-      [obligationId, marketId, coinId],
+      [versionId, obligationId, marketId, coinId],
       typeArgs
     );
     return this.suiTxBlock;
@@ -133,6 +137,7 @@ export class ScallopTxBuilder {
   /**
    * Construct a transaction block for take collateral coin from specific pool and take collateral coin.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @param marketId - The market Id from protocol package.
    * @param coinDecimalsRegistryId - The coinDecimalsRegistry Id from coinDecimalsRegistry package.
@@ -144,6 +149,7 @@ export class ScallopTxBuilder {
    * @returns Sui-Kit type transaction block.
    */
   public takeCollateral(
+    versionId: string,
     packageId: string,
     marketId: TransactionArgument | string,
     coinDecimalsRegistryId: TransactionArgument | string,
@@ -158,6 +164,7 @@ export class ScallopTxBuilder {
     this.suiTxBlock.moveCall(
       target,
       [
+        versionId,
         obligationId,
         obligationKeyId,
         marketId,
@@ -174,6 +181,7 @@ export class ScallopTxBuilder {
   /**
    * Construct a transaction block for take collateral coin from specific pool and transfer collateral coin to signer.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @param marketId - The market Id from protocol package.
    * @param coinDecimalsRegistryId - The coinDecimalsRegistry Id from coinDecimalsRegistry package.
@@ -185,6 +193,7 @@ export class ScallopTxBuilder {
    * @returns Sui-Kit type transaction block.
    */
   public takeCollateralEntry(
+    versionId: string,
     packageId: string,
     marketId: TransactionArgument | string,
     coinDecimalsRegistryId: TransactionArgument | string,
@@ -199,6 +208,7 @@ export class ScallopTxBuilder {
     this.suiTxBlock.moveCall(
       target,
       [
+        versionId,
         obligationId,
         obligationKeyId,
         marketId,
@@ -215,6 +225,7 @@ export class ScallopTxBuilder {
   /**
    * Construct a transaction block for deposit asset coin into specific pool and take market coin.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @param marketId - The market Id from protocol package.
    * @param coinId - The balance corresponds to the specified amount of coin id.
@@ -222,6 +233,7 @@ export class ScallopTxBuilder {
    * @returns Sui-Kit type transaction block.
    */
   public deposit(
+    versionId: string,
     packageId: string,
     marketId: TransactionArgument | string,
     coinId: TransactionArgument | string,
@@ -231,7 +243,7 @@ export class ScallopTxBuilder {
     const typeArgs = [coinType];
     this.suiTxBlock.moveCall(
       target,
-      [marketId, coinId, SUI_CLOCK_OBJECT_ID],
+      [versionId, marketId, coinId, SUI_CLOCK_OBJECT_ID],
       typeArgs
     );
     return this.suiTxBlock;
@@ -240,6 +252,7 @@ export class ScallopTxBuilder {
   /**
    * Construct a transaction block for deposit asset coin into specific pool and transfer market coin to signer.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @param marketId - The market Id from protocol package.
    * @param coinId - The balance corresponds to the specified amount of coin id.
@@ -247,6 +260,7 @@ export class ScallopTxBuilder {
    * @returns Sui-Kit type transaction block.
    */
   public depositEntry(
+    versionId: string,
     packageId: string,
     marketId: TransactionArgument | string,
     coinId: TransactionArgument | string,
@@ -256,7 +270,7 @@ export class ScallopTxBuilder {
     const typeArgs = [coinType];
     this.suiTxBlock.moveCall(
       target,
-      [marketId, coinId, SUI_CLOCK_OBJECT_ID],
+      [versionId, marketId, coinId, SUI_CLOCK_OBJECT_ID],
       typeArgs
     );
     return this.suiTxBlock;
@@ -266,6 +280,7 @@ export class ScallopTxBuilder {
    * Construct a transaction block for withdraw asset coin from specific pool and take asset coin,
    * must return market coin.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @param marketId - The market Id from protocol package.
    * @param marketCoinId - The balance corresponds to the specified amount of market coin id.
@@ -273,6 +288,7 @@ export class ScallopTxBuilder {
    * @returns Sui-Kit type transaction block.
    */
   public withdraw(
+    versionId: string,
     packageId: string,
     marketId: TransactionArgument | string,
     marketCoinId: TransactionArgument | string,
@@ -282,7 +298,7 @@ export class ScallopTxBuilder {
     const typeArgs = [coinType];
     this.suiTxBlock.moveCall(
       target,
-      [marketId, marketCoinId, SUI_CLOCK_OBJECT_ID],
+      [versionId, marketId, marketCoinId, SUI_CLOCK_OBJECT_ID],
       typeArgs
     );
     return this.suiTxBlock;
@@ -292,6 +308,7 @@ export class ScallopTxBuilder {
    * Construct a transaction block for withdraw asset coin from specific pool and transfer asset coin to signer,
    * must return market coin.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @param marketId - The market Id from protocol package.
    * @param marketCoinId - The balance corresponds to the specified amount of market coin id.
@@ -299,6 +316,7 @@ export class ScallopTxBuilder {
    * @returns Sui-Kit type transaction block.
    */
   withdrawEntry(
+    versionId: string,
     packageId: string,
     marketId: TransactionArgument | string,
     marketCoinId: TransactionArgument | string,
@@ -308,7 +326,7 @@ export class ScallopTxBuilder {
     const typeArgs = [coinType];
     this.suiTxBlock.moveCall(
       target,
-      [marketId, marketCoinId, SUI_CLOCK_OBJECT_ID],
+      [versionId, marketId, marketCoinId, SUI_CLOCK_OBJECT_ID],
       typeArgs
     );
     return this.suiTxBlock;
@@ -317,6 +335,7 @@ export class ScallopTxBuilder {
   /**
    * Construct a transaction block for borrow asset coin from specific pool and take asset coin.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @param marketId - The market Id from protocol package.
    * @param coinDecimalsRegistryId - The coinDecimalsRegistry Id from coinDecimalsRegistry package.
@@ -328,6 +347,7 @@ export class ScallopTxBuilder {
    * @returns Sui-Kit type transaction block.
    */
   public borrow(
+    versionId: string,
     packageId: string,
     marketId: TransactionArgument | string,
     coinDecimalsRegistryId: TransactionArgument | string,
@@ -342,6 +362,7 @@ export class ScallopTxBuilder {
     this.suiTxBlock.moveCall(
       target,
       [
+        versionId,
         obligationId,
         obligationKeyId,
         marketId,
@@ -358,6 +379,7 @@ export class ScallopTxBuilder {
   /**
    * Construct a transaction block for borrow asset coin from specific pool and transfer asset coin to signer.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @param marketId - The market Id from protocol package.
    * @param coinDecimalsRegistryId - The coinDecimalsRegistry Id from coinDecimalsRegistry package.
@@ -369,6 +391,7 @@ export class ScallopTxBuilder {
    * @returns Sui-Kit type transaction block.
    */
   public borrowEntry(
+    versionId: string,
     packageId: string,
     marketId: TransactionArgument | string,
     coinDecimalsRegistryId: TransactionArgument | string,
@@ -383,6 +406,7 @@ export class ScallopTxBuilder {
     this.suiTxBlock.moveCall(
       target,
       [
+        versionId,
         obligationId,
         obligationKeyId,
         marketId,
@@ -399,6 +423,7 @@ export class ScallopTxBuilder {
   /**
    * Construct a transaction block for repay asset coin into specific pool.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @param marketId - The market Id from protocol package.
    * @param obligationId - The obligation object id.
@@ -407,6 +432,7 @@ export class ScallopTxBuilder {
    * @returns Sui-Kit type transaction block.
    */
   public repay(
+    versionId: string,
     packageId: string,
     marketId: TransactionArgument | string,
     obligationId: TransactionArgument | string,
@@ -417,7 +443,7 @@ export class ScallopTxBuilder {
     const typeArgs = [coinType];
     this.suiTxBlock.moveCall(
       target,
-      [obligationId, marketId, coinId, SUI_CLOCK_OBJECT_ID],
+      [versionId, obligationId, marketId, coinId, SUI_CLOCK_OBJECT_ID],
       typeArgs
     );
     return this.suiTxBlock;

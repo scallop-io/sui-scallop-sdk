@@ -51,8 +51,8 @@ describe('Test Scallop interact with contract', async () => {
   it.skip('Should depoist collateral successfully', async () => {
     const obligations = await client.getObligations();
     const depositCollateralResult = await client.depositCollateral(
-      'eth',
-      10 ** 8,
+      'usdc',
+      10 ** 10,
       true,
       obligations[0]?.id
     );
@@ -64,8 +64,8 @@ describe('Test Scallop interact with contract', async () => {
     const obligations = await client.getObligations();
     if (obligations.length === 0) throw Error('Obligation is required.');
     const withdrawCollateralResult = await client.withdrawCollateral(
-      'eth',
-      10 ** 7,
+      'usdc',
+      5 * 10 ** 9,
       true,
       obligations[0].id,
       obligations[0].keyId
@@ -81,7 +81,7 @@ describe('Test Scallop interact with contract', async () => {
   });
 
   it.skip('Should withdraw asset successfully', async () => {
-    const withdrawResult = await client.withdraw('usdc', 5 * 10 ** 8, true);
+    const withdrawResult = await client.withdraw('usdc', 5 * 10 ** 5, true);
     console.info('withdrawResult:', withdrawResult);
     expect(withdrawResult.effects.status.status).toEqual('success');
   });
@@ -91,7 +91,7 @@ describe('Test Scallop interact with contract', async () => {
     if (obligations.length === 0) throw Error('Obligation is required.');
     const borrowResult = await client.borrow(
       'usdc',
-      10 ** 9,
+      2 * 10 ** 9,
       true,
       obligations[0].id,
       obligations[0].keyId
@@ -105,7 +105,7 @@ describe('Test Scallop interact with contract', async () => {
     if (obligations.length === 0) throw Error('Obligation is required.');
     const repayResult = await client.repay(
       'usdc',
-      10 ** 8,
+      10 ** 9,
       true,
       obligations[0].id
     );
