@@ -1,4 +1,9 @@
-import { normalizeSuiAddress, SUI_TYPE_ARG } from '@mysten/sui.js';
+import {
+  normalizeSuiAddress,
+  TransactionArgument,
+  SUI_TYPE_ARG,
+  SUI_FRAMEWORK_ADDRESS,
+} from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -30,11 +35,13 @@ export class ScallopClient {
   public walletAddress: string;
 
   private _utils: ScallopUtils;
+  private _isTestnet: boolean;
 
   public constructor(
     params: ScallopParams,
     address: ScallopAddress,
-    walletAddress?: string
+    walletAddress?: string,
+    isTestnet?: boolean
   ) {
     this.suiKit = new SuiKit(params);
     this.address = address;
@@ -43,6 +50,9 @@ export class ScallopClient {
     );
     this.walletAddress = normalizedWalletAddress;
     this._utils = new ScallopUtils(params);
+    this._isTestnet =
+      isTestnet ||
+      (params.networkType ? params.networkType === 'testnet' : false);
   }
 
   /**
@@ -118,6 +128,7 @@ export class ScallopClient {
   public async openObligation(sign: boolean = true) {
     const txBuilder = new ScallopTxBuilder();
     txBuilder.openObligationEntry(
+      this.address.get('core.version'),
       this.address.get('core.packages.protocol.id')
     );
     if (sign) {
@@ -145,17 +156,17 @@ export class ScallopClient {
     walletAddress?: string
   ) {
     const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : `${this.address.get(
-            `core.coins.${coinName}.id`
-          )}::${coinName}::${coinName.toUpperCase()}`;
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
     const ownerAddress = walletAddress || this.walletAddress;
     const coins = await this._utils.selectCoins(ownerAddress, amount, coinType);
     const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
     if (obligationId) {
       txBuilder.addCollateral(
+        this.address.get('core.version'),
         this.address.get('core.packages.protocol.id'),
         this.address.get('core.market'),
         obligationId,
@@ -165,10 +176,12 @@ export class ScallopClient {
       txBuilder.suiTxBlock.transferObjects([leftCoin], ownerAddress);
     } else {
       const [obligation, obligationKey, hotPotato] = txBuilder.openObligation(
+        this.address.get('core.version'),
         this.address.get('core.packages.protocol.id')
       );
 
       txBuilder.addCollateral(
+        this.address.get('core.version'),
         this.address.get('core.packages.protocol.id'),
         this.address.get('core.market'),
         obligation,
@@ -209,12 +222,11 @@ export class ScallopClient {
     obligationKey: string
   ) {
     const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : `${this.address.get(
-            `core.coins.${coinName}.id`
-          )}::${coinName}::${coinName.toUpperCase()}`;
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
 
     // update prices
     const obligation = await this.queryObligation(obligationId);
@@ -229,15 +241,15 @@ export class ScallopClient {
     ];
 
     for (const updateCoinType of updateCoinTypes) {
-      const updateCoin = updateCoinType
-        .split('::')[2]
-        .toLowerCase() as SupportCoins;
+      const updateCoin = this._utils.getCoinNameFromCoinTpe(updateCoinType);
 
-      const [vaaFromFeeId] = await this._utils.getVaas([
-        this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`),
-      ]);
+      const [vaaFromFeeId] = await this._utils.getVaas(
+        [this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`)],
+        this._isTestnet
+      );
 
       txBuilder.updatePrice(
+        this._isTestnet ? ['supra', 'pyth', 'switchboard'] : ['pyth'],
         this.address.get('core.packages.xOracle.id'),
         this.address.get('core.oracles.xOracle'),
         this.address.get('core.packages.pyth.id'),
@@ -257,6 +269,7 @@ export class ScallopClient {
     }
 
     txBuilder.takeCollateralEntry(
+      this.address.get('core.version'),
       this.address.get('core.packages.protocol.id'),
       this.address.get('core.market'),
       this.address.get('core.coinDecimalsRegistry'),
@@ -290,18 +303,17 @@ export class ScallopClient {
     walletAddress?: string
   ) {
     const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
-      //@ts-ignore
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : `${this.address.get(
-            `core.coins.${coinName}.id`
-          )}::${coinName}::${coinName.toUpperCase()}`;
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
     const ownerAddress = walletAddress || this.walletAddress;
     const coins = await this._utils.selectCoins(ownerAddress, amount, coinType);
     const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
 
     txBuilder.depositEntry(
+      this.address.get('core.version'),
       this.address.get('core.packages.protocol.id'),
       this.address.get('core.market'),
       takeCoin,
@@ -332,19 +344,17 @@ export class ScallopClient {
     walletAddress?: string
   ) {
     const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
-      //@ts-ignore
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : `${this.address.get(
-            `core.coins.${coinName}.id`
-          )}::${coinName}::${coinName.toUpperCase()}`;
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
     const MarketCoinType = `${this.address.get(
       'core.packages.protocol.id'
-    )}::reserve::MarketCoin<${
-      //@ts-ignore
-      coinName === 'sui' ? '0x2' : this.address.get('core.packages.testCoin.id')
-    }::${coinName}::${coinName.toUpperCase()}>`;
+    )}::reserve::MarketCoin<${this._utils.parseCoinTpe(
+      coinName === 'sui' ? SUI_FRAMEWORK_ADDRESS : coinPackageId,
+      coinName
+    )}>`;
 
     const ownerAddress = walletAddress || this.walletAddress;
     const marketCoins = await this._utils.selectCoins(
@@ -359,6 +369,7 @@ export class ScallopClient {
     );
 
     txBuilder.withdrawEntry(
+      this.address.get('core.version'),
       this.address.get('core.packages.protocol.id'),
       this.address.get('core.market'),
       takeCoin,
@@ -391,13 +402,11 @@ export class ScallopClient {
     obligationKey: string
   ) {
     const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
-      //@ts-ignore
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : `${this.address.get(
-            `core.coins.${coinName}.id`
-          )}::${coinName}::${coinName.toUpperCase()}`;
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
 
     // update prices
     const obligation = await this.queryObligation(obligationId);
@@ -412,15 +421,14 @@ export class ScallopClient {
     ];
 
     for (const updateCoinType of updateCoinTypes) {
-      const updateCoin = updateCoinType
-        .split('::')[2]
-        .toLowerCase() as SupportCoins;
-
-      const [vaaFromFeeId] = await this._utils.getVaas([
-        this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`),
-      ]);
+      const updateCoin = this._utils.getCoinNameFromCoinTpe(updateCoinType);
+      const [vaaFromFeeId] = await this._utils.getVaas(
+        [this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`)],
+        this._isTestnet
+      );
 
       txBuilder.updatePrice(
+        this._isTestnet ? ['supra', 'pyth', 'switchboard'] : ['pyth'],
         this.address.get('core.packages.xOracle.id'),
         this.address.get('core.oracles.xOracle'),
         this.address.get('core.packages.pyth.id'),
@@ -440,6 +448,7 @@ export class ScallopClient {
     }
 
     txBuilder.borrowEntry(
+      this.address.get('core.version'),
       this.address.get('core.packages.protocol.id'),
       this.address.get('core.market'),
       this.address.get('core.coinDecimalsRegistry'),
@@ -475,18 +484,17 @@ export class ScallopClient {
     walletAddress?: string
   ) {
     const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
-      //@ts-ignore
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : `${this.address.get(
-            `core.coins.${coinName}.id`
-          )}::${coinName}::${coinName.toUpperCase()}`;
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
     const ownerAddress = walletAddress || this.walletAddress;
     const coins = await this._utils.selectCoins(ownerAddress, amount, coinType);
     const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
 
     txBuilder.repay(
+      this.address.get('core.version'),
       this.address.get('core.packages.protocol.id'),
       this.address.get('core.market'),
       obligationId,
@@ -494,6 +502,55 @@ export class ScallopClient {
       coinType
     );
     txBuilder.suiTxBlock.transferObjects([leftCoin], ownerAddress);
+
+    if (sign) {
+      return this.suiKit.signAndSendTxn(txBuilder.suiTxBlock);
+    } else {
+      return txBuilder.txBlock;
+    }
+  }
+
+  /**
+   * FlashLoan asset from the specific pool.
+   *
+   * @param coinName - Types of asset coin.
+   * @param amount - The amount of coins would repay.
+   * @param callback - The callback function to build transaction block and return coin argument.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @return Transaction block response or transaction block
+   */
+  public async flashLoan(
+    coinName: SupportAssetCoins,
+    amount: number,
+    callback: (
+      txBlock: ScallopTxBuilder,
+      coin: TransactionArgument
+    ) => TransactionArgument,
+    sign: boolean = true
+  ) {
+    const txBuilder = new ScallopTxBuilder();
+    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
+    const coinType =
+      coinName === 'sui'
+        ? SUI_TYPE_ARG
+        : this._utils.parseCoinTpe(coinPackageId, coinName);
+
+    const [coin, loan] = txBuilder.borrowFlashLoan(
+      this.address.get('core.version'),
+      this.address.get('core.packages.protocol.id'),
+      this.address.get('core.market'),
+      amount,
+      coinType
+    );
+
+    txBuilder.repayFlashLoan(
+      this.address.get('core.version'),
+      this.address.get('core.packages.protocol.id'),
+      this.address.get('core.market'),
+      callback(txBuilder, coin),
+      loan,
+      coinType
+    );
 
     if (sign) {
       return this.suiKit.signAndSendTxn(txBuilder.suiTxBlock);
