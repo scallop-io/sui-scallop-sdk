@@ -87,6 +87,8 @@ export interface ObligationInterface {
 
 export interface AddressesInterface {
   core: {
+    version: string;
+    versionCap: string;
     market: string;
     adminCap: string;
     coinDecimalsRegistry: string;
