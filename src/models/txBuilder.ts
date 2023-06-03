@@ -90,18 +90,24 @@ export class ScallopTxBuilder {
   /**
    * Construct a transaction block for return the shared obligation with the obligation hot potato.
    *
+   * @param versionId - The protocol version id.
    * @param packageId - The protocol package id.
    * @param obligationId - The obligation id from protocol package.
    * @param obligationHotPotato - The temporary obligation object that is passed around between parties.
    * @returns Sui-Kit type transaction block.
    */
   public returnObligation(
+    versionId: string,
     packageId: string,
     obligationId: TransactionArgument | string,
     obligationHotPotato: TransactionArgument
   ) {
     const target = `${packageId}::open_obligation::return_obligation`;
-    this.suiTxBlock.moveCall(target, [obligationId, obligationHotPotato]);
+    this.suiTxBlock.moveCall(target, [
+      versionId,
+      obligationId,
+      obligationHotPotato,
+    ]);
     return this.suiTxBlock;
   }
 
