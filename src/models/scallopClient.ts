@@ -189,6 +189,7 @@ export class ScallopClient {
         coinType
       );
       txBuilder.returnObligation(
+        this.address.get('core.version'),
         this.address.get('core.packages.protocol.id'),
         obligation,
         hotPotato
