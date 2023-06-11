@@ -37,7 +37,7 @@ export class Scallop {
   }
 
   /**
-   * Create an instance to collect the addresses, making it more eazy to get object addresses from lending contract.
+   * Create an instance to collect the addresses, making it easier to get object addresses from lending contract.
    *
    * @param id - The API id of the addresses.
    * @param auth - The authentication API key.

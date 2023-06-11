@@ -25,7 +25,7 @@ import type {
  * #### Usage
  *
  * ```typescript
- * const clent  = new Scallop(<parameters>);
+ * const client  = new Scallop(<parameters>);
  * client.<interact functions>();
  * ```
  */
