@@ -3,6 +3,7 @@ import {
   TransactionArgument,
   SUI_TYPE_ARG,
   SUI_FRAMEWORK_ADDRESS,
+  normalizeStructTag,
 } from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress } from './scallopAddress';
@@ -226,7 +227,7 @@ export class ScallopClient {
     const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
       coinName === 'sui'
-        ? SUI_TYPE_ARG
+        ? normalizeStructTag(SUI_TYPE_ARG)
         : this._utils.parseCoinTpe(coinPackageId, coinName);
 
     // update prices
@@ -406,7 +407,7 @@ export class ScallopClient {
     const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
     const coinType =
       coinName === 'sui'
-        ? SUI_TYPE_ARG
+        ? normalizeStructTag(SUI_TYPE_ARG)
         : this._utils.parseCoinTpe(coinPackageId, coinName);
 
     // update prices
