@@ -181,6 +181,7 @@ Remove the `.skip` to unskip the test.
   ```
 
 - Borrow Asset
+    
     ⚠️Please note that due to the integration with Shinami Gas Station are still building, the features of Borrow Asset and Withdraw Collateral will now incur a Pyth Oracle fee of about 0.3~0.5 SUI.
   ```typescript
   it('Should borrow asset successfully', async () => {
