@@ -1,4 +1,4 @@
-import { SUI_TYPE_ARG } from '@mysten/sui.js';
+import { SUI_FRAMEWORK_ADDRESS, SUI_TYPE_ARG } from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { PriceServiceConnection } from '@pythnetwork/price-service-client';
 import type { ScallopParams, SupportCoins } from '../types';
@@ -68,7 +68,8 @@ export class ScallopUtils {
    * @param coinName specific support coin name.
    * @return coinType.
    */
-  public parseCoinTpe(coinPackageId: string, coinName: string) {
+  public parseCoinType(coinPackageId: string, coinName: string) {
+    if (coinName === 'sui') return SUI_TYPE_ARG;
     const wormHoleCoins = [
       // USDC
       '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf',
@@ -88,7 +89,7 @@ export class ScallopUtils {
    * @param coinName specific support coin name.
    * @return coinType.
    */
-  public getCoinNameFromCoinTpe(coinType: string) {
+  public getCoinNameFromCoinType(coinType: string) {
     const wormHoleCoinTypes = [
       // USDC
       '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN',
@@ -103,5 +104,26 @@ export class ScallopUtils {
     } else {
       return coinType.split('::')[2].toLowerCase() as SupportCoins;
     }
+  }
+
+  /**
+   * @description Handle market coin types.
+   *
+   * @param coinPackageId Package id of coin.
+   * @param protocolPkgId Package id of protocol.
+   * @param coinName specific support coin name.
+   *
+   * @return marketCoinType.
+   */
+  public parseMarketCoinType(
+    coinPackageId: string,
+    protocolPkgId: string,
+    coinName: string
+  ) {
+    const coinType = this.parseCoinType(
+      coinName === 'sui' ? SUI_FRAMEWORK_ADDRESS : coinPackageId,
+      coinName
+    );
+    return `${protocolPkgId}::reserve::MarketCoin<${coinType}>`;
   }
 }

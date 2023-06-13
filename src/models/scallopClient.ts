@@ -160,7 +160,7 @@ export class ScallopClient {
     const coinType =
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : this._utils.parseCoinTpe(coinPackageId, coinName);
+        : this._utils.parseCoinType(coinPackageId, coinName);
     const ownerAddress = walletAddress || this.walletAddress;
     const coins = await this._utils.selectCoins(ownerAddress, amount, coinType);
     const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
@@ -227,7 +227,7 @@ export class ScallopClient {
     const coinType =
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : this._utils.parseCoinTpe(coinPackageId, coinName);
+        : this._utils.parseCoinType(coinPackageId, coinName);
 
     // update prices
     const obligation = await this.queryObligation(obligationId);
@@ -242,7 +242,7 @@ export class ScallopClient {
     ];
 
     for (const updateCoinType of updateCoinTypes) {
-      const updateCoin = this._utils.getCoinNameFromCoinTpe(updateCoinType);
+      const updateCoin = this._utils.getCoinNameFromCoinType(updateCoinType);
 
       const [vaaFromFeeId] = await this._utils.getVaas(
         [this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`)],
@@ -308,7 +308,7 @@ export class ScallopClient {
     const coinType =
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : this._utils.parseCoinTpe(coinPackageId, coinName);
+        : this._utils.parseCoinType(coinPackageId, coinName);
     const ownerAddress = walletAddress || this.walletAddress;
     const coins = await this._utils.selectCoins(ownerAddress, amount, coinType);
     const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
@@ -349,10 +349,10 @@ export class ScallopClient {
     const coinType =
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : this._utils.parseCoinTpe(coinPackageId, coinName);
+        : this._utils.parseCoinType(coinPackageId, coinName);
     const MarketCoinType = `${this.address.get(
       'core.packages.protocol.id'
-    )}::reserve::MarketCoin<${this._utils.parseCoinTpe(
+    )}::reserve::MarketCoin<${this._utils.parseCoinType(
       coinName === 'sui' ? SUI_FRAMEWORK_ADDRESS : coinPackageId,
       coinName
     )}>`;
@@ -407,7 +407,7 @@ export class ScallopClient {
     const coinType =
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : this._utils.parseCoinTpe(coinPackageId, coinName);
+        : this._utils.parseCoinType(coinPackageId, coinName);
 
     // update prices
     const obligation = await this.queryObligation(obligationId);
@@ -422,7 +422,7 @@ export class ScallopClient {
     ];
 
     for (const updateCoinType of updateCoinTypes) {
-      const updateCoin = this._utils.getCoinNameFromCoinTpe(updateCoinType);
+      const updateCoin = this._utils.getCoinNameFromCoinType(updateCoinType);
       const [vaaFromFeeId] = await this._utils.getVaas(
         [this.address.get(`core.coins.${updateCoin}.oracle.pyth.feed`)],
         this._isTestnet
@@ -489,7 +489,7 @@ export class ScallopClient {
     const coinType =
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : this._utils.parseCoinTpe(coinPackageId, coinName);
+        : this._utils.parseCoinType(coinPackageId, coinName);
     const ownerAddress = walletAddress || this.walletAddress;
     const coins = await this._utils.selectCoins(ownerAddress, amount, coinType);
     const [takeCoin, leftCoin] = txBuilder.takeCoins(coins, amount, coinType);
@@ -534,7 +534,7 @@ export class ScallopClient {
     const coinType =
       coinName === 'sui'
         ? SUI_TYPE_ARG
-        : this._utils.parseCoinTpe(coinPackageId, coinName);
+        : this._utils.parseCoinType(coinPackageId, coinName);
 
     const [coin, loan] = txBuilder.borrowFlashLoan(
       this.address.get('core.version'),
