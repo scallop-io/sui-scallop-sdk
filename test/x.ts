@@ -15,11 +15,10 @@ async function main() {
   const txBlock = scallop.createTxBlock();
   txBlock.setSender(scallop.suiKit.currentAddress());
 
-  const marketCoin = await txBlock.borrow_C(10 ** 9, 'usdt');
-  txBlock.transferObjects([marketCoin], scallop.suiKit.currentAddress());
+  const coin = await txBlock.takeCollateral_C(10 ** 9, 'eth');
+  txBlock.transferObjects([coin], scallop.suiKit.currentAddress());
 
   // console.log(txBlock.blockData);
-
   return scallop.signAndSendTxBlock(txBlock);
 }
 
