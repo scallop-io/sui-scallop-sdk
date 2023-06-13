@@ -93,16 +93,21 @@ const scallopComplexMethodsHandler: ScallopComplexMethodsHandler = {
         suiKit,
         _obligationId
       );
-      const { leftCoin, takeCoin } = await selectCoin(
-        txBlock,
-        scallopAddress,
-        scallopUtils,
-        coinName,
-        amount,
-        sender
-      );
-      txBlock.addCollateral(obligationId, takeCoin, coinName);
-      txBlock.transferObjects([leftCoin], sender);
+      if (coinName === 'sui') {
+        const [suiCoin] = txBlock.splitSUIFromGas([amount]);
+        txBlock.addCollateral(obligationId, suiCoin, coinName);
+      } else {
+        const { leftCoin, takeCoin } = await selectCoin(
+          txBlock,
+          scallopAddress,
+          scallopUtils,
+          coinName,
+          amount,
+          sender
+        );
+        txBlock.addCollateral(obligationId, takeCoin, coinName);
+        txBlock.transferObjects([leftCoin], sender);
+      }
     },
   takeCollateral_C:
     ({ txBlock, suiKit, scallopUtils, scallopAddress, isTestnet }) =>
@@ -133,16 +138,21 @@ const scallopComplexMethodsHandler: ScallopComplexMethodsHandler = {
     ({ txBlock, scallopUtils, scallopAddress }) =>
     async (amount, coinName) => {
       const sender = requireSender(txBlock);
-      const { leftCoin, takeCoin } = await selectCoin(
-        txBlock,
-        scallopAddress,
-        scallopUtils,
-        coinName,
-        amount,
-        sender
-      );
-      txBlock.transferObjects([leftCoin], sender);
-      return txBlock.deposit(takeCoin, coinName);
+      if (coinName === 'sui') {
+        const [suiCoin] = txBlock.splitSUIFromGas([amount]);
+        return txBlock.deposit(suiCoin, coinName);
+      } else {
+        const { leftCoin, takeCoin } = await selectCoin(
+          txBlock,
+          scallopAddress,
+          scallopUtils,
+          coinName,
+          amount,
+          sender
+        );
+        txBlock.transferObjects([leftCoin], sender);
+        return txBlock.deposit(takeCoin, coinName);
+      }
     },
   withdraw_C:
     ({ txBlock, scallopUtils, scallopAddress }) =>
@@ -190,20 +200,27 @@ const scallopComplexMethodsHandler: ScallopComplexMethodsHandler = {
         suiKit,
         _obligationId
       );
-      const { leftCoin, takeCoin } = await selectCoin(
-        txBlock,
-        scallopAddress,
-        scallopUtils,
-        coinName,
-        amount,
-        sender
-      );
-      txBlock.transferObjects([leftCoin], sender);
-      return txBlock.repay(obligationId, takeCoin, coinName);
+      if (coinName === 'sui') {
+        const [suiCoin] = txBlock.splitSUIFromGas([amount]);
+        return txBlock.repay(obligationId, suiCoin, coinName);
+      } else {
+        const { leftCoin, takeCoin } = await selectCoin(
+          txBlock,
+          scallopAddress,
+          scallopUtils,
+          coinName,
+          amount,
+          sender
+        );
+        txBlock.transferObjects([leftCoin], sender);
+        return txBlock.repay(obligationId, takeCoin, coinName);
+      }
     },
 };
 
-export const newTxBlockC = (
+export type ScallopTxBlock = SuiTxBlockWithSimpleScallopMethods &
+  ScallopComplexMethods;
+export const newScallopTxBlock = (
   suiKit: SuiKit,
   scallopAddress: ScallopAddress,
   scallopUtils: ScallopUtils,
@@ -226,6 +243,5 @@ export const newTxBlockC = (
       return target[prop as keyof SuiTxBlock];
     },
   });
-  return txBlockProxy as SuiTxBlockWithSimpleScallopMethods &
-    ScallopComplexMethods;
+  return txBlockProxy as ScallopTxBlock;
 };
