@@ -127,6 +127,24 @@ const updateOracle = async (
     isTestnet
   );
 
+  const ids = [
+    address.get('core.packages.xOracle.id'),
+    address.get('core.oracles.xOracle'),
+    address.get('core.packages.pyth.id'),
+    address.get('core.oracles.pyth.registry'),
+    address.get('core.oracles.pyth.state'),
+    address.get('core.oracles.pyth.wormholeState'),
+    address.get(`core.coins.${coinName}.oracle.pyth.feedObject`),
+    vaaFromFeeId,
+    address.get('core.packages.switchboard.id'),
+    address.get('core.oracles.switchboard.registry'),
+    address.get(`core.coins.${coinName}.oracle.switchboard`),
+    address.get('core.packages.supra.id'),
+    address.get('core.oracles.supra.registry'),
+    address.get(`core.oracles.supra.holder`),
+  ];
+  console.log('ids', ids);
+
   updatePrice(
     txBlock,
     isTestnet ? ['supra', 'pyth', 'switchboard'] : ['pyth'],
