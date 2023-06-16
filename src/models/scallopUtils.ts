@@ -1,4 +1,8 @@
-import { SUI_FRAMEWORK_ADDRESS, SUI_TYPE_ARG } from '@mysten/sui.js';
+import {
+  SUI_FRAMEWORK_ADDRESS,
+  SUI_TYPE_ARG,
+  normalizeStructTag,
+} from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { PriceServiceConnection } from '@pythnetwork/price-service-client';
 import type { ScallopParams, SupportCoins } from '../types';
@@ -69,7 +73,7 @@ export class ScallopUtils {
    * @return coinType.
    */
   public parseCoinType(coinPackageId: string, coinName: string) {
-    if (coinName === 'sui') return SUI_TYPE_ARG;
+    if (coinName === 'sui') return normalizeStructTag(SUI_TYPE_ARG);
     const wormHoleCoins = [
       // USDC
       '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf',
