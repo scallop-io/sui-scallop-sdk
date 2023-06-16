@@ -1,8 +1,7 @@
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ScallopTxBuilder } from './txBuilder';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopClient } from './scallopClient';
-import { newScallopTxBlock, ScallopTxBlock } from '../tx-builders';
+import { newScallopTxBlock, ScallopTxBlock } from '../txBuilders';
 import { ADDRESSES_ID } from '../constants';
 import type { NetworkType } from '@scallop-io/sui-kit';
 import type { ScallopParams } from '../types';
@@ -33,35 +32,23 @@ export class Scallop {
     });
   }
 
-  public async readAddress() {
-    return this.address.read();
-  }
-
   /**
    * Create an instance to operate the transaction block, making it more convenient to organize transaction combinations.
    * @return Scallop Transaction Builder
    */
-  public createTxBuilder() {
-    return new ScallopTxBuilder();
-  }
-
-  /**
-   * Create a transaction block, making it more convenient to organize transaction combinations.
-   * @return TransactionBlock
-   */
-  public createTxBlock() {
+  public async createTxBuilder() {
+    await this.address.read();
     const scallopUtils = new ScallopUtils(this.params);
+    const suiKit = new SuiKit(this.params);
     const isTestnet = this.params.networkType === 'testnet';
-    return newScallopTxBlock(
-      this.suiKit,
-      this.address,
-      scallopUtils,
-      isTestnet
-    );
-  }
-
-  public signAndSendTxBlock(txBlock: ScallopTxBlock) {
-    return this.suiKit.signAndSendTxn(txBlock);
+    return {
+      createTxBlock: () => {
+        return newScallopTxBlock(suiKit, this.address, scallopUtils, isTestnet);
+      },
+      signAndSendTxBlock: (txBlock: ScallopTxBlock) => {
+        return suiKit.signAndSendTxn(txBlock);
+      },
+    };
   }
 
   /**

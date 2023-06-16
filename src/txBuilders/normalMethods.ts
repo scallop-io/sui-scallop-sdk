@@ -1,81 +1,13 @@
-import { SUI_CLOCK_OBJECT_ID, TransactionArgument } from '@mysten/sui.js';
-import { SuiTxBlock, SuiTxArg } from '@scallop-io/sui-kit';
+import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js';
+import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { ScallopAddress, ScallopUtils } from '../models';
-import { SupportCollateralCoins, SupportAssetCoins } from '../types';
+import type {
+  ScallopNormalMethodsHandler,
+  SuiTxBlockWithNormalScallopMethods,
+  CoreIds,
+} from '../types';
 
-type TransactionResult = TransactionArgument & TransactionArgument[];
-
-type ScallopMethods = {
-  openObligation: () => TransactionResult;
-  returnObligation: (
-    obligation: SuiTxArg,
-    obligationHotPotato: SuiTxArg
-  ) => void;
-  openObligationEntry: () => void;
-  addCollateral: (
-    obligation: SuiTxArg,
-    coin: SuiTxArg,
-    coinName: SupportCollateralCoins
-  ) => void;
-  takeCollateral: (
-    obligation: SuiTxArg,
-    obligationKey: SuiTxArg,
-    amount: number,
-    coinName: SupportCollateralCoins
-  ) => TransactionResult;
-  deposit: (coin: SuiTxArg, coinName: SupportAssetCoins) => TransactionResult;
-  depositEntry: (coin: SuiTxArg, coinName: SupportAssetCoins) => void;
-  withdraw: (
-    marketCoin: SuiTxArg,
-    coinName: SupportAssetCoins
-  ) => TransactionResult;
-  withdrawEntry: (marketCoin: SuiTxArg, coinName: SupportAssetCoins) => void;
-  borrow: (
-    obligation: SuiTxArg,
-    obligationKey: SuiTxArg,
-    amount: number,
-    coinName: SupportAssetCoins
-  ) => TransactionResult;
-  borrowEntry: (
-    obligation: SuiTxArg,
-    obligationKey: SuiTxArg,
-    amount: number,
-    coinName: SupportAssetCoins
-  ) => void;
-  repay: (
-    obligation: SuiTxArg,
-    coin: SuiTxArg,
-    coinName: SupportAssetCoins
-  ) => void;
-  borrowFlashLoan: (
-    amount: number,
-    coinName: SupportAssetCoins
-  ) => TransactionResult;
-  repayFlashLoan: (
-    coin: SuiTxArg,
-    loan: SuiTxArg,
-    coinName: SupportAssetCoins
-  ) => void;
-};
-
-type ScallopMethodsHandler = {
-  [key in keyof ScallopMethods]: (params: {
-    txBlock: SuiTxBlock;
-    coreIds: CoreIds;
-    scallopAddress: ScallopAddress;
-    scallopUtils: ScallopUtils;
-  }) => ScallopMethods[key];
-};
-
-type CoreIds = {
-  protocolPkg: string;
-  market: string;
-  version: string;
-  dmlR: string; // coinDecimalsRegistry
-  oracle: string;
-};
-
-const scallopMethodsHandler: ScallopMethodsHandler = {
+const scallopNormalMethodsHandler: ScallopNormalMethodsHandler = {
   openObligation:
     ({ txBlock, coreIds }) =>
     () =>
@@ -253,7 +185,6 @@ const scallopMethodsHandler: ScallopMethodsHandler = {
     },
 };
 
-export type SuiTxBlockWithSimpleScallopMethods = SuiTxBlock & ScallopMethods;
 export const newTxBlock = (
   scallopAddress: ScallopAddress,
   scallopUtils: ScallopUtils
@@ -268,8 +199,10 @@ export const newTxBlock = (
   const txBlock = new SuiTxBlock();
   const txBlockProxy = new Proxy(txBlock, {
     get: (target, prop) => {
-      if (prop in scallopMethodsHandler) {
-        return scallopMethodsHandler[prop as keyof ScallopMethodsHandler]({
+      if (prop in scallopNormalMethodsHandler) {
+        return scallopNormalMethodsHandler[
+          prop as keyof ScallopNormalMethodsHandler
+        ]({
           txBlock: target,
           coreIds,
           scallopAddress,
@@ -279,12 +212,5 @@ export const newTxBlock = (
       return target[prop as keyof SuiTxBlock];
     },
   });
-  return txBlockProxy as SuiTxBlockWithSimpleScallopMethods;
+  return txBlockProxy as SuiTxBlockWithNormalScallopMethods;
 };
-
-// const address = new ScallopAddress({
-//   id: '',
-//   network: 'testnet',
-// });
-
-// const txBlock = newTxBlock(address);
