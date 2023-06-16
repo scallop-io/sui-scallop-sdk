@@ -1,59 +1,16 @@
 /**
- * This file contains the complex transaction builder, which contains contains multiple calls in a single transaction.
+ * This file contains the complex transaction builder, which contains multiple calls in a single transaction.
  */
-import { TransactionArgument } from '@mysten/sui.js';
-import { SuiTxBlock, SuiTxArg, SuiKit } from '@scallop-io/sui-kit';
+import { SuiTxBlock, SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress, ScallopUtils } from '../models';
-import { SupportCollateralCoins, SupportAssetCoins } from '../types';
 import { getObligations } from '../queries';
-import { SuiTxBlockWithSimpleScallopMethods, newTxBlock } from './simple-tx';
+import { newTxBlock } from './normalMethods';
 import {
   updateOraclesForBorrow,
   updateOraclesForWithdrawCollateral,
 } from './oracle';
 import { selectCoin, selectMarketCoin } from './coin';
-
-type TransactionResult = TransactionArgument & TransactionArgument[];
-
-type ScallopComplexMethods = {
-  addCollateral_C: (
-    amount: number,
-    coinName: SupportCollateralCoins,
-    obligationId?: string
-  ) => Promise<void>;
-  takeCollateral_C: (
-    amount: number,
-    coinName: SupportCollateralCoins,
-    obligationId?: string,
-    obligationKey?: SuiTxArg
-  ) => Promise<TransactionResult>;
-  borrow_C: (
-    amount: number,
-    coinName: SupportAssetCoins,
-    obligationId?: string,
-    obligationKey?: SuiTxArg
-  ) => Promise<TransactionResult>;
-  deposit_C: (amount: number, coinName: SupportAssetCoins) => Promise<void>;
-  withdraw_C: (
-    amount: number,
-    coinName: SupportAssetCoins
-  ) => Promise<TransactionResult>;
-  repay_C: (
-    amount: number,
-    coinName: SupportAssetCoins,
-    obligationId?: string
-  ) => Promise<void>;
-};
-
-type ScallopComplexMethodsHandler = {
-  [key in keyof ScallopComplexMethods]: (params: {
-    txBlock: SuiTxBlockWithSimpleScallopMethods;
-    suiKit: SuiKit;
-    scallopAddress: ScallopAddress;
-    scallopUtils: ScallopUtils;
-    isTestnet: boolean;
-  }) => ScallopComplexMethods[key];
-};
+import { ScallopQuickMethodsHandler, ScallopTxBlock } from '../types';
 
 const requireSender = (txBlock: SuiTxBlock) => {
   const sender = txBlock.blockData.sender;
@@ -82,8 +39,8 @@ const requireObligationInfo = async (
   };
 };
 
-const scallopComplexMethodsHandler: ScallopComplexMethodsHandler = {
-  addCollateral_C:
+const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
+  addCollateralQuick:
     ({ txBlock, scallopAddress, scallopUtils, suiKit }) =>
     async (amount, coinName, _obligationId) => {
       const sender = requireSender(txBlock);
@@ -109,7 +66,7 @@ const scallopComplexMethodsHandler: ScallopComplexMethodsHandler = {
         txBlock.transferObjects([leftCoin], sender);
       }
     },
-  takeCollateral_C:
+  takeCollateralQuick:
     ({ txBlock, suiKit, scallopUtils, scallopAddress, isTestnet }) =>
     async (amount, coinName, _obligationId, _obligationKey) => {
       const { obligationId, obligationKey } = await requireObligationInfo(
@@ -134,7 +91,7 @@ const scallopComplexMethodsHandler: ScallopComplexMethodsHandler = {
         coinName
       );
     },
-  deposit_C:
+  depositQuick:
     ({ txBlock, scallopUtils, scallopAddress }) =>
     async (amount, coinName) => {
       const sender = requireSender(txBlock);
@@ -154,7 +111,7 @@ const scallopComplexMethodsHandler: ScallopComplexMethodsHandler = {
         return txBlock.deposit(takeCoin, coinName);
       }
     },
-  withdraw_C:
+  withdrawQuick:
     ({ txBlock, scallopUtils, scallopAddress }) =>
     async (amount, coinName) => {
       const sender = requireSender(txBlock);
@@ -169,7 +126,7 @@ const scallopComplexMethodsHandler: ScallopComplexMethodsHandler = {
       txBlock.transferObjects([leftCoin], sender);
       return txBlock.withdraw(takeCoin, coinName);
     },
-  borrow_C:
+  borrowQuick:
     ({ txBlock, suiKit, scallopUtils, scallopAddress, isTestnet }) =>
     async (amount, coinName, _obligationId, _obligationKey) => {
       const { obligationId, obligationKey } = await requireObligationInfo(
@@ -190,7 +147,7 @@ const scallopComplexMethodsHandler: ScallopComplexMethodsHandler = {
       );
       return txBlock.borrow(obligationId, obligationKey, amount, coinName);
     },
-  repay_C:
+  repayQuick:
     ({ txBlock, suiKit, scallopUtils, scallopAddress }) =>
     async (amount, coinName, _obligationId) => {
       const sender = requireSender(txBlock);
@@ -218,8 +175,6 @@ const scallopComplexMethodsHandler: ScallopComplexMethodsHandler = {
     },
 };
 
-export type ScallopTxBlock = SuiTxBlockWithSimpleScallopMethods &
-  ScallopComplexMethods;
 export const newScallopTxBlock = (
   suiKit: SuiKit,
   scallopAddress: ScallopAddress,
@@ -229,9 +184,9 @@ export const newScallopTxBlock = (
   const txBlock = newTxBlock(scallopAddress, scallopUtils);
   const txBlockProxy = new Proxy(txBlock, {
     get: (target, prop) => {
-      if (prop in scallopComplexMethodsHandler) {
-        return scallopComplexMethodsHandler[
-          prop as keyof ScallopComplexMethodsHandler
+      if (prop in scallopQuickMethodsHandler) {
+        return scallopQuickMethodsHandler[
+          prop as keyof ScallopQuickMethodsHandler
         ]({
           txBlock: target,
           suiKit,
