@@ -2,13 +2,14 @@ import { normalizeSuiAddress, TransactionArgument } from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
-import { newScallopTxBlock, ScallopTxBlock } from '../txBuilders';
+import { newScallopTxBlock } from '../txBuilders';
 import { queryObligation, queryMarket, getObligations } from '../queries';
 import type {
   ScallopParams,
   SupportAssetCoins,
   SupportCollateralCoins,
   SupportCoins,
+  ScallopTxBlock,
 } from '../types';
 
 /**
