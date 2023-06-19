@@ -49,13 +49,11 @@ This SDK is used to interact with [sui-lending-protocal](https://github.com/scal
   // Or, you can choose to import the class directly to create an instance.
   import {
     ScallopClient,
-    ScallopTxBuilder,
     ScallopAddress,
   } from '@scallop-io/sui-scallop-sdk'
 
   const client = new ScallopClient(...);
   const address = new ScallopAddress(...);
-  const txBuilder = new ScallopTxBuilder(...);
 
   ```
 
