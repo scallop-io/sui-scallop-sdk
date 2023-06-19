@@ -54,8 +54,8 @@ This SDK is used to interact with [sui-lending-protocal](https://github.com/scal
   } from '@scallop-io/sui-scallop-sdk'
 
   const client = new ScallopClient(...);
-  const address = new ScallopTxBuilder(...);
-  const txBuilder = new ScallopAddress(...);
+  const address = new ScallopAddress(...);
+  const txBuilder = new ScallopTxBuilder(...);
 
   ```
 
@@ -63,9 +63,7 @@ This SDK is used to interact with [sui-lending-protocal](https://github.com/scal
 
 For the original codes, please refer to `test/index.spec.ts` file.
 
-You need to setup the `.env` file before testing.
-
-Remove the `.skip` to unskip the test.
+You need to setup the `.env` file before testing. (Reference `.env.example`)
 
 - Setup the network
 
@@ -142,8 +140,9 @@ Remove the `.skip` to unskip the test.
   ```
 
 - Withdraw Collateral
-  
-    ⚠️Please note that due to the integration with Shinami Gas Station are still building, the features of Borrow Asset and Withdraw Collateral will now incur a Pyth Oracle fee of about 0.3~0.5 SUI.
+
+  ⚠️Please note that due to the integration with Shinami Gas Station are still building, the features of Borrow Asset and Withdraw Collateral will now incur a Pyth Oracle fee of about 0.3~0.5 SUI.
+
   ```typescript
   it('Should withdraw collateral successfully', async () => {
     const obligations = await client.getObligations();
@@ -181,8 +180,9 @@ Remove the `.skip` to unskip the test.
   ```
 
 - Borrow Asset
-    
-    ⚠️Please note that due to the integration with Shinami Gas Station are still building, the features of Borrow Asset and Withdraw Collateral will now incur a Pyth Oracle fee of about 0.3~0.5 SUI.
+
+  ⚠️Please note that due to the integration with Shinami Gas Station are still building, the features of Borrow Asset and Withdraw Collateral will now incur a Pyth Oracle fee of about 0.3~0.5 SUI.
+
   ```typescript
   it('Should borrow asset successfully', async () => {
     const obligations = await client.getObligations();
@@ -216,6 +216,22 @@ Remove the `.skip` to unskip the test.
   });
   ```
 
+- Flash Loan
+  ```typescript
+  it('Should flash loan successfully', async () => {
+    const flashLoanResult = await client.flashLoan(
+      'usdc',
+      10 ** 9,
+      (txBlock, coin) => {
+        return coin;
+      },
+      true
+    );
+    console.info('flashLoanResult:', flashLoanResult);
+    expect(flashLoanResult.effects.status.status).toEqual('success');
+  });
+  ```
+
 ## Use address manager
 
 General Users will basically only use the `get`, `getAddresses` or `getAllAddresses` methods to read addresses. Here are some simple examples:
@@ -236,7 +252,7 @@ const addresses = addressBuilder.getAddresses();
 const allAddresses = addressBuilder.getAllAddresses();
 ```
 
-Scallop currently maintains this address `645f2a57a7ace142bb6d7c17` for use in the production environment.
+Scallop currently maintains this address `6462a088a7ace142bb6d7e9b` for use in the production environment.
 
 Of course, you can also directly use the [sui-scallop-api](https://github.com/scallop-io/sui-scallop-api) project to directly request an addresses.
 
