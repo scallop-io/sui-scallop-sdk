@@ -1,11 +1,11 @@
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopClient } from './scallopClient';
-import { newScallopTxBlock, ScallopTxBlock } from '../txBuilders';
+import { ScallopUtils } from './scallopUtils';
+import { newScallopTxBlock } from '../txBuilders';
 import { ADDRESSES_ID } from '../constants';
 import type { NetworkType } from '@scallop-io/sui-kit';
-import type { ScallopParams } from '../types';
-import { ScallopUtils } from './scallopUtils';
+import type { ScallopParams, ScallopTxBlock } from '../types';
 
 /**
  * ### Scallop
