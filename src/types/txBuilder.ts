@@ -103,7 +103,10 @@ export type ScallopQuickMethods = {
     obligationId?: string,
     obligationKey?: SuiTxArg
   ) => Promise<TransactionResult>;
-  depositQuick: (amount: number, coinName: SupportAssetCoins) => Promise<void>;
+  depositQuick: (
+    amount: number,
+    coinName: SupportAssetCoins
+  ) => Promise<TransactionResult>;
   withdrawQuick: (
     amount: number,
     coinName: SupportAssetCoins

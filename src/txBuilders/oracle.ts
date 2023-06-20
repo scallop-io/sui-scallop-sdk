@@ -328,7 +328,7 @@ function updateSwitchboardPrice(
 ) {
   txBlock.moveCall(
     `${packageId}::rule::set_price`,
-    [request, aggregatorId, registryId],
+    [request, aggregatorId, registryId, SUI_CLOCK_OBJECT_ID],
     [coinType]
   );
 }
