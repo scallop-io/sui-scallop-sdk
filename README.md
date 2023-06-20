@@ -352,7 +352,9 @@ describe('Test Scallop transaction builder', async () => {
     tx.transferObjects([suiCoin], sender);
     const removeCollateralQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('takeCollateralQuickResult:', removeCollateralQuickResult);
-    expect(removeCollateralQuickResult.effects.status.status).toEqual('success');
+    expect(removeCollateralQuickResult.effects.status.status).toEqual(
+      'success'
+    );
   });
 
   test('"borrowFlashLoan" & "repayFlashLoan" should be able to borrow and repay 1 SUI flashLoan from Scallop', async () => {
@@ -370,7 +372,6 @@ describe('Test Scallop transaction builder', async () => {
   });
 });
 ```
-
 
 # License
 
