@@ -44,7 +44,7 @@ This SDK is used to interact with [sui-lending-protocal](https://github.com/scal
 
   const client = sdk.createScallopClient(...);
   const address = sdk.createAddress(...);
-  const txBuilder = sdk.createTxBuilder(...);
+  const txBuilder = await sdk.createTxBuilder(...);
 
   // Or, you can choose to import the class directly to create an instance.
   import {
@@ -230,47 +230,6 @@ You need to setup the `.env` file before testing. (Reference `.env.example`)
   });
   ```
 
-## Use address manager
-
-General Users will basically only use the `get`, `getAddresses` or `getAllAddresses` methods to read addresses. Here are some simple examples:
-
-```typescript
-const address = new ScallopAddress({
-  id: TEST_ADDRESSES_ID,
-  network: NETWORK,
-});
-
-// Fetch addresses data from scallop sui API.
-await addressBuilder.read();
-// Get the address in the nested address structure through the dot symbol.
-const address = addressBuilder.get('core.coins.usdc.id');
-// Get specific network addresses of lending protocol.
-const addresses = addressBuilder.getAddresses();
-// Get all network addresses of lending protocol.
-const allAddresses = addressBuilder.getAllAddresses();
-```
-
-Scallop currently maintains this address `6462a088a7ace142bb6d7e9b` for use in the production environment.
-
-Of course, you can also directly use the [sui-scallop-api](https://github.com/scallop-io/sui-scallop-api) project to directly request an addresses.
-
-The rest of the features are for Scallop administrators to use, and require a set of API authentication key to use the create, update, and delete address functions.
-
-```typescript
-  const address = new ScallopAddress({
-    id: TEST_ADDRESSES_ID,
-    auth: process.env.API_KEY,
-    network: NETWORK,
-  });
-
-  // create addresses.
-  const addresses = await addressBuilder.create(...);
-  // Update addresses by id.
-  const allAddresses = await addressBuilder.update(id, ...);
-  // delete addresses by id.
-  const allAddresses = await addressBuilder.delete(id, ...);
-```
-
 ## Use TransactionBlock Builder
 
 ```typescript
@@ -384,6 +343,51 @@ describe('Test Scallop transaction builder', async () => {
   });
 });
 ```
+
+## Use address manager
+
+General Users will basically only use the `get`, `getAddresses` or `getAllAddresses` methods to read addresses. Here are some simple examples:
+
+```typescript
+const address = new ScallopAddress({
+  id: TEST_ADDRESSES_ID,
+  network: NETWORK,
+});
+
+// Fetch addresses data from scallop sui API.
+await addressBuilder.read();
+// Get the address in the nested address structure through the dot symbol.
+const address = addressBuilder.get('core.coins.usdc.id');
+// Get specific network addresses of lending protocol.
+const addresses = addressBuilder.getAddresses();
+// Get all network addresses of lending protocol.
+const allAddresses = addressBuilder.getAllAddresses();
+```
+
+Scallop currently maintains this address `6462a088a7ace142bb6d7e9b` for use in the production environment.
+
+Of course, you can also directly use the [sui-scallop-api](https://github.com/scallop-io/sui-scallop-api) project to directly request an addresses.
+
+The rest of the features are for Scallop administrators to use, and require a set of API authentication key to use the create, update, and delete address functions.
+
+```typescript
+  const address = new ScallopAddress({
+    id: TEST_ADDRESSES_ID,
+    auth: process.env.API_KEY,
+    network: NETWORK,
+  });
+
+  // create addresses.
+  const addresses = await addressBuilder.create(...);
+  // Update addresses by id.
+  const allAddresses = await addressBuilder.update(id, ...);
+  // delete addresses by id.
+  const allAddresses = await addressBuilder.delete(id, ...);
+```
+
+# Other Notes
+
+- The price update interface of Supra and Switchboard has been implemented, but because these oracles currently have no way to update prices in real time and cannot pass the price update rules of the scallop lending protocol, the use of these orcales is temporarily suspended.
 
 # License
 
