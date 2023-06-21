@@ -129,7 +129,7 @@ const updateOracle = async (
 
   updatePrice(
     txBlock,
-    isTestnet ? ['supra', 'pyth', 'switchboard'] : ['pyth'],
+    isTestnet ? ['pyth'] : ['pyth'],
     address.get('core.packages.xOracle.id'),
     address.get('core.oracles.xOracle'),
     address.get('core.packages.pyth.id'),
