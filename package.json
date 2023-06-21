@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-sdk",
-  "version": "0.35.1",
+  "version": "0.35.2",
   "description": "Tookit for interacting with Scallop on SUI",
   "keywords": [
     "sui",
@@ -65,8 +65,8 @@
     "@commitlint/config-conventional": "^17.6.5",
     "@commitlint/prompt-cli": "^17.6.5",
     "@types/node": "^20.3.1",
-    "@typescript-eslint/eslint-plugin": "^5.59.11",
-    "@typescript-eslint/parser": "^5.59.11",
+    "@typescript-eslint/eslint-plugin": "^5.60.0",
+    "@typescript-eslint/parser": "^5.60.0",
     "dotenv": "^16.3.1",
     "eslint": "^8.43.0",
     "eslint-config-prettier": "^8.8.0",
