@@ -10,7 +10,8 @@ import {
   updateOraclesForWithdrawCollateral,
 } from './oracle';
 import { selectCoin, selectMarketCoin } from './coin';
-import { ScallopQuickMethodsHandler, ScallopTxBlock } from '../types';
+import type { SuiTxArg } from '@scallop-io/sui-kit';
+import type { ScallopQuickMethodsHandler, ScallopTxBlock } from '../types';
 
 const requireSender = (txBlock: SuiTxBlock) => {
   const sender = txBlock.blockData.sender;
@@ -21,13 +22,18 @@ const requireSender = (txBlock: SuiTxBlock) => {
 };
 
 const requireObligationInfo = async (
-  txBlock: SuiTxBlock,
-  scallopAddress: ScallopAddress,
-  suiKit: SuiKit,
-  obligationId?: string,
-  obligationKey?: string
+  ...args: [
+    txBlock: SuiTxBlock,
+    scallopAddress: ScallopAddress,
+    suiKit: SuiKit,
+    obligationId?: SuiTxArg | undefined,
+    obligationKey?: SuiTxArg | undefined
+  ]
 ) => {
-  if (obligationId) return { obligationId, obligationKey };
+  const [txBlock, scallopAddress, suiKit, obligationId, obligationKey] = args;
+  if (args.length === 4 && obligationId) return { obligationId };
+  if (args.length === 5 && obligationId && obligationKey)
+    return { obligationId, obligationKey };
   const sender = requireSender(txBlock);
   const obligations = await getObligations(sender, scallopAddress, suiKit);
   if (obligations.length === 0) {
@@ -42,17 +48,18 @@ const requireObligationInfo = async (
 const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
   addCollateralQuick:
     ({ txBlock, scallopAddress, scallopUtils, suiKit }) =>
-    async (amount, coinName, _obligationId) => {
+    async (amount, coinName, obligationId) => {
       const sender = requireSender(txBlock);
-      const { obligationId } = await requireObligationInfo(
+      const { obligationId: obligationArg } = await requireObligationInfo(
         txBlock,
         scallopAddress,
         suiKit,
-        _obligationId
+        obligationId
       );
+
       if (coinName === 'sui') {
         const [suiCoin] = txBlock.splitSUIFromGas([amount]);
-        txBlock.addCollateral(obligationId, suiCoin, coinName);
+        txBlock.addCollateral(obligationArg, suiCoin, coinName);
       } else {
         const { leftCoin, takeCoin } = await selectCoin(
           txBlock,
@@ -62,31 +69,33 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
           amount,
           sender
         );
-        txBlock.addCollateral(obligationId, takeCoin, coinName);
+        txBlock.addCollateral(obligationArg, takeCoin, coinName);
         txBlock.transferObjects([leftCoin], sender);
       }
     },
   takeCollateralQuick:
     ({ txBlock, suiKit, scallopUtils, scallopAddress, isTestnet }) =>
-    async (amount, coinName, _obligationId, _obligationKey) => {
-      const { obligationId, obligationKey } = await requireObligationInfo(
-        txBlock,
-        scallopAddress,
-        suiKit,
-        _obligationId,
-        _obligationKey
-      );
+    async (amount, coinName, obligationId, obligationKey) => {
+      const { obligationId: obligationArg, obligationKey: obligationKeyArg } =
+        await requireObligationInfo(
+          txBlock,
+          scallopAddress,
+          suiKit,
+          obligationId,
+          obligationKey
+        );
+
       await updateOraclesForWithdrawCollateral(
         txBlock,
         scallopAddress,
         scallopUtils,
         suiKit,
-        obligationId,
+        obligationArg as string,
         isTestnet
       );
       return txBlock.takeCollateral(
-        obligationId,
-        obligationKey,
+        obligationArg,
+        !obligationKeyArg,
         amount,
         coinName
       );
@@ -128,38 +137,41 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
     },
   borrowQuick:
     ({ txBlock, suiKit, scallopUtils, scallopAddress, isTestnet }) =>
-    async (amount, coinName, _obligationId, _obligationKey) => {
-      const { obligationId, obligationKey } = await requireObligationInfo(
-        txBlock,
-        scallopAddress,
-        suiKit,
-        _obligationId,
-        _obligationKey
-      );
+    async (amount, coinName, obligationId, obligationKey) => {
+      const { obligationId: obligationArg, obligationKey: obligationKeyArg } =
+        await requireObligationInfo(
+          txBlock,
+          scallopAddress,
+          suiKit,
+          obligationId,
+          obligationKey
+        );
+
       await updateOraclesForBorrow(
         txBlock,
         scallopAddress,
         scallopUtils,
         suiKit,
-        obligationId,
+        obligationArg as string,
         coinName,
         isTestnet
       );
-      return txBlock.borrow(obligationId, obligationKey, amount, coinName);
+      return txBlock.borrow(obligationArg, !obligationKeyArg, amount, coinName);
     },
   repayQuick:
     ({ txBlock, suiKit, scallopUtils, scallopAddress }) =>
-    async (amount, coinName, _obligationId) => {
+    async (amount, coinName, obligationId) => {
       const sender = requireSender(txBlock);
-      const { obligationId } = await requireObligationInfo(
+      const { obligationId: obligationArg } = await requireObligationInfo(
         txBlock,
         scallopAddress,
         suiKit,
-        _obligationId
+        obligationId
       );
+
       if (coinName === 'sui') {
         const [suiCoin] = txBlock.splitSUIFromGas([amount]);
-        return txBlock.repay(obligationId, suiCoin, coinName);
+        return txBlock.repay(obligationArg, suiCoin, coinName);
       } else {
         const { leftCoin, takeCoin } = await selectCoin(
           txBlock,
@@ -170,7 +182,7 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
           sender
         );
         txBlock.transferObjects([leftCoin], sender);
-        return txBlock.repay(obligationId, takeCoin, coinName);
+        return txBlock.repay(obligationArg, takeCoin, coinName);
       }
     },
 };
