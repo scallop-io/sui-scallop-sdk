@@ -5,15 +5,18 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@mysten/bcs':
+    specifier: ^0.7.2
+    version: 0.7.2
   '@mysten/sui.js':
-    specifier: ^0.35.1
-    version: 0.35.1
+    specifier: ^0.36.0
+    version: 0.36.0
   '@pythnetwork/price-service-client':
     specifier: ^1.5.0
     version: 1.5.0
   '@scallop-io/sui-kit':
-    specifier: ^0.35.3
-    version: 0.35.3(@mysten/sui.js@0.35.1)
+    specifier: ^0.36.0
+    version: 0.36.0(@mysten/sui.js@0.36.0)
   axios:
     specifier: ^1.4.0
     version: 1.4.0
@@ -68,7 +71,7 @@ devDependencies:
     specifier: ^0.24.8
     version: 0.24.8(typescript@5.1.3)
   typescript:
-    specifier: ^5.1.3
+    specifier: ^5.0.4
     version: 5.1.3
   vitest:
     specifier: ^0.32.2
@@ -775,17 +778,17 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
 
-  /@mysten/bcs@0.7.1:
-    resolution: {integrity: sha512-wFPb8bkhwrbiStfZMV5rFM7J+umpke59/dNjDp+UYJKykNlW23LCk2ePyEUvGdb62HGJM1jyOJ8g4egE3OmdKA==}
+  /@mysten/bcs@0.7.2:
+    resolution: {integrity: sha512-M8aUGFwoBEj9XPCJcYuVlv8UbqBINAYhrDGLavdCYZwGlN5saGgrBcnGpXk+D2/Vp+aEUFh3RCyKudn7H0G9hQ==}
     dependencies:
       bs58: 5.0.0
     dev: false
 
-  /@mysten/sui.js@0.35.1:
-    resolution: {integrity: sha512-1UQ65oJhO+G5Bt+EWYqMs5y3eqY1ZZxEdB2y4K+XJVeRZBOy32GjSLiYmZufUAR9o53gAlwAvvNRIzMzuiNQzw==}
+  /@mysten/sui.js@0.36.0:
+    resolution: {integrity: sha512-l/gZUxlr0oHgnwuHYxIVp+JOrdj1imhffL5iK25JYh3WV4sTxiQntCLuSen6etXyFG9c1l2GNvVaGZaV3mb4Hw==}
     engines: {node: '>=16'}
     dependencies:
-      '@mysten/bcs': 0.7.1
+      '@mysten/bcs': 0.7.2
       '@noble/curves': 1.0.0
       '@noble/hashes': 1.3.0
       '@open-rpc/client-js': 1.8.1
@@ -864,13 +867,13 @@ packages:
     resolution: {integrity: sha512-h4HcUwBPFEZwa5nLMTz9YnwdLE5m+Bfctzqbj09vpSJo2DyPHCyEXScFUuizWBbfofxB/pF+OnZXjU3pJxtm/w==}
     dev: false
 
-  /@scallop-io/sui-kit@0.35.3(@mysten/sui.js@0.35.1):
-    resolution: {integrity: sha512-3y0MtNoOQKeKu/GzsMiwBqvJmRGsfbVSZu8N+ZSH+2Qt+gxD/WxFWgJ4wC7bJNIAvr4naUOYg5aT6lFRT3WkQw==}
+  /@scallop-io/sui-kit@0.36.0(@mysten/sui.js@0.36.0):
+    resolution: {integrity: sha512-ErF0f/NZkYZOQ9dsgKsPKilkcobhF6fIgzTOOB16ZQNLRAfhB6pt00Q2NIPQW70t3qHb9qVzuVkxJgaXdtY5Cg==}
     engines: {node: '>=18'}
     peerDependencies:
       '@mysten/sui.js': ^0.35.1
     dependencies:
-      '@mysten/sui.js': 0.35.1
+      '@mysten/sui.js': 0.36.0
       '@scure/bip39': 1.2.0
       assert: 2.0.0
       colorts: 0.1.63
@@ -1383,7 +1386,7 @@ packages:
     resolution: {integrity: sha512-7O+FbCihrB5WGbFYesctwmTKae6rOiIzmz1icreWJ+0aA7LJfuqhEso2T9ncpcFtzMQtzXf2QGGueWJGTYsqrA==}
     dependencies:
       function-bind: 1.1.1
-      get-intrinsic: 1.2.0
+      get-intrinsic: 1.2.1
     dev: false
 
   /callsites@3.1.0:
@@ -2155,11 +2158,12 @@ packages:
     resolution: {integrity: sha512-Hm0ixYtaSZ/V7C8FJrtZIuBBI+iSgL+1Aq82zSu8VQNB4S3Gk8e7Qs3VwBDJAhmRZcFqkl3tQu36g/Foh5I5ig==}
     dev: true
 
-  /get-intrinsic@1.2.0:
-    resolution: {integrity: sha512-L049y6nFOuom5wGyRc3/gdTLO94dySVKRACj1RmJZBQXlbTMhtNIgkWkUHq+jYmZvKf14EW1EoJnnjbmoHij0Q==}
+  /get-intrinsic@1.2.1:
+    resolution: {integrity: sha512-2DcsyfABl+gVHEfCOaTrWgyt+tb6MSEGmKq+kI5HwLbIYgjgmMcV8KQ41uaKz1xxUcn9tJtgFbQUEVcEbd0FYw==}
     dependencies:
       function-bind: 1.1.1
       has: 1.0.3
+      has-proto: 1.0.1
       has-symbols: 1.0.3
     dev: false
 
@@ -2233,7 +2237,7 @@ packages:
   /gopd@1.0.1:
     resolution: {integrity: sha512-d65bNlIadxvpb/A2abVdlqKqV563juRnZ1Wtk6s1sIR8uNsXR70xqIzVqxVf1eTqDunwT2MkczEeaezCKTZhwA==}
     dependencies:
-      get-intrinsic: 1.2.0
+      get-intrinsic: 1.2.1
     dev: false
 
   /graceful-fs@4.2.11:
@@ -2266,7 +2270,12 @@ packages:
   /has-property-descriptors@1.0.0:
     resolution: {integrity: sha512-62DVLZGoiEBDHQyqG4w9xCuZ7eJEwNmJRWw2VY84Oedb7WFcA27fiEVe8oUQx9hAUJ4ekurquucTGwsyO1XGdQ==}
     dependencies:
-      get-intrinsic: 1.2.0
+      get-intrinsic: 1.2.1
+    dev: false
+
+  /has-proto@1.0.1:
+    resolution: {integrity: sha512-7qE+iP+O+bgF9clE5+UoBFzE65mlBiVj3tKCrlNQ0Ogwm0BjpT/gK4SlLYDMybDh5I3TCTKnPPa0oMG7JDYrhg==}
+    engines: {node: '>= 0.4'}
     dev: false
 
   /has-symbols@1.0.3:

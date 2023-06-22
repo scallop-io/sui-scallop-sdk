@@ -1,4 +1,4 @@
-import { Buffer } from 'node:buffer';
+import { fromB64 } from '@mysten/bcs';
 import { SUI_CLOCK_OBJECT_ID, TransactionArgument } from '@mysten/sui.js';
 import { SuiTxBlock, SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress, ScallopUtils } from '../models';
@@ -367,7 +367,7 @@ function updatePythPrice(
       stateId,
       feedObjectId,
       registryId,
-      txBlock.pure([...Buffer.from(vaaFromFeeId, 'base64')]),
+      txBlock.pure([...fromB64(vaaFromFeeId)]),
       updateFee,
       SUI_CLOCK_OBJECT_ID,
     ],
