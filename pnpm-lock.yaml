@@ -15,8 +15,8 @@ dependencies:
     specifier: ^1.5.0
     version: 1.5.0
   '@scallop-io/sui-kit':
-    specifier: ^0.36.0
-    version: 0.36.0(@mysten/sui.js@0.36.0)
+    specifier: ^0.36.1
+    version: 0.36.1(@mysten/sui.js@0.36.0)
   axios:
     specifier: ^1.4.0
     version: 1.4.0
@@ -867,11 +867,11 @@ packages:
     resolution: {integrity: sha512-h4HcUwBPFEZwa5nLMTz9YnwdLE5m+Bfctzqbj09vpSJo2DyPHCyEXScFUuizWBbfofxB/pF+OnZXjU3pJxtm/w==}
     dev: false
 
-  /@scallop-io/sui-kit@0.36.0(@mysten/sui.js@0.36.0):
-    resolution: {integrity: sha512-ErF0f/NZkYZOQ9dsgKsPKilkcobhF6fIgzTOOB16ZQNLRAfhB6pt00Q2NIPQW70t3qHb9qVzuVkxJgaXdtY5Cg==}
+  /@scallop-io/sui-kit@0.36.1(@mysten/sui.js@0.36.0):
+    resolution: {integrity: sha512-PMz4Tn6myxVOPWEisI4ULx+gscGCiqn7j62Ncda32GQZh5sPFrGUnixu0rn2cyVOBGmwWdTpjG6xBYKVLwfTvw==}
     engines: {node: '>=18'}
     peerDependencies:
-      '@mysten/sui.js': ^0.35.1
+      '@mysten/sui.js': ^0.36.0
     dependencies:
       '@mysten/sui.js': 0.36.0
       '@scure/bip39': 1.2.0

@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-sdk",
-  "version": "0.36.0",
+  "version": "0.36.1",
   "description": "Tookit for interacting with Scallop on SUI",
   "keywords": [
     "sui",
@@ -58,7 +58,7 @@
     "@mysten/bcs": "^0.7.2",
     "@mysten/sui.js": "^0.36.0",
     "@pythnetwork/price-service-client": "^1.5.0",
-    "@scallop-io/sui-kit": "^0.36.0",
+    "@scallop-io/sui-kit": "^0.36.1",
     "axios": "^1.4.0"
   },
   "devDependencies": {
