@@ -95,7 +95,7 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
       );
       return txBlock.takeCollateral(
         obligationArg,
-        !obligationKeyArg,
+        obligationKeyArg as SuiTxArg,
         amount,
         coinName
       );
@@ -156,7 +156,12 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
         coinName,
         isTestnet
       );
-      return txBlock.borrow(obligationArg, !obligationKeyArg, amount, coinName);
+      return txBlock.borrow(
+        obligationArg,
+        obligationKeyArg as SuiTxArg,
+        amount,
+        coinName
+      );
     },
   repayQuick:
     ({ txBlock, suiKit, scallopUtils, scallopAddress }) =>
