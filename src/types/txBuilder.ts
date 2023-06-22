@@ -1,7 +1,7 @@
-import { TransactionArgument } from '@mysten/sui.js';
-import { SuiTxBlock, SuiTxArg, SuiKit } from '@scallop-io/sui-kit';
-import { ScallopAddress, ScallopUtils } from '../models';
-import { SupportCollateralCoins, SupportAssetCoins } from './data';
+import type { TransactionArgument } from '@mysten/sui.js';
+import type { SuiTxBlock, SuiTxArg, SuiKit } from '@scallop-io/sui-kit';
+import type { ScallopAddress, ScallopUtils } from '../models';
+import type { SupportCollateralCoins, SupportAssetCoins } from './data';
 
 type TransactionResult = TransactionArgument & TransactionArgument[];
 
@@ -89,19 +89,19 @@ export type ScallopQuickMethods = {
   addCollateralQuick: (
     amount: number,
     coinName: SupportCollateralCoins,
-    obligationId?: string
+    obligationId?: SuiTxArg
   ) => Promise<void>;
   takeCollateralQuick: (
     amount: number,
     coinName: SupportCollateralCoins,
     obligationId?: string,
-    obligationKey?: SuiTxArg
+    obligationKey?: string
   ) => Promise<TransactionResult>;
   borrowQuick: (
     amount: number,
     coinName: SupportAssetCoins,
     obligationId?: string,
-    obligationKey?: SuiTxArg
+    obligationKey?: string
   ) => Promise<TransactionResult>;
   depositQuick: (
     amount: number,

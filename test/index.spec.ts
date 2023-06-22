@@ -26,7 +26,7 @@ describe('Test Scallop interact with contract', async () => {
   it('Should open a obligation account', async () => {
     const openObligationResult = await client.openObligation();
     console.info('openObligationResult:', openObligationResult);
-    expect(openObligationResult.effects.status.status).toEqual('success');
+    expect(openObligationResult.effects?.status.status).toEqual('success');
   });
 
   it('Should get obligations and its query data', async () => {
@@ -45,7 +45,7 @@ describe('Test Scallop interact with contract', async () => {
   it('Should get test coin', async () => {
     const mintTestCoinResult = await client.mintTestCoin('usdc', 10 ** 11);
     console.info('mintTestCoinResult:', mintTestCoinResult);
-    expect(mintTestCoinResult.effects.status.status).toEqual('success');
+    expect(mintTestCoinResult.effects?.status.status).toEqual('success');
   });
 
   it('Should depoist collateral successfully', async () => {
@@ -57,7 +57,7 @@ describe('Test Scallop interact with contract', async () => {
       obligations[0]?.id
     );
     console.info('depositCollateralResult:', depositCollateralResult);
-    expect(depositCollateralResult.effects.status.status).toEqual('success');
+    expect(depositCollateralResult.effects?.status.status).toEqual('success');
   });
 
   it('Should withdraw collateral successfully', async () => {
@@ -71,19 +71,19 @@ describe('Test Scallop interact with contract', async () => {
       obligations[0].keyId
     );
     console.info('withdrawCollateralResult:', withdrawCollateralResult);
-    expect(withdrawCollateralResult.effects.status.status).toEqual('success');
+    expect(withdrawCollateralResult.effects?.status.status).toEqual('success');
   });
 
   it('Should depoist asset successfully', async () => {
-    const depositResult = await client.deposit('usdc', 10 ** 6, true);
+    const depositResult = await client.deposit('usdc', 10 ** 6);
     console.info('depositResult:', depositResult);
-    expect(depositResult.effects.status.status).toEqual('success');
+    expect(depositResult.effects?.status.status).toEqual('success');
   });
 
   it('Should withdraw asset successfully', async () => {
-    const withdrawResult = await client.withdraw('usdc', 5 * 10 ** 5, true);
+    const withdrawResult = await client.withdraw('usdc', 5 * 10 ** 5);
     console.info('withdrawResult:', withdrawResult);
-    expect(withdrawResult.effects.status.status).toEqual('success');
+    expect(withdrawResult.effects?.status.status).toEqual('success');
   });
 
   it('Should borrow asset successfully', async () => {
@@ -97,7 +97,7 @@ describe('Test Scallop interact with contract', async () => {
       obligations[0].keyId
     );
     console.info('borrowResult:', borrowResult);
-    expect(borrowResult.effects.status.status).toEqual('success');
+    expect(borrowResult.effects?.status.status).toEqual('success');
   });
 
   it('Should repay asset successfully', async () => {
@@ -110,7 +110,7 @@ describe('Test Scallop interact with contract', async () => {
       obligations[0].id
     );
     console.info('repayResult:', repayResult);
-    expect(repayResult.effects.status.status).toEqual('success');
+    expect(repayResult.effects?.status.status).toEqual('success');
   });
 
   it('Should flash loan successfully', async () => {
@@ -119,10 +119,9 @@ describe('Test Scallop interact with contract', async () => {
       10 ** 9,
       (txBlock, coin) => {
         return coin;
-      },
-      true
+      }
     );
     console.info('flashLoanResult:', flashLoanResult);
-    expect(flashLoanResult.effects.status.status).toEqual('success');
+    expect(flashLoanResult.effects?.status.status).toEqual('success');
   });
 });
