@@ -26,66 +26,66 @@ describe('Test Scallop transaction builder', async () => {
     expect(openObligationResult.effects.status.status).toEqual('success');
   });
 
-  test('"borrowQuick" should borrow 1 SUI, and return borrowed SUI', async () => {
+  test('"borrowQuick" should borrow 1 USDC, and return borrowed USDC', async () => {
     const tx = txBuilder.createTxBlock();
     // Sender is required to invoke "borrowQuick"
     tx.setSender(sender);
-    const borrowedSUI = await tx.borrowQuick(10 ** 9, 'sui');
-    // Transfer borrowed SUI to sender
-    tx.transferObjects([borrowedSUI], sender);
+    const borrowedCoin = await tx.borrowQuick(10 ** 9, 'usdc');
+    // Transfer borrowed coin to sender
+    tx.transferObjects([borrowedCoin], sender);
     const borrowQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('borrowQuickResult:', borrowQuickResult);
     expect(borrowQuickResult.effects.status.status).toEqual('success');
   });
 
-  test('"repayQuick" should repay 1 SUI', async () => {
+  test('"repayQuick" should repay 1 USDC', async () => {
     const tx = txBuilder.createTxBlock();
     // Sender is required to invoke "repayQuick"
     tx.setSender(sender);
-    await tx.repayQuick(10 ** 9, 'sui');
+    await tx.repayQuick(10 ** 9, 'usdc');
     const repayQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('repayQuickResult:', repayQuickResult);
     expect(repayQuickResult.effects.status.status).toEqual('success');
   });
 
-  test('"depositQuick" should deposit 1 SUI, and return the "SUI market coin"', async () => {
+  test('"depositQuick" should deposit 1 USDC, and return the "USDC market coin"', async () => {
     const tx = txBuilder.createTxBlock();
     // Sender is required to invoke "depositQuick"
     tx.setSender(sender);
-    const suiMarketCoin = await tx.depositQuick(10 ** 9, 'sui');
-    tx.transferObjects([suiMarketCoin], sender);
+    const marketCoin = await tx.depositQuick(10 ** 9, 'usdc');
+    tx.transferObjects([marketCoin], sender);
     const depositQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('depositQuickResult:', depositQuickResult);
     expect(depositQuickResult.effects.status.status).toEqual('success');
   });
 
-  test('"withdrawQuick" should withdraw 1 SUI, and burn the "SUI market coin"', async () => {
+  test('"withdrawQuick" should burn 1 "USDC market coin", and return at least 1 USDC and the interest', async () => {
     const tx = txBuilder.createTxBlock();
     // Sender is required to invoke "withdrawQuick"
     tx.setSender(sender);
-    const suiCoin = await tx.withdrawQuick(10 ** 9, 'sui');
-    tx.transferObjects([suiCoin], sender);
+    const coin = await tx.withdrawQuick(10 ** 9, 'usdc');
+    tx.transferObjects([coin], sender);
     const withdrawQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('withdrawQuickResult:', withdrawQuickResult);
     expect(withdrawQuickResult.effects.status.status).toEqual('success');
   });
 
-  test('"addCollateralQuick" should add 1 SUI as collateral', async () => {
+  test('"addCollateralQuick" should add 1 USDC as collateral', async () => {
     const tx = txBuilder.createTxBlock();
     // Sender is required to invoke "addCollateralQuick"
     tx.setSender(sender);
-    await tx.addCollateralQuick(10 ** 9, 'sui');
+    await tx.addCollateralQuick(10 ** 9, 'usdc');
     const addCollateralQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('addCollateralQuickResult:', addCollateralQuickResult);
     expect(addCollateralQuickResult.effects.status.status).toEqual('success');
   });
 
-  test('"takeCollateralQuick" should take 1 SUI from collateral and return the SUI coin', async () => {
+  test('"takeCollateralQuick" should take 1 USDC from collateral', async () => {
     const tx = txBuilder.createTxBlock();
     // Sender is required to invoke "removeCollateralQuick"
     tx.setSender(sender);
-    const suiCoin = await tx.takeCollateralQuick(10 ** 9, 'sui');
-    tx.transferObjects([suiCoin], sender);
+    const coin = await tx.takeCollateralQuick(10 ** 9, 'usdc');
+    tx.transferObjects([coin], sender);
     const removeCollateralQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('takeCollateralQuickResult:', removeCollateralQuickResult);
     expect(removeCollateralQuickResult.effects.status.status).toEqual(
@@ -93,15 +93,15 @@ describe('Test Scallop transaction builder', async () => {
     );
   });
 
-  test('"borrowFlashLoan" & "repayFlashLoan" should be able to borrow and repay 1 SUI flashLoan from Scallop', async () => {
+  test('"borrowFlashLoan" & "repayFlashLoan" should be able to borrow and repay 1 USDC flashLoan from Scallop', async () => {
     const tx = txBuilder.createTxBlock();
-    const [suiCoin, loan] = tx.borrowFlashLoan(10 ** 9, 'sui');
+    const [coin, loan] = tx.borrowFlashLoan(10 ** 9, 'usdc');
     /**
-     * Do something with the borrowed 'suiCoin'
+     * Do something with the borrowed coin
      * such as pass it to a dex to make a profit
      */
     // In the end, repay the loan
-    tx.repayFlashLoan(suiCoin, loan, 'sui');
+    tx.repayFlashLoan(coin, loan, 'usdc');
     const borrowFlashLoanResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('borrowFlashLoanResult:', borrowFlashLoanResult);
     expect(borrowFlashLoanResult.effects.status.status).toEqual('success');
