@@ -119,13 +119,11 @@ test('"takeCollateralQuick" should take 1 USDC from collateral', async () => {
   tx.transferObjects([coin], sender);
   const removeCollateralQuickResult = await txBuilder.signAndSendTxBlock(tx);
   console.info('takeCollateralQuickResult:', removeCollateralQuickResult);
-  expect(removeCollateralQuickResult.effects.status.status).toEqual(
-    'success'
-  );
+  expect(removeCollateralQuickResult.effects.status.status).toEqual('success');
 });
 ```
 
-## Do FlashLoan on Scallop
+## FlashLoan on Scallop
 
 ```typescript
 test('"borrowFlashLoan" & "repayFlashLoan" should be able to borrow and repay 1 USDC flashLoan from Scallop', async () => {
@@ -134,11 +132,36 @@ test('"borrowFlashLoan" & "repayFlashLoan" should be able to borrow and repay 1 
   /**
    * Do something with the borrowed coin
    * such as pass it to a dex to make a profit
+   * tx.moveCall('xx::dex::swap', [coin]);
    */
   // In the end, repay the loan
   tx.repayFlashLoan(coin, loan, 'usdc');
   const borrowFlashLoanResult = await txBuilder.signAndSendTxBlock(tx);
   console.info('borrowFlashLoanResult:', borrowFlashLoanResult);
   expect(borrowFlashLoanResult.effects.status.status).toEqual('success');
+});
+```
+
+## Compatability with @mysten/sui.js TransactionBlock
+Scallop Transaction Builder contains a `TransactionBlock` instance from `@mysten/sui.js`.
+So you can use both `TransactionBlock` and `ScallopTransactionBlock` at the same time to build your transaction.
+
+```typescript
+test('"txBlock" is an instance of "TransactionBlock" from @mysten/sui.js', async () => {
+  const tx = txBuilder.createTxBlock();
+  expect(tx.txBlock).toBeInstanceOf(TransactionBlock);
+  /**
+   * For example, you can do the following:
+   * 1. split SUI from gas
+   * 2. depoit SUI to Scallop
+   * 3. transfer SUI Market Coin to sender
+   */
+  const suiTxBlock = tx.txBlock;
+  const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [suiTxBlock.pure(10 ** 6)]);
+  const marketCoin = tx.deposit(coin, 'sui');
+  suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure(sender));
+  const txBlockResult = await txBuilder.signAndSendTxBlock(tx);
+  console.info('txBlockResult:', txBlockResult);
+  expect(txBlockResult.effects.status.status).toEqual('success');
 });
 ```

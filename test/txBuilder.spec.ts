@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
 import { describe, test, expect } from 'vitest';
+import { TransactionBlock } from '@mysten/sui.js';
 import { NetworkType } from '@scallop-io/sui-kit';
 import { Scallop } from '../src';
 
@@ -7,9 +8,6 @@ dotenv.config();
 
 const NETWORK: NetworkType = 'testnet';
 
-/**
- *  Remove `.skip` to proceed with testing according to requirements.
- */
 describe('Test Scallop transaction builder', async () => {
   const scallopSDK = new Scallop({
     secretKey: process.env.SECRET_KEY,
@@ -105,5 +103,25 @@ describe('Test Scallop transaction builder', async () => {
     const borrowFlashLoanResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('borrowFlashLoanResult:', borrowFlashLoanResult);
     expect(borrowFlashLoanResult.effects.status.status).toEqual('success');
+  });
+
+  test('"txBlock" is an instance of "TransactionBlock" from @mysten/sui.js', async () => {
+    const tx = txBuilder.createTxBlock();
+    expect(tx.txBlock).toBeInstanceOf(TransactionBlock);
+    /**
+     * For example, you can do the following:
+     * 1. split SUI from gas
+     * 2. depoit SUI to Scallop
+     * 3. transfer SUI Market Coin to sender
+     */
+    const suiTxBlock = tx.txBlock;
+    const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [
+      suiTxBlock.pure(10 ** 6),
+    ]);
+    const marketCoin = tx.deposit(coin, 'sui');
+    suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure(sender));
+    const txBlockResult = await txBuilder.signAndSendTxBlock(tx);
+    console.info('txBlockResult:', txBlockResult);
+    expect(txBlockResult.effects.status.status).toEqual('success');
   });
 });
