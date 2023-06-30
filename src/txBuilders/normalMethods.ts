@@ -19,7 +19,7 @@ const scallopNormalMethodsHandler: ScallopNormalMethodsHandler = {
     ({ txBlock, coreIds }) =>
     (obligation, obligationHotPotato) =>
       txBlock.moveCall(
-        `${coreIds.protocolPkg}::return_obligation::return_obligation`,
+        `${coreIds.protocolPkg}::open_obligation::return_obligation`,
         [coreIds.version, obligation, obligationHotPotato]
       ),
   openObligationEntry:

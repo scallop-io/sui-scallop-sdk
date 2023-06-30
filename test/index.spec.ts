@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
 import { NetworkType } from '@scallop-io/sui-kit';
-import { Scallop } from '../src';
+import { ScallopClient, ScallopAddress, ADDRESSES_ID } from '../src';
 
 dotenv.config();
 
@@ -11,11 +11,20 @@ const NETWORK: NetworkType = 'testnet';
  *  Remove `.skip` to proceed with testing according to requirements.
  */
 describe('Test Scallop interact with contract', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
+  const scallopAddress = new ScallopAddress({
+    // id: '649bdadbb946e3b1853f3d4d', // test addresses of new contract
+    id: ADDRESSES_ID,
+    network: NETWORK,
   });
-  const client = await scallopSDK.createScallopClient();
+  await scallopAddress.read();
+  const client = new ScallopClient(
+    {
+      secretKey: process.env.SECRET_KEY,
+      networkType: NETWORK,
+    },
+    scallopAddress
+  );
+  console.info('Your wallet:', client.walletAddress);
 
   it('Should get market query data', async () => {
     const marketData = await client.queryMarket();
