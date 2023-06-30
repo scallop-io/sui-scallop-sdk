@@ -143,6 +143,7 @@ test('"borrowFlashLoan" & "repayFlashLoan" should be able to borrow and repay 1 
 ```
 
 ## Compatability with @mysten/sui.js TransactionBlock
+
 Scallop Transaction Builder contains a `TransactionBlock` instance from `@mysten/sui.js`.
 So you can use both `TransactionBlock` and `ScallopTransactionBlock` at the same time to build your transaction.
 
@@ -157,7 +158,9 @@ test('"txBlock" is an instance of "TransactionBlock" from @mysten/sui.js', async
    * 3. transfer SUI Market Coin to sender
    */
   const suiTxBlock = tx.txBlock;
-  const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [suiTxBlock.pure(10 ** 6)]);
+  const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [
+    suiTxBlock.pure(10 ** 6),
+  ]);
   const marketCoin = tx.deposit(coin, 'sui');
   suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure(sender));
   const txBlockResult = await txBuilder.signAndSendTxBlock(tx);
