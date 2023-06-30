@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-sdk",
-  "version": "0.36.1",
+  "version": "0.37.0",
   "description": "Tookit for interacting with Scallop on SUI",
   "keywords": [
     "sui",
@@ -55,34 +55,34 @@
     "doc": "typedoc --out docs src/index.ts"
   },
   "dependencies": {
-    "@mysten/bcs": "^0.7.2",
-    "@mysten/sui.js": "^0.36.0",
-    "@pythnetwork/price-service-client": "^1.5.0",
-    "@scallop-io/sui-kit": "^0.36.1",
+    "@mysten/bcs": "^0.7.3",
+    "@mysten/sui.js": "^0.37.0",
+    "@pythnetwork/price-service-client": "^1.6.0",
+    "@scallop-io/sui-kit": "^0.37.0",
     "axios": "^1.4.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^17.6.5",
-    "@commitlint/config-conventional": "^17.6.5",
-    "@commitlint/prompt-cli": "^17.6.5",
-    "@types/node": "^20.3.1",
-    "@typescript-eslint/eslint-plugin": "^5.60.0",
-    "@typescript-eslint/parser": "^5.60.0",
+    "@commitlint/cli": "^17.6.6",
+    "@commitlint/config-conventional": "^17.6.6",
+    "@commitlint/prompt-cli": "^17.6.6",
+    "@types/node": "^20.3.2",
+    "@typescript-eslint/eslint-plugin": "^5.60.1",
+    "@typescript-eslint/parser": "^5.60.1",
     "dotenv": "^16.3.1",
     "eslint": "^8.43.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",
     "husky": "^8.0.3",
-    "lint-staged": "^13.2.2",
+    "lint-staged": "^13.2.3",
     "prettier": "^2.8.8",
     "tsconfig-paths": "^4.2.0",
-    "tsup": "^7.0.0",
+    "tsup": "^7.1.0",
     "typedoc": "^0.24.8",
     "typescript": "^5.0.4",
     "vitest": "^0.32.2"
   },
   "peerDependencies": {
-    "@mysten/sui.js": "^0.36.0"
+    "@mysten/sui.js": "^0.37.0"
   },
   "lint-staged": {
     "**/*.ts": [
