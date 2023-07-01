@@ -116,6 +116,7 @@ export type ScallopQuickMethods = {
     coinName: SupportAssetCoins,
     obligationId?: string
   ) => Promise<void>;
+  updateAssetPricesQuick: (coinNames: SupportAssetCoins[]) => Promise<void>;
 };
 
 export type ScallopQuickMethodsHandler = {

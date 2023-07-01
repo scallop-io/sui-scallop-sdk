@@ -8,6 +8,7 @@ import { newTxBlock } from './normalMethods';
 import {
   updateOraclesForBorrow,
   updateOraclesForWithdrawCollateral,
+  updateOracles,
 } from './oracle';
 import { selectCoin, selectMarketCoin } from './coin';
 import type { SuiTxArg } from '@scallop-io/sui-kit';
@@ -189,6 +190,17 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
         txBlock.transferObjects([leftCoin], sender);
         return txBlock.repay(obligationArg, takeCoin, coinName);
       }
+    },
+  updateAssetPricesQuick:
+    ({ txBlock, scallopUtils, scallopAddress, isTestnet }) =>
+    async (coinNames) => {
+      return updateOracles(
+        txBlock,
+        scallopAddress,
+        scallopUtils,
+        coinNames,
+        isTestnet
+      );
     },
 };
 
