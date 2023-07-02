@@ -56,9 +56,9 @@
   },
   "dependencies": {
     "@mysten/bcs": "^0.7.3",
-    "@mysten/sui.js": "^0.37.0",
+    "@mysten/sui.js": "^0.37.1",
     "@pythnetwork/price-service-client": "^1.6.0",
-    "@scallop-io/sui-kit": "^0.37.0",
+    "@scallop-io/sui-kit": "^0.37.1",
     "axios": "^1.4.0"
   },
   "devDependencies": {
@@ -82,7 +82,7 @@
     "vitest": "^0.32.2"
   },
   "peerDependencies": {
-    "@mysten/sui.js": "^0.37.0"
+    "@mysten/sui.js": "^0.37.1"
   },
   "lint-staged": {
     "**/*.ts": [
