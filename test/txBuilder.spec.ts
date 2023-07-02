@@ -6,7 +6,7 @@ import { Scallop } from '../src';
 
 dotenv.config();
 
-const NETWORK: NetworkType = 'testnet';
+const NETWORK: NetworkType = 'mainnet';
 
 describe('Test Scallop transaction builder', async () => {
   const scallopSDK = new Scallop({
@@ -103,6 +103,14 @@ describe('Test Scallop transaction builder', async () => {
     const borrowFlashLoanResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('borrowFlashLoanResult:', borrowFlashLoanResult);
     expect(borrowFlashLoanResult.effects.status.status).toEqual('success');
+  });
+
+  test('"updateAssetPricesQuick" should update the prices of "SUI" and "USDC" for Scallop protocol', async () => {
+    const tx = txBuilder.createTxBlock();
+    await tx.updateAssetPricesQuick(['sui', 'usdc']);
+    const updateAssetPricesResult = await txBuilder.signAndSendTxBlock(tx);
+    console.info('updateAssetPricesResult:', updateAssetPricesResult);
+    expect(updateAssetPricesResult.effects.status.status).toEqual('success');
   });
 
   test('"txBlock" is an instance of "TransactionBlock" from @mysten/sui.js', async () => {

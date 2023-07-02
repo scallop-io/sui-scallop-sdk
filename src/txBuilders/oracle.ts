@@ -100,7 +100,7 @@ const getObligationCoinNames = async (
   return obligationCoinNames;
 };
 
-const updateOracles = async (
+export const updateOracles = async (
   txBlock: SuiTxBlock,
   address: ScallopAddress,
   scallopUtils: ScallopUtils,
