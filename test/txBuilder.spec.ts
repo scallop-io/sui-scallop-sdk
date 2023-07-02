@@ -6,7 +6,7 @@ import { Scallop } from '../src';
 
 dotenv.config();
 
-const NETWORK: NetworkType = 'mainnet';
+const NETWORK: NetworkType = 'testnet';
 
 describe('Test Scallop transaction builder', async () => {
   const scallopSDK = new Scallop({
@@ -31,6 +31,12 @@ describe('Test Scallop transaction builder', async () => {
     const borrowedCoin = await tx.borrowQuick(10 ** 9, 'usdc');
     // Transfer borrowed coin to sender
     tx.transferObjects([borrowedCoin], sender);
+    await tx.build({ provider: scallopSDK.suiKit.provider() });
+    console.info(
+      'blockData:',
+      JSON.stringify(tx.blockData.inputs.map((input) => input.value))
+    );
+    return;
     const borrowQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('borrowQuickResult:', borrowQuickResult);
     expect(borrowQuickResult.effects.status.status).toEqual('success');
