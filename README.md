@@ -139,8 +139,6 @@ You need to setup the `.env` file before testing. (Reference `.env.example`)
 
 - Withdraw Collateral
 
-  ⚠️Please note that due to the integration with Shinami Gas Station are still building, the features of Borrow Asset and Withdraw Collateral will now incur a Pyth Oracle fee of about 0.3~0.5 SUI.
-
   ```typescript
   it('Should withdraw collateral successfully', async () => {
     const obligations = await client.getObligations();
@@ -178,8 +176,6 @@ You need to setup the `.env` file before testing. (Reference `.env.example`)
   ```
 
 - Borrow Asset
-
-  ⚠️Please note that due to the integration with Shinami Gas Station are still building, the features of Borrow Asset and Withdraw Collateral will now incur a Pyth Oracle fee of about 0.3~0.5 SUI.
 
   ```typescript
   it('Should borrow asset successfully', async () => {
@@ -274,10 +270,6 @@ The rest of the features are for Scallop administrators to use, and require a se
   // delete addresses by id.
   const allAddresses = await addressBuilder.delete(id, ...);
 ```
-
-# Other Notes
-
-- The price update interface of Supra and Switchboard has been implemented, but because these oracles currently have no way to update prices in real time and cannot pass the price update rules of the scallop lending protocol, the use of these orcales is temporarily suspended.
 
 # License
 
