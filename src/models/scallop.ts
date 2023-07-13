@@ -27,7 +27,7 @@ export class Scallop {
     this.params = params;
     this.suiKit = new SuiKit(params);
     this.address = new ScallopAddress({
-      id: ADDRESSES_ID,
+      id: params?.addressesId || ADDRESSES_ID,
       network: params?.networkType,
     });
   }
