@@ -85,10 +85,11 @@ export const queryMarket = async (
     const currentTotalReserve = BigNumber(reserve).plus(
       increasedDebt.multipliedBy(reserveFactor)
     );
-    const totalSupply = BigNumber(currentTotalDebt).plus(
+    const currentTotalSupply = BigNumber(currentTotalDebt).plus(
       Math.max(cash - currentTotalReserve.toNumber(), 0)
     );
-    let utilizationRate = BigNumber(currentTotalDebt).dividedBy(totalSupply);
+    let utilizationRate =
+      BigNumber(currentTotalDebt).dividedBy(currentTotalSupply);
     utilizationRate = utilizationRate.isFinite()
       ? utilizationRate
       : BigNumber(0);
@@ -131,6 +132,7 @@ export const queryMarket = async (
         supplyInterestRate: supplyRate.toNumber(),
         currentGrowthInterest: growthInterest.toNumber(),
         currentBorrowIndex: currentBorrowIndex.toNumber(),
+        currentTotalSupply: currentTotalSupply.toNumber(),
         currentTotalDebt: currentTotalDebt.toNumber(),
         currentTotalReserve: currentTotalReserve.toNumber(),
       },
