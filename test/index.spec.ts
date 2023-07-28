@@ -5,14 +5,15 @@ import { ScallopClient, ScallopAddress, ADDRESSES_ID } from '../src';
 
 dotenv.config();
 
-const NETWORK: NetworkType = 'testnet';
+// At present, the contract of the testnet is stale and cannot be used normally, please use the mainnet for testing.
+const NETWORK: NetworkType = 'mainnet';
 
 /**
  *  Remove `.skip` to proceed with testing according to requirements.
  */
 describe('Test Scallop interact with contract', async () => {
   const scallopAddress = new ScallopAddress({
-    // id: '649bdadbb946e3b1853f3d4d', // test addresses of new contract
+    // id: '649bdadbb946e3b1853f3d4d', // Test the latest contract usage within scallop team
     id: ADDRESSES_ID,
     network: NETWORK,
   });
@@ -28,7 +29,8 @@ describe('Test Scallop interact with contract', async () => {
 
   it('Should get market query data', async () => {
     const marketData = await client.queryMarket();
-    console.info('marketData:', marketData);
+    console.info('marketData:');
+    console.dir(marketData, { depth: null, colors: true });
     expect(!!marketData).toBe(true);
   });
 
@@ -51,7 +53,8 @@ describe('Test Scallop interact with contract', async () => {
     }
   });
 
-  it('Should get test coin', async () => {
+  // only for testnet
+  it.skip('Should get test coin', async () => {
     const mintTestCoinResult = await client.mintTestCoin('usdc', 10 ** 11);
     console.info('mintTestCoinResult:', mintTestCoinResult);
     expect(mintTestCoinResult.effects?.status.status).toEqual('success');
@@ -60,8 +63,8 @@ describe('Test Scallop interact with contract', async () => {
   it('Should depoist collateral successfully', async () => {
     const obligations = await client.getObligations();
     const depositCollateralResult = await client.depositCollateral(
-      'usdc',
-      10 ** 10,
+      'sui',
+      2 * 10 ** 9,
       true,
       obligations[0]?.id
     );
@@ -73,8 +76,8 @@ describe('Test Scallop interact with contract', async () => {
     const obligations = await client.getObligations();
     if (obligations.length === 0) throw Error('Obligation is required.');
     const withdrawCollateralResult = await client.withdrawCollateral(
-      'usdc',
-      5 * 10 ** 9,
+      'sui',
+      1 * 10 ** 9,
       true,
       obligations[0].id,
       obligations[0].keyId
@@ -84,13 +87,13 @@ describe('Test Scallop interact with contract', async () => {
   });
 
   it('Should depoist asset successfully', async () => {
-    const depositResult = await client.deposit('usdc', 10 ** 6);
+    const depositResult = await client.deposit('sui', 2 * 10 ** 9);
     console.info('depositResult:', depositResult);
     expect(depositResult.effects?.status.status).toEqual('success');
   });
 
   it('Should withdraw asset successfully', async () => {
-    const withdrawResult = await client.withdraw('usdc', 5 * 10 ** 5);
+    const withdrawResult = await client.withdraw('sui', 1 * 10 ** 9);
     console.info('withdrawResult:', withdrawResult);
     expect(withdrawResult.effects?.status.status).toEqual('success');
   });
@@ -99,8 +102,8 @@ describe('Test Scallop interact with contract', async () => {
     const obligations = await client.getObligations();
     if (obligations.length === 0) throw Error('Obligation is required.');
     const borrowResult = await client.borrow(
-      'usdc',
-      2 * 10 ** 9,
+      'sui',
+      3 * 10 ** 8,
       true,
       obligations[0].id,
       obligations[0].keyId
@@ -113,8 +116,8 @@ describe('Test Scallop interact with contract', async () => {
     const obligations = await client.getObligations();
     if (obligations.length === 0) throw Error('Obligation is required.');
     const repayResult = await client.repay(
-      'usdc',
-      10 ** 9,
+      'sui',
+      3 * 10 ** 8,
       true,
       obligations[0].id
     );
@@ -124,7 +127,7 @@ describe('Test Scallop interact with contract', async () => {
 
   it('Should flash loan successfully', async () => {
     const flashLoanResult = await client.flashLoan(
-      'usdc',
+      'sui',
       10 ** 9,
       (txBlock, coin) => {
         return coin;
