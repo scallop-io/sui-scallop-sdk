@@ -38,7 +38,7 @@ export class ScallopUtils {
     amount: number,
     coinType: string = SUI_TYPE_ARG
   ) {
-    const coins = await this._suiKit.rpcProvider.selectCoins(
+    const coins = await this._suiKit.suiInteractor.selectCoins(
       owner,
       amount,
       coinType
