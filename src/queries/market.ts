@@ -71,12 +71,24 @@ export const queryMarket = async (
       .multipliedBy(borrowAPYFactor)
       .dividedBy(borrowRateScale)
       .toNumber();
-    const newBorrowIndex = BigNumber(borrowRate)
-      .multipliedBy(caculatedBorrowRate)
-      .multipliedBy(Math.floor(new Date().getTime() / 1000) - lastUpdated);
-    const currentBorrowIndex = BigNumber(borrowIndex).plus(newBorrowIndex);
-    const totalSupply = BigNumber(debt).plus(Math.max(cash - reserve, 0));
-    let utilizationRate = BigNumber(debt).dividedBy(totalSupply);
+    const timeDelta = Math.floor(new Date().getTime() / 1000) - lastUpdated;
+    const borrowIndexDelta = BigNumber(borrowIndex)
+      .multipliedBy(BigNumber(timeDelta).multipliedBy(borrowRate))
+      .dividedBy(borrowRateScale);
+    const currentBorrowIndex = BigNumber(borrowIndex).plus(borrowIndexDelta);
+    // how much accumulated interest since `lastUpdate`
+    const growthInterest = BigNumber(currentBorrowIndex)
+      .dividedBy(borrowIndex)
+      .minus(1);
+    const increasedDebt = BigNumber(debt).multipliedBy(growthInterest);
+    const currentTotalDebt = increasedDebt.plus(debt);
+    const currentTotalReserve = BigNumber(reserve).plus(
+      increasedDebt.multipliedBy(reserveFactor)
+    );
+    const totalSupply = BigNumber(currentTotalDebt).plus(
+      Math.max(cash - currentTotalReserve.toNumber(), 0)
+    );
+    let utilizationRate = BigNumber(currentTotalDebt).dividedBy(totalSupply);
     utilizationRate = utilizationRate.isFinite()
       ? utilizationRate
       : BigNumber(0);
@@ -117,8 +129,10 @@ export const queryMarket = async (
           caculatedMaxBorrowRate
         ),
         supplyInterestRate: supplyRate.toNumber(),
-        newBorrowIndex: newBorrowIndex.toNumber(),
+        currentGrowthInterest: growthInterest.toNumber(),
         currentBorrowIndex: currentBorrowIndex.toNumber(),
+        currentTotalDebt: currentTotalDebt.toNumber(),
+        currentTotalReserve: currentTotalReserve.toNumber(),
       },
       origin: {
         highKink,
