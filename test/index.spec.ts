@@ -5,7 +5,7 @@ import { ScallopClient, ScallopAddress, ADDRESSES_ID } from '../src';
 
 dotenv.config();
 
-const NETWORK: NetworkType = 'testnet';
+const NETWORK: NetworkType = 'mainnet';
 
 /**
  *  Remove `.skip` to proceed with testing according to requirements.
@@ -28,7 +28,8 @@ describe('Test Scallop interact with contract', async () => {
 
   it('Should get market query data', async () => {
     const marketData = await client.queryMarket();
-    console.info('marketData:', marketData);
+    console.info('marketData:');
+    console.dir(marketData, { depth: null, colors: true });
     expect(!!marketData).toBe(true);
   });
 

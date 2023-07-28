@@ -59,7 +59,8 @@
     "@mysten/sui.js": "^0.37.1",
     "@pythnetwork/price-service-client": "^1.6.0",
     "@scallop-io/sui-kit": "^0.37.1",
-    "axios": "^1.4.0"
+    "axios": "^1.4.0",
+    "bignumber.js": "^9.1.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.6",
