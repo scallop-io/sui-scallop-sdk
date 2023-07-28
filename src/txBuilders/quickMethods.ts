@@ -28,7 +28,7 @@ const requireObligationInfo = async (
     scallopAddress: ScallopAddress,
     suiKit: SuiKit,
     obligationId?: SuiTxArg | undefined,
-    obligationKey?: SuiTxArg | undefined
+    obligationKey?: SuiTxArg | undefined,
   ]
 ) => {
   const [txBlock, scallopAddress, suiKit, obligationId, obligationKey] = args;

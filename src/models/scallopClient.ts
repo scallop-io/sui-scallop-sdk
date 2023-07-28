@@ -70,7 +70,7 @@ export class ScallopClient {
    * @return Market data
    */
   public async queryMarket() {
-    return queryMarket(this.address, this.suiKit);
+    return queryMarket(this.address, this.suiKit, this._utils);
   }
 
   /**
