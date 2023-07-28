@@ -111,10 +111,16 @@ export interface AssetPoolCalculatedInterface {
   borrowInterestRate: number;
   // The difference between borrowing and lending rates in the pool.
   supplyInterestRate: number;
-  // The borrow interest rate for the pool
-  newBorrowIndex: number;
+  // The current growth borrow interest rate for the pool.
+  currentGrowthInterest: number;
   // The current compound interest used to calculate interest rate, allowing users to predict their interest earned over a period of time.
   currentBorrowIndex: number;
+  // The current total supply.
+  currentTotalSupply: number;
+  // The current total debt.
+  currentTotalDebt: number;
+  // The current total reserve.
+  currentTotalReserve: number;
 }
 
 export interface AssetPoolOriginInterface {
