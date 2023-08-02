@@ -79,6 +79,8 @@ export class ScallopUtils {
       '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf',
       // USDT
       '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c',
+      // ETH
+      '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5',
     ];
     if (wormHoleCoins.includes(coinPackageId)) {
       return `${coinPackageId}::coin::COIN`;
@@ -99,12 +101,16 @@ export class ScallopUtils {
       '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN',
       // USDT
       '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c::coin::COIN',
+      // ETH
+      '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5::coin::COIN',
     ];
 
     if (coinType === wormHoleCoinTypes[0]) {
       return 'usdc';
     } else if (coinType === wormHoleCoinTypes[1]) {
       return 'usdt';
+    } else if (coinType === wormHoleCoinTypes[2]) {
+      return 'eth';
     } else {
       return coinType.split('::')[2].toLowerCase() as SupportCoins;
     }
