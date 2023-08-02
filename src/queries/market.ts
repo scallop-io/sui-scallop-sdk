@@ -109,7 +109,7 @@ export const queryMarket = async (
       coin
     );
     const wrappedType =
-      coin === 'usdc'
+      coin === 'usdc' || coin === 'usdt' || coin === 'eth'
         ? {
             from: 'Wormhole',
             type: 'Portal from Ethereum',
@@ -179,7 +179,7 @@ export const queryMarket = async (
     ) as SupportCollateralCoins;
     const symbol = coin.toUpperCase() as Uppercase<SupportCollateralCoins>;
     const wrappedType =
-      coin === 'usdc'
+      coin === 'usdc' || coin === 'usdt' || coin === 'eth'
         ? {
             from: 'Wormhole',
             type: 'Portal from Ethereum',
