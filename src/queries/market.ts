@@ -14,7 +14,7 @@ export const queryMarket = async (
   scallopAddress: ScallopAddress,
   suiKit: SuiKit,
   scallopUtils: ScallopUtils,
-  reateType: 'apy' | 'apr'
+  rateType: 'apy' | 'apr'
 ) => {
   const packageId = scallopAddress.get('core.packages.query.id');
   const marketId = scallopAddress.get('core.market');
@@ -52,24 +52,24 @@ export const queryMarket = async (
     const borrowWeight = Number(asset.borrowWeight.value) / 2 ** 32;
 
     // calculated  data
-    const caculatedBaseBorrowRate =
-      reateType === 'apr'
+    const calculatedBaseBorrowRate =
+      rateType === 'apr'
         ? (baseBorrowRate * borrowYearFactor) / borrowRateScale
         : (1 + baseBorrowRate / borrowRateScale) ** borrowYearFactor - 1;
-    const caculatedBorrowRateOnHighKink =
-      reateType === 'apr'
+    const calculatedBorrowRateOnHighKink =
+      rateType === 'apr'
         ? (borrowRateOnHighKink * borrowYearFactor) / borrowRateScale
         : (1 + borrowRateOnHighKink / borrowRateScale) ** borrowYearFactor - 1;
-    const caculatedBorrowRateOnMidKink =
-      reateType === 'apr'
+    const calculatedBorrowRateOnMidKink =
+      rateType === 'apr'
         ? (borrowRateOnMidKink * borrowYearFactor) / borrowRateScale
         : (1 + borrowRateOnMidKink / borrowRateScale) ** borrowYearFactor - 1;
-    const caculatedMaxBorrowRate =
-      reateType === 'apr'
+    const calculatedMaxBorrowRate =
+      rateType === 'apr'
         ? (maxBorrowRate * borrowYearFactor) / borrowRateScale
         : (1 + maxBorrowRate / borrowRateScale) ** borrowYearFactor - 1;
-    const caculatedBorrowRate =
-      reateType === 'apr'
+    const calculatedBorrowRate =
+      rateType === 'apr'
         ? (borrowRate * borrowYearFactor) / borrowRateScale
         : (1 + borrowRate / borrowRateScale) ** borrowYearFactor - 1;
 
@@ -95,7 +95,7 @@ export const queryMarket = async (
     utilizationRate = utilizationRate.isFinite()
       ? utilizationRate
       : BigNumber(0);
-    let supplyRate = BigNumber(caculatedBorrowRate)
+    let supplyRate = BigNumber(calculatedBorrowRate)
       .multipliedBy(utilizationRate)
       .multipliedBy(1 - reserveFactor);
     supplyRate = supplyRate.isFinite() ? supplyRate : BigNumber(0);
@@ -126,10 +126,10 @@ export const queryMarket = async (
       marketCoinType: marketCoinType,
       calculated: {
         utilizationRate: utilizationRate.toNumber(),
-        baseBorrowRate: caculatedBaseBorrowRate,
+        baseBorrowRate: calculatedBaseBorrowRate,
         borrowInterestRate: Math.min(
-          caculatedBorrowRate,
-          caculatedMaxBorrowRate
+          calculatedBorrowRate,
+          calculatedMaxBorrowRate
         ),
         supplyInterestRate: supplyRate.toNumber(),
         currentGrowthInterest: growthInterest.toNumber(),
@@ -141,11 +141,11 @@ export const queryMarket = async (
       origin: {
         highKink,
         midKink,
-        baseBorrowRate: caculatedBaseBorrowRate,
-        borrowRateOnHighKink: caculatedBorrowRateOnHighKink,
-        borrowRateOnMidKink: caculatedBorrowRateOnMidKink,
-        borrowRate: caculatedBorrowRate,
-        maxBorrowRate: caculatedMaxBorrowRate,
+        baseBorrowRate: calculatedBaseBorrowRate,
+        borrowRateOnHighKink: calculatedBorrowRateOnHighKink,
+        borrowRateOnMidKink: calculatedBorrowRateOnMidKink,
+        borrowRate: calculatedBorrowRate,
+        maxBorrowRate: calculatedMaxBorrowRate,
         reserveFactor,
         borrowWeight,
         borrowIndex,
