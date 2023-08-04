@@ -67,10 +67,11 @@ export class ScallopClient {
   /**
    * Query market data.
    *
+   * @param rateType - How interest rates are calculated.
    * @return Market data
    */
-  public async queryMarket() {
-    return queryMarket(this.address, this.suiKit, this._utils);
+  public async queryMarket(rateType: 'apy' | 'apr' = 'apr') {
+    return queryMarket(this.address, this.suiKit, this._utils, rateType);
   }
 
   /**
