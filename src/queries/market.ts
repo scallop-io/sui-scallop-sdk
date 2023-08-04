@@ -13,7 +13,8 @@ import {
 export const queryMarket = async (
   scallopAddress: ScallopAddress,
   suiKit: SuiKit,
-  scallopUtils: ScallopUtils
+  scallopUtils: ScallopUtils,
+  rateType: 'apy' | 'apr'
 ) => {
   const packageId = scallopAddress.get('core.packages.query.id');
   const marketId = scallopAddress.get('core.market');
@@ -29,7 +30,7 @@ export const queryMarket = async (
   for (const asset of marketData.pools) {
     // parse origin data
     const coinType = '0x' + asset.type.name;
-    const borrowAPYFactor = 24 * 365 * 3600;
+    const borrowYearFactor = 24 * 365 * 3600;
     const baseBorrowRate = Number(asset.baseBorrowRatePerSec.value) / 2 ** 32;
     const borrowRateOnHighKink =
       Number(asset.borrowRateOnHighKink.value) / 2 ** 32;
@@ -51,26 +52,27 @@ export const queryMarket = async (
     const borrowWeight = Number(asset.borrowWeight.value) / 2 ** 32;
 
     // calculated  data
-    const caculatedBaseBorrowRate = BigNumber(baseBorrowRate)
-      .multipliedBy(borrowAPYFactor)
-      .dividedBy(borrowRateScale)
-      .toNumber();
-    const caculatedBorrowRateOnHighKink = BigNumber(borrowRateOnHighKink)
-      .multipliedBy(borrowAPYFactor)
-      .dividedBy(borrowRateScale)
-      .toNumber();
-    const caculatedBorrowRateOnMidKink = BigNumber(borrowRateOnMidKink)
-      .multipliedBy(borrowAPYFactor)
-      .dividedBy(borrowRateScale)
-      .toNumber();
-    const caculatedMaxBorrowRate = BigNumber(maxBorrowRate)
-      .multipliedBy(borrowAPYFactor)
-      .dividedBy(borrowRateScale)
-      .toNumber();
-    const caculatedBorrowRate = BigNumber(borrowRate)
-      .multipliedBy(borrowAPYFactor)
-      .dividedBy(borrowRateScale)
-      .toNumber();
+    const calculatedBaseBorrowRate =
+      rateType === 'apr'
+        ? (baseBorrowRate * borrowYearFactor) / borrowRateScale
+        : (1 + baseBorrowRate / borrowRateScale) ** borrowYearFactor - 1;
+    const calculatedBorrowRateOnHighKink =
+      rateType === 'apr'
+        ? (borrowRateOnHighKink * borrowYearFactor) / borrowRateScale
+        : (1 + borrowRateOnHighKink / borrowRateScale) ** borrowYearFactor - 1;
+    const calculatedBorrowRateOnMidKink =
+      rateType === 'apr'
+        ? (borrowRateOnMidKink * borrowYearFactor) / borrowRateScale
+        : (1 + borrowRateOnMidKink / borrowRateScale) ** borrowYearFactor - 1;
+    const calculatedMaxBorrowRate =
+      rateType === 'apr'
+        ? (maxBorrowRate * borrowYearFactor) / borrowRateScale
+        : (1 + maxBorrowRate / borrowRateScale) ** borrowYearFactor - 1;
+    const calculatedBorrowRate =
+      rateType === 'apr'
+        ? (borrowRate * borrowYearFactor) / borrowRateScale
+        : (1 + borrowRate / borrowRateScale) ** borrowYearFactor - 1;
+
     const timeDelta = Math.floor(new Date().getTime() / 1000) - lastUpdated;
     const borrowIndexDelta = BigNumber(borrowIndex)
       .multipliedBy(BigNumber(timeDelta).multipliedBy(borrowRate))
@@ -93,7 +95,7 @@ export const queryMarket = async (
     utilizationRate = utilizationRate.isFinite()
       ? utilizationRate
       : BigNumber(0);
-    let supplyRate = BigNumber(caculatedBorrowRate)
+    let supplyRate = BigNumber(calculatedBorrowRate)
       .multipliedBy(utilizationRate)
       .multipliedBy(1 - reserveFactor);
     supplyRate = supplyRate.isFinite() ? supplyRate : BigNumber(0);
@@ -124,10 +126,10 @@ export const queryMarket = async (
       marketCoinType: marketCoinType,
       calculated: {
         utilizationRate: utilizationRate.toNumber(),
-        baseBorrowRate: caculatedBaseBorrowRate,
+        baseBorrowRate: calculatedBaseBorrowRate,
         borrowInterestRate: Math.min(
-          caculatedBorrowRate,
-          caculatedMaxBorrowRate
+          calculatedBorrowRate,
+          calculatedMaxBorrowRate
         ),
         supplyInterestRate: supplyRate.toNumber(),
         currentGrowthInterest: growthInterest.toNumber(),
@@ -139,11 +141,11 @@ export const queryMarket = async (
       origin: {
         highKink,
         midKink,
-        baseBorrowRate: caculatedBaseBorrowRate,
-        borrowRateOnHighKink: caculatedBorrowRateOnHighKink,
-        borrowRateOnMidKink: caculatedBorrowRateOnMidKink,
-        borrowRate: caculatedBorrowRate,
-        maxBorrowRate: caculatedMaxBorrowRate,
+        baseBorrowRate: calculatedBaseBorrowRate,
+        borrowRateOnHighKink: calculatedBorrowRateOnHighKink,
+        borrowRateOnMidKink: calculatedBorrowRateOnMidKink,
+        borrowRate: calculatedBorrowRate,
+        maxBorrowRate: calculatedMaxBorrowRate,
         reserveFactor,
         borrowWeight,
         borrowIndex,
