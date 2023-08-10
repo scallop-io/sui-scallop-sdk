@@ -8,6 +8,9 @@ export const SUPPORT_ASSET_COINS = [
   'usdc',
   'usdt',
   'sui',
+  'apt',
+  'sol',
+  'cetus',
 ] as const;
 export const SUPPORT_COLLATERAL_COINS = [
   'eth',
@@ -15,6 +18,9 @@ export const SUPPORT_COLLATERAL_COINS = [
   'usdc',
   'usdt',
   'sui',
+  'apt',
+  'sol',
+  'cetus',
 ] as const;
 
 export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
