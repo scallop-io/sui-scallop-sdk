@@ -81,6 +81,12 @@ export class ScallopUtils {
       '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c',
       // ETH
       '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5',
+      // BTC
+      '0x027792d9fed7f9844eb4839566001bb6f6cb4804f66aa2da6fe1ee242d896881',
+      // SOL
+      '0xb7844e289a8410e50fb3ca48d69eb9cf29e27d223ef90353fe1bd8e27ff8f3f8',
+      // APT
+      '0x3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37',
     ];
     if (wormHoleCoins.includes(coinPackageId)) {
       return `${coinPackageId}::coin::COIN`;
@@ -103,6 +109,12 @@ export class ScallopUtils {
       '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c::coin::COIN',
       // ETH
       '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5::coin::COIN',
+      // BTC
+      '0x027792d9fed7f9844eb4839566001bb6f6cb4804f66aa2da6fe1ee242d896881::coin::COIN',
+      // SOL
+      '0xb7844e289a8410e50fb3ca48d69eb9cf29e27d223ef90353fe1bd8e27ff8f3f8::coin::COIN',
+      // APT
+      '0x3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37::coin::COIN',
     ];
 
     if (coinType === wormHoleCoinTypes[0]) {
@@ -111,6 +123,12 @@ export class ScallopUtils {
       return 'usdt';
     } else if (coinType === wormHoleCoinTypes[2]) {
       return 'eth';
+    } else if (coinType === wormHoleCoinTypes[3]) {
+      return 'btc';
+    } else if (coinType === wormHoleCoinTypes[4]) {
+      return 'sol';
+    } else if (coinType === wormHoleCoinTypes[5]) {
+      return 'apt';
     } else {
       return coinType.split('::')[2].toLowerCase() as SupportCoins;
     }
