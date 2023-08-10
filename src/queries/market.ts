@@ -103,7 +103,7 @@ export const queryMarket = async (
     // base data
     const coin = scallopUtils.getCoinNameFromCoinType(
       coinType
-    ) as SupportCollateralCoins;
+    ) as SupportAssetCoins;
     const symbol = coin.toUpperCase() as Uppercase<SupportAssetCoins>;
     const marketCoinType = scallopUtils.parseMarketCoinType(
       scallopAddress.get(`core.coins.${coin}.id`),
@@ -111,7 +111,12 @@ export const queryMarket = async (
       coin
     );
     const wrappedType =
-      coin === 'usdc' || coin === 'usdt' || coin === 'eth'
+      coin === 'usdc' ||
+      coin === 'usdt' ||
+      coin === 'eth' ||
+      coin === 'btc' ||
+      coin === 'apt' ||
+      coin === 'sol'
         ? {
             from: 'Wormhole',
             type: 'Portal from Ethereum',
@@ -181,7 +186,12 @@ export const queryMarket = async (
     ) as SupportCollateralCoins;
     const symbol = coin.toUpperCase() as Uppercase<SupportCollateralCoins>;
     const wrappedType =
-      coin === 'usdc' || coin === 'usdt' || coin === 'eth'
+      coin === 'usdc' ||
+      coin === 'usdt' ||
+      coin === 'eth' ||
+      coin === 'btc' ||
+      coin === 'apt' ||
+      coin === 'sol'
         ? {
             from: 'Wormhole',
             type: 'Portal from Ethereum',
