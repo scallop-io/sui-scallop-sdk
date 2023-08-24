@@ -25,18 +25,17 @@ const requireSender = (txBlock: SuiTxBlock) => {
 const requireObligationInfo = async (
   ...args: [
     txBlock: SuiTxBlock,
-    scallopAddress: ScallopAddress,
     suiKit: SuiKit,
     obligationId?: SuiTxArg | undefined,
     obligationKey?: SuiTxArg | undefined,
   ]
 ) => {
-  const [txBlock, scallopAddress, suiKit, obligationId, obligationKey] = args;
-  if (args.length === 4 && obligationId) return { obligationId };
-  if (args.length === 5 && obligationId && obligationKey)
+  const [txBlock, suiKit, obligationId, obligationKey] = args;
+  if (args.length === 3 && obligationId) return { obligationId };
+  if (args.length === 4 && obligationId && obligationKey)
     return { obligationId, obligationKey };
   const sender = requireSender(txBlock);
-  const obligations = await getObligations(sender, scallopAddress, suiKit);
+  const obligations = await getObligations(sender, suiKit);
   if (obligations.length === 0) {
     throw new Error(`No obligation found for sender ${sender}`);
   }
@@ -53,7 +52,6 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
       const sender = requireSender(txBlock);
       const { obligationId: obligationArg } = await requireObligationInfo(
         txBlock,
-        scallopAddress,
         suiKit,
         obligationId
       );
@@ -80,7 +78,6 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
       const { obligationId: obligationArg, obligationKey: obligationKeyArg } =
         await requireObligationInfo(
           txBlock,
-          scallopAddress,
           suiKit,
           obligationId,
           obligationKey
@@ -142,7 +139,6 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
       const { obligationId: obligationArg, obligationKey: obligationKeyArg } =
         await requireObligationInfo(
           txBlock,
-          scallopAddress,
           suiKit,
           obligationId,
           obligationKey
@@ -170,7 +166,6 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
       const sender = requireSender(txBlock);
       const { obligationId: obligationArg } = await requireObligationInfo(
         txBlock,
-        scallopAddress,
         suiKit,
         obligationId
       );
