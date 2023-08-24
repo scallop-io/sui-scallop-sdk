@@ -82,7 +82,7 @@ export class ScallopClient {
    */
   async getObligations(ownerAddress?: string) {
     const owner = ownerAddress || this.walletAddress;
-    return getObligations(owner, this.address, this.suiKit);
+    return getObligations(owner, this.suiKit);
   }
 
   /**
