@@ -1,6 +1,7 @@
 import { SuiKit, SuiTxBlock } from '@scallop-io/sui-kit';
-import { ScallopAddress } from '../models';
-import { ObligationInterface } from '../types';
+import { PROTOCOL_OBJECT_ID } from '../constants/common';
+import type { ScallopAddress } from '../models';
+import type { ObligationInterface } from '../types';
 
 export const queryObligation = async (
   obligationId: string,
@@ -15,18 +16,12 @@ export const queryObligation = async (
   return queryResult.events[0].parsedJson as ObligationInterface;
 };
 
-export const getObligations = async (
-  ownerAddress: string,
-  scallopAddress: ScallopAddress,
-  suiKit: SuiKit
-) => {
+export const getObligations = async (ownerAddress: string, suiKit: SuiKit) => {
   const owner = ownerAddress || suiKit.currentAddress();
   const keyObjectRefs = await suiKit.provider().getOwnedObjects({
     owner,
     filter: {
-      StructType: `${scallopAddress.get(
-        'core.packages.protocol.id'
-      )}::obligation::ObligationKey`,
+      StructType: `${PROTOCOL_OBJECT_ID}::obligation::ObligationKey`,
     },
   });
   const keyIds = keyObjectRefs.data
