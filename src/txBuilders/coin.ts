@@ -26,12 +26,7 @@ export const selectMarketCoin = async (
   sender: string
 ) => {
   const coinPackageId = scallopAddress.get(`core.coins.${coinName}.id`);
-  const protocolPackageId = scallopAddress.get('core.packages.protocol.id');
-  const coinType = scallopUtils.parseMarketCoinType(
-    coinPackageId,
-    protocolPackageId,
-    coinName
-  );
+  const coinType = scallopUtils.parseMarketCoinType(coinPackageId, coinName);
   const coins = await scallopUtils.selectCoins(sender, amount, coinType);
   const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
   return { takeCoin, leftCoin };

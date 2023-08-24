@@ -5,6 +5,7 @@ import {
 } from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { PriceServiceConnection } from '@pythnetwork/price-service-client';
+import { PROTOCOL_OBJECT_ID } from '../constants/common';
 import type { ScallopParams, SupportCoins } from '../types';
 
 /**
@@ -138,20 +139,15 @@ export class ScallopUtils {
    * @description Handle market coin types.
    *
    * @param coinPackageId Package id of coin.
-   * @param protocolPkgId Package id of protocol.
    * @param coinName specific support coin name.
    *
    * @return marketCoinType.
    */
-  public parseMarketCoinType(
-    coinPackageId: string,
-    protocolPkgId: string,
-    coinName: string
-  ) {
+  public parseMarketCoinType(coinPackageId: string, coinName: string) {
     const coinType = this.parseCoinType(
       coinName === 'sui' ? SUI_FRAMEWORK_ADDRESS : coinPackageId,
       coinName
     );
-    return `${protocolPkgId}::reserve::MarketCoin<${coinType}>`;
+    return `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<${coinType}>`;
   }
 }
