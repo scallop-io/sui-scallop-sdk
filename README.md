@@ -5,14 +5,14 @@
 </p>
 <p align="center">
     <a style="padding-right: 5px;" href="https://github.com/scallop-io/sui-scallop-sdk/releases">
-        <img alt="GitHub release" src="https://img.shields.io/github/v/release/@scallop-io/sui-scallop-sdk?display_name=tag">
+        <img alt="GitHub release" src="https://img.shields.io/github/v/release/scallop-io/sui-scallop-sdk?display_name=tag">
     </a>
     <a href="https://github.com/scallop-io/sui-scallop-sdk/blob/main/LICENSE">
-        <img alt="NPM" src="https://img.shields.io/npm/l/@scallop/sdk?registry_uri=https%3A%2F%2Fnpm.pkg.github.com%2F">
+        <img alt="GitHub licence" src="https://img.shields.io/github/license/scallop-io/sui-scallop-sdk?logoColor=blue">
     </a>
 </p>
 
-# The Typescript SDK for interacting with Scallop lending protocol on SUI network
+# The Typescript SDK for interacting with the Scallop lending protocol on the SUI network
 
 ## Description
 
@@ -61,7 +61,7 @@ This SDK is used to interact with [sui-lending-protocal](https://github.com/scal
 
 For the original codes, please refer to `test/index.spec.ts` file.
 
-You need to setup the `.env` file before testing. (Reference `.env.example`)
+You need to set up the `.env` file before testing. (Reference `.env.example`)
 
 - Setup the network
 
@@ -232,7 +232,7 @@ You need to setup the `.env` file before testing. (Reference `.env.example`)
 
 ## Use address manager
 
-General Users will basically only use the `get`, `getAddresses` or `getAllAddresses` methods to read addresses. Here are some simple examples:
+General Users will basically only use the `get`, `getAddresses`, or `getAllAddresses` methods to read addresses. Here are some simple examples:
 
 ```typescript
 const address = new ScallopAddress({
@@ -252,9 +252,9 @@ const allAddresses = addressBuilder.getAllAddresses();
 
 Scallop currently maintains this address `6462a088a7ace142bb6d7e9b` for use in the production environment.
 
-Of course, you can also directly use the [sui-scallop-api](https://github.com/scallop-io/sui-scallop-api) project to directly request an addresses.
+Of course, you can also directly use the [sui-scallop-api](https://github.com/scallop-io/sui-scallop-api) project to directly request addresses.
 
-The rest of the features are for Scallop administrators to use, and require a set of API authentication key to use the create, update, and delete address functions.
+The rest of the features are for Scallop administrators to use, and require a set of API authentication keys to use the create, update, and delete address functions.
 
 ```typescript
   const address = new ScallopAddress({
