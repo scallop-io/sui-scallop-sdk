@@ -4,6 +4,7 @@ import { SuiTxBlock, SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress, ScallopUtils } from '../models';
 import { SupportCoins, SupportAssetCoins, SupportOracleType } from '../types';
 import { queryObligation } from '../queries';
+import { pythOraclePriceUpdate } from './pythPriceUpdate';
 
 export const updateOraclesForWithdrawCollateral = async (
   txBlock: SuiTxBlock,
@@ -21,6 +22,7 @@ export const updateOraclesForWithdrawCollateral = async (
   );
   return updateOracles(
     txBlock,
+    suiKit,
     address,
     scallopUtils,
     obligationCoinNames,
@@ -44,6 +46,7 @@ export const updateOraclesForLiquidation = async (
   );
   return updateOracles(
     txBlock,
+    suiKit,
     address,
     scallopUtils,
     obligationCoinNames,
@@ -71,6 +74,7 @@ export const updateOraclesForBorrow = async (
   ];
   return updateOracles(
     txBlock,
+    suiKit,
     address,
     scallopUtils,
     updateCoinNames,
@@ -102,11 +106,13 @@ const getObligationCoinNames = async (
 
 export const updateOracles = async (
   txBlock: SuiTxBlock,
+  suiKit: SuiKit,
   address: ScallopAddress,
   scallopUtils: ScallopUtils,
   coinNames: SupportCoins[],
   isTestnet: boolean
 ) => {
+  await pythOraclePriceUpdate(txBlock, address, suiKit, coinNames);
   const updateCoinTypes = [...new Set(coinNames)];
   for (const coinName of updateCoinTypes) {
     await updateOracle(txBlock, address, scallopUtils, coinName, isTestnet);
