@@ -1,4 +1,3 @@
-import { fromB64 } from '@mysten/bcs';
 import { SUI_CLOCK_OBJECT_ID, TransactionArgument } from '@mysten/sui.js';
 import { SuiTxBlock, SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress, ScallopUtils } from '../models';
@@ -128,22 +127,27 @@ const updateOracle = async (
 ) => {
   const coinPackageId = address.get(`core.coins.${coinName}.id`);
   const coinType = scallopUtils.parseCoinType(coinPackageId, coinName);
-  const [vaaFromFeeId] = await scallopUtils.getVaas(
-    [address.get(`core.coins.${coinName}.oracle.pyth.feed`)],
-    isTestnet
-  );
+
+  const xOraclePkgId =
+    '0x8148535d4a3f22d09468a9e101ec10ef8803c94e7aae3993897907aeec288f32';
+  const xOracleId =
+    '0xeed0701ca3bfb7ec85c452ef06778d6f291499ab1ce32a4f98097d7a678360e0';
+  const pythRulePkgId =
+    '0x87085e186a7c7f7cd8635288be45791a893fca6f8c0a5d253a644f4288a43a07';
+  const pythRuleRegistryId =
+    '0x172498250129a385f7f58d3ebcb8b48dd118d850bdd50ca6779e1468c366f408';
 
   updatePrice(
     txBlock,
     isTestnet ? ['pyth'] : ['pyth'],
-    address.get('core.packages.xOracle.id'),
-    address.get('core.oracles.xOracle'),
-    address.get('core.packages.pyth.id'),
-    address.get('core.oracles.pyth.registry'),
+    // address.get('core.packages.xOracle.id'),
+    // address.get('core.oracles.xOracle'),
+    xOraclePkgId,
+    xOracleId,
+    pythRulePkgId,
+    pythRuleRegistryId,
     address.get('core.oracles.pyth.state'),
-    address.get('core.oracles.pyth.wormholeState'),
     address.get(`core.coins.${coinName}.oracle.pyth.feedObject`),
-    vaaFromFeeId,
     address.get('core.packages.switchboard.id'),
     address.get('core.oracles.switchboard.registry'),
     address.get(`core.coins.${coinName}.oracle.switchboard`),
@@ -164,9 +168,7 @@ const updateOracle = async (
  * @param pythPackageId - The pyth package id.
  * @param pythRegistryId - The registry id from pyth package.
  * @param pythStateId - The price state id from pyth package.
- * @param pythWormholeStateId - The whormhole state id from pyth package.
  * @param pythFeedObjectId - The feed object id from pyth package.
- * @param pythVaaFromFeeId - The vaa from pyth api with feed id.
  * @param switchboardPackageId - The switchboard package id.
  * @param switchboardRegistryId - The registry id from switchboard package.
  * @param switchboardAggregatorId - The aggregator id from switchboard package.
@@ -184,9 +186,7 @@ function updatePrice(
   pythPackageId: string,
   pythRegistryId: TransactionArgument | string,
   pythStateId: TransactionArgument | string,
-  pythWormholeStateId: TransactionArgument | string,
   pythFeedObjectId: TransactionArgument | string,
-  pythVaaFromFeeId: string,
   switchboardPackageId: string,
   switchboardRegistryId: TransactionArgument | string,
   switchboardAggregatorId: TransactionArgument | string,
@@ -207,9 +207,7 @@ function updatePrice(
       pythPackageId,
       request,
       pythStateId,
-      pythWormholeStateId,
       pythFeedObjectId,
-      pythVaaFromFeeId,
       pythRegistryId,
       coinType
     );
@@ -358,25 +356,13 @@ function updatePythPrice(
   packageId: string,
   request: TransactionArgument,
   stateId: TransactionArgument | string,
-  wormholeStateId: TransactionArgument | string,
   feedObjectId: TransactionArgument | string,
-  vaaFromFeeId: string,
   registryId: TransactionArgument | string,
   coinType: string
 ) {
-  const [updateFee] = txBlock.splitSUIFromGas([1]);
   txBlock.moveCall(
     `${packageId}::rule::set_price`,
-    [
-      request,
-      wormholeStateId,
-      stateId,
-      feedObjectId,
-      registryId,
-      txBlock.pure([...fromB64(vaaFromFeeId)]),
-      updateFee,
-      SUI_CLOCK_OBJECT_ID,
-    ],
+    [request, stateId, feedObjectId, registryId, SUI_CLOCK_OBJECT_ID],
     [coinType]
   );
 }

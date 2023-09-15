@@ -187,10 +187,11 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
       }
     },
   updateAssetPricesQuick:
-    ({ txBlock, scallopUtils, scallopAddress, isTestnet }) =>
+    ({ txBlock, suiKit, scallopUtils, scallopAddress, isTestnet }) =>
     async (coinNames) => {
       return updateOracles(
         txBlock,
+        suiKit,
         scallopAddress,
         scallopUtils,
         coinNames,

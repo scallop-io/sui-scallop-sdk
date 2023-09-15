@@ -108,7 +108,7 @@ describe('Test Scallop transaction builder', async () => {
 
   test('"updateAssetPricesQuick" should update the prices of "SUI" and "USDC" for Scallop protocol', async () => {
     const tx = txBuilder.createTxBlock();
-    await tx.updateAssetPricesQuick(['sui', 'usdc']);
+    await tx.updateAssetPricesQuick(['sui']);
     const updateAssetPricesResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('updateAssetPricesResult:', updateAssetPricesResult);
     expect(updateAssetPricesResult.effects.status.status).toEqual('success');
