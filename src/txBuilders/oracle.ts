@@ -1,9 +1,12 @@
 import { SUI_CLOCK_OBJECT_ID, TransactionArgument } from '@mysten/sui.js';
 import { SuiTxBlock, SuiKit } from '@scallop-io/sui-kit';
+import {
+  SuiPythClient,
+  SuiPriceServiceConnection,
+} from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress, ScallopUtils } from '../models';
 import { SupportCoins, SupportAssetCoins, SupportOracleType } from '../types';
 import { queryObligation } from '../queries';
-import { pythOraclePriceUpdate } from './pythPriceUpdate';
 
 export const updateOraclesForWithdrawCollateral = async (
   txBlock: SuiTxBlock,
@@ -111,23 +114,47 @@ export const updateOracles = async (
   coinNames: SupportCoins[],
   isTestnet: boolean
 ) => {
-  await pythOraclePriceUpdate(txBlock, address, suiKit, coinNames);
-  const updateCoinTypes = [...new Set(coinNames)];
-  for (const coinName of updateCoinTypes) {
-    await updateOracle(txBlock, address, scallopUtils, coinName, isTestnet);
+  const rules: SupportOracleType[] = isTestnet ? ['pyth'] : ['pyth'];
+  if (rules.includes('pyth')) {
+    const pythClient = new SuiPythClient(
+      suiKit.provider(),
+      address.get('core.oracles.pyth.state'),
+      address.get('core.oracles.pyth.wormholeState')
+    );
+    const priceIds = coinNames.map((coinName) =>
+      address.get(`core.coins.${coinName}.oracle.pyth.feed`)
+    );
+    const pythConnection = new SuiPriceServiceConnection(
+      isTestnet
+        ? 'https://xc-testnet.pyth.network'
+        : 'https://xc-mainnet.pyth.network'
+    );
+    const priceUpdateData = await pythConnection.getPriceFeedsUpdateData(
+      priceIds
+    );
+    await pythClient.updatePriceFeeds(
+      txBlock.txBlock,
+      priceUpdateData,
+      priceIds
+    );
+  }
+
+  for (const coinName of coinNames) {
+    await updateOracle(txBlock, rules, address, scallopUtils, coinName);
   }
 };
 
 const updateOracle = async (
   txBlock: SuiTxBlock,
+  rules: SupportOracleType[],
   address: ScallopAddress,
   scallopUtils: ScallopUtils,
-  coinName: SupportCoins,
-  isTestnet: boolean
+  coinName: SupportCoins
 ) => {
   const coinPackageId = address.get(`core.coins.${coinName}.id`);
   const coinType = scallopUtils.parseCoinType(coinPackageId, coinName);
 
+  // TODO: use address.get() to get the address after API upgrate
   const xOraclePkgId =
     '0x8148535d4a3f22d09468a9e101ec10ef8803c94e7aae3993897907aeec288f32';
   const xOracleId =
@@ -139,9 +166,11 @@ const updateOracle = async (
 
   updatePrice(
     txBlock,
-    isTestnet ? ['pyth'] : ['pyth'],
+    rules,
     // address.get('core.packages.xOracle.id'),
     // address.get('core.oracles.xOracle'),
+    // address.get('core.packages.pyth.id'),
+    // address.get('core.oracles.pyth.registry'),
     xOraclePkgId,
     xOracleId,
     pythRulePkgId,
