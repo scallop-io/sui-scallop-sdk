@@ -18,7 +18,7 @@ export const queryObligation = async (
 
 export const getObligations = async (ownerAddress: string, suiKit: SuiKit) => {
   const owner = ownerAddress || suiKit.currentAddress();
-  const keyObjectRefs = await suiKit.provider().getOwnedObjects({
+  const keyObjectRefs = await suiKit.client().getOwnedObjects({
     owner,
     filter: {
       StructType: `${PROTOCOL_OBJECT_ID}::obligation::ObligationKey`,
@@ -31,9 +31,11 @@ export const getObligations = async (ownerAddress: string, suiKit: SuiKit) => {
   const obligations: { id: string; keyId: string }[] = [];
   for (const keyObject of keyObjects) {
     const keyId = keyObject.objectId;
-    const fields = keyObject.objectFields as any;
-    const obligationId = fields['ownership']['fields']['of'];
-    obligations.push({ id: obligationId, keyId });
+    if (keyObject.content && 'fields' in keyObject.content) {
+      const fields = keyObject.content.fields as any;
+      const obligationId = fields['ownership']['fields']['of'];
+      obligations.push({ id: obligationId, keyId });
+    }
   }
   return obligations;
 };

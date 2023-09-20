@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { describe, test, expect } from 'vitest';
-import { TransactionBlock } from '@mysten/sui.js';
+import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { NetworkType } from '@scallop-io/sui-kit';
 import { Scallop } from '../src';
 
@@ -21,7 +21,7 @@ describe('Test Scallop transaction builder', async () => {
     tx.openObligationEntry();
     const openObligationResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('openObligationResult:', openObligationResult);
-    expect(openObligationResult.effects.status.status).toEqual('success');
+    expect(openObligationResult.effects?.status.status).toEqual('success');
   });
 
   test('"borrowQuick" should borrow 1 USDC, and return borrowed USDC', async () => {
@@ -31,15 +31,15 @@ describe('Test Scallop transaction builder', async () => {
     const borrowedCoin = await tx.borrowQuick(10 ** 9, 'usdc');
     // Transfer borrowed coin to sender
     tx.transferObjects([borrowedCoin], sender);
-    await tx.build({ provider: scallopSDK.suiKit.provider() });
+    await tx.build({ client: scallopSDK.suiKit.client() });
     console.info(
       'blockData:',
       JSON.stringify(tx.blockData.inputs.map((input) => input.value))
     );
-    return;
+
     const borrowQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('borrowQuickResult:', borrowQuickResult);
-    expect(borrowQuickResult.effects.status.status).toEqual('success');
+    expect(borrowQuickResult.effects?.status.status).toEqual('success');
   });
 
   test('"repayQuick" should repay 1 USDC', async () => {
@@ -49,7 +49,7 @@ describe('Test Scallop transaction builder', async () => {
     await tx.repayQuick(10 ** 9, 'usdc');
     const repayQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('repayQuickResult:', repayQuickResult);
-    expect(repayQuickResult.effects.status.status).toEqual('success');
+    expect(repayQuickResult.effects?.status.status).toEqual('success');
   });
 
   test('"depositQuick" should deposit 1 USDC, and return the "USDC market coin"', async () => {
@@ -60,7 +60,7 @@ describe('Test Scallop transaction builder', async () => {
     tx.transferObjects([marketCoin], sender);
     const depositQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('depositQuickResult:', depositQuickResult);
-    expect(depositQuickResult.effects.status.status).toEqual('success');
+    expect(depositQuickResult.effects?.status.status).toEqual('success');
   });
 
   test('"withdrawQuick" should burn 1 "USDC market coin", and return at least 1 USDC and the interest', async () => {
@@ -71,7 +71,7 @@ describe('Test Scallop transaction builder', async () => {
     tx.transferObjects([coin], sender);
     const withdrawQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('withdrawQuickResult:', withdrawQuickResult);
-    expect(withdrawQuickResult.effects.status.status).toEqual('success');
+    expect(withdrawQuickResult.effects?.status.status).toEqual('success');
   });
 
   test('"addCollateralQuick" should add 1 USDC as collateral', async () => {
@@ -81,7 +81,7 @@ describe('Test Scallop transaction builder', async () => {
     await tx.addCollateralQuick(10 ** 9, 'usdc');
     const addCollateralQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('addCollateralQuickResult:', addCollateralQuickResult);
-    expect(addCollateralQuickResult.effects.status.status).toEqual('success');
+    expect(addCollateralQuickResult.effects?.status.status).toEqual('success');
   });
 
   test('"takeCollateralQuick" should take 1 USDC from collateral', async () => {
@@ -92,7 +92,7 @@ describe('Test Scallop transaction builder', async () => {
     tx.transferObjects([coin], sender);
     const removeCollateralQuickResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('takeCollateralQuickResult:', removeCollateralQuickResult);
-    expect(removeCollateralQuickResult.effects.status.status).toEqual(
+    expect(removeCollateralQuickResult.effects?.status.status).toEqual(
       'success'
     );
   });
@@ -108,7 +108,7 @@ describe('Test Scallop transaction builder', async () => {
     tx.repayFlashLoan(coin, loan, 'usdc');
     const borrowFlashLoanResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('borrowFlashLoanResult:', borrowFlashLoanResult);
-    expect(borrowFlashLoanResult.effects.status.status).toEqual('success');
+    expect(borrowFlashLoanResult.effects?.status.status).toEqual('success');
   });
 
   test('"updateAssetPricesQuick" should update the prices of "SUI" and "USDC" for Scallop protocol', async () => {
@@ -116,7 +116,7 @@ describe('Test Scallop transaction builder', async () => {
     await tx.updateAssetPricesQuick(['sui', 'usdc']);
     const updateAssetPricesResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('updateAssetPricesResult:', updateAssetPricesResult);
-    expect(updateAssetPricesResult.effects.status.status).toEqual('success');
+    expect(updateAssetPricesResult.effects?.status.status).toEqual('success');
   });
 
   test('"txBlock" is an instance of "TransactionBlock" from @mysten/sui.js', async () => {
@@ -136,6 +136,6 @@ describe('Test Scallop transaction builder', async () => {
     suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure(sender));
     const txBlockResult = await txBuilder.signAndSendTxBlock(tx);
     console.info('txBlockResult:', txBlockResult);
-    expect(txBlockResult.effects.status.status).toEqual('success');
+    expect(txBlockResult.effects?.status.status).toEqual('success');
   });
 });

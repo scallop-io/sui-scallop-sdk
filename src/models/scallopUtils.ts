@@ -2,7 +2,7 @@ import {
   SUI_FRAMEWORK_ADDRESS,
   SUI_TYPE_ARG,
   normalizeStructTag,
-} from '@mysten/sui.js';
+} from '@mysten/sui.js/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { PriceServiceConnection } from '@pythnetwork/price-service-client';
 import { PROTOCOL_OBJECT_ID } from '../constants/common';

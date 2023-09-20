@@ -1,4 +1,4 @@
-import type { TransactionArgument } from '@mysten/sui.js';
+import type { TransactionArgument } from '@mysten/sui.js/transactions';
 import type { SuiTxBlock, SuiTxArg, SuiKit } from '@scallop-io/sui-kit';
 import type { ScallopAddress, ScallopUtils } from '../models';
 import type { SupportCollateralCoins, SupportAssetCoins } from './data';

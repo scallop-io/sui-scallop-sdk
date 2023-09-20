@@ -1,4 +1,4 @@
-import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js';
+import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { ScallopAddress, ScallopUtils } from '../models';
 import type {

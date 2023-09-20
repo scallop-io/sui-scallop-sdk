@@ -1,13 +1,11 @@
-import { normalizeSuiAddress } from '@mysten/sui.js';
+import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { newScallopTxBlock } from '../txBuilders';
 import { queryObligation, queryMarket, getObligations } from '../queries';
-import type {
-  TransactionArgument,
-  SuiTransactionBlockResponse,
-} from '@mysten/sui.js';
+import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
+import type { TransactionArgument } from '@mysten/sui.js/transactions';
 import type { SuiTxArg } from '@scallop-io/sui-kit';
 import type {
   ScallopClientFnReturnType,
@@ -103,12 +101,16 @@ export class ScallopClient {
    */
   public async openObligation(): Promise<SuiTransactionBlockResponse>;
   public async openObligation<S extends boolean>(
-    sign?: S
+    sign?: S,
+    walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async openObligation<S extends boolean>(
-    sign: S = true as S
+    sign: S = true as S,
+    walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.createTxBlock();
+    const sender = walletAddress || this.walletAddress;
+    txBlock.setSender(sender);
     txBlock.openObligationEntry();
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -387,7 +389,8 @@ export class ScallopClient {
       txBlock: ScallopTxBlock,
       coin: TransactionArgument
     ) => TransactionArgument,
-    sign?: S
+    sign?: S,
+    walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async flashLoan<S extends boolean>(
     coinName: SupportAssetCoins,
@@ -396,9 +399,13 @@ export class ScallopClient {
       txBlock: ScallopTxBlock,
       coin: TransactionArgument
     ) => TransactionArgument,
-    sign: S = true as S
+    sign: S = true as S,
+    walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.createTxBlock();
+    const sender = walletAddress || this.walletAddress;
+    txBlock.setSender(sender);
+
     const [coin, loan] = txBlock.borrowFlashLoan(amount, coinName);
     txBlock.repayFlashLoan(callback(txBlock, coin), loan, coinName);
 

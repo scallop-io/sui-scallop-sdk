@@ -1,5 +1,6 @@
 import { fromB64 } from '@mysten/bcs';
-import { SUI_CLOCK_OBJECT_ID, TransactionArgument } from '@mysten/sui.js';
+import { TransactionArgument } from '@mysten/sui.js/transactions';
+import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock, SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress, ScallopUtils } from '../models';
 import { SupportCoins, SupportAssetCoins, SupportOracleType } from '../types';
