@@ -128,26 +128,26 @@ const updateOracle = async (
   const coinPackageId = address.get(`core.coins.${coinName}.id`);
   const coinType = scallopUtils.parseCoinType(coinPackageId, coinName);
 
-  const xOraclePkgId =
-    '0x8148535d4a3f22d09468a9e101ec10ef8803c94e7aae3993897907aeec288f32';
-  const xOracleId =
-    '0xeed0701ca3bfb7ec85c452ef06778d6f291499ab1ce32a4f98097d7a678360e0';
-  const pythRulePkgId =
-    '0x87085e186a7c7f7cd8635288be45791a893fca6f8c0a5d253a644f4288a43a07';
-  const pythRuleRegistryId =
-    '0x172498250129a385f7f58d3ebcb8b48dd118d850bdd50ca6779e1468c366f408';
+  const xOraclePkgId = address.get('core.packages.xOracle.id');
+  const xOracleId = address.get('core.oracles.xOracle');
+  const pythRulePkgId = address.get('core.packages.pyth.id');
+  const pythRuleRegistryId = address.get('core.oracles.pyth.registry');
+
+  const pythStateId = address.get('core.oracles.pyth.state');
+
+  const pythFeedObjectId = address.get(
+    `core.coins.${coinName}.oracle.pyth.feedObject`
+  );
 
   updatePrice(
     txBlock,
     isTestnet ? ['pyth'] : ['pyth'],
-    // address.get('core.packages.xOracle.id'),
-    // address.get('core.oracles.xOracle'),
     xOraclePkgId,
     xOracleId,
     pythRulePkgId,
     pythRuleRegistryId,
-    address.get('core.oracles.pyth.state'),
-    address.get(`core.coins.${coinName}.oracle.pyth.feedObject`),
+    pythStateId,
+    pythFeedObjectId,
     address.get('core.packages.switchboard.id'),
     address.get('core.oracles.switchboard.registry'),
     address.get(`core.coins.${coinName}.oracle.switchboard`),
