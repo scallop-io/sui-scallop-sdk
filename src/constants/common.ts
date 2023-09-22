@@ -3,7 +3,7 @@ export const API_BASE_URL = 'https://sui.api.scallop.io';
 export const ADDRESSES_ID = '6462a088a7ace142bb6d7e9b';
 
 export const PROTOCOL_OBJECT_ID =
-  '0x18dfee1976557255017636dfaa0593576c7d0a0147a3af373533309ccdf720e5';
+  '0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf';
 
 export const SUPPORT_ASSET_COINS = [
   'eth',
