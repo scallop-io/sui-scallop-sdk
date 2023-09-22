@@ -1,131 +1,39 @@
-import { SUI_CLOCK_OBJECT_ID, TransactionArgument } from '@mysten/sui.js';
-import { SuiTxBlock, SuiKit } from '@scallop-io/sui-kit';
+import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js';
+import type { TransactionArgument } from '@mysten/sui.js';
+import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import {
   SuiPythClient,
   SuiPriceServiceConnection,
 } from '@pythnetwork/pyth-sui-js';
-import { ScallopAddress, ScallopUtils } from '../models';
-import { SupportCoins, SupportAssetCoins, SupportOracleType } from '../types';
-import { queryObligation } from '../queries';
+import type { ScallopBuilder } from '../models';
+import type { SupportCoins, SupportOracleType } from '../types';
 
-export const updateOraclesForWithdrawCollateral = async (
-  txBlock: SuiTxBlock,
-  address: ScallopAddress,
-  scallopUtils: ScallopUtils,
-  suiKit: SuiKit,
-  obligationId: string,
-  isTestnet: boolean
-) => {
-  const obligationCoinNames = await getObligationCoinNames(
-    suiKit,
-    obligationId,
-    address,
-    scallopUtils
-  );
-  return updateOracles(
-    txBlock,
-    suiKit,
-    address,
-    scallopUtils,
-    obligationCoinNames,
-    isTestnet
-  );
-};
-
-export const updateOraclesForLiquidation = async (
-  txBlock: SuiTxBlock,
-  address: ScallopAddress,
-  scallopUtils: ScallopUtils,
-  suiKit: SuiKit,
-  obligationId: string,
-  isTestnet: boolean
-) => {
-  const obligationCoinNames = await getObligationCoinNames(
-    suiKit,
-    obligationId,
-    address,
-    scallopUtils
-  );
-  return updateOracles(
-    txBlock,
-    suiKit,
-    address,
-    scallopUtils,
-    obligationCoinNames,
-    isTestnet
-  );
-};
-
-export const updateOraclesForBorrow = async (
-  txBlock: SuiTxBlock,
-  address: ScallopAddress,
-  scallopUtils: ScallopUtils,
-  suiKit: SuiKit,
-  obligationId: string,
-  borrowCoinName: SupportAssetCoins,
-  isTestnet: boolean
-) => {
-  const obligationCoinNames = await getObligationCoinNames(
-    suiKit,
-    obligationId,
-    address,
-    scallopUtils
-  );
-  const updateCoinNames = [
-    ...new Set([...obligationCoinNames, borrowCoinName]),
-  ];
-  return updateOracles(
-    txBlock,
-    suiKit,
-    address,
-    scallopUtils,
-    updateCoinNames,
-    isTestnet
-  );
-};
-
-const getObligationCoinNames = async (
-  suiKit: SuiKit,
-  obligationId: string,
-  address: ScallopAddress,
-  scallopUtils: ScallopUtils
-) => {
-  const obligation = await queryObligation(obligationId, address, suiKit);
-  const collateralCoinTypes = obligation.collaterals.map((collateral) => {
-    return `0x${collateral.type.name}`;
-  });
-  const debtCoinTypes = obligation.debts.map((debt) => {
-    return `0x${debt.type.name}`;
-  });
-  const obligationCoinTypes = [
-    ...new Set([...collateralCoinTypes, ...debtCoinTypes]),
-  ];
-  const obligationCoinNames = obligationCoinTypes.map((coinType) => {
-    return scallopUtils.getCoinNameFromCoinType(coinType);
-  });
-  return obligationCoinNames;
-};
-
+/**
+ * Update the price of the oracle for multiple coin.
+ *
+ * @param builder - The scallop builder.
+ * @param txBlock - TxBlock created by SuiKit.
+ * @param coinNames - The coin names.
+ */
 export const updateOracles = async (
-  txBlock: SuiTxBlock,
-  suiKit: SuiKit,
-  address: ScallopAddress,
-  scallopUtils: ScallopUtils,
-  coinNames: SupportCoins[],
-  isTestnet: boolean
+  builder: ScallopBuilder,
+  txBlock: SuiKitTxBlock,
+  coinNames: SupportCoins[]
 ) => {
-  const rules: SupportOracleType[] = isTestnet ? ['pyth'] : ['pyth'];
+  const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
   if (rules.includes('pyth')) {
     const pythClient = new SuiPythClient(
-      suiKit.provider(),
-      address.get('core.oracles.pyth.state'),
-      address.get('core.oracles.pyth.wormholeState')
+      builder.suiKit.provider(),
+      builder.address.get('core.oracles.pyth.state'),
+      builder.address.get('core.oracles.pyth.wormholeState')
     );
     const priceIds = coinNames.map((coinName) =>
-      address.get(`core.coins.${coinName}.oracle.pyth.feed`)
+      builder.address.get(`core.coins.${coinName}.oracle.pyth.feed`)
     );
     const pythConnection = new SuiPriceServiceConnection(
-      isTestnet ? 'hermes-beta.pyth.network' : 'https://hermes.pyth.network'
+      builder.isTestnet
+        ? 'https://hermes-beta.pyth.network'
+        : 'https://hermes.pyth.network'
     );
     const priceUpdateData = await pythConnection.getPriceFeedsUpdateData(
       priceIds
@@ -137,37 +45,44 @@ export const updateOracles = async (
     );
   }
 
-  const updateCoinNames = [...new Set(coinNames)];
-  for (const coinName of updateCoinNames) {
-    await updateOracle(txBlock, rules, address, scallopUtils, coinName);
+  // Remove duplicate coin names.
+  const updateCoinTypes = [...new Set(coinNames)];
+  for (const coinName of updateCoinTypes) {
+    await updateOracle(builder, txBlock, coinName, rules);
   }
 };
 
+/**
+ * Update the price of the oracle for specific coin.
+ *
+ * @param builder - The scallop builder.
+ * @param txBlock - TxBlock created by SuiKit.
+ * @param coinName - The coin name.
+ */
 const updateOracle = async (
-  txBlock: SuiTxBlock,
-  rules: SupportOracleType[],
-  address: ScallopAddress,
-  scallopUtils: ScallopUtils,
-  coinName: SupportCoins
+  builder: ScallopBuilder,
+  txBlock: SuiKitTxBlock,
+  coinName: SupportCoins,
+  rules: SupportOracleType[]
 ) => {
-  const coinPackageId = address.get(`core.coins.${coinName}.id`);
-  const coinType = scallopUtils.parseCoinType(coinPackageId, coinName);
+  const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
+  const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
 
   updatePrice(
     txBlock,
     rules,
-    address.get('core.packages.xOracle.id'),
-    address.get('core.oracles.xOracle'),
-    address.get('core.packages.pyth.id'),
-    address.get('core.oracles.pyth.registry'),
-    address.get('core.oracles.pyth.state'),
-    address.get(`core.coins.${coinName}.oracle.pyth.feedObject`),
-    address.get('core.packages.switchboard.id'),
-    address.get('core.oracles.switchboard.registry'),
-    address.get(`core.coins.${coinName}.oracle.switchboard`),
-    address.get('core.packages.supra.id'),
-    address.get('core.oracles.supra.registry'),
-    address.get(`core.oracles.supra.holder`),
+    builder.address.get('core.packages.xOracle.id'),
+    builder.address.get('core.oracles.xOracle'),
+    builder.address.get('core.packages.pyth.id'),
+    builder.address.get('core.oracles.pyth.registry'),
+    builder.address.get('core.oracles.pyth.state'),
+    builder.address.get(`core.coins.${coinName}.oracle.pyth.feedObject`),
+    builder.address.get('core.packages.switchboard.id'),
+    builder.address.get('core.oracles.switchboard.registry'),
+    builder.address.get(`core.coins.${coinName}.oracle.switchboard`),
+    builder.address.get('core.packages.supra.id'),
+    builder.address.get('core.oracles.supra.registry'),
+    builder.address.get(`core.oracles.supra.holder`),
     coinType
   );
 };
@@ -190,10 +105,10 @@ const updateOracle = async (
  * @param supraRegistryId - The registry id from supra package.
  * @param supraHolderId - The holder id from supra package.
  * @param coinType - The type of coin.
- * @returns Sui-Kit type transaction block.
+ * @returns TxBlock created by SuiKit.
  */
-function updatePrice(
-  txBlock: SuiTxBlock,
+const updatePrice = (
+  txBlock: SuiKitTxBlock,
   rules: SupportOracleType[],
   xOraclePackageId: string,
   xOracleId: TransactionArgument | string,
@@ -208,7 +123,7 @@ function updatePrice(
   supraRegistryId: TransactionArgument | string,
   supraHolderId: TransactionArgument | string,
   coinType: string
-) {
+) => {
   const request = priceUpdateRequest(
     txBlock,
     xOraclePackageId,
@@ -254,7 +169,7 @@ function updatePrice(
     coinType
   );
   return txBlock;
-}
+};
 
 /**
  * Construct a transaction block for request price update.
@@ -263,18 +178,18 @@ function updatePrice(
  * @param packageId - The xOracle package id.
  * @param xOracleId - The xOracle Id from xOracle package.
  * @param coinType - The type of coin.
- * @returns Sui-Kit type transaction block.
+ * @returns TxBlock created by SuiKit.
  */
-function priceUpdateRequest(
-  txBlock: SuiTxBlock,
+const priceUpdateRequest = (
+  txBlock: SuiKitTxBlock,
   packageId: string,
   xOracleId: TransactionArgument | string,
   coinType: string
-) {
+) => {
   const target = `${packageId}::x_oracle::price_update_request`;
   const typeArgs = [coinType];
   return txBlock.moveCall(target, [xOracleId], typeArgs);
-}
+};
 
 /**
  * Construct a transaction block for confirm price update request.
@@ -284,20 +199,20 @@ function priceUpdateRequest(
  * @param xOracleId - The xOracle Id from xOracle package.
  * @param request - The result of the request.
  * @param coinType - The type of coin.
- * @returns Sui-Kit type transaction block.
+ * @returns TxBlock created by SuiKit.
  */
-function confirmPriceUpdateRequest(
-  txBlock: SuiTxBlock,
+const confirmPriceUpdateRequest = (
+  txBlock: SuiKitTxBlock,
   packageId: string,
   xOracleId: TransactionArgument | string,
   request: TransactionArgument,
   coinType: string
-) {
+) => {
   const target = `${packageId}::x_oracle::confirm_price_update_request`;
   const typeArgs = [coinType];
   txBlock.moveCall(target, [xOracleId, request, SUI_CLOCK_OBJECT_ID], typeArgs);
   return txBlock;
-}
+};
 
 /**
  * Construct a transaction block for update supra price.
@@ -308,22 +223,22 @@ function confirmPriceUpdateRequest(
  * @param holderId - The holder id from supra package.
  * @param registryId - The registry id from supra package.
  * @param coinType - The type of coin.
- * @returns Sui-Kit type transaction block.
+ * @returns TxBlock created by SuiKit.
  */
-function updateSupraPrice(
-  txBlock: SuiTxBlock,
+const updateSupraPrice = (
+  txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
   holderId: TransactionArgument | string,
   registryId: TransactionArgument | string,
   coinType: string
-) {
+) => {
   txBlock.moveCall(
     `${packageId}::rule::set_price`,
     [request, holderId, registryId, SUI_CLOCK_OBJECT_ID],
     [coinType]
   );
-}
+};
 
 /**
  * Construct a transaction block for update switchboard price.
@@ -334,22 +249,22 @@ function updateSupraPrice(
  * @param aggregatorId - The aggregator id from switchboard package.
  * @param registryId - The registry id from switchboard package.
  * @param coinType - The type of coin.
- * @returns Sui-Kit type transaction block.
+ * @returns TxBlock created by SuiKit.
  */
-function updateSwitchboardPrice(
-  txBlock: SuiTxBlock,
+const updateSwitchboardPrice = (
+  txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
   aggregatorId: TransactionArgument | string,
   registryId: TransactionArgument | string,
   coinType: string
-) {
+) => {
   txBlock.moveCall(
     `${packageId}::rule::set_price`,
     [request, aggregatorId, registryId, SUI_CLOCK_OBJECT_ID],
     [coinType]
   );
-}
+};
 
 /**
  * Construct a transaction block for update pyth price.
@@ -363,20 +278,20 @@ function updateSwitchboardPrice(
  * @param vaaFromFeeId - The vaa from pyth api with feed id.
  * @param registryId - The registry id from pyth package.
  * @param coinType - The type of coin.
- * @returns Sui-Kit type transaction block.
+ * @returns TxBlock created by SuiKit.
  */
-function updatePythPrice(
-  txBlock: SuiTxBlock,
+const updatePythPrice = (
+  txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
   stateId: TransactionArgument | string,
   feedObjectId: TransactionArgument | string,
   registryId: TransactionArgument | string,
   coinType: string
-) {
+) => {
   txBlock.moveCall(
     `${packageId}::rule::set_price`,
     [request, stateId, feedObjectId, registryId, SUI_CLOCK_OBJECT_ID],
     [coinType]
   );
-}
+};

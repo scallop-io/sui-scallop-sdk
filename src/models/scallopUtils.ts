@@ -4,69 +4,93 @@ import {
   normalizeStructTag,
 } from '@mysten/sui.js';
 import { SuiKit } from '@scallop-io/sui-kit';
-import { PROTOCOL_OBJECT_ID } from '../constants/common';
-import type { ScallopParams, SupportCoins } from '../types';
+import { PriceServiceConnection } from '@pythnetwork/price-service-client';
+import { ScallopAddress } from './scallopAddress';
+import { ScallopQuery } from './scallopQuery';
+import {
+  ADDRESSES_ID,
+  PROTOCOL_OBJECT_ID,
+  scallopRewardType,
+} from '../constants';
+import { queryObligation } from '../queries';
+import type {
+  ScallopUtilsParams,
+  ScallopInstanceParams,
+  SupportCoins,
+  SupportStakeMarketCoins,
+} from '../types';
 
 /**
- * ### Scallop Utils
- *
+ * @description
  * Integrates some helper functions frequently used in interactions with the Scallop contract.
  *
- * #### Usage
- *
+ * @example
  * ```typescript
- * const utils  = new ScallopUtils(<parameters>);
- * utils.<help functions>();
+ * const scallopUtils  = new ScallopUtils(<parameters>);
+ * await scallopUtils.init();
+ * scallopUtils.<utils functions>();
+ * await scallopUtils.<utils functions>();
  * ```
  */
 export class ScallopUtils {
+  public readonly params: ScallopUtilsParams;
   private _suiKit: SuiKit;
+  private _address: ScallopAddress;
+  private _query: ScallopQuery;
 
-  public constructor(params: ScallopParams) {
-    this._suiKit = new SuiKit(params);
-  }
-
-  /**
-   * @description Select coin id  that add up to the given amount as transaction arguments.
-   * @param owner The address of the owner.
-   * @param amount The amount that is needed for the coin.
-   * @param coinType The coin type, default is 0x2::SUI::SUI.
-   * @return The selected transaction coin arguments.
-   */
-  public async selectCoins(
-    owner: string,
-    amount: number,
-    coinType: string = SUI_TYPE_ARG
+  public constructor(
+    params: ScallopUtilsParams,
+    instance?: ScallopInstanceParams
   ) {
-    const coins = await this._suiKit.suiInteractor.selectCoins(
-      owner,
-      amount,
-      coinType
-    );
-    return coins.map((c) => c.objectId);
+    this.params = params;
+    this._suiKit = instance?.suiKit ?? new SuiKit(params);
+    this._address =
+      instance?.address ??
+      new ScallopAddress({
+        id: params?.addressesId || ADDRESSES_ID,
+        network: params?.networkType,
+      });
+    this._query =
+      instance?.query ??
+      new ScallopQuery(params, {
+        suiKit: this._suiKit,
+        address: this._address,
+      });
   }
 
   /**
-   * @description Handle non-standard coins.
+   * Request the scallop API to initialize data.
+   *
+   * @param forece Whether to force initialization.
+   */
+  public async init(forece: boolean = false) {
+    if (forece || !this._address.getAddresses()) {
+      await this._address.read();
+    }
+    await this._query.init(forece);
+  }
+
+  /**
+   * Convert coin name to coin type.
+   *
+   * @description
+   * The Coin type of wormhole is fixed `coin:Coin`. Here using package id
+   * to determine and return the type.
+   *
    * @param coinPackageId Package id of coin.
-   * @param coinName specific support coin name.
-   * @return coinType.
+   * @param coinName Specific support coin name.
+   * @return Coin type.
    */
   public parseCoinType(coinPackageId: string, coinName: string) {
-    if (coinName === 'sui') return normalizeStructTag(SUI_TYPE_ARG);
+    if (coinName === 'sui')
+      return normalizeStructTag(`${coinPackageId}::sui::SUI`);
     const wormHoleCoins = [
-      // USDC
-      '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf',
-      // USDT
-      '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c',
-      // ETH
-      '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5',
-      // BTC
-      '0x027792d9fed7f9844eb4839566001bb6f6cb4804f66aa2da6fe1ee242d896881',
-      // SOL
-      '0xb7844e289a8410e50fb3ca48d69eb9cf29e27d223ef90353fe1bd8e27ff8f3f8',
-      // APT
-      '0x3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37',
+      this._address.get(`core.coins.usdc.id`),
+      this._address.get(`core.coins.usdt.id`),
+      this._address.get(`core.coins.eth.id`),
+      this._address.get(`core.coins.btc.id`),
+      this._address.get(`core.coins.sol.id`),
+      this._address.get(`core.coins.apt.id`),
     ];
     if (wormHoleCoins.includes(coinPackageId)) {
       return `${coinPackageId}::coin::COIN`;
@@ -76,25 +100,23 @@ export class ScallopUtils {
   }
 
   /**
-   * @description Handle non-standard coin names.
-   * @param coinPackageId Package id of coin.
-   * @param coinName specific support coin name.
-   * @return coinType.
+   * Convert coin type to coin name..
+   *
+   * @description
+   * The coin name cannot be obtained directly from the wormhole type. Here
+   * the package id is used to determine and return a specific name.
+   *
+   * @param coinType Specific support coin type.
+   * @return Coin Name.
    */
-  public getCoinNameFromCoinType(coinType: string) {
+  public parseCoinName(coinType: string) {
     const wormHoleCoinTypes = [
-      // USDC
-      '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN',
-      // USDT
-      '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c::coin::COIN',
-      // ETH
-      '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5::coin::COIN',
-      // BTC
-      '0x027792d9fed7f9844eb4839566001bb6f6cb4804f66aa2da6fe1ee242d896881::coin::COIN',
-      // SOL
-      '0xb7844e289a8410e50fb3ca48d69eb9cf29e27d223ef90353fe1bd8e27ff8f3f8::coin::COIN',
-      // APT
-      '0x3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37::coin::COIN',
+      `${this._address.get(`core.coins.usdc.id`)}::coin::COIN`,
+      `${this._address.get(`core.coins.usdt.id`)}::coin::COIN`,
+      `${this._address.get(`core.coins.eth.id`)}::coin::COIN`,
+      `${this._address.get(`core.coins.btc.id`)}::coin::COIN`,
+      `${this._address.get(`core.coins.sol.id`)}::coin::COIN`,
+      `${this._address.get(`core.coins.apt.id`)}::coin::COIN`,
     ];
 
     if (coinType === wormHoleCoinTypes[0]) {
@@ -115,12 +137,11 @@ export class ScallopUtils {
   }
 
   /**
-   * @description Handle market coin types.
+   * Convert market coin name to market coin type.
    *
    * @param coinPackageId Package id of coin.
-   * @param coinName specific support coin name.
-   *
-   * @return marketCoinType.
+   * @param coinName Specific support coin name.
+   * @return Market coin type.
    */
   public parseMarketCoinType(coinPackageId: string, coinName: string) {
     const coinType = this.parseCoinType(
@@ -128,5 +149,84 @@ export class ScallopUtils {
       coinName
     );
     return `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<${coinType}>`;
+  }
+
+  /**
+   * Select coin id  that add up to the given amount as transaction arguments.
+   *
+   * @param owner The address of the owner.
+   * @param amount The amount that is needed for the coin.
+   * @param coinType The coin type, default is 0x2::SUI::SUI.
+   * @return The selected transaction coin arguments.
+   */
+  public async selectCoins(
+    owner: string,
+    amount: number,
+    coinType: string = SUI_TYPE_ARG
+  ) {
+    const coins = await this._suiKit.suiInteractor.selectCoins(
+      owner,
+      amount,
+      coinType
+    );
+    return coins.map((c) => c.objectId);
+  }
+
+  /**
+   * Get reward type of stake pool.
+   *
+   * @param marketCoinName - Support stake market coin.
+   * @return Reward coin name.
+   */
+  public getRewardCoinName = (marketCoinName: SupportStakeMarketCoins) => {
+    return scallopRewardType[marketCoinName];
+  };
+
+  /**
+   * Get all coin names in the obligation record by obligation id.
+   *
+   * @description
+   * This can often be used to determine which assets in an obligation require
+   * price updates before interacting with specific instructions of the Scallop contract.
+   *
+   * @param obligationId The obligation id.
+   * @return Coin Names.
+   */
+  public async getObligationCoinNames(obligationId: string) {
+    const obligation = await queryObligation(this._query, obligationId);
+    const collateralCoinTypes = obligation.collaterals.map((collateral) => {
+      return `0x${collateral.type.name}`;
+    });
+    const debtCoinTypes = obligation.debts.map((debt) => {
+      return `0x${debt.type.name}`;
+    });
+    const obligationCoinTypes = [
+      ...new Set([...collateralCoinTypes, ...debtCoinTypes]),
+    ];
+    const obligationCoinNames = obligationCoinTypes.map((coinType) => {
+      return this.parseCoinName(coinType);
+    });
+    return obligationCoinNames;
+  }
+
+  /**
+   * Fetch price feed VAAs of interest from the Pyth.
+   *
+   * @param priceIds Array of hex-encoded price ids.
+   * @param isTestnet Specify whether it is a test network.
+   * @return Array of base64 encoded VAAs.
+   */
+  public async getVaas(priceIds: string[], isTestnet?: boolean) {
+    const connection = new PriceServiceConnection(
+      isTestnet
+        ? 'https://xc-testnet.pyth.network'
+        : 'https://xc-mainnet.pyth.network',
+      {
+        priceFeedRequestConfig: {
+          binary: true,
+        },
+      }
+    );
+    return await connection.getLatestVaas(priceIds);
   }
 }
