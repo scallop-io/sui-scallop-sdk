@@ -1,76 +1,110 @@
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopClient } from './scallopClient';
+import { ScallopBuilder } from './scallopBuilder';
+import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
-import { newScallopTxBlock } from '../txBuilders';
 import { ADDRESSES_ID } from '../constants';
-import type { NetworkType } from '@scallop-io/sui-kit';
-import type { ScallopParams, ScallopTxBlock } from '../types';
+import type { ScallopParams } from '../types/';
 
 /**
- * ### Scallop
- *
+ * @description
  * The main instance that controls interaction with the Scallop contract.
  *
- * #### Usage
- *
+ * @example
  * ```typescript
  * const sdk = new Scallop(<parameters>);
+ * const scallopUtils= await sdk.getScallopUtils();
+ * const scallopAddress = await sdk.getScallopAddress();
+ * const scallopBuilder = await sdk.createScallopBuilder();
+ * const scallopClient = await sdk.createScallopClient();
  * ```
  */
 export class Scallop {
   public params: ScallopParams;
   public suiKit: SuiKit;
-  public address: ScallopAddress;
+
+  private _address: ScallopAddress;
 
   public constructor(params: ScallopParams) {
     this.params = params;
     this.suiKit = new SuiKit(params);
-    this.address = new ScallopAddress({
+    this._address = new ScallopAddress({
       id: params?.addressesId || ADDRESSES_ID,
       network: params?.networkType,
     });
   }
 
   /**
-   * Create an instance to operate the transaction block, making it more convenient to organize transaction combinations.
-   * @return Scallop Transaction Builder
-   */
-  public async createTxBuilder() {
-    await this.address.read();
-    const scallopUtils = new ScallopUtils(this.params);
-    const suiKit = new SuiKit(this.params);
-    const isTestnet = this.params.networkType === 'testnet';
-    return {
-      createTxBlock: () => {
-        return newScallopTxBlock(suiKit, this.address, scallopUtils, isTestnet);
-      },
-      signAndSendTxBlock: (txBlock: ScallopTxBlock) => {
-        return suiKit.signAndSendTxn(txBlock);
-      },
-    };
-  }
-
-  /**
-   * Create an instance to collect the addresses, making it easier to get object addresses from lending contract.
+   * Get a scallop address instance that already has read addresses.
    *
    * @param id - The API id of the addresses.
-   * @param auth - The authentication API key.
-   * @param network - Specifies which network's addresses you want to set.
-   * @return Scallop Address
+   * @return Scallop Address.
    */
-  public createAddress(id: string, auth: string, network: NetworkType) {
-    return new ScallopAddress({ id, auth, network });
+  public async getScallopAddress(id?: string) {
+    await this._address.read(id);
+
+    return this._address;
   }
 
   /**
-   * Create an instance that provides contract interaction operations for general users.
+   * Create a scallop builder instance that already has initial data.
+   *
+   * @return Scallop Builder.
+   */
+  public async createScallopBuilder() {
+    if (!this._address.getAddresses()) await this._address.read();
+    const scallopBuilder = new ScallopBuilder(this.params, {
+      suiKit: this.suiKit,
+      address: this._address,
+    });
+
+    return scallopBuilder;
+  }
+
+  /**
+   * Create a scallop client instance that already has initial data.
    *
    * @param walletAddress - When user cannot provide a secret key or mnemonic, the scallop client cannot directly derive the address of the transaction the user wants to sign. This argument specifies the wallet address for signing the transaction.
-   * @return Scallop Client
+   * @return Scallop Client.
    */
   public async createScallopClient(walletAddress?: string) {
-    await this.address.read();
-    return new ScallopClient(this.params, this.address, walletAddress);
+    if (!this._address.getAddresses()) await this._address.read();
+    const scallopClient = new ScallopClient(
+      { ...this.params, walletAddress },
+      { suiKit: this.suiKit, address: this._address }
+    );
+
+    return scallopClient;
+  }
+
+  /**
+   * Create a scallop query instance.
+   *
+   * @return Scallop Query.
+   */
+  public async createScallopQuery() {
+    if (!this._address.getAddresses()) await this._address.read();
+    const scallopQuery = new ScallopQuery(this.params, {
+      suiKit: this.suiKit,
+      address: this._address,
+    });
+
+    return scallopQuery;
+  }
+
+  /**
+   * Create a scallop utils instance.
+   *
+   * @return Scallop Utils.
+   */
+  public async createScallopUtils() {
+    if (!this._address.getAddresses()) await this._address.read();
+    const scallopUtils = new ScallopUtils(this.params, {
+      suiKit: this.suiKit,
+      address: this._address,
+    });
+
+    return scallopUtils;
   }
 }
