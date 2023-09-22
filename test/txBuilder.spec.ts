@@ -17,22 +17,14 @@ describe('Test Scallop transaction builder', async () => {
   console.log(sender);
   const txBuilder = await scallopSDK.createTxBuilder();
 
-  // override oracle addresses
-  scallopSDK.address.set(
-    'core.packages.xOracle.id',
-    '0x1b2edca7df0bb72e230fa1771e059bf20bd525a36a8653c61929ab6d9febb144'
-  );
-  scallopSDK.address.set(
-    'core.oracles.xOracle',
-    '0xfeea40c13edc5341a379f9787f8b30fb554eeb0f2bdd48d4443f2b7abe29ebc9'
-  );
+  // override pyth oracle addresses
   scallopSDK.address.set(
     'core.packages.pyth.id',
-    '0x029c377ea819a181abf7d71e5592f7c6f82bd7c647ef0a33bf38033c4514fcf5'
+    '0xbab81459a9388dc39e89fc780a300191b1b8bc38f4ecfa1ad050d3bdc52ad8af'
   );
   scallopSDK.address.set(
     'core.oracles.pyth.registry',
-    '0xcc9ba68b46251ad7bc7d41b55a3da5ca7ff2f2e0c7a123bb9f2b6ba33ff55878'
+    '0xec603dcaf540bb747dddc961ca9e019e1f0a138d12121d350ef53a1096fce55a'
   );
   scallopSDK.address.set(
     'core.oracles.pyth.state',
@@ -71,28 +63,6 @@ describe('Test Scallop transaction builder', async () => {
   scallopSDK.address.set(
     'core.coins.apt.oracle.pyth.feedObject',
     '0x7c5b7837c44a69b469325463ac0673ac1aa8435ff44ddb4191c9ae380463647f'
-  );
-
-  // override protocol addresses
-  scallopSDK.address.set(
-    'core.packages.protocol.id',
-    '0x18dfee1976557255017636dfaa0593576c7d0a0147a3af373533309ccdf720e5'
-  );
-  scallopSDK.address.set(
-    'core.market',
-    '0xdfacee2cf5e65194a74ebdeb99b779b9ebbbb47bfb270d4a93e5babfd739985b'
-  );
-  scallopSDK.address.set(
-    'core.version',
-    '0xdaa71410abb62ff4830e15b007571aa7940bfe306ce7a6687c818203cb0c730c'
-  );
-  scallopSDK.address.set(
-    'core.coinDecimalsRegistry',
-    '0x737aac3f2b6b825c67749ad32806c1aefd49c4031c754441de73f3364dca2a7b'
-  );
-  scallopSDK.address.set(
-    'core.packages.query.id',
-    '0x9cf3f55377a6987cb5250193cd6e8f4770751e68d6ea4dae203cb71718840a24'
   );
 
   test('"openObligationEntry" should create a shared obligation, and send obligationKey to sender', async () => {
