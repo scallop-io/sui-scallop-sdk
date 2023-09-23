@@ -4,10 +4,12 @@ import { NetworkType } from '@scallop-io/sui-kit';
 import { ScallopAddress } from '../src';
 import type { AddressesInterface } from '../src';
 
+const ENABLE_LOG = false;
+
 dotenv.config();
 
-const TEST_ADDRESSES_ID = '6462a088a7ace142bb6d7e9b';
-const NETWORK: NetworkType = 'testnet';
+const TEST_ADDRESSES_ID = '6507ed0bb0f6b1a2a84abed3';
+const NETWORK: NetworkType = 'mainnet';
 
 describe('Test Scallop Address', () => {
   const addressBuilder = new ScallopAddress({
@@ -15,12 +17,13 @@ describe('Test Scallop Address', () => {
     auth: process.env.API_KEY,
     network: NETWORK,
   });
+  console.info('\x1b[32mAddresses Id: \x1b[33m', TEST_ADDRESSES_ID);
 
   it('Should get new addresses after create', async () => {
     const oldId = addressBuilder.getId();
     if (oldId === undefined) {
       const addresses = await addressBuilder.create();
-      console.info('addresses:', addresses);
+      if (ENABLE_LOG) console.info('addresses:', addresses);
       expect(!!addresses).toBe(true);
     }
     const addressesId = addressBuilder.getId();
@@ -172,7 +175,7 @@ describe('Test Scallop Address', () => {
       undefined,
       testAddresse
     );
-    console.info('addresses:', addresses);
+    if (ENABLE_LOG) console.info('addresses:', addresses);
     expect(!!addresses).toBe(true);
     expect(addresses).not.toEqual(oldAddresses);
   });
@@ -184,8 +187,10 @@ describe('Test Scallop Address', () => {
     await addressBuilder.read();
     const addresses = addressBuilder.getAddresses();
     const allAddresses = addressBuilder.getAllAddresses();
-    console.info('addresses:', addresses);
-    console.info('allAddresses:', allAddresses);
+    if (ENABLE_LOG) {
+      console.info('addresses:', addresses);
+      console.info('allAddresses:', allAddresses);
+    }
     expect(addresses).toEqual(allAddresses[NETWORK]);
   });
 
@@ -195,7 +200,7 @@ describe('Test Scallop Address', () => {
 
     const addresses = addressBuilder.getAddresses();
     const usdcCoinId = addressBuilder.get('core.coins.usdc.id');
-    console.info('usdcCoinId', usdcCoinId);
+    if (ENABLE_LOG) console.info('usdcCoinId', usdcCoinId);
     expect(usdcCoinId).toEqual(addresses?.core.coins.usdc?.id);
   });
 
@@ -204,7 +209,8 @@ describe('Test Scallop Address', () => {
     if (addressesId === undefined) await addressBuilder.create();
     const oldUsdcCoinId = addressBuilder.get('core.coins.usdc.id');
     const newAddresses = addressBuilder.set('core.coins.usdc.id', '0x00');
-    console.info('usdcCoinId', newAddresses?.core.coins.usdc?.id);
+    if (ENABLE_LOG)
+      console.info('usdcCoinId', newAddresses?.core.coins.usdc?.id);
     expect(oldUsdcCoinId).not.toEqual(newAddresses?.core.coins.usdc?.id);
     await addressBuilder.delete();
   });
