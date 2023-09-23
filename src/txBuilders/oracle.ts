@@ -125,9 +125,7 @@ export const updateOracles = async (
       address.get(`core.coins.${coinName}.oracle.pyth.feed`)
     );
     const pythConnection = new SuiPriceServiceConnection(
-      isTestnet
-        ? 'https://xc-testnet.pyth.network'
-        : 'https://xc-mainnet.pyth.network'
+      isTestnet ? 'hermes-beta.pyth.network' : 'https://hermes.pyth.network'
     );
     const priceUpdateData = await pythConnection.getPriceFeedsUpdateData(
       priceIds
@@ -154,27 +152,13 @@ const updateOracle = async (
   const coinPackageId = address.get(`core.coins.${coinName}.id`);
   const coinType = scallopUtils.parseCoinType(coinPackageId, coinName);
 
-  // TODO: use address.get() to get the address after API upgrate
-  const xOraclePkgId =
-    '0x8148535d4a3f22d09468a9e101ec10ef8803c94e7aae3993897907aeec288f32';
-  const xOracleId =
-    '0xeed0701ca3bfb7ec85c452ef06778d6f291499ab1ce32a4f98097d7a678360e0';
-  const pythRulePkgId =
-    '0x87085e186a7c7f7cd8635288be45791a893fca6f8c0a5d253a644f4288a43a07';
-  const pythRuleRegistryId =
-    '0x172498250129a385f7f58d3ebcb8b48dd118d850bdd50ca6779e1468c366f408';
-
   updatePrice(
     txBlock,
     rules,
-    // address.get('core.packages.xOracle.id'),
-    // address.get('core.oracles.xOracle'),
-    // address.get('core.packages.pyth.id'),
-    // address.get('core.oracles.pyth.registry'),
-    xOraclePkgId,
-    xOracleId,
-    pythRulePkgId,
-    pythRuleRegistryId,
+    address.get('core.packages.xOracle.id'),
+    address.get('core.oracles.xOracle'),
+    address.get('core.packages.pyth.id'),
+    address.get('core.oracles.pyth.registry'),
     address.get('core.oracles.pyth.state'),
     address.get(`core.coins.${coinName}.oracle.pyth.feedObject`),
     address.get('core.packages.switchboard.id'),
