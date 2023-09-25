@@ -1,6 +1,9 @@
-import { fromB64 } from '@mysten/bcs';
 import { SUI_CLOCK_OBJECT_ID, TransactionArgument } from '@mysten/sui.js';
 import { SuiTxBlock, SuiKit } from '@scallop-io/sui-kit';
+import {
+  SuiPythClient,
+  SuiPriceServiceConnection,
+} from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress, ScallopUtils } from '../models';
 import { SupportCoins, SupportAssetCoins, SupportOracleType } from '../types';
 import { queryObligation } from '../queries';
@@ -21,6 +24,7 @@ export const updateOraclesForWithdrawCollateral = async (
   );
   return updateOracles(
     txBlock,
+    suiKit,
     address,
     scallopUtils,
     obligationCoinNames,
@@ -44,6 +48,7 @@ export const updateOraclesForLiquidation = async (
   );
   return updateOracles(
     txBlock,
+    suiKit,
     address,
     scallopUtils,
     obligationCoinNames,
@@ -71,6 +76,7 @@ export const updateOraclesForBorrow = async (
   ];
   return updateOracles(
     txBlock,
+    suiKit,
     address,
     scallopUtils,
     updateCoinNames,
@@ -102,42 +108,60 @@ const getObligationCoinNames = async (
 
 export const updateOracles = async (
   txBlock: SuiTxBlock,
+  suiKit: SuiKit,
   address: ScallopAddress,
   scallopUtils: ScallopUtils,
   coinNames: SupportCoins[],
   isTestnet: boolean
 ) => {
-  const updateCoinTypes = [...new Set(coinNames)];
-  for (const coinName of updateCoinTypes) {
-    await updateOracle(txBlock, address, scallopUtils, coinName, isTestnet);
+  const rules: SupportOracleType[] = isTestnet ? ['pyth'] : ['pyth'];
+  if (rules.includes('pyth')) {
+    const pythClient = new SuiPythClient(
+      suiKit.provider(),
+      address.get('core.oracles.pyth.state'),
+      address.get('core.oracles.pyth.wormholeState')
+    );
+    const priceIds = coinNames.map((coinName) =>
+      address.get(`core.coins.${coinName}.oracle.pyth.feed`)
+    );
+    const pythConnection = new SuiPriceServiceConnection(
+      isTestnet ? 'hermes-beta.pyth.network' : 'https://hermes.pyth.network'
+    );
+    const priceUpdateData = await pythConnection.getPriceFeedsUpdateData(
+      priceIds
+    );
+    await pythClient.updatePriceFeeds(
+      txBlock.txBlock,
+      priceUpdateData,
+      priceIds
+    );
+  }
+
+  const updateCoinNames = [...new Set(coinNames)];
+  for (const coinName of updateCoinNames) {
+    await updateOracle(txBlock, rules, address, scallopUtils, coinName);
   }
 };
 
 const updateOracle = async (
   txBlock: SuiTxBlock,
+  rules: SupportOracleType[],
   address: ScallopAddress,
   scallopUtils: ScallopUtils,
-  coinName: SupportCoins,
-  isTestnet: boolean
+  coinName: SupportCoins
 ) => {
   const coinPackageId = address.get(`core.coins.${coinName}.id`);
   const coinType = scallopUtils.parseCoinType(coinPackageId, coinName);
-  const [vaaFromFeeId] = await scallopUtils.getVaas(
-    [address.get(`core.coins.${coinName}.oracle.pyth.feed`)],
-    isTestnet
-  );
 
   updatePrice(
     txBlock,
-    isTestnet ? ['pyth'] : ['pyth'],
+    rules,
     address.get('core.packages.xOracle.id'),
     address.get('core.oracles.xOracle'),
     address.get('core.packages.pyth.id'),
     address.get('core.oracles.pyth.registry'),
     address.get('core.oracles.pyth.state'),
-    address.get('core.oracles.pyth.wormholeState'),
     address.get(`core.coins.${coinName}.oracle.pyth.feedObject`),
-    vaaFromFeeId,
     address.get('core.packages.switchboard.id'),
     address.get('core.oracles.switchboard.registry'),
     address.get(`core.coins.${coinName}.oracle.switchboard`),
@@ -158,9 +182,7 @@ const updateOracle = async (
  * @param pythPackageId - The pyth package id.
  * @param pythRegistryId - The registry id from pyth package.
  * @param pythStateId - The price state id from pyth package.
- * @param pythWormholeStateId - The whormhole state id from pyth package.
  * @param pythFeedObjectId - The feed object id from pyth package.
- * @param pythVaaFromFeeId - The vaa from pyth api with feed id.
  * @param switchboardPackageId - The switchboard package id.
  * @param switchboardRegistryId - The registry id from switchboard package.
  * @param switchboardAggregatorId - The aggregator id from switchboard package.
@@ -178,9 +200,7 @@ function updatePrice(
   pythPackageId: string,
   pythRegistryId: TransactionArgument | string,
   pythStateId: TransactionArgument | string,
-  pythWormholeStateId: TransactionArgument | string,
   pythFeedObjectId: TransactionArgument | string,
-  pythVaaFromFeeId: string,
   switchboardPackageId: string,
   switchboardRegistryId: TransactionArgument | string,
   switchboardAggregatorId: TransactionArgument | string,
@@ -201,9 +221,7 @@ function updatePrice(
       pythPackageId,
       request,
       pythStateId,
-      pythWormholeStateId,
       pythFeedObjectId,
-      pythVaaFromFeeId,
       pythRegistryId,
       coinType
     );
@@ -352,25 +370,13 @@ function updatePythPrice(
   packageId: string,
   request: TransactionArgument,
   stateId: TransactionArgument | string,
-  wormholeStateId: TransactionArgument | string,
   feedObjectId: TransactionArgument | string,
-  vaaFromFeeId: string,
   registryId: TransactionArgument | string,
   coinType: string
 ) {
-  const [updateFee] = txBlock.splitSUIFromGas([1]);
   txBlock.moveCall(
     `${packageId}::rule::set_price`,
-    [
-      request,
-      wormholeStateId,
-      stateId,
-      feedObjectId,
-      registryId,
-      txBlock.pure([...fromB64(vaaFromFeeId)]),
-      updateFee,
-      SUI_CLOCK_OBJECT_ID,
-    ],
+    [request, stateId, feedObjectId, registryId, SUI_CLOCK_OBJECT_ID],
     [coinType]
   );
 }
