@@ -137,7 +137,8 @@ export const updateOracles = async (
     );
   }
 
-  for (const coinName of coinNames) {
+  const updateCoinNames = [...new Set(coinNames)];
+  for (const coinName of updateCoinNames) {
     await updateOracle(txBlock, rules, address, scallopUtils, coinName);
   }
 };
