@@ -3,6 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { NetworkType } from '@scallop-io/sui-kit';
 import { ScallopClient, ScallopAddress, ADDRESSES_ID } from '../src';
 
+const ENABLE_LOG = false;
+
 dotenv.config();
 
 // At present, the contract of the testnet is stale and cannot be used normally, please use the mainnet for testing.
@@ -25,18 +27,20 @@ describe('Test Scallop interact with contract', async () => {
     },
     scallopAddress
   );
-  console.info('Your wallet:', client.walletAddress);
+  console.info('\x1b[32mYour wallet: \x1b[33m', client.walletAddress);
 
   it('Should get market query data', async () => {
     const marketData = await client.queryMarket();
-    console.info('marketData:');
-    console.dir(marketData, { depth: null, colors: true });
+    if (ENABLE_LOG) {
+      console.info('marketData:');
+      console.dir(marketData, { depth: null, colors: true });
+    }
     expect(!!marketData).toBe(true);
   });
 
   it('Should open a obligation account', async () => {
     const openObligationResult = await client.openObligation();
-    console.info('openObligationResult:', openObligationResult);
+    if (ENABLE_LOG) console.info('openObligationResult:', openObligationResult);
     expect(openObligationResult.effects?.status.status).toEqual('success');
   });
 
@@ -46,9 +50,11 @@ describe('Test Scallop interact with contract', async () => {
 
     for (const { id } of obligations) {
       const obligationData = await client.queryObligation(id);
-      console.info('id:', id);
-      console.info('obligationData:');
-      console.dir(obligationData, { depth: null, colors: true });
+      if (ENABLE_LOG) {
+        console.info('id:', id);
+        console.info('obligationData:');
+        console.dir(obligationData, { depth: null, colors: true });
+      }
       expect(!!obligationData).toBe(true);
     }
   });
@@ -56,7 +62,7 @@ describe('Test Scallop interact with contract', async () => {
   // only for testnet
   it.skip('Should get test coin', async () => {
     const mintTestCoinResult = await client.mintTestCoin('usdc', 10 ** 11);
-    console.info('mintTestCoinResult:', mintTestCoinResult);
+    if (ENABLE_LOG) console.info('mintTestCoinResult:', mintTestCoinResult);
     expect(mintTestCoinResult.effects?.status.status).toEqual('success');
   });
 
@@ -68,7 +74,8 @@ describe('Test Scallop interact with contract', async () => {
       true,
       obligations[0]?.id
     );
-    console.info('depositCollateralResult:', depositCollateralResult);
+    if (ENABLE_LOG)
+      console.info('depositCollateralResult:', depositCollateralResult);
     expect(depositCollateralResult.effects?.status.status).toEqual('success');
   });
 
@@ -82,7 +89,8 @@ describe('Test Scallop interact with contract', async () => {
       obligations[0].id,
       obligations[0].keyId
     );
-    console.info('withdrawCollateralResult:', withdrawCollateralResult);
+    if (ENABLE_LOG)
+      console.info('withdrawCollateralResult:', withdrawCollateralResult);
     expect(withdrawCollateralResult.effects?.status.status).toEqual('success');
   });
 
@@ -94,7 +102,7 @@ describe('Test Scallop interact with contract', async () => {
 
   it('Should withdraw asset successfully', async () => {
     const withdrawResult = await client.withdraw('sui', 1 * 10 ** 9);
-    console.info('withdrawResult:', withdrawResult);
+    if (ENABLE_LOG) console.info('withdrawResult:', withdrawResult);
     expect(withdrawResult.effects?.status.status).toEqual('success');
   });
 
@@ -108,7 +116,7 @@ describe('Test Scallop interact with contract', async () => {
       obligations[0].id,
       obligations[0].keyId
     );
-    console.info('borrowResult:', borrowResult);
+    if (ENABLE_LOG) console.info('borrowResult:', borrowResult);
     expect(borrowResult.effects?.status.status).toEqual('success');
   });
 
@@ -121,7 +129,7 @@ describe('Test Scallop interact with contract', async () => {
       true,
       obligations[0].id
     );
-    console.info('repayResult:', repayResult);
+    if (ENABLE_LOG) console.info('repayResult:', repayResult);
     expect(repayResult.effects?.status.status).toEqual('success');
   });
 
@@ -133,7 +141,7 @@ describe('Test Scallop interact with contract', async () => {
         return coin;
       }
     );
-    console.info('flashLoanResult:', flashLoanResult);
+    if (ENABLE_LOG) console.info('flashLoanResult:', flashLoanResult);
     expect(flashLoanResult.effects?.status.status).toEqual('success');
   });
 });
