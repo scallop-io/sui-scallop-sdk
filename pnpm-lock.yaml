@@ -11,9 +11,12 @@ dependencies:
   '@mysten/sui.js':
     specifier: ^0.37.1
     version: 0.37.1
+  '@pythnetwork/price-service-client':
+    specifier: ^1.8.0
+    version: 1.8.0
   '@pythnetwork/pyth-sui-js':
-    specifier: ^1.0.2
-    version: 1.0.2
+    specifier: ^1.2.0
+    version: 1.2.0
   '@scallop-io/sui-kit':
     specifier: ^0.38.2
     version: 0.38.2(@mysten/sui.js@0.37.1)
@@ -880,8 +883,8 @@ packages:
       tslib: 2.6.1
     dev: true
 
-  /@pythnetwork/price-service-client@1.6.1:
-    resolution: {integrity: sha512-2Hrk/ZN7aSxajptCELrc6yc55fe1biEK8e/wujJIQJgPiw2CnnkyfUuGydgzaFdPUzkkOMN55C2kFN3+FUsjEQ==}
+  /@pythnetwork/price-service-client@1.8.0:
+    resolution: {integrity: sha512-wJGs9J0N1VsI5H5djNjRPRxGZz7gJjRKxaWHSTBHbt8zCwvrKAC9DXn0Zhy4H/xQq3EPW3lpDtkd76bOTQ5qew==}
     dependencies:
       '@pythnetwork/price-service-sdk': 1.2.0
       '@types/ws': 8.5.4
@@ -900,11 +903,11 @@ packages:
     resolution: {integrity: sha512-h4HcUwBPFEZwa5nLMTz9YnwdLE5m+Bfctzqbj09vpSJo2DyPHCyEXScFUuizWBbfofxB/pF+OnZXjU3pJxtm/w==}
     dev: false
 
-  /@pythnetwork/pyth-sui-js@1.0.2:
-    resolution: {integrity: sha512-7bN1vnsfFcMadBLM12N4vypaFgz/hwWKJ34+IhfSom8qKViG8j07sr1w38dw5qbKrsxawNMzDguvoI1HpCltGw==}
+  /@pythnetwork/pyth-sui-js@1.2.0:
+    resolution: {integrity: sha512-sK50udArBeCqs2jkp1rPsymCTAT0/bSTr72DwfsbuqvXq7fz8UXD0m2xBhhutXA/eP+GN19Xwf68f7tCQAoRVA==}
     dependencies:
       '@mysten/sui.js': 0.37.1
-      '@pythnetwork/price-service-client': 1.6.1
+      '@pythnetwork/price-service-client': 1.8.0
       buffer: 6.0.3
     transitivePeerDependencies:
       - bufferutil
