@@ -83,7 +83,7 @@ export interface MarketDataInterface {
 }
 
 export interface AssetPoolInterface {
-  // The coin name
+  // The coin name.
   coin: SupportAssetCoins;
   // The coin symbol of the pool, upper case.
   symbol: Uppercase<SupportAssetCoins>;
@@ -148,7 +148,7 @@ export interface AssetPoolOriginInterface {
 }
 
 export interface CollateralPoolInterface {
-  // The coin name
+  // The coin name.
   coin: SupportCollateralCoins;
   // The coin symbol of the pool, upper case.
   symbol: Uppercase<SupportCollateralCoins>;

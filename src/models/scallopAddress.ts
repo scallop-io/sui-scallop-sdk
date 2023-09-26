@@ -138,7 +138,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         upgradeCap: '',
       },
-      // Deploy for faucet on testnet
+      // Deploy for faucet on testnet.
       testCoin: {
         id: '',
         upgradeCap: '',

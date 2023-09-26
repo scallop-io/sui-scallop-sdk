@@ -15,8 +15,8 @@ describe('Test Scallop Core Builder', async () => {
     secretKey: process.env.SECRET_KEY,
     networkType: NETWORK,
   });
-  const sender = scallopSDK.suiKit.currentAddress();
   const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const sender = scallopBuilder.walletAddress;
 
   console.info('Sender:', sender);
 
@@ -32,11 +32,12 @@ describe('Test Scallop Core Builder', async () => {
 
   it('"addCollateralQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
-    // Sender is required to invoke "addCollateralQuick"
+    // Sender is required to invoke "addCollateralQuick".
     tx.setSender(sender);
     await tx.addCollateralQuick(10 ** 7, 'sui');
-    const addCollateralQuickResult =
-      await scallopBuilder.signAndSendTxBlock(tx);
+    const addCollateralQuickResult = await scallopBuilder.signAndSendTxBlock(
+      tx
+    );
     if (ENABLE_LOG) {
       console.info('AddCollateralQuickResult:', addCollateralQuickResult);
     }
@@ -45,12 +46,13 @@ describe('Test Scallop Core Builder', async () => {
 
   it('"takeCollateralQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
-    // Sender is required to invoke "takeCollateralQuick"
+    // Sender is required to invoke "takeCollateralQuick".
     tx.setSender(sender);
     const coin = await tx.takeCollateralQuick(10 ** 7, 'sui');
     tx.transferObjects([coin], sender);
-    const takeCollateralQuickResult =
-      await scallopBuilder.signAndSendTxBlock(tx);
+    const takeCollateralQuickResult = await scallopBuilder.signAndSendTxBlock(
+      tx
+    );
     if (ENABLE_LOG) {
       console.info('TakeCollateralQuickResult:', takeCollateralQuickResult);
     }
@@ -59,7 +61,7 @@ describe('Test Scallop Core Builder', async () => {
 
   it('"depositQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
-    // Sender is required to invoke "depositQuick"
+    // Sender is required to invoke "depositQuick".
     tx.setSender(sender);
     const marketCoin = await tx.depositQuick(10 ** 8, 'sui');
     tx.transferObjects([marketCoin], sender);
@@ -72,7 +74,7 @@ describe('Test Scallop Core Builder', async () => {
 
   it('"withdrawQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
-    // Sender is required to invoke "withdrawQuick"
+    // Sender is required to invoke "withdrawQuick".
     tx.setSender(sender);
     const coin = await tx.withdrawQuick(10 ** 8, 'sui');
     tx.transferObjects([coin], sender);
@@ -85,10 +87,10 @@ describe('Test Scallop Core Builder', async () => {
 
   it('"borrowQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
-    // Sender is required to invoke "borrowQuick"
+    // Sender is required to invoke "borrowQuick".
     tx.setSender(sender);
     const borrowedCoin = await tx.borrowQuick(10 ** 8, 'sui');
-    // Transfer borrowed coin to sender
+    // Transfer borrowed coin to sender.
     tx.transferObjects([borrowedCoin], sender);
     const borrowQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
@@ -99,7 +101,7 @@ describe('Test Scallop Core Builder', async () => {
 
   it('"repayQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
-    // Sender is required to invoke "repayQuick"
+    // Sender is required to invoke "repayQuick".
     tx.setSender(sender);
     await tx.repayQuick(10 ** 8, 'sui');
     const repayQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
@@ -139,9 +141,9 @@ describe('Test Scallop Core Builder', async () => {
     expect(tx.txBlock).toBeInstanceOf(TransactionBlock);
     /**
      * For example, you can do the following:
-     * 1. split SUI from gas
-     * 2. depoit SUI to Scallop
-     * 3. transfer SUI Market Coin to sender
+     * 1. split SUI from gas.
+     * 2. depoit SUI to Scallop.
+     * 3. transfer SUI Market Coin to sender.
      */
     const suiTxBlock = tx.txBlock;
     const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [
@@ -162,8 +164,8 @@ describe('Test Scallop Spool Builder', async () => {
     secretKey: process.env.SECRET_KEY,
     networkType: NETWORK,
   });
-  const sender = scallopSDK.suiKit.currentAddress();
   const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const sender = scallopBuilder.walletAddress;
 
   console.info('Sender:', sender);
 
@@ -171,8 +173,9 @@ describe('Test Scallop Spool Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     const stakeAccount = tx.createStakeAccount('ssui');
     tx.transferObjects([stakeAccount], sender);
-    const createStakeAccountResult =
-      await scallopBuilder.signAndSendTxBlock(tx);
+    const createStakeAccountResult = await scallopBuilder.signAndSendTxBlock(
+      tx
+    );
     if (ENABLE_LOG) {
       console.info('CreateStakeAccountResult:', createStakeAccountResult);
     }
@@ -181,7 +184,7 @@ describe('Test Scallop Spool Builder', async () => {
 
   it('"stakeQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
-    // Sender is required to invoke "stakeQuick"
+    // Sender is required to invoke "stakeQuick".
     tx.setSender(sender);
     await tx.stakeQuick(10 ** 8, 'ssui');
     const stakeQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
@@ -193,7 +196,7 @@ describe('Test Scallop Spool Builder', async () => {
 
   it('"unstakeQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
-    // Sender is required to invoke "unstakeQuick"
+    // Sender is required to invoke "unstakeQuick".
     tx.setSender(sender);
     const marketCoin = await tx.unstakeQuick(10 ** 8, 'ssui');
     tx.transferObjects([marketCoin], sender);
@@ -206,7 +209,7 @@ describe('Test Scallop Spool Builder', async () => {
 
   it('"claimQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
-    // Sender is required to invoke "claimQuick"
+    // Sender is required to invoke "claimQuick".
     tx.setSender(sender);
     const rewardCoin = await tx.claimQuick('ssui');
     tx.transferObjects([rewardCoin], sender);
