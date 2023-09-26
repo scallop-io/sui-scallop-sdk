@@ -38,7 +38,7 @@ export const queryMarket = async (
   const collaterals: CollateralPoolInterface[] = [];
 
   for (const asset of marketData.pools) {
-    // parse origin data
+    // Parse origin data.
     const coinType = '0x' + asset.type.name;
     const borrowYearFactor = 24 * 365 * 3600;
     const baseBorrowRate = Number(asset.baseBorrowRatePerSec.value) / 2 ** 32;
@@ -61,7 +61,7 @@ export const queryMarket = async (
     const reserveFactor = Number(asset.reserveFactor.value) / 2 ** 32;
     const borrowWeight = Number(asset.borrowWeight.value) / 2 ** 32;
 
-    // calculated  data
+    // Calculated  data.
     const calculatedBaseBorrowRate =
       rateType === 'apr'
         ? (baseBorrowRate * borrowYearFactor) / borrowRateScale
@@ -88,7 +88,7 @@ export const queryMarket = async (
       .multipliedBy(BigNumber(timeDelta).multipliedBy(borrowRate))
       .dividedBy(borrowRateScale);
     const currentBorrowIndex = BigNumber(borrowIndex).plus(borrowIndexDelta);
-    // how much accumulated interest since `lastUpdate`
+    // How much accumulated interest since `lastUpdate`.
     const growthInterest = BigNumber(currentBorrowIndex)
       .dividedBy(borrowIndex)
       .minus(1);
@@ -110,7 +110,7 @@ export const queryMarket = async (
       .multipliedBy(1 - reserveFactor);
     supplyRate = supplyRate.isFinite() ? supplyRate : BigNumber(0);
 
-    // base data
+    // Base data.
     const coin = query.utils.parseCoinName(coinType) as SupportAssetCoins;
     const symbol = coin.toUpperCase() as Uppercase<SupportAssetCoins>;
     const marketCoinType = query.utils.parseMarketCoinType(
@@ -172,7 +172,7 @@ export const queryMarket = async (
   }
 
   for (const collateral of marketData.collaterals) {
-    // parse origin data
+    // Parse origin data.
     const coinType = '0x' + collateral.type.name;
     const collateralFactor =
       Number(collateral.collateralFactor.value) / 2 ** 32;
@@ -187,7 +187,7 @@ export const queryMarket = async (
     const maxCollateralAmount = Number(collateral.maxCollateralAmount);
     const totalCollateralAmount = Number(collateral.totalCollateralAmount);
 
-    // base data
+    // Base data.
     const coin = query.utils.parseCoinName(coinType) as SupportCollateralCoins;
     const symbol = coin.toUpperCase() as Uppercase<SupportCollateralCoins>;
     const wrappedType =

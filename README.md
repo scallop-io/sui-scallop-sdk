@@ -16,15 +16,19 @@
 
 ## Description
 
-This SDK is used to interact with [sui-lending-protocal](https://github.com/scallop-io/sui-lending-protocol) and is written based on another sui-integrated tool, [sui-kit](https://github.com/scallop-io/sui-kit). It consists of three main functional modules, namely **Scallop Client**, **Scallop Address**, and **Scallop txBuilder**. Here's a brief introduction to each of them:
+This SDK is used to interact with [sui-lending-protocal](https://github.com/scallop-io/sui-lending-protocol) and is written based on another sui-integrated tool, [sui-kit](https://github.com/scallop-io/sui-kit). It consists of six main functional models, here's a brief introduction to each of them:
 
-- **Client**: Helps users encapsulate basic operations for interacting with the contract. Once the instance is created, it can be called directly for use.
+- **Scallop**: Provide an entry to quickly create an instance (client, address, query, builder, utils) and complete initialization at the same time.
 
-- **Address**: Used to manage the addresses of the lending contract. It's prepackaged into the client and provides the addresses of mainly production environment for customers to query addresses, usually used in conjunction with the builder.
+- **ScallopClient**: Helps users encapsulate basic operations for interacting with the contract. Once the instance is created, it can be called directly for use.
 
-- **Builder**: Used for more detailed organization of the lending protocol's transaction blocks. You can build your own transaction combinations according to your needs by this model.
+- **ScallopAddress**: Used to manage the addresses of the lending contract. It's prepackaged into the client and provides the addresses of mainly production environment for customers to query addresses, usually used in conjunction with the builder.
 
-# How to use
+- **ScallopQuery**: Used to encapsulate all methods for querying on-chain data of the scallop contract. More useful information will be provided here in the future, such as lending, collateral, or borrowing portfolios.
+
+- **ScallopBuilder**: Used for more detailed organization of the lending protocol's transaction blocks. You can build your own transaction combinations according to your needs by this model.
+
+- **ScallopUtils**: Used to encapsulate some useful methods that will be used when interacting with the scallop contract.
 
 ## Pre-requisites
 
@@ -35,39 +39,52 @@ This SDK is used to interact with [sui-lending-protocal](https://github.com/scal
 - Create an instance:
 
   ```typescript
-
   // Create an instance quickly through the`Scallop` class to construct other models.
-  const sdk = new Scallop({
-      networkType: 'testnet',
+  const scallopSDK = new Scallop({
+      networkType: 'mainnet',
       ...
-  })
+  });
 
-  const client = sdk.createScallopClient(...);
-  const address = sdk.createAddress(...);
-  const txBuilder = await sdk.createTxBuilder(...);
+  const scallopAddress = await scallopSDK.getScallopAddress(...);
+  const scallopQuery = await scallopSDK.createScallopQuery(...);
+  const scallopBuilder = await scallopSDK.createScallopBuilder(...);
+  const scallopUtils = await scallopSDK.createScallopUtils(...);
+  const scallopClient = await scallopSDK.createScallopClient(...);
 
   // Or, you can choose to import the class directly to create an instance.
   import {
-    ScallopClient,
     ScallopAddress,
+    ScallopBuilder,
+    ScallopQuery,
+    ScallopUtils,
+    ScallopClient,
   } from '@scallop-io/sui-scallop-sdk'
 
-  const client = new ScallopClient(...);
-  const address = new ScallopAddress(...);
-
+  const scallopAddress = new ScallopAddress(...);
+  const ScallopQuery = new ScallopQuery(...);
+  const ScallopBuilder = new ScallopBuilder(...);
+  const ScallopUtils = new ScallopUtils(...);
+  const scallopClient = new ScallopClient(...);
+  // Remember to initialize the instance before using it
+  await scallopAddress.read();
+  await ScallopQuery.init();
+  await ScallopBuilder.init();
+  await ScallopUtils.init();
+  await scallopClient.init();
   ```
 
-## Use Client
+## Quick Guide for each model
 
-For the original codes, please refer to `test/index.spec.ts` file.
+Below we will give a brief introduction to these instances respectively, and introduce the functions through test codes.
+
+- [Use Scallop Client](./document/client.md)
+- [Use Scallop Query](./document/query.md)
+- [Use Scallop Address](./document/address.md)
+- [Use Scallop Builder](./document/builder.md)
+
+For the original codes, please refer to `test` folder.
 
 You need to set up the `.env` file before testing. (Reference `.env.example`)
-
-- Setup the network
-
-  ```typescript
-  const NETWORK: NetworkType = 'testnet';
-  ```
 
 - Run the test
 
@@ -75,202 +92,6 @@ You need to set up the `.env` file before testing. (Reference `.env.example`)
   pnpm run test:unit test/index.spec.ts
   ```
 
-- Get Market Query Data
-
-  ```typescript
-  it('Should get market query data', async () => {
-    const marketData = await client.queryMarket();
-    console.info('marketData:', marketData);
-    expect(!!marketData).toBe(true);
-  });
-  ```
-
-- Open Obligation Account
-
-  ```typescript
-  it('Should open a obligation account', async () => {
-    const openObligationResult = await client.openObligation();
-    console.info('openObligationResult:', openObligationResult);
-    expect(openObligationResult.effects.status.status).toEqual('success');
-  });
-  ```
-
-- Get Obligations and Query Data
-
-  ```typescript
-  it('Should get obligations and its query data', async () => {
-    const obligations = await client.getObligations();
-    console.info('obligations', obligations);
-    for (const { id } of obligations) {
-      const obligationData = await client.queryObligation(id);
-      console.info('id:', id);
-      console.info('obligationData:');
-      console.dir(obligationData, { depth: null, colors: true });
-      expect(!!obligationData).toBe(true);
-    }
-  });
-  ```
-
-- Get Test Coin
-
-  ```typescript
-  it('Should get test coin', async () => {
-    const mintTestCoinResult = await client.mintTestCoin('btc', 10 ** 11);
-    console.info('mintTestCoinResult:', mintTestCoinResult);
-    expect(mintTestCoinResult.effects.status.status).toEqual('success');
-  });
-  ```
-
-- Deposit Collateral
-
-  ```typescript
-  it('Should depoist collateral successfully', async () => {
-    const obligations = await client.getObligations();
-    const depositCollateralResult = await client.depositCollateral(
-      'btc',
-      10 ** 11,
-      true,
-      obligations[0]?.id
-    );
-    console.info('depositCollateralResult:', depositCollateralResult);
-    expect(depositCollateralResult.effects.status.status).toEqual('success');
-  });
-  ```
-
-- Withdraw Collateral
-
-  ```typescript
-  it('Should withdraw collateral successfully', async () => {
-    const obligations = await client.getObligations();
-    if (obligations.length === 0) throw Error('Obligation is required.');
-    const withdrawCollateralResult = await client.withdrawCollateral(
-      'eth',
-      10 ** 10,
-      true,
-      obligations[0].id,
-      obligations[0].keyId
-    );
-    console.info('withdrawCollateralResult:', withdrawCollateralResult);
-    expect(withdrawCollateralResult.effects.status.status).toEqual('success');
-  });
-  ```
-
-- Deposit Asset
-
-  ```typescript
-  it('Should depoist asset successfully', async () => {
-    const depositResult = await client.deposit('usdc', 10 ** 10, true);
-    console.info('depositResult:', depositResult);
-    expect(depositResult.effects.status.status).toEqual('success');
-  });
-  ```
-
-- Withdraw Asset
-
-  ```typescript
-  it('Should withdraw asset successfully', async () => {
-    const withdrawResult = await client.withdraw('usdc', 5 * 10 ** 8, true);
-    console.info('withdrawResult:', withdrawResult);
-    expect(withdrawResult.effects.status.status).toEqual('success');
-  });
-  ```
-
-- Borrow Asset
-
-  ```typescript
-  it('Should borrow asset successfully', async () => {
-    const obligations = await client.getObligations();
-    if (obligations.length === 0) throw Error('Obligation is required.');
-    const borrowResult = await client.borrow(
-      'usdc',
-      10 ** 9,
-      true,
-      obligations[0].id,
-      obligations[0].keyId
-    );
-    console.info('borrowResult:', borrowResult);
-    expect(borrowResult.effects.status.status).toEqual('success');
-  });
-  ```
-
-- Repay Asset
-
-  ```typescript
-  it('Should repay asset successfully', async () => {
-    const obligations = await client.getObligations();
-    if (obligations.length === 0) throw Error('Obligation is required.');
-    const repayResult = await client.repay(
-      'usdc',
-      10 ** 8,
-      true,
-      obligations[0].id
-    );
-    console.info('repayResult:', repayResult);
-    expect(repayResult.effects.status.status).toEqual('success');
-  });
-  ```
-
-- Flash Loan
-  ```typescript
-  it('Should flash loan successfully', async () => {
-    const flashLoanResult = await client.flashLoan(
-      'usdc',
-      10 ** 9,
-      (txBlock, coin) => {
-        return coin;
-      },
-      true
-    );
-    console.info('flashLoanResult:', flashLoanResult);
-    expect(flashLoanResult.effects.status.status).toEqual('success');
-  });
-  ```
-
-## Use Scallop Transaction Builder
-
-[Use Scallop Transaction Builder](./txBuilder.md)
-
-## Use address manager
-
-General Users will basically only use the `get`, `getAddresses`, or `getAllAddresses` methods to read addresses. Here are some simple examples:
-
-```typescript
-const address = new ScallopAddress({
-  id: TEST_ADDRESSES_ID,
-  network: NETWORK,
-});
-
-// Fetch addresses data from scallop sui API.
-await addressBuilder.read();
-// Get the address in the nested address structure through the dot symbol.
-const address = addressBuilder.get('core.coins.usdc.id');
-// Get specific network addresses of lending protocol.
-const addresses = addressBuilder.getAddresses();
-// Get all network addresses of lending protocol.
-const allAddresses = addressBuilder.getAllAddresses();
-```
-
-Scallop currently maintains this address `6462a088a7ace142bb6d7e9b` for use in the production environment.
-
-Of course, you can also directly use the [sui-scallop-api](https://github.com/scallop-io/sui-scallop-api) project to directly request addresses.
-
-The rest of the features are for Scallop administrators to use, and require a set of API authentication keys to use the create, update, and delete address functions.
-
-```typescript
-  const address = new ScallopAddress({
-    id: TEST_ADDRESSES_ID,
-    auth: process.env.API_KEY,
-    network: NETWORK,
-  });
-
-  // create addresses.
-  const addresses = await addressBuilder.create(...);
-  // Update addresses by id.
-  const allAddresses = await addressBuilder.update(id, ...);
-  // delete addresses by id.
-  const allAddresses = await addressBuilder.delete(id, ...);
-```
-
-# License
+## License
 
 [APACHE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
