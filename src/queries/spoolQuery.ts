@@ -17,8 +17,8 @@ import type {
  * Get all stake accounts of the owner.
  *
  * @param query - The Scallop query instance.
- * @param ownerAddress - Owner address
- * @returns Stake accounts
+ * @param ownerAddress - Owner address.
+ * @returns Stake accounts.
  */
 export const getStakeAccounts = async (
   query: ScallopQuery,
@@ -39,6 +39,7 @@ export const getStakeAccounts = async (
   const stakeAccounts: Record<SupportStakeMarketCoins, StakeAccount[]> = {
     ssui: [],
     susdc: [],
+    susdt: [],
   };
 
   const stakeCointTypes: Record<SupportStakeMarketCoins, string> = Object.keys(
@@ -74,6 +75,8 @@ export const getStakeAccounts = async (
       stakeAccounts.ssui.push({ id, type, spoolId, staked, index, points });
     } else if (normalizeStructTag(type) === stakeCointTypes.susdc) {
       stakeAccounts.susdc.push({ id, type, spoolId, staked, index, points });
+    } else if (normalizeStructTag(type) === stakeCointTypes.susdt) {
+      stakeAccounts.susdt.push({ id, type, spoolId, staked, index, points });
     }
   }
   return stakeAccounts;
@@ -83,8 +86,8 @@ export const getStakeAccounts = async (
  * Get stake account of the owner.
  *
  * @param query - The Scallop query instance.
- * @param marketCoinName - Support stake market coins
- * @return Stake account
+ * @param marketCoinName - Support stake market coins.
+ * @return Stake account.
  */
 export const getStakePool = async (
   query: ScallopQuery,
@@ -128,8 +131,8 @@ export const getStakePool = async (
 /**
  * Get reward pool of the owner.
  * @param query - The Scallop query instance.
- * @param marketCoinName - Support stake market coins
- * @return Reward pool
+ * @param marketCoinName - Support stake market coins.
+ * @return Reward pool.
  */
 export const getRewardPool = async (
   query: ScallopQuery,

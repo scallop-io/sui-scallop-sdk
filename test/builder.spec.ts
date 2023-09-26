@@ -35,9 +35,8 @@ describe('Test Scallop Core Builder', async () => {
     // Sender is required to invoke "addCollateralQuick"
     tx.setSender(sender);
     await tx.addCollateralQuick(10 ** 7, 'sui');
-    const addCollateralQuickResult = await scallopBuilder.signAndSendTxBlock(
-      tx
-    );
+    const addCollateralQuickResult =
+      await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
       console.info('AddCollateralQuickResult:', addCollateralQuickResult);
     }
@@ -50,9 +49,8 @@ describe('Test Scallop Core Builder', async () => {
     tx.setSender(sender);
     const coin = await tx.takeCollateralQuick(10 ** 7, 'sui');
     tx.transferObjects([coin], sender);
-    const takeCollateralQuickResult = await scallopBuilder.signAndSendTxBlock(
-      tx
-    );
+    const takeCollateralQuickResult =
+      await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
       console.info('TakeCollateralQuickResult:', takeCollateralQuickResult);
     }
@@ -173,9 +171,8 @@ describe('Test Scallop Spool Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     const stakeAccount = tx.createStakeAccount('ssui');
     tx.transferObjects([stakeAccount], sender);
-    const createStakeAccountResult = await scallopBuilder.signAndSendTxBlock(
-      tx
-    );
+    const createStakeAccountResult =
+      await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
       console.info('CreateStakeAccountResult:', createStakeAccountResult);
     }
