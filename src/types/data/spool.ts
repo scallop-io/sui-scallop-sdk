@@ -11,24 +11,27 @@ export type RewardType = {
 export interface StakeAccount {
   id: string;
   type: string;
-  spoolId: string;
+  stakePoolId: string;
+  stakeType: string;
   staked: number;
   index: number;
   points: number;
+  totalPoints: number;
 }
 
 export interface StakePool {
   id: string;
   type: string;
-  lastUpdate: number;
-  index: number;
-  totalStaked: number;
-  maxStake: number;
-  distributedPoint: number;
   maxPoint: number;
+  distributedPoint: number;
   pointPerPeriod: number;
   period: number;
+  maxStake: number;
+  stakeType: string;
+  totalStaked: number;
+  index: number;
   createdAt: number;
+  lastUpdate: number;
 }
 
 export interface RewardPool {

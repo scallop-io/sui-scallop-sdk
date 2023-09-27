@@ -1,14 +1,12 @@
-import { normalizeSuiAddress } from '@mysten/sui.js';
+import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopBuilder } from './scallopBuilder';
 import { ScallopQuery } from './scallopQuery';
 import { ADDRESSES_ID } from '../constants';
-import type {
-  TransactionArgument,
-  SuiTransactionBlockResponse,
-} from '@mysten/sui.js';
+import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
+import type { TransactionArgument } from '@mysten/sui.js/transactions';
 import type { SuiTxArg } from '@scallop-io/sui-kit';
 import type {
   ScallopClientFnReturnType,
@@ -294,11 +292,22 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block
    */
+  public async unstake(
+    marketCoinName: SupportStakeMarketCoins,
+    amount: number
+  ): Promise<SuiTransactionBlockResponse>;
+  public async unstake<S extends boolean>(
+    marketCoinName: SupportStakeMarketCoins,
+    amount: number,
+    sign?: S,
+    stakeAccountId?: SuiTxArg,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>>;
   public async unstake<S extends boolean>(
     marketCoinName: SupportStakeMarketCoins,
     amount: number,
     sign: S = true as S,
-    accountId?: string,
+    stakeAccountId?: SuiTxArg,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
@@ -308,7 +317,7 @@ export class ScallopClient {
     const marketCoin = await txBlock.unstakeQuick(
       amount,
       marketCoinName,
-      accountId
+      stakeAccountId
     );
     txBlock.transferObjects([marketCoin], sender);
 
@@ -331,17 +340,26 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block
    */
+  public async claim(
+    marketCoinName: SupportStakeMarketCoins
+  ): Promise<SuiTransactionBlockResponse>;
+  public async claim<S extends boolean>(
+    marketCoinName: SupportStakeMarketCoins,
+    sign?: S,
+    stakeAccountId?: SuiTxArg,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>>;
   public async claim<S extends boolean>(
     marketCoinName: SupportStakeMarketCoins,
     sign: S = true as S,
-    accountId?: string,
+    stakeAccountId?: SuiTxArg,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const rewardCoin = await txBlock.claimQuick(marketCoinName, accountId);
+    const rewardCoin = await txBlock.claimQuick(marketCoinName, stakeAccountId);
     txBlock.transferObjects([rewardCoin], sender);
 
     if (sign) {
@@ -649,7 +667,8 @@ export class ScallopClient {
       txBlock: ScallopTxBlock,
       coin: TransactionArgument
     ) => TransactionArgument,
-    sign?: S
+    sign?: S,
+    walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async flashLoan<S extends boolean>(
     coinName: SupportAssetCoins,
@@ -658,9 +677,12 @@ export class ScallopClient {
       txBlock: ScallopTxBlock,
       coin: TransactionArgument
     ) => TransactionArgument,
-    sign: S = true as S
+    sign: S = true as S,
+    walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
+    const sender = walletAddress || this.walletAddress;
+    txBlock.setSender(sender);
     const [coin, loan] = txBlock.borrowFlashLoan(amount, coinName);
     txBlock.repayFlashLoan(await callback(txBlock, coin), loan, coinName);
 

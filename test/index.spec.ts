@@ -90,7 +90,7 @@ describe('Test Scallop Client - Spool Method', async () => {
     if (ENABLE_LOG) {
       console.info('CreateStakeAccountResult:', createStakeAccountResult);
     }
-    expect(createStakeAccountResult.effects.status.status).toEqual('success');
+    expect(createStakeAccountResult.effects?.status.status).toEqual('success');
   });
 
   it('Should stake success', async () => {
@@ -98,7 +98,7 @@ describe('Test Scallop Client - Spool Method', async () => {
     if (ENABLE_LOG) {
       console.info('StakeResult:', stakeResult);
     }
-    expect(stakeResult.effects.status.status).toEqual('success');
+    expect(stakeResult.effects?.status.status).toEqual('success');
   });
 
   it('Should unstake success', async () => {
@@ -106,7 +106,7 @@ describe('Test Scallop Client - Spool Method', async () => {
     if (ENABLE_LOG) {
       console.info('UnstakeResult:', unstakeResult);
     }
-    expect(unstakeResult.effects.status.status).toEqual('success');
+    expect(unstakeResult.effects?.status.status).toEqual('success');
   });
 
   it('Should claim success', async () => {
@@ -114,7 +114,7 @@ describe('Test Scallop Client - Spool Method', async () => {
     if (ENABLE_LOG) {
       console.info('ClaimResult:', claimResult);
     }
-    expect(claimResult.effects.status.status).toEqual('success');
+    expect(claimResult.effects?.status.status).toEqual('success');
   });
 });
 
@@ -212,7 +212,7 @@ describe('Test Scallop Client - Core Method', async () => {
     const flashLoanResult = await client.flashLoan(
       'sui',
       10 ** 8,
-      async (_txBlock, coin) => {
+      (_txBlock, coin) => {
         return coin;
       }
     );

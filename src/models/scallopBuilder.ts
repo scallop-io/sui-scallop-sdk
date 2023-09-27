@@ -1,14 +1,12 @@
-import { normalizeSuiAddress } from '@mysten/sui.js';
+import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
 import { ADDRESSES_ID } from '../constants';
 import { newScallopTxBlock } from '../builders';
-import type {
-  TransactionBlock,
-  SuiTransactionBlockResponse,
-} from '@mysten/sui.js';
+import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
+import type { TransactionBlock } from '@mysten/sui.js/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type {
   ScallopInstanceParams,

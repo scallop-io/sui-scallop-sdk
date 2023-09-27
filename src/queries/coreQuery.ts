@@ -1,6 +1,7 @@
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import BigNumber from 'bignumber.js';
 import { PROTOCOL_OBJECT_ID } from '../constants';
+import type { SuiObjectResponse } from '@mysten/sui.js/client';
 import type { ScallopQuery } from '../models';
 import {
   MarketInterface,
@@ -10,6 +11,7 @@ import {
   SupportCollateralCoins,
   SupportAssetCoins,
   ObligationInterface,
+  Obligation,
 } from '../types';
 
 /**
@@ -239,22 +241,41 @@ export const getObligations = async (
   ownerAddress?: string
 ) => {
   const owner = ownerAddress || query.suiKit.currentAddress();
-  const keyObjectRefs = await query.suiKit.provider().getOwnedObjects({
-    owner,
-    filter: {
-      StructType: `${PROTOCOL_OBJECT_ID}::obligation::ObligationKey`,
-    },
-  });
-  const keyIds = keyObjectRefs.data
+  const keyObjectsResponse: SuiObjectResponse[] = [];
+  let hasNextPage = false;
+  let nextCursor: string | null = null;
+  do {
+    const paginatedKeyObjectsResponse = await query.suiKit
+      .client()
+      .getOwnedObjects({
+        owner,
+        filter: {
+          StructType: `${PROTOCOL_OBJECT_ID}::obligation::ObligationKey`,
+        },
+        cursor: nextCursor,
+      });
+    keyObjectsResponse.push(...paginatedKeyObjectsResponse.data);
+    if (
+      paginatedKeyObjectsResponse.hasNextPage &&
+      paginatedKeyObjectsResponse.nextCursor
+    ) {
+      hasNextPage = true;
+      nextCursor = paginatedKeyObjectsResponse.nextCursor;
+    }
+  } while (hasNextPage);
+
+  const keyObjectIds: string[] = keyObjectsResponse
     .map((ref: any) => ref?.data?.objectId)
-    .filter((id: any) => id !== undefined) as string[];
-  const keyObjects = await query.suiKit.getObjects(keyIds);
-  const obligations: { id: string; keyId: string }[] = [];
+    .filter((id: any) => id !== undefined);
+  const keyObjects = await query.suiKit.getObjects(keyObjectIds);
+  const obligations: Obligation[] = [];
   for (const keyObject of keyObjects) {
     const keyId = keyObject.objectId;
-    const fields = keyObject.objectFields as any;
-    const obligationId = fields['ownership']['fields']['of'];
-    obligations.push({ id: obligationId, keyId });
+    if (keyObject.content && 'fields' in keyObject.content) {
+      const fields = keyObject.content.fields as any;
+      const obligationId = String(fields.ownership.fields.of);
+      obligations.push({ id: obligationId, keyId });
+    }
   }
   return obligations;
 };
