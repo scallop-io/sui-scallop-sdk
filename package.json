@@ -1,11 +1,11 @@
 {
   "name": "@scallop-io/sui-scallop-sdk",
   "version": "0.37.12",
-  "description": "Tookit for interacting with Scallop on SUI",
+  "description": "Typescript sdk for interacting with Scallop contract on SUI",
   "keywords": [
     "sui",
     "scallop labs",
-    "move",
+    "typescript",
     "blockchain"
   ],
   "author": "team@scallop.io",
@@ -52,39 +52,44 @@
     "lint:fix": "eslint . --ignore-pattern dist --ext .ts --fix",
     "prepare": "husky install",
     "commit": "commit",
+    "release": "standard-version -f",
+    "release:major": "standard-version -r major",
+    "release:minor": "standard-version -r minor",
+    "release:patch": "standard-version -r patch",
     "doc": "typedoc --out docs src/index.ts"
   },
   "dependencies": {
-    "@mysten/bcs": "^0.7.3",
-    "@mysten/sui.js": "^0.37.1",
+    "@mysten/sui.js": "^0.42.0",
     "@pythnetwork/price-service-client": "^1.8.0",
-    "@pythnetwork/pyth-sui-js": "^1.2.0",
-    "@scallop-io/sui-kit": "^0.38.2",
-    "axios": "^1.4.0",
-    "bignumber.js": "^9.1.1"
+    "@pythnetwork/pyth-sui-js": "^1.2.1",
+    "@scallop-io/sui-kit": "^0.42.0",
+    "axios": "^1.5.1",
+    "bignumber.js": "^9.1.2"
   },
   "devDependencies": {
-    "@commitlint/cli": "^17.6.7",
-    "@commitlint/config-conventional": "^17.6.7",
-    "@commitlint/prompt-cli": "^17.6.7",
-    "@types/node": "^20.4.5",
-    "@typescript-eslint/eslint-plugin": "^6.2.1",
-    "@typescript-eslint/parser": "^6.2.1",
+    "@commitlint/cli": "^17.7.1",
+    "@commitlint/config-conventional": "^17.7.0",
+    "@commitlint/prompt-cli": "^17.7.1",
+    "@types/node": "^20.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.3",
+    "@typescript-eslint/parser": "^6.7.3",
     "dotenv": "^16.3.1",
-    "eslint": "^8.46.0",
-    "eslint-config-prettier": "^8.9.0",
+    "eslint": "^8.50.0",
+    "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
     "husky": "^8.0.3",
-    "lint-staged": "^13.2.3",
-    "prettier": "^3.0.0",
+    "lint-staged": "^14.0.1",
+    "prettier": "^3.0.3",
+    "standard-version": "^9.5.0",
     "tsconfig-paths": "^4.2.0",
-    "tsup": "^7.1.0",
-    "typedoc": "^0.24.8",
-    "typescript": "^5.1.6",
-    "vitest": "^0.33.0"
+    "tsup": "^7.2.0",
+    "typedoc": "^0.25.1",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.5"
   },
   "peerDependencies": {
-    "@mysten/sui.js": "^0.37.1"
+    "@mysten/sui.js": "^0.42.0",
+    "@scallop-io/sui-kit": "^0.41.0"
   },
   "lint-staged": {
     "**/*.ts": [

@@ -25,6 +25,7 @@ export const SUPPORT_COLLATERAL_COINS = [
   'sol',
   'cetus',
 ] as const;
+export const SUPPORT_STACK_MARKET_COINS = ['ssui', 'susdc', 'susdt'] as const;
 
 export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
 
@@ -34,6 +35,7 @@ export const SUPPORT_PACKAGES = [
   'whitelist',
   'x',
   'protocol',
+  'protocolWhitelist',
   'query',
   'supra',
   'pyth',

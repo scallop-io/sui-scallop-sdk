@@ -7,15 +7,178 @@ import type {
   AddressStringPath,
 } from '../types';
 
+const EMPTY_ADDRESSES: AddressesInterface = {
+  core: {
+    version: '',
+    versionCap: '',
+    market: '',
+    adminCap: '',
+    coinDecimalsRegistry: '',
+    coins: {
+      btc: {
+        id: '',
+        metaData: '',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '',
+            feedObject: '',
+          },
+        },
+      },
+      eth: {
+        id: '',
+        metaData: '',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '',
+            feedObject: '',
+          },
+        },
+      },
+      usdc: {
+        id: '',
+        metaData: '',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '',
+            feedObject: '',
+          },
+        },
+      },
+      usdt: {
+        id: '',
+        metaData: '',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '',
+            feedObject: '',
+          },
+        },
+      },
+      sui: {
+        id: '',
+        metaData: '',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '',
+            feedObject: '',
+          },
+        },
+      },
+    },
+    oracles: {
+      xOracle: '',
+      xOracleCap: '',
+      supra: {
+        registry: '',
+        registryCap: '',
+        holder: '',
+      },
+      switchboard: {
+        registry: '',
+        registryCap: '',
+      },
+      pyth: {
+        registry: '',
+        registryCap: '',
+        state: '',
+        wormhole: '',
+        wormholeState: '',
+      },
+    },
+    packages: {
+      coinDecimalsRegistry: {
+        id: '',
+        upgradeCap: '',
+      },
+      math: {
+        id: '',
+        upgradeCap: '',
+      },
+      whitelist: {
+        id: '',
+        upgradeCap: '',
+      },
+      x: {
+        id: '',
+        upgradeCap: '',
+      },
+      protocol: {
+        id: '',
+        upgradeCap: '',
+      },
+      query: {
+        id: '',
+        upgradeCap: '',
+      },
+      pyth: {
+        id: '',
+        upgradeCap: '',
+      },
+      switchboard: {
+        id: '',
+        upgradeCap: '',
+      },
+      xOracle: {
+        id: '',
+        upgradeCap: '',
+      },
+      // Deploy for faucet on testnet.
+      testCoin: {
+        id: '',
+        upgradeCap: '',
+      },
+    },
+  },
+  spool: {
+    id: '',
+    adminCap: '',
+    pools: {
+      ssui: {
+        id: '',
+        rewardPoolId: '',
+      },
+      susdc: {
+        id: '',
+        rewardPoolId: '',
+      },
+    },
+  },
+};
+
 /**
+ * @description
  * it provides methods for managing addresses.
+ *
+ * @example
+ * ```typescript
+ * const scallopAddress = new ScallopAddress(<parameters>);
+ * scallopAddress.<address functions>();
+ * await scallopAddress.<address async functions>();
+ * ```
  */
 export class ScallopAddress {
-  private _apiClient: AxiosInstance;
-  private _id?: string;
   private readonly _auth?: string;
-  private readonly _network: NetworkType;
-  private _addresses?: AddressesInterface;
+
+  private _requestClient: AxiosInstance;
+  private _id?: string;
+  private _network: NetworkType;
+  private _currentAddresses?: AddressesInterface;
   private _addressesMap: Map<NetworkType, AddressesInterface>;
 
   public constructor(params: ScallopAddressParams) {
@@ -25,7 +188,7 @@ export class ScallopAddress {
     this._id = id;
     this._network = network || 'mainnet';
     this._addressesMap = new Map();
-    this._apiClient = axios.create({
+    this._requestClient = axios.create({
       baseURL: API_BASE_URL,
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +204,7 @@ export class ScallopAddress {
    * @returns The addresses API id.
    */
   public getId() {
-    return this._id;
+    return this._id || undefined;
   }
 
   /**
@@ -51,7 +214,7 @@ export class ScallopAddress {
    * @returns The address at the provided path.
    */
   public get(path: AddressStringPath) {
-    if (this._addresses) {
+    if (this._currentAddresses) {
       const value = path
         .split('.')
         .reduce(
@@ -59,7 +222,7 @@ export class ScallopAddress {
             typeof nestedAddressObj === 'object'
               ? nestedAddressObj[key]
               : nestedAddressObj,
-          this._addresses
+          this._currentAddresses
         );
       return value || undefined;
     } else {
@@ -68,14 +231,14 @@ export class ScallopAddress {
   }
 
   /**
-   * Set the address at the provided path.
+   * Sets the address for the specified path, it does not interact with the API.
    *
    * @param path - The path of the address to set.
    * @param address - The address be setted to the tartget path.
    * @returns The addresses.
    */
   public set(path: AddressStringPath, address: string) {
-    if (this._addresses) {
+    if (this._currentAddresses) {
       const keys = path.split('.');
       keys.reduce((nestedAddressObj: any, key: string, index) => {
         if (index === keys.length - 1) {
@@ -83,181 +246,52 @@ export class ScallopAddress {
         } else {
           return nestedAddressObj[key];
         }
-      }, this._addresses);
+      }, this._currentAddresses);
     }
-    return this._addresses;
+    return this._currentAddresses;
   }
 
   /**
-   * Get the addresses.
+   * Synchronize the specified network addresses from the addresses map to the
+   * current addresses and change the default network to specified network.
    *
    * @param network - Specifies which network's addresses you want to get.
-   * @returns The addresses.
+   * @return Current addresses
+   */
+  public switchCurrentAddresses(network: NetworkType) {
+    if (this._addressesMap.has(network)) {
+      this._currentAddresses = this._addressesMap.get(network);
+      this._network = network;
+    }
+    return this._currentAddresses;
+  }
+
+  /**
+   * Get the addresses, If `network` is not provided, returns the current
+   * addresses or the default network addresses in the addresses map.
+   *
+   * @param network - Specifies which network's addresses you want to get.
    */
   public getAddresses(network?: NetworkType) {
     if (network) {
       return this._addressesMap.get(network);
     } else {
-      return this._addresses;
+      return this._currentAddresses ?? this._addressesMap.get(this._network);
     }
   }
 
   /**
-   * Set the addresses into addresses map.
+   * Set the addresses into addresses map. If the specified network is the same
+   * as the current network, the current addresses will be updated at the same time.
    *
-   * @param network - Specifies which network's addresses you want to set.
    * @param addresses - The addresses be setted to the tartget network.
+   * @param network - Specifies which network's addresses you want to set.
    * @returns The addresses.
    */
-  public setAddresses(network?: NetworkType, addresses?: AddressesInterface) {
+  public setAddresses(addresses: AddressesInterface, network?: NetworkType) {
     const targetNetwork = network || this._network;
-    const targetAddresses = addresses || this._addresses || undefined;
-    if (targetAddresses) {
-      this._addressesMap.set(targetNetwork, targetAddresses);
-    } else {
-      // TODO: change to new format version
-      this._addressesMap.set(targetNetwork, {
-        core: {
-          version: '',
-          versionCap: '',
-          market: '',
-          adminCap: '',
-          coinDecimalsRegistry: '',
-          coins: {
-            btc: {
-              id: '',
-              metaData: '',
-              treasury: '',
-              oracle: {
-                supra: '',
-                switchboard: '',
-                pyth: {
-                  feed: '',
-                  feedObject: '',
-                },
-              },
-            },
-            eth: {
-              id: '',
-              metaData: '',
-              treasury: '',
-              oracle: {
-                supra: '',
-                switchboard: '',
-                pyth: {
-                  feed: '',
-                  feedObject: '',
-                },
-              },
-            },
-            usdc: {
-              id: '',
-              metaData: '',
-              treasury: '',
-              oracle: {
-                supra: '',
-                switchboard: '',
-                pyth: {
-                  feed: '',
-                  feedObject: '',
-                },
-              },
-            },
-            usdt: {
-              id: '',
-              metaData: '',
-              treasury: '',
-              oracle: {
-                supra: '',
-                switchboard: '',
-                pyth: {
-                  feed: '',
-                  feedObject: '',
-                },
-              },
-            },
-            sui: {
-              id: '',
-              metaData: '',
-              treasury: '',
-              oracle: {
-                supra: '',
-                switchboard: '',
-                pyth: {
-                  feed: '',
-                  feedObject: '',
-                },
-              },
-            },
-          },
-          oracles: {
-            xOracle: '',
-            xOracleCap: '',
-            supra: {
-              registry: '',
-              registryCap: '',
-              holder: '',
-            },
-            switchboard: {
-              registry: '',
-              registryCap: '',
-            },
-            pyth: {
-              registry: '',
-              registryCap: '',
-              state: '',
-              wormhole: '',
-              wormholeState: '',
-            },
-          },
-          packages: {
-            coinDecimalsRegistry: {
-              id: '',
-              upgradeCap: '',
-            },
-            math: {
-              id: '',
-              upgradeCap: '',
-            },
-            whitelist: {
-              id: '',
-              upgradeCap: '',
-            },
-            x: {
-              id: '',
-              upgradeCap: '',
-            },
-            protocol: {
-              id: '',
-              upgradeCap: '',
-            },
-            query: {
-              id: '',
-              upgradeCap: '',
-            },
-            // Deploy by pyth on testnet
-            pyth: {
-              id: '',
-              upgradeCap: '',
-            },
-            // Deploy by ourself on testnet
-            switchboard: {
-              id: '',
-              upgradeCap: '',
-            },
-            xOracle: {
-              id: '',
-              upgradeCap: '',
-            },
-            // Deploy for faucet on testnet
-            testCoin: {
-              id: '',
-              upgradeCap: '',
-            },
-          },
-        },
-      });
-    }
+    if (targetNetwork === this._network) this._currentAddresses = addresses;
+    this._addressesMap.set(targetNetwork, addresses);
   }
 
   /**
@@ -270,34 +304,45 @@ export class ScallopAddress {
   }
 
   /**
-   * Create a new address through the API and synchronize it back to the
-   * instance. If the `network` is not specified, the mainnet is used by default.
-   * If no `addresses` is provided, an addresses with all empty strings is created
-   * by default.
+   * Create a new addresses through the API and synchronize it back to the
+   * instance.
+   *
+   * @description
+   * If the `network` is not specified, the mainnet is used by default.
+   * If no `addresses` from instance or parameter is provided, an addresses with
+   * all empty strings is created by default.
    *
    * This function only allows for one addresses to be input into a specific network
    * at a time, and does not provide an addresses map for setting addresses
    * across all networks at once.
    *
-   * @param network - Specifies which network's addresses you want to set.
-   * @param addresses - The addresses be setted to the tartget network.
-   * @param auth - The authentication API key.
-   * @returns The addresses.
+   * @param params.addresses - The addresses be setted to the tartget network.
+   * @param params.network - Specifies which network's addresses you want to set.
+   * @param params.auth - The authentication API key.
+   * @param params.memo - Add memo to the addresses created in the API.
+   * @returns All addresses.
    */
-  public async create(
-    network?: NetworkType,
-    addresses?: AddressesInterface,
-    auth?: string
-  ) {
+  public async create(params?: {
+    addresses?: AddressesInterface | undefined;
+    network?: NetworkType | undefined;
+    auth?: string | undefined;
+    memo?: string | undefined;
+  }) {
+    const { addresses, network, auth, memo } = params ?? {};
     const apiKey = auth || this._auth || undefined;
     const targetNetwork = network || this._network;
-    const targetAddresses = addresses || this._addresses || undefined;
+    const targetAddresses =
+      addresses ||
+      this._currentAddresses ||
+      this._addressesMap.get(targetNetwork) ||
+      EMPTY_ADDRESSES;
+
     if (apiKey !== undefined) {
       this._addressesMap.clear();
-      this.setAddresses(targetNetwork, targetAddresses);
-      const response = await this._apiClient.post(
+      this.setAddresses(targetAddresses, targetNetwork);
+      const response = await this._requestClient.post(
         `${API_BASE_URL}/addresses`,
-        JSON.stringify(Object.fromEntries(this._addressesMap)),
+        JSON.stringify({ ...Object.fromEntries(this._addressesMap), memo }),
         {
           headers: {
             'Content-Type': 'application/json',
@@ -311,12 +356,12 @@ export class ScallopAddress {
           response.data
         )) {
           if (['localnet', 'devnet', 'testnet', 'mainnet'].includes(network)) {
-            if (network === this._network) this._addresses = addresses;
+            if (network === this._network) this._currentAddresses = addresses;
             this._addressesMap.set(network as NetworkType, addresses);
           }
         }
         this._id = response.data.id;
-        return this._addresses;
+        return this.getAllAddresses();
       } else {
         throw Error('Failed to create addresses.');
       }
@@ -326,17 +371,16 @@ export class ScallopAddress {
   }
 
   /**
-   * It doesn't read the data stored in the address instance, but reads and
-   * synchronizes the data from the API into instance.
+   * Read and synchronizes all addresses from the API into instance.
    *
    * @param id - The id of the addresses to get.
-   * @returns The addresses.
+   * @returns All addresses.
    */
   public async read(id?: string) {
     const addressesId = id || this._id || undefined;
 
     if (addressesId !== undefined) {
-      const response = await this._apiClient.get(
+      const response = await this._requestClient.get(
         `${API_BASE_URL}/addresses/${addressesId}`,
         {
           headers: {
@@ -350,53 +394,67 @@ export class ScallopAddress {
           response.data
         )) {
           if (['localnet', 'devnet', 'testnet', 'mainnet'].includes(network)) {
-            if (network === this._network) this._addresses = addresses;
+            if (network === this._network) this._currentAddresses = addresses;
             this._addressesMap.set(network as NetworkType, addresses);
           }
         }
         this._id = response.data.id;
-        return this._addresses;
+        return this.getAllAddresses();
       } else {
         throw Error('Failed to create addresses.');
       }
+    } else {
+      throw Error('Please provide API addresses id.');
     }
   }
 
   /**
-   * Update the address through the API and synchronize it back to the
-   * instance. If the `network` is not specified, the mainnet is used by default.
-   * If no `addresses` is provided, an addresses with all empty strings is created
-   * by default.
+   * Update the addresses through the API and synchronize it back to the
+   * instance.
+   *
+   * @description
+   * If the `network` is not specified, the mainnet is used by default.
+   * If no `addresses` from instance or parameter is provided, an addresses with
+   * all empty strings is created by default.
    *
    * This function only allows for one addresses to be input into a specific network
    * at a time, and does not provide an addresses map for setting addresses
    * across all networks at once.
    *
-   * @param id - The id of the addresses to update.
-   * @param network - Specifies which network's addresses you want to set.
-   * @param addresses - The addresses be setted to the tartget network.
-   * @param auth - The authentication api key.
-   * @returns The addresses.
+   * @param params.id - The id of the addresses to update.
+   * @param params.addresses - The addresses be setted to the tartget network.
+   * @param params.network - Specifies which network's addresses you want to set.
+   * @param params.auth - The authentication api key.
+   * @param params.memo - Add memo to the addresses created in the API.
+   * @returns All addresses.
    */
-  public async update(
-    id?: string,
-    network?: NetworkType,
-    addresses?: AddressesInterface,
-    auth?: string
-  ) {
+  public async update(params?: {
+    id?: string;
+    addresses?: AddressesInterface | undefined;
+    network?: NetworkType | undefined;
+    auth?: string | undefined;
+    memo?: string | undefined;
+  }) {
+    const { id, addresses, network, auth, memo } = params ?? {};
     const apiKey = auth || this._auth || undefined;
     const targetId = id || this._id || undefined;
     const targetNetwork = network || this._network;
-    const targetAddresses = addresses || this._addresses || undefined;
-    if (targetId === undefined) throw Error('Require addresses id.');
+    const targetAddresses =
+      addresses ||
+      this._currentAddresses ||
+      this._addressesMap.get(targetNetwork) ||
+      EMPTY_ADDRESSES;
+
+    if (targetId === undefined)
+      throw Error('Require specific addresses id to be updated.');
     if (apiKey !== undefined) {
       if (id !== this._id) {
         this._addressesMap.clear();
       }
-      this.setAddresses(targetNetwork, targetAddresses);
-      const response = await this._apiClient.put(
+      this.setAddresses(targetAddresses, targetNetwork);
+      const response = await this._requestClient.put(
         `${API_BASE_URL}/addresses/${targetId}`,
-        JSON.stringify(Object.fromEntries(this._addressesMap)),
+        JSON.stringify({ ...Object.fromEntries(this._addressesMap), memo }),
         {
           headers: {
             'Content-Type': 'application/json',
@@ -410,12 +468,12 @@ export class ScallopAddress {
           response.data
         )) {
           if (['localnet', 'devnet', 'testnet', 'mainnet'].includes(network)) {
-            if (network === this._network) this._addresses = addresses;
+            if (network === this._network) this._currentAddresses = addresses;
             this._addressesMap.set(network as NetworkType, addresses);
           }
         }
         this._id = response.data.id;
-        return this._addresses;
+        return this.getAllAddresses();
       } else {
         throw Error('Failed to update addresses.');
       }
@@ -425,8 +483,8 @@ export class ScallopAddress {
   }
 
   /**
-   * Deletes all addresses of a specified id through the API and synchronizes
-   * them back to the instance.
+   * Deletes all addresses of a specified id through the API and clear all
+   * addresses in the instance.
    *
    * @param id - The id of the addresses to delete.
    * @param auth - The authentication API key.
@@ -434,9 +492,11 @@ export class ScallopAddress {
   public async delete(id?: string, auth?: string) {
     const apiKey = auth || this._auth || undefined;
     const targetId = id || this._id || undefined;
-    if (targetId === undefined) throw Error('Require addresses id.');
+
+    if (targetId === undefined)
+      throw Error('Require specific addresses id to be deleted.');
     if (apiKey !== undefined) {
-      const response = await this._apiClient.delete(
+      const response = await this._requestClient.delete(
         `${API_BASE_URL}/addresses/${targetId}`,
         {
           headers: {
@@ -448,7 +508,7 @@ export class ScallopAddress {
 
       if (response.status === 200) {
         this._id = undefined;
-        this._addresses = undefined;
+        this._currentAddresses = undefined;
         this._addressesMap.clear();
       } else {
         throw Error('Failed to delete addresses.');

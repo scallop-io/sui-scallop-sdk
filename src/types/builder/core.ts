@@ -1,14 +1,22 @@
-import type { TransactionArgument } from '@mysten/sui.js';
-import type { SuiTxBlock, SuiTxArg, SuiKit } from '@scallop-io/sui-kit';
-import type { ScallopAddress, ScallopUtils } from '../models';
-import type { SupportCollateralCoins, SupportAssetCoins } from './data';
+import type { TransactionArgument } from '@mysten/sui.js/transactions';
+import type {
+  SuiTxBlock as SuiKitTxBlock,
+  SuiTxArg,
+} from '@scallop-io/sui-kit';
+import type { ScallopBuilder } from '../../models';
+import type { SupportCollateralCoins, SupportAssetCoins } from '../data';
 
 type TransactionResult = TransactionArgument & TransactionArgument[];
 
-/**
- * ========== Scallop Normal Methods ==========
- */
-export type ScallopNormalMethods = {
+export type CoreIds = {
+  protocolPkg: string;
+  market: string;
+  version: string;
+  coinDecimalsRegistry: string;
+  xOracle: string;
+};
+
+export type CoreNormalMethods = {
   openObligation: () => TransactionResult;
   returnObligation: (
     obligation: SuiTxArg,
@@ -61,31 +69,7 @@ export type ScallopNormalMethods = {
   ) => void;
 };
 
-export type CoreIds = {
-  protocolPkg: string;
-  market: string;
-  version: string;
-  dmlR: string; // coinDecimalsRegistry
-  oracle: string;
-};
-
-export type ScallopNormalMethodsHandler = {
-  [key in keyof ScallopNormalMethods]: (params: {
-    txBlock: SuiTxBlock;
-    coreIds: CoreIds;
-    scallopAddress: ScallopAddress;
-    scallopUtils: ScallopUtils;
-  }) => ScallopNormalMethods[key];
-};
-
-export type SuiTxBlockWithNormalScallopMethods = SuiTxBlock &
-  ScallopNormalMethods;
-
-/**
- * ========== Scallop Quick Methods ==========
- */
-
-export type ScallopQuickMethods = {
+export type CoreQuickMethods = {
   addCollateralQuick: (
     amount: number,
     coinName: SupportCollateralCoins,
@@ -119,18 +103,16 @@ export type ScallopQuickMethods = {
   updateAssetPricesQuick: (coinNames: SupportAssetCoins[]) => Promise<void>;
 };
 
-export type ScallopQuickMethodsHandler = {
-  [key in keyof ScallopQuickMethods]: (params: {
-    txBlock: SuiTxBlockWithNormalScallopMethods;
-    suiKit: SuiKit;
-    scallopAddress: ScallopAddress;
-    scallopUtils: ScallopUtils;
-    isTestnet: boolean;
-  }) => ScallopQuickMethods[key];
-};
+export type SuiTxBlockWithCoreNormalMethods = SuiKitTxBlock & CoreNormalMethods;
 
-/**
- * ========== Scallop Tx Block ==========
- */
-export type ScallopTxBlock = SuiTxBlockWithNormalScallopMethods &
-  ScallopQuickMethods;
+export type CoreTxBlock = SuiTxBlockWithCoreNormalMethods & CoreQuickMethods;
+
+export type GenerateCoreNormalMethod = (params: {
+  builder: ScallopBuilder;
+  txBlock: SuiKitTxBlock;
+}) => CoreNormalMethods;
+
+export type GenerateCoreQuickMethod = (params: {
+  builder: ScallopBuilder;
+  txBlock: SuiTxBlockWithCoreNormalMethods;
+}) => CoreQuickMethods;

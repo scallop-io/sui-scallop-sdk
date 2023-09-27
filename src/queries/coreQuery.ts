@@ -1,6 +1,8 @@
-import { SuiKit, SuiTxBlock } from '@scallop-io/sui-kit';
+import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import BigNumber from 'bignumber.js';
-import { ScallopAddress, ScallopUtils } from '../models';
+import { PROTOCOL_OBJECT_ID } from '../constants';
+import type { SuiObjectResponse } from '@mysten/sui.js/client';
+import type { ScallopQuery } from '../models';
 import {
   MarketInterface,
   MarketDataInterface,
@@ -8,27 +10,37 @@ import {
   CollateralPoolInterface,
   SupportCollateralCoins,
   SupportAssetCoins,
+  ObligationInterface,
+  Obligation,
 } from '../types';
 
+/**
+ * Query market data.
+ *
+ * @description
+ * Use inspectTxn call to obtain the data provided in the scallop contract query module
+ *
+ * @param query - The Scallop query instance.
+ * @param rateType - How interest rates are calculated.
+ * @return Market data.
+ */
 export const queryMarket = async (
-  scallopAddress: ScallopAddress,
-  suiKit: SuiKit,
-  scallopUtils: ScallopUtils,
+  query: ScallopQuery,
   rateType: 'apy' | 'apr'
 ) => {
-  const packageId = scallopAddress.get('core.packages.query.id');
-  const marketId = scallopAddress.get('core.market');
-  const txBlock = new SuiTxBlock();
+  const packageId = query.address.get('core.packages.query.id');
+  const marketId = query.address.get('core.market');
+  const txBlock = new SuiKitTxBlock();
   const queryTarget = `${packageId}::market_query::market_data`;
   txBlock.moveCall(queryTarget, [marketId]);
-  const queryResult = await suiKit.inspectTxn(txBlock);
+  const queryResult = await query.suiKit.inspectTxn(txBlock);
   const marketData = queryResult.events[0].parsedJson as MarketDataInterface;
 
   const assets: AssetPoolInterface[] = [];
   const collaterals: CollateralPoolInterface[] = [];
 
   for (const asset of marketData.pools) {
-    // parse origin data
+    // Parse origin data.
     const coinType = '0x' + asset.type.name;
     const borrowYearFactor = 24 * 365 * 3600;
     const baseBorrowRate = Number(asset.baseBorrowRatePerSec.value) / 2 ** 32;
@@ -51,7 +63,7 @@ export const queryMarket = async (
     const reserveFactor = Number(asset.reserveFactor.value) / 2 ** 32;
     const borrowWeight = Number(asset.borrowWeight.value) / 2 ** 32;
 
-    // calculated  data
+    // Calculated  data.
     const calculatedBaseBorrowRate =
       rateType === 'apr'
         ? (baseBorrowRate * borrowYearFactor) / borrowRateScale
@@ -78,7 +90,7 @@ export const queryMarket = async (
       .multipliedBy(BigNumber(timeDelta).multipliedBy(borrowRate))
       .dividedBy(borrowRateScale);
     const currentBorrowIndex = BigNumber(borrowIndex).plus(borrowIndexDelta);
-    // how much accumulated interest since `lastUpdate`
+    // How much accumulated interest since `lastUpdate`.
     const growthInterest = BigNumber(currentBorrowIndex)
       .dividedBy(borrowIndex)
       .minus(1);
@@ -100,13 +112,11 @@ export const queryMarket = async (
       .multipliedBy(1 - reserveFactor);
     supplyRate = supplyRate.isFinite() ? supplyRate : BigNumber(0);
 
-    // base data
-    const coin = scallopUtils.getCoinNameFromCoinType(
-      coinType
-    ) as SupportAssetCoins;
+    // Base data.
+    const coin = query.utils.parseCoinName(coinType) as SupportAssetCoins;
     const symbol = coin.toUpperCase() as Uppercase<SupportAssetCoins>;
-    const marketCoinType = scallopUtils.parseMarketCoinType(
-      scallopAddress.get(`core.coins.${coin}.id`),
+    const marketCoinType = query.utils.parseMarketCoinType(
+      query.address.get(`core.coins.${coin}.id`),
       coin
     );
     const wrappedType =
@@ -164,7 +174,7 @@ export const queryMarket = async (
   }
 
   for (const collateral of marketData.collaterals) {
-    // parse origin data
+    // Parse origin data.
     const coinType = '0x' + collateral.type.name;
     const collateralFactor =
       Number(collateral.collateralFactor.value) / 2 ** 32;
@@ -179,10 +189,8 @@ export const queryMarket = async (
     const maxCollateralAmount = Number(collateral.maxCollateralAmount);
     const totalCollateralAmount = Number(collateral.totalCollateralAmount);
 
-    // base data
-    const coin = scallopUtils.getCoinNameFromCoinType(
-      coinType
-    ) as SupportCollateralCoins;
+    // Base data.
+    const coin = query.utils.parseCoinName(coinType) as SupportCollateralCoins;
     const symbol = coin.toUpperCase() as Uppercase<SupportCollateralCoins>;
     const wrappedType =
       coin === 'usdc' ||
@@ -219,4 +227,77 @@ export const queryMarket = async (
     collaterals: collaterals,
     data: marketData,
   } as MarketInterface;
+};
+
+/**
+ * Query all owned obligations.
+ *
+ * @param query - The Scallop query instance.
+ * @param ownerAddress - The owner address.
+ * @return Owned obligations.
+ */
+export const getObligations = async (
+  query: ScallopQuery,
+  ownerAddress?: string
+) => {
+  const owner = ownerAddress || query.suiKit.currentAddress();
+  const keyObjectsResponse: SuiObjectResponse[] = [];
+  let hasNextPage = false;
+  let nextCursor: string | null = null;
+  do {
+    const paginatedKeyObjectsResponse = await query.suiKit
+      .client()
+      .getOwnedObjects({
+        owner,
+        filter: {
+          StructType: `${PROTOCOL_OBJECT_ID}::obligation::ObligationKey`,
+        },
+        cursor: nextCursor,
+      });
+    keyObjectsResponse.push(...paginatedKeyObjectsResponse.data);
+    if (
+      paginatedKeyObjectsResponse.hasNextPage &&
+      paginatedKeyObjectsResponse.nextCursor
+    ) {
+      hasNextPage = true;
+      nextCursor = paginatedKeyObjectsResponse.nextCursor;
+    }
+  } while (hasNextPage);
+
+  const keyObjectIds: string[] = keyObjectsResponse
+    .map((ref: any) => ref?.data?.objectId)
+    .filter((id: any) => id !== undefined);
+  const keyObjects = await query.suiKit.getObjects(keyObjectIds);
+  const obligations: Obligation[] = [];
+  for (const keyObject of keyObjects) {
+    const keyId = keyObject.objectId;
+    if (keyObject.content && 'fields' in keyObject.content) {
+      const fields = keyObject.content.fields as any;
+      const obligationId = String(fields.ownership.fields.of);
+      obligations.push({ id: obligationId, keyId });
+    }
+  }
+  return obligations;
+};
+
+/**
+ * Query obligation data.
+ *
+ * @description
+ * Use inspectTxn call to obtain the data provided in the scallop contract query module
+ *
+ * @param query - The Scallop query instance.
+ * @param obligationId - The obligation id.
+ * @return Obligation data.
+ */
+export const queryObligation = async (
+  query: ScallopQuery,
+  obligationId: string
+) => {
+  const packageId = query.address.get('core.packages.query.id');
+  const queryTarget = `${packageId}::obligation_query::obligation_data`;
+  const txBlock = new SuiKitTxBlock();
+  txBlock.moveCall(queryTarget, [obligationId]);
+  const queryResult = await query.suiKit.inspectTxn(txBlock);
+  return queryResult.events[0].parsedJson as ObligationInterface;
 };

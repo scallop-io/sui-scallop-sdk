@@ -1,1 +1,0 @@
-export { newScallopTxBlock } from './quickMethods';
