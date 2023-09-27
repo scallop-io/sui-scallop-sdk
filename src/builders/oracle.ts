@@ -1,5 +1,5 @@
-import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js';
-import type { TransactionArgument } from '@mysten/sui.js';
+import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
+import type { TransactionArgument } from '@mysten/sui.js/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import {
   SuiPythClient,
@@ -23,7 +23,7 @@ export const updateOracles = async (
   const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
   if (rules.includes('pyth')) {
     const pythClient = new SuiPythClient(
-      builder.suiKit.provider(),
+      builder.suiKit.client(),
       builder.address.get('core.oracles.pyth.state'),
       builder.address.get('core.oracles.pyth.wormholeState')
     );
@@ -35,9 +35,8 @@ export const updateOracles = async (
         ? 'https://hermes-beta.pyth.network'
         : 'https://hermes.pyth.network'
     );
-    const priceUpdateData = await pythConnection.getPriceFeedsUpdateData(
-      priceIds
-    );
+    const priceUpdateData =
+      await pythConnection.getPriceFeedsUpdateData(priceIds);
     await pythClient.updatePriceFeeds(
       txBlock.txBlock,
       priceUpdateData,

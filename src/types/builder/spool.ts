@@ -1,4 +1,4 @@
-import type { TransactionArgument } from '@mysten/sui.js';
+import type { TransactionArgument } from '@mysten/sui.js/transactions';
 import type {
   SuiTxBlock as SuiKitTxBlock,
   SuiTxArg,
