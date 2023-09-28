@@ -76,6 +76,14 @@ describe('Test Scallop Utils', async () => {
     expect(!!rewardCoinName).toBe(true);
   });
 
+  it('Should get coin decimal', async () => {
+    const usdcCoinDecimal = scallopUtils.getCoinDecimal('usdc');
+    if (ENABLE_LOG) {
+      console.info('Usdc coin decimal:', usdcCoinDecimal);
+    }
+    expect(!!usdcCoinDecimal).toBe(true);
+  });
+
   it('Should get coin price', async () => {
     const coinPrice = await scallopUtils.getCoinPrice('usdc');
     if (ENABLE_LOG) {
