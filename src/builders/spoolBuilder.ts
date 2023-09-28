@@ -1,7 +1,7 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { scallopRewardType } from '../constants/spool';
+import { spoolRewardType } from '../constants/enum';
 import { getStakeAccounts } from '../queries/spoolQuery';
 import type { SuiTxArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
@@ -81,11 +81,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
   return {
     createStakeAccount: (marketCoinName) => {
       const coinName = marketCoinName.slice(1) as SupportCoins;
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const marketCoinType = builder.utils.parseMarketCoinType(
-        coinPackageId,
-        coinName
-      );
+      const marketCoinType = builder.utils.parseMarketCoinType(coinName);
       const stakePoolId = builder.address.get(
         `spool.pools.${marketCoinName}.id`
       );
@@ -97,11 +93,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
     },
     stake: (stakeAccount, coin, marketCoinName) => {
       const coinName = marketCoinName.slice(1) as SupportCoins;
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const marketCoinType = builder.utils.parseMarketCoinType(
-        coinPackageId,
-        coinName
-      );
+      const marketCoinType = builder.utils.parseMarketCoinType(coinName);
       const stakePoolId = builder.address.get(
         `spool.pools.${marketCoinName}.id`
       );
@@ -113,11 +105,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
     },
     unstake: (stakeAccount, amount, marketCoinName) => {
       const coinName = marketCoinName.slice(1) as SupportCoins;
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const marketCoinType = builder.utils.parseMarketCoinType(
-        coinPackageId,
-        coinName
-      );
+      const marketCoinType = builder.utils.parseMarketCoinType(coinName);
       const stakePoolId = builder.address.get(
         `spool.pools.${marketCoinName}.id`
       );
@@ -135,19 +123,9 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
         `spool.pools.${marketCoinName}.rewardPoolId`
       );
       const coinName = marketCoinName.slice(1) as SupportCoins;
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const marketCoinType = builder.utils.parseMarketCoinType(
-        coinPackageId,
-        coinName
-      );
-      const rewardCoinName = scallopRewardType[marketCoinName];
-      const rewardCoinPackageId = builder.address.get(
-        `core.coins.${rewardCoinName}.id`
-      );
-      const rewardType = builder.utils.parseCoinType(
-        rewardCoinPackageId,
-        rewardCoinName
-      );
+      const marketCoinType = builder.utils.parseMarketCoinType(coinName);
+      const rewardCoinName = spoolRewardType[marketCoinName];
+      const rewardType = builder.utils.parseCoinType(rewardCoinName);
       return txBlock.moveCall(
         `${spoolIds.spoolPkg}::user::redeem_rewards`,
         [stakePoolId, rewardPoolId, stakeAccount, SUI_CLOCK_OBJECT_ID],
@@ -184,11 +162,7 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
       );
 
       const coinName = marketCoinName.slice(1) as SupportCoins;
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const marketCoinType = builder.utils.parseMarketCoinType(
-        coinPackageId,
-        coinName
-      );
+      const marketCoinType = builder.utils.parseMarketCoinType(coinName);
       if (typeof amountOrMarketCoin === 'number') {
         const coins = await builder.utils.selectCoins(
           sender,

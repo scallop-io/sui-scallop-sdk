@@ -43,5 +43,3 @@ export const SUPPORT_PACKAGES = [
   'xOracle',
   'testCoin',
 ] as const;
-
-export const SUI_COIN_TYPE_ARG_REGEX = /^0x(0*)2::sui::SUI$/;

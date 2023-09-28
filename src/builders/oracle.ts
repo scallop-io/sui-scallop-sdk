@@ -64,8 +64,7 @@ const updateOracle = async (
   coinName: SupportCoins,
   rules: SupportOracleType[]
 ) => {
-  const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-  const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
+  const coinType = builder.utils.parseCoinType(coinName);
 
   updatePrice(
     txBlock,

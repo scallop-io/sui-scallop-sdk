@@ -59,11 +59,7 @@ export const getStakeAccounts = async (
   ).reduce(
     (types, marketCoinName) => {
       const coinName = marketCoinName.slice(1) as SupportCoins;
-      const coinPackageId = query.address.get(`core.coins.${coinName}.id`);
-      const marketCoinType = query.utils.parseMarketCoinType(
-        coinPackageId,
-        coinName
-      );
+      const marketCoinType = query.utils.parseMarketCoinType(coinName);
 
       types[
         marketCoinName as SupportStakeMarketCoins
@@ -184,6 +180,7 @@ export const getStakePool = async (
 
 /**
  * Get reward pool of the owner.
+ *
  * @param query - The Scallop query instance.
  * @param marketCoinName - Support stake market coins.
  * @return Reward pool.

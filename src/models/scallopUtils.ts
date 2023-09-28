@@ -1,22 +1,23 @@
-import {
-  SUI_FRAMEWORK_ADDRESS,
-  SUI_TYPE_ARG,
-  normalizeStructTag,
-} from '@mysten/sui.js/utils';
+import { SUI_TYPE_ARG, normalizeStructTag } from '@mysten/sui.js/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
+import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
 import {
   ADDRESSES_ID,
   PROTOCOL_OBJECT_ID,
-  scallopRewardType,
+  SUPPORT_ASSET_COINS,
+  SUPPORT_COLLATERAL_COINS,
+  spoolRewardType,
 } from '../constants';
 import { queryObligation } from '../queries';
+import { parseDataFromPythPriceFeed } from '../utils';
 import type {
   ScallopUtilsParams,
   ScallopInstanceParams,
   SupportCoins,
   SupportStakeMarketCoins,
+  PriceMap,
 } from '../types';
 
 /**
@@ -33,9 +34,12 @@ import type {
  */
 export class ScallopUtils {
   public readonly params: ScallopUtilsParams;
+  public readonly isTestnet: boolean;
+
   private _suiKit: SuiKit;
   private _address: ScallopAddress;
   private _query: ScallopQuery;
+  private _priceMap: PriceMap = new Map();
 
   public constructor(
     params: ScallopUtilsParams,
@@ -55,6 +59,9 @@ export class ScallopUtils {
         suiKit: this._suiKit,
         address: this._address,
       });
+    this.isTestnet = params.networkType
+      ? params.networkType === 'testnet'
+      : false;
   }
 
   /**
@@ -80,7 +87,8 @@ export class ScallopUtils {
    * @param coinName Specific support coin name.
    * @return Coin type.
    */
-  public parseCoinType(coinPackageId: string, coinName: string) {
+  public parseCoinType(coinName: SupportCoins) {
+    const coinPackageId = this._address.get(`core.coins.${coinName}.id`);
     if (coinName === 'sui')
       return normalizeStructTag(`${coinPackageId}::sui::SUI`);
     const wormHoleCoins = [
@@ -136,17 +144,14 @@ export class ScallopUtils {
   }
 
   /**
-   * Convert market coin name to market coin type.
+   * Convert coin name to market coin type.
    *
    * @param coinPackageId Package id of coin.
    * @param coinName Specific support coin name.
    * @return Market coin type.
    */
-  public parseMarketCoinType(coinPackageId: string, coinName: string) {
-    const coinType = this.parseCoinType(
-      coinName === 'sui' ? SUI_FRAMEWORK_ADDRESS : coinPackageId,
-      coinName
-    );
+  public parseMarketCoinType(coinName: SupportCoins) {
+    const coinType = this.parseCoinType(coinName);
     return `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<${coinType}>`;
   }
 
@@ -178,7 +183,7 @@ export class ScallopUtils {
    * @return Reward coin name.
    */
   public getRewardCoinName = (marketCoinName: SupportStakeMarketCoins) => {
-    return scallopRewardType[marketCoinName];
+    return spoolRewardType[marketCoinName];
   };
 
   /**
@@ -206,5 +211,52 @@ export class ScallopUtils {
       return this.parseCoinName(coinType);
     });
     return obligationCoinNames;
+  }
+
+  /**
+   * Get coin price.
+   *
+   * @description
+   * The strategy for obtaining the price is to get it through API first,
+   * and then on-chain data if API cannot be retrieved.
+   * Currently, we only support obtaining from pyth protocol, other
+   * oracles will be supported in the future.
+   *
+   * @param coinName Specific support coin name.
+   */
+  public async getCoinPrice(coinName: SupportCoins) {
+    const priceIds = [
+      ...new Set([...SUPPORT_ASSET_COINS, ...SUPPORT_COLLATERAL_COINS]),
+    ].map((coinName) =>
+      this._address.get(`core.coins.${coinName}.oracle.pyth.feed`)
+    );
+    const pythConnection = new SuiPriceServiceConnection(
+      this.isTestnet
+        ? 'https://hermes-beta.pyth.network'
+        : 'https://hermes.pyth.network'
+    );
+
+    if (
+      this._priceMap.has(coinName) &&
+      Date.now() - this._priceMap.get(coinName)!.publishTime < 1000 * 60
+    ) {
+      return this._priceMap.get(coinName)!.price;
+    } else {
+      const priceFeeds = await pythConnection.getLatestPriceFeeds(priceIds);
+
+      const prices = priceFeeds?.map((feed) => {
+        const data = parseDataFromPythPriceFeed(feed, this._address);
+        this._priceMap.set(data.coinName, {
+          price: data.price,
+          publishTime: data.publishTime,
+        });
+        return data;
+      });
+
+      return (
+        prices?.find((price) => price && price.coinName === coinName)?.price ??
+        this._query.getPriceFromPyth(coinName)
+      );
+    }
   }
 }

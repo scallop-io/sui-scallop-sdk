@@ -10,6 +10,7 @@ export type SupportCollateralCoins = (typeof SUPPORT_COLLATERAL_COINS)[number];
 export type SupportCoins = SupportAssetCoins | SupportCollateralCoins;
 export type SupportOracleType = (typeof SUPPORT_ORACLES)[number];
 export type SupportPackageType = (typeof SUPPORT_PACKAGES)[number];
+export type SupportCoinDecimals = Record<SupportCoins, number>;
 
 export interface MarketInterface {
   assets: AssetPoolInterface[];

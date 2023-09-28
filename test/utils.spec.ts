@@ -19,11 +19,8 @@ describe('Test Scallop Utils', async () => {
   const address = await scallopSDK.getScallopAddress();
 
   it('Should get coin type from coin name', async () => {
-    const usdcCoinType = scallopUtils.parseCoinType(
-      address.get('core.coins.usdc.id'),
-      'usdc'
-    );
-    const suiCoinType = scallopUtils.parseCoinType('0x2', 'sui');
+    const usdcCoinType = scallopUtils.parseCoinType('usdc');
+    const suiCoinType = scallopUtils.parseCoinType('sui');
 
     const usdcAssertCoinType = `${address.get(
       'core.coins.usdc.id'
@@ -54,11 +51,8 @@ describe('Test Scallop Utils', async () => {
   });
 
   it('Should get market coin type from market coin type', async () => {
-    const usdcMarketCoinType = scallopUtils.parseMarketCoinType(
-      address.get('core.coins.usdc.id'),
-      'usdc'
-    );
-    const suiMarketCoinType = scallopUtils.parseMarketCoinType('0x2', 'sui');
+    const usdcMarketCoinType = scallopUtils.parseMarketCoinType('usdc');
+    const suiMarketCoinType = scallopUtils.parseMarketCoinType('sui');
 
     const usdcAssertMarketCoinType = `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<${address.get(
       'core.coins.usdc.id'
@@ -80,5 +74,13 @@ describe('Test Scallop Utils', async () => {
       console.info('Reward coin name:', rewardCoinName);
     }
     expect(!!rewardCoinName).toBe(true);
+  });
+
+  it('Should get coin price', async () => {
+    const coinPrice = await scallopUtils.getCoinPrice('usdc');
+    if (ENABLE_LOG) {
+      console.info('Usdc coin price:', coinPrice);
+    }
+    expect(!!coinPrice).toBe(true);
   });
 });

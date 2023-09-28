@@ -113,19 +113,16 @@ export const queryMarket = async (
     supplyRate = supplyRate.isFinite() ? supplyRate : BigNumber(0);
 
     // Base data.
-    const coin = query.utils.parseCoinName(coinType) as SupportAssetCoins;
-    const symbol = coin.toUpperCase() as Uppercase<SupportAssetCoins>;
-    const marketCoinType = query.utils.parseMarketCoinType(
-      query.address.get(`core.coins.${coin}.id`),
-      coin
-    );
+    const coinName = query.utils.parseCoinName(coinType) as SupportAssetCoins;
+    const symbol = coinName.toUpperCase() as Uppercase<SupportAssetCoins>;
+    const marketCoinType = query.utils.parseMarketCoinType(coinName);
     const wrappedType =
-      coin === 'usdc' ||
-      coin === 'usdt' ||
-      coin === 'eth' ||
-      coin === 'btc' ||
-      coin === 'apt' ||
-      coin === 'sol'
+      coinName === 'usdc' ||
+      coinName === 'usdt' ||
+      coinName === 'eth' ||
+      coinName === 'btc' ||
+      coinName === 'apt' ||
+      coinName === 'sol'
         ? {
             from: 'Wormhole',
             type: 'Portal from Ethereum',
@@ -133,7 +130,7 @@ export const queryMarket = async (
         : undefined;
 
     assets.push({
-      coin: coin,
+      coin: coinName,
       symbol: symbol,
       coinType: coinType,
       wrappedType: wrappedType,
@@ -190,15 +187,17 @@ export const queryMarket = async (
     const totalCollateralAmount = Number(collateral.totalCollateralAmount);
 
     // Base data.
-    const coin = query.utils.parseCoinName(coinType) as SupportCollateralCoins;
-    const symbol = coin.toUpperCase() as Uppercase<SupportCollateralCoins>;
+    const coinName = query.utils.parseCoinName(
+      coinType
+    ) as SupportCollateralCoins;
+    const symbol = coinName.toUpperCase() as Uppercase<SupportCollateralCoins>;
     const wrappedType =
-      coin === 'usdc' ||
-      coin === 'usdt' ||
-      coin === 'eth' ||
-      coin === 'btc' ||
-      coin === 'apt' ||
-      coin === 'sol'
+      coinName === 'usdc' ||
+      coinName === 'usdt' ||
+      coinName === 'eth' ||
+      coinName === 'btc' ||
+      coinName === 'apt' ||
+      coinName === 'sol'
         ? {
             from: 'Wormhole',
             type: 'Portal from Ethereum',
@@ -206,7 +205,7 @@ export const queryMarket = async (
         : undefined;
 
     collaterals.push({
-      coin: coin,
+      coin: coinName,
       symbol: symbol,
       coinType: coinType,
       wrappedType: wrappedType,

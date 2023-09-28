@@ -1,6 +1,6 @@
 import type { RewardType } from '../types';
 
-export const scallopRewardType: RewardType = {
+export const spoolRewardType: RewardType = {
   ssui: 'sui',
   susdc: 'sui',
   susdt: 'sui',
