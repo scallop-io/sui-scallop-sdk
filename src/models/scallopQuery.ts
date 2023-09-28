@@ -9,11 +9,13 @@ import {
   getStakeAccounts,
   getStakePool,
   getRewardPool,
+  getPythPrice,
 } from '../queries';
 import {
   ScallopQueryParams,
   ScallopInstanceParams,
   SupportStakeMarketCoins,
+  SupportCoins,
 } from '../types';
 
 /**
@@ -141,5 +143,15 @@ export class ScallopQuery {
    */
   public async getRewardPool(marketCoinName: SupportStakeMarketCoins) {
     return await getRewardPool(this, marketCoinName);
+  }
+
+  /**
+   * Get price from pyth fee object.
+   *
+   * @param coinName Specific support coin name.
+   * @return Coin price.
+   */
+  public async getPriceFromPyth(coinName: SupportCoins) {
+    return await getPythPrice(this, coinName);
   }
 }

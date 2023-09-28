@@ -100,8 +100,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coreIds.version]
       ),
     addCollateral: (obligation, coin, coinName) => {
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
+      const coinType = builder.utils.parseCoinType(coinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::deposit_collateral::deposit_collateral`,
         [coreIds.version, obligation, coreIds.market, coin],
@@ -109,8 +108,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       );
     },
     takeCollateral: (obligation, obligationKey, amount, coinName) => {
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
+      const coinType = builder.utils.parseCoinType(coinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::withdraw_collateral::withdraw_collateral`,
         [
@@ -127,8 +125,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       );
     },
     deposit: (coin, coinName) => {
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
+      const coinType = builder.utils.parseCoinType(coinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::mint::mint`,
         [coreIds.version, coreIds.market, coin, SUI_CLOCK_OBJECT_ID],
@@ -136,8 +133,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       );
     },
     depositEntry: (coin, coinName) => {
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
+      const coinType = builder.utils.parseCoinType(coinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::mint::mint_entry`,
         [coreIds.version, coreIds.market, coin, SUI_CLOCK_OBJECT_ID],
@@ -145,8 +141,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       );
     },
     withdraw: (marketCoin, coinName) => {
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
+      const coinType = builder.utils.parseCoinType(coinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::redeem::redeem`,
         [coreIds.version, coreIds.market, marketCoin, SUI_CLOCK_OBJECT_ID],
@@ -154,8 +149,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       );
     },
     withdrawEntry: (marketCoin, coinName) => {
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
+      const coinType = builder.utils.parseCoinType(coinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::redeem::redeem_entry`,
         [coreIds.version, coreIds.market, marketCoin, SUI_CLOCK_OBJECT_ID],
@@ -163,8 +157,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       );
     },
     borrow: (obligation, obligationKey, amount, coinName) => {
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
+      const coinType = builder.utils.parseCoinType(coinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::borrow::borrow`,
         [
@@ -181,8 +174,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       );
     },
     borrowEntry: (obligation, obligationKey, amount, coinName) => {
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
+      const coinType = builder.utils.parseCoinType(coinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::borrow::borrow_entry`,
         [
@@ -199,8 +191,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       );
     },
     repay: (obligation, coin, coinName) => {
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
+      const coinType = builder.utils.parseCoinType(coinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::repay::repay`,
         [
@@ -214,8 +205,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       );
     },
     borrowFlashLoan: (amount, coinName) => {
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
+      const coinType = builder.utils.parseCoinType(coinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::flash_loan::borrow_flash_loan`,
         [coreIds.version, coreIds.market, amount],
@@ -223,8 +213,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       );
     },
     repayFlashLoan: (coin, loan, coinName) => {
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const coinType = builder.utils.parseCoinType(coinPackageId, coinName);
+      const coinType = builder.utils.parseCoinType(coinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::flash_loan::repay_flash_loan`,
         [coreIds.version, coreIds.market, coin, loan],

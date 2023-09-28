@@ -80,4 +80,15 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
       expect(!!rewardPool).toBe(true);
     }
   });
+
+  it('Should get pyth price data', async () => {
+    const coinName = 'usdc';
+    const usdcPrice = await scallopQuery.getPriceFromPyth(coinName);
+
+    if (ENABLE_LOG) {
+      console.info('Coin name:', coinName);
+      console.info('Usdc price:', usdcPrice);
+    }
+    expect(usdcPrice).toBeGreaterThan(0);
+  });
 });

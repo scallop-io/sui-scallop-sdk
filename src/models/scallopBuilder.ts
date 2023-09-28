@@ -109,8 +109,7 @@ export class ScallopBuilder {
     amount: number,
     sender: string
   ) {
-    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
-    const coinType = this.utils.parseCoinType(coinPackageId, coinName);
+    const coinType = this.utils.parseCoinType(coinName);
     const coins = await this.utils.selectCoins(sender, amount, coinType);
     const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
     return { takeCoin, leftCoin };
@@ -131,8 +130,7 @@ export class ScallopBuilder {
     amount: number,
     sender: string
   ) {
-    const coinPackageId = this.address.get(`core.coins.${coinName}.id`);
-    const coinType = this.utils.parseMarketCoinType(coinPackageId, coinName);
+    const coinType = this.utils.parseMarketCoinType(coinName);
     const coins = await this.utils.selectCoins(sender, amount, coinType);
     const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
     return { takeCoin, leftCoin };
