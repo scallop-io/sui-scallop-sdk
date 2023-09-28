@@ -68,7 +68,7 @@ export class ScallopUtils {
   /**
    * Request the scallop API to initialize data.
    *
-   * @param forece Whether to force initialization.
+   * @param forece - Whether to force initialization.
    */
   public async init(forece: boolean = false) {
     if (forece || !this._address.getAddresses()) {
@@ -84,8 +84,8 @@ export class ScallopUtils {
    * The Coin type of wormhole is fixed `coin:Coin`. Here using package id
    * to determine and return the type.
    *
-   * @param coinPackageId Package id of coin.
-   * @param coinName Specific support coin name.
+   * @param coinPackageId - Package id of coin.
+   * @param coinName - Specific support coin name.
    * @return Coin type.
    */
   public parseCoinType(coinName: SupportCoins) {
@@ -114,7 +114,7 @@ export class ScallopUtils {
    * The coin name cannot be obtained directly from the wormhole type. Here
    * the package id is used to determine and return a specific name.
    *
-   * @param coinType Specific support coin type.
+   * @param coinType - Specific support coin type.
    * @return Coin Name.
    */
   public parseCoinName(coinType: string) {
@@ -147,8 +147,8 @@ export class ScallopUtils {
   /**
    * Convert coin name to market coin type.
    *
-   * @param coinPackageId Package id of coin.
-   * @param coinName Specific support coin name.
+   * @param coinPackageId - Package id of coin.
+   * @param coinName - Specific support coin name.
    * @return Market coin type.
    */
   public parseMarketCoinType(coinName: SupportCoins) {
@@ -159,9 +159,9 @@ export class ScallopUtils {
   /**
    * Select coin id  that add up to the given amount as transaction arguments.
    *
-   * @param owner The address of the owner.
-   * @param amount The amount that is needed for the coin.
-   * @param coinType The coin type, default is 0x2::SUI::SUI.
+   * @param owner - The address of the owner.
+   * @param amount - The amount that is needed for the coin.
+   * @param coinType - The coin type, default is 0x2::SUI::SUI.
    * @return The selected transaction coin arguments.
    */
   public async selectCoins(
@@ -222,7 +222,7 @@ export class ScallopUtils {
    * This can often be used to determine which assets in an obligation require
    * price updates before interacting with specific instructions of the Scallop contract.
    *
-   * @param obligationId The obligation id.
+   * @param obligationId - The obligation id.
    * @return Coin Names.
    */
   public async getObligationCoinNames(obligationId: string) {
@@ -251,7 +251,8 @@ export class ScallopUtils {
    * Currently, we only support obtaining from pyth protocol, other
    * oracles will be supported in the future.
    *
-   * @param coinName Specific support coin name.
+   * @param coinName - Specific support coin name.
+   * @return  Coin price.
    */
   public async getCoinPrice(coinName: SupportCoins) {
     const priceIds = [

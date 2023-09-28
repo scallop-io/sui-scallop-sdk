@@ -14,7 +14,7 @@ import type {
  *
  * @param query - The Scallop query instance.
  * @param ownerAddress - Owner address.
- * @returns Stake accounts.
+ * @return Stake accounts.
  */
 export const getStakeAccounts = async (
   query: ScallopQuery,
