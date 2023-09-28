@@ -9,6 +9,7 @@ import {
   SUPPORT_ASSET_COINS,
   SUPPORT_COLLATERAL_COINS,
   spoolRewardType,
+  coinDecimals,
 } from '../constants';
 import { queryObligation } from '../queries';
 import { parseDataFromPythPriceFeed } from '../utils';
@@ -185,6 +186,15 @@ export class ScallopUtils {
   public getRewardCoinName = (marketCoinName: SupportStakeMarketCoins) => {
     return spoolRewardType[marketCoinName];
   };
+
+  /**
+   * Get coin decimal.
+   *
+   * return Coin decimal.
+   */
+  public getCoinDecimal(coinName: SupportCoins) {
+    return coinDecimals[coinName];
+  }
 
   /**
    * Get all coin names in the obligation record by obligation id.
