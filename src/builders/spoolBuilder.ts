@@ -19,7 +19,7 @@ import type {
 /**
  * Check and get the sender from the transaction block.
  *
- * @param txBlock - txBlock created by SuiKit.
+ * @param txBlock - TxBlock created by SuiKit.
  * @return Sender of transaction.
  */
 const requireSender = (txBlock: SuiKitTxBlock) => {
@@ -38,7 +38,7 @@ const requireSender = (txBlock: SuiKitTxBlock) => {
  * Otherwise, automatically get stake account id from the sender.
  *
  * @param builder - Scallop builder instance.
- * @param txBlock - txBlock created by SuiKit.
+ * @param txBlock - TxBlock created by SuiKit.
  * @param marketCoinName - The name of the market coin supported for staking.
  * @param stakeAccountId - Stake account id.
  * @return Stake account id.
@@ -67,8 +67,8 @@ const requireStakeAccountInfo = async (
 /**
  * Generate spool normal methods.
  *
- * @param builder Scallop builder instance.
- * @param txBlock TxBlock created by SuiKit .
+ * @param builder - Scallop builder instance.
+ * @param txBlock - TxBlock created by SuiKit .
  * @return Spool normal methods.
  */
 const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
@@ -143,8 +143,8 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
  * help users organize transaction blocks, include get stake account info, and transfer
  * coins to the sender. So, they are all asynchronous methods.
  *
- * @param builder Scallop builder instance.
- * @param txBlock TxBlock created by SuiKit .
+ * @param builder - Scallop builder instance.
+ * @param txBlock - TxBlock created by SuiKit .
  * @return Spool quick methods.
  */
 const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
@@ -215,8 +215,8 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
 /**
  * Create an enhanced transaction block instance for interaction with spool modules of the Scallop contract.
  *
- * @param builder Scallop builder instance.
- * @param initTxBlock Scallop txBlock, txBlock created by SuiKit, or original transaction block.
+ * @param builder - Scallop builder instance.
+ * @param initTxBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
  * @return Scallop spool txBlock.
  */
 export const newSpoolTxBlock = (

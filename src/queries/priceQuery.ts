@@ -5,7 +5,7 @@ import type { SupportCoins } from '../types';
  * Get price from pyth fee object.
  *
  * @param query - The Scallop query instance.
- * @param coinName Specific support coin name.
+ * @param coinName - Specific support coin name.
  * @return Coin price.
  */
 export const getPythPrice = async (

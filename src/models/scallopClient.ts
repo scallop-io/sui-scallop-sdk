@@ -82,7 +82,7 @@ export class ScallopClient {
   /**
    * Request the scallop API to initialize data.
    *
-   * @param forece Whether to force initialization.
+   * @param forece - Whether to force initialization.
    */
   public async init(forece: boolean = false) {
     if (forece || !this.address.getAddresses()) {
@@ -101,8 +101,7 @@ export class ScallopClient {
    * @description
    * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
-   * @param rateType - How interest rates are calculated.
-   * @return Market data
+   * @return Market data.
    */
   public async queryMarket(rateType?: 'apy' | 'apr') {
     return await this.query.getMarket(rateType);
@@ -129,7 +128,7 @@ export class ScallopClient {
    * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
    * @param obligationId - The obligation id.
-   * @return Obligation data
+   * @return Obligation data.
    */
   public async queryObligation(obligationId: string) {
     return await this.query.getObligation(obligationId);
@@ -157,7 +156,7 @@ export class ScallopClient {
    *
    * @param marketCoinName - Support stake market coin.
    * @param ownerAddress - The owner address.
-   * @return Stake accounts data
+   * @return Stake accounts data.
    */
   async getStakeAccounts(
     marketCoinName: SupportStakeMarketCoins,
@@ -200,7 +199,7 @@ export class ScallopClient {
    *
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param walletAddress - The wallet address of the owner.
-   * @return Transaction block response or transaction block
+   * @return Transaction block response or transaction block.
    */
   public async createStakeAccount(
     marketCoinName: SupportStakeMarketCoins
@@ -239,7 +238,7 @@ export class ScallopClient {
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param stakeAccountId - The stake account object.
    * @param walletAddress - The wallet address of the owner.
-   * @return Transaction block response or transaction block
+   * @return Transaction block response or transaction block.
    */
   public async stake(
     marketCoinName: SupportStakeMarketCoins,
@@ -290,7 +289,7 @@ export class ScallopClient {
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param accountId - The stake account object.
    * @param walletAddress - The wallet address of the owner.
-   * @return Transaction block response or transaction block
+   * @return Transaction block response or transaction block.
    */
   public async unstake(
     marketCoinName: SupportStakeMarketCoins,
@@ -338,7 +337,7 @@ export class ScallopClient {
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param accountId - The stake account object.
    * @param walletAddress - The wallet address of the owner.
-   * @return Transaction block response or transaction block
+   * @return Transaction block response or transaction block.
    */
   public async claim(
     marketCoinName: SupportStakeMarketCoins

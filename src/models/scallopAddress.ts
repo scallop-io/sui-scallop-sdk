@@ -201,7 +201,7 @@ export class ScallopAddress {
   /**
    * Get addresses API id.
    *
-   * @returns The addresses API id.
+   * @return The addresses API id.
    */
   public getId() {
     return this._id || undefined;
@@ -211,7 +211,7 @@ export class ScallopAddress {
    * Get the address at the provided path.
    *
    * @param path - The path of the address to get.
-   * @returns The address at the provided path.
+   * @return The address at the provided path.
    */
   public get(path: AddressStringPath) {
     if (this._currentAddresses) {
@@ -235,7 +235,7 @@ export class ScallopAddress {
    *
    * @param path - The path of the address to set.
    * @param address - The address be setted to the tartget path.
-   * @returns The addresses.
+   * @return The addresses.
    */
   public set(path: AddressStringPath, address: string) {
     if (this._currentAddresses) {
@@ -256,7 +256,7 @@ export class ScallopAddress {
    * current addresses and change the default network to specified network.
    *
    * @param network - Specifies which network's addresses you want to get.
-   * @return Current addresses
+   * @return Current addresses.
    */
   public switchCurrentAddresses(network: NetworkType) {
     if (this._addressesMap.has(network)) {
@@ -286,7 +286,7 @@ export class ScallopAddress {
    *
    * @param addresses - The addresses be setted to the tartget network.
    * @param network - Specifies which network's addresses you want to set.
-   * @returns The addresses.
+   * @return The addresses.
    */
   public setAddresses(addresses: AddressesInterface, network?: NetworkType) {
     const targetNetwork = network || this._network;
@@ -297,7 +297,7 @@ export class ScallopAddress {
   /**
    * Get all addresses.
    *
-   * @returns All addresses.
+   * @return All addresses.
    */
   public getAllAddresses() {
     return Object.fromEntries(this._addressesMap);
@@ -320,7 +320,7 @@ export class ScallopAddress {
    * @param params.network - Specifies which network's addresses you want to set.
    * @param params.auth - The authentication API key.
    * @param params.memo - Add memo to the addresses created in the API.
-   * @returns All addresses.
+   * @return All addresses.
    */
   public async create(params?: {
     addresses?: AddressesInterface | undefined;
@@ -374,7 +374,7 @@ export class ScallopAddress {
    * Read and synchronizes all addresses from the API into instance.
    *
    * @param id - The id of the addresses to get.
-   * @returns All addresses.
+   * @return All addresses.
    */
   public async read(id?: string) {
     const addressesId = id || this._id || undefined;
@@ -426,7 +426,7 @@ export class ScallopAddress {
    * @param params.network - Specifies which network's addresses you want to set.
    * @param params.auth - The authentication api key.
    * @param params.memo - Add memo to the addresses created in the API.
-   * @returns All addresses.
+   * @return All addresses.
    */
   public async update(params?: {
     id?: string;

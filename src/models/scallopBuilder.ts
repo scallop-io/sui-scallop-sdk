@@ -72,7 +72,7 @@ export class ScallopBuilder {
   /**
    * Request the scallop API to initialize data.
    *
-   * @param forece Whether to force initialization.
+   * @param forece - Whether to force initialization.
    */
   public async init(forece: boolean = false) {
     if (forece || !this.address.getAddresses()) {
@@ -85,7 +85,7 @@ export class ScallopBuilder {
   /**
    * Create a scallop txBlock instance that enhances transaction block.
    *
-   * @param txBlock Scallop txBlock, txBlock created by SuiKit, or original transaction block.
+   * @param txBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
    * @return Scallop txBlock.
    */
   public createTxBlock(
@@ -97,10 +97,10 @@ export class ScallopBuilder {
   /**
    * Specifying the sender's amount of coins to get coins args from transaction result.
    *
-   * @param txBlock Scallop txBlock or txBlock created by SuiKit .
-   * @param coinName Specific support coin name.
-   * @param amount Amount of coins to be selected.
-   * @param sender Sender address.
+   * @param txBlock - Scallop txBlock or txBlock created by SuiKit .
+   * @param coinName - Specific support coin name.
+   * @param amount - Amount of coins to be selected.
+   * @param sender - Sender address.
    * @return Take coin and left coin.
    */
   public async selectCoin(
@@ -118,10 +118,10 @@ export class ScallopBuilder {
   /**
    * Specifying the sender's amount of market coins to get coins args from transaction result.
    *
-   * @param txBlock Scallop txBlock or txBlock created by SuiKit .
-   * @param coinName Specific support coin name.
-   * @param amount Amount of coins to be selected.
-   * @param sender Sender address.
+   * @param txBlock - Scallop txBlock or txBlock created by SuiKit .
+   * @param coinName - Specific support coin name.
+   * @param amount - Amount of coins to be selected.
+   * @param sender - Sender address.
    * @return Take coin and left coin.
    */
   public async selectMarketCoin(
@@ -139,7 +139,7 @@ export class ScallopBuilder {
   /**
    * Execute Scallop txBlock using the `signAndSendTxn` methods in suikit.
    *
-   * @param txBlock Scallop txBlock, txBlock created by SuiKit, or original transaction block.
+   * @param txBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
    */
   public async signAndSendTxBlock(
     txBlock: ScallopTxBlock | SuiKitTxBlock | TransactionBlock

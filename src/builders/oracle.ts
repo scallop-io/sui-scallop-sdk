@@ -103,7 +103,7 @@ const updateOracle = async (
  * @param supraRegistryId - The registry id from supra package.
  * @param supraHolderId - The holder id from supra package.
  * @param coinType - The type of coin.
- * @returns TxBlock created by SuiKit.
+ * @return TxBlock created by SuiKit.
  */
 const updatePrice = (
   txBlock: SuiKitTxBlock,
@@ -176,7 +176,7 @@ const updatePrice = (
  * @param packageId - The xOracle package id.
  * @param xOracleId - The xOracle Id from xOracle package.
  * @param coinType - The type of coin.
- * @returns TxBlock created by SuiKit.
+ * @return TxBlock created by SuiKit.
  */
 const priceUpdateRequest = (
   txBlock: SuiKitTxBlock,
@@ -197,7 +197,7 @@ const priceUpdateRequest = (
  * @param xOracleId - The xOracle Id from xOracle package.
  * @param request - The result of the request.
  * @param coinType - The type of coin.
- * @returns TxBlock created by SuiKit.
+ * @return TxBlock created by SuiKit.
  */
 const confirmPriceUpdateRequest = (
   txBlock: SuiKitTxBlock,
@@ -221,7 +221,7 @@ const confirmPriceUpdateRequest = (
  * @param holderId - The holder id from supra package.
  * @param registryId - The registry id from supra package.
  * @param coinType - The type of coin.
- * @returns TxBlock created by SuiKit.
+ * @return TxBlock created by SuiKit.
  */
 const updateSupraPrice = (
   txBlock: SuiKitTxBlock,
@@ -247,7 +247,7 @@ const updateSupraPrice = (
  * @param aggregatorId - The aggregator id from switchboard package.
  * @param registryId - The registry id from switchboard package.
  * @param coinType - The type of coin.
- * @returns TxBlock created by SuiKit.
+ * @return TxBlock created by SuiKit.
  */
 const updateSwitchboardPrice = (
   txBlock: SuiKitTxBlock,
@@ -276,7 +276,7 @@ const updateSwitchboardPrice = (
  * @param vaaFromFeeId - The vaa from pyth api with feed id.
  * @param registryId - The registry id from pyth package.
  * @param coinType - The type of coin.
- * @returns TxBlock created by SuiKit.
+ * @return TxBlock created by SuiKit.
  */
 const updatePythPrice = (
   txBlock: SuiKitTxBlock,

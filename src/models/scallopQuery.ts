@@ -61,7 +61,7 @@ export class ScallopQuery {
   /**
    * Request the scallop API to initialize data.
    *
-   * @param forece Whether to force initialization.
+   * @param forece - Whether to force initialization.
    */
   public async init(forece: boolean = false) {
     if (forece || !this.address.getAddresses()) {
@@ -148,7 +148,7 @@ export class ScallopQuery {
   /**
    * Get price from pyth fee object.
    *
-   * @param coinName Specific support coin name.
+   * @param coinName - Specific support coin name.
    * @return Coin price.
    */
   public async getPriceFromPyth(coinName: SupportCoins) {

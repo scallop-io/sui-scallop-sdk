@@ -37,7 +37,7 @@ const requireSender = (txBlock: SuiKitTxBlock) => {
  * Otherwise, automatically get obligation id and key from the sender.
  *
  * @param builder - Scallop builder instance.
- * @param txBlock - txBlock created by SuiKit.
+ * @param txBlock - TxBlock created by SuiKit.
  * @param obligationId - Obligation id.
  * @param obligationKey - Obligation key.
  * @return Obligation id and key.
@@ -68,8 +68,8 @@ const requireObligationInfo = async (
 /**
  * Generate core normal methods.
  *
- * @param builder Scallop builder instance.
- * @param txBlock TxBlock created by SuiKit.
+ * @param builder - Scallop builder instance.
+ * @param txBlock - TxBlock created by SuiKit.
  * @return Core normal methods.
  */
 const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
@@ -231,8 +231,8 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
  * help users organize transaction blocks, include query obligation info, and transfer
  * coins to the sender. So, they are all asynchronous methods.
  *
- * @param builder Scallop builder instance.
- * @param txBlock TxBlock created by SuiKit.
+ * @param builder - Scallop builder instance.
+ * @param txBlock - TxBlock created by SuiKit.
  * @return Core quick methods.
  */
 const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
@@ -362,8 +362,8 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
 /**
  * Create an enhanced transaction block instance for interaction with core modules of the Scallop contract.
  *
- * @param builder Scallop builder instance.
- * @param initTxBlock Scallop txBlock, txBlock created by SuiKit, or original transaction block.
+ * @param builder - Scallop builder instance.
+ * @param initTxBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
  * @return Scallop core txBlock.
  */
 export const newCoreTxBlock = (
