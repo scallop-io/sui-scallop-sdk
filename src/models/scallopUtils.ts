@@ -197,6 +197,25 @@ export class ScallopUtils {
   }
 
   /**
+   * Get coin wrapped type.
+   *
+   * return Coin wrapped type.
+   */
+  public getCoinWrappedType(coinName: SupportCoins) {
+    return coinName === 'usdc' ||
+      coinName === 'usdt' ||
+      coinName === 'eth' ||
+      coinName === 'btc' ||
+      coinName === 'apt' ||
+      coinName === 'sol'
+      ? {
+          from: 'Wormhole',
+          type: 'Portal from Ethereum',
+        }
+      : undefined;
+  }
+
+  /**
    * Get all coin names in the obligation record by obligation id.
    *
    * @description

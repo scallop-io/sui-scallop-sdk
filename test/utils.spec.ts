@@ -84,6 +84,14 @@ describe('Test Scallop Utils', async () => {
     expect(!!usdcCoinDecimal).toBe(true);
   });
 
+  it('Should get coin wrap type', async () => {
+    const usdcCoinWrapType = scallopUtils.getCoinWrappedType('usdc');
+    if (ENABLE_LOG) {
+      console.info('Usdc coin wrap type:', usdcCoinWrapType);
+    }
+    expect(!!usdcCoinWrapType).toBe(true);
+  });
+
   it('Should get coin price', async () => {
     const coinPrice = await scallopUtils.getCoinPrice('usdc');
     if (ENABLE_LOG) {
