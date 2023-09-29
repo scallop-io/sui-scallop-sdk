@@ -8,8 +8,8 @@ import {
   MarketDataInterface,
   AssetPoolInterface,
   CollateralPoolInterface,
-  SupportCollateralCoins,
-  SupportAssetCoins,
+  SupportCollaterals,
+  SupportPools,
   ObligationInterface,
   Obligation,
 } from '../types';
@@ -113,8 +113,8 @@ export const queryMarket = async (
     supplyRate = supplyRate.isFinite() ? supplyRate : BigNumber(0);
 
     // Base data.
-    const coinName = query.utils.parseCoinName(coinType) as SupportAssetCoins;
-    const symbol = coinName.toUpperCase() as Uppercase<SupportAssetCoins>;
+    const coinName = query.utils.parseCoinName(coinType) as SupportPools;
+    const symbol = coinName.toUpperCase() as Uppercase<SupportPools>;
     const marketCoinType = query.utils.parseMarketCoinType(coinName);
     const wrappedType =
       coinName === 'usdc' ||
@@ -187,10 +187,8 @@ export const queryMarket = async (
     const totalCollateralAmount = Number(collateral.totalCollateralAmount);
 
     // Base data.
-    const coinName = query.utils.parseCoinName(
-      coinType
-    ) as SupportCollateralCoins;
-    const symbol = coinName.toUpperCase() as Uppercase<SupportCollateralCoins>;
+    const coinName = query.utils.parseCoinName(coinType) as SupportCollaterals;
+    const symbol = coinName.toUpperCase() as Uppercase<SupportCollaterals>;
     const wrappedType =
       coinName === 'usdc' ||
       coinName === 'usdt' ||

@@ -1,8 +1,7 @@
-import { SUPPORT_STACK_MARKET_COINS } from '../../constants';
+import { SUPPORT_SPOOLS } from '../../constants';
 import type { SupportCoins } from './core';
 
-export type SupportStakeMarketCoins =
-  (typeof SUPPORT_STACK_MARKET_COINS)[number];
+export type SupportStakeMarketCoins = (typeof SUPPORT_SPOOLS)[number];
 
 export type RewardType = {
   [key in SupportStakeMarketCoins]: SupportCoins;

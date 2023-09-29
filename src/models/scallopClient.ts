@@ -12,8 +12,8 @@ import type {
   ScallopClientFnReturnType,
   ScallopInstanceParams,
   ScallopClientParams,
-  SupportAssetCoins,
-  SupportCollateralCoins,
+  SupportPools,
+  SupportCollaterals,
   SupportCoins,
   SupportStakeMarketCoins,
   ScallopTxBlock,
@@ -407,18 +407,18 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async depositCollateral(
-    coinName: SupportCollateralCoins,
+    coinName: SupportCollaterals,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async depositCollateral<S extends boolean>(
-    coinName: SupportCollateralCoins,
+    coinName: SupportCollaterals,
     amount: number,
     sign?: S,
     obligationId?: SuiTxArg,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async depositCollateral<S extends boolean>(
-    coinName: SupportCollateralCoins,
+    coinName: SupportCollaterals,
     amount: number,
     sign: S = true as S,
     obligationId?: SuiTxArg,
@@ -460,7 +460,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async withdrawCollateral<S extends boolean>(
-    coinName: SupportCollateralCoins,
+    coinName: SupportCollaterals,
     amount: number,
     sign: S = true as S,
     obligationId: string,
@@ -498,17 +498,17 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async deposit(
-    coinName: SupportAssetCoins,
+    coinName: SupportPools,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async deposit<S extends boolean>(
-    coinName: SupportAssetCoins,
+    coinName: SupportPools,
     amount: number,
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async deposit<S extends boolean>(
-    coinName: SupportAssetCoins,
+    coinName: SupportPools,
     amount: number,
     sign: S = true as S,
     walletAddress?: string
@@ -539,17 +539,17 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async withdraw(
-    coinName: SupportAssetCoins,
+    coinName: SupportPools,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async withdraw<S extends boolean>(
-    coinName: SupportAssetCoins,
+    coinName: SupportPools,
     amount: number,
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async withdraw<S extends boolean>(
-    coinName: SupportAssetCoins,
+    coinName: SupportPools,
     amount: number,
     sign: S = true as S,
     walletAddress?: string
@@ -582,7 +582,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async borrow<S extends boolean>(
-    coinName: SupportAssetCoins,
+    coinName: SupportPools,
     amount: number,
     sign: S = true as S,
     obligationId: string,
@@ -621,7 +621,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async repay<S extends boolean>(
-    coinName: SupportAssetCoins,
+    coinName: SupportPools,
     amount: number,
     sign: S = true as S,
     obligationId: string,
@@ -652,7 +652,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async flashLoan(
-    coinName: SupportAssetCoins,
+    coinName: SupportPools,
     amount: number,
     callback: (
       txBlock: ScallopTxBlock,
@@ -660,7 +660,7 @@ export class ScallopClient {
     ) => TransactionArgument
   ): Promise<SuiTransactionBlockResponse>;
   public async flashLoan<S extends boolean>(
-    coinName: SupportAssetCoins,
+    coinName: SupportPools,
     amount: number,
     callback: (
       txBlock: ScallopTxBlock,
@@ -670,7 +670,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async flashLoan<S extends boolean>(
-    coinName: SupportAssetCoins,
+    coinName: SupportPools,
     amount: number,
     callback: (
       txBlock: ScallopTxBlock,

@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
-import { Scallop, SUPPORT_STACK_MARKET_COINS } from '../src';
+import { Scallop, SUPPORT_SPOOLS } from '../src';
 import type { NetworkType } from '@scallop-io/sui-kit';
 
 dotenv.config();
@@ -56,7 +56,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
   });
 
   it('Should get all stake pool data', async () => {
-    for (const marketCoinName of SUPPORT_STACK_MARKET_COINS) {
+    for (const marketCoinName of SUPPORT_SPOOLS) {
       const stakePool = await scallopQuery.getStakePool(marketCoinName);
 
       if (ENABLE_LOG) {
@@ -69,7 +69,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
   });
 
   it('Should get all reward pool data', async () => {
-    for (const marketCoinName of SUPPORT_STACK_MARKET_COINS) {
+    for (const marketCoinName of SUPPORT_SPOOLS) {
       const rewardPool = await scallopQuery.getRewardPool(marketCoinName);
 
       if (ENABLE_LOG) {
