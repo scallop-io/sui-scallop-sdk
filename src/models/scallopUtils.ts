@@ -6,8 +6,8 @@ import { ScallopQuery } from './scallopQuery';
 import {
   ADDRESSES_ID,
   PROTOCOL_OBJECT_ID,
-  SUPPORT_ASSET_COINS,
-  SUPPORT_COLLATERAL_COINS,
+  SUPPORT_POOLS,
+  SUPPORT_COLLATERALS,
   spoolRewardType,
   coinDecimals,
 } from '../constants';
@@ -256,7 +256,7 @@ export class ScallopUtils {
    */
   public async getCoinPrice(coinName: SupportCoins) {
     const priceIds = [
-      ...new Set([...SUPPORT_ASSET_COINS, ...SUPPORT_COLLATERAL_COINS]),
+      ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
     ].map((coinName) =>
       this._address.get(`core.coins.${coinName}.oracle.pyth.feed`)
     );

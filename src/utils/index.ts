@@ -1,4 +1,4 @@
-import { SUPPORT_ASSET_COINS, SUPPORT_COLLATERAL_COINS } from '../constants';
+import { SUPPORT_POOLS, SUPPORT_COLLATERALS } from '../constants';
 import type { PriceFeed } from '@pythnetwork/pyth-sui-js';
 import type { ScallopAddress } from '../models';
 
@@ -13,9 +13,7 @@ export const parseDataFromPythPriceFeed = (
   feed: PriceFeed,
   address: ScallopAddress
 ) => {
-  const coinNames = [
-    ...new Set([...SUPPORT_ASSET_COINS, ...SUPPORT_COLLATERAL_COINS]),
-  ];
+  const coinNames = [...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS])];
   const coinName = coinNames.find((coinName) => {
     return address.get(`core.coins.${coinName}.oracle.pyth.feed`) === feed.id;
   });

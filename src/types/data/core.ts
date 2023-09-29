@@ -1,13 +1,14 @@
 import {
-  SUPPORT_ASSET_COINS,
-  SUPPORT_COLLATERAL_COINS,
+  SUPPORT_POOLS,
+  SUPPORT_COLLATERALS,
   SUPPORT_ORACLES,
   SUPPORT_PACKAGES,
 } from '../../constants';
 
-export type SupportAssetCoins = (typeof SUPPORT_ASSET_COINS)[number];
-export type SupportCollateralCoins = (typeof SUPPORT_COLLATERAL_COINS)[number];
-export type SupportCoins = SupportAssetCoins | SupportCollateralCoins;
+export type SupportPools = (typeof SUPPORT_POOLS)[number];
+export type SupportCollaterals = (typeof SUPPORT_COLLATERALS)[number];
+export type SupportCoins = SupportPools | SupportCollaterals;
+export type SupportMarketCoins = `s${SupportCoins}`;
 export type SupportOracleType = (typeof SUPPORT_ORACLES)[number];
 export type SupportPackageType = (typeof SUPPORT_PACKAGES)[number];
 export type SupportCoinDecimals = Record<SupportCoins, number>;
@@ -85,9 +86,9 @@ export interface MarketDataInterface {
 
 export interface AssetPoolInterface {
   // The coin name.
-  coin: SupportAssetCoins;
+  coin: SupportPools;
   // The coin symbol of the pool, upper case.
-  symbol: Uppercase<SupportAssetCoins>;
+  symbol: Uppercase<SupportPools>;
   // The unique identifier for the coin type in the pool. (e.g., "0x...::usdc::USDC")
   coinType: string;
   // The market coin type of the pool. (e.g., "0x...reserve::MarketCoin<0x...::usdc::USDC>")
@@ -150,9 +151,9 @@ export interface AssetPoolOriginInterface {
 
 export interface CollateralPoolInterface {
   // The coin name.
-  coin: SupportCollateralCoins;
+  coin: SupportCollaterals;
   // The coin symbol of the pool, upper case.
-  symbol: Uppercase<SupportCollateralCoins>;
+  symbol: Uppercase<SupportCollaterals>;
   // The unique identifier for the coin type in the pool. (e.g., "0x...::usdc::USDC")
   coinType: string;
   // Represents the type bridged from and wrapped to.
