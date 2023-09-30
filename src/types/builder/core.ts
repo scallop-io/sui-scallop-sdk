@@ -4,7 +4,7 @@ import type {
   SuiTxArg,
 } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../../models';
-import type { SupportCollaterals, SupportPools } from '../data';
+import type { SupportCollaterals, SupportPools } from '../constant';
 
 type TransactionResult = TransactionArgument & TransactionArgument[];
 

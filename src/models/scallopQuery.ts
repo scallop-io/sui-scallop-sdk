@@ -10,12 +10,19 @@ import {
   getStakePool,
   getRewardPool,
   getPythPrice,
+  getMarketPools,
+  getMarketPool,
+  getMarketCollaterals,
+  getMarketCollateral,
+  getLendings,
 } from '../queries';
 import {
   ScallopQueryParams,
   ScallopInstanceParams,
   SupportStakeMarketCoins,
   SupportCoins,
+  SupportPools,
+  SupportCollaterals,
 } from '../types';
 
 /**
@@ -71,13 +78,12 @@ export class ScallopQuery {
   }
 
   /**
-   * Get market data.
+   * Query market data.
    *
-   * @param rateType - How interest rates are calculated.
    * @return Market data.
    */
-  public async getMarket(rateType: 'apy' | 'apr' = 'apr') {
-    return await queryMarket(this, rateType);
+  public async queryMarket() {
+    return await queryMarket(this);
   }
 
   /**
@@ -91,12 +97,12 @@ export class ScallopQuery {
   }
 
   /**
-   * Get obligation data.
+   * Query obligation data.
    *
    * @param obligationId - The obligation id.
    * @return Obligation data.
    */
-  public async getObligation(obligationId: string) {
+  public async queryObligation(obligationId: string) {
     return queryObligation(this, obligationId);
   }
 
@@ -153,5 +159,57 @@ export class ScallopQuery {
    */
   public async getPriceFromPyth(coinName: SupportCoins) {
     return await getPythPrice(this, coinName);
+  }
+
+  /**
+   * Get market pools.
+   *
+   * @param coinNames - Specific an array of support coin name.
+   * @return Market pools data.
+   */
+  public async getMarketPools(coinNames?: SupportPools[]) {
+    return await getMarketPools(this, coinNames);
+  }
+
+  /**
+   * Get  market pool
+   *
+   * @param coinName - Specific support coin name.
+   * @return Market pool data.
+   */
+  public async getMarketPool(coinName: SupportPools) {
+    return await getMarketPool(this, coinName);
+  }
+
+  /**
+   * Get market collaterals.
+   *
+   * @param coinNames - Specific an array of support coin name.
+   * @return Market collaterals data.
+   */
+  public async getMarketCollaterals(coinNames?: SupportCollaterals[]) {
+    return await getMarketCollaterals(this, coinNames);
+  }
+
+  /**
+   * Get  market collateral
+   *
+   * @param coinName - Specific support coin name.
+   * @return Market collateral data.
+   */
+  public async getMarketCollateral(coinName: SupportCollaterals) {
+    return await getMarketCollateral(this, coinName);
+  }
+
+  public async getLendings() {
+    return await getLendings(this);
+  }
+
+  public async getCollaterals() {
+    return await getLendings(this);
+  }
+
+  public async getBorrowings() {
+    return await getLendings(this);
   }
 }

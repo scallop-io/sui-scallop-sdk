@@ -1,4 +1,4 @@
-import type { SupportCoins } from './data';
+import type { SupportCoins } from './constant';
 
 export type PriceMap = Map<
   SupportCoins,

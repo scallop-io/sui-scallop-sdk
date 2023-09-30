@@ -29,6 +29,8 @@ export const SUPPORT_COLLATERALS = [
 
 export const SUPPORT_SPOOLS = ['ssui', 'susdc', 'susdt'] as const;
 
+export const SUPPORT_REWARD_POOLS = ['sui'] as const;
+
 export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
 
 export const SUPPORT_PACKAGES = [

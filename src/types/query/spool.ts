@@ -1,12 +1,3 @@
-import { SUPPORT_SPOOLS } from '../../constants';
-import type { SupportCoins } from './core';
-
-export type SupportStakeMarketCoins = (typeof SUPPORT_SPOOLS)[number];
-
-export type RewardType = {
-  [key in SupportStakeMarketCoins]: SupportCoins;
-};
-
 export interface StakeAccount {
   id: string;
   type: string;
