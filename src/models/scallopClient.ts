@@ -103,8 +103,8 @@ export class ScallopClient {
    *
    * @return Market data.
    */
-  public async queryMarket(rateType?: 'apy' | 'apr') {
-    return await this.query.getMarket(rateType);
+  public async queryMarket() {
+    return await this.query.queryMarket();
   }
 
   /**
@@ -131,7 +131,7 @@ export class ScallopClient {
    * @return Obligation data.
    */
   public async queryObligation(obligationId: string) {
-    return await this.query.getObligation(obligationId);
+    return await this.query.queryObligation(obligationId);
   }
 
   /**

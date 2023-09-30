@@ -19,6 +19,7 @@ import type {
   SupportCoins,
   SupportStakeMarketCoins,
   PriceMap,
+  CoinWrappedType,
 } from '../types';
 
 /**
@@ -118,6 +119,22 @@ export class ScallopUtils {
    * @return Coin Name.
    */
   public parseCoinName(coinType: string) {
+    const coinObjectTypeRegex = new RegExp(`0x2::coin::Coin<(.*?[^>]*>)$`);
+    const marketCoinTypeRegex = new RegExp(
+      `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<([^>]*)>`
+    );
+    const marketCoinObjectTypeRegex = new RegExp(
+      `0x2::coin::Coin<${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<([^>]*)>>`
+    );
+    const coinObjectType = coinType?.match(coinObjectTypeRegex);
+    const marketCoinType = coinType?.match(marketCoinTypeRegex);
+    const marketCoinObjectType = coinType?.match(marketCoinObjectTypeRegex);
+
+    coinType =
+      marketCoinObjectType?.[1] ||
+      marketCoinType?.[1] ||
+      coinObjectType?.[1] ||
+      coinType;
     const wormHoleCoinTypes = [
       `${this._address.get(`core.coins.usdc.id`)}::coin::COIN`,
       `${this._address.get(`core.coins.usdt.id`)}::coin::COIN`,
@@ -201,7 +218,7 @@ export class ScallopUtils {
    *
    * return Coin wrapped type.
    */
-  public getCoinWrappedType(coinName: SupportCoins) {
+  public getCoinWrappedType(coinName: SupportCoins): CoinWrappedType {
     return coinName === 'usdc' ||
       coinName === 'usdt' ||
       coinName === 'eth' ||
