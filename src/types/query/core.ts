@@ -1,4 +1,8 @@
-import { SupportPools, SupportCollaterals, CoinWrappedType } from '../constant';
+import type {
+  SupportPools,
+  SupportCollaterals,
+  CoinWrappedType,
+} from '../constant';
 
 export type Obligation = { id: string; keyId: string };
 
@@ -10,6 +14,7 @@ export type MarketPools = OptionalKeys<Record<SupportPools, MarketPool>>;
 export type MarketCollaterals = OptionalKeys<
   Record<SupportCollaterals, MarketCollateral>
 >;
+export type MarketCoins = OptionalKeys<Record<SupportPools, number>>;
 
 export type BalanceSheet = {
   cash: string;

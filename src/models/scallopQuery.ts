@@ -14,6 +14,7 @@ import {
   getMarketPool,
   getMarketCollaterals,
   getMarketCollateral,
+  getMarketCoins,
   getLendings,
 } from '../queries';
 import {
@@ -199,6 +200,19 @@ export class ScallopQuery {
    */
   public async getMarketCollateral(coinName: SupportCollaterals) {
     return await getMarketCollateral(this, coinName);
+  }
+
+  /**
+   * Get  market coins
+   *
+   * @param coinName - Specific support coin name.
+   * @return Market market coins data.
+   */
+  public async getMarketCoins(
+    coinNames?: SupportCollaterals[],
+    ownerAddress?: string
+  ) {
+    return await getMarketCoins(this, coinNames, ownerAddress);
   }
 
   public async getLendings() {

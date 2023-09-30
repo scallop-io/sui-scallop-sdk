@@ -1,4 +1,5 @@
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
+import BigNumber from 'bignumber.js';
 import {
   SUPPORT_POOLS,
   PROTOCOL_OBJECT_ID,
@@ -27,6 +28,7 @@ import {
   BalanceSheet,
   RiskModel,
   CollateralStat,
+  MarketCoins,
 } from '../types';
 
 /**
@@ -524,4 +526,72 @@ export const queryObligation = async (
   txBlock.moveCall(queryTarget, [obligationId]);
   const queryResult = await query.suiKit.inspectTxn(txBlock);
   return queryResult.events[0].parsedJson as ObligationQueryInterface;
+};
+
+/**
+ * Query all owned market coins (sCoin).
+ *
+ * @param query - The Scallop query instance.
+ * @param ownerAddress - The owner address.
+ * @return Owned market coins.
+ */
+export const getMarketCoins = async (
+  query: ScallopQuery,
+  coinNames?: SupportPools[],
+  ownerAddress?: string
+) => {
+  const marketCoinNames = coinNames || SUPPORT_POOLS;
+  const owner = ownerAddress || query.suiKit.currentAddress();
+  const marketCoinObjectsResponse: SuiObjectResponse[] = [];
+  let hasNextPage = false;
+  let nextCursor: string | null = null;
+  do {
+    const paginatedMarketCoinObjectsResponse = await query.suiKit
+      .client()
+      .getOwnedObjects({
+        owner,
+        filter: {
+          MatchAny: marketCoinNames.map((coinName) => {
+            const marketCoinType = query.utils.parseMarketCoinType(coinName);
+            return { StructType: `0x2::coin::Coin<${marketCoinType}>` };
+          }),
+        },
+        options: {
+          showType: true,
+          showContent: true,
+        },
+        cursor: nextCursor,
+      });
+
+    marketCoinObjectsResponse.push(...paginatedMarketCoinObjectsResponse.data);
+    if (
+      paginatedMarketCoinObjectsResponse.hasNextPage &&
+      paginatedMarketCoinObjectsResponse.nextCursor
+    ) {
+      hasNextPage = true;
+      nextCursor = paginatedMarketCoinObjectsResponse.nextCursor;
+    }
+  } while (hasNextPage);
+
+  const marketCoins: MarketCoins = {};
+  const marketCoinObjects = marketCoinObjectsResponse
+    .map((response) => {
+      return response.data;
+    })
+    .filter(
+      (object: any) => object !== undefined && object !== null
+    ) as SuiObjectData[];
+  for (const marketCoinObject of marketCoinObjects) {
+    const type = marketCoinObject.type as string;
+    if (marketCoinObject.content && 'fields' in marketCoinObject.content) {
+      const fields = marketCoinObject.content.fields as any;
+      const coinName = query.utils.parseCoinName(type);
+      if (coinName) {
+        marketCoins[coinName] = BigNumber(marketCoins[coinName] ?? 0)
+          .plus(fields.balance)
+          .toNumber();
+      }
+    }
+  }
+  return marketCoins;
 };
