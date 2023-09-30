@@ -16,7 +16,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
   });
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  it.skip('Should query market data', async () => {
+  it('Should query market data', async () => {
     const market = await scallopQuery.queryMarket();
     if (ENABLE_LOG) {
       console.info('Market:');
@@ -25,7 +25,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!market).toBe(true);
   });
 
-  it.skip('Should get obligations and its all obligation data', async () => {
+  it('Should get obligations and its all obligation data', async () => {
     const obligations = await scallopQuery.getObligations();
 
     if (ENABLE_LOG) {
@@ -45,7 +45,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     }
   });
 
-  it.skip('Should get all stake accounts data', async () => {
+  it('Should get all stake accounts data', async () => {
     const allStakeAccounts = await scallopQuery.getAllStakeAccounts();
 
     if (ENABLE_LOG) {
@@ -55,7 +55,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!allStakeAccounts).toBe(true);
   });
 
-  it.skip('Should get all stake pool data', async () => {
+  it('Should get all stake pool data', async () => {
     for (const marketCoinName of SUPPORT_SPOOLS) {
       const stakePool = await scallopQuery.getStakePool(marketCoinName);
 
@@ -68,7 +68,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     }
   });
 
-  it.skip('Should get all reward pool data', async () => {
+  it('Should get all reward pool data', async () => {
     for (const marketCoinName of SUPPORT_SPOOLS) {
       const rewardPool = await scallopQuery.getRewardPool(marketCoinName);
 
@@ -81,7 +81,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     }
   });
 
-  it.skip('Should get pyth price data', async () => {
+  it('Should get pyth price data', async () => {
     const coinName = 'usdc';
     const usdcPrice = await scallopQuery.getPriceFromPyth(coinName);
 
@@ -92,7 +92,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(usdcPrice).toBeGreaterThan(0);
   });
 
-  it.skip('Should get market pools data', async () => {
+  it('Should get market pools data', async () => {
     const marketPools = await scallopQuery.getMarketPools();
 
     if (ENABLE_LOG) {
@@ -102,7 +102,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!marketPools).toBe(true);
   });
 
-  it.skip('Should get market pool data', async () => {
+  it('Should get market pool data', async () => {
     const suiMarketPool = await scallopQuery.getMarketPool('sui');
 
     if (ENABLE_LOG) {
@@ -112,7 +112,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!suiMarketPool).toBe(true);
   });
 
-  it.skip('Should get market collaterals data', async () => {
+  it('Should get market collaterals data', async () => {
     const marketCollaterals = await scallopQuery.getMarketCollaterals();
 
     if (ENABLE_LOG) {
@@ -122,7 +122,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!marketCollaterals).toBe(true);
   });
 
-  it.skip('Should get market collateral data', async () => {
+  it('Should get market collateral data', async () => {
     const suiMarketCollateral = await scallopQuery.getMarketCollateral('sui');
 
     if (ENABLE_LOG) {
@@ -132,7 +132,17 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!suiMarketCollateral).toBe(true);
   });
 
-  it.skip('Should get user lending data', async () => {
+  it('Should get market coins data', async () => {
+    const marketCoins = await scallopQuery.getMarketCoins();
+
+    if (ENABLE_LOG) {
+      console.info('Market coins:');
+      console.dir(marketCoins, { depth: null, colors: true });
+    }
+    expect(!!marketCoins).toBe(true);
+  });
+
+  it('Should get user lending data', async () => {
     const lendingPools = await scallopQuery.getLendings();
 
     if (ENABLE_LOG) {
