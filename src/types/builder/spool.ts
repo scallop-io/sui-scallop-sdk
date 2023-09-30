@@ -1,12 +1,10 @@
-import type { TransactionArgument } from '@mysten/sui.js/transactions';
 import type {
   SuiTxBlock as SuiKitTxBlock,
   SuiTxArg,
 } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../../models';
 import type { SupportStakeMarketCoins } from '../constant';
-
-type TransactionResult = TransactionArgument & TransactionArgument[];
+import type { TransactionResult } from './index';
 
 export type SpoolIds = {
   spoolPkg: string;
