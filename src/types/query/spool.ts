@@ -1,3 +1,16 @@
+import { SupportStakeMarketCoins } from '../constant';
+
+type OptionalKeys<T> = {
+  [K in keyof T]?: T[K];
+};
+
+export type StakePools = OptionalKeys<
+  Record<SupportStakeMarketCoins, StakePool>
+>;
+export type RewardPools = OptionalKeys<
+  Record<SupportStakeMarketCoins, RewardPool>
+>;
+
 export interface StakeAccount {
   id: string;
   type: string;

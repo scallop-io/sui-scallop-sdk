@@ -56,16 +56,23 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
   });
 
   it('Should get all stake pool data', async () => {
-    for (const marketCoinName of SUPPORT_SPOOLS) {
-      const stakePool = await scallopQuery.getStakePool(marketCoinName);
+    const stakePools = await scallopQuery.getStakePools();
 
-      if (ENABLE_LOG) {
-        console.info('Market coin name:', marketCoinName);
-        console.info('Stake pool:');
-        console.dir(stakePool, { depth: null, colors: true });
-      }
-      expect(!!stakePool).toBe(true);
+    if (ENABLE_LOG) {
+      console.info('Stake pools:');
+      console.dir(stakePools, { depth: null, colors: true });
     }
+    expect(!!stakePools).toBe(true);
+  });
+
+  it('Should get stake pool data', async () => {
+    const suiStakePool = await scallopQuery.getStakePool('ssui');
+
+    if (ENABLE_LOG) {
+      console.info('Sui stake pool:');
+      console.dir(suiStakePool, { depth: null, colors: true });
+    }
+    expect(!!suiStakePool).toBe(true);
   });
 
   it('Should get all reward pool data', async () => {

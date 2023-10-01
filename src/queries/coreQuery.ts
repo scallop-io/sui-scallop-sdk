@@ -140,7 +140,7 @@ export const queryMarket = async (query: ScallopQuery) => {
  *
  * @param query - The Scallop query instance.
  * @param coinNames - Specific an array of support coin name.
- * @return Coin market pools data.
+ * @return Market pools data.
  */
 export const getMarketPools = async (
   query: ScallopQuery,
@@ -180,7 +180,7 @@ export const getMarketPools = async (
  * @param coinName - Suppot coin name.
  * @param marketObject - The market object.
  * @param coinPrice - The coin price.
- * @returns Coin market pool data.
+ * @returns Market pool data.
  */
 export const getMarketPool = async (
   query: ScallopQuery,
@@ -337,7 +337,7 @@ export const getMarketPool = async (
  *
  * @param query - The Scallop query instance.
  * @param coinNames - Specific an array of support coin name.
- * @return Coin market collaterals data.
+ * @return Market collaterals data.
  */
 export const getMarketCollaterals = async (
   query: ScallopQuery,
@@ -377,7 +377,7 @@ export const getMarketCollaterals = async (
  * @param coinName - Suppot coin name.
  * @param marketObject - The market object.
  * @param coinPrice - The coin price.
- * @returns Coin market collateral data.
+ * @returns Market collateral data.
  */
 export const getMarketCollateral = async (
   query: ScallopQuery,

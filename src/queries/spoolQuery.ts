@@ -124,11 +124,11 @@ export const getStakeAccounts = async (
 };
 
 /**
- * Get stake account of the owner.
+ * Get stake pool data.
  *
  * @param query - The Scallop query instance.
  * @param marketCoinName - Support stake market coins.
- * @return Stake account.
+ * @return Stake pool data.
  */
 export const getStakePool = async (
   query: ScallopQuery,
