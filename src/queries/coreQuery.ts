@@ -604,3 +604,60 @@ export const getMarketCoins = async (
   }
   return marketCoins;
 };
+
+/**
+ * Query owned market coin (sCoin).
+ *
+ * @param query - The Scallop query instance.
+ * @param coinName - Specific support coin name.
+ * @param ownerAddress - The owner address.
+ * @return Owned market coin.
+ */
+export const getMarketCoin = async (
+  query: ScallopQuery,
+  coinName: SupportPoolCoins,
+  ownerAddress?: string
+) => {
+  const owner = ownerAddress || query.suiKit.currentAddress();
+  const marketCoinType = query.utils.parseMarketCoinType(coinName);
+  const marketCoinObjectsResponse: SuiObjectResponse[] = [];
+  let hasNextPage = false;
+  let nextCursor: string | null = null;
+  do {
+    const paginatedMarketCoinObjectsResponse = await query.suiKit
+      .client()
+      .getOwnedObjects({
+        owner,
+        filter: { StructType: `0x2::coin::Coin<${marketCoinType}>` },
+        options: {
+          showContent: true,
+        },
+        cursor: nextCursor,
+      });
+
+    marketCoinObjectsResponse.push(...paginatedMarketCoinObjectsResponse.data);
+    if (
+      paginatedMarketCoinObjectsResponse.hasNextPage &&
+      paginatedMarketCoinObjectsResponse.nextCursor
+    ) {
+      hasNextPage = true;
+      nextCursor = paginatedMarketCoinObjectsResponse.nextCursor;
+    }
+  } while (hasNextPage);
+
+  let marketCoin: number = 0;
+  const marketCoinObjects = marketCoinObjectsResponse
+    .map((response) => {
+      return response.data;
+    })
+    .filter(
+      (object: any) => object !== undefined && object !== null
+    ) as SuiObjectData[];
+  for (const marketCoinObject of marketCoinObjects) {
+    if (marketCoinObject.content && 'fields' in marketCoinObject.content) {
+      const fields = marketCoinObject.content.fields as any;
+      marketCoin = BigNumber(marketCoin).plus(fields.balance).toNumber();
+    }
+  }
+  return marketCoin;
+};

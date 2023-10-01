@@ -142,6 +142,15 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!marketCoins).toBe(true);
   });
 
+  it('Should get market coin data', async () => {
+    const marketCoin = await scallopQuery.getMarketCoin('sui');
+
+    if (ENABLE_LOG) {
+      console.info('Market coin:', marketCoin);
+    }
+    expect(!!marketCoin).toBe(true);
+  });
+
   it('Should get user lending data', async () => {
     const lendingPools = await scallopQuery.getLendings();
 
