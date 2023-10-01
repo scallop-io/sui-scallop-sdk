@@ -275,7 +275,7 @@ export class ScallopUtils {
    * @param coinNames - Specific an array of support coin name.
    * @return  Coin price.
    */
-  public async getAllCoinPrice(coinNames: SupportCoins[]) {
+  public async getCoinPrices(coinNames: SupportCoins[]) {
     const priceIds = [
       ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
     ].map((coinName) =>

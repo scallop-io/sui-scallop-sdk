@@ -84,7 +84,7 @@ export const queryMarket = async (query: ScallopQuery) => {
     const coinType = '0x' + pool.type.name;
     const coinName = query.utils.parseCoinName(coinType) as SupportPoolCoins;
     const coinPrice =
-      (await query.utils.getAllCoinPrice([coinName]))?.[coinName] ?? 0;
+      (await query.utils.getCoinPrices([coinName]))?.[coinName] ?? 0;
 
     pools.push({
       coin: coinName,
@@ -114,7 +114,7 @@ export const queryMarket = async (query: ScallopQuery) => {
       coinType
     ) as SupportCollateralCoins;
     const coinPrice =
-      (await query.utils.getAllCoinPrice([coinName]))?.[coinName] ?? 0;
+      (await query.utils.getCoinPrices([coinName]))?.[coinName] ?? 0;
 
     collaterals.push({
       coin: coinName,
@@ -146,7 +146,7 @@ export const getMarketPools = async (
   query: ScallopQuery,
   coinNames?: SupportPoolCoins[]
 ) => {
-  const poolCoinNames = coinNames || SUPPORT_POOLS;
+  coinNames = coinNames || [...SUPPORT_POOLS];
   const marketId = query.address.get('core.market');
   const marketObjectResponse = await query.suiKit.client().getObject({
     id: marketId,
@@ -154,10 +154,10 @@ export const getMarketPools = async (
       showContent: true,
     },
   });
-  const allCoinPrices = await query.utils.getAllCoinPrice(coinNames ?? []);
+  const allCoinPrices = await query.utils.getCoinPrices(coinNames ?? []);
 
   const marketPools: MarketPools = {};
-  for (const coinName of poolCoinNames) {
+  for (const coinName of coinNames) {
     const marketPool = await getMarketPool(
       query,
       coinName,
@@ -316,7 +316,7 @@ export const getMarketPool = async (
     );
 
     coinPrice =
-      coinPrice || (await query.utils.getAllCoinPrice([coinName]))?.[coinName];
+      coinPrice || (await query.utils.getCoinPrices([coinName]))?.[coinName];
     marketPool = {
       coin: coinName,
       symbol: query.utils.parseSymbol(coinName),
@@ -343,7 +343,7 @@ export const getMarketCollaterals = async (
   query: ScallopQuery,
   coinNames?: SupportCollateralCoins[]
 ) => {
-  const collateralCoinNames = coinNames || SUPPORT_COLLATERALS;
+  coinNames = coinNames || [...SUPPORT_COLLATERALS];
   const marketId = query.address.get('core.market');
   const marketObjectResponse = await query.suiKit.client().getObject({
     id: marketId,
@@ -351,10 +351,10 @@ export const getMarketCollaterals = async (
       showContent: true,
     },
   });
-  const allCoinPrices = await query.utils.getAllCoinPrice(coinNames ?? []);
+  const allCoinPrices = await query.utils.getCoinPrices(coinNames ?? []);
 
   const marketCollaterals: MarketCollaterals = {};
-  for (const coinName of collateralCoinNames) {
+  for (const coinName of coinNames) {
     const marketCollateral = await getMarketCollateral(
       query,
       coinName,
@@ -470,7 +470,7 @@ export const getMarketCollateral = async (
     });
 
     coinPrice =
-      coinPrice || (await query.utils.getAllCoinPrice([coinName]))?.[coinName];
+      coinPrice || (await query.utils.getCoinPrices([coinName]))?.[coinName];
     marketCollateral = {
       coin: coinName,
       symbol: query.utils.parseSymbol(coinName),
@@ -567,7 +567,7 @@ export const queryObligation = async (
  * @param ownerAddress - The owner address.
  * @return All owned coin amounts.
  */
-export const getAllCoinAmount = async (
+export const getCoinAmounts = async (
   query: ScallopQuery,
   coinNames?: SupportPoolCoins[],
   ownerAddress?: string
@@ -694,7 +694,7 @@ export const getCoinAmount = async (
  * @param ownerAddress - The owner address.
  * @return All owned market coins amount.
  */
-export const getAllMarketCoinAmount = async (
+export const getMarketCoinAmounts = async (
   query: ScallopQuery,
   marketCoinNames?: SupportMarketCoins[],
   ownerAddress?: string
