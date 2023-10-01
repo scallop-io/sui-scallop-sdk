@@ -88,7 +88,7 @@ export const queryMarket = async (query: ScallopQuery) => {
 
     pools.push({
       coin: coinName,
-      symbol: coinName.toUpperCase() as Uppercase<SupportPoolCoins>,
+      symbol: query.utils.parseSymbol(coinName),
       coinType: coinType,
       marketCoinType: query.utils.parseMarketCoinType(coinName),
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
@@ -118,7 +118,7 @@ export const queryMarket = async (query: ScallopQuery) => {
 
     collaterals.push({
       coin: coinName,
-      symbol: coinName.toUpperCase() as Uppercase<SupportCollateralCoins>,
+      symbol: query.utils.parseSymbol(coinName),
       coinType: coinType,
       marketCoinType: query.utils.parseMarketCoinType(coinName),
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
@@ -319,7 +319,7 @@ export const getMarketPool = async (
       coinPrice || (await query.utils.getAllCoinPrice([coinName]))?.[coinName];
     marketPool = {
       coin: coinName,
-      symbol: coinName.toUpperCase() as Uppercase<SupportPoolCoins>,
+      symbol: query.utils.parseSymbol(coinName),
       coinType: query.utils.parseCoinType(coinName),
       marketCoinType: query.utils.parseMarketCoinType(coinName),
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
@@ -473,7 +473,7 @@ export const getMarketCollateral = async (
       coinPrice || (await query.utils.getAllCoinPrice([coinName]))?.[coinName];
     marketCollateral = {
       coin: coinName,
-      symbol: coinName.toUpperCase() as Uppercase<SupportPoolCoins>,
+      symbol: query.utils.parseSymbol(coinName),
       coinType: query.utils.parseCoinType(coinName),
       marketCoinType: query.utils.parseMarketCoinType(coinName),
       coinWrappedType: query.utils.getCoinWrappedType(coinName),

@@ -113,7 +113,7 @@ export type CollateralStat = { amount: string };
 
 export type MarketPool = {
   coin: SupportPoolCoins;
-  symbol: Uppercase<SupportPoolCoins>;
+  symbol: String;
   coinType: string;
   marketCoinType: string;
   coinWrappedType: CoinWrappedType;
@@ -123,7 +123,7 @@ export type MarketPool = {
 
 export type MarketCollateral = {
   coin: SupportCollateralCoins;
-  symbol: Uppercase<SupportCollateralCoins>;
+  symbol: string;
   coinType: string;
   marketCoinType: string;
   coinWrappedType: CoinWrappedType;
