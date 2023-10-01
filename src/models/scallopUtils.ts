@@ -119,22 +119,10 @@ export class ScallopUtils {
    * @return Coin Name.
    */
   public parseCoinName(coinType: string) {
-    const coinObjectTypeRegex = new RegExp(`0x2::coin::Coin<(.*?[^>]*>)$`);
-    const marketCoinTypeRegex = new RegExp(
-      `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<([^>]*)>`
-    );
-    const marketCoinObjectTypeRegex = new RegExp(
-      `0x2::coin::Coin<${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<([^>]*)>>`
-    );
-    const coinObjectType = coinType?.match(coinObjectTypeRegex);
-    const marketCoinType = coinType?.match(marketCoinTypeRegex);
-    const marketCoinObjectType = coinType?.match(marketCoinObjectTypeRegex);
+    const coinTypeRegex = new RegExp(`((0x[^:]+::[^:]+::[^<>]+))(?![^<>]*<)`);
+    const coinTypeMatch = coinType.match(coinTypeRegex);
 
-    coinType =
-      marketCoinObjectType?.[1] ||
-      marketCoinType?.[1] ||
-      coinObjectType?.[1] ||
-      coinType;
+    coinType = coinTypeMatch?.[1] || coinType;
     const wormHoleCoinTypes = [
       `${this._address.get(`core.coins.usdc.id`)}::coin::COIN`,
       `${this._address.get(`core.coins.usdt.id`)}::coin::COIN`,
