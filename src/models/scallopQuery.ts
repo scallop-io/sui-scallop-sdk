@@ -1,7 +1,7 @@
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
-import { ADDRESSES_ID } from '../constants';
+import { ADDRESSES_ID, SUPPORT_SPOOLS } from '../constants';
 import {
   queryMarket,
   getObligations,
@@ -28,6 +28,8 @@ import {
   SupportPoolCoins,
   SupportCollateralCoins,
   SupportMarketCoins,
+  StakePools,
+  RewardPools,
 } from '../types';
 
 /**
@@ -133,7 +135,27 @@ export class ScallopQuery {
     ownerAddress?: string
   ) {
     const allStakeAccount = await this.getAllStakeAccounts(ownerAddress);
-    return allStakeAccount[marketCoinName];
+    return allStakeAccount[marketCoinName] ?? [];
+  }
+
+  /**
+   * Get stake pools (spool) data.
+   *
+   * @param marketCoinNames - Specific an array of market coin name.
+   * @return Stake pool data.
+   */
+  public async getStakePools(marketCoinNames?: SupportStakeMarketCoins[]) {
+    marketCoinNames = marketCoinNames ?? [...SUPPORT_SPOOLS];
+    const stakePools: StakePools = {};
+    for (const marketCoinName of marketCoinNames) {
+      const stakePool = await getStakePool(this, marketCoinName);
+
+      if (stakePool) {
+        stakePools[marketCoinName] = stakePool;
+      }
+    }
+
+    return stakePools;
   }
 
   /**
@@ -144,6 +166,26 @@ export class ScallopQuery {
    */
   public async getStakePool(marketCoinName: SupportStakeMarketCoins) {
     return await getStakePool(this, marketCoinName);
+  }
+
+  /**
+   * Get reward pools data.
+   *
+   * @param marketCoinNames - Specific an array of market coin name.
+   * @return Reward pools data.
+   */
+  public async getRewardPools(marketCoinNames?: SupportStakeMarketCoins[]) {
+    marketCoinNames = marketCoinNames ?? [...SUPPORT_SPOOLS];
+    const rewardPools: RewardPools = {};
+    for (const marketCoinName of marketCoinNames) {
+      const rewardPool = await getRewardPool(this, marketCoinName);
+
+      if (rewardPool) {
+        rewardPools[marketCoinName] = rewardPool;
+      }
+    }
+
+    return rewardPools;
   }
 
   /**
