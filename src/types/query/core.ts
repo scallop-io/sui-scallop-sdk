@@ -118,15 +118,17 @@ export type MarketPool = {
   marketCoinType: string;
   coinWrappedType: CoinWrappedType;
   decimal: number;
+  price: number;
 } & CalculatedMarketPoolData;
 
 export type MarketCollateral = {
-  coin: SupportPoolCoins;
-  symbol: Uppercase<SupportPoolCoins>;
+  coin: SupportCollateralCoins;
+  symbol: Uppercase<SupportCollateralCoins>;
   coinType: string;
   marketCoinType: string;
   coinWrappedType: CoinWrappedType;
   decimal: number;
+  price: number;
 } & ParsedMarketCollateralData;
 
 export type OriginMarketPoolData = {
