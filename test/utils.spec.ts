@@ -18,6 +18,20 @@ describe('Test Scallop Utils', async () => {
   const scallopUtils = await scallopSDK.createScallopUtils();
   const address = await scallopSDK.getScallopAddress();
 
+  it('Should get symbol from coin and market coin name', async () => {
+    const usdcSymbol = scallopUtils.parseSymbol('usdc');
+    const ssuiSymbol = scallopUtils.parseSymbol('ssui');
+
+    const usdcAssertSymbol = 'USDC';
+    const ssuiAssertSymbol = 'sSUI';
+    if (ENABLE_LOG) {
+      console.info('Usdc Symbol:', usdcSymbol);
+      console.info('sSui Symbol:', ssuiSymbol);
+    }
+    expect(usdcSymbol).toEqual(usdcAssertSymbol);
+    expect(ssuiSymbol).toEqual(ssuiAssertSymbol);
+  });
+
   it('Should get coin type from coin name', async () => {
     const usdcCoinType = scallopUtils.parseCoinType('usdc');
     const suiCoinType = scallopUtils.parseCoinType('sui');

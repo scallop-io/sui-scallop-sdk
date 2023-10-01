@@ -12,11 +12,12 @@ import {
   coinDecimals,
 } from '../constants';
 import { queryObligation } from '../queries';
-import { parseDataFromPythPriceFeed } from '../utils';
+import { parseDataFromPythPriceFeed, isMarketCoin } from '../utils';
 import type {
   ScallopUtilsParams,
   ScallopInstanceParams,
   SupportCoins,
+  SupportMarketCoins,
   SupportStakeMarketCoins,
   CoinPrices,
   PriceMap,
@@ -77,6 +78,20 @@ export class ScallopUtils {
       await this._address.read();
     }
     await this._query.init(forece);
+  }
+
+  /**
+   * Convert coin name to symbol.
+   *
+   * @param coinName - Specific support coin name.
+   * @return Symbol string.
+   */
+  public parseSymbol(coinName: SupportCoins | SupportMarketCoins) {
+    if (isMarketCoin(coinName)) {
+      return coinName.slice(0, 1) + coinName.slice(1).toUpperCase();
+    } else {
+      return coinName.toUpperCase();
+    }
   }
 
   /**
