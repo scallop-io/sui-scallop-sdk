@@ -93,7 +93,7 @@ export const queryMarket = async (query: ScallopQuery) => {
       marketCoinType: query.utils.parseMarketCoinType(coinName),
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
       decimal: query.utils.getCoinDecimal(coinName),
-      price: coinPrice,
+      coinPrice: coinPrice,
       ...calculatedMarketPoolData,
     });
   }
@@ -123,7 +123,7 @@ export const queryMarket = async (query: ScallopQuery) => {
       marketCoinType: query.utils.parseMarketCoinType(coinName),
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
       decimal: query.utils.getCoinDecimal(coinName),
-      price: coinPrice,
+      coinPrice: coinPrice,
       ...parsedMarketCollateralData,
     });
   }
@@ -324,7 +324,7 @@ export const getMarketPool = async (
       marketCoinType: query.utils.parseMarketCoinType(coinName),
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
       decimal: query.utils.getCoinDecimal(coinName),
-      price: coinPrice ?? 0,
+      coinPrice: coinPrice ?? 0,
       ...calculatedMarketPoolData,
     };
   }
@@ -478,7 +478,7 @@ export const getMarketCollateral = async (
       marketCoinType: query.utils.parseMarketCoinType(coinName),
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
       decimal: query.utils.getCoinDecimal(coinName),
-      price: coinPrice ?? 0,
+      coinPrice: coinPrice ?? 0,
       ...parsedMarketCollateralData,
     };
   }
