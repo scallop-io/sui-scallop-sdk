@@ -14,8 +14,10 @@ import {
   getMarketPool,
   getMarketCollaterals,
   getMarketCollateral,
-  getMarketCoins,
-  getMarketCoin,
+  getAllCoinAmount,
+  getCoinAmount,
+  getAllMarketCoinAmount,
+  getMarketCoinAmount,
   getLendings,
 } from '../queries';
 import {
@@ -25,6 +27,7 @@ import {
   SupportCoins,
   SupportPoolCoins,
   SupportCollateralCoins,
+  SupportMarketCoins,
 } from '../types';
 
 /**
@@ -204,31 +207,59 @@ export class ScallopQuery {
   }
 
   /**
-   * Get  market coins
+   * Get all coins amount
    *
    * @param coinNames - Specific an array of support coin name.
    * @param ownerAddress - The owner address.
-   * @return Market market coins data.
+   * @return All coins amount.
    */
-  public async getMarketCoins(
-    coinNames?: SupportCollateralCoins[],
+  public async getAllCoinAmount(
+    coinNames?: SupportPoolCoins[],
     ownerAddress?: string
   ) {
-    return await getMarketCoins(this, coinNames, ownerAddress);
+    return await getAllCoinAmount(this, coinNames, ownerAddress);
   }
 
   /**
-   * Get  market coin
+   * Get coin amount
    *
    * @param coinNames - Specific support coin name.
    * @param ownerAddress - The owner address.
-   * @return Market market coin data.
+   * @return Coin amount.
    */
-  public async getMarketCoin(
-    coinName: SupportCollateralCoins,
+  public async getCoinAmount(
+    coinName: SupportPoolCoins,
     ownerAddress?: string
   ) {
-    return await getMarketCoin(this, coinName, ownerAddress);
+    return await getCoinAmount(this, coinName, ownerAddress);
+  }
+
+  /**
+   * Get all market coins amount
+   *
+   * @param coinNames - Specific an array of support market coin name.
+   * @param ownerAddress - The owner address.
+   * @return All market market coins amount.
+   */
+  public async getAllMarketCoinAmount(
+    marketCoinNames?: SupportMarketCoins[],
+    ownerAddress?: string
+  ) {
+    return await getAllMarketCoinAmount(this, marketCoinNames, ownerAddress);
+  }
+
+  /**
+   * Get market coin amount
+   *
+   * @param coinNames - Specific support market coin name.
+   * @param ownerAddress - The owner address.
+   * @return Market market coin amount.
+   */
+  public async getMarketCoinAmount(
+    marketCoinName: SupportMarketCoins,
+    ownerAddress?: string
+  ) {
+    return await getMarketCoinAmount(this, marketCoinName, ownerAddress);
   }
 
   public async getCollaterals() {

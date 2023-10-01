@@ -132,31 +132,41 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!suiMarketCollateral).toBe(true);
   });
 
-  it('Should get market coins data', async () => {
-    const marketCoins = await scallopQuery.getMarketCoins();
+  it('Should get coins amount', async () => {
+    const coinsAmount = await scallopQuery.getAllCoinAmount();
 
     if (ENABLE_LOG) {
-      console.info('Market coins:');
-      console.dir(marketCoins, { depth: null, colors: true });
+      console.info('Coins amount:');
+      console.dir(coinsAmount, { depth: null, colors: true });
     }
-    expect(!!marketCoins).toBe(true);
+    expect(!!coinsAmount).toBe(true);
   });
 
-  it('Should get market coin data', async () => {
-    const marketCoin = await scallopQuery.getMarketCoin('sui');
+  it('Should get coin amount', async () => {
+    const coinAmount = await scallopQuery.getCoinAmount('sui');
 
     if (ENABLE_LOG) {
-      console.info('Market coin:', marketCoin);
+      console.info('Coin amount:', coinAmount);
     }
-    expect(!!marketCoin).toBe(true);
+    expect(!!coinAmount).toBe(true);
   });
 
-  it('Should get user lending data', async () => {
-    const lendingPools = await scallopQuery.getLendings();
+  it('Should get market coins amount', async () => {
+    const marketCoinsAmount = await scallopQuery.getAllMarketCoinAmount();
 
     if (ENABLE_LOG) {
-      console.info('Lending pools:', lendingPools);
+      console.info('Market coins amount:');
+      console.dir(marketCoinsAmount, { depth: null, colors: true });
     }
-    expect(!!lendingPools).toBe(true);
+    expect(!!marketCoinsAmount).toBe(true);
+  });
+
+  it('Should get market coin amount', async () => {
+    const marketCoinAmount = await scallopQuery.getMarketCoinAmount('ssui');
+
+    if (ENABLE_LOG) {
+      console.info('Market coin amount:', marketCoinAmount);
+    }
+    expect(!!marketCoinAmount).toBe(true);
   });
 });
