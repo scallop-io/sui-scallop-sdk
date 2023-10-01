@@ -14,9 +14,9 @@ import {
   getMarketPool,
   getMarketCollaterals,
   getMarketCollateral,
-  getAllCoinAmount,
+  getCoinAmounts,
   getCoinAmount,
-  getAllMarketCoinAmount,
+  getMarketCoinAmounts,
   getMarketCoinAmount,
   getLendings,
 } from '../queries';
@@ -213,11 +213,11 @@ export class ScallopQuery {
    * @param ownerAddress - The owner address.
    * @return All coins amount.
    */
-  public async getAllCoinAmount(
+  public async getCoinAmounts(
     coinNames?: SupportPoolCoins[],
     ownerAddress?: string
   ) {
-    return await getAllCoinAmount(this, coinNames, ownerAddress);
+    return await getCoinAmounts(this, coinNames, ownerAddress);
   }
 
   /**
@@ -241,11 +241,11 @@ export class ScallopQuery {
    * @param ownerAddress - The owner address.
    * @return All market market coins amount.
    */
-  public async getAllMarketCoinAmount(
+  public async getMarketCoinAmounts(
     marketCoinNames?: SupportMarketCoins[],
     ownerAddress?: string
   ) {
-    return await getAllMarketCoinAmount(this, marketCoinNames, ownerAddress);
+    return await getMarketCoinAmounts(this, marketCoinNames, ownerAddress);
   }
 
   /**

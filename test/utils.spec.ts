@@ -107,7 +107,7 @@ describe('Test Scallop Utils', async () => {
   });
 
   it('Should get coin prices', async () => {
-    const coinPrices = await scallopUtils.getAllCoinPrice(['usdc']);
+    const coinPrices = await scallopUtils.getCoinPrices(['usdc']);
     if (ENABLE_LOG) {
       console.info('Usdc coin prices:', coinPrices);
     }

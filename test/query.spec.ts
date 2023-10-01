@@ -133,7 +133,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
   });
 
   it('Should get coins amount', async () => {
-    const coinsAmount = await scallopQuery.getAllCoinAmount();
+    const coinsAmount = await scallopQuery.getCoinAmounts();
 
     if (ENABLE_LOG) {
       console.info('Coins amount:');
@@ -152,7 +152,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
   });
 
   it('Should get market coins amount', async () => {
-    const marketCoinsAmount = await scallopQuery.getAllMarketCoinAmount();
+    const marketCoinsAmount = await scallopQuery.getMarketCoinAmounts();
 
     if (ENABLE_LOG) {
       console.info('Market coins amount:');
