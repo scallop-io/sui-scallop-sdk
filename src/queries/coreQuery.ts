@@ -74,8 +74,10 @@ export const queryMarket = async (query: ScallopQuery) => {
       minBorrowAmount: pool.minBorrowAmount,
     });
 
-    const calculatedMarketPoolData =
-      calculateMarketPoolData(parsedMarketPoolData);
+    const calculatedMarketPoolData = calculateMarketPoolData(
+      query.utils,
+      parsedMarketPoolData
+    );
 
     const coinType = '0x' + pool.type.name;
     const coinName = query.utils.parseCoinName(coinType) as SupportPoolCoins;
@@ -295,8 +297,10 @@ export const getMarketPool = async (
       minBorrowAmount: interestModel.min_borrow_amount,
     });
 
-    const calculatedMarketPoolData =
-      calculateMarketPoolData(parsedMarketPoolData);
+    const calculatedMarketPoolData = calculateMarketPoolData(
+      query.utils,
+      parsedMarketPoolData
+    );
 
     marketPool = {
       coin: coinName,
