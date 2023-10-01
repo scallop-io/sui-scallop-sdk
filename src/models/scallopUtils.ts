@@ -306,4 +306,26 @@ export class ScallopUtils {
       );
     }
   }
+
+  /**
+   * Convert apr to apy.
+   *
+   * @param apr The annual percentage rate (APR).
+   * @param compoundFrequency How often interest is compounded per year. Default is daily (365 times a year).
+   * @return The equivalent annual percentage yield (APY) for the given APR and compounding frequency.
+   */
+  public parseAprToApy(apr: number, compoundFrequency = 365) {
+    return (1 + apr / compoundFrequency) ** compoundFrequency - 1;
+  }
+
+  /**
+   * Convert apr to apy.
+   *
+   * @param apr The equivalent annual percentage yield (APY).
+   * @param compoundFrequency How often interest is compounded per year. Default is daily (365 times a year).
+   * @return The equivalent annual percentage rate (APR) for the given APY and compounding frequency.
+   */
+  public parseApyToApr(apy: number, compoundFrequency = 365) {
+    return ((1 + apy) ** (1 / compoundFrequency) - 1) * compoundFrequency;
+  }
 }

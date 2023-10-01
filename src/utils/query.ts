@@ -6,6 +6,7 @@ import type {
   OriginMarketCollateralData,
   ParsedMarketCollateralData,
 } from '../types';
+import { ScallopUtils } from 'src/models';
 
 /**
  *  Parse origin market pool data to a more readable format.
@@ -43,6 +44,7 @@ export const parseOriginMarketPoolData = (
 };
 
 export const calculateMarketPoolData = (
+  utils: ScallopUtils,
   parsedMarketPoolData: ParsedMarketPoolData
 ): CalculatedMarketPoolData => {
   const borrowYearFactor = 24 * 365 * 3600;
@@ -50,47 +52,18 @@ export const calculateMarketPoolData = (
   const baseBorrowApr =
     (parsedMarketPoolData.baseBorrowRate * borrowYearFactor) /
     parsedMarketPoolData.borrowRateScale;
-  const baseBorrowApy =
-    (1 +
-      parsedMarketPoolData.baseBorrowRate /
-        parsedMarketPoolData.borrowRateScale) **
-      borrowYearFactor -
-    1;
   const borrowAprOnHighKink =
     (parsedMarketPoolData.borrowRateOnHighKink * borrowYearFactor) /
     parsedMarketPoolData.borrowRateScale;
-  const borrowApyOnHighKink =
-    (1 +
-      parsedMarketPoolData.borrowRateOnHighKink /
-        parsedMarketPoolData.borrowRateScale) **
-      borrowYearFactor -
-    1;
   const borrowAprOnMidKink =
     (parsedMarketPoolData.borrowRateOnMidKink * borrowYearFactor) /
     parsedMarketPoolData.borrowRateScale;
-  const borrowApyOnMidKink =
-    (1 +
-      parsedMarketPoolData.borrowRateOnMidKink /
-        parsedMarketPoolData.borrowRateScale) **
-      borrowYearFactor -
-    1;
   const maxBorrowApr =
     (parsedMarketPoolData.maxBorrowRate * borrowYearFactor) /
     parsedMarketPoolData.borrowRateScale;
-  const maxBorrowApy =
-    (1 +
-      parsedMarketPoolData.maxBorrowRate /
-        parsedMarketPoolData.borrowRateScale) **
-      borrowYearFactor -
-    1;
   const borrowApr =
     (parsedMarketPoolData.borrowRate * borrowYearFactor) /
     parsedMarketPoolData.borrowRateScale;
-  const borrowApy =
-    (1 +
-      parsedMarketPoolData.borrowRate / parsedMarketPoolData.borrowRateScale) **
-      borrowYearFactor -
-    1;
 
   const timeDelta =
     Math.floor(new Date().getTime() / 1000) - parsedMarketPoolData.lastUpdated;
@@ -123,10 +96,6 @@ export const calculateMarketPoolData = (
     .multipliedBy(utilizationRate)
     .multipliedBy(1 - parsedMarketPoolData.reserveFactor);
   supplyApr = supplyApr.isFinite() ? supplyApr : BigNumber(0);
-  let supplyApy = BigNumber(borrowApy)
-    .multipliedBy(utilizationRate)
-    .multipliedBy(1 - parsedMarketPoolData.reserveFactor);
-  supplyApy = supplyApy.isFinite() ? supplyApy : BigNumber(0);
   let conversionRate = currentTotalSupply.dividedBy(
     parsedMarketPoolData.marketCoinSupply
   );
@@ -137,15 +106,18 @@ export const calculateMarketPoolData = (
 
   return {
     baseBorrowApr,
-    baseBorrowApy,
+    baseBorrowApy: utils.parseAprToApy(baseBorrowApr),
     borrowAprOnHighKink,
-    borrowApyOnHighKink,
+    borrowApyOnHighKink: utils.parseAprToApy(borrowAprOnHighKink),
     borrowAprOnMidKink,
-    borrowApyOnMidKink,
+    borrowApyOnMidKink: utils.parseAprToApy(borrowAprOnMidKink),
     maxBorrowApr,
-    maxBorrowApy,
+    maxBorrowApy: utils.parseAprToApy(maxBorrowApr),
     borrowApr: Math.min(borrowApr, maxBorrowApr),
-    borrowApy: Math.min(borrowApy, maxBorrowApy),
+    borrowApy: Math.min(
+      utils.parseAprToApy(borrowApr),
+      utils.parseAprToApy(maxBorrowApr)
+    ),
     borrowIndex: currentBorrowIndex.toNumber(),
     growthInterest: growthInterest.toNumber(),
     totalSupply: currentTotalSupply.toNumber(),
@@ -153,7 +125,7 @@ export const calculateMarketPoolData = (
     totalReserve: currentTotalReserve.toNumber(),
     utilizationRate: utilizationRate.toNumber(),
     supplyApr: supplyApr.toNumber(),
-    supplyApy: supplyApy.toNumber(),
+    supplyApy: utils.parseAprToApy(supplyApr.toNumber()),
     conversionRate: conversionRate.toNumber(),
   };
 };
