@@ -92,11 +92,11 @@ describe('Test Scallop Utils', async () => {
     expect(!!usdcCoinWrapType).toBe(true);
   });
 
-  it('Should get coin price', async () => {
-    const coinPrice = await scallopUtils.getCoinPrice('usdc');
+  it('Should get coin prices', async () => {
+    const coinPrices = await scallopUtils.getAllCoinPrice(['usdc']);
     if (ENABLE_LOG) {
-      console.info('Usdc coin price:', coinPrice);
+      console.info('Usdc coin prices:', coinPrices);
     }
-    expect(!!coinPrice).toBe(true);
+    expect(!!coinPrices).toBe(true);
   });
 });

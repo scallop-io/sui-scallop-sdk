@@ -18,6 +18,7 @@ import type {
   ScallopInstanceParams,
   SupportCoins,
   SupportStakeMarketCoins,
+  CoinPrices,
   PriceMap,
   CoinWrappedType,
 } from '../types';
@@ -256,10 +257,10 @@ export class ScallopUtils {
    * Currently, we only support obtaining from pyth protocol, other
    * oracles will be supported in the future.
    *
-   * @param coinName - Specific support coin name.
+   * @param coinNames - Specific an array of support coin name.
    * @return  Coin price.
    */
-  public async getCoinPrice(coinName: SupportCoins) {
+  public async getAllCoinPrice(coinNames: SupportCoins[]) {
     const priceIds = [
       ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
     ].map((coinName) =>
@@ -271,27 +272,35 @@ export class ScallopUtils {
         : 'https://hermes.pyth.network'
     );
 
-    if (
-      this._priceMap.has(coinName) &&
-      Date.now() - this._priceMap.get(coinName)!.publishTime < 1000 * 60
-    ) {
-      return this._priceMap.get(coinName)!.price;
-    } else {
-      const priceFeeds = await pythConnection.getLatestPriceFeeds(priceIds);
+    const coinPrices: CoinPrices = {};
+    for (const coinName of coinNames) {
+      if (
+        this._priceMap.has(coinName) &&
+        Date.now() - this._priceMap.get(coinName)!.publishTime < 1000 * 60
+      ) {
+        coinPrices[coinName] = this._priceMap.get(coinName)!.price;
+      } else {
+        const priceFeeds =
+          (await pythConnection.getLatestPriceFeeds(priceIds)) || [];
 
-      const prices = priceFeeds?.map((feed) => {
-        const data = parseDataFromPythPriceFeed(feed, this._address);
-        this._priceMap.set(data.coinName, {
-          price: data.price,
-          publishTime: data.publishTime,
-        });
-        return data;
-      });
+        for (const feed of priceFeeds) {
+          const data = parseDataFromPythPriceFeed(feed, this._address);
+          this._priceMap.set(data.coinName, {
+            price: data.price,
+            publishTime: data.publishTime,
+          });
+        }
 
-      return (
-        prices?.find((price) => price && price.coinName === coinName)?.price ??
-        this._query.getPriceFromPyth(coinName)
-      );
+        for (const coinName of coinNames) {
+          if (this._priceMap.has(coinName)) {
+            coinPrices[coinName] = this._priceMap.get(coinName)!.price;
+          } else {
+            coinPrices[coinName] = await this._query.getPriceFromPyth(coinName);
+          }
+        }
+      }
+
+      return coinPrices;
     }
   }
 
