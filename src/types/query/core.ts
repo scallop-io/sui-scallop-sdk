@@ -118,7 +118,7 @@ export type MarketPool = {
   marketCoinType: string;
   coinWrappedType: CoinWrappedType;
   decimal: number;
-  price: number;
+  coinPrice: number;
 } & CalculatedMarketPoolData;
 
 export type MarketCollateral = {
@@ -128,7 +128,7 @@ export type MarketCollateral = {
   marketCoinType: string;
   coinWrappedType: CoinWrappedType;
   decimal: number;
-  price: number;
+  coinPrice: number;
 } & ParsedMarketCollateralData;
 
 export type OriginMarketPoolData = {
