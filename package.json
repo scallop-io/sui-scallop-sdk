@@ -61,7 +61,7 @@
   "dependencies": {
     "@mysten/sui.js": "^0.42.0",
     "@pythnetwork/price-service-client": "^1.8.0",
-    "@pythnetwork/pyth-sui-js": "^1.2.1",
+    "@pythnetwork/pyth-sui-js": "^1.2.2",
     "@scallop-io/sui-kit": "^0.42.0",
     "axios": "^1.5.1",
     "bignumber.js": "^9.1.2"

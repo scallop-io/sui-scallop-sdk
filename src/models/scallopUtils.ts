@@ -297,7 +297,6 @@ export class ScallopUtils {
       } else {
         const priceFeeds =
           (await pythConnection.getLatestPriceFeeds(priceIds)) || [];
-
         for (const feed of priceFeeds) {
           const data = parseDataFromPythPriceFeed(feed, this._address);
           this._priceMap.set(data.coinName, {
@@ -305,13 +304,13 @@ export class ScallopUtils {
             publishTime: data.publishTime,
           });
         }
+      }
 
-        for (const coinName of coinNames) {
-          if (this._priceMap.has(coinName)) {
-            coinPrices[coinName] = this._priceMap.get(coinName)!.price;
-          } else {
-            coinPrices[coinName] = await this._query.getPriceFromPyth(coinName);
-          }
+      for (const coinName of coinNames) {
+        if (this._priceMap.has(coinName)) {
+          coinPrices[coinName] = this._priceMap.get(coinName)!.price;
+        } else {
+          coinPrices[coinName] = await this._query.getPriceFromPyth(coinName);
         }
       }
 
