@@ -92,7 +92,7 @@ export const queryMarket = async (query: ScallopQuery) => {
       coinType: coinType,
       marketCoinType: query.utils.parseMarketCoinType(coinName),
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
-      decimal: query.utils.getCoinDecimal(coinName),
+      coinDecimal: query.utils.getCoinDecimal(coinName),
       coinPrice: coinPrice,
       ...calculatedMarketPoolData,
     });
@@ -122,7 +122,7 @@ export const queryMarket = async (query: ScallopQuery) => {
       coinType: coinType,
       marketCoinType: query.utils.parseMarketCoinType(coinName),
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
-      decimal: query.utils.getCoinDecimal(coinName),
+      coinDecimal: query.utils.getCoinDecimal(coinName),
       coinPrice: coinPrice,
       ...parsedMarketCollateralData,
     });
@@ -323,7 +323,7 @@ export const getMarketPool = async (
       coinType: query.utils.parseCoinType(coinName),
       marketCoinType: query.utils.parseMarketCoinType(coinName),
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
-      decimal: query.utils.getCoinDecimal(coinName),
+      coinDecimal: query.utils.getCoinDecimal(coinName),
       coinPrice: coinPrice ?? 0,
       ...calculatedMarketPoolData,
     };
@@ -477,7 +477,7 @@ export const getMarketCollateral = async (
       coinType: query.utils.parseCoinType(coinName),
       marketCoinType: query.utils.parseMarketCoinType(coinName),
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
-      decimal: query.utils.getCoinDecimal(coinName),
+      coinDecimal: query.utils.getCoinDecimal(coinName),
       coinPrice: coinPrice ?? 0,
       ...parsedMarketCollateralData,
     };
@@ -617,7 +617,6 @@ export const getCoinAmounts = async (
     const type = coinObject.type as string;
     if (coinObject.content && 'fields' in coinObject.content) {
       const fields = coinObject.content.fields as any;
-      console.log(type);
       const coinName = query.utils.parseCoinName(type);
       if (coinName) {
         coins[coinName] = BigNumber(coins[coinName] ?? 0)

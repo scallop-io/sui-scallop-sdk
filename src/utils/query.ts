@@ -130,6 +130,12 @@ export const calculateMarketPoolData = (
   };
 };
 
+/**
+ *  Parse origin market collateral data to a more readable format.
+ *
+ * @param originMarketCollateralData - Origin market collateral data
+ * @return Parsed market collateral data
+ */
 export const parseOriginMarketCollateralData = (
   originMarketCollateralData: OriginMarketCollateralData
 ): ParsedMarketCollateralData => {
