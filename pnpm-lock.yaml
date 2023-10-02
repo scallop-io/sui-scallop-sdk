@@ -15,8 +15,8 @@ dependencies:
     specifier: ^1.8.0
     version: 1.8.0
   '@pythnetwork/pyth-sui-js':
-    specifier: ^1.2.0
-    version: 1.2.0
+    specifier: ^1.2.2
+    version: 1.2.2
   '@scallop-io/sui-kit':
     specifier: ^0.38.2
     version: 0.38.2(@mysten/sui.js@0.37.1)
@@ -903,8 +903,8 @@ packages:
     resolution: {integrity: sha512-h4HcUwBPFEZwa5nLMTz9YnwdLE5m+Bfctzqbj09vpSJo2DyPHCyEXScFUuizWBbfofxB/pF+OnZXjU3pJxtm/w==}
     dev: false
 
-  /@pythnetwork/pyth-sui-js@1.2.0:
-    resolution: {integrity: sha512-sK50udArBeCqs2jkp1rPsymCTAT0/bSTr72DwfsbuqvXq7fz8UXD0m2xBhhutXA/eP+GN19Xwf68f7tCQAoRVA==}
+  /@pythnetwork/pyth-sui-js@1.2.2:
+    resolution: {integrity: sha512-DUU/ybfiSALZid7eWid0lL9Md3/baa+CNNgkIxNk7iVHBwF3KPP7czEpNg+YbPKygViWczu4iOpHFirnwl/qtA==}
     dependencies:
       '@mysten/sui.js': 0.37.1
       '@pythnetwork/price-service-client': 1.8.0

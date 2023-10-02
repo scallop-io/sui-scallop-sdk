@@ -58,7 +58,7 @@
     "@mysten/bcs": "^0.7.3",
     "@mysten/sui.js": "^0.37.1",
     "@pythnetwork/price-service-client": "^1.8.0",
-    "@pythnetwork/pyth-sui-js": "^1.2.0",
+    "@pythnetwork/pyth-sui-js": "^1.2.2",
     "@scallop-io/sui-kit": "^0.38.2",
     "axios": "^1.4.0",
     "bignumber.js": "^9.1.1"
