@@ -16,7 +16,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
   });
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  it.skip('Should query market data', async () => {
+  it('Should query market data', async () => {
     const market = await scallopQuery.queryMarket();
     if (ENABLE_LOG) {
       console.info('Market:');
@@ -25,7 +25,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!market).toBe(true);
   });
 
-  it.skip('Should get obligations and its all obligation data', async () => {
+  it('Should get obligations and its all obligation data', async () => {
     const obligations = await scallopQuery.getObligations();
 
     if (ENABLE_LOG) {
@@ -45,7 +45,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     }
   });
 
-  it.skip('Should get all stake accounts data', async () => {
+  it('Should get all stake accounts data', async () => {
     const allStakeAccounts = await scallopQuery.getAllStakeAccounts();
 
     if (ENABLE_LOG) {
@@ -55,7 +55,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!allStakeAccounts).toBe(true);
   });
 
-  it.skip('Should get all stake pool data', async () => {
+  it('Should get all stake pool data', async () => {
     const stakePools = await scallopQuery.getStakePools();
 
     if (ENABLE_LOG) {
@@ -65,7 +65,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!stakePools).toBe(true);
   });
 
-  it.skip('Should get stake pool data', async () => {
+  it('Should get stake pool data', async () => {
     const suiStakePool = await scallopQuery.getStakePool('ssui');
 
     if (ENABLE_LOG) {
@@ -75,7 +75,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!suiStakePool).toBe(true);
   });
 
-  it.skip('Should get all reward pool data', async () => {
+  it('Should get all reward pool data', async () => {
     for (const marketCoinName of SUPPORT_SPOOLS) {
       const rewardPool = await scallopQuery.getRewardPool(marketCoinName);
 
@@ -88,7 +88,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     }
   });
 
-  it.skip('Should get pyth price data', async () => {
+  it('Should get pyth price data', async () => {
     const coinName = 'usdc';
     const usdcPrice = await scallopQuery.getPriceFromPyth(coinName);
 
@@ -99,7 +99,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(usdcPrice).toBeGreaterThan(0);
   });
 
-  it.skip('Should get market pools data', async () => {
+  it('Should get market pools data', async () => {
     const marketPools = await scallopQuery.getMarketPools();
 
     if (ENABLE_LOG) {
@@ -109,7 +109,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!marketPools).toBe(true);
   });
 
-  it.skip('Should get market pool data', async () => {
+  it('Should get market pool data', async () => {
     const suiMarketPool = await scallopQuery.getMarketPool('sui');
 
     if (ENABLE_LOG) {
@@ -119,7 +119,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!suiMarketPool).toBe(true);
   });
 
-  it.skip('Should get market collaterals data', async () => {
+  it('Should get market collaterals data', async () => {
     const marketCollaterals = await scallopQuery.getMarketCollaterals();
 
     if (ENABLE_LOG) {
@@ -129,7 +129,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!marketCollaterals).toBe(true);
   });
 
-  it.skip('Should get market collateral data', async () => {
+  it('Should get market collateral data', async () => {
     const suiMarketCollateral = await scallopQuery.getMarketCollateral('sui');
 
     if (ENABLE_LOG) {
@@ -139,7 +139,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!suiMarketCollateral).toBe(true);
   });
 
-  it.skip('Should get spools data', async () => {
+  it('Should get spools data', async () => {
     const spools = await scallopQuery.getSpools();
 
     if (ENABLE_LOG) {
@@ -149,7 +149,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!spools).toBe(true);
   });
 
-  it.skip('Should get spool data', async () => {
+  it('Should get spool data', async () => {
     const ssuiSpool = await scallopQuery.getSpool('ssui');
 
     if (ENABLE_LOG) {
@@ -159,7 +159,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!ssuiSpool).toBe(true);
   });
 
-  it.skip('Should get coins amount', async () => {
+  it('Should get coins amount', async () => {
     const coinsAmount = await scallopQuery.getCoinAmounts();
 
     if (ENABLE_LOG) {
@@ -169,7 +169,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!coinsAmount).toBe(true);
   });
 
-  it.skip('Should get coin amount', async () => {
+  it('Should get coin amount', async () => {
     const coinAmount = await scallopQuery.getCoinAmount('sui');
 
     if (ENABLE_LOG) {
@@ -178,7 +178,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!coinAmount).toBe(true);
   });
 
-  it.skip('Should get market coins amount', async () => {
+  it('Should get market coins amount', async () => {
     const marketCoinsAmount = await scallopQuery.getMarketCoinAmounts();
 
     if (ENABLE_LOG) {
@@ -188,7 +188,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!marketCoinsAmount).toBe(true);
   });
 
-  it.skip('Should get market coin amount', async () => {
+  it('Should get market coin amount', async () => {
     const marketCoinAmount = await scallopQuery.getMarketCoinAmount('ssui');
 
     if (ENABLE_LOG) {
@@ -197,17 +197,17 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     expect(!!marketCoinAmount).toBe(true);
   });
 
-  it.skip('Should get user lendings data', async () => {
-    const lendings = await scallopQuery.getLendings();
+  it('Should get user lendings data', async () => {
+    const lendings = await scallopQuery.getLendings(['sui', 'usdc']);
 
     if (ENABLE_LOG) {
       console.info('User lendings:', lendings);
     }
     expect(!!lendings).toBe(true);
-  });
+  }, 120000);
 
-  it.skip('Should get user lending data', async () => {
-    const lending = await scallopQuery.getLending('usdt');
+  it('Should get user lending data', async () => {
+    const lending = await scallopQuery.getLending('sui');
 
     if (ENABLE_LOG) {
       console.info('User lending:', lending);
