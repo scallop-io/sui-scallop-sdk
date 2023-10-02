@@ -1,10 +1,22 @@
-import { SUPPORT_POOLS, SUPPORT_COLLATERALS } from '../constants';
-import type { SupportCoins, SupportMarketCoins } from '../types';
+import {
+  SUPPORT_POOLS,
+  SUPPORT_COLLATERALS,
+  SUPPORT_REWARD_POOLS,
+} from '../constants';
+import type {
+  SupportCoins,
+  SupportMarketCoins,
+  SupportRewardCoins,
+} from '../types';
 
 export const isMarketCoin = (
-  coin: SupportCoins | SupportMarketCoins
+  coin: SupportCoins | SupportMarketCoins | SupportRewardCoins
 ): coin is SupportMarketCoins => {
-  return [...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS])].includes(
-    coin.slice(1) as SupportCoins
-  );
+  return [
+    ...new Set([
+      ...SUPPORT_POOLS,
+      ...SUPPORT_COLLATERALS,
+      ...SUPPORT_REWARD_POOLS,
+    ]),
+  ].includes(coin.slice(1) as SupportCoins);
 };
