@@ -14,11 +14,14 @@ import {
   getMarketPool,
   getMarketCollaterals,
   getMarketCollateral,
+  getSpools,
+  getSpool,
   getCoinAmounts,
   getCoinAmount,
   getMarketCoinAmounts,
   getMarketCoinAmount,
   getLendings,
+  getLending,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -239,13 +242,33 @@ export class ScallopQuery {
   }
 
   /**
-   * Get  market collateral
+   * Get market collateral
    *
    * @param coinName - Specific support coin name.
    * @return Market collateral data.
    */
   public async getMarketCollateral(coinName: SupportCollateralCoins) {
     return await getMarketCollateral(this, coinName);
+  }
+
+  /**
+   * Get spools data.
+   *
+   * @param marketCoinNames - Specific an array of support stake market coin name.
+   * @return Spools data.
+   */
+  public async getSpools(marketCoinNames?: SupportStakeMarketCoins[]) {
+    return await getSpools(this, marketCoinNames);
+  }
+
+  /**
+   * Get spool data.
+   *
+   * @param marketCoinName - Specific support stake market coin name.
+   * @return Spool data.
+   */
+  public async getSpool(marketCoinName: SupportStakeMarketCoins) {
+    return await getSpool(this, marketCoinName);
   }
 
   /**
@@ -302,6 +325,31 @@ export class ScallopQuery {
     ownerAddress?: string
   ) {
     return await getMarketCoinAmount(this, marketCoinName, ownerAddress);
+  }
+
+  /**
+   * Get all lending pool dta for the user
+   *
+   * @param coinNames - Specific an array of support coin name.
+   * @param ownerAddress - The owner address.
+   * @return Lending pools data.
+   */
+  public async getLendings(
+    coinNames?: SupportPoolCoins[],
+    ownerAddress?: string
+  ) {
+    return await getLendings(this, coinNames, ownerAddress);
+  }
+
+  /**
+   * Get specific lending pool information for the user
+   *
+   * @param coinName - Specific support coin name.
+   * @param ownerAddress - The owner address.
+   * @return Lending pool data.
+   */
+  public async getLending(coinName: SupportPoolCoins, ownerAddress?: string) {
+    return await getLending(this, coinName, ownerAddress);
   }
 
   public async getCollaterals() {

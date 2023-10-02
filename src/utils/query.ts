@@ -5,6 +5,12 @@ import type {
   CalculatedMarketPoolData,
   OriginMarketCollateralData,
   ParsedMarketCollateralData,
+  OriginStakePoolData,
+  ParsedStakePoolData,
+  CalculatedStakePoolData,
+  OriginRewardPoolData,
+  ParsedRewardPoolData,
+  CalculatedRewardPoolData,
 } from '../types';
 import { ScallopUtils } from 'src/models';
 
@@ -155,5 +161,150 @@ export const parseOriginMarketCollateralData = (
     totalCollateralAmount: Number(
       originMarketCollateralData.totalCollateralAmount
     ),
+  };
+};
+
+/**
+ *  Parse origin stake pool data to a more readable format.
+ *
+ * @param originStakePoolData - Origin stake pool data
+ * @return Parsed stake pool data
+ */
+export const parseOriginStakePoolData = (
+  originStakePoolData: OriginStakePoolData
+): ParsedStakePoolData => {
+  return {
+    stakeType: originStakePoolData.stakeType.fields.name,
+    maxPoint: Number(originStakePoolData.maxDistributedPoint),
+    distributedPoint: Number(originStakePoolData.distributedPoint),
+    pointPerPeriod: Number(originStakePoolData.distributedPointPerPeriod),
+    period: Number(originStakePoolData.pointDistributionTime),
+    maxStake: Number(originStakePoolData.maxStake),
+    totalStaked: Number(originStakePoolData.stakes),
+    index: Number(originStakePoolData.index),
+    createdAt: Number(originStakePoolData.createdAt),
+    lastUpdate: Number(originStakePoolData.lastUpdate),
+  };
+};
+
+export const calculateStakePoolData = (
+  parsedStakePoolData: ParsedStakePoolData,
+  stakeMarketCoinPrice: number,
+  stakeMarketCoinDecimal: number
+): CalculatedStakePoolData => {
+  const baseIndexRate = 1_000_000_000;
+
+  const distributedPointPerSec = BigNumber(
+    parsedStakePoolData.pointPerPeriod
+  ).dividedBy(parsedStakePoolData.period);
+
+  const pointPerSec = BigNumber(parsedStakePoolData.pointPerPeriod).dividedBy(
+    parsedStakePoolData.period
+  );
+  const remainingPeriod = BigNumber(parsedStakePoolData.maxPoint)
+    .minus(parsedStakePoolData.distributedPoint)
+    .dividedBy(pointPerSec);
+  const startDate = parsedStakePoolData.createdAt;
+  const endDate = remainingPeriod
+    .plus(parsedStakePoolData.lastUpdate)
+    .integerValue()
+    .toNumber();
+
+  const timeDelta = BigNumber(
+    Math.floor(new Date().getTime() / 1000) - parsedStakePoolData.lastUpdate
+  )
+    .dividedBy(parsedStakePoolData.period)
+    .toFixed(0);
+  const remainingPoints = BigNumber(parsedStakePoolData.maxPoint).minus(
+    parsedStakePoolData.distributedPoint
+  );
+  const accumulatedPoints = BigNumber.minimum(
+    BigNumber(timeDelta).multipliedBy(parsedStakePoolData.pointPerPeriod),
+    remainingPoints
+  );
+
+  const currentPointIndex = BigNumber(parsedStakePoolData.index).plus(
+    accumulatedPoints.dividedBy(parsedStakePoolData.totalStaked).isFinite()
+      ? BigNumber(baseIndexRate)
+          .multipliedBy(accumulatedPoints)
+          .dividedBy(parsedStakePoolData.totalStaked)
+      : 0
+  );
+  const currentTotalDistributedPoint = BigNumber(
+    parsedStakePoolData.distributedPoint
+  ).plus(accumulatedPoints);
+
+  const totalStakedValue = BigNumber(parsedStakePoolData.totalStaked)
+    .shiftedBy(-1 * stakeMarketCoinDecimal)
+    .multipliedBy(stakeMarketCoinPrice);
+
+  return {
+    distributedPointPerSec: distributedPointPerSec.toNumber(),
+    accumulatedPoints: accumulatedPoints.toNumber(),
+    currentPointIndex: currentPointIndex.toNumber(),
+    currentTotalDistributedPoint: currentTotalDistributedPoint.toNumber(),
+    startDate: new Date(startDate * 1000),
+    endDate: new Date(endDate * 1000),
+    totalStakedValue: totalStakedValue.toNumber(),
+  };
+};
+
+/**
+ *  Parse origin reward pool data to a more readable format.
+ *
+ * @param originRewardPoolData - Origin reward pool data
+ * @return Parsed reward pool data
+ */
+export const parseOriginRewardPoolData = (
+  originRewardPoolData: OriginRewardPoolData
+): ParsedRewardPoolData => {
+  return {
+    claimedRewards: Number(originRewardPoolData.claimed_rewards),
+    exchangeRateNumerator: Number(originRewardPoolData.exchange_rate_numerator),
+    exchangeRateDenominator: Number(
+      originRewardPoolData.exchange_rate_denominator
+    ),
+    rewards: Number(originRewardPoolData.rewards),
+    spoolId: String(originRewardPoolData.spool_id),
+  };
+};
+
+export const calculateRewardPoolData = (
+  parsedStakePoolData: ParsedStakePoolData,
+  parsedRewardPoolData: ParsedRewardPoolData,
+  calculatedStakePoolData: CalculatedStakePoolData,
+  rewardCoinPrice: number,
+  rewardCoinDecimal: number
+): CalculatedRewardPoolData => {
+  const rateYearFactor = 365 * 24 * 60 * 60;
+
+  const totalReward = BigNumber(parsedStakePoolData.maxPoint)
+    .multipliedBy(parsedRewardPoolData.exchangeRateNumerator)
+    .dividedBy(parsedRewardPoolData.exchangeRateDenominator);
+
+  const rewardPerSec = BigNumber(calculatedStakePoolData.distributedPointPerSec)
+    .multipliedBy(parsedRewardPoolData.exchangeRateNumerator)
+    .dividedBy(parsedRewardPoolData.exchangeRateDenominator);
+
+  const totalRewardValue = BigNumber(rewardPerSec)
+    .shiftedBy(-1 * rewardCoinDecimal)
+    .multipliedBy(rateYearFactor)
+    .multipliedBy(rewardCoinPrice);
+
+  const stakeRate = totalRewardValue
+    .dividedBy(calculatedStakePoolData.totalStakedValue)
+    .isFinite()
+    ? totalRewardValue
+        .dividedBy(calculatedStakePoolData.totalStakedValue)
+        .toNumber()
+    : Infinity;
+
+  return {
+    stakeApr: stakeRate,
+    totalReward: totalReward.toNumber(),
+    totalRewardValue: totalRewardValue.toNumber(),
+    rewardPerSec: rewardPerSec.toNumber(),
+    exchangeRateNumerator: parsedRewardPoolData.exchangeRateNumerator,
+    exchangeRateDenominator: parsedRewardPoolData.exchangeRateDenominator,
   };
 };
