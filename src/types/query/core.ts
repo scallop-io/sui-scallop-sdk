@@ -117,7 +117,13 @@ export type MarketPool = {
   coinWrappedType: CoinWrappedType;
   coinDecimal: number;
   coinPrice: number;
-} & CalculatedMarketPoolData;
+} & Required<
+  Pick<
+    ParsedMarketPoolData,
+    'marketCoinSupply' | 'reserveFactor' | 'borrowWeight' | 'minBorrowAmount'
+  >
+> &
+  CalculatedMarketPoolData;
 
 export type MarketCollateral = {
   coin: SupportCollateralCoins;
