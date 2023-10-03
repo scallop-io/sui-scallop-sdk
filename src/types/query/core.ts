@@ -4,8 +4,6 @@ import type {
   CoinWrappedType,
 } from '../constant';
 
-export type Obligation = { id: string; keyId: string };
-
 type OptionalKeys<T> = {
   [K in keyof T]?: T[K];
 };
@@ -213,6 +211,36 @@ export type ParsedMarketCollateralData = {
   totalCollateralAmount: number;
 };
 
+export type Market = {
+  pools: MarketPool[];
+  collaterals: MarketCollateral[];
+  data?: MarketQueryInterface;
+};
+
+export type Obligation = { id: string; keyId: string };
+
+export type ObligationAccount = {
+  collaterals: OptionalKeys<
+    Record<
+      SupportPoolCoins,
+      {
+        type: string;
+        amount: number;
+      }
+    >
+  >;
+  debts: OptionalKeys<
+    Record<
+      SupportCollateralCoins,
+      {
+        type: string;
+        amount: number;
+        borrowIndex: number;
+      }
+    >
+  >;
+};
+
 /**
  * The query interface for `market_query::market_data` inspectTxn.
  */
@@ -281,12 +309,9 @@ export interface MarketQueryInterface {
   }[];
 }
 
-export type Market = {
-  pools: MarketPool[];
-  collaterals: MarketCollateral[];
-  data?: MarketQueryInterface;
-};
-
+/**
+ * The query interface for `obligation_query::obligation_data` inspectTxn.
+ */
 export interface ObligationQueryInterface {
   collaterals: {
     type: {

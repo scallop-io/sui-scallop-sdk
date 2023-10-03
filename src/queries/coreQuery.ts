@@ -9,6 +9,7 @@ import {
   parseOriginMarketPoolData,
   calculateMarketPoolData,
   parseOriginMarketCollateralData,
+  parseOriginObligationData,
 } from '../utils';
 import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui.js/client';
 import type { ScallopQuery } from '../models';
@@ -541,7 +542,7 @@ export const getObligations = async (
  * Query obligation data.
  *
  * @description
- * Use inspectTxn call to obtain the data provided in the scallop contract query module
+ * Use inspectTxn call to obtain the data provided in the scallop contract query module.
  *
  * @param query - The Scallop query instance.
  * @param obligationId - The obligation id.
@@ -557,6 +558,24 @@ export const queryObligation = async (
   txBlock.moveCall(queryTarget, [obligationId]);
   const queryResult = await query.suiKit.inspectTxn(txBlock);
   return queryResult.events[0].parsedJson as ObligationQueryInterface;
+};
+
+/**
+ * Get obligation account data.
+ *
+ * @description
+ * This function still uses the query, but converts the return into a more convenient format.
+ *
+ * @param query - The Scallop query instance.
+ * @param obligationId - The obligation id.
+ * @return Obligation account data.
+ */
+export const getObligationAccount = async (
+  query: ScallopQuery,
+  obligationId: string
+) => {
+  const obligationQuery = await queryObligation(query, obligationId);
+  return parseOriginObligationData(query.utils, obligationQuery);
 };
 
 /**

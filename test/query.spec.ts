@@ -35,13 +35,17 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
 
     for (const { id } of obligations) {
       const obligationData = await scallopQuery.queryObligation(id);
+      const obligationAccount = await scallopQuery.getObligationAccount(id);
 
       if (ENABLE_LOG) {
         console.info('Id:', id);
         console.info('Obligation:');
         console.dir(obligationData, { depth: null, colors: true });
+        console.info('Obligation account:');
+        console.dir(obligationAccount, { depth: null, colors: true });
       }
       expect(!!obligationData).toBe(true);
+      expect(!!obligationAccount).toBe(true);
     }
   });
 

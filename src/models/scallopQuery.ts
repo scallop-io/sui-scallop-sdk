@@ -6,6 +6,7 @@ import {
   queryMarket,
   getObligations,
   queryObligation,
+  getObligationAccount,
   getStakeAccounts,
   getStakePool,
   getRewardPool,
@@ -114,6 +115,16 @@ export class ScallopQuery {
    */
   public async queryObligation(obligationId: string) {
     return queryObligation(this, obligationId);
+  }
+
+  /**
+   * Get obligation account data.
+   *
+   * @param obligationId - The obligation id.
+   * @return Obligation account data.
+   */
+  public async getObligationAccount(obligationId: string) {
+    return getObligationAccount(this, obligationId);
   }
 
   /**

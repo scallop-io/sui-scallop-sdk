@@ -5,6 +5,8 @@ import type {
   CalculatedMarketPoolData,
   OriginMarketCollateralData,
   ParsedMarketCollateralData,
+  ObligationAccount,
+  ObligationQueryInterface,
   OriginStakePoolData,
   ParsedStakePoolData,
   CalculatedStakePoolData,
@@ -161,6 +163,41 @@ export const parseOriginMarketCollateralData = (
     totalCollateralAmount: Number(
       originMarketCollateralData.totalCollateralAmount
     ),
+  };
+};
+
+/**
+ *  Parse origin obligation data to a more readable format.
+ *
+ * @param originObligationData - Origin obligation data
+ * @return Parsed obligation data
+ */
+export const parseOriginObligationData = (
+  utils: ScallopUtils,
+  originObligationData: ObligationQueryInterface
+): ObligationAccount => {
+  const collaterals: ObligationAccount['collaterals'] = {};
+  const debts: ObligationAccount['debts'] = {};
+  for (const [_key, value] of Object.entries(
+    originObligationData.collaterals
+  )) {
+    const coinName = utils.parseCoinName(value.type.name);
+    collaterals[coinName] = {
+      type: value.type.name,
+      amount: Number(value.amount),
+    };
+  }
+  for (const [_key, value] of Object.entries(originObligationData.debts)) {
+    const coinName = utils.parseCoinName(value.type.name);
+    debts[coinName] = {
+      type: value.type.name,
+      amount: Number(value.amount),
+      borrowIndex: Number(value.borrowIndex),
+    };
+  }
+  return {
+    collaterals,
+    debts,
   };
 };
 
