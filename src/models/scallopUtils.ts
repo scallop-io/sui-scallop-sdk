@@ -135,6 +135,7 @@ export class ScallopUtils {
    * @return Coin Name.
    */
   public parseCoinName(coinType: string) {
+    coinType = normalizeStructTag(coinType);
     const coinTypeRegex = new RegExp(`((0x[^:]+::[^:]+::[^<>]+))(?![^<>]*<)`);
     const coinTypeMatch = coinType.match(coinTypeRegex);
 
@@ -275,26 +276,44 @@ export class ScallopUtils {
    * @param coinNames - Specific an array of support coin name.
    * @return  Coin price.
    */
-  public async getCoinPrices(coinNames: SupportCoins[]) {
-    const priceIds = [
-      ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
-    ].map((coinName) =>
-      this._address.get(`core.coins.${coinName}.oracle.pyth.feed`)
-    );
-    const pythConnection = new SuiPriceServiceConnection(
-      this.isTestnet
-        ? 'https://hermes-beta.pyth.network'
-        : 'https://hermes.pyth.network'
-    );
+  public async getCoinPrices(coinNames?: SupportCoins[]) {
+    coinNames =
+      coinNames ||
+      ([
+        ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
+      ] as SupportCoins[]);
 
     const coinPrices: CoinPrices = {};
-    for (const coinName of coinNames) {
+    const existPricesCoinNames: SupportCoins[] = [];
+    const lackPricesCoinNames: SupportCoins[] = [];
+
+    coinNames.forEach((coinName) => {
       if (
         this._priceMap.has(coinName) &&
         Date.now() - this._priceMap.get(coinName)!.publishTime < 1000 * 60
       ) {
-        coinPrices[coinName] = this._priceMap.get(coinName)!.price;
+        existPricesCoinNames.push(coinName);
       } else {
+        lackPricesCoinNames.push(coinName);
+      }
+    });
+
+    if (existPricesCoinNames.length > 0) {
+      for (const coinName of existPricesCoinNames) {
+        coinPrices[coinName] = this._priceMap.get(coinName)!.price;
+      }
+    }
+
+    if (lackPricesCoinNames.length > 0) {
+      const pythConnection = new SuiPriceServiceConnection(
+        this.isTestnet
+          ? 'https://hermes-beta.pyth.network'
+          : 'https://hermes.pyth.network'
+      );
+      const priceIds = lackPricesCoinNames.map((coinName) =>
+        this._address.get(`core.coins.${coinName}.oracle.pyth.feed`)
+      );
+      try {
         const priceFeeds =
           (await pythConnection.getLatestPriceFeeds(priceIds)) || [];
         for (const feed of priceFeeds) {
@@ -303,19 +322,21 @@ export class ScallopUtils {
             price: data.price,
             publishTime: data.publishTime,
           });
+          coinPrices[data.coinName] = data.price;
+        }
+      } catch (_e) {
+        for (const coinName of lackPricesCoinNames) {
+          const price = await this._query.getPriceFromPyth(coinName);
+          this._priceMap.set(coinName, {
+            price: price,
+            publishTime: Date.now(),
+          });
+          coinPrices[coinName] = price;
         }
       }
-
-      for (const coinName of coinNames) {
-        if (this._priceMap.has(coinName)) {
-          coinPrices[coinName] = this._priceMap.get(coinName)!.price;
-        } else {
-          coinPrices[coinName] = await this._query.getPriceFromPyth(coinName);
-        }
-      }
-
-      return coinPrices;
     }
+
+    return coinPrices;
   }
 
   /**
