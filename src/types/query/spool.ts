@@ -47,14 +47,16 @@ export type ParsedStakePoolData = {
   pointPerPeriod: number;
   period: number;
   maxStake: number;
-  totalStaked: number;
+  staked: number;
   index: number;
   createdAt: number;
   lastUpdate: number;
 };
 
 export type CalculatedStakePoolData = {
-  totalStakedValue: number;
+  stakedAmount: number;
+  stakedCoin: number;
+  stakedValue: number;
   distributedPointPerSec: number;
   accumulatedPoints: number;
   currentPointIndex: number;
@@ -81,8 +83,15 @@ export type ParsedRewardPoolData = {
 
 export type CalculatedRewardPoolData = {
   stakeApr: number;
-  totalReward: number;
+  totalRewardAmount: number;
+  totalRewardCoin: number;
   totalRewardValue: number;
+  remaindRewardAmount: number;
+  remaindRewardCoin: number;
+  remaindRewardValue: number;
+  claimedRewardAmount: number;
+  claimedRewardCoin: number;
+  claimedRewardValue: number;
   rewardPerSec: number;
   exchangeRateNumerator: number;
   exchangeRateDenominator: number;

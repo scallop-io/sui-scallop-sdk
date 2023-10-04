@@ -9,7 +9,7 @@ import {
   parseOriginMarketPoolData,
   calculateMarketPoolData,
   parseOriginMarketCollateralData,
-  parseOriginObligationData,
+  calculateMarketCollateralData,
 } from '../utils';
 import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui.js/client';
 import type { ScallopQuery } from '../models';
@@ -29,8 +29,8 @@ import {
   BalanceSheet,
   RiskModel,
   CollateralStat,
-  Coins,
-  MarketCoins,
+  CoinAmounts,
+  MarketCoinAmounts,
   SupportMarketCoins,
 } from '../types';
 
@@ -58,6 +58,7 @@ export const queryMarket = async (query: ScallopQuery) => {
 
   for (const pool of marketData.pools) {
     const parsedMarketPoolData = parseOriginMarketPoolData({
+      type: pool.type,
       maxBorrowRate: pool.maxBorrowRate,
       interestRate: pool.interestRate,
       interestRateScale: pool.interestRateScale,
@@ -95,9 +96,9 @@ export const queryMarket = async (query: ScallopQuery) => {
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
       coinDecimal: query.utils.getCoinDecimal(coinName),
       coinPrice: coinPrice,
-      marketCoinSupply: parsedMarketPoolData.marketCoinSupply,
       reserveFactor: parsedMarketPoolData.reserveFactor,
       borrowWeight: parsedMarketPoolData.borrowWeight,
+      marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
       ...calculatedMarketPoolData,
     });
@@ -105,6 +106,7 @@ export const queryMarket = async (query: ScallopQuery) => {
 
   for (const collateral of marketData.collaterals) {
     const parsedMarketCollateralData = parseOriginMarketCollateralData({
+      type: collateral.type,
       collateralFactor: collateral.collateralFactor,
       liquidationFactor: collateral.collateralFactor,
       liquidationDiscount: collateral.liquidationDiscount,
@@ -113,6 +115,11 @@ export const queryMarket = async (query: ScallopQuery) => {
       maxCollateralAmount: collateral.maxCollateralAmount,
       totalCollateralAmount: collateral.totalCollateralAmount,
     });
+
+    const calculatedMarketCollateralData = calculateMarketCollateralData(
+      query.utils,
+      parsedMarketCollateralData
+    );
 
     const coinType = '0x' + collateral.type.name;
     const coinName = query.utils.parseCoinName(
@@ -129,7 +136,13 @@ export const queryMarket = async (query: ScallopQuery) => {
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
       coinDecimal: query.utils.getCoinDecimal(coinName),
       coinPrice: coinPrice,
-      ...parsedMarketCollateralData,
+      collateralFactor: parsedMarketCollateralData.collateralFactor,
+      liquidationFactor: parsedMarketCollateralData.liquidationFactor,
+      liquidationDiscount: parsedMarketCollateralData.liquidationDiscount,
+      liquidationPanelty: parsedMarketCollateralData.liquidationPanelty,
+      liquidationReserveFactor:
+        parsedMarketCollateralData.liquidationReserveFactor,
+      ...calculatedMarketCollateralData,
     });
   }
 
@@ -142,6 +155,10 @@ export const queryMarket = async (query: ScallopQuery) => {
 
 /**
  * Get coin market pools data.
+ *
+ * @description
+ * To obtain all market pools information at once, it is recommended to use
+ * the `queryMarket` method to reduce time consumption.
  *
  * @param query - The Scallop query instance.
  * @param coinNames - Specific an array of support coin name.
@@ -296,6 +313,7 @@ export const getMarketPool = async (
 
   if (balanceSheet && borrowIndex && interestModel) {
     const parsedMarketPoolData = parseOriginMarketPoolData({
+      type: interestModel.type.fields,
       maxBorrowRate: interestModel.max_borrow_rate.fields,
       interestRate: borrowIndex.interest_rate.fields,
       interestRateScale: borrowIndex.interest_rate_scale,
@@ -330,9 +348,9 @@ export const getMarketPool = async (
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
       coinDecimal: query.utils.getCoinDecimal(coinName),
       coinPrice: coinPrice ?? 0,
-      marketCoinSupply: parsedMarketPoolData.marketCoinSupply,
       reserveFactor: parsedMarketPoolData.reserveFactor,
       borrowWeight: parsedMarketPoolData.borrowWeight,
+      marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
       ...calculatedMarketPoolData,
     };
@@ -343,6 +361,10 @@ export const getMarketPool = async (
 
 /**
  * Get coin market collaterals data.
+ *
+ * @description
+ * To obtain all market collaterals information at once, it is recommended to use
+ * the `queryMarket` method to reduce time consumption.
  *
  * @param query - The Scallop query instance.
  * @param coinNames - Specific an array of support coin name.
@@ -469,6 +491,7 @@ export const getMarketCollateral = async (
 
   if (riskModel && collateralStat) {
     const parsedMarketCollateralData = parseOriginMarketCollateralData({
+      type: riskModel.type.fields,
       collateralFactor: riskModel.collateral_factor.fields,
       liquidationFactor: riskModel.liquidation_factor.fields,
       liquidationDiscount: riskModel.liquidation_discount.fields,
@@ -477,6 +500,11 @@ export const getMarketCollateral = async (
       maxCollateralAmount: riskModel.max_collateral_amount,
       totalCollateralAmount: collateralStat.amount,
     });
+
+    const calculatedMarketCollateralData = calculateMarketCollateralData(
+      query.utils,
+      parsedMarketCollateralData
+    );
 
     coinPrice =
       coinPrice || (await query.utils.getCoinPrices([coinName]))?.[coinName];
@@ -488,7 +516,13 @@ export const getMarketCollateral = async (
       coinWrappedType: query.utils.getCoinWrappedType(coinName),
       coinDecimal: query.utils.getCoinDecimal(coinName),
       coinPrice: coinPrice ?? 0,
-      ...parsedMarketCollateralData,
+      collateralFactor: parsedMarketCollateralData.collateralFactor,
+      liquidationFactor: parsedMarketCollateralData.liquidationFactor,
+      liquidationDiscount: parsedMarketCollateralData.liquidationDiscount,
+      liquidationPanelty: parsedMarketCollateralData.liquidationPanelty,
+      liquidationReserveFactor:
+        parsedMarketCollateralData.liquidationReserveFactor,
+      ...calculatedMarketCollateralData,
     };
   }
 
@@ -569,24 +603,6 @@ export const queryObligation = async (
 };
 
 /**
- * Get obligation account data.
- *
- * @description
- * This function still uses the query, but converts the return into a more convenient format.
- *
- * @param query - The Scallop query instance.
- * @param obligationId - The obligation id.
- * @return Obligation account data.
- */
-export const getObligationAccount = async (
-  query: ScallopQuery,
-  obligationId: string
-) => {
-  const obligationQuery = await queryObligation(query, obligationId);
-  return parseOriginObligationData(query.utils, obligationQuery);
-};
-
-/**
  * Query all owned coin amount.
  *
  * @param query - The Scallop query instance.
@@ -632,7 +648,7 @@ export const getCoinAmounts = async (
     }
   } while (hasNextPage);
 
-  const coins: Coins = {};
+  const coinAmounts: CoinAmounts = {};
   const coinObjects = coinObjectsResponse
     .map((response) => {
       return response.data;
@@ -646,13 +662,13 @@ export const getCoinAmounts = async (
       const fields = coinObject.content.fields as any;
       const coinName = query.utils.parseCoinName(type);
       if (coinName) {
-        coins[coinName] = BigNumber(coins[coinName] ?? 0)
+        coinAmounts[coinName] = BigNumber(coinAmounts[coinName] ?? 0)
           .plus(fields.balance)
           .toNumber();
       }
     }
   }
-  return coins;
+  return coinAmounts;
 };
 
 /**
@@ -763,7 +779,7 @@ export const getMarketCoinAmounts = async (
     }
   } while (hasNextPage);
 
-  const marketCoins: MarketCoins = {};
+  const marketCoinAmounts: MarketCoinAmounts = {};
   const marketCoinObjects = marketCoinObjectsResponse
     .map((response) => {
       return response.data;
@@ -777,13 +793,15 @@ export const getMarketCoinAmounts = async (
       const fields = marketCoinObject.content.fields as any;
       const coinName = query.utils.parseCoinName(type);
       if (coinName) {
-        marketCoins[coinName] = BigNumber(marketCoins[coinName] ?? 0)
+        marketCoinAmounts[coinName] = BigNumber(
+          marketCoinAmounts[coinName] ?? 0
+        )
           .plus(fields.balance)
           .toNumber();
       }
     }
   }
-  return marketCoins;
+  return marketCoinAmounts;
 };
 
 /**
