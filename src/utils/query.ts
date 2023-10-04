@@ -5,8 +5,7 @@ import type {
   CalculatedMarketPoolData,
   OriginMarketCollateralData,
   ParsedMarketCollateralData,
-  ObligationAccount,
-  ObligationQueryInterface,
+  CalculatedMarketCollateralData,
   OriginStakePoolData,
   ParsedStakePoolData,
   CalculatedStakePoolData,
@@ -26,16 +25,17 @@ export const parseOriginMarketPoolData = (
   originMarketPoolData: OriginMarketPoolData
 ): ParsedMarketPoolData => {
   return {
+    coinType: '0x' + originMarketPoolData.type.name,
     // Parse origin data required for basic calculations.
     maxBorrowRate: Number(originMarketPoolData.maxBorrowRate.value) / 2 ** 32,
     borrowRate: Number(originMarketPoolData.interestRate.value) / 2 ** 32,
     borrowRateScale: Number(originMarketPoolData.interestRateScale),
     borrowIndex: Number(originMarketPoolData.borrowIndex),
     lastUpdated: Number(originMarketPoolData.lastUpdated),
-    cash: Number(originMarketPoolData.cash),
-    debt: Number(originMarketPoolData.debt),
-    marketCoinSupply: Number(originMarketPoolData.marketCoinSupply),
-    reserve: Number(originMarketPoolData.reserve),
+    cashAmount: Number(originMarketPoolData.cash),
+    debtAmount: Number(originMarketPoolData.debt),
+    marketCoinSupplyAmount: Number(originMarketPoolData.marketCoinSupply),
+    reserveAmount: Number(originMarketPoolData.reserve),
     reserveFactor: Number(originMarketPoolData.reserveFactor.value) / 2 ** 32,
     borrowWeight: Number(originMarketPoolData.borrowWeight.value) / 2 ** 32,
     // Parse origin data required for additional display.
@@ -55,6 +55,9 @@ export const calculateMarketPoolData = (
   utils: ScallopUtils,
   parsedMarketPoolData: ParsedMarketPoolData
 ): CalculatedMarketPoolData => {
+  const coinName = utils.parseCoinName(parsedMarketPoolData.coinType);
+  const coinDecimal = utils.getCoinDecimal(coinName);
+
   const borrowYearFactor = 24 * 365 * 3600;
 
   const baseBorrowApr =
@@ -87,25 +90,29 @@ export const calculateMarketPoolData = (
   const growthInterest = BigNumber(currentBorrowIndex)
     .dividedBy(parsedMarketPoolData.borrowIndex)
     .minus(1);
-  const increasedDebt = BigNumber(parsedMarketPoolData.debt).multipliedBy(
-    growthInterest
+  const increasedDebtAmount = BigNumber(
+    parsedMarketPoolData.debtAmount
+  ).multipliedBy(growthInterest);
+  const borrowAmount = increasedDebtAmount.plus(
+    parsedMarketPoolData.debtAmount
   );
-  const currentTotalBorrow = increasedDebt.plus(parsedMarketPoolData.debt);
-  const currentTotalReserve = BigNumber(parsedMarketPoolData.reserve).plus(
-    increasedDebt.multipliedBy(parsedMarketPoolData.reserveFactor)
+  const borrowCoin = borrowAmount.shiftedBy(-1 * coinDecimal);
+  const teserveAmount = BigNumber(parsedMarketPoolData.reserveAmount).plus(
+    increasedDebtAmount.multipliedBy(parsedMarketPoolData.reserveFactor)
   );
-  const currentTotalSupply = BigNumber(currentTotalBorrow).plus(
-    Math.max(parsedMarketPoolData.cash - currentTotalReserve.toNumber(), 0)
+  const reserveCoin = teserveAmount.shiftedBy(-1 * coinDecimal);
+  const supplyAmount = BigNumber(borrowAmount).plus(
+    Math.max(parsedMarketPoolData.cashAmount - teserveAmount.toNumber(), 0)
   );
-  let utilizationRate =
-    BigNumber(currentTotalBorrow).dividedBy(currentTotalSupply);
+  const supplyCoin = supplyAmount.shiftedBy(-1 * coinDecimal);
+  let utilizationRate = BigNumber(borrowAmount).dividedBy(supplyAmount);
   utilizationRate = utilizationRate.isFinite() ? utilizationRate : BigNumber(0);
   let supplyApr = BigNumber(borrowApr)
     .multipliedBy(utilizationRate)
     .multipliedBy(1 - parsedMarketPoolData.reserveFactor);
   supplyApr = supplyApr.isFinite() ? supplyApr : BigNumber(0);
-  let conversionRate = currentTotalSupply.dividedBy(
-    parsedMarketPoolData.marketCoinSupply
+  let conversionRate = supplyAmount.dividedBy(
+    parsedMarketPoolData.marketCoinSupplyAmount
   );
   conversionRate =
     conversionRate.isFinite() && !conversionRate.isNaN()
@@ -128,9 +135,12 @@ export const calculateMarketPoolData = (
     ),
     borrowIndex: currentBorrowIndex.toNumber(),
     growthInterest: growthInterest.toNumber(),
-    totalSupply: currentTotalSupply.toNumber(),
-    totalBorrow: currentTotalBorrow.toNumber(),
-    totalReserve: currentTotalReserve.toNumber(),
+    supplyAmount: supplyAmount.toNumber(),
+    supplyCoin: supplyCoin.toNumber(),
+    borrowAmount: borrowAmount.toNumber(),
+    borrowCoin: borrowCoin.toNumber(),
+    reserveAmount: teserveAmount.toNumber(),
+    reserveCoin: reserveCoin.toNumber(),
     utilizationRate: utilizationRate.toNumber(),
     supplyApr: supplyApr.toNumber(),
     supplyApy: utils.parseAprToApy(supplyApr.toNumber()),
@@ -148,6 +158,7 @@ export const parseOriginMarketCollateralData = (
   originMarketCollateralData: OriginMarketCollateralData
 ): ParsedMarketCollateralData => {
   return {
+    coinType: '0x' + originMarketCollateralData.type.name,
     collateralFactor:
       Number(originMarketCollateralData.collateralFactor.value) / 2 ** 32,
     liquidationFactor:
@@ -166,38 +177,25 @@ export const parseOriginMarketCollateralData = (
   };
 };
 
-/**
- *  Parse origin obligation data to a more readable format.
- *
- * @param originObligationData - Origin obligation data
- * @return Parsed obligation data
- */
-export const parseOriginObligationData = (
+export const calculateMarketCollateralData = (
   utils: ScallopUtils,
-  originObligationData: ObligationQueryInterface
-): ObligationAccount => {
-  const collaterals: ObligationAccount['collaterals'] = {};
-  const debts: ObligationAccount['debts'] = {};
-  for (const [_key, value] of Object.entries(
-    originObligationData.collaterals
-  )) {
-    const coinName = utils.parseCoinName(value.type.name);
-    collaterals[coinName] = {
-      type: value.type.name,
-      amount: Number(value.amount),
-    };
-  }
-  for (const [_key, value] of Object.entries(originObligationData.debts)) {
-    const coinName = utils.parseCoinName(value.type.name);
-    debts[coinName] = {
-      type: value.type.name,
-      amount: Number(value.amount),
-      borrowIndex: Number(value.borrowIndex),
-    };
-  }
+  parsedMarketCollateralData: ParsedMarketCollateralData
+): CalculatedMarketCollateralData => {
+  const coinName = utils.parseCoinName(parsedMarketCollateralData.coinType);
+  const coinDecimal = utils.getCoinDecimal(coinName);
+
+  const maxCollateralCoin = BigNumber(
+    parsedMarketCollateralData.maxCollateralAmount
+  ).shiftedBy(-1 * coinDecimal);
+  const depositCoin = BigNumber(
+    parsedMarketCollateralData.totalCollateralAmount
+  ).shiftedBy(-1 * coinDecimal);
+
   return {
-    collaterals,
-    debts,
+    maxDepositAmount: parsedMarketCollateralData.maxCollateralAmount,
+    maxDepositCoin: maxCollateralCoin.toNumber(),
+    depositAmount: parsedMarketCollateralData.totalCollateralAmount,
+    depositCoin: depositCoin.toNumber(),
   };
 };
 
@@ -211,13 +209,13 @@ export const parseOriginStakePoolData = (
   originStakePoolData: OriginStakePoolData
 ): ParsedStakePoolData => {
   return {
-    stakeType: originStakePoolData.stakeType.fields.name,
+    stakeType: '0x' + originStakePoolData.stakeType.fields.name,
     maxPoint: Number(originStakePoolData.maxDistributedPoint),
     distributedPoint: Number(originStakePoolData.distributedPoint),
     pointPerPeriod: Number(originStakePoolData.distributedPointPerPeriod),
     period: Number(originStakePoolData.pointDistributionTime),
     maxStake: Number(originStakePoolData.maxStake),
-    totalStaked: Number(originStakePoolData.stakes),
+    staked: Number(originStakePoolData.stakes),
     index: Number(originStakePoolData.index),
     createdAt: Number(originStakePoolData.createdAt),
     lastUpdate: Number(originStakePoolData.lastUpdate),
@@ -261,19 +259,19 @@ export const calculateStakePoolData = (
   );
 
   const currentPointIndex = BigNumber(parsedStakePoolData.index).plus(
-    accumulatedPoints.dividedBy(parsedStakePoolData.totalStaked).isFinite()
+    accumulatedPoints.dividedBy(parsedStakePoolData.staked).isFinite()
       ? BigNumber(baseIndexRate)
           .multipliedBy(accumulatedPoints)
-          .dividedBy(parsedStakePoolData.totalStaked)
+          .dividedBy(parsedStakePoolData.staked)
       : 0
   );
   const currentTotalDistributedPoint = BigNumber(
     parsedStakePoolData.distributedPoint
   ).plus(accumulatedPoints);
 
-  const totalStakedValue = BigNumber(parsedStakePoolData.totalStaked)
-    .shiftedBy(-1 * stakeMarketCoinDecimal)
-    .multipliedBy(stakeMarketCoinPrice);
+  const stakedAmount = BigNumber(parsedStakePoolData.staked);
+  const stakedCoin = stakedAmount.shiftedBy(-1 * stakeMarketCoinDecimal);
+  const stakedValue = stakedCoin.multipliedBy(stakeMarketCoinPrice);
 
   return {
     distributedPointPerSec: distributedPointPerSec.toNumber(),
@@ -282,7 +280,9 @@ export const calculateStakePoolData = (
     currentTotalDistributedPoint: currentTotalDistributedPoint.toNumber(),
     startDate: new Date(startDate * 1000),
     endDate: new Date(endDate * 1000),
-    totalStakedValue: totalStakedValue.toNumber(),
+    stakedAmount: stakedAmount.toNumber(),
+    stakedCoin: stakedCoin.toNumber(),
+    stakedValue: stakedValue.toNumber(),
   };
 };
 
@@ -315,31 +315,49 @@ export const calculateRewardPoolData = (
 ): CalculatedRewardPoolData => {
   const rateYearFactor = 365 * 24 * 60 * 60;
 
-  const totalReward = BigNumber(parsedStakePoolData.maxPoint)
-    .multipliedBy(parsedRewardPoolData.exchangeRateNumerator)
-    .dividedBy(parsedRewardPoolData.exchangeRateDenominator);
-
   const rewardPerSec = BigNumber(calculatedStakePoolData.distributedPointPerSec)
     .multipliedBy(parsedRewardPoolData.exchangeRateNumerator)
     .dividedBy(parsedRewardPoolData.exchangeRateDenominator);
 
-  const totalRewardValue = BigNumber(rewardPerSec)
+  const totalRewardAmount = BigNumber(parsedStakePoolData.maxPoint)
+    .multipliedBy(parsedRewardPoolData.exchangeRateNumerator)
+    .dividedBy(parsedRewardPoolData.exchangeRateDenominator);
+  const totalRewardCoin = totalRewardAmount.shiftedBy(-1 * rewardCoinDecimal);
+  const totalRewardValue = totalRewardCoin.multipliedBy(rewardCoinPrice);
+  const remaindRewardAmount = BigNumber(parsedRewardPoolData.rewards);
+  const remaindRewardCoin = remaindRewardAmount.shiftedBy(
+    -1 * rewardCoinDecimal
+  );
+  const remaindRewardValue = remaindRewardCoin.multipliedBy(rewardCoinPrice);
+  const claimedRewardAmount = BigNumber(parsedRewardPoolData.claimedRewards);
+  const claimedRewardCoin = claimedRewardAmount.shiftedBy(
+    -1 * rewardCoinDecimal
+  );
+  const claimedRewardValue = claimedRewardCoin.multipliedBy(rewardCoinPrice);
+
+  const rewardValueForYear = BigNumber(rewardPerSec)
     .shiftedBy(-1 * rewardCoinDecimal)
     .multipliedBy(rateYearFactor)
     .multipliedBy(rewardCoinPrice);
-
-  const stakeRate = totalRewardValue
-    .dividedBy(calculatedStakePoolData.totalStakedValue)
+  const stakeRate = rewardValueForYear
+    .dividedBy(calculatedStakePoolData.stakedValue)
     .isFinite()
-    ? totalRewardValue
-        .dividedBy(calculatedStakePoolData.totalStakedValue)
+    ? rewardValueForYear
+        .dividedBy(calculatedStakePoolData.stakedValue)
         .toNumber()
     : Infinity;
 
   return {
     stakeApr: stakeRate,
-    totalReward: totalReward.toNumber(),
+    totalRewardAmount: totalRewardAmount.toNumber(),
+    totalRewardCoin: totalRewardCoin.toNumber(),
     totalRewardValue: totalRewardValue.toNumber(),
+    remaindRewardAmount: remaindRewardAmount.toNumber(),
+    remaindRewardCoin: remaindRewardCoin.toNumber(),
+    remaindRewardValue: remaindRewardValue.toNumber(),
+    claimedRewardAmount: claimedRewardAmount.toNumber(),
+    claimedRewardCoin: claimedRewardCoin.toNumber(),
+    claimedRewardValue: claimedRewardValue.toNumber(),
     rewardPerSec: rewardPerSec.toNumber(),
     exchangeRateNumerator: parsedRewardPoolData.exchangeRateNumerator,
     exchangeRateDenominator: parsedRewardPoolData.exchangeRateDenominator,

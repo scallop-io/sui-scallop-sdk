@@ -120,7 +120,10 @@ export type MarketPool = {
 } & Required<
   Pick<
     ParsedMarketPoolData,
-    'marketCoinSupply' | 'reserveFactor' | 'borrowWeight' | 'minBorrowAmount'
+    | 'reserveFactor'
+    | 'borrowWeight'
+    | 'marketCoinSupplyAmount'
+    | 'minBorrowAmount'
   >
 > &
   CalculatedMarketPoolData;
@@ -133,9 +136,20 @@ export type MarketCollateral = {
   coinWrappedType: CoinWrappedType;
   coinDecimal: number;
   coinPrice: number;
-} & ParsedMarketCollateralData;
+} & Required<
+  Pick<
+    ParsedMarketCollateralData,
+    | 'collateralFactor'
+    | 'liquidationFactor'
+    | 'liquidationDiscount'
+    | 'liquidationPanelty'
+    | 'liquidationReserveFactor'
+  >
+> &
+  CalculatedMarketCollateralData;
 
 export type OriginMarketPoolData = {
+  type: { name: string };
   maxBorrowRate: { value: string };
   interestRate: { value: string };
   interestRateScale: string;
@@ -156,15 +170,16 @@ export type OriginMarketPoolData = {
 };
 
 export type ParsedMarketPoolData = {
+  coinType: string;
   maxBorrowRate: number;
   borrowRate: number;
   borrowRateScale: number;
   borrowIndex: number;
   lastUpdated: number;
-  cash: number;
-  debt: number;
-  marketCoinSupply: number;
-  reserve: number;
+  cashAmount: number;
+  debtAmount: number;
+  marketCoinSupplyAmount: number;
+  reserveAmount: number;
   reserveFactor: number;
   borrowWeight: number;
   baseBorrowRate: number;
@@ -188,9 +203,12 @@ export type CalculatedMarketPoolData = {
   borrowApy: number;
   borrowIndex: number;
   growthInterest: number;
-  totalSupply: number;
-  totalBorrow: number;
-  totalReserve: number;
+  supplyAmount: number;
+  supplyCoin: number;
+  borrowAmount: number;
+  borrowCoin: number;
+  reserveAmount: number;
+  reserveCoin: number;
   utilizationRate: number;
   supplyApr: number;
   supplyApy: number;
@@ -198,6 +216,7 @@ export type CalculatedMarketPoolData = {
 };
 
 export type OriginMarketCollateralData = {
+  type: { name: string };
   collateralFactor: { value: string };
   liquidationFactor: { value: string };
   liquidationDiscount: { value: string };
@@ -208,6 +227,7 @@ export type OriginMarketCollateralData = {
 };
 
 export type ParsedMarketCollateralData = {
+  coinType: string;
   collateralFactor: number;
   liquidationFactor: number;
   liquidationDiscount: number;
@@ -217,6 +237,13 @@ export type ParsedMarketCollateralData = {
   totalCollateralAmount: number;
 };
 
+export type CalculatedMarketCollateralData = {
+  maxDepositAmount: number;
+  maxDepositCoin: number;
+  depositAmount: number;
+  depositCoin: number;
+};
+
 export type Market = {
   pools: MarketPool[];
   collaterals: MarketCollateral[];
@@ -224,28 +251,6 @@ export type Market = {
 };
 
 export type Obligation = { id: string; keyId: string };
-
-export type ObligationAccount = {
-  collaterals: OptionalKeys<
-    Record<
-      SupportPoolCoins,
-      {
-        type: string;
-        amount: number;
-      }
-    >
-  >;
-  debts: OptionalKeys<
-    Record<
-      SupportCollateralCoins,
-      {
-        type: string;
-        amount: number;
-        borrowIndex: number;
-      }
-    >
-  >;
-};
 
 /**
  * The query interface for `market_query::market_data` inspectTxn.
