@@ -94,7 +94,7 @@ export class ScallopClient {
     await this.builder.init(forece);
   }
 
-  /* === Query Method === */
+  /* ==================== Query Method ==================== */
 
   /**
    * Query market data.
@@ -193,7 +193,7 @@ export class ScallopClient {
     return await this.query.getRewardPool(marketCoinName);
   }
 
-  /* === Spool Method === */
+  /* ==================== Spool Method ==================== */
 
   /**
    * Create stake account.
@@ -429,7 +429,7 @@ export class ScallopClient {
     }
   }
 
-  /* === Core Method === */
+  /* ==================== Core Method ==================== */
 
   /**
    * Open obligation.
@@ -807,7 +807,7 @@ export class ScallopClient {
     }
   }
 
-  /* === Other Method === */
+  /* ==================== Other Method ==================== */
 
   /**
    * Mint and get test coin.

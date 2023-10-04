@@ -126,7 +126,8 @@ describe('Test Scallop Core Builder', async () => {
 
   it('"updateAssetPricesQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
-    await tx.updateAssetPricesQuick(['sui', 'usdc']);
+    tx.setSender(sender);
+    await tx.updateAssetPricesQuick(['apt']);
     const updateAssetPricesResult = await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
       console.info('UpdateAssetPricesResult:', updateAssetPricesResult);

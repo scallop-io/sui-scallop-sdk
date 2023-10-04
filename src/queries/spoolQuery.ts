@@ -69,7 +69,7 @@ export const getSpool = async (
   const rewardPoolId = query.address.get(
     `spool.pools.${marketCoinName}.rewardPoolId`
   );
-  let sPool: Spool | undefined = undefined;
+  let spool: Spool | undefined = undefined;
   const stakePoolObjectResponse = await query.suiKit.client().multiGetObjects({
     ids: [poolId, rewardPoolId],
     options: {
@@ -133,7 +133,7 @@ export const getSpool = async (
           rewardCoinDecimal
         );
 
-        sPool = {
+        spool = {
           marketCoin: marketCoinName,
           symbol: query.utils.parseSymbol(coinName),
           coinType: query.utils.parseCoinType(coinName),
@@ -153,7 +153,7 @@ export const getSpool = async (
     }
   }
 
-  return sPool;
+  return spool;
 };
 
 /**
