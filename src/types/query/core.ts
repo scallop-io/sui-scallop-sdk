@@ -1,6 +1,7 @@
 import type {
   SupportPoolCoins,
   SupportCollateralCoins,
+  SupportMarketCoins,
   CoinWrappedType,
 } from '../constant';
 
@@ -13,7 +14,9 @@ export type MarketCollaterals = OptionalKeys<
   Record<SupportCollateralCoins, MarketCollateral>
 >;
 export type CoinAmounts = OptionalKeys<Record<SupportPoolCoins, number>>;
-export type MarketCoinAmounts = OptionalKeys<Record<SupportPoolCoins, number>>;
+export type MarketCoinAmounts = OptionalKeys<
+  Record<SupportMarketCoins, number>
+>;
 
 export type BalanceSheet = {
   cash: string;
@@ -110,7 +113,7 @@ export type RiskModel = {
 export type CollateralStat = { amount: string };
 
 export type MarketPool = {
-  coin: SupportPoolCoins;
+  coinName: SupportPoolCoins;
   symbol: String;
   coinType: string;
   marketCoinType: string;
@@ -129,7 +132,7 @@ export type MarketPool = {
   CalculatedMarketPoolData;
 
 export type MarketCollateral = {
-  coin: SupportCollateralCoins;
+  coinName: SupportCollateralCoins;
   symbol: string;
   coinType: string;
   marketCoinType: string;

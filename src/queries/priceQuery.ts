@@ -1,19 +1,19 @@
 import type { ScallopQuery } from '../models';
-import type { SupportCoins } from '../types';
+import type { SupportAssetCoins } from '../types';
 
 /**
  * Get price from pyth fee object.
  *
  * @param query - The Scallop query instance.
- * @param coinName - Specific support coin name.
- * @return Coin price.
+ * @param assetCoinName - Specific support asset coin name.
+ * @return Asset coin price.
  */
 export const getPythPrice = async (
   query: ScallopQuery,
-  coinName: SupportCoins
+  assetCoinName: SupportAssetCoins
 ) => {
   const pythFeedObjectId = query.address.get(
-    `core.coins.${coinName}.oracle.pyth.feedObject`
+    `core.coins.${assetCoinName}.oracle.pyth.feedObject`
   );
   const priceFeedObjectResponse = await query.suiKit.client().getObject({
     id: pythFeedObjectId,

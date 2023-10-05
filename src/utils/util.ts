@@ -4,19 +4,20 @@ import {
   SUPPORT_REWARD_POOLS,
 } from '../constants';
 import type {
+  SupportAssetCoins,
   SupportCoins,
   SupportMarketCoins,
-  SupportRewardCoins,
 } from '../types';
 
 export const isMarketCoin = (
-  coin: SupportCoins | SupportMarketCoins | SupportRewardCoins
-): coin is SupportMarketCoins => {
+  coinName: SupportCoins
+): coinName is SupportMarketCoins => {
+  const assetCoinName = coinName.slice(1) as SupportAssetCoins;
   return [
     ...new Set([
       ...SUPPORT_POOLS,
       ...SUPPORT_COLLATERALS,
       ...SUPPORT_REWARD_POOLS,
     ]),
-  ].includes(coin.slice(1) as SupportCoins);
+  ].includes(assetCoinName);
 };

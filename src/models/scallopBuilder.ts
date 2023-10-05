@@ -1,10 +1,10 @@
 import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
+import { ADDRESSES_ID } from '../constants';
+import { newScallopTxBlock } from '../builders';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
-import { ADDRESSES_ID } from '../constants';
-import { newScallopTxBlock } from '../builders';
 import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
 import type { TransactionBlock } from '@mysten/sui.js/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
@@ -12,7 +12,8 @@ import type {
   ScallopInstanceParams,
   ScallopBuilderParams,
   ScallopTxBlock,
-  SupportCoins,
+  SupportMarketCoins,
+  SupportAssetCoins,
 } from '../types';
 
 /**
@@ -98,19 +99,19 @@ export class ScallopBuilder {
    * Specifying the sender's amount of coins to get coins args from transaction result.
    *
    * @param txBlock - Scallop txBlock or txBlock created by SuiKit .
-   * @param coinName - Specific support coin name.
+   * @param assetCoinName - Specific support asset coin name.
    * @param amount - Amount of coins to be selected.
    * @param sender - Sender address.
    * @return Take coin and left coin.
    */
   public async selectCoin(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
-    coinName: SupportCoins,
+    assetCoinName: SupportAssetCoins,
     amount: number,
     sender: string
   ) {
-    const coinType = this.utils.parseCoinType(coinName);
-    const coins = await this.utils.selectCoins(sender, amount, coinType);
+    const coinType = this.utils.parseCoinType(assetCoinName);
+    const coins = await this.utils.selectCoinIds(amount, coinType, sender);
     const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
     return { takeCoin, leftCoin };
   }
@@ -119,19 +120,23 @@ export class ScallopBuilder {
    * Specifying the sender's amount of market coins to get coins args from transaction result.
    *
    * @param txBlock - Scallop txBlock or txBlock created by SuiKit .
-   * @param coinName - Specific support coin name.
+   * @param marketCoinName - Specific support market coin name.
    * @param amount - Amount of coins to be selected.
    * @param sender - Sender address.
    * @return Take coin and left coin.
    */
   public async selectMarketCoin(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
-    coinName: SupportCoins,
+    marketCoinName: SupportMarketCoins,
     amount: number,
     sender: string
   ) {
-    const coinType = this.utils.parseMarketCoinType(coinName);
-    const coins = await this.utils.selectCoins(sender, amount, coinType);
+    const marketCoinType = this.utils.parseMarketCoinType(marketCoinName);
+    const coins = await this.utils.selectCoinIds(
+      amount,
+      marketCoinType,
+      sender
+    );
     const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
     return { takeCoin, leftCoin };
   }

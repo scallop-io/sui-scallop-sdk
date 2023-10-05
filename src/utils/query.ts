@@ -12,6 +12,8 @@ import type {
   OriginRewardPoolData,
   ParsedRewardPoolData,
   CalculatedRewardPoolData,
+  SupportPoolCoins,
+  SupportCollateralCoins,
 } from '../types';
 import { ScallopUtils } from 'src/models';
 
@@ -55,8 +57,10 @@ export const calculateMarketPoolData = (
   utils: ScallopUtils,
   parsedMarketPoolData: ParsedMarketPoolData
 ): CalculatedMarketPoolData => {
-  const coinName = utils.parseCoinName(parsedMarketPoolData.coinType);
-  const coinDecimal = utils.getCoinDecimal(coinName);
+  const poolCoinName = utils.parseCoinNameFromType<SupportPoolCoins>(
+    parsedMarketPoolData.coinType
+  );
+  const coinDecimal = utils.getCoinDecimal(poolCoinName);
 
   const borrowYearFactor = 24 * 365 * 3600;
 
@@ -181,8 +185,11 @@ export const calculateMarketCollateralData = (
   utils: ScallopUtils,
   parsedMarketCollateralData: ParsedMarketCollateralData
 ): CalculatedMarketCollateralData => {
-  const coinName = utils.parseCoinName(parsedMarketCollateralData.coinType);
-  const coinDecimal = utils.getCoinDecimal(coinName);
+  const collateralCoinName =
+    utils.parseCoinNameFromType<SupportCollateralCoins>(
+      parsedMarketCollateralData.coinType
+    );
+  const coinDecimal = utils.getCoinDecimal(collateralCoinName);
 
   const maxCollateralCoin = BigNumber(
     parsedMarketCollateralData.maxCollateralAmount

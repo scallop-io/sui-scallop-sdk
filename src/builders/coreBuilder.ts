@@ -99,16 +99,16 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         `${coreIds.protocolPkg}::open_obligation::open_obligation_entry`,
         [coreIds.version]
       ),
-    addCollateral: (obligation, coin, coinName) => {
-      const coinType = builder.utils.parseCoinType(coinName);
+    addCollateral: (obligation, coin, collateralCoinName) => {
+      const coinType = builder.utils.parseCoinType(collateralCoinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::deposit_collateral::deposit_collateral`,
         [coreIds.version, obligation, coreIds.market, coin],
         [coinType]
       );
     },
-    takeCollateral: (obligation, obligationKey, amount, coinName) => {
-      const coinType = builder.utils.parseCoinType(coinName);
+    takeCollateral: (obligation, obligationKey, amount, collateralCoinName) => {
+      const coinType = builder.utils.parseCoinType(collateralCoinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::withdraw_collateral::withdraw_collateral`,
         [
@@ -124,40 +124,40 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coinType]
       );
     },
-    deposit: (coin, coinName) => {
-      const coinType = builder.utils.parseCoinType(coinName);
+    deposit: (coin, poolCoinName) => {
+      const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::mint::mint`,
         [coreIds.version, coreIds.market, coin, SUI_CLOCK_OBJECT_ID],
         [coinType]
       );
     },
-    depositEntry: (coin, coinName) => {
-      const coinType = builder.utils.parseCoinType(coinName);
+    depositEntry: (coin, poolCoinName) => {
+      const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::mint::mint_entry`,
         [coreIds.version, coreIds.market, coin, SUI_CLOCK_OBJECT_ID],
         [coinType]
       );
     },
-    withdraw: (marketCoin, coinName) => {
-      const coinType = builder.utils.parseCoinType(coinName);
+    withdraw: (marketCoin, poolCoinName) => {
+      const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::redeem::redeem`,
         [coreIds.version, coreIds.market, marketCoin, SUI_CLOCK_OBJECT_ID],
         [coinType]
       );
     },
-    withdrawEntry: (marketCoin, coinName) => {
-      const coinType = builder.utils.parseCoinType(coinName);
+    withdrawEntry: (marketCoin, poolCoinName) => {
+      const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::redeem::redeem_entry`,
         [coreIds.version, coreIds.market, marketCoin, SUI_CLOCK_OBJECT_ID],
         [coinType]
       );
     },
-    borrow: (obligation, obligationKey, amount, coinName) => {
-      const coinType = builder.utils.parseCoinType(coinName);
+    borrow: (obligation, obligationKey, amount, poolCoinName) => {
+      const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::borrow::borrow`,
         [
@@ -173,8 +173,8 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coinType]
       );
     },
-    borrowEntry: (obligation, obligationKey, amount, coinName) => {
-      const coinType = builder.utils.parseCoinType(coinName);
+    borrowEntry: (obligation, obligationKey, amount, poolCoinName) => {
+      const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::borrow::borrow_entry`,
         [
@@ -190,8 +190,8 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coinType]
       );
     },
-    repay: (obligation, coin, coinName) => {
-      const coinType = builder.utils.parseCoinType(coinName);
+    repay: (obligation, coin, poolCoinName) => {
+      const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::repay::repay`,
         [
@@ -204,16 +204,16 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coinType]
       );
     },
-    borrowFlashLoan: (amount, coinName) => {
-      const coinType = builder.utils.parseCoinType(coinName);
+    borrowFlashLoan: (amount, poolCoinName) => {
+      const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::flash_loan::borrow_flash_loan`,
         [coreIds.version, coreIds.market, amount],
         [coinType]
       );
     },
-    repayFlashLoan: (coin, loan, coinName) => {
-      const coinType = builder.utils.parseCoinType(coinName);
+    repayFlashLoan: (coin, loan, poolCoinName) => {
+      const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::flash_loan::repay_flash_loan`,
         [coreIds.version, coreIds.market, coin, loan],
@@ -240,7 +240,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
   txBlock,
 }) => {
   return {
-    addCollateralQuick: async (amount, coinName, obligationId) => {
+    addCollateralQuick: async (amount, collateralCoinName, obligationId) => {
       const sender = requireSender(txBlock);
       const { obligationId: obligationArg } = await requireObligationInfo(
         builder,
@@ -248,23 +248,23 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationId
       );
 
-      if (coinName === 'sui') {
+      if (collateralCoinName === 'sui') {
         const [suiCoin] = txBlock.splitSUIFromGas([amount]);
-        txBlock.addCollateral(obligationArg, suiCoin, coinName);
+        txBlock.addCollateral(obligationArg, suiCoin, collateralCoinName);
       } else {
         const { leftCoin, takeCoin } = await builder.selectCoin(
           txBlock,
-          coinName,
+          collateralCoinName,
           amount,
           sender
         );
-        txBlock.addCollateral(obligationArg, takeCoin, coinName);
+        txBlock.addCollateral(obligationArg, takeCoin, collateralCoinName);
         txBlock.transferObjects([leftCoin], sender);
       }
     },
     takeCollateralQuick: async (
       amount,
-      coinName,
+      collateralCoinName,
       obligationId,
       obligationKey
     ) => {
@@ -282,37 +282,38 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationInfo.obligationId,
         obligationInfo.obligationKey as SuiTxArg,
         amount,
-        coinName
+        collateralCoinName
       );
     },
-    depositQuick: async (amount, coinName) => {
+    depositQuick: async (amount, poolCoinName) => {
       const sender = requireSender(txBlock);
-      if (coinName === 'sui') {
+      if (poolCoinName === 'sui') {
         const [suiCoin] = txBlock.splitSUIFromGas([amount]);
-        return txBlock.deposit(suiCoin, coinName);
+        return txBlock.deposit(suiCoin, poolCoinName);
       } else {
         const { leftCoin, takeCoin } = await builder.selectCoin(
           txBlock,
-          coinName,
+          poolCoinName,
           amount,
           sender
         );
         txBlock.transferObjects([leftCoin], sender);
-        return txBlock.deposit(takeCoin, coinName);
+        return txBlock.deposit(takeCoin, poolCoinName);
       }
     },
-    withdrawQuick: async (amount, coinName) => {
+    withdrawQuick: async (amount, poolCoinName) => {
       const sender = requireSender(txBlock);
+      const marketCoinName = builder.utils.parseMarketCoinName(poolCoinName);
       const { leftCoin, takeCoin } = await builder.selectMarketCoin(
         txBlock,
-        coinName,
+        marketCoinName,
         amount,
         sender
       );
       txBlock.transferObjects([leftCoin], sender);
-      return txBlock.withdraw(takeCoin, coinName);
+      return txBlock.withdraw(takeCoin, poolCoinName);
     },
-    borrowQuick: async (amount, coinName, obligationId, obligationKey) => {
+    borrowQuick: async (amount, poolCoinName, obligationId, obligationKey) => {
       const obligationInfo = await requireObligationInfo(
         builder,
         txBlock,
@@ -322,16 +323,16 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       const obligationCoinNames = await builder.utils.getObligationCoinNames(
         obligationInfo.obligationId as string
       );
-      const updateCoinNames = [...obligationCoinNames, coinName];
+      const updateCoinNames = [...obligationCoinNames, poolCoinName];
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.borrow(
         obligationInfo.obligationId,
         obligationInfo.obligationKey as SuiTxArg,
         amount,
-        coinName
+        poolCoinName
       );
     },
-    repayQuick: async (amount, coinName, obligationId) => {
+    repayQuick: async (amount, poolCoinName, obligationId) => {
       const sender = requireSender(txBlock);
       const obligationInfo = await requireObligationInfo(
         builder,
@@ -339,22 +340,30 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationId
       );
 
-      if (coinName === 'sui') {
+      if (poolCoinName === 'sui') {
         const [suiCoin] = txBlock.splitSUIFromGas([amount]);
-        return txBlock.repay(obligationInfo.obligationId, suiCoin, coinName);
+        return txBlock.repay(
+          obligationInfo.obligationId,
+          suiCoin,
+          poolCoinName
+        );
       } else {
         const { leftCoin, takeCoin } = await builder.selectCoin(
           txBlock,
-          coinName,
+          poolCoinName,
           amount,
           sender
         );
         txBlock.transferObjects([leftCoin], sender);
-        return txBlock.repay(obligationInfo.obligationId, takeCoin, coinName);
+        return txBlock.repay(
+          obligationInfo.obligationId,
+          takeCoin,
+          poolCoinName
+        );
       }
     },
-    updateAssetPricesQuick: async (coinNames) => {
-      return updateOracles(builder, txBlock, coinNames);
+    updateAssetPricesQuick: async (assetCoinNames) => {
+      return updateOracles(builder, txBlock, assetCoinNames);
     },
   };
 };

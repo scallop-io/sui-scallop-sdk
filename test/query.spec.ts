@@ -127,11 +127,9 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
   });
 
   it('Should get pyth price data', async () => {
-    const coinName = 'usdc';
-    const usdcPrice = await scallopQuery.getPriceFromPyth(coinName);
+    const usdcPrice = await scallopQuery.getPriceFromPyth('usdc');
 
     if (ENABLE_LOG) {
-      console.info('Coin name:', coinName);
       console.info('Usdc price:', usdcPrice);
     }
     expect(usdcPrice).toBeGreaterThan(0);
@@ -173,6 +171,16 @@ describe('Test Query Spool Contract On Chain Data', async () => {
       console.dir(allStakeAccounts, { depth: null, colors: true });
     }
     expect(!!allStakeAccounts).toBe(true);
+  });
+
+  it('Should get stake accounts data', async () => {
+    const stakeAccounts = await scallopQuery.getStakeAccounts('ssui');
+
+    if (ENABLE_LOG) {
+      console.info('Stake accounts:');
+      console.dir(stakeAccounts, { depth: null, colors: true });
+    }
+    expect(!!stakeAccounts).toBe(true);
   });
 
   it('Should get all stake pools data', async () => {
