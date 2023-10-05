@@ -1,6 +1,4 @@
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ScallopAddress } from './scallopAddress';
-import { ScallopUtils } from './scallopUtils';
 import { ADDRESSES_ID, SUPPORT_SPOOLS } from '../constants';
 import {
   queryMarket,
@@ -29,13 +27,15 @@ import {
   ScallopQueryParams,
   ScallopInstanceParams,
   SupportStakeMarketCoins,
-  SupportCoins,
+  SupportAssetCoins,
   SupportPoolCoins,
   SupportCollateralCoins,
   SupportMarketCoins,
   StakePools,
   RewardPools,
 } from '../types';
+import { ScallopAddress } from './scallopAddress';
+import { ScallopUtils } from './scallopUtils';
 
 /**
  * @description
@@ -107,21 +107,21 @@ export class ScallopQuery {
    * To obtain all market pools at once, it is recommended to use
    * the `queryMarket` method to reduce time consumption.
    *
-   * @param coinNames - Specific an array of support coin name.
+   * @param poolCoinNames - Specific an array of support pool coin name.
    * @return Market pools data.
    */
-  public async getMarketPools(coinNames?: SupportPoolCoins[]) {
-    return await getMarketPools(this, coinNames);
+  public async getMarketPools(poolCoinNames?: SupportPoolCoins[]) {
+    return await getMarketPools(this, poolCoinNames);
   }
 
   /**
    * Get  market pool
    *
-   * @param coinName - Specific support coin name.
+   * @param poolCoinName - Specific support pool coin name.
    * @return Market pool data.
    */
-  public async getMarketPool(coinName: SupportPoolCoins) {
-    return await getMarketPool(this, coinName);
+  public async getMarketPool(poolCoinName: SupportPoolCoins) {
+    return await getMarketPool(this, poolCoinName);
   }
 
   /**
@@ -131,21 +131,23 @@ export class ScallopQuery {
    * To obtain all market collaterals at once, it is recommended to use
    * the `queryMarket` method to reduce time consumption.
    *
-   * @param coinNames - Specific an array of support coin name.
+   * @param collateralCoinNames - Specific an array of support collateral coin name.
    * @return Market collaterals data.
    */
-  public async getMarketCollaterals(coinNames?: SupportCollateralCoins[]) {
-    return await getMarketCollaterals(this, coinNames);
+  public async getMarketCollaterals(
+    collateralCoinNames?: SupportCollateralCoins[]
+  ) {
+    return await getMarketCollaterals(this, collateralCoinNames);
   }
 
   /**
    * Get market collateral
    *
-   * @param coinName - Specific support coin name.
+   * @param collateralCoinName - Specific support collateral coin name.
    * @return Market collateral data.
    */
-  public async getMarketCollateral(coinName: SupportCollateralCoins) {
-    return await getMarketCollateral(this, coinName);
+  public async getMarketCollateral(collateralCoinName: SupportCollateralCoins) {
+    return await getMarketCollateral(this, collateralCoinName);
   }
 
   /**
@@ -169,31 +171,31 @@ export class ScallopQuery {
   }
 
   /**
-   * Get all coin amounts.
+   * Get all asset coin amounts.
    *
-   * @param coinNames - Specific an array of support coin name.
+   * @param assetCoinNames - Specific an array of support asset coin name.
    * @param ownerAddress - The owner address.
    * @return All coin amounts.
    */
   public async getCoinAmounts(
-    coinNames?: SupportPoolCoins[],
+    assetCoinNames?: SupportAssetCoins[],
     ownerAddress?: string
   ) {
-    return await getCoinAmounts(this, coinNames, ownerAddress);
+    return await getCoinAmounts(this, assetCoinNames, ownerAddress);
   }
 
   /**
-   * Get coin amount.
+   * Get asset coin amount.
    *
-   * @param coinNames - Specific support coin name.
+   * @param assetCoinName - Specific support asset coin name.
    * @param ownerAddress - The owner address.
    * @return Coin amount.
    */
   public async getCoinAmount(
-    coinName: SupportPoolCoins,
+    assetCoinName: SupportAssetCoins,
     ownerAddress?: string
   ) {
-    return await getCoinAmount(this, coinName, ownerAddress);
+    return await getCoinAmount(this, assetCoinName, ownerAddress);
   }
 
   /**
@@ -227,11 +229,11 @@ export class ScallopQuery {
   /**
    * Get price from pyth fee object.
    *
-   * @param coinName - Specific support coin name.
-   * @return Coin price.
+   * @param assetCoinName - Specific support asset coin name.
+   * @return Asset coin price.
    */
-  public async getPriceFromPyth(coinName: SupportCoins) {
-    return await getPythPrice(this, coinName);
+  public async getPriceFromPyth(assetCoinName: SupportAssetCoins) {
+    return await getPythPrice(this, assetCoinName);
   }
 
   /* ==================== Spool Query Methods ==================== */
@@ -239,21 +241,21 @@ export class ScallopQuery {
   /**
    * Get spools data.
    *
-   * @param marketCoinNames - Specific an array of support stake market coin name.
+   * @param stakeMarketCoinNames - Specific an array of support stake market coin name.
    * @return Spools data.
    */
-  public async getSpools(marketCoinNames?: SupportStakeMarketCoins[]) {
-    return await getSpools(this, marketCoinNames);
+  public async getSpools(stakeMarketCoinNames?: SupportStakeMarketCoins[]) {
+    return await getSpools(this, stakeMarketCoinNames);
   }
 
   /**
    * Get spool data.
    *
-   * @param marketCoinName - Specific support stake market coin name.
+   * @param stakeMarketCoinName - Specific support stake market coin name.
    * @return Spool data.
    */
-  public async getSpool(marketCoinName: SupportStakeMarketCoins) {
-    return await getSpool(this, marketCoinName);
+  public async getSpool(stakeMarketCoinName: SupportStakeMarketCoins) {
+    return await getSpool(this, stakeMarketCoinName);
   }
 
   /**
@@ -269,16 +271,16 @@ export class ScallopQuery {
   /**
    * Get stake accounts data for specific stake pool (spool).
    *
-   * @param marketCoinName - Support stake market coin.
+   * @param stakeMarketCoinName - Specific support stake market coin name.
    * @param ownerAddress - The owner address.
    * @return Stake accounts data.
    */
   public async getStakeAccounts(
-    marketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: SupportStakeMarketCoins,
     ownerAddress?: string
   ) {
     const allStakeAccount = await this.getAllStakeAccounts(ownerAddress);
-    return allStakeAccount[marketCoinName] ?? [];
+    return allStakeAccount[stakeMarketCoinName] ?? [];
   }
 
   /**
@@ -288,17 +290,17 @@ export class ScallopQuery {
    * For backward compatible, it is recommended to use `getSpools` method
    * to get all spools data.
    *
-   * @param marketCoinNames - Specific an array of market coin name.
+   * @param stakeMarketCoinNames - Specific an array of support stake market coin name.
    * @return Stake pools data.
    */
-  public async getStakePools(marketCoinNames?: SupportStakeMarketCoins[]) {
-    marketCoinNames = marketCoinNames ?? [...SUPPORT_SPOOLS];
+  public async getStakePools(stakeMarketCoinNames?: SupportStakeMarketCoins[]) {
+    stakeMarketCoinNames = stakeMarketCoinNames ?? [...SUPPORT_SPOOLS];
     const stakePools: StakePools = {};
-    for (const marketCoinName of marketCoinNames) {
-      const stakePool = await getStakePool(this, marketCoinName);
+    for (const stakeMarketCoinName of stakeMarketCoinNames) {
+      const stakePool = await getStakePool(this, stakeMarketCoinName);
 
       if (stakePool) {
-        stakePools[marketCoinName] = stakePool;
+        stakePools[stakeMarketCoinName] = stakePool;
       }
     }
 
@@ -312,11 +314,11 @@ export class ScallopQuery {
    * For backward compatible, it is recommended to use `getSpool` method
    * to get all spool data.
    *
-   * @param marketCoinName - The market coin name.
+   * @param stakeMarketCoinName - Specific support stake market coin name.
    * @return Stake pool data.
    */
-  public async getStakePool(marketCoinName: SupportStakeMarketCoins) {
-    return await getStakePool(this, marketCoinName);
+  public async getStakePool(stakeMarketCoinName: SupportStakeMarketCoins) {
+    return await getStakePool(this, stakeMarketCoinName);
   }
 
   /**
@@ -326,17 +328,19 @@ export class ScallopQuery {
    * For backward compatible, it is recommended to use `getSpools` method
    * to get all spools data.
    *
-   * @param marketCoinNames - Specific an array of market coin name.
+   * @param stakeMarketCoinNames - Specific an array of stake market coin name.
    * @return Reward pools data.
    */
-  public async getRewardPools(marketCoinNames?: SupportStakeMarketCoins[]) {
-    marketCoinNames = marketCoinNames ?? [...SUPPORT_SPOOLS];
+  public async getRewardPools(
+    stakeMarketCoinNames?: SupportStakeMarketCoins[]
+  ) {
+    stakeMarketCoinNames = stakeMarketCoinNames ?? [...SUPPORT_SPOOLS];
     const rewardPools: RewardPools = {};
-    for (const marketCoinName of marketCoinNames) {
-      const rewardPool = await getRewardPool(this, marketCoinName);
+    for (const stakeMarketCoinName of stakeMarketCoinNames) {
+      const rewardPool = await getRewardPool(this, stakeMarketCoinName);
 
       if (rewardPool) {
-        rewardPools[marketCoinName] = rewardPool;
+        rewardPools[stakeMarketCoinName] = rewardPool;
       }
     }
 
@@ -350,36 +354,39 @@ export class ScallopQuery {
    * For backward compatible, it is recommended to use `getSpool` method
    * to get spool data.
    *
-   * @param marketCoinName - The market coin name.
+   * @param marketCoinName - Specific support stake market coin name.
    * @return Reward pool data.
    */
-  public async getRewardPool(marketCoinName: SupportStakeMarketCoins) {
-    return await getRewardPool(this, marketCoinName);
+  public async getRewardPool(stakeMarketCoinName: SupportStakeMarketCoins) {
+    return await getRewardPool(this, stakeMarketCoinName);
   }
 
   /**
    * Get user lending and spool infomation for specific pools.
    *
-   * @param coinNames - Specific an array of support coin name.
+   * @param poolCoinNames - Specific an array of support pool coin name.
    * @param ownerAddress - The owner address.
    * @return All lending and spool infomation.
    */
   public async getLendings(
-    coinNames?: SupportPoolCoins[],
+    poolCoinNames?: SupportPoolCoins[],
     ownerAddress?: string
   ) {
-    return await getLendings(this, coinNames, ownerAddress);
+    return await getLendings(this, poolCoinNames, ownerAddress);
   }
 
   /**
    * Get user lending and spool information for specific pool.
    *
-   * @param coinName - Specific support coin name.
+   * @param poolCoinName - Specific support pool coin name.
    * @param ownerAddress - The owner address.
    * @return Lending pool data.
    */
-  public async getLending(coinName: SupportPoolCoins, ownerAddress?: string) {
-    return await getLending(this, coinName, ownerAddress);
+  public async getLending(
+    poolCoinName: SupportPoolCoins,
+    ownerAddress?: string
+  ) {
+    return await getLending(this, poolCoinName, ownerAddress);
   }
 
   /**
@@ -388,7 +395,6 @@ export class ScallopQuery {
    * @description
    * All collateral and borrowing information in all obligation accounts owned by the user.
    *
-   * @param coinNames - Specific an array of support coin name.
    * @param ownerAddress - The owner address.
    * @return All obligation accounts information.
    */
@@ -402,8 +408,6 @@ export class ScallopQuery {
    * @description
    * borrowing and obligation information for specific pool.
    *
-   * @param coinName - Specific support coin name.
-   * @param ownerAddress - The owner address.
    * @param obligationId - The obligation id.
    * @return Borrowing and collateral information.
    */

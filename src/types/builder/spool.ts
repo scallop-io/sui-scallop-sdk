@@ -12,42 +12,42 @@ export type SpoolIds = {
 
 export type SpoolNormalMethods = {
   createStakeAccount: (
-    marketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: SupportStakeMarketCoins
   ) => TransactionResult;
   stake: (
     stakeAccount: SuiTxArg,
     coin: SuiTxArg,
-    marketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: SupportStakeMarketCoins
   ) => void;
   unstake: (
     stakeAccount: SuiTxArg,
     amount: number,
-    marketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: SupportStakeMarketCoins
   ) => TransactionResult;
   claim: (
     stakeAccount: SuiTxArg,
-    marketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: SupportStakeMarketCoins
   ) => TransactionResult;
 };
 
 export type SpoolQuickMethods = {
   stakeQuick(
     amountOrMarketCoin: number,
-    marketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiTxArg
   ): Promise<void>;
   stakeQuick(
     amountOrMarketCoin: TransactionResult,
-    marketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiTxArg
   ): Promise<void>;
   unstakeQuick(
     amount: number,
-    marketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiTxArg
   ): Promise<TransactionResult>;
   claimQuick(
-    marketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiTxArg
   ): Promise<TransactionResult>;
 };

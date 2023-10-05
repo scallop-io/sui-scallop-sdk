@@ -8,7 +8,7 @@ import {
   PROTOCOL_OBJECT_ID,
   SUPPORT_POOLS,
   SUPPORT_COLLATERALS,
-  spoolRewardType,
+  rewardCoins,
   coinDecimals,
 } from '../constants';
 import { queryObligation } from '../queries';
@@ -17,6 +17,7 @@ import type {
   ScallopUtilsParams,
   ScallopInstanceParams,
   SupportCoins,
+  SupportAssetCoins,
   SupportMarketCoins,
   SupportStakeMarketCoins,
   CoinPrices,
@@ -86,7 +87,7 @@ export class ScallopUtils {
    * @param coinName - Specific support coin name.
    * @return Symbol string.
    */
-  public parseSymbol(coinName: SupportCoins | SupportMarketCoins) {
+  public parseSymbol(coinName: SupportCoins) {
     if (isMarketCoin(coinName)) {
       return coinName.slice(0, 1) + coinName.slice(1).toUpperCase();
     } else {
@@ -106,63 +107,22 @@ export class ScallopUtils {
    * @return Coin type.
    */
   public parseCoinType(coinName: SupportCoins) {
+    coinName = isMarketCoin(coinName) ? this.parseCoinName(coinName) : coinName;
     const coinPackageId = this._address.get(`core.coins.${coinName}.id`);
     if (coinName === 'sui')
       return normalizeStructTag(`${coinPackageId}::sui::SUI`);
-    const wormHoleCoins = [
-      this._address.get(`core.coins.usdc.id`),
-      this._address.get(`core.coins.usdt.id`),
-      this._address.get(`core.coins.eth.id`),
-      this._address.get(`core.coins.btc.id`),
-      this._address.get(`core.coins.sol.id`),
-      this._address.get(`core.coins.apt.id`),
+    const wormHoleCoinIds = [
+      this._address.get('core.coins.usdc.id'),
+      this._address.get('core.coins.usdt.id'),
+      this._address.get('core.coins.eth.id'),
+      this._address.get('core.coins.btc.id'),
+      this._address.get('core.coins.sol.id'),
+      this._address.get('core.coins.apt.id'),
     ];
-    if (wormHoleCoins.includes(coinPackageId)) {
+    if (wormHoleCoinIds.includes(coinPackageId)) {
       return `${coinPackageId}::coin::COIN`;
     } else {
       return `${coinPackageId}::${coinName}::${coinName.toUpperCase()}`;
-    }
-  }
-
-  /**
-   * Convert coin type to coin name..
-   *
-   * @description
-   * The coin name cannot be obtained directly from the wormhole type. Here
-   * the package id is used to determine and return a specific name.
-   *
-   * @param coinType - Specific support coin type.
-   * @return Coin Name.
-   */
-  public parseCoinName(coinType: string) {
-    coinType = normalizeStructTag(coinType);
-    const coinTypeRegex = new RegExp(`((0x[^:]+::[^:]+::[^<>]+))(?![^<>]*<)`);
-    const coinTypeMatch = coinType.match(coinTypeRegex);
-
-    coinType = coinTypeMatch?.[1] || coinType;
-    const wormHoleCoinTypes = [
-      `${this._address.get(`core.coins.usdc.id`)}::coin::COIN`,
-      `${this._address.get(`core.coins.usdt.id`)}::coin::COIN`,
-      `${this._address.get(`core.coins.eth.id`)}::coin::COIN`,
-      `${this._address.get(`core.coins.btc.id`)}::coin::COIN`,
-      `${this._address.get(`core.coins.sol.id`)}::coin::COIN`,
-      `${this._address.get(`core.coins.apt.id`)}::coin::COIN`,
-    ];
-
-    if (coinType === wormHoleCoinTypes[0]) {
-      return 'usdc';
-    } else if (coinType === wormHoleCoinTypes[1]) {
-      return 'usdt';
-    } else if (coinType === wormHoleCoinTypes[2]) {
-      return 'eth';
-    } else if (coinType === wormHoleCoinTypes[3]) {
-      return 'btc';
-    } else if (coinType === wormHoleCoinTypes[4]) {
-      return 'sol';
-    } else if (coinType === wormHoleCoinTypes[5]) {
-      return 'apt';
-    } else {
-      return coinType.split('::')[2].toLowerCase() as SupportCoins;
     }
   }
 
@@ -179,34 +139,76 @@ export class ScallopUtils {
   }
 
   /**
-   * Select coin id  that add up to the given amount as transaction arguments.
+   * Convert coin type to coin name.
    *
-   * @param owner - The address of the owner.
-   * @param amount - The amount that is needed for the coin.
-   * @param coinType - The coin type, default is 0x2::SUI::SUI.
-   * @return The selected transaction coin arguments.
+   * @description
+   * The coin name cannot be obtained directly from the wormhole type. Here
+   * the package id is used to determine and return a specific name.
+   *
+   * @param coinType - Specific support coin type.
+   * @return Coin Name.
    */
-  public async selectCoins(
-    owner: string,
-    amount: number,
-    coinType: string = SUI_TYPE_ARG
+  public parseCoinNameFromType<T extends SupportAssetCoins>(
+    coinType: string
+  ): T extends SupportAssetCoins ? T : SupportAssetCoins;
+  public parseCoinNameFromType<T extends SupportMarketCoins>(
+    coinType: string
+  ): T extends SupportMarketCoins ? T : SupportMarketCoins;
+  public parseCoinNameFromType(coinType: string) {
+    coinType = normalizeStructTag(coinType);
+    const coinTypeRegex = new RegExp(`((0x[^:]+::[^:]+::[^<>]+))(?![^<>]*<)`);
+    const coinTypeMatch = coinType.match(coinTypeRegex);
+    const isMarketCoinType = coinType.includes('reserve::MarketCoin');
+    coinType = coinTypeMatch?.[1] || coinType;
+
+    const wormHoleCoinTypeMap: Record<string, SupportAssetCoins> = {
+      [`${this._address.get('core.coins.usdc.id')}::coin::COIN`]: 'usdc',
+      [`${this._address.get('core.coins.usdt.id')}::coin::COIN`]: 'usdt',
+      [`${this._address.get('core.coins.eth.id')}::coin::COIN`]: 'eth',
+      [`${this._address.get('core.coins.btc.id')}::coin::COIN`]: 'btc',
+      [`${this._address.get('core.coins.sol.id')}::coin::COIN`]: 'sol',
+      [`${this._address.get('core.coins.apt.id')}::coin::COIN`]: 'apt',
+    };
+
+    const assetCoinName =
+      wormHoleCoinTypeMap[coinType] ||
+      (coinType.split('::')[2].toLowerCase() as SupportAssetCoins);
+
+    return isMarketCoinType
+      ? this.parseMarketCoinName(assetCoinName)
+      : assetCoinName;
+  }
+
+  /**
+   * Convert marke coin name to coin name.
+   *
+   * @param marketCoinName - Specific support market coin name.
+   * @return Coin Name.
+   */
+  public parseCoinName<T extends SupportAssetCoins>(marketCoinName: string) {
+    return marketCoinName.slice(1) as T;
+  }
+
+  /**
+   * Convert coin name to market coin name.
+   *
+   * @param coinName - Specific support coin name.
+   * @return Market coin name.
+   */
+  public parseMarketCoinName<T extends SupportMarketCoins>(
+    coinName: SupportCoins
   ) {
-    const coins = await this._suiKit.suiInteractor.selectCoins(
-      owner,
-      amount,
-      coinType
-    );
-    return coins.map((c) => c.objectId);
+    return `s${coinName}` as T;
   }
 
   /**
    * Get reward type of stake pool.
    *
-   * @param marketCoinName - Support stake market coin.
+   * @param stakeMarketCoinName - Support stake market coin.
    * @return Reward coin name.
    */
-  public getRewardCoinName = (marketCoinName: SupportStakeMarketCoins) => {
-    return spoolRewardType[marketCoinName];
+  public getRewardCoinName = (stakeMarketCoinName: SupportStakeMarketCoins) => {
+    return rewardCoins[stakeMarketCoinName];
   };
 
   /**
@@ -223,13 +225,13 @@ export class ScallopUtils {
    *
    * return Coin wrapped type.
    */
-  public getCoinWrappedType(coinName: SupportCoins): CoinWrappedType {
-    return coinName === 'usdc' ||
-      coinName === 'usdt' ||
-      coinName === 'eth' ||
-      coinName === 'btc' ||
-      coinName === 'apt' ||
-      coinName === 'sol'
+  public getCoinWrappedType(assetCoinName: SupportAssetCoins): CoinWrappedType {
+    return assetCoinName === 'usdc' ||
+      assetCoinName === 'usdt' ||
+      assetCoinName === 'eth' ||
+      assetCoinName === 'btc' ||
+      assetCoinName === 'apt' ||
+      assetCoinName === 'sol'
       ? {
           from: 'Wormhole',
           type: 'Portal from Ethereum',
@@ -238,14 +240,36 @@ export class ScallopUtils {
   }
 
   /**
-   * Get all coin names in the obligation record by obligation id.
+   * Select coin id  that add up to the given amount as transaction arguments.
+   *
+   * @param ownerAddress - The address of the owner.
+   * @param amount - The amount that including coin decimals.
+   * @param coinType - The coin type, default is 0x2::SUI::SUI.
+   * @return The selected transaction coin arguments.
+   */
+  public async selectCoinIds(
+    amount: number,
+    coinType: string = SUI_TYPE_ARG,
+    ownerAddress?: string
+  ) {
+    ownerAddress = ownerAddress || this._suiKit.currentAddress();
+    const coins = await this._suiKit.suiInteractor.selectCoins(
+      ownerAddress,
+      amount,
+      coinType
+    );
+    return coins.map((c) => c.objectId);
+  }
+
+  /**
+   * Get all asset coin names in the obligation record by obligation id.
    *
    * @description
    * This can often be used to determine which assets in an obligation require
    * price updates before interacting with specific instructions of the Scallop contract.
    *
    * @param obligationId - The obligation id.
-   * @return Coin Names.
+   * @return Asset coin Names.
    */
   public async getObligationCoinNames(obligationId: string) {
     const obligation = await queryObligation(this._query, obligationId);
@@ -259,13 +283,13 @@ export class ScallopUtils {
       ...new Set([...collateralCoinTypes, ...debtCoinTypes]),
     ];
     const obligationCoinNames = obligationCoinTypes.map((coinType) => {
-      return this.parseCoinName(coinType);
+      return this.parseCoinNameFromType(coinType);
     });
     return obligationCoinNames;
   }
 
   /**
-   * Get coin price.
+   * Get asset coin price.
    *
    * @description
    * The strategy for obtaining the price is to get it through API first,
@@ -273,28 +297,28 @@ export class ScallopUtils {
    * Currently, we only support obtaining from pyth protocol, other
    * oracles will be supported in the future.
    *
-   * @param coinNames - Specific an array of support coin name.
-   * @return  Coin price.
+   * @param assetCoinNames - Specific an array of support asset coin name.
+   * @return  Asset coin price.
    */
-  public async getCoinPrices(coinNames?: SupportCoins[]) {
-    coinNames =
-      coinNames ||
+  public async getCoinPrices(assetCoinNames?: SupportAssetCoins[]) {
+    assetCoinNames =
+      assetCoinNames ||
       ([
         ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
-      ] as SupportCoins[]);
+      ] as SupportAssetCoins[]);
 
     const coinPrices: CoinPrices = {};
-    const existPricesCoinNames: SupportCoins[] = [];
-    const lackPricesCoinNames: SupportCoins[] = [];
+    const existPricesCoinNames: SupportAssetCoins[] = [];
+    const lackPricesCoinNames: SupportAssetCoins[] = [];
 
-    coinNames.forEach((coinName) => {
+    assetCoinNames.forEach((assetCoinName) => {
       if (
-        this._priceMap.has(coinName) &&
-        Date.now() - this._priceMap.get(coinName)!.publishTime < 1000 * 60
+        this._priceMap.has(assetCoinName) &&
+        Date.now() - this._priceMap.get(assetCoinName)!.publishTime < 1000 * 60
       ) {
-        existPricesCoinNames.push(coinName);
+        existPricesCoinNames.push(assetCoinName);
       } else {
-        lackPricesCoinNames.push(coinName);
+        lackPricesCoinNames.push(assetCoinName);
       }
     });
 

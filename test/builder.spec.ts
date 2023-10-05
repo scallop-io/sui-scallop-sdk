@@ -111,6 +111,7 @@ describe('Test Scallop Core Builder', async () => {
 
   it('"borrowFlashLoan" & "repayFlashLoan" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
+    tx.setSender(sender);
     const [coin, loan] = tx.borrowFlashLoan(10 ** 8, 'sui');
     /**
      * Do something with the borrowed coin here
@@ -124,19 +125,9 @@ describe('Test Scallop Core Builder', async () => {
     expect(borrowFlashLoanResult.effects?.status.status).toEqual('success');
   });
 
-  it('"updateAssetPricesQuick" should succeed', async () => {
-    const tx = scallopBuilder.createTxBlock();
-    tx.setSender(sender);
-    await tx.updateAssetPricesQuick(['apt']);
-    const updateAssetPricesResult = await scallopBuilder.signAndSendTxBlock(tx);
-    if (ENABLE_LOG) {
-      console.info('UpdateAssetPricesResult:', updateAssetPricesResult);
-    }
-    expect(updateAssetPricesResult.effects?.status.status).toEqual('success');
-  });
-
   it('"ScallopTxBlock" should be an instance of "TransactionBlock"', async () => {
     const tx = scallopBuilder.createTxBlock();
+    tx.setSender(sender);
     expect(tx.txBlock).toBeInstanceOf(TransactionBlock);
     /**
      * For example, you can do the following:
@@ -155,6 +146,18 @@ describe('Test Scallop Core Builder', async () => {
       console.info('TxBlockResult:', txBlockResult);
     }
     expect(txBlockResult.effects?.status.status).toEqual('success');
+  });
+
+  it('"updateAssetPricesQuick" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    // Sender is required to invoke "updateAssetPricesQuick".
+    tx.setSender(sender);
+    await tx.updateAssetPricesQuick(['sui']);
+    const updateAssetPricesResult = await scallopBuilder.signAndSendTxBlock(tx);
+    if (ENABLE_LOG) {
+      console.info('UpdateAssetPricesResult:', updateAssetPricesResult);
+    }
+    expect(updateAssetPricesResult.effects?.status.status).toEqual('success');
   });
 });
 

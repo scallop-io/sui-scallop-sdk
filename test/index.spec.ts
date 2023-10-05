@@ -35,9 +35,9 @@ describe('Test Scallop Client - Query Method', async () => {
   });
 
   it('Should get obligation data', async () => {
-    const obligationsData = await client.getObligations();
-    expect(obligationsData.length).toBeGreaterThan(0);
-    const obligationData = await client.queryObligation(obligationsData[0].id);
+    const obligations = await client.getObligations();
+    expect(obligations.length).toBeGreaterThan(0);
+    const obligationData = await client.queryObligation(obligations[0].id);
     if (ENABLE_LOG) {
       console.info('Obligation data:', obligationData);
     }

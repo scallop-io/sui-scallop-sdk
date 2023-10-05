@@ -13,7 +13,7 @@ export type ObligationAccounts = OptionalKeys<
 export type Lending = Required<
   Pick<
     MarketPool,
-    | 'coin'
+    | 'coinName'
     | 'symbol'
     | 'coinType'
     | 'marketCoinType'
