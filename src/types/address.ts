@@ -4,7 +4,7 @@ import type {
   SupportOracleType,
   SupportPackageType,
   SupportStakeMarketCoins,
-} from './data';
+} from './constant';
 
 export interface AddressesInterface {
   core: {

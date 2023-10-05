@@ -132,6 +132,20 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
+- Update oracle prices.
+
+  We need to update all coin prices in the obligation account before using withdraw collateral and borrowing. We have included price updates in the `takeCollateralQuick` and `borrowQuick` methods.
+
+  The following demonstrates how to call updates individually.
+
+  ```typescript
+  const scallopTxBlock = txBuilder.createTxBlock();
+  // Sender is required to invoke "updateAssetPricesQuick".
+  tx.setSender(sender);
+  await tx.updateAssetPricesQuick(['sui', 'usdc']);
+  await txBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
 ## Organize transactions that interact with spool contract
 
 - Create stake account (To interact with scoin pool, it's required).

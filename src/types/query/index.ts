@@ -1,3 +1,3 @@
 export type * from './core';
 export type * from './spool';
-export type * from './query';
+export type * from './portfolio';

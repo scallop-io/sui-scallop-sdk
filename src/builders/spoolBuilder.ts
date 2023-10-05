@@ -1,7 +1,7 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { scallopRewardType } from '../constants/spool';
+import { rewardCoins } from '../constants/enum';
 import { getStakeAccounts } from '../queries/spoolQuery';
 import type { SuiTxArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
@@ -11,15 +11,15 @@ import type {
   GenerateSpoolQuickMethod,
   SuiTxBlockWithSpoolNormalMethods,
   SpoolTxBlock,
-  SupportCoins,
   SupportStakeMarketCoins,
   ScallopTxBlock,
+  TransactionResult,
 } from '../types';
 
 /**
  * Check and get the sender from the transaction block.
  *
- * @param txBlock - txBlock created by SuiKit.
+ * @param txBlock - TxBlock created by SuiKit.
  * @return Sender of transaction.
  */
 const requireSender = (txBlock: SuiKitTxBlock) => {
@@ -31,44 +31,78 @@ const requireSender = (txBlock: SuiKitTxBlock) => {
 };
 
 /**
- * Check and get stake account  information from transaction block.
+ * Check and get stake account id from transaction block.
  *
  * @description
  * If the stake account id is provided, direactly return it.
- * Otherwise, automatically get stake account id from the sender.
+ * Otherwise, automatically get all stake account id from the sender.
  *
  * @param builder - Scallop builder instance.
- * @param txBlock - txBlock created by SuiKit.
- * @param marketCoinName - The name of the market coin supported for staking.
+ * @param txBlock - TxBlock created by SuiKit.
+ * @param stakeMarketCoinName - The name of the market coin supported for staking.
  * @param stakeAccountId - Stake account id.
- * @return Stake account id.
+ * @return Stake account ids.
  */
-const requireStakeAccountInfo = async (
+const requireStakeAccountIds = async (
   ...params: [
     builder: ScallopBuilder,
     txBlock: SuiKitTxBlock,
-    marketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiTxArg,
   ]
 ) => {
-  const [builder, txBlock, marketCoinName, stakeAccountId] = params;
-  if (params.length === 4 && stakeAccountId) return { stakeAccountId };
+  const [builder, txBlock, stakeMarketCoinName, stakeAccountId] = params;
+  if (params.length === 4 && stakeAccountId) return [stakeAccountId];
   const sender = requireSender(txBlock);
-  const accounts = await getStakeAccounts(builder.query, sender);
-  if (accounts[marketCoinName].length === 0) {
+  const stakeAccounts = await getStakeAccounts(builder.query, sender);
+  if (stakeAccounts[stakeMarketCoinName].length === 0) {
+    throw new Error(`No stake account id found for sender ${sender}`);
+  }
+  return stakeAccounts[stakeMarketCoinName].map((account) => account.id);
+};
+
+/**
+ * Check and get stake accounts information from transaction block.
+ *
+ * @description
+ * If the stake account id is provided, direactly return its account.
+ * Otherwise, automatically get all stake account from the sender.
+ *
+ * @param builder - Scallop builder instance.
+ * @param txBlock - TxBlock created by SuiKit.
+ * @param stakeMarketCoinName - The name of the market coin supported for staking.
+ * @param stakeAccountId - Stake account id.
+ * @return Stake accounts.
+ */
+const requireStakeAccounts = async (
+  ...params: [
+    builder: ScallopBuilder,
+    txBlock: SuiKitTxBlock,
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeAccountId?: SuiTxArg,
+  ]
+) => {
+  const [builder, txBlock, stakeMarketCoinName, stakeAccountId] = params;
+  const sender = requireSender(txBlock);
+  const stakeAccounts = await getStakeAccounts(builder.query, sender);
+  if (stakeAccounts[stakeMarketCoinName].length === 0) {
     throw new Error(`No stake account found for sender ${sender}`);
   }
-  return {
-    // Use the first stake account id as default.
-    stakeAccountId: accounts[marketCoinName][0].id,
-  };
+
+  const specificStakeAccounts = stakeAccountId
+    ? stakeAccounts[stakeMarketCoinName].filter((account) => {
+        return account.id === stakeAccountId;
+      })
+    : stakeAccounts[stakeMarketCoinName];
+
+  return specificStakeAccounts;
 };
 
 /**
  * Generate spool normal methods.
  *
- * @param builder Scallop builder instance.
- * @param txBlock TxBlock created by SuiKit .
+ * @param builder - Scallop builder instance.
+ * @param txBlock - TxBlock created by SuiKit .
  * @return Spool normal methods.
  */
 const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
@@ -79,15 +113,11 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
     spoolPkg: builder.address.get('spool.id'),
   };
   return {
-    createStakeAccount: (marketCoinName) => {
-      const coinName = marketCoinName.slice(1) as SupportCoins;
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const marketCoinType = builder.utils.parseMarketCoinType(
-        coinPackageId,
-        coinName
-      );
+    createStakeAccount: (stakeMarketCoinName) => {
+      const marketCoinType =
+        builder.utils.parseMarketCoinType(stakeMarketCoinName);
       const stakePoolId = builder.address.get(
-        `spool.pools.${marketCoinName}.id`
+        `spool.pools.${stakeMarketCoinName}.id`
       );
       return txBlock.moveCall(
         `${spoolIds.spoolPkg}::user::new_spool_account`,
@@ -95,15 +125,11 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
         [marketCoinType]
       );
     },
-    stake: (stakeAccount, coin, marketCoinName) => {
-      const coinName = marketCoinName.slice(1) as SupportCoins;
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const marketCoinType = builder.utils.parseMarketCoinType(
-        coinPackageId,
-        coinName
-      );
+    stake: (stakeAccount, coin, stakeMarketCoinName) => {
+      const marketCoinType =
+        builder.utils.parseMarketCoinType(stakeMarketCoinName);
       const stakePoolId = builder.address.get(
-        `spool.pools.${marketCoinName}.id`
+        `spool.pools.${stakeMarketCoinName}.id`
       );
       txBlock.moveCall(
         `${spoolIds.spoolPkg}::user::stake`,
@@ -111,15 +137,11 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
         [marketCoinType]
       );
     },
-    unstake: (stakeAccount, amount, marketCoinName) => {
-      const coinName = marketCoinName.slice(1) as SupportCoins;
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const marketCoinType = builder.utils.parseMarketCoinType(
-        coinPackageId,
-        coinName
-      );
+    unstake: (stakeAccount, amount, stakeMarketCoinName) => {
+      const marketCoinType =
+        builder.utils.parseMarketCoinType(stakeMarketCoinName);
       const stakePoolId = builder.address.get(
-        `spool.pools.${marketCoinName}.id`
+        `spool.pools.${stakeMarketCoinName}.id`
       );
       return txBlock.moveCall(
         `${spoolIds.spoolPkg}::user::unstake`,
@@ -127,31 +149,21 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
         [marketCoinType]
       );
     },
-    claim: (stakeAccount, marketCoinName) => {
+    claim: (stakeAccount, stakeMarketCoinName) => {
       const stakePoolId = builder.address.get(
-        `spool.pools.${marketCoinName}.id`
+        `spool.pools.${stakeMarketCoinName}.id`
       );
       const rewardPoolId = builder.address.get(
-        `spool.pools.${marketCoinName}.rewardPoolId`
+        `spool.pools.${stakeMarketCoinName}.rewardPoolId`
       );
-      const coinName = marketCoinName.slice(1) as SupportCoins;
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const marketCoinType = builder.utils.parseMarketCoinType(
-        coinPackageId,
-        coinName
-      );
-      const rewardCoinName = scallopRewardType[marketCoinName];
-      const rewardCoinPackageId = builder.address.get(
-        `core.coins.${rewardCoinName}.id`
-      );
-      const rewardType = builder.utils.parseCoinType(
-        rewardCoinPackageId,
-        rewardCoinName
-      );
+      const marketCoinType =
+        builder.utils.parseMarketCoinType(stakeMarketCoinName);
+      const rewardCoinName = rewardCoins[stakeMarketCoinName];
+      const rewardCoinType = builder.utils.parseCoinType(rewardCoinName);
       return txBlock.moveCall(
         `${spoolIds.spoolPkg}::user::redeem_rewards`,
         [stakePoolId, rewardPoolId, stakeAccount, SUI_CLOCK_OBJECT_ID],
-        [marketCoinType, rewardType]
+        [marketCoinType, rewardCoinType]
       );
     },
   };
@@ -165,8 +177,8 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
  * help users organize transaction blocks, include get stake account info, and transfer
  * coins to the sender. So, they are all asynchronous methods.
  *
- * @param builder Scallop builder instance.
- * @param txBlock TxBlock created by SuiKit .
+ * @param builder - Scallop builder instance.
+ * @param txBlock - TxBlock created by SuiKit .
  * @return Spool quick methods.
  */
 const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
@@ -174,66 +186,76 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
   txBlock,
 }) => {
   return {
-    stakeQuick: async (amountOrMarketCoin, marketCoinName, stakeAccountId) => {
+    stakeQuick: async (
+      amountOrMarketCoin,
+      stakeMarketCoinName,
+      stakeAccountId
+    ) => {
       const sender = requireSender(txBlock);
-      const stakeAccountInfo = await requireStakeAccountInfo(
+      const stakeAccountIds = await requireStakeAccountIds(
         builder,
         txBlock,
-        marketCoinName,
+        stakeMarketCoinName,
         stakeAccountId
       );
 
-      const coinName = marketCoinName.slice(1) as SupportCoins;
-      const coinPackageId = builder.address.get(`core.coins.${coinName}.id`);
-      const marketCoinType = builder.utils.parseMarketCoinType(
-        coinPackageId,
-        coinName
-      );
+      const marketCoinType =
+        builder.utils.parseMarketCoinType(stakeMarketCoinName);
       if (typeof amountOrMarketCoin === 'number') {
-        const coins = await builder.utils.selectCoins(
-          sender,
+        const coins = await builder.utils.selectCoinIds(
           amountOrMarketCoin,
-          marketCoinType
+          marketCoinType,
+          sender
         );
         const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
           coins,
           amountOrMarketCoin
         );
-        txBlock.stake(
-          stakeAccountInfo.stakeAccountId,
-          takeCoin,
-          marketCoinName
-        );
+        txBlock.stake(stakeAccountIds[0], takeCoin, stakeMarketCoinName);
         txBlock.transferObjects([leftCoin], sender);
       } else {
         txBlock.stake(
-          stakeAccountInfo.stakeAccountId,
+          stakeAccountIds[0],
           amountOrMarketCoin,
-          marketCoinName
+          stakeMarketCoinName
         );
       }
     },
-    unstakeQuick: async (amount, marketCoinName, stakeAccountId) => {
-      const stakeAccountInfo = await requireStakeAccountInfo(
+    unstakeQuick: async (amount, stakeMarketCoinName, stakeAccountId) => {
+      const stakeAccounts = await requireStakeAccounts(
         builder,
         txBlock,
-        marketCoinName,
+        stakeMarketCoinName,
         stakeAccountId
       );
-      return txBlock.unstake(
-        stakeAccountInfo.stakeAccountId,
-        amount,
-        marketCoinName
-      );
+      const stakeMarketCoins: TransactionResult[] = [];
+      for (const account of stakeAccounts) {
+        if (account.staked === 0) continue;
+        const amountToUnstake = Math.min(amount, account.staked);
+        const marketCoin = txBlock.unstake(
+          account.id,
+          amountToUnstake,
+          stakeMarketCoinName
+        );
+        stakeMarketCoins.push(marketCoin);
+        amount -= amountToUnstake;
+        if (amount === 0) break;
+      }
+      return stakeMarketCoins;
     },
-    claimQuick: async (marketCoinName, stakeAccountId) => {
-      const stakeAccountInfo = await requireStakeAccountInfo(
+    claimQuick: async (stakeMarketCoinName, stakeAccountId) => {
+      const stakeAccountIds = await requireStakeAccountIds(
         builder,
         txBlock,
-        marketCoinName,
+        stakeMarketCoinName,
         stakeAccountId
       );
-      return txBlock.claim(stakeAccountInfo.stakeAccountId, marketCoinName);
+      const rewardCoins: TransactionResult[] = [];
+      for (const accountId of stakeAccountIds) {
+        const rewardCoin = txBlock.claim(accountId, stakeMarketCoinName);
+        rewardCoins.push(rewardCoin);
+      }
+      return rewardCoins;
     },
   };
 };
@@ -241,8 +263,8 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
 /**
  * Create an enhanced transaction block instance for interaction with spool modules of the Scallop contract.
  *
- * @param builder Scallop builder instance.
- * @param initTxBlock Scallop txBlock, txBlock created by SuiKit, or original transaction block.
+ * @param builder - Scallop builder instance.
+ * @param initTxBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
  * @return Scallop spool txBlock.
  */
 export const newSpoolTxBlock = (

@@ -1,12 +1,10 @@
-import type { TransactionArgument } from '@mysten/sui.js/transactions';
 import type {
   SuiTxBlock as SuiKitTxBlock,
   SuiTxArg,
 } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../../models';
-import type { SupportStakeMarketCoins } from '../data';
-
-type TransactionResult = TransactionArgument & TransactionArgument[];
+import type { SupportStakeMarketCoins } from '../constant';
+import type { TransactionResult } from './index';
 
 export type SpoolIds = {
   spoolPkg: string;
@@ -14,42 +12,42 @@ export type SpoolIds = {
 
 export type SpoolNormalMethods = {
   createStakeAccount: (
-    marketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: SupportStakeMarketCoins
   ) => TransactionResult;
   stake: (
     stakeAccount: SuiTxArg,
     coin: SuiTxArg,
-    marketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: SupportStakeMarketCoins
   ) => void;
   unstake: (
     stakeAccount: SuiTxArg,
     amount: number,
-    marketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: SupportStakeMarketCoins
   ) => TransactionResult;
   claim: (
     stakeAccount: SuiTxArg,
-    marketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: SupportStakeMarketCoins
   ) => TransactionResult;
 };
 
 export type SpoolQuickMethods = {
   stakeQuick(
     amountOrMarketCoin: number,
-    marketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiTxArg
   ): Promise<void>;
   stakeQuick(
     amountOrMarketCoin: TransactionResult,
-    marketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiTxArg
   ): Promise<void>;
   unstakeQuick(
     amount: number,
-    marketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiTxArg
   ): Promise<TransactionResult>;
   claimQuick(
-    marketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiTxArg
   ): Promise<TransactionResult>;
 };
