@@ -81,6 +81,7 @@ Below we will give a brief introduction to these instances respectively, and int
 - [Use Scallop Query](./document/query.md)
 - [Use Scallop Address](./document/address.md)
 - [Use Scallop Builder](./document/builder.md)
+- [Use Scallop Utils](./document/utils.md)
 
 For the original codes, please refer to `test` folder.
 
@@ -90,6 +91,10 @@ You need to set up the `.env` file before testing. (Reference `.env.example`)
 
   ```bash
   pnpm run test:unit test/index.spec.ts
+  pnpm run test:unit test/address.spec.ts
+  pnpm run test:unit test/builder.spec.ts
+  pnpm run test:unit test/query.spec.ts
+  pnpm run test:unit test/utils.spec.ts
   ```
 
 ## License
