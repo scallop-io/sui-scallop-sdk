@@ -4,6 +4,8 @@
 
 Methods for quering on-chain data related to spool and lending contract.
 
+The query methods in the client have been migrated to the query instance. These methods may be removed from the client in the future.
+
 - Get On-chain Data
 
   ```typescript
@@ -12,7 +14,7 @@ Methods for quering on-chain data related to spool and lending contract.
   // Get obligations data.
   const obligationsData = await client.getObligations();
   // Get obligation data.
-  const obligationsData = await client.getObligations();
+  const obligationData = await client.queryObligation();
   // Get all stake accounts data.
   const allStakeAccountsData = await client.getAllStakeAccounts();
   // Get stake accounts data.
@@ -21,38 +23,6 @@ Methods for quering on-chain data related to spool and lending contract.
   const stakePoolData = await client.getStakePool('ssui');
   // Get reward pool data.
   const rewardPoolData = await client.getRewardPool('ssui');
-  ```
-
-## Spool Interaction Method
-
-Methods for interacting with the spool contract.
-
-- Create Stake Account.
-
-  ```typescript
-  // Create stake account for specific spool, each pool can have multiple accounts.
-  const createStakeAccountResult = await client.createStakeAccount('ssui');
-  ```
-
-- Stake Market Coin.
-
-  ```typescript
-  // Stake to specific spool, currently support ssui, susdc, and susdt
-  const stakeResult = await client.stake('ssui', 10 ** 8);
-  ```
-
-- Unstake Market Coin.
-
-  ```typescript
-  // Untake to specific spool, currently support ssui, susdc, and susdt
-  const unstakeResult = await client.unstake('ssui', 10 ** 8);
-  ```
-
-- Cliam Reward Coin.
-
-  ```typescript
-  // Claim from the corresponding reward pool of specific spool.
-  const claimResult = await client.claim('ssui');
   ```
 
 ## Core Interaction Method
@@ -167,4 +137,36 @@ Methods for interacting with the lending contract.
       return coin;
     }
   );
+  ```
+
+## Spool Interaction Method
+
+Methods for interacting with the spool contract.
+
+- Create Stake Account.
+
+  ```typescript
+  // Create stake account for specific spool, each pool can have multiple accounts.
+  const createStakeAccountResult = await client.createStakeAccount('ssui');
+  ```
+
+- Stake Market Coin.
+
+  ```typescript
+  // Stake to specific spool, currently support ssui, susdc, and susdt
+  const stakeResult = await client.stake('ssui', 10 ** 8);
+  ```
+
+- Unstake Market Coin.
+
+  ```typescript
+  // Untake to specific spool, currently support ssui, susdc, and susdt
+  const unstakeResult = await client.unstake('ssui', 10 ** 8);
+  ```
+
+- Cliam Reward Coin.
+
+  ```typescript
+  // Claim from the corresponding reward pool of specific spool.
+  const claimResult = await client.claim('ssui');
   ```
