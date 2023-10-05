@@ -10,7 +10,7 @@ import type { ScallopTxBlock } from '../types';
  *
  * @param builder - Scallop builder instance.
  * @param txBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
- * @return ScallopTxBlock
+ * @return ScallopTxBlock.
  */
 export const newScallopTxBlock = (
   builder: ScallopBuilder,

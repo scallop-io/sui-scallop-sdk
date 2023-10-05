@@ -1,10 +1,10 @@
 import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
+import { ADDRESSES_ID } from '../constants';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopBuilder } from './scallopBuilder';
 import { ScallopQuery } from './scallopQuery';
-import { ADDRESSES_ID } from '../constants';
 import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
 import type { TransactionArgument } from '@mysten/sui.js/transactions';
 import type { SuiTxArg } from '@scallop-io/sui-kit';
@@ -12,9 +12,10 @@ import type {
   ScallopClientFnReturnType,
   ScallopInstanceParams,
   ScallopClientParams,
-  SupportAssetCoins,
+  SupportPoolCoins,
   SupportCollateralCoins,
-  SupportCoins,
+  SupportAssetCoins,
+  SupportStakeCoins,
   SupportStakeMarketCoins,
   ScallopTxBlock,
 } from '../types';
@@ -82,7 +83,7 @@ export class ScallopClient {
   /**
    * Request the scallop API to initialize data.
    *
-   * @param forece Whether to force initialization.
+   * @param forece - Whether to force initialization.
    */
   public async init(forece: boolean = false) {
     if (forece || !this.address.getAddresses()) {
@@ -93,7 +94,7 @@ export class ScallopClient {
     await this.builder.init(forece);
   }
 
-  /* === Query Method === */
+  /* ==================== Query Method ==================== */
 
   /**
    * Query market data.
@@ -101,11 +102,10 @@ export class ScallopClient {
    * @description
    * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
-   * @param rateType - How interest rates are calculated.
-   * @return Market data
+   * @return Market data.
    */
-  public async queryMarket(rateType?: 'apy' | 'apr') {
-    return await this.query.getMarket(rateType);
+  public async queryMarket() {
+    return await this.query.queryMarket();
   }
 
   /**
@@ -129,10 +129,10 @@ export class ScallopClient {
    * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
    * @param obligationId - The obligation id.
-   * @return Obligation data
+   * @return Obligation data.
    */
   public async queryObligation(obligationId: string) {
-    return await this.query.getObligation(obligationId);
+    return await this.query.queryObligation(obligationId);
   }
 
   /**
@@ -155,16 +155,16 @@ export class ScallopClient {
    * @description
    * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
-   * @param marketCoinName - Support stake market coin.
+   * @param stakeMarketCoinName - Support stake market coin.
    * @param ownerAddress - The owner address.
-   * @return Stake accounts data
+   * @return Stake accounts data.
    */
   async getStakeAccounts(
-    marketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: SupportStakeMarketCoins,
     ownerAddress?: string
   ) {
     const owner = ownerAddress || this.walletAddress;
-    return await this.query.getStakeAccounts(marketCoinName, owner);
+    return await this.query.getStakeAccounts(stakeMarketCoinName, owner);
   }
 
   /**
@@ -173,11 +173,11 @@ export class ScallopClient {
    * @description
    * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
-   * @param marketCoinName - Support stake market coin.
+   * @param stakeMarketCoinName - Support stake market coin.
    * @return Stake pool data.
    */
-  async getStakePool(marketCoinName: SupportStakeMarketCoins) {
-    return await this.query.getStakePool(marketCoinName);
+  async getStakePool(stakeMarketCoinName: SupportStakeMarketCoins) {
+    return await this.query.getStakePool(stakeMarketCoinName);
   }
 
   /**
@@ -186,192 +186,14 @@ export class ScallopClient {
    * @description
    * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
-   * @param marketCoinName - Support stake market coin.
+   * @param stakeMarketCoinName - Support stake market coin.
    * @return Reward pool data.
    */
-  async getRewardPool(marketCoinName: SupportStakeMarketCoins) {
-    return await this.query.getRewardPool(marketCoinName);
+  async getRewardPool(stakeMarketCoinName: SupportStakeMarketCoins) {
+    return await this.query.getRewardPool(stakeMarketCoinName);
   }
 
-  /* === Spool Method === */
-
-  /**
-   * Create stake account.
-   *
-   * @param sign - Decide to directly sign the transaction or return the transaction block.
-   * @param walletAddress - The wallet address of the owner.
-   * @return Transaction block response or transaction block
-   */
-  public async createStakeAccount(
-    marketCoinName: SupportStakeMarketCoins
-  ): Promise<SuiTransactionBlockResponse>;
-  public async createStakeAccount<S extends boolean>(
-    marketCoinName: SupportStakeMarketCoins,
-    sign?: S,
-    walletAddress?: string
-  ): Promise<ScallopClientFnReturnType<S>>;
-  public async createStakeAccount<S extends boolean>(
-    marketCoinName: SupportStakeMarketCoins,
-    sign: S = true as S,
-    walletAddress?: string
-  ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
-    txBlock.setSender(sender);
-
-    const account = txBlock.createStakeAccount(marketCoinName);
-    txBlock.transferObjects([account], sender);
-
-    if (sign) {
-      return (await this.suiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
-  }
-
-  /**
-   * Stake market coin into the specific spool.
-   *
-   * @param marketCoinName - Types of market coin.
-   * @param amount - The amount of coins would deposit.
-   * @param sign - Decide to directly sign the transaction or return the transaction block.
-   * @param stakeAccountId - The stake account object.
-   * @param walletAddress - The wallet address of the owner.
-   * @return Transaction block response or transaction block
-   */
-  public async stake(
-    marketCoinName: SupportStakeMarketCoins,
-    amount: number
-  ): Promise<SuiTransactionBlockResponse>;
-  public async stake<S extends boolean>(
-    marketCoinName: SupportStakeMarketCoins,
-    amount: number,
-    sign?: S,
-    stakeAccountId?: SuiTxArg,
-    walletAddress?: string
-  ): Promise<ScallopClientFnReturnType<S>>;
-  public async stake<S extends boolean>(
-    marketCoinName: SupportStakeMarketCoins,
-    amount: number,
-    sign: S = true as S,
-    stakeAccountId?: SuiTxArg,
-    walletAddress?: string
-  ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
-    txBlock.setSender(sender);
-
-    const stakeAccountInfo = await this.query.getStakeAccounts(marketCoinName);
-    const targetStakeAccount = stakeAccountId || stakeAccountInfo[0].id;
-    if (targetStakeAccount) {
-      await txBlock.stakeQuick(amount, marketCoinName, targetStakeAccount);
-    } else {
-      const account = txBlock.createStakeAccount(marketCoinName);
-      await txBlock.stakeQuick(amount, marketCoinName, account);
-      txBlock.transferObjects([account], sender);
-    }
-
-    if (sign) {
-      return (await this.suiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
-  }
-
-  /**
-   * Unstake market coin from the specific spool.
-   *
-   * @param marketCoinName - Types of mak coin.
-   * @param amount - The amount of coins would deposit.
-   * @param sign - Decide to directly sign the transaction or return the transaction block.
-   * @param accountId - The stake account object.
-   * @param walletAddress - The wallet address of the owner.
-   * @return Transaction block response or transaction block
-   */
-  public async unstake(
-    marketCoinName: SupportStakeMarketCoins,
-    amount: number
-  ): Promise<SuiTransactionBlockResponse>;
-  public async unstake<S extends boolean>(
-    marketCoinName: SupportStakeMarketCoins,
-    amount: number,
-    sign?: S,
-    stakeAccountId?: SuiTxArg,
-    walletAddress?: string
-  ): Promise<ScallopClientFnReturnType<S>>;
-  public async unstake<S extends boolean>(
-    marketCoinName: SupportStakeMarketCoins,
-    amount: number,
-    sign: S = true as S,
-    stakeAccountId?: SuiTxArg,
-    walletAddress?: string
-  ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
-    txBlock.setSender(sender);
-
-    const marketCoin = await txBlock.unstakeQuick(
-      amount,
-      marketCoinName,
-      stakeAccountId
-    );
-    txBlock.transferObjects([marketCoin], sender);
-
-    if (sign) {
-      return (await this.suiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
-  }
-
-  /**
-   * Claim reward coin from the specific spool.
-   *
-   * @param marketCoinName - Types of mak coin.
-   * @param amount - The amount of coins would deposit.
-   * @param sign - Decide to directly sign the transaction or return the transaction block.
-   * @param accountId - The stake account object.
-   * @param walletAddress - The wallet address of the owner.
-   * @return Transaction block response or transaction block
-   */
-  public async claim(
-    marketCoinName: SupportStakeMarketCoins
-  ): Promise<SuiTransactionBlockResponse>;
-  public async claim<S extends boolean>(
-    marketCoinName: SupportStakeMarketCoins,
-    sign?: S,
-    stakeAccountId?: SuiTxArg,
-    walletAddress?: string
-  ): Promise<ScallopClientFnReturnType<S>>;
-  public async claim<S extends boolean>(
-    marketCoinName: SupportStakeMarketCoins,
-    sign: S = true as S,
-    stakeAccountId?: SuiTxArg,
-    walletAddress?: string
-  ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
-    txBlock.setSender(sender);
-
-    const rewardCoin = await txBlock.claimQuick(marketCoinName, stakeAccountId);
-    txBlock.transferObjects([rewardCoin], sender);
-
-    if (sign) {
-      return (await this.suiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
-  }
-
-  /* === Core Method === */
+  /* ==================== Core Method ==================== */
 
   /**
    * Open obligation.
@@ -400,7 +222,7 @@ export class ScallopClient {
   /**
    * Deposit collateral into the specific pool.
    *
-   * @param coinName - Types of collateral coin.
+   * @param collateralCoinName - Types of collateral coin.
    * @param amount - The amount of coins would deposit.
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param obligationId - The obligation object.
@@ -408,18 +230,18 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async depositCollateral(
-    coinName: SupportCollateralCoins,
+    collateralCoinName: SupportCollateralCoins,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async depositCollateral<S extends boolean>(
-    coinName: SupportCollateralCoins,
+    collateralCoinName: SupportCollateralCoins,
     amount: number,
     sign?: S,
     obligationId?: SuiTxArg,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async depositCollateral<S extends boolean>(
-    coinName: SupportCollateralCoins,
+    collateralCoinName: SupportCollateralCoins,
     amount: number,
     sign: S = true as S,
     obligationId?: SuiTxArg,
@@ -432,10 +254,14 @@ export class ScallopClient {
     const obligations = await this.query.getObligations(sender);
     const tarketObligationId = obligationId || obligations[0].id;
     if (tarketObligationId) {
-      await txBlock.addCollateralQuick(amount, coinName, tarketObligationId);
+      await txBlock.addCollateralQuick(
+        amount,
+        collateralCoinName,
+        tarketObligationId
+      );
     } else {
       const [obligation, obligationKey, hotPotato] = txBlock.openObligation();
-      await txBlock.addCollateralQuick(amount, coinName, obligation);
+      await txBlock.addCollateralQuick(amount, collateralCoinName, obligation);
       txBlock.returnObligation(obligation, hotPotato);
       txBlock.transferObjects([obligationKey], sender);
     }
@@ -452,7 +278,7 @@ export class ScallopClient {
   /**
    * Withdraw collateral from the specific pool.
    *
-   * @param coinName - Types of collateral coin.
+   * @param collateralCoinName - Types of collateral coin.
    * @param amount - The amount of coins would deposit.
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param obligationId - The obligation object.
@@ -461,7 +287,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async withdrawCollateral<S extends boolean>(
-    coinName: SupportCollateralCoins,
+    collateralCoinName: SupportCollateralCoins,
     amount: number,
     sign: S = true as S,
     obligationId: string,
@@ -474,7 +300,7 @@ export class ScallopClient {
 
     const collateralCoin = await txBlock.takeCollateralQuick(
       amount,
-      coinName,
+      collateralCoinName,
       obligationId,
       obligationKey
     );
@@ -492,24 +318,24 @@ export class ScallopClient {
   /**
    * Deposit asset into the specific pool.
    *
-   * @param coinName - Types of asset coin.
+   * @param poolCoinName - Types of pool coin.
    * @param amount - The amount of coins would deposit.
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
   public async deposit(
-    coinName: SupportAssetCoins,
+    poolCoinName: SupportPoolCoins,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async deposit<S extends boolean>(
-    coinName: SupportAssetCoins,
+    poolCoinName: SupportPoolCoins,
     amount: number,
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async deposit<S extends boolean>(
-    coinName: SupportAssetCoins,
+    poolCoinName: SupportPoolCoins,
     amount: number,
     sign: S = true as S,
     walletAddress?: string
@@ -518,8 +344,68 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const marketCoin = await txBlock.depositQuick(amount, coinName);
+    const marketCoin = await txBlock.depositQuick(amount, poolCoinName);
     txBlock.transferObjects([marketCoin], sender);
+
+    if (sign) {
+      return (await this.suiKit.signAndSendTxn(
+        txBlock
+      )) as ScallopClientFnReturnType<S>;
+    } else {
+      return txBlock.txBlock as ScallopClientFnReturnType<S>;
+    }
+  }
+
+  /**
+   * Deposit asset into the specific pool and Stake market coin into the corresponding spool.
+   *
+   * @param stakeCoinName - Types of stake coin.
+   * @param amount - The amount of coins would deposit.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param stakeAccountId - The stake account object.
+   * @param walletAddress - The wallet address of the owner.
+   * @return Transaction block response or transaction block.
+   */
+  public async depositAndStake(
+    stakeCoinName: SupportStakeCoins,
+    amount: number
+  ): Promise<SuiTransactionBlockResponse>;
+  public async depositAndStake<S extends boolean>(
+    stakeCoinName: SupportStakeCoins,
+    amount: number,
+    sign?: S,
+    stakeAccountId?: SuiTxArg,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>>;
+  public async depositAndStake<S extends boolean>(
+    stakeCoinName: SupportStakeCoins,
+    amount: number,
+    sign: S = true as S,
+    stakeAccountId?: SuiTxArg,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>> {
+    const txBlock = this.builder.createTxBlock();
+    const sender = walletAddress || this.walletAddress;
+    txBlock.setSender(sender);
+
+    const stakeMarketCoinName =
+      this.utils.parseMarketCoinName<SupportStakeMarketCoins>(stakeCoinName);
+    const stakeAccounts =
+      await this.query.getStakeAccounts(stakeMarketCoinName);
+    const targetStakeAccount = stakeAccountId || stakeAccounts[0].id;
+
+    const marketCoin = await txBlock.depositQuick(amount, stakeCoinName);
+    if (targetStakeAccount) {
+      await txBlock.stakeQuick(
+        marketCoin,
+        stakeMarketCoinName,
+        targetStakeAccount
+      );
+    } else {
+      const account = txBlock.createStakeAccount(stakeMarketCoinName);
+      await txBlock.stakeQuick(marketCoin, stakeMarketCoinName, account);
+      txBlock.transferObjects([account], sender);
+    }
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -533,24 +419,24 @@ export class ScallopClient {
   /**
    * Withdraw asset from the specific pool, must return market coin.
    *
-   * @param coinName - Types of asset coin.
+   * @param poolCoinName - Specific support pool coin name.
    * @param amount - The amount of coins would withdraw.
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
   public async withdraw(
-    coinName: SupportAssetCoins,
+    poolCoinName: SupportPoolCoins,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async withdraw<S extends boolean>(
-    coinName: SupportAssetCoins,
+    poolCoinName: SupportPoolCoins,
     amount: number,
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async withdraw<S extends boolean>(
-    coinName: SupportAssetCoins,
+    poolCoinName: SupportPoolCoins,
     amount: number,
     sign: S = true as S,
     walletAddress?: string
@@ -559,7 +445,7 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const coin = await txBlock.withdrawQuick(amount, coinName);
+    const coin = await txBlock.withdrawQuick(amount, poolCoinName);
     txBlock.transferObjects([coin], sender);
 
     if (sign) {
@@ -574,7 +460,7 @@ export class ScallopClient {
   /**
    * Borrow asset from the specific pool.
    *
-   * @param coinName - Types of asset coin.
+   * @param poolCoinName - Specific support pool coin name.
    * @param amount - The amount of coins would borrow.
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param obligationId - The obligation object.
@@ -583,7 +469,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async borrow<S extends boolean>(
-    coinName: SupportAssetCoins,
+    poolCoinName: SupportPoolCoins,
     amount: number,
     sign: S = true as S,
     obligationId: string,
@@ -596,7 +482,7 @@ export class ScallopClient {
 
     const coin = await txBlock.borrowQuick(
       amount,
-      coinName,
+      poolCoinName,
       obligationId,
       obligationKey
     );
@@ -614,7 +500,7 @@ export class ScallopClient {
   /**
    * Repay asset into the specific pool.
    *
-   * @param coinName - Types of asset coin.
+   * @param poolCoinName - Specific support pool coin name.
    * @param amount - The amount of coins would repay.
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param obligationId - The obligation object.
@@ -622,7 +508,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async repay<S extends boolean>(
-    coinName: SupportAssetCoins,
+    poolCoinName: SupportPoolCoins,
     amount: number,
     sign: S = true as S,
     obligationId: string,
@@ -632,7 +518,7 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    await txBlock.repayQuick(amount, coinName, obligationId);
+    await txBlock.repayQuick(amount, poolCoinName, obligationId);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -646,14 +532,14 @@ export class ScallopClient {
   /**
    * FlashLoan asset from the specific pool.
    *
-   * @param coinName - Types of asset coin.
+   * @param poolCoinName - Specific support pool coin name..
    * @param amount - The amount of coins would repay.
    * @param callback - The callback function to build transaction block and return coin argument.
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @return Transaction block response or transaction block.
    */
   public async flashLoan(
-    coinName: SupportAssetCoins,
+    poolCoinName: SupportPoolCoins,
     amount: number,
     callback: (
       txBlock: ScallopTxBlock,
@@ -661,7 +547,7 @@ export class ScallopClient {
     ) => TransactionArgument
   ): Promise<SuiTransactionBlockResponse>;
   public async flashLoan<S extends boolean>(
-    coinName: SupportAssetCoins,
+    poolCoinName: SupportPoolCoins,
     amount: number,
     callback: (
       txBlock: ScallopTxBlock,
@@ -671,7 +557,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async flashLoan<S extends boolean>(
-    coinName: SupportAssetCoins,
+    poolCoinName: SupportPoolCoins,
     amount: number,
     callback: (
       txBlock: ScallopTxBlock,
@@ -683,8 +569,8 @@ export class ScallopClient {
     const txBlock = this.builder.createTxBlock();
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
-    const [coin, loan] = txBlock.borrowFlashLoan(amount, coinName);
-    txBlock.repayFlashLoan(await callback(txBlock, coin), loan, coinName);
+    const [coin, loan] = txBlock.borrowFlashLoan(amount, poolCoinName);
+    txBlock.repayFlashLoan(await callback(txBlock, coin), loan, poolCoinName);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -695,7 +581,245 @@ export class ScallopClient {
     }
   }
 
-  /* === Other Method === */
+  /* ==================== Spool Method ==================== */
+
+  /**
+   * Create stake account.
+   *
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param walletAddress - The wallet address of the owner.
+   * @return Transaction block response or transaction block.
+   */
+  public async createStakeAccount(
+    marketCoinName: SupportStakeMarketCoins
+  ): Promise<SuiTransactionBlockResponse>;
+  public async createStakeAccount<S extends boolean>(
+    marketCoinName: SupportStakeMarketCoins,
+    sign?: S,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>>;
+  public async createStakeAccount<S extends boolean>(
+    marketCoinName: SupportStakeMarketCoins,
+    sign: S = true as S,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>> {
+    const txBlock = this.builder.createTxBlock();
+    const sender = walletAddress || this.walletAddress;
+    txBlock.setSender(sender);
+
+    const stakeAccount = txBlock.createStakeAccount(marketCoinName);
+    txBlock.transferObjects([stakeAccount], sender);
+
+    if (sign) {
+      return (await this.suiKit.signAndSendTxn(
+        txBlock
+      )) as ScallopClientFnReturnType<S>;
+    } else {
+      return txBlock.txBlock as ScallopClientFnReturnType<S>;
+    }
+  }
+
+  /**
+   * Stake market coin into the specific spool.
+   *
+   * @param marketCoinName - Types of market coin.
+   * @param amount - The amount of coins would deposit.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param stakeAccountId - The stake account object.
+   * @param walletAddress - The wallet address of the owner.
+   * @return Transaction block response or transaction block.
+   */
+  public async stake(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    amount: number
+  ): Promise<SuiTransactionBlockResponse>;
+  public async stake<S extends boolean>(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    amount: number,
+    sign?: S,
+    stakeAccountId?: SuiTxArg,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>>;
+  public async stake<S extends boolean>(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    amount: number,
+    sign: S = true as S,
+    stakeAccountId?: SuiTxArg,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>> {
+    const txBlock = this.builder.createTxBlock();
+    const sender = walletAddress || this.walletAddress;
+    txBlock.setSender(sender);
+
+    const stakeAccounts =
+      await this.query.getStakeAccounts(stakeMarketCoinName);
+    const targetStakeAccount = stakeAccountId || stakeAccounts[0].id;
+    if (targetStakeAccount) {
+      await txBlock.stakeQuick(amount, stakeMarketCoinName, targetStakeAccount);
+    } else {
+      const account = txBlock.createStakeAccount(stakeMarketCoinName);
+      await txBlock.stakeQuick(amount, stakeMarketCoinName, account);
+      txBlock.transferObjects([account], sender);
+    }
+
+    if (sign) {
+      return (await this.suiKit.signAndSendTxn(
+        txBlock
+      )) as ScallopClientFnReturnType<S>;
+    } else {
+      return txBlock.txBlock as ScallopClientFnReturnType<S>;
+    }
+  }
+
+  /**
+   * Unstake market coin from the specific spool.
+   *
+   * @param stakeMarketCoinName - Types of mak coin.
+   * @param amount - The amount of coins would deposit.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param accountId - The stake account object.
+   * @param walletAddress - The wallet address of the owner.
+   * @return Transaction block response or transaction block.
+   */
+  public async unstake(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    amount: number
+  ): Promise<SuiTransactionBlockResponse>;
+  public async unstake<S extends boolean>(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    amount: number,
+    sign?: S,
+    stakeAccountId?: SuiTxArg,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>>;
+  public async unstake<S extends boolean>(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    amount: number,
+    sign: S = true as S,
+    stakeAccountId?: SuiTxArg,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>> {
+    const txBlock = this.builder.createTxBlock();
+    const sender = walletAddress || this.walletAddress;
+    txBlock.setSender(sender);
+
+    const marketCoins = await txBlock.unstakeQuick(
+      amount,
+      stakeMarketCoinName,
+      stakeAccountId
+    );
+    txBlock.transferObjects(marketCoins, sender);
+
+    if (sign) {
+      return (await this.suiKit.signAndSendTxn(
+        txBlock
+      )) as ScallopClientFnReturnType<S>;
+    } else {
+      return txBlock.txBlock as ScallopClientFnReturnType<S>;
+    }
+  }
+
+  /**
+   * Unstake market coin from the specific spool and withdraw asset from the corresponding pool.
+   *
+   * @param marketCoinName - Types of mak coin.
+   * @param amount - The amount of coins would deposit.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param accountId - The stake account object.
+   * @param walletAddress - The wallet address of the owner.
+   * @return Transaction block response or transaction block.
+   */
+  public async unstakeAndWithdraw(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    amount: number
+  ): Promise<SuiTransactionBlockResponse>;
+  public async unstakeAndWithdraw<S extends boolean>(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    amount: number,
+    sign?: S,
+    stakeAccountId?: SuiTxArg,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>>;
+  public async unstakeAndWithdraw<S extends boolean>(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    amount: number,
+    sign: S = true as S,
+    stakeAccountId?: SuiTxArg,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>> {
+    const txBlock = this.builder.createTxBlock();
+    const sender = walletAddress || this.walletAddress;
+    txBlock.setSender(sender);
+
+    const stakeMarketCoins = await txBlock.unstakeQuick(
+      amount,
+      stakeMarketCoinName,
+      stakeAccountId
+    );
+
+    const coins = [];
+    for (const stakeMarketCoin of stakeMarketCoins) {
+      const stakeCoinName =
+        this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
+      const coin = await txBlock.withdraw(stakeMarketCoin, stakeCoinName);
+      coins.push(coin);
+    }
+    txBlock.transferObjects(coins, sender);
+
+    if (sign) {
+      return (await this.suiKit.signAndSendTxn(
+        txBlock
+      )) as ScallopClientFnReturnType<S>;
+    } else {
+      return txBlock.txBlock as ScallopClientFnReturnType<S>;
+    }
+  }
+
+  /**
+   * Claim reward coin from the specific spool.
+   *
+   * @param stakeMarketCoinName - Types of mak coin.
+   * @param amount - The amount of coins would deposit.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param accountId - The stake account object.
+   * @param walletAddress - The wallet address of the owner.
+   * @return Transaction block response or transaction block.
+   */
+  public async claim(
+    stakeMarketCoinName: SupportStakeMarketCoins
+  ): Promise<SuiTransactionBlockResponse>;
+  public async claim<S extends boolean>(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    sign?: S,
+    stakeAccountId?: SuiTxArg,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>>;
+  public async claim<S extends boolean>(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    sign: S = true as S,
+    stakeAccountId?: SuiTxArg,
+    walletAddress?: string
+  ): Promise<ScallopClientFnReturnType<S>> {
+    const txBlock = this.builder.createTxBlock();
+    const sender = walletAddress || this.walletAddress;
+    txBlock.setSender(sender);
+
+    const rewardCoins = await txBlock.claimQuick(
+      stakeMarketCoinName,
+      stakeAccountId
+    );
+    txBlock.transferObjects(rewardCoins, sender);
+
+    if (sign) {
+      return (await this.suiKit.signAndSendTxn(
+        txBlock
+      )) as ScallopClientFnReturnType<S>;
+    } else {
+      return txBlock.txBlock as ScallopClientFnReturnType<S>;
+    }
+  }
+
+  /* ==================== Other Method ==================== */
 
   /**
    * Mint and get test coin.
@@ -703,24 +827,24 @@ export class ScallopClient {
    * @remarks
    * Only be used on the test network.
    *
-   * @param coinName - Types of coins supported on the test network.
+   * @param assetCoinName - Specific asset coin name.
    * @param amount - The amount of coins minted and received.
    * @param receiveAddress - The wallet address that receives the coins.
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @return Transaction block response or transaction block.
    */
   public async mintTestCoin(
-    coinName: Exclude<SupportCoins, 'sui'>,
+    assetCoinName: Exclude<SupportAssetCoins, 'sui'>,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async mintTestCoin<S extends boolean>(
-    coinName: Exclude<SupportCoins, 'sui'>,
+    assetCoinName: Exclude<SupportAssetCoins, 'sui'>,
     amount: number,
     sign?: S,
     receiveAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async mintTestCoin<S extends boolean>(
-    coinName: Exclude<SupportCoins, 'sui'>,
+    assetCoinName: Exclude<SupportAssetCoins, 'sui'>,
     amount: number,
     sign: S = true as S,
     receiveAddress?: string
@@ -736,8 +860,8 @@ export class ScallopClient {
     const txBlock = this.builder.createTxBlock();
     const recipient = receiveAddress || this.walletAddress;
     const packageId = this.address.get('core.packages.testCoin.id');
-    const treasuryId = this.address.get(`core.coins.${coinName}.treasury`);
-    const target = `${packageId}::${coinName}::mint`;
+    const treasuryId = this.address.get(`core.coins.${assetCoinName}.treasury`);
+    const target = `${packageId}::${assetCoinName}::mint`;
     const coin = txBlock.moveCall(target, [treasuryId, amount]);
     txBlock.transferObjects([coin], recipient);
 

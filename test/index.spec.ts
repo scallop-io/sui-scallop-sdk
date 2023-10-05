@@ -35,9 +35,9 @@ describe('Test Scallop Client - Query Method', async () => {
   });
 
   it('Should get obligation data', async () => {
-    const obligationsData = await client.getObligations();
-    expect(obligationsData.length).toBeGreaterThan(0);
-    const obligationData = await client.queryObligation(obligationsData[0].id);
+    const obligations = await client.getObligations();
+    expect(obligations.length).toBeGreaterThan(0);
+    const obligationData = await client.queryObligation(obligations[0].id);
     if (ENABLE_LOG) {
       console.info('Obligation data:', obligationData);
     }
@@ -109,6 +109,17 @@ describe('Test Scallop Client - Spool Method', async () => {
     expect(unstakeResult.effects?.status.status).toEqual('success');
   });
 
+  it('Should unstake and withdraw asset success', async () => {
+    const unstakeAndWithdrawResult = await client.unstakeAndWithdraw(
+      'ssui',
+      2 * 10 ** 8
+    );
+    if (ENABLE_LOG) {
+      console.info('UnstakeAndWithdrawResult:', unstakeAndWithdrawResult);
+    }
+    expect(unstakeAndWithdrawResult.effects?.status.status).toEqual('success');
+  });
+
   it('Should claim success', async () => {
     const claimResult = await client.claim('ssui');
     if (ENABLE_LOG) {
@@ -167,6 +178,17 @@ describe('Test Scallop Client - Core Method', async () => {
       console.info('DepositResult:', depositResult);
     }
     expect(depositResult.effects?.status.status).toEqual('success');
+  });
+
+  it('Should depoist asset and stake success', async () => {
+    const depositAndStakeResult = await client.depositAndStake(
+      'sui',
+      2 * 10 ** 8
+    );
+    if (ENABLE_LOG) {
+      console.info('DepositAndStakeResult:', depositAndStakeResult);
+    }
+    expect(depositAndStakeResult.effects?.status.status).toEqual('success');
   });
 
   it('Should withdraw asset success', async () => {

@@ -5,7 +5,7 @@ export const ADDRESSES_ID = '6462a088a7ace142bb6d7e9b';
 export const PROTOCOL_OBJECT_ID =
   '0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf';
 
-export const SUPPORT_ASSET_COINS = [
+export const SUPPORT_POOLS = [
   'eth',
   'btc',
   'usdc',
@@ -15,7 +15,8 @@ export const SUPPORT_ASSET_COINS = [
   'sol',
   'cetus',
 ] as const;
-export const SUPPORT_COLLATERAL_COINS = [
+
+export const SUPPORT_COLLATERALS = [
   'eth',
   'btc',
   'usdc',
@@ -25,7 +26,10 @@ export const SUPPORT_COLLATERAL_COINS = [
   'sol',
   'cetus',
 ] as const;
-export const SUPPORT_STACK_MARKET_COINS = ['ssui', 'susdc', 'susdt'] as const;
+
+export const SUPPORT_SPOOLS = ['ssui', 'susdc', 'susdt'] as const;
+
+export const SUPPORT_REWARD_POOLS = ['sui'] as const;
 
 export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
 
@@ -43,5 +47,3 @@ export const SUPPORT_PACKAGES = [
   'xOracle',
   'testCoin',
 ] as const;
-
-export const SUI_COIN_TYPE_ARG_REGEX = /^0x(0*)2::sui::SUI$/;

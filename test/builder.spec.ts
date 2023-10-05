@@ -111,6 +111,7 @@ describe('Test Scallop Core Builder', async () => {
 
   it('"borrowFlashLoan" & "repayFlashLoan" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
+    tx.setSender(sender);
     const [coin, loan] = tx.borrowFlashLoan(10 ** 8, 'sui');
     /**
      * Do something with the borrowed coin here
@@ -124,18 +125,9 @@ describe('Test Scallop Core Builder', async () => {
     expect(borrowFlashLoanResult.effects?.status.status).toEqual('success');
   });
 
-  it('"updateAssetPricesQuick" should succeed', async () => {
-    const tx = scallopBuilder.createTxBlock();
-    await tx.updateAssetPricesQuick(['sui', 'usdc']);
-    const updateAssetPricesResult = await scallopBuilder.signAndSendTxBlock(tx);
-    if (ENABLE_LOG) {
-      console.info('UpdateAssetPricesResult:', updateAssetPricesResult);
-    }
-    expect(updateAssetPricesResult.effects?.status.status).toEqual('success');
-  });
-
   it('"ScallopTxBlock" should be an instance of "TransactionBlock"', async () => {
     const tx = scallopBuilder.createTxBlock();
+    tx.setSender(sender);
     expect(tx.txBlock).toBeInstanceOf(TransactionBlock);
     /**
      * For example, you can do the following:
@@ -154,6 +146,18 @@ describe('Test Scallop Core Builder', async () => {
       console.info('TxBlockResult:', txBlockResult);
     }
     expect(txBlockResult.effects?.status.status).toEqual('success');
+  });
+
+  it('"updateAssetPricesQuick" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    // Sender is required to invoke "updateAssetPricesQuick".
+    tx.setSender(sender);
+    await tx.updateAssetPricesQuick(['sui']);
+    const updateAssetPricesResult = await scallopBuilder.signAndSendTxBlock(tx);
+    if (ENABLE_LOG) {
+      console.info('UpdateAssetPricesResult:', updateAssetPricesResult);
+    }
+    expect(updateAssetPricesResult.effects?.status.status).toEqual('success');
   });
 });
 
@@ -195,8 +199,8 @@ describe('Test Scallop Spool Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "unstakeQuick".
     tx.setSender(sender);
-    const marketCoin = await tx.unstakeQuick(10 ** 8, 'ssui');
-    tx.transferObjects([marketCoin], sender);
+    const marketCoins = await tx.unstakeQuick(10 ** 8, 'ssui');
+    tx.transferObjects(marketCoins, sender);
     const unstakeQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
       console.info('UnstakeQuickResult:', unstakeQuickResult);
@@ -208,8 +212,8 @@ describe('Test Scallop Spool Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "claimQuick".
     tx.setSender(sender);
-    const rewardCoin = await tx.claimQuick('ssui');
-    tx.transferObjects([rewardCoin], sender);
+    const rewardCoins = await tx.claimQuick('ssui');
+    tx.transferObjects(rewardCoins, sender);
     const claimQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
       console.info('ClaimQuickResult:', claimQuickResult);
