@@ -126,7 +126,7 @@
   // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
 
-- Get user obligation account information include collateral and borrowing information..
+- Get user obligation account information include collateral and borrowing information.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
@@ -139,6 +139,17 @@
   const obligationAccount = await scallopQuery.getObligationAccount(
     obligations[0].id
   );
+
+  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
+  ```
+
+- Get Scallop total value locked information.
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  // Get tvl that including total supply value and total borrow value.
+  const tvl = await scallopQuery.getTvl();
 
   // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
