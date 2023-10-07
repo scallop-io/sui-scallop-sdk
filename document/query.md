@@ -7,8 +7,8 @@
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // Get all pool data from market. Use inspectTxn call to obtain the data provided in the scallop contract query module.
-  const marketData = await scallopQuery.getMarket();
+  // Get both asset and collateral pools data from market. Use inspectTxn call to obtain the data provided in the scallop contract query module.
+  const marketData = await scallopQuery.queryMarket();
 
   // Get multiple asset pools data. To obtain all market pools at once, it is recommended to use the `queryMarket` method to reduce time consumption.
   const marketPools = await scallopQuery.getMarketPools(['sui', 'usdc']);
@@ -16,7 +16,7 @@
   // Get asset pool data separately.
   const suiMarketPool = await scallopQuery.getMarketPool('sui');
 
-  // Get multiple collateral pools data. To obtain all collateral pools at once, it is recommended to use the `queryMarket` method to reduce time consumption.
+  // Get multiple collateral pools data. To obtain all market pools at once, it is recommended to use the `queryMarket` method to reduce time consumption.
   const marketCollaterals = await scallopQuery.getMarketCollaterals([
     'sui',
     'usdc',
@@ -126,7 +126,7 @@
   // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
 
-- Get user obligation account information include collateral and borrowing information..
+- Get user obligation account information include collateral and borrowing information.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
@@ -139,6 +139,17 @@
   const obligationAccount = await scallopQuery.getObligationAccount(
     obligations[0].id
   );
+
+  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
+  ```
+
+- Get Scallop total value locked information.
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  // Get tvl that including total supply value and total borrow value.
+  const tvl = await scallopQuery.getTvl();
 
   // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
