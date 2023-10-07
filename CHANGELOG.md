@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.42.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.42.2...v0.42.3) (2023-10-07)
+
+### Features
+
+- add getting tvl in query model ([33579ca](https://github.com/scallop-io/sui-scallop-sdk/commit/33579cac9460eb4322a80e8f0e66243bbe42a93a))
+
 ### [0.42.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.42.1...v0.42.2) (2023-10-05)
 
 ### Features
