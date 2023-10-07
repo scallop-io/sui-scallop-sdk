@@ -275,4 +275,12 @@ describe('Test Portfolio Query', async () => {
     }
     expect(!!obligationAccount).toBe(true);
   });
+
+  it('Should get total value locked', async () => {
+    const tvl = await scallopQuery.getTvl();
+    if (ENABLE_LOG) {
+      console.info('Scallop tvl:', tvl);
+    }
+    expect(!!tvl).toBe(true);
+  });
 });
