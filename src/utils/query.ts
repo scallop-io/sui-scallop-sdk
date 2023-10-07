@@ -1,4 +1,5 @@
 import BigNumber from 'bignumber.js';
+import type { ScallopUtils } from '../models';
 import type {
   OriginMarketPoolData,
   ParsedMarketPoolData,
@@ -15,7 +16,6 @@ import type {
   SupportPoolCoins,
   SupportCollateralCoins,
 } from '../types';
-import { ScallopUtils } from 'src/models';
 
 /**
  *  Parse origin market pool data to a more readable format.
