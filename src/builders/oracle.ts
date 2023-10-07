@@ -1,13 +1,13 @@
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
-import type { TransactionArgument } from '@mysten/sui.js/transactions';
-import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import {
   SuiPythClient,
   SuiPriceServiceConnection,
 } from '@pythnetwork/pyth-sui-js';
+import { SUPPORT_COLLATERALS, SUPPORT_POOLS } from '../constants';
+import type { TransactionArgument } from '@mysten/sui.js/transactions';
+import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
 import type { SupportAssetCoins, SupportOracleType } from '../types';
-import { SUPPORT_COLLATERALS, SUPPORT_POOLS } from 'src/constants';
 
 /**
  * Update the price of the oracle for multiple coin.

@@ -1,7 +1,7 @@
 import { SUPPORT_POOLS, SUPPORT_COLLATERALS } from '../constants';
 import type { PriceFeed } from '@pythnetwork/pyth-sui-js';
 import type { ScallopAddress } from '../models';
-import { SupportAssetCoins } from 'src/types';
+import type { SupportAssetCoins } from '../types';
 
 /**
  * Parse price from pyth price feed.

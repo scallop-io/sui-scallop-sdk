@@ -1,4 +1,5 @@
 import { normalizeStructTag } from '@mysten/sui.js/utils';
+import { SUPPORT_SPOOLS } from '../constants';
 import {
   parseOriginStakePoolData,
   calculateStakePoolData,
@@ -6,8 +7,8 @@ import {
   calculateRewardPoolData,
   isMarketCoin,
 } from '../utils';
-import type { ScallopQuery } from '../models';
 import type { SuiObjectResponse } from '@mysten/sui.js/client';
+import type { ScallopQuery } from '../models';
 import type {
   MarketPool,
   Spools,
@@ -18,7 +19,6 @@ import type {
   SupportStakeMarketCoins,
   SupportStakeCoins,
 } from '../types';
-import { SUPPORT_SPOOLS } from 'src/constants';
 
 /**
  * Get spools data.

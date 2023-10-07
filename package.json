@@ -89,7 +89,7 @@
   },
   "peerDependencies": {
     "@mysten/sui.js": "^0.42.0",
-    "@scallop-io/sui-kit": "^0.41.0"
+    "@scallop-io/sui-kit": "^0.42.0"
   },
   "lint-staged": {
     "**/*.ts": [
