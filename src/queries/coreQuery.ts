@@ -54,8 +54,8 @@ export const queryMarket = async (query: ScallopQuery) => {
   const queryResult = await query.suiKit.inspectTxn(txBlock);
   const marketData = queryResult.events[0].parsedJson as MarketQueryInterface;
 
-  const pools: MarketPool[] = [];
-  const collaterals: MarketCollateral[] = [];
+  const pools: MarketPools = {};
+  const collaterals: MarketCollaterals = {};
 
   for (const pool of marketData.pools) {
     const parsedMarketPoolData = parseOriginMarketPoolData({
@@ -90,7 +90,7 @@ export const queryMarket = async (query: ScallopQuery) => {
     const coinPrice =
       (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName] ?? 0;
 
-    pools.push({
+    pools[poolCoinName] = {
       coinName: poolCoinName,
       symbol: query.utils.parseSymbol(poolCoinName),
       coinType: coinType,
@@ -103,7 +103,7 @@ export const queryMarket = async (query: ScallopQuery) => {
       marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
       ...calculatedMarketPoolData,
-    });
+    };
   }
 
   for (const collateral of marketData.collaterals) {
@@ -131,7 +131,7 @@ export const queryMarket = async (query: ScallopQuery) => {
         collateralCoinName
       ] ?? 0;
 
-    collaterals.push({
+    collaterals[collateralCoinName] = {
       coinName: collateralCoinName,
       symbol: query.utils.parseSymbol(collateralCoinName),
       coinType: coinType,
@@ -146,7 +146,7 @@ export const queryMarket = async (query: ScallopQuery) => {
       liquidationReserveFactor:
         parsedMarketCollateralData.liquidationReserveFactor,
       ...calculatedMarketCollateralData,
-    });
+    };
   }
 
   return {

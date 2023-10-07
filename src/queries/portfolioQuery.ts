@@ -261,8 +261,10 @@ export const getObligationAccount = async (
   market = market || (await query.queryMarket());
   const assetCoinNames: SupportAssetCoins[] = [
     ...new Set([
-      ...market.pools.map((pool) => pool.coinName),
-      ...market.collaterals.map((collateral) => collateral.coinName),
+      ...Object.values(market.pools).map((pool) => pool.coinName),
+      ...Object.values(market.collaterals).map(
+        (collateral) => collateral.coinName
+      ),
     ]),
   ];
   const obligationQuery = await query.queryObligation(obligationId);
@@ -286,9 +288,7 @@ export const getObligationAccount = async (
         collateral.type.name
       );
     const coinDecimal = query.utils.getCoinDecimal(collateralCoinName);
-    const marketCollateral = market.collaterals.find(
-      (collateral) => collateral.coinName === collateralCoinName
-    );
+    const marketCollateral = market.collaterals[collateralCoinName];
     const coinPrice = coinPrices?.[collateralCoinName];
     const coinAmount = coinAmounts?.[collateralCoinName] ?? 0;
 
@@ -339,9 +339,7 @@ export const getObligationAccount = async (
       debt.type.name
     );
     const coinDecimal = query.utils.getCoinDecimal(poolCoinName);
-    const marketPool = market.pools.find(
-      (pool) => pool.coinName === poolCoinName
-    );
+    const marketPool = market.pools[poolCoinName];
     const coinPrice = coinPrices?.[poolCoinName];
 
     if (marketPool && coinPrice) {
@@ -439,9 +437,8 @@ export const getObligationAccount = async (
   for (const [collateralCoinName, obligationCollateral] of Object.entries(
     obligationAccount.collaterals
   )) {
-    const marketCollateral = market.collaterals.find(
-      (collateral) => collateral.coinName === collateralCoinName
-    );
+    const marketCollateral =
+      market.collaterals[collateralCoinName as SupportCollateralCoins];
     if (marketCollateral) {
       const availableWithdrawAmount =
         obligationAccount.totalDebtValueWithWeight === 0
@@ -463,9 +460,7 @@ export const getObligationAccount = async (
   for (const [assetCoinName, obligationDebt] of Object.entries(
     obligationAccount.debts
   )) {
-    const marketPool = market.pools.find(
-      (pool) => pool.coinName === assetCoinName
-    );
+    const marketPool = market.pools[assetCoinName as SupportPoolCoins];
     if (marketPool) {
       const availableRepayAmount = BigNumber(
         obligationDebt.availableRepayAmount
