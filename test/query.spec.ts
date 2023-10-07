@@ -256,7 +256,7 @@ describe('Test Portfolio Query', async () => {
       console.dir(obligationAccounts, { depth: null, colors: true });
     }
     expect(!!obligationAccounts).toBe(true);
-  });
+  }, 120000);
 
   it('Should get obligation account', async () => {
     const obligations = await scallopQuery.getObligations();
