@@ -248,8 +248,8 @@ export type CalculatedMarketCollateralData = {
 };
 
 export type Market = {
-  pools: MarketPool[];
-  collaterals: MarketCollateral[];
+  pools: MarketPools;
+  collaterals: MarketCollaterals;
   data?: MarketQueryInterface;
 };
 

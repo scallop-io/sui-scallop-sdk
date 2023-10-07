@@ -22,6 +22,7 @@ import {
   getLending,
   getObligationAccounts,
   getObligationAccount,
+  getTotalValueLocked,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -413,5 +414,17 @@ export class ScallopQuery {
    */
   public async getObligationAccount(obligationId: string) {
     return await getObligationAccount(this, obligationId);
+  }
+
+  /**
+   * Get total value locked.
+   *
+   * @description
+   * Include total supplied value and total borrowed value.
+   *
+   * @return Total value locked.
+   */
+  public async getTvl() {
+    return await getTotalValueLocked(this);
   }
 }
