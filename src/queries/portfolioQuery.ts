@@ -17,6 +17,7 @@ import type {
   CoinAmounts,
   CoinPrices,
   SupportMarketCoins,
+  TotalValueLocked,
 } from '../types';
 
 /**
@@ -41,7 +42,7 @@ export const getLendings = async (
   ) as SupportStakeMarketCoins[];
 
   const marketPools = await query.getMarketPools(poolCoinNames);
-  const sPools = await query.getSpools(stakeMarketCoinNames);
+  const spools = await query.getSpools(stakeMarketCoinNames);
   const coinAmounts = await query.getCoinAmounts(poolCoinNames, ownerAddress);
   const marketCoinAmounts = await query.getMarketCoinAmounts(
     marketCoinNames,
@@ -62,7 +63,7 @@ export const getLendings = async (
       poolCoinName,
       ownerAddress,
       marketPools?.[poolCoinName],
-      stakeMarketCoinName ? sPools[stakeMarketCoinName] : undefined,
+      stakeMarketCoinName ? spools[stakeMarketCoinName] : undefined,
       stakeMarketCoinName ? allStakeAccounts[stakeMarketCoinName] : undefined,
       coinAmounts?.[poolCoinName],
       marketCoinAmounts?.[marketCoinName],
@@ -492,4 +493,38 @@ export const getObligationAccount = async (
   return obligationAccount;
 };
 
-export const getTotalValueLocked = async (_query: ScallopQuery) => {};
+/**
+ * Get total value locked data.
+ *
+ * @param query - The Scallop query instance.
+ * @return Total value locked data.
+ */
+export const getTotalValueLocked = async (query: ScallopQuery) => {
+  const market = await query.queryMarket();
+
+  let supplyValue = BigNumber(0);
+  let borrowValue = BigNumber(0);
+
+  for (const pool of Object.values(market.pools)) {
+    supplyValue = supplyValue.plus(
+      BigNumber(pool.supplyCoin).multipliedBy(pool.coinPrice)
+    );
+    borrowValue = borrowValue.plus(
+      BigNumber(pool.borrowCoin).multipliedBy(pool.coinPrice)
+    );
+  }
+
+  for (const collateral of Object.values(market.collaterals)) {
+    supplyValue = supplyValue.plus(
+      BigNumber(collateral.depositCoin).multipliedBy(collateral.coinPrice)
+    );
+  }
+
+  const tvl: TotalValueLocked = {
+    supplyValue: supplyValue.toNumber(),
+    borrowValue: borrowValue.toNumber(),
+    totalValue: supplyValue.minus(borrowValue).toNumber(),
+  };
+
+  return tvl;
+};

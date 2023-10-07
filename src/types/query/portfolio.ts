@@ -90,3 +90,9 @@ export type ObligationAccount = {
     >
   >;
 };
+
+export type TotalValueLocked = {
+  supplyValue: number;
+  borrowValue: number;
+  totalValue: number;
+};
