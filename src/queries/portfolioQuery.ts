@@ -144,7 +144,7 @@ export const getLending = async (
       const accountStakedAmount = accountStakedMarketCoinAmount.multipliedBy(
         marketPool?.conversionRate ?? 1
       );
-      const accountStakedCoin = accountStakedMarketCoin.shiftedBy(
+      const accountStakedCoin = accountStakedAmount.shiftedBy(
         -1 * spool.coinDecimal
       );
       const accountStakedValue = accountStakedCoin.multipliedBy(
