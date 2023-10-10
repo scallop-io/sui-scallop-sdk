@@ -29,7 +29,7 @@
     ".": {
       "source": "./src/index.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
+      "require": "./dist/index.js",
       "default": "./dist/index.js"
     }
   },
