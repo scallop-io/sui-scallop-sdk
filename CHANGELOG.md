@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.42.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.42.5...v0.42.6) (2023-10-10)
+
+### Bug Fixes
+
+- correct the number of staked coin for `getLending` ([466d603](https://github.com/scallop-io/sui-scallop-sdk/commit/466d6037ae9015df914d4fbb8bb145c064c46515))
+
 ### [0.42.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.42.4...v0.42.5) (2023-10-07)
 
 ### [0.42.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.42.3...v0.42.4) (2023-10-07)
