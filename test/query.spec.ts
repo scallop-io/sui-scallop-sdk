@@ -15,6 +15,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     networkType: NETWORK,
   });
   const scallopQuery = await scallopSDK.createScallopQuery();
+  console.info('Your wallet:', scallopQuery.suiKit.currentAddress());
 
   it('Should query market data', async () => {
     const market = await scallopQuery.queryMarket();
