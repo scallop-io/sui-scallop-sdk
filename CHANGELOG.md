@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.42.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.42.6...v0.42.7) (2023-10-18)
+
+### Bug Fixes
+
+- modify symbol type ([9811930](https://github.com/scallop-io/sui-scallop-sdk/commit/9811930767d306d8f673eb7b3ca475c1b7b3d67a))
+
 ### [0.42.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.42.5...v0.42.6) (2023-10-10)
 
 ### Bug Fixes
