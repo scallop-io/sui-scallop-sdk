@@ -142,8 +142,8 @@ export const getSpool = async (
         );
 
         spool = {
-          marketCoin: stakeMarketCoinName,
-          symbol: query.utils.parseSymbol(stakeCoinName),
+          marketCoinName: stakeMarketCoinName,
+          symbol: query.utils.parseSymbol(stakeMarketCoinName),
           coinType: query.utils.parseCoinType(stakeCoinName),
           marketCoinType: query.utils.parseMarketCoinType(stakeCoinName),
           rewardCoinType: isMarketCoin(rewardCoin)
