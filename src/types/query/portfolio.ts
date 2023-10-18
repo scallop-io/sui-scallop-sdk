@@ -40,10 +40,7 @@ export type Lending = Required<
 };
 
 export type ObligationAccount = {
-  obligationId?: string;
-  obligationAccount?: ObligationAccount;
-  totalCollateralValue: number;
-  totalDebtValue: number;
+  obligationId: string;
   totalBalanceValue: number;
   totalBorrowCapacityValue: number;
   availableCollateralValue: number;
@@ -55,13 +52,11 @@ export type ObligationAccount = {
   totalDebtPools: number;
   collaterals: OptionalKeys<
     Record<
-      SupportPoolCoins,
+      SupportCollateralCoins,
       {
-        coinName: string;
+        coinName: SupportCollateralCoins;
         coinType: string;
-        collateralAmount: number;
-        collateralCoin: number;
-        collateralValue: number;
+        symbol: string;
         borrowCapacityValue: number;
         requiredCollateralValue: number;
         availableDepositAmount: number;
@@ -73,14 +68,11 @@ export type ObligationAccount = {
   >;
   debts: OptionalKeys<
     Record<
-      SupportCollateralCoins,
+      SupportPoolCoins,
       {
-        coinName: string;
+        coinName: SupportPoolCoins;
         coinType: string;
-        debtAmount: number;
-        debtCoin: number;
-        debtValue: number;
-        debtValueWithWeight: number;
+        symbol: string;
         borrowIndex: number;
         availableBorrowAmount: number;
         availableBorrowCoin: number;
