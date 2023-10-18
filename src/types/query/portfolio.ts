@@ -40,28 +40,28 @@ export type Lending = Required<
 };
 
 export type ObligationAccount = {
-  obligationId?: string;
-  obligationAccount?: ObligationAccount;
-  totalCollateralValue: number;
-  totalDebtValue: number;
+  obligationId: string;
+  totalDepositedValue: number;
+  totalBorrowedValue: number;
   totalBalanceValue: number;
   totalBorrowCapacityValue: number;
-  availableCollateralValue: number;
-  totalDebtValueWithWeight: number;
-  requiredCollateralValue: number;
-  unhealthyCollateralValue: number;
-  riskLevel: number;
-  totalCollateralPools: number;
-  totalDebtPools: number;
+  totalAvailableCollateralValue: number;
+  totalBorrowedValueWithWeight: number;
+  totalRequiredCollateralValue: number;
+  totalUnhealthyCollateralValue: number;
+  totalRiskLevel: number;
+  totalDepositedPools: number;
+  totalBorrowedPools: number;
   collaterals: OptionalKeys<
     Record<
-      SupportPoolCoins,
+      SupportCollateralCoins,
       {
-        coinName: string;
+        coinName: SupportCollateralCoins;
         coinType: string;
-        collateralAmount: number;
-        collateralCoin: number;
-        collateralValue: number;
+        symbol: string;
+        depositedAmount: number;
+        depositedCoin: number;
+        depositedValue: number;
         borrowCapacityValue: number;
         requiredCollateralValue: number;
         availableDepositAmount: number;
@@ -73,14 +73,15 @@ export type ObligationAccount = {
   >;
   debts: OptionalKeys<
     Record<
-      SupportCollateralCoins,
+      SupportPoolCoins,
       {
-        coinName: string;
+        coinName: SupportPoolCoins;
         coinType: string;
-        debtAmount: number;
-        debtCoin: number;
-        debtValue: number;
-        debtValueWithWeight: number;
+        symbol: string;
+        borrowedAmount: number;
+        borrowedCoin: number;
+        borrowedValue: number;
+        borrowedValueWithWeight: number;
         borrowIndex: number;
         availableBorrowAmount: number;
         availableBorrowCoin: number;
