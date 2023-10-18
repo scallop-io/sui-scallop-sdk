@@ -14,7 +14,7 @@ export type StakeAccounts = Record<SupportStakeMarketCoins, StakeAccount[]>;
 export type Spools = OptionalKeys<Record<SupportStakeMarketCoins, Spool>>;
 
 export type Spool = {
-  marketCoin: SupportStakeMarketCoins;
+  marketCoinName: SupportStakeMarketCoins;
   symbol: string;
   coinType: string;
   marketCoinType: string;

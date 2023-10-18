@@ -1,7 +1,10 @@
 import * as dotenv from 'dotenv';
+import { BigNumber } from 'bignumber.js';
 import { describe, it, expect } from 'vitest';
 import { NetworkType } from '@scallop-io/sui-kit';
-import { Scallop } from '../src';
+import { Scallop, assetCoins } from '../src';
+import type { TransactionBlock } from '@scallop-io/sui-kit';
+import type { SupportStakeMarketCoins } from '../src';
 
 dotenv.config();
 
@@ -251,7 +254,147 @@ describe('Test Scallop Client - Other Method', async () => {
     networkType: NETWORK,
   });
   const client = await scallopSDK.createScallopClient();
+  const builder = await scallopSDK.createScallopBuilder();
+  const query = await scallopSDK.createScallopQuery();
+  const utils = await scallopSDK.createScallopUtils();
   console.info('Your wallet:', client.walletAddress);
+
+  it('Should supply and stake successful', async () => {
+    const sender = client.walletAddress;
+    const coinName = assetCoins.sui;
+    const stakeMarketCoinName =
+      utils.parseMarketCoinName<SupportStakeMarketCoins>(coinName); // sSui.
+
+    const stakeAccounts = await query.getStakeAccounts(stakeMarketCoinName);
+
+    // Lending Supply with Spool Staking.
+    const supplyAmountWithDecimals = 1_000_000_000; // Supply target amount.
+
+    const txBlock = builder.createTxBlock();
+    txBlock.setSender(sender);
+
+    // Supply.
+    const marketCoin = await txBlock.depositQuick(
+      supplyAmountWithDecimals,
+      coinName
+    );
+
+    // And then Stake.
+    if (stakeAccounts.length > 0) {
+      const stakeAccount = stakeAccounts[0];
+      await txBlock.stakeQuick(
+        marketCoin,
+        stakeMarketCoinName,
+        stakeAccount.id
+      );
+    } else {
+      const stakeAccount = txBlock.createStakeAccount(stakeMarketCoinName);
+      await txBlock.stakeQuick(marketCoin, stakeMarketCoinName, stakeAccount);
+      txBlock.transferObjects([stakeAccount], sender);
+    }
+    const transactionBlock = txBlock.txBlock;
+    const supplyAndStakeResult =
+      await builder.signAndSendTxBlock(transactionBlock);
+    if (ENABLE_LOG) {
+      console.info('Supply And Stake Result:', transactionBlock);
+    }
+    expect(supplyAndStakeResult.effects?.status.status).toEqual('success');
+  });
+
+  it('Should withdraw and unstake successful', async () => {
+    const sender = client.walletAddress;
+    const coinName = assetCoins.sui;
+    const stakeMarketCoinName =
+      utils.parseMarketCoinName<SupportStakeMarketCoins>(coinName); // sSui.
+
+    const marketPool = await query.getMarketPool(coinName);
+    const stakeAccounts = await query.getStakeAccounts(stakeMarketCoinName);
+    const lendingInfo = await query.getLending(coinName);
+
+    let transactionBlock: TransactionBlock;
+    if (marketPool) {
+      // Lending Withdraw with Spool Unstaking.
+      const withdrawAmountWithDecimals = 1_000_000_000; // Withdraw target amount.
+
+      const witdrawMarketAmount = BigNumber(withdrawAmountWithDecimals)
+        .dividedToIntegerBy(marketPool.conversionRate)
+        .toNumber();
+      const unStakedMarketAmount = lendingInfo.availableStakeAmount;
+
+      if (
+        stakeAccounts.length > 0 &&
+        lendingInfo.availableUnstakeAmount > 0 &&
+        witdrawMarketAmount > unStakedMarketAmount
+      ) {
+        // unstake staked sSui only if withdrawal market amount > unstaked sSui amount
+        // availableUnstakeAmount > 0, unstake, and then withdraw.
+
+        const txBlock = builder.createTxBlock();
+        txBlock.setSender(sender);
+
+        // need unstake amount = withdrawal market amount - unstaked sSui amount
+        let needUnstakeMarketAmount =
+          witdrawMarketAmount - unStakedMarketAmount;
+
+        const txObjects = [];
+
+        // unstake and withdraw from spool
+        for (const stakeAccount of stakeAccounts) {
+          if (stakeAccount.staked <= needUnstakeMarketAmount) {
+            // Unstake sequentially from all stake accounts
+            const [marketCoin] = await txBlock.unstakeQuick(
+              stakeAccount.staked,
+              stakeMarketCoinName,
+              stakeAccount.id
+            );
+
+            const wdScoin = txBlock.withdraw(marketCoin, coinName);
+            txObjects.push(wdScoin);
+            needUnstakeMarketAmount -= stakeAccount.staked;
+          } else {
+            // A single account has enough to unstake them all.
+            const [marketCoin] = await txBlock.unstakeQuick(
+              needUnstakeMarketAmount,
+              stakeMarketCoinName,
+              stakeAccount.id
+            );
+
+            const wdScoin = txBlock.withdraw(marketCoin, coinName);
+            txObjects.push(wdScoin);
+            break;
+          }
+        }
+
+        if (unStakedMarketAmount > 0) {
+          // withdraw unstaked sSui amount from supply
+          const wdSCoin = await txBlock.withdrawQuick(
+            unStakedMarketAmount,
+            coinName
+          );
+          txObjects.push(wdSCoin);
+        }
+
+        txBlock.transferObjects(txObjects, sender);
+        transactionBlock = txBlock.txBlock;
+      } else {
+        // dereactly witdhdraw.
+        transactionBlock = await client.withdraw(
+          coinName,
+          withdrawAmountWithDecimals,
+          false,
+          sender
+        );
+      }
+      const withdrawAndUnstakeResult =
+        await builder.signAndSendTxBlock(transactionBlock);
+      if (ENABLE_LOG) {
+        console.info('Withdraw And Unstake Result:', withdrawAndUnstakeResult);
+      }
+      expect(withdrawAndUnstakeResult.effects?.status.status).toEqual(
+        'success'
+      );
+    }
+  });
 
   // Only for testnet.
   it.skip('Should get test coin', async () => {
