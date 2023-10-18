@@ -101,12 +101,12 @@ export const calculateMarketPoolData = (
     parsedMarketPoolData.debtAmount
   );
   const borrowCoin = borrowAmount.shiftedBy(-1 * coinDecimal);
-  const teserveAmount = BigNumber(parsedMarketPoolData.reserveAmount).plus(
+  const reserveAmount = BigNumber(parsedMarketPoolData.reserveAmount).plus(
     increasedDebtAmount.multipliedBy(parsedMarketPoolData.reserveFactor)
   );
-  const reserveCoin = teserveAmount.shiftedBy(-1 * coinDecimal);
+  const reserveCoin = reserveAmount.shiftedBy(-1 * coinDecimal);
   const supplyAmount = BigNumber(borrowAmount).plus(
-    Math.max(parsedMarketPoolData.cashAmount - teserveAmount.toNumber(), 0)
+    Math.max(parsedMarketPoolData.cashAmount - reserveAmount.toNumber(), 0)
   );
   const supplyCoin = supplyAmount.shiftedBy(-1 * coinDecimal);
   let utilizationRate = BigNumber(borrowAmount).dividedBy(supplyAmount);
@@ -143,7 +143,7 @@ export const calculateMarketPoolData = (
     supplyCoin: supplyCoin.toNumber(),
     borrowAmount: borrowAmount.toNumber(),
     borrowCoin: borrowCoin.toNumber(),
-    reserveAmount: teserveAmount.toNumber(),
+    reserveAmount: reserveAmount.toNumber(),
     reserveCoin: reserveCoin.toNumber(),
     utilizationRate: utilizationRate.toNumber(),
     supplyApr: supplyApr.toNumber(),

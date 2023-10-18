@@ -275,13 +275,13 @@ export const getObligationAccount = async (
 
   const collaterals: ObligationAccount['collaterals'] = {};
   const debts: ObligationAccount['debts'] = {};
-  let totalCollateralPools = 0;
-  let totalCollateralValue = BigNumber(0);
+  let totalDepositedPools = 0;
+  let totalDepositedValue = BigNumber(0);
   let totalBorrowCapacityValue = BigNumber(0);
   let totalRequiredCollateralValue = BigNumber(0);
-  let totalDebtPools = 0;
-  let totalDebtValue = BigNumber(0);
-  let totalDebtValueWithWeight = BigNumber(0);
+  let totalBorrowedPools = 0;
+  let totalBorrowedValue = BigNumber(0);
+  let totalBorrowedValueWithWeight = BigNumber(0);
 
   for (const collateral of obligationQuery.collaterals) {
     const collateralCoinName =
@@ -294,13 +294,13 @@ export const getObligationAccount = async (
     const coinAmount = coinAmounts?.[collateralCoinName] ?? 0;
 
     if (marketCollateral && coinPrice) {
-      const collateralAmount = BigNumber(collateral.amount);
-      const collateralCoin = collateralAmount.shiftedBy(-1 * coinDecimal);
-      const collateralValue = collateralCoin.multipliedBy(coinPrice);
-      const borrowCapacityValue = collateralValue.multipliedBy(
+      const depositedAmount = BigNumber(collateral.amount);
+      const depositedCoin = depositedAmount.shiftedBy(-1 * coinDecimal);
+      const depositedValue = depositedCoin.multipliedBy(coinPrice);
+      const borrowCapacityValue = depositedValue.multipliedBy(
         marketCollateral.collateralFactor
       );
-      const requiredCollateralValue = collateralValue.multipliedBy(
+      const requiredCollateralValue = depositedValue.multipliedBy(
         marketCollateral.liquidationFactor
       );
       const availableDepositAmount = BigNumber(coinAmount);
@@ -308,23 +308,24 @@ export const getObligationAccount = async (
         -1 * coinDecimal
       );
 
-      totalCollateralValue = totalCollateralValue.plus(collateralValue);
+      totalDepositedValue = totalDepositedValue.plus(depositedValue);
       totalBorrowCapacityValue =
         totalBorrowCapacityValue.plus(borrowCapacityValue);
       totalRequiredCollateralValue = totalRequiredCollateralValue.plus(
         requiredCollateralValue
       );
 
-      if (collateralAmount.isGreaterThan(0)) {
-        totalCollateralPools++;
+      if (depositedAmount.isGreaterThan(0)) {
+        totalDepositedPools++;
       }
 
       collaterals[collateralCoinName] = {
         coinName: collateralCoinName,
         coinType: collateral.type.name,
-        collateralAmount: collateralAmount.toNumber(),
-        collateralCoin: collateralCoin.toNumber(),
-        collateralValue: collateralValue.toNumber(),
+        symbol: query.utils.parseSymbol(collateralCoinName),
+        depositedAmount: depositedAmount.toNumber(),
+        depositedCoin: depositedCoin.toNumber(),
+        depositedValue: depositedValue.toNumber(),
         borrowCapacityValue: borrowCapacityValue.toNumber(),
         requiredCollateralValue: requiredCollateralValue.toNumber(),
         availableDepositAmount: availableDepositAmount.toNumber(),
@@ -346,32 +347,36 @@ export const getObligationAccount = async (
     if (marketPool && coinPrice) {
       const increasedRate =
         marketPool.borrowIndex / Number(debt.borrowIndex) - 1;
-      const debtAmount = BigNumber(debt.amount);
-      const debtCoin = debtAmount.shiftedBy(-1 * coinDecimal);
-      const availableRepayAmount = debtAmount.multipliedBy(increasedRate + 1);
+      const borrowedAmount = BigNumber(debt.amount);
+      const borrowedCoin = borrowedAmount.shiftedBy(-1 * coinDecimal);
+      const availableRepayAmount = borrowedAmount.multipliedBy(
+        increasedRate + 1
+      );
       const availableRepayCoin = availableRepayAmount.shiftedBy(
         -1 * coinDecimal
       );
-      const debtValue = availableRepayCoin.multipliedBy(coinPrice);
-      const debtValueWithWeight = debtValue.multipliedBy(
+      const borrowedValue = availableRepayCoin.multipliedBy(coinPrice);
+      const borrowedValueWithWeight = borrowedValue.multipliedBy(
         marketPool.borrowWeight
       );
 
-      totalDebtValue = totalDebtValue.plus(debtValue);
-      totalDebtValueWithWeight =
-        totalDebtValueWithWeight.plus(debtValueWithWeight);
+      totalBorrowedValue = totalBorrowedValue.plus(borrowedValue);
+      totalBorrowedValueWithWeight = totalBorrowedValueWithWeight.plus(
+        borrowedValueWithWeight
+      );
 
-      if (debtAmount.isGreaterThan(0)) {
-        totalDebtPools++;
+      if (borrowedAmount.isGreaterThan(0)) {
+        totalBorrowedPools++;
       }
 
       debts[poolCoinName] = {
         coinName: poolCoinName,
         coinType: debt.type.name,
-        debtAmount: debtAmount.toNumber(),
-        debtCoin: debtCoin.toNumber(),
-        debtValue: debtValue.toNumber(),
-        debtValueWithWeight: debtValueWithWeight.toNumber(),
+        symbol: query.utils.parseSymbol(poolCoinName),
+        borrowedAmount: borrowedAmount.toNumber(),
+        borrowedCoin: borrowedCoin.toNumber(),
+        borrowedValue: borrowedValue.toNumber(),
+        borrowedValueWithWeight: borrowedValueWithWeight.toNumber(),
         borrowIndex: Number(debt.borrowIndex),
         availableBorrowAmount: 0,
         availableBorrowCoin: 0,
@@ -382,55 +387,56 @@ export const getObligationAccount = async (
   }
 
   let riskLevel =
-    totalRequiredCollateralValue.isZero() && totalDebtValueWithWeight.isZero()
+    totalRequiredCollateralValue.isZero() &&
+    totalBorrowedValueWithWeight.isZero()
       ? BigNumber(0)
-      : totalDebtValueWithWeight.dividedBy(totalRequiredCollateralValue);
+      : totalBorrowedValueWithWeight.dividedBy(totalRequiredCollateralValue);
   riskLevel = riskLevel.isFinite()
     ? riskLevel.isLessThan(1)
       ? riskLevel
       : BigNumber(1)
     : BigNumber(1);
 
-  const accountBalanceValue = totalCollateralValue
-    .minus(totalDebtValue)
+  const accountBalanceValue = totalDepositedValue
+    .minus(totalBorrowedValue)
     .isGreaterThan(0)
-    ? totalCollateralValue.minus(totalDebtValue)
+    ? totalDepositedValue.minus(totalBorrowedValue)
     : BigNumber(0);
   const availableCollateralValue = totalBorrowCapacityValue
-    .minus(totalDebtValueWithWeight)
+    .minus(totalBorrowedValueWithWeight)
     .isGreaterThan(0)
-    ? totalBorrowCapacityValue.minus(totalDebtValueWithWeight)
+    ? totalBorrowCapacityValue.minus(totalBorrowedValueWithWeight)
     : BigNumber(0);
-  const requiredCollateralValue = totalDebtValueWithWeight.isGreaterThan(0)
+  const requiredCollateralValue = totalBorrowedValueWithWeight.isGreaterThan(0)
     ? totalRequiredCollateralValue
     : BigNumber(0);
-  const unhealthyCollateralValue = totalDebtValueWithWeight
+  const unhealthyCollateralValue = totalBorrowedValueWithWeight
     .minus(requiredCollateralValue)
     .isGreaterThan(0)
-    ? totalDebtValueWithWeight.minus(requiredCollateralValue)
+    ? totalBorrowedValueWithWeight.minus(requiredCollateralValue)
     : BigNumber(0);
 
   const obligationAccount: ObligationAccount = {
     obligationId: obligationId,
     // Deposited collateral value (collateral balance)
-    totalCollateralValue: totalCollateralValue.toNumber(),
+    totalDepositedValue: totalDepositedValue.toNumber(),
     // Borrowed debt value (liabilities balance)
-    totalDebtValue: totalDebtValue.toNumber(),
+    totalBorrowedValue: totalBorrowedValue.toNumber(),
     // The difference between the user’s actual deposit and loan (remaining balance)
     totalBalanceValue: accountBalanceValue.toNumber(),
     // Effective collateral value (the actual collateral value included in the calculation).
     totalBorrowCapacityValue: totalBorrowCapacityValue.toNumber(),
     // Available collateral value (the remaining collateral value that can be borrowed).
-    availableCollateralValue: availableCollateralValue.toNumber(),
+    totalAvailableCollateralValue: availableCollateralValue.toNumber(),
     // Available debt value (the actual borrowing value included in the calculation).
-    totalDebtValueWithWeight: totalDebtValueWithWeight.toNumber(),
+    totalBorrowedValueWithWeight: totalBorrowedValueWithWeight.toNumber(),
     // Required collateral value (avoid be liquidated).
-    requiredCollateralValue: requiredCollateralValue.toNumber(),
+    totalRequiredCollateralValue: requiredCollateralValue.toNumber(),
     // Unliquidated collateral value (pending liquidation).
-    unhealthyCollateralValue: unhealthyCollateralValue.toNumber(),
-    riskLevel: riskLevel.toNumber(),
-    totalCollateralPools,
-    totalDebtPools,
+    totalUnhealthyCollateralValue: unhealthyCollateralValue.toNumber(),
+    totalRiskLevel: riskLevel.toNumber(),
+    totalDepositedPools,
+    totalBorrowedPools,
     collaterals,
     debts,
   };
@@ -442,16 +448,16 @@ export const getObligationAccount = async (
       market.collaterals[collateralCoinName as SupportCollateralCoins];
     if (marketCollateral) {
       const availableWithdrawAmount =
-        obligationAccount.totalDebtValueWithWeight === 0
-          ? obligationCollateral.collateralAmount
+        obligationAccount.totalBorrowedValueWithWeight === 0
+          ? obligationCollateral.depositedAmount
           : Math.min(
-              BigNumber(obligationAccount.availableCollateralValue)
+              BigNumber(obligationAccount.totalAvailableCollateralValue)
                 .dividedBy(marketCollateral.collateralFactor)
                 .dividedBy(marketCollateral.coinPrice)
                 // Note: reduced chance of failure when calculations are inaccurate
                 .multipliedBy(0.99)
                 .toNumber(),
-              obligationCollateral.collateralAmount,
+              obligationCollateral.depositedAmount,
               marketCollateral.depositAmount
             );
       obligationCollateral.availableWithdrawAmount = availableWithdrawAmount;
@@ -471,9 +477,9 @@ export const getObligationAccount = async (
         .toNumber();
 
       const availableBorrowAmount =
-        obligationAccount.availableCollateralValue !== 0
+        obligationAccount.totalAvailableCollateralValue !== 0
           ? Math.min(
-              BigNumber(obligationAccount.availableCollateralValue)
+              BigNumber(obligationAccount.totalAvailableCollateralValue)
                 .dividedBy(
                   BigNumber(marketPool.coinPrice).multipliedBy(
                     marketPool.borrowWeight
