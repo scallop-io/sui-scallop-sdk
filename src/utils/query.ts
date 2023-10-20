@@ -346,7 +346,7 @@ export const calculateRewardPoolData = (
     .shiftedBy(-1 * rewardCoinDecimal)
     .multipliedBy(rateYearFactor)
     .multipliedBy(rewardCoinPrice);
-  const stakeRate = rewardValueForYear
+  const rewardRate = rewardValueForYear
     .dividedBy(calculatedStakePoolData.stakedValue)
     .isFinite()
     ? rewardValueForYear
@@ -355,7 +355,7 @@ export const calculateRewardPoolData = (
     : Infinity;
 
   return {
-    stakeApr: stakeRate,
+    rewardApr: rewardRate,
     totalRewardAmount: totalRewardAmount.toNumber(),
     totalRewardCoin: totalRewardCoin.toNumber(),
     totalRewardValue: totalRewardValue.toNumber(),

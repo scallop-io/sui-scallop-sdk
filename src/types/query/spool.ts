@@ -82,7 +82,7 @@ export type ParsedRewardPoolData = {
 };
 
 export type CalculatedRewardPoolData = {
-  stakeApr: number;
+  rewardApr: number;
   totalRewardAmount: number;
   totalRewardCoin: number;
   totalRewardValue: number;

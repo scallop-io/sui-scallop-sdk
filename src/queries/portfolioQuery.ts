@@ -194,7 +194,7 @@ export const getLending = async (
     coinPrice: coinPrice ?? 0,
     supplyApr: marketPool?.supplyApr ?? 0,
     supplyApy: marketPool?.supplyApy ?? 0,
-    rewardApr: spool?.stakeApr ?? 0,
+    rewardApr: spool?.rewardApr ?? 0,
     suppliedAmount: suppliedAmount.plus(stakedAmount).toNumber(),
     suppliedCoin: suppliedCoin.plus(stakedCoin).toNumber(),
     suppliedValue: suppliedValue.plus(stakedValue).toNumber(),
