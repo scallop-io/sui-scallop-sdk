@@ -25,3 +25,16 @@ export type StakeMarketCoins = {
 export type RewardCoins = {
   [key in SupportStakeMarketCoins]: SupportRewardCoins;
 };
+
+export type AssetCoinIds = {
+  [key in SupportAssetCoins]: string;
+};
+
+type PickFromUnion<T, K extends string> = K extends T ? K : never;
+
+export type WormholeCoinIds = {
+  [key in PickFromUnion<
+    SupportAssetCoins,
+    'eth' | 'btc' | 'usdc' | 'usdt' | 'apt' | 'sol'
+  >]: string;
+};

@@ -346,7 +346,7 @@ export const calculateRewardPoolData = (
     .shiftedBy(-1 * rewardCoinDecimal)
     .multipliedBy(rateYearFactor)
     .multipliedBy(rewardCoinPrice);
-  const stakeRate = rewardValueForYear
+  const rewardRate = rewardValueForYear
     .dividedBy(calculatedStakePoolData.stakedValue)
     .isFinite()
     ? rewardValueForYear
@@ -355,7 +355,7 @@ export const calculateRewardPoolData = (
     : Infinity;
 
   return {
-    stakeApr: stakeRate,
+    rewardApr: rewardRate,
     totalRewardAmount: totalRewardAmount.toNumber(),
     totalRewardCoin: totalRewardCoin.toNumber(),
     totalRewardValue: totalRewardValue.toNumber(),
@@ -369,4 +369,20 @@ export const calculateRewardPoolData = (
     exchangeRateNumerator: parsedRewardPoolData.exchangeRateNumerator,
     exchangeRateDenominator: parsedRewardPoolData.exchangeRateDenominator,
   };
+};
+
+export const minBigNumber = (...args: BigNumber.Value[]) => {
+  return BigNumber(
+    args.reduce((min, current) =>
+      new BigNumber(current).lt(min) ? current : min
+    )
+  );
+};
+
+export const maxBigNumber = (...args: BigNumber.Value[]) => {
+  return BigNumber(
+    args.reduce((max, current) =>
+      new BigNumber(current).gt(max) ? current : max
+    )
+  );
 };

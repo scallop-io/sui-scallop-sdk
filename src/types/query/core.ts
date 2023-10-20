@@ -123,6 +123,8 @@ export type MarketPool = {
 } & Required<
   Pick<
     ParsedMarketPoolData,
+    | 'highKink'
+    | 'midKink'
     | 'reserveFactor'
     | 'borrowWeight'
     | 'marketCoinSupplyAmount'
