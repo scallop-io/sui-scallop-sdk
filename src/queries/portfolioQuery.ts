@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
+import { minBigNumber } from 'src/utils';
 import type { ScallopQuery } from '../models';
 import type {
   Market,
@@ -133,7 +134,9 @@ export const getLending = async (
   let stakedCoin = BigNumber(0);
   let stakedValue = BigNumber(0);
   let availableUnstakeAmount = BigNumber(0);
+  let availableUnstakeCoin = BigNumber(0);
   let availableClaimAmount = BigNumber(0);
+  let availableClaimCoin = BigNumber(0);
 
   if (spool) {
     for (const stakeAccount of stakeAccounts) {
@@ -161,6 +164,7 @@ export const getLending = async (
       availableUnstakeAmount = availableUnstakeAmount.plus(
         accountStakedMarketCoinAmount
       );
+      availableUnstakeCoin = availableUnstakeAmount.shiftedBy(-1 * coinDecimal);
 
       const baseIndexRate = 1_000_000_000;
       const increasedPointRate = spool?.currentPointIndex
@@ -175,6 +179,7 @@ export const getLending = async (
           .multipliedBy(spool.exchangeRateNumerator)
           .dividedBy(spool.exchangeRateDenominator)
       );
+      availableClaimCoin = availableClaimAmount.shiftedBy(-1 * coinDecimal);
     }
   }
 
@@ -184,6 +189,20 @@ export const getLending = async (
   );
   const suppliedCoin = suppliedAmount.shiftedBy(-1 * coinDecimal);
   const suppliedValue = suppliedCoin.multipliedBy(coinPrice ?? 0);
+
+  const unstakedMarketAmount = BigNumber(marketCoinAmount);
+  const unstakedMarketCoin = unstakedMarketAmount.shiftedBy(-1 * coinDecimal);
+
+  const availableSupplyAmount = BigNumber(coinAmount);
+  const availableSupplyCoin = availableSupplyAmount.shiftedBy(-1 * coinDecimal);
+  const availableWithdrawAmount = minBigNumber(
+    suppliedAmount,
+    marketPool?.supplyAmount ?? Infinity
+  ).plus(stakedAmount);
+  const availableWithdrawCoin = minBigNumber(
+    suppliedCoin,
+    marketPool?.supplyCoin ?? Infinity
+  ).plus(stakedCoin);
 
   const lending: Lending = {
     coinName: poolCoinName,
@@ -203,11 +222,21 @@ export const getLending = async (
     stakedAmount: stakedAmount.toNumber(),
     stakedCoin: stakedCoin.toNumber(),
     stakedValue: stakedValue.toNumber(),
-    availableSupplyAmount: coinAmount,
-    availableWithdrawAmount: 0,
-    availableStakeAmount: marketCoinAmount,
+    unstakedMarketAmount: unstakedMarketAmount.toNumber(),
+    unstakedMarketCoin: unstakedMarketCoin.toNumber(),
+    unstakedAmount: suppliedAmount.toNumber(),
+    unstakedCoin: suppliedCoin.toNumber(),
+    unstakedValue: suppliedValue.toNumber(),
+    availableSupplyAmount: availableSupplyAmount.toNumber(),
+    availableSupplyCoin: availableSupplyCoin.toNumber(),
+    availableWithdrawAmount: availableWithdrawAmount.toNumber(),
+    availableWithdrawCoin: availableWithdrawCoin.toNumber(),
+    availableStakeAmount: unstakedMarketAmount.toNumber(),
+    availableStakeCoin: unstakedMarketCoin.toNumber(),
     availableUnstakeAmount: availableUnstakeAmount.toNumber(),
+    availableUnstakeCoin: availableUnstakeCoin.toNumber(),
     availableClaimAmount: availableClaimAmount.toNumber(),
+    availableClaimCoin: availableClaimCoin.toNumber(),
   };
 
   return lending;
@@ -323,6 +352,8 @@ export const getObligationAccount = async (
         coinName: collateralCoinName,
         coinType: collateral.type.name,
         symbol: query.utils.parseSymbol(collateralCoinName),
+        coinDecimal: coinDecimal,
+        coinPrice: coinPrice,
         depositedAmount: depositedAmount.toNumber(),
         depositedCoin: depositedCoin.toNumber(),
         depositedValue: depositedValue.toNumber(),
@@ -373,6 +404,8 @@ export const getObligationAccount = async (
         coinName: poolCoinName,
         coinType: debt.type.name,
         symbol: query.utils.parseSymbol(poolCoinName),
+        coinDecimal: coinDecimal,
+        coinPrice: coinPrice,
         borrowedAmount: borrowedAmount.toNumber(),
         borrowedCoin: borrowedCoin.toNumber(),
         borrowedValue: borrowedValue.toNumber(),
@@ -449,8 +482,8 @@ export const getObligationAccount = async (
     if (marketCollateral) {
       const availableWithdrawAmount =
         obligationAccount.totalBorrowedValueWithWeight === 0
-          ? obligationCollateral.depositedAmount
-          : Math.min(
+          ? BigNumber(obligationCollateral.depositedAmount)
+          : minBigNumber(
               BigNumber(obligationAccount.totalAvailableCollateralValue)
                 .dividedBy(marketCollateral.collateralFactor)
                 .dividedBy(marketCollateral.coinPrice)
@@ -460,8 +493,11 @@ export const getObligationAccount = async (
               obligationCollateral.depositedAmount,
               marketCollateral.depositAmount
             );
-      obligationCollateral.availableWithdrawAmount = availableWithdrawAmount;
-      obligationCollateral.availableWithdrawCoin = availableWithdrawAmount;
+      obligationCollateral.availableWithdrawAmount =
+        availableWithdrawAmount.toNumber();
+      obligationCollateral.availableWithdrawCoin = availableWithdrawAmount
+        .shiftedBy(-1 * obligationCollateral.coinDecimal)
+        .toNumber();
     }
   }
   for (const [assetCoinName, obligationDebt] of Object.entries(
@@ -473,12 +509,11 @@ export const getObligationAccount = async (
         obligationDebt.availableRepayAmount
       )
         // Note: reduced chance of failure when calculations are inaccurate
-        .multipliedBy(1.01)
-        .toNumber();
+        .multipliedBy(1.01);
 
       const availableBorrowAmount =
         obligationAccount.totalAvailableCollateralValue !== 0
-          ? Math.min(
+          ? minBigNumber(
               BigNumber(obligationAccount.totalAvailableCollateralValue)
                 .dividedBy(
                   BigNumber(marketPool.coinPrice).multipliedBy(
@@ -490,9 +525,15 @@ export const getObligationAccount = async (
                 .toNumber(),
               marketPool.supplyAmount
             )
-          : 0;
-      obligationDebt.availableBorrowAmount = availableBorrowAmount;
-      obligationDebt.availableRepayAmount = availableRepayAmount;
+          : BigNumber(0);
+      obligationDebt.availableBorrowAmount = availableBorrowAmount.toNumber();
+      obligationDebt.availableBorrowCoin = availableBorrowAmount
+        .shiftedBy(-1 * obligationDebt.coinDecimal)
+        .toNumber();
+      obligationDebt.availableRepayAmount = availableRepayAmount.toNumber();
+      obligationDebt.availableRepayCoin = availableRepayAmount
+        .shiftedBy(-1 * obligationDebt.coinDecimal)
+        .toNumber();
     }
   }
 

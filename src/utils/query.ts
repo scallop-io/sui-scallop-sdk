@@ -370,3 +370,19 @@ export const calculateRewardPoolData = (
     exchangeRateDenominator: parsedRewardPoolData.exchangeRateDenominator,
   };
 };
+
+export const minBigNumber = (...args: BigNumber.Value[]) => {
+  return BigNumber(
+    args.reduce((min, current) =>
+      new BigNumber(current).lt(min) ? current : min
+    )
+  );
+};
+
+export const maxBigNumber = (...args: BigNumber.Value[]) => {
+  return BigNumber(
+    args.reduce((max, current) =>
+      new BigNumber(current).gt(max) ? current : max
+    )
+  );
+};

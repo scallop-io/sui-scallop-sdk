@@ -32,11 +32,21 @@ export type Lending = Required<
   stakedAmount: number;
   stakedCoin: number;
   stakedValue: number;
+  unstakedMarketAmount: number;
+  unstakedMarketCoin: number;
+  unstakedAmount: number;
+  unstakedCoin: number;
+  unstakedValue: number;
   availableSupplyAmount: number;
+  availableSupplyCoin: number;
   availableWithdrawAmount: number;
+  availableWithdrawCoin: number;
   availableStakeAmount: number;
+  availableStakeCoin: number;
   availableUnstakeAmount: number;
+  availableUnstakeCoin: number;
   availableClaimAmount: number;
+  availableClaimCoin: number;
 };
 
 export type ObligationAccount = {
@@ -53,43 +63,43 @@ export type ObligationAccount = {
   totalDepositedPools: number;
   totalBorrowedPools: number;
   collaterals: OptionalKeys<
-    Record<
-      SupportCollateralCoins,
-      {
-        coinName: SupportCollateralCoins;
-        coinType: string;
-        symbol: string;
-        depositedAmount: number;
-        depositedCoin: number;
-        depositedValue: number;
-        borrowCapacityValue: number;
-        requiredCollateralValue: number;
-        availableDepositAmount: number;
-        availableDepositCoin: number;
-        availableWithdrawAmount: number;
-        availableWithdrawCoin: number;
-      }
-    >
+    Record<SupportCollateralCoins, ObligationCollateral>
   >;
-  debts: OptionalKeys<
-    Record<
-      SupportPoolCoins,
-      {
-        coinName: SupportPoolCoins;
-        coinType: string;
-        symbol: string;
-        borrowedAmount: number;
-        borrowedCoin: number;
-        borrowedValue: number;
-        borrowedValueWithWeight: number;
-        borrowIndex: number;
-        availableBorrowAmount: number;
-        availableBorrowCoin: number;
-        availableRepayAmount: number;
-        availableRepayCoin: number;
-      }
-    >
-  >;
+  debts: OptionalKeys<Record<SupportPoolCoins, ObligationDebt>>;
+};
+
+export type ObligationCollateral = {
+  coinName: SupportCollateralCoins;
+  coinType: string;
+  symbol: string;
+  coinDecimal: number;
+  coinPrice: number;
+  depositedAmount: number;
+  depositedCoin: number;
+  depositedValue: number;
+  borrowCapacityValue: number;
+  requiredCollateralValue: number;
+  availableDepositAmount: number;
+  availableDepositCoin: number;
+  availableWithdrawAmount: number;
+  availableWithdrawCoin: number;
+};
+
+export type ObligationDebt = {
+  coinName: SupportPoolCoins;
+  coinType: string;
+  symbol: string;
+  coinDecimal: number;
+  coinPrice: number;
+  borrowedAmount: number;
+  borrowedCoin: number;
+  borrowedValue: number;
+  borrowedValueWithWeight: number;
+  borrowIndex: number;
+  availableBorrowAmount: number;
+  availableBorrowCoin: number;
+  availableRepayAmount: number;
+  availableRepayCoin: number;
 };
 
 export type TotalValueLocked = {
