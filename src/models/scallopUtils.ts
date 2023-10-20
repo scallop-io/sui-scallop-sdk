@@ -10,6 +10,8 @@ import {
   SUPPORT_COLLATERALS,
   rewardCoins,
   coinDecimals,
+  wormholeCoinIds,
+  coinIds,
 } from '../constants';
 import { queryObligation } from '../queries';
 import { parseDataFromPythPriceFeed, isMarketCoin } from '../utils';
@@ -108,16 +110,22 @@ export class ScallopUtils {
    */
   public parseCoinType(coinName: SupportCoins) {
     coinName = isMarketCoin(coinName) ? this.parseCoinName(coinName) : coinName;
-    const coinPackageId = this._address.get(`core.coins.${coinName}.id`);
+    const coinPackageId =
+      this._address.get(`core.coins.${coinName}.id`) ??
+      coinIds[coinName] ??
+      undefined;
+    if (!coinPackageId) {
+      throw Error(`Coin ${coinName} is not supported`);
+    }
     if (coinName === 'sui')
       return normalizeStructTag(`${coinPackageId}::sui::SUI`);
     const wormHoleCoinIds = [
-      this._address.get('core.coins.usdc.id'),
-      this._address.get('core.coins.usdt.id'),
-      this._address.get('core.coins.eth.id'),
-      this._address.get('core.coins.btc.id'),
-      this._address.get('core.coins.sol.id'),
-      this._address.get('core.coins.apt.id'),
+      this._address.get('core.coins.usdc.id') ?? wormholeCoinIds.usdc,
+      this._address.get('core.coins.usdt.id') ?? wormholeCoinIds.usdt,
+      this._address.get('core.coins.eth.id') ?? wormholeCoinIds.eth,
+      this._address.get('core.coins.btc.id') ?? wormholeCoinIds.btc,
+      this._address.get('core.coins.sol.id') ?? wormholeCoinIds.sol,
+      this._address.get('core.coins.apt.id') ?? wormholeCoinIds.apt,
     ];
     if (wormHoleCoinIds.includes(coinPackageId)) {
       return `${coinPackageId}::coin::COIN`;
@@ -154,6 +162,9 @@ export class ScallopUtils {
   public parseCoinNameFromType<T extends SupportMarketCoins>(
     coinType: string
   ): T extends SupportMarketCoins ? T : SupportMarketCoins;
+  public parseCoinNameFromType<T extends SupportCoins>(
+    coinType: string
+  ): T extends SupportCoins ? T : SupportCoins;
   public parseCoinNameFromType(coinType: string) {
     coinType = normalizeStructTag(coinType);
     const coinTypeRegex = new RegExp(`((0x[^:]+::[^:]+::[^<>]+))(?![^<>]*<)`);
@@ -162,12 +173,24 @@ export class ScallopUtils {
     coinType = coinTypeMatch?.[1] || coinType;
 
     const wormHoleCoinTypeMap: Record<string, SupportAssetCoins> = {
-      [`${this._address.get('core.coins.usdc.id')}::coin::COIN`]: 'usdc',
-      [`${this._address.get('core.coins.usdt.id')}::coin::COIN`]: 'usdt',
-      [`${this._address.get('core.coins.eth.id')}::coin::COIN`]: 'eth',
-      [`${this._address.get('core.coins.btc.id')}::coin::COIN`]: 'btc',
-      [`${this._address.get('core.coins.sol.id')}::coin::COIN`]: 'sol',
-      [`${this._address.get('core.coins.apt.id')}::coin::COIN`]: 'apt',
+      [`${
+        this._address.get('core.coins.usdc.id') ?? wormholeCoinIds.usdc
+      }::coin::COIN`]: 'usdc',
+      [`${
+        this._address.get('core.coins.usdt.id') ?? wormholeCoinIds.usdt
+      }::coin::COIN`]: 'usdt',
+      [`${
+        this._address.get('core.coins.eth.id') ?? wormholeCoinIds.eth
+      }::coin::COIN`]: 'eth',
+      [`${
+        this._address.get('core.coins.btc.id') ?? wormholeCoinIds.btc
+      }::coin::COIN`]: 'btc',
+      [`${
+        this._address.get('core.coins.sol.id') ?? wormholeCoinIds.sol
+      }::coin::COIN`]: 'sol',
+      [`${
+        this._address.get('core.coins.apt.id') ?? wormholeCoinIds.apt
+      }::coin::COIN`]: 'apt',
     };
 
     const assetCoinName =
