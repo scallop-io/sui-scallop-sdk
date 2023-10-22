@@ -3,7 +3,8 @@ import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { rewardCoins } from '../constants/enum';
 import { getStakeAccounts } from '../queries/spoolQuery';
-import type { SuiTxArg } from '@scallop-io/sui-kit';
+import type { SuiAddressArg } from '@scallop-io/sui-kit';
+import type { TransactionResult } from '@mysten/sui.js/transactions';
 import type { ScallopBuilder } from '../models';
 import type {
   SpoolIds,
@@ -13,7 +14,6 @@ import type {
   SpoolTxBlock,
   SupportStakeMarketCoins,
   ScallopTxBlock,
-  TransactionResult,
 } from '../types';
 
 /**
@@ -48,7 +48,7 @@ const requireStakeAccountIds = async (
     builder: ScallopBuilder,
     txBlock: SuiKitTxBlock,
     stakeMarketCoinName: SupportStakeMarketCoins,
-    stakeAccountId?: SuiTxArg,
+    stakeAccountId?: SuiAddressArg,
   ]
 ) => {
   const [builder, txBlock, stakeMarketCoinName, stakeAccountId] = params;
@@ -79,7 +79,7 @@ const requireStakeAccounts = async (
     builder: ScallopBuilder,
     txBlock: SuiKitTxBlock,
     stakeMarketCoinName: SupportStakeMarketCoins,
-    stakeAccountId?: SuiTxArg,
+    stakeAccountId?: SuiAddressArg,
   ]
 ) => {
   const [builder, txBlock, stakeMarketCoinName, stakeAccountId] = params;

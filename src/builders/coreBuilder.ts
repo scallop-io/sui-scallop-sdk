@@ -3,7 +3,7 @@ import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { getObligations } from '../queries';
 import { updateOracles } from './oracle';
-import type { SuiTxArg } from '@scallop-io/sui-kit';
+import type { SuiAddressArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
 import type {
   CoreIds,
@@ -46,8 +46,8 @@ const requireObligationInfo = async (
   ...params: [
     builder: ScallopBuilder,
     txBlock: SuiKitTxBlock,
-    obligationId?: SuiTxArg | undefined,
-    obligationKey?: SuiTxArg | undefined,
+    obligationId?: SuiAddressArg,
+    obligationKey?: SuiAddressArg,
   ]
 ) => {
   const [builder, txBlock, obligationId, obligationKey] = params;
@@ -275,12 +275,12 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationKey
       );
       const updateCoinNames = await builder.utils.getObligationCoinNames(
-        obligationInfo.obligationId as string
+        obligationInfo.obligationId
       );
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.takeCollateral(
         obligationInfo.obligationId,
-        obligationInfo.obligationKey as SuiTxArg,
+        obligationInfo.obligationKey as SuiAddressArg,
         amount,
         collateralCoinName
       );
@@ -321,13 +321,13 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationKey
       );
       const obligationCoinNames = await builder.utils.getObligationCoinNames(
-        obligationInfo.obligationId as string
+        obligationInfo.obligationId
       );
       const updateCoinNames = [...obligationCoinNames, poolCoinName];
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.borrow(
         obligationInfo.obligationId,
-        obligationInfo.obligationKey as SuiTxArg,
+        obligationInfo.obligationKey as SuiAddressArg,
         amount,
         poolCoinName
       );

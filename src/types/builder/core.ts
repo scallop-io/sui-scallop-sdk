@@ -1,14 +1,16 @@
 import type {
   SuiTxBlock as SuiKitTxBlock,
+  SuiAddressArg,
+  SuiObjectArg,
   SuiTxArg,
 } from '@scallop-io/sui-kit';
+import type { TransactionResult } from '@mysten/sui.js/transactions';
 import type { ScallopBuilder } from '../../models';
 import type {
   SupportCollateralCoins,
   SupportPoolCoins,
   SupportAssetCoins,
 } from '../constant';
-import type { TransactionResult } from './index';
 
 export type CoreIds = {
   protocolPkg: string;
@@ -21,55 +23,58 @@ export type CoreIds = {
 export type CoreNormalMethods = {
   openObligation: () => TransactionResult;
   returnObligation: (
-    obligation: SuiTxArg,
-    obligationHotPotato: SuiTxArg
+    obligation: SuiAddressArg,
+    obligationHotPotato: SuiObjectArg
   ) => void;
   openObligationEntry: () => void;
   addCollateral: (
-    obligation: SuiTxArg,
-    coin: SuiTxArg,
+    obligation: SuiAddressArg,
+    coin: SuiObjectArg,
     collateralCoinName: SupportCollateralCoins
   ) => void;
   takeCollateral: (
-    obligation: SuiTxArg,
-    obligationKey: SuiTxArg,
-    amount: number,
+    obligation: SuiAddressArg,
+    obligationKey: SuiAddressArg,
+    amount: SuiTxArg,
     collateralCoinName: SupportCollateralCoins
   ) => TransactionResult;
   deposit: (
-    coin: SuiTxArg,
+    coin: SuiObjectArg,
     poolCoinName: SupportPoolCoins
   ) => TransactionResult;
-  depositEntry: (coin: SuiTxArg, poolCoinName: SupportPoolCoins) => void;
+  depositEntry: (coin: SuiObjectArg, poolCoinName: SupportPoolCoins) => void;
   withdraw: (
-    marketCoin: SuiTxArg,
+    marketCoin: SuiObjectArg,
     poolCoinName: SupportPoolCoins
   ) => TransactionResult;
-  withdrawEntry: (marketCoin: SuiTxArg, poolCoinName: SupportPoolCoins) => void;
+  withdrawEntry: (
+    marketCoin: SuiObjectArg,
+    poolCoinName: SupportPoolCoins
+  ) => void;
   borrow: (
-    obligation: SuiTxArg,
-    obligationKey: SuiTxArg,
-    amount: number,
+    obligation: SuiAddressArg,
+    obligationKey: SuiAddressArg,
+    amount: SuiTxArg,
     poolCoinName: SupportPoolCoins
   ) => TransactionResult;
   borrowEntry: (
-    obligation: SuiTxArg,
-    obligationKey: SuiTxArg,
-    amount: number,
+    obligation: SuiAddressArg,
+    obligationKey: SuiAddressArg,
+    amount: SuiTxArg,
     poolCoinName: SupportPoolCoins
   ) => void;
   repay: (
-    obligation: SuiTxArg,
-    coin: SuiTxArg,
+    obligation: SuiAddressArg,
+    coin: SuiObjectArg,
     poolCoinName: SupportPoolCoins
   ) => void;
   borrowFlashLoan: (
-    amount: number,
+    amount: SuiTxArg,
     poolCoinName: SupportPoolCoins
   ) => TransactionResult;
   repayFlashLoan: (
-    coin: SuiTxArg,
-    loan: SuiTxArg,
+    coin: SuiObjectArg,
+    loan: SuiAddressArg,
     poolCoinName: SupportPoolCoins
   ) => void;
 };
@@ -78,19 +83,19 @@ export type CoreQuickMethods = {
   addCollateralQuick: (
     amount: number,
     collateralCoinName: SupportCollateralCoins,
-    obligationId?: SuiTxArg
+    obligationId?: SuiAddressArg
   ) => Promise<void>;
   takeCollateralQuick: (
     amount: number,
     collateralCoinName: SupportCollateralCoins,
-    obligationId?: string,
-    obligationKey?: string
+    obligationId?: SuiAddressArg,
+    obligationKey?: SuiAddressArg
   ) => Promise<TransactionResult>;
   borrowQuick: (
     amount: number,
     poolCoinName: SupportPoolCoins,
-    obligationId?: string,
-    obligationKey?: string
+    obligationId?: SuiAddressArg,
+    obligationKey?: SuiAddressArg
   ) => Promise<TransactionResult>;
   depositQuick: (
     amount: number,
@@ -103,7 +108,7 @@ export type CoreQuickMethods = {
   repayQuick: (
     amount: number,
     poolCoinName: SupportPoolCoins,
-    obligationId?: string
+    obligationId?: SuiAddressArg
   ) => Promise<void>;
   updateAssetPricesQuick: (
     assetCoinNames?: SupportAssetCoins[]
