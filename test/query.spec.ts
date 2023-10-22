@@ -105,7 +105,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     if (ENABLE_LOG) {
       console.info('Coin amount:', coinAmount);
     }
-    expect(!!coinAmount).toBe(true);
+    expect(coinAmount).toBeGreaterThanOrEqual(0);
   });
 
   it('Should get market coin amounts', async () => {
@@ -124,7 +124,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     if (ENABLE_LOG) {
       console.info('Market coin amount:', marketCoinAmount);
     }
-    expect(!!marketCoinAmount).toBe(true);
+    expect(marketCoinAmount).toBeGreaterThanOrEqual(0);
   });
 
   it('Should get pyth price data', async () => {
