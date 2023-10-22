@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { TransactionBlock } from '@scallop-io/sui-kit';
 import { Scallop } from '../src';
 import type { NetworkType } from '@scallop-io/sui-kit';
 
@@ -61,7 +61,7 @@ describe('Test Scallop Core Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "depositQuick".
     tx.setSender(sender);
-    const marketCoin = await tx.depositQuick(10 ** 8, 'sui');
+    const marketCoin = await tx.depositQuick(10 ** 7, 'sui');
     tx.transferObjects([marketCoin], sender);
     const depositQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
@@ -74,7 +74,7 @@ describe('Test Scallop Core Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "withdrawQuick".
     tx.setSender(sender);
-    const coin = await tx.withdrawQuick(10 ** 8, 'sui');
+    const coin = await tx.withdrawQuick(10 ** 7, 'sui');
     tx.transferObjects([coin], sender);
     const withdrawQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
@@ -87,7 +87,7 @@ describe('Test Scallop Core Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "borrowQuick".
     tx.setSender(sender);
-    const borrowedCoin = await tx.borrowQuick(10 ** 8, 'sui');
+    const borrowedCoin = await tx.borrowQuick(4 * 10 ** 7, 'sui');
     // Transfer borrowed coin to sender.
     tx.transferObjects([borrowedCoin], sender);
     const borrowQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
@@ -101,7 +101,7 @@ describe('Test Scallop Core Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "repayQuick".
     tx.setSender(sender);
-    await tx.repayQuick(10 ** 8, 'sui');
+    await tx.repayQuick(4 * 10 ** 7, 'sui');
     const repayQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
       console.info('RepayQuickResult:', repayQuickResult);
@@ -187,7 +187,7 @@ describe('Test Scallop Spool Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "stakeQuick".
     tx.setSender(sender);
-    await tx.stakeQuick(10 ** 8, 'ssui');
+    await tx.stakeQuick(10 ** 6, 'ssui');
     const stakeQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
       console.info('StakeQuickResult:', stakeQuickResult);
@@ -199,7 +199,7 @@ describe('Test Scallop Spool Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "unstakeQuick".
     tx.setSender(sender);
-    const marketCoins = await tx.unstakeQuick(10 ** 8, 'ssui');
+    const marketCoins = await tx.unstakeQuick(10 ** 6, 'ssui');
     tx.transferObjects(marketCoins, sender);
     const unstakeQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {

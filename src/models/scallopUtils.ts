@@ -1,5 +1,5 @@
 import { SUI_TYPE_ARG, normalizeStructTag } from '@mysten/sui.js/utils';
-import { SuiKit } from '@scallop-io/sui-kit';
+import { SuiAddressArg, SuiKit } from '@scallop-io/sui-kit';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
@@ -294,7 +294,7 @@ export class ScallopUtils {
    * @param obligationId - The obligation id.
    * @return Asset coin Names.
    */
-  public async getObligationCoinNames(obligationId: string) {
+  public async getObligationCoinNames(obligationId: SuiAddressArg) {
     const obligation = await queryObligation(this._query, obligationId);
     const collateralCoinTypes = obligation.collaterals.map((collateral) => {
       return `0x${collateral.type.name}`;
