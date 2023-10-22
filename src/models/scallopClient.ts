@@ -6,8 +6,8 @@ import { ScallopUtils } from './scallopUtils';
 import { ScallopBuilder } from './scallopBuilder';
 import { ScallopQuery } from './scallopQuery';
 import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
-import type { TransactionArgument } from '@mysten/sui.js/transactions';
-import type { SuiTxArg } from '@scallop-io/sui-kit';
+import type { TransactionObjectArgument } from '@mysten/sui.js/transactions';
+import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type {
   ScallopClientFnReturnType,
   ScallopInstanceParams,
@@ -237,14 +237,14 @@ export class ScallopClient {
     collateralCoinName: SupportCollateralCoins,
     amount: number,
     sign?: S,
-    obligationId?: SuiTxArg,
+    obligationId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async depositCollateral<S extends boolean>(
     collateralCoinName: SupportCollateralCoins,
     amount: number,
     sign: S = true as S,
-    obligationId?: SuiTxArg,
+    obligationId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
@@ -374,14 +374,14 @@ export class ScallopClient {
     stakeCoinName: SupportStakeCoins,
     amount: number,
     sign?: S,
-    stakeAccountId?: SuiTxArg,
+    stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async depositAndStake<S extends boolean>(
     stakeCoinName: SupportStakeCoins,
     amount: number,
     sign: S = true as S,
-    stakeAccountId?: SuiTxArg,
+    stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
@@ -543,16 +543,16 @@ export class ScallopClient {
     amount: number,
     callback: (
       txBlock: ScallopTxBlock,
-      coin: TransactionArgument
-    ) => TransactionArgument
+      coin: TransactionObjectArgument | string
+    ) => SuiObjectArg
   ): Promise<SuiTransactionBlockResponse>;
   public async flashLoan<S extends boolean>(
     poolCoinName: SupportPoolCoins,
     amount: number,
     callback: (
       txBlock: ScallopTxBlock,
-      coin: TransactionArgument
-    ) => TransactionArgument,
+      coin: TransactionObjectArgument | string
+    ) => SuiObjectArg,
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
@@ -561,8 +561,8 @@ export class ScallopClient {
     amount: number,
     callback: (
       txBlock: ScallopTxBlock,
-      coin: TransactionArgument
-    ) => TransactionArgument,
+      coin: TransactionObjectArgument | string
+    ) => SuiObjectArg,
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
@@ -637,14 +637,14 @@ export class ScallopClient {
     stakeMarketCoinName: SupportStakeMarketCoins,
     amount: number,
     sign?: S,
-    stakeAccountId?: SuiTxArg,
+    stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async stake<S extends boolean>(
     stakeMarketCoinName: SupportStakeMarketCoins,
     amount: number,
     sign: S = true as S,
-    stakeAccountId?: SuiTxArg,
+    stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
@@ -689,14 +689,14 @@ export class ScallopClient {
     stakeMarketCoinName: SupportStakeMarketCoins,
     amount: number,
     sign?: S,
-    stakeAccountId?: SuiTxArg,
+    stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async unstake<S extends boolean>(
     stakeMarketCoinName: SupportStakeMarketCoins,
     amount: number,
     sign: S = true as S,
-    stakeAccountId?: SuiTxArg,
+    stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
@@ -737,14 +737,14 @@ export class ScallopClient {
     stakeMarketCoinName: SupportStakeMarketCoins,
     amount: number,
     sign?: S,
-    stakeAccountId?: SuiTxArg,
+    stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async unstakeAndWithdraw<S extends boolean>(
     stakeMarketCoinName: SupportStakeMarketCoins,
     amount: number,
     sign: S = true as S,
-    stakeAccountId?: SuiTxArg,
+    stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
@@ -791,13 +791,13 @@ export class ScallopClient {
   public async claim<S extends boolean>(
     stakeMarketCoinName: SupportStakeMarketCoins,
     sign?: S,
-    stakeAccountId?: SuiTxArg,
+    stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async claim<S extends boolean>(
     stakeMarketCoinName: SupportStakeMarketCoins,
     sign: S = true as S,
-    stakeAccountId?: SuiTxArg,
+    stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();

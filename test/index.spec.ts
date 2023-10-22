@@ -195,7 +195,7 @@ describe('Test Scallop Client - Core Method', async () => {
   });
 
   it('Should withdraw asset success', async () => {
-    const withdrawResult = await client.withdraw('sui', 2 * 10 ** 8);
+    const withdrawResult = await client.withdraw('sui', 1.5 * 10 ** 8);
     if (ENABLE_LOG) {
       console.info('WithdrawResult:', withdrawResult);
     }
@@ -207,7 +207,7 @@ describe('Test Scallop Client - Core Method', async () => {
     expect(obligations.length).toBeGreaterThan(0);
     const borrowResult = await client.borrow(
       'sui',
-      3 * 10 ** 8,
+      0.4 * 10 ** 8,
       true,
       obligations[0].id,
       obligations[0].keyId
@@ -223,7 +223,7 @@ describe('Test Scallop Client - Core Method', async () => {
     expect(obligations.length).toBeGreaterThan(0);
     const repayResult = await client.repay(
       'sui',
-      3 * 10 ** 8,
+      0.4 * 10 ** 8,
       true,
       obligations[0].id
     );

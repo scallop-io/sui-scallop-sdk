@@ -12,6 +12,7 @@ import {
   calculateMarketCollateralData,
 } from '../utils';
 import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui.js/client';
+import type { SuiAddressArg } from '@scallop-io/sui-kit';
 import type { ScallopQuery } from '../models';
 import {
   Market,
@@ -603,7 +604,7 @@ export const getObligations = async (
  */
 export const queryObligation = async (
   query: ScallopQuery,
-  obligationId: string
+  obligationId: SuiAddressArg
 ) => {
   const packageId = query.address.get('core.packages.query.id');
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
