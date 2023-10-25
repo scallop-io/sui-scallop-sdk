@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.0...v0.44.1) (2023-10-25)
+
+### Features
+
+- add new afsui and hasui pools ([c42ec5b](https://github.com/scallop-io/sui-scallop-sdk/commit/c42ec5b442beea4453bfeed37bd93f03c12d4766))
+
 ## [0.44.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.42.8...v0.44.0) (2023-10-22)
 
 ### [0.42.8](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.42.7...v0.42.8) (2023-10-20)
