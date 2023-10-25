@@ -17,6 +17,8 @@ export const coinDecimals: SupportCoinDecimals = {
   apt: 8,
   sol: 8,
   cetus: 9,
+  afsui: 9,
+  hasui: 9,
   seth: 8,
   sbtc: 8,
   susdc: 6,
@@ -25,6 +27,8 @@ export const coinDecimals: SupportCoinDecimals = {
   sapt: 8,
   ssol: 8,
   scetus: 9,
+  safsui: 9,
+  shasui: 9,
 };
 
 export const assetCoins: AssetCoins = {
@@ -36,6 +40,8 @@ export const assetCoins: AssetCoins = {
   apt: 'apt',
   sol: 'sol',
   cetus: 'cetus',
+  afsui: 'afsui',
+  hasui: 'hasui',
 };
 
 export const marketCoins: MarketCoins = {
@@ -47,6 +53,8 @@ export const marketCoins: MarketCoins = {
   sapt: 'sapt',
   ssol: 'ssol',
   scetus: 'scetus',
+  safsui: 'safsui',
+  shasui: 'shasui',
 };
 
 export const stakeMarketCoins: StakeMarketCoins = {
@@ -70,6 +78,8 @@ export const coinIds: AssetCoinIds = {
   apt: '0x3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37',
   sol: '0xb7844e289a8410e50fb3ca48d69eb9cf29e27d223ef90353fe1bd8e27ff8f3f8',
   cetus: '0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b',
+  afsui: '0xf325ce1300e8dac124071d3152c5c5ee6174914f8bc2161e88329cf579246efc',
+  hasui: '0xbde4ba4c2e274a60ce15c1cfff9e5c42e41654ac8b6d906a57efa4bd3c29f47d',
 };
 
 export const wormholeCoinIds: WormholeCoinIds = {
