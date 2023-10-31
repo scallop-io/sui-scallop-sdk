@@ -127,9 +127,8 @@ export const updateOracles = async (
     const pythConnection = new SuiPriceServiceConnection(
       isTestnet ? 'hermes-beta.pyth.network' : 'https://hermes.pyth.network'
     );
-    const priceUpdateData = await pythConnection.getPriceFeedsUpdateData(
-      priceIds
-    );
+    const priceUpdateData =
+      await pythConnection.getPriceFeedsUpdateData(priceIds);
     await pythClient.updatePriceFeeds(
       txBlock.txBlock,
       priceUpdateData,
