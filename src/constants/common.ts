@@ -16,6 +16,7 @@ export const SUPPORT_ASSET_COINS = [
   'cetus',
   'afsui',
   'hasui',
+  'vsui',
 ] as const;
 export const SUPPORT_COLLATERAL_COINS = [
   'eth',
@@ -28,6 +29,7 @@ export const SUPPORT_COLLATERAL_COINS = [
   'cetus',
   'afsui',
   'hasui',
+  'vsui',
 ] as const;
 
 export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
