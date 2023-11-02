@@ -70,6 +70,8 @@ export class ScallopUtils {
     ];
     if (wormHoleCoins.includes(coinPackageId)) {
       return `${coinPackageId}::coin::COIN`;
+    } else if (coinName === 'vsui') {
+      return '0x549e8b69270defbfafd4f94e17ec44cdbdd99820b33bda2278dea3b9a32d3f55::cert::CERT';
     } else {
       return `${coinPackageId}::${coinName}::${coinName.toUpperCase()}`;
     }
@@ -97,6 +99,9 @@ export class ScallopUtils {
       '0x3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37::coin::COIN',
     ];
 
+    const vsuiCoinTypes =
+      '0x549e8b69270defbfafd4f94e17ec44cdbdd99820b33bda2278dea3b9a32d3f55::cert::CERT';
+
     if (coinType === wormHoleCoinTypes[0]) {
       return 'usdc';
     } else if (coinType === wormHoleCoinTypes[1]) {
@@ -109,6 +114,8 @@ export class ScallopUtils {
       return 'sol';
     } else if (coinType === wormHoleCoinTypes[5]) {
       return 'apt';
+    } else if (coinType === vsuiCoinTypes) {
+      return 'vsui';
     } else {
       return coinType.split('::')[2].toLowerCase() as SupportCoins;
     }
