@@ -11,10 +11,15 @@ import {
   rewardCoins,
   coinDecimals,
   wormholeCoinIds,
+  voloCoinIds,
   coinIds,
 } from '../constants';
 import { queryObligation } from '../queries';
-import { parseDataFromPythPriceFeed, isMarketCoin } from '../utils';
+import {
+  parseDataFromPythPriceFeed,
+  isMarketCoin,
+  parseAssetSymbol,
+} from '../utils';
 import type {
   ScallopUtilsParams,
   ScallopInstanceParams,
@@ -91,9 +96,14 @@ export class ScallopUtils {
    */
   public parseSymbol(coinName: SupportCoins) {
     if (isMarketCoin(coinName)) {
-      return coinName.slice(0, 1) + coinName.slice(1).toUpperCase();
+      const assetCoinName = coinName
+        .slice(1)
+        .toLowerCase() as SupportAssetCoins;
+      return (
+        coinName.slice(0, 1).toLowerCase() + parseAssetSymbol(assetCoinName)
+      );
     } else {
-      return coinName.toUpperCase();
+      return parseAssetSymbol(coinName);
     }
   }
 
@@ -111,15 +121,15 @@ export class ScallopUtils {
   public parseCoinType(coinName: SupportCoins) {
     coinName = isMarketCoin(coinName) ? this.parseCoinName(coinName) : coinName;
     const coinPackageId =
-      this._address.get(`core.coins.${coinName}.id`) ??
-      coinIds[coinName] ??
+      this._address.get(`core.coins.${coinName}.id`) ||
+      coinIds[coinName] ||
       undefined;
     if (!coinPackageId) {
       throw Error(`Coin ${coinName} is not supported`);
     }
     if (coinName === 'sui')
       return normalizeStructTag(`${coinPackageId}::sui::SUI`);
-    const wormHoleCoinIds = [
+    const wormHolePckageIds = [
       this._address.get('core.coins.usdc.id') ?? wormholeCoinIds.usdc,
       this._address.get('core.coins.usdt.id') ?? wormholeCoinIds.usdt,
       this._address.get('core.coins.eth.id') ?? wormholeCoinIds.eth,
@@ -127,8 +137,13 @@ export class ScallopUtils {
       this._address.get('core.coins.sol.id') ?? wormholeCoinIds.sol,
       this._address.get('core.coins.apt.id') ?? wormholeCoinIds.apt,
     ];
-    if (wormHoleCoinIds.includes(coinPackageId)) {
+    const voloPckageIds = [
+      this._address.get('core.coins.vsui.id') ?? voloCoinIds.vsui,
+    ];
+    if (wormHolePckageIds.includes(coinPackageId)) {
       return `${coinPackageId}::coin::COIN`;
+    } else if (voloPckageIds.includes(coinPackageId)) {
+      return `${coinPackageId}::cert::CERT`;
     } else {
       return `${coinPackageId}::${coinName}::${coinName.toUpperCase()}`;
     }
@@ -192,9 +207,15 @@ export class ScallopUtils {
         this._address.get('core.coins.apt.id') ?? wormholeCoinIds.apt
       }::coin::COIN`]: 'apt',
     };
+    const voloCoinTypeMap: Record<string, SupportAssetCoins> = {
+      [`${
+        this._address.get('core.coins.vsui.id') ?? voloCoinIds.vsui
+      }::cert::CERT`]: 'vsui',
+    };
 
     const assetCoinName =
       wormHoleCoinTypeMap[coinType] ||
+      voloCoinTypeMap[coinType] ||
       (coinType.split('::')[2].toLowerCase() as SupportAssetCoins);
 
     return isMarketCoinType
@@ -363,13 +384,14 @@ export class ScallopUtils {
       try {
         const priceFeeds =
           (await pythConnection.getLatestPriceFeeds(priceIds)) || [];
-        for (const feed of priceFeeds) {
+        for (const [index, feed] of priceFeeds.entries()) {
           const data = parseDataFromPythPriceFeed(feed, this._address);
-          this._priceMap.set(data.coinName, {
+          const coinName = lackPricesCoinNames[index];
+          this._priceMap.set(coinName, {
             price: data.price,
             publishTime: data.publishTime,
           });
-          coinPrices[data.coinName] = data.price;
+          coinPrices[coinName] = data.price;
         }
       } catch (_e) {
         for (const coinName of lackPricesCoinNames) {

@@ -22,21 +22,27 @@ describe('Test Scallop Utils', async () => {
   it('Should parse to symbol from coin and market coin name', async () => {
     const usdcSymbol = scallopUtils.parseSymbol('usdc');
     const ssuiSymbol = scallopUtils.parseSymbol('ssui');
+    const vsuiSymbol = scallopUtils.parseSymbol('vsui');
 
     const usdcAssertSymbol = 'USDC';
     const ssuiAssertSymbol = 'sSUI';
+    const vsuiAssertSymbol = 'vSUI';
     if (ENABLE_LOG) {
       console.info('Usdc Symbol:', usdcSymbol);
       console.info('sSui Symbol:', ssuiSymbol);
+      console.info('vSUI Symbol:', vsuiSymbol);
     }
     expect(usdcSymbol).toEqual(usdcAssertSymbol);
     expect(ssuiSymbol).toEqual(ssuiAssertSymbol);
+    expect(vsuiSymbol).toEqual(vsuiAssertSymbol);
   });
 
   it('Should parse to coin type from coin name', async () => {
     const suiCoinType = scallopUtils.parseCoinType('sui');
     const usdcCoinType = scallopUtils.parseCoinType('usdc');
     const usdtCoinType = scallopUtils.parseCoinType('susdt');
+    const afsuiCoinType = scallopUtils.parseCoinType('afsui');
+    const vsuiCoinType = scallopUtils.parseCoinType('svsui');
 
     const suiAssertCoinType = `${address.get('core.coins.sui.id')}::sui::SUI`;
     const usdcAssertCoinType = `${address.get(
@@ -45,20 +51,31 @@ describe('Test Scallop Utils', async () => {
     const usdtAssertCoinType = `${address.get(
       'core.coins.usdt.id'
     )}::coin::COIN`;
+    const afsuiAssertCoinType = `${address.get(
+      'core.coins.afsui.id'
+    )}::afsui::AFSUI`;
+    const vsuiAssertCoinType = `${address.get(
+      'core.coins.vsui.id'
+    )}::cert::CERT`;
     if (ENABLE_LOG) {
       console.info('Usdc coin type:', usdcCoinType);
       console.info('Sui coin type:', suiCoinType);
       console.info('Usdt coin type from market coin name:', usdtCoinType);
+      console.info('Afsui coin type:', afsuiCoinType);
+      console.info('vsui coin type from market coin name:', vsuiCoinType);
     }
     expect(suiCoinType).toEqual(suiAssertCoinType);
     expect(usdcCoinType).toEqual(usdcAssertCoinType);
     expect(usdtCoinType).toEqual(usdtAssertCoinType);
+    expect(afsuiCoinType).toEqual(afsuiAssertCoinType);
+    expect(vsuiCoinType).toEqual(vsuiAssertCoinType);
   });
 
   it('Should parse to market coin type from coin name', async () => {
     const suiMarketCoinType = scallopUtils.parseMarketCoinType('sui');
     const usdcMarketCoinType = scallopUtils.parseMarketCoinType('usdc');
     const usdtMarketCoinType = scallopUtils.parseMarketCoinType('susdt');
+    const vsuiMarketCoinType = scallopUtils.parseMarketCoinType('svsui');
 
     const suiAssertMarketCoinType = `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<${address.get(
       'core.coins.sui.id'
@@ -69,14 +86,19 @@ describe('Test Scallop Utils', async () => {
     const usdtAssertMarketCoinType = `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<${address.get(
       'core.coins.usdt.id'
     )}::coin::COIN>`;
+    const vsuiAssertMarketCoinType = `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<${address.get(
+      'core.coins.vsui.id'
+    )}::cert::CERT>`;
     if (ENABLE_LOG) {
       console.info('Sui market coin type:', suiMarketCoinType);
       console.info('Usdc market coin type:', usdcMarketCoinType);
       console.info('Usdt market coin type:', usdtMarketCoinType);
+      console.info('Vsui market coin type:', vsuiMarketCoinType);
     }
     expect(suiMarketCoinType).toEqual(suiAssertMarketCoinType);
     expect(usdcMarketCoinType).toEqual(usdcAssertMarketCoinType);
     expect(usdtMarketCoinType).toEqual(usdtAssertMarketCoinType);
+    expect(vsuiMarketCoinType).toEqual(vsuiAssertMarketCoinType);
   });
 
   it('Should parse to coin name from coin type', async () => {
@@ -85,6 +107,7 @@ describe('Test Scallop Utils', async () => {
     const usdtMarketCoinType = scallopUtils.parseMarketCoinType('usdt');
     const suiCoinObjectType = `0x2::coin::Coin<${suiCoinType}>`;
     const usdtMarketCoinObjectType = `0x2::coin::Coin<${usdtMarketCoinType}>`;
+    const vsuiMarketCoinType = scallopUtils.parseMarketCoinType('vsui');
 
     const suiCoinName = scallopUtils.parseCoinNameFromType(suiCoinType);
     const usdcCoinName = scallopUtils.parseCoinNameFromType(usdcCoinType);
@@ -95,22 +118,27 @@ describe('Test Scallop Utils', async () => {
     const usdtMarketCoinNameFromObjectType = scallopUtils.parseCoinNameFromType(
       usdtMarketCoinObjectType
     );
+    const vsuiMarketCoinName =
+      scallopUtils.parseCoinNameFromType(vsuiMarketCoinType);
 
     const suiAssertCoinName = 'sui';
     const usdcAssertCoinName = 'usdc';
     const usdtAssertMarketCoinName = 'susdt';
+    const vsuiAssertMarketCoinName = 'svsui';
     if (ENABLE_LOG) {
       console.info('Sui coin name:', suiCoinName);
       console.info('Usdc coin name:', usdcCoinName);
       console.info('Usdt market coin name:', usdtMarketCoinName);
       console.info('Sui coin name:', suiCoinNameFromObjectType);
       console.info('Usdt market coin name:', usdtMarketCoinNameFromObjectType);
+      console.info('Vsui market coin name:', vsuiMarketCoinName);
     }
     expect(suiCoinName).toEqual(suiAssertCoinName);
     expect(usdcCoinName).toEqual(usdcAssertCoinName);
     expect(usdtMarketCoinName).toEqual(usdtAssertMarketCoinName);
     expect(suiCoinNameFromObjectType).toEqual(suiAssertCoinName);
     expect(usdtMarketCoinNameFromObjectType).toEqual(usdtAssertMarketCoinName);
+    expect(vsuiMarketCoinName).toEqual(vsuiAssertMarketCoinName);
   });
 
   it('Should parse to coin name from market name', async () => {

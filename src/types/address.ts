@@ -1,6 +1,6 @@
 import { SUPPORT_ORACLES } from '../constants';
 import type {
-  SupportCoins,
+  SupportAssetCoins,
   SupportOracleType,
   SupportPackageType,
   SupportStakeMarketCoins,
@@ -15,7 +15,7 @@ export interface AddressesInterface {
     coinDecimalsRegistry: string;
     coins: Partial<
       Record<
-        SupportCoins,
+        SupportAssetCoins,
         {
           id: string;
           treasury: string;
