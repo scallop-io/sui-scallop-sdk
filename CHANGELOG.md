@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.1...v0.44.2) (2023-11-07)
+
+### Features
+
+- add new vsui pool ([63ffffb](https://github.com/scallop-io/sui-scallop-sdk/commit/63ffffb887b022c1a3d3687e7893a2ace38fe4b4))
+
 ### [0.44.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.0...v0.44.1) (2023-10-25)
 
 ### Features
