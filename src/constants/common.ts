@@ -16,6 +16,7 @@ export const SUPPORT_POOLS = [
   'cetus',
   'afsui',
   'hasui',
+  'vsui',
 ] as const;
 
 export const SUPPORT_COLLATERALS = [
@@ -29,6 +30,7 @@ export const SUPPORT_COLLATERALS = [
   'cetus',
   'afsui',
   'hasui',
+  'vsui',
 ] as const;
 
 export const SUPPORT_SPOOLS = ['ssui', 'susdc', 'susdt'] as const;

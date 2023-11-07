@@ -38,3 +38,7 @@ export type WormholeCoinIds = {
     'eth' | 'btc' | 'usdc' | 'usdt' | 'apt' | 'sol'
   >]: string;
 };
+
+export type VoloCoinIds = {
+  [key in PickFromUnion<SupportAssetCoins, 'vsui'>]: string;
+};
