@@ -80,6 +80,45 @@ const EMPTY_ADDRESSES: AddressesInterface = {
           },
         },
       },
+      afsui: {
+        id: '',
+        metaData: '',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '',
+            feedObject: '',
+          },
+        },
+      },
+      hasui: {
+        id: '',
+        metaData: '',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '',
+            feedObject: '',
+          },
+        },
+      },
+      vsui: {
+        id: '',
+        metaData: '',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '',
+            feedObject: '',
+          },
+        },
+      },
     },
     oracles: {
       xOracle: '',

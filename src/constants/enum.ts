@@ -6,6 +6,7 @@ import type {
   RewardCoins,
   AssetCoinIds,
   WormholeCoinIds,
+  VoloCoinIds,
 } from '../types';
 
 export const coinDecimals: SupportCoinDecimals = {
@@ -19,6 +20,7 @@ export const coinDecimals: SupportCoinDecimals = {
   cetus: 9,
   afsui: 9,
   hasui: 9,
+  vsui: 9,
   seth: 8,
   sbtc: 8,
   susdc: 6,
@@ -29,6 +31,7 @@ export const coinDecimals: SupportCoinDecimals = {
   scetus: 9,
   safsui: 9,
   shasui: 9,
+  svsui: 9,
 };
 
 export const assetCoins: AssetCoins = {
@@ -42,6 +45,7 @@ export const assetCoins: AssetCoins = {
   cetus: 'cetus',
   afsui: 'afsui',
   hasui: 'hasui',
+  vsui: 'vsui',
 };
 
 export const marketCoins: MarketCoins = {
@@ -55,6 +59,7 @@ export const marketCoins: MarketCoins = {
   scetus: 'scetus',
   safsui: 'safsui',
   shasui: 'shasui',
+  svsui: 'svsui',
 };
 
 export const stakeMarketCoins: StakeMarketCoins = {
@@ -80,6 +85,7 @@ export const coinIds: AssetCoinIds = {
   cetus: '0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b',
   afsui: '0xf325ce1300e8dac124071d3152c5c5ee6174914f8bc2161e88329cf579246efc',
   hasui: '0xbde4ba4c2e274a60ce15c1cfff9e5c42e41654ac8b6d906a57efa4bd3c29f47d',
+  vsui: '0x549e8b69270defbfafd4f94e17ec44cdbdd99820b33bda2278dea3b9a32d3f55',
 };
 
 export const wormholeCoinIds: WormholeCoinIds = {
@@ -89,4 +95,8 @@ export const wormholeCoinIds: WormholeCoinIds = {
   usdt: '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c',
   apt: '0x3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37',
   sol: '0xb7844e289a8410e50fb3ca48d69eb9cf29e27d223ef90353fe1bd8e27ff8f3f8',
+};
+
+export const voloCoinIds: VoloCoinIds = {
+  vsui: '0x549e8b69270defbfafd4f94e17ec44cdbdd99820b33bda2278dea3b9a32d3f55',
 };
