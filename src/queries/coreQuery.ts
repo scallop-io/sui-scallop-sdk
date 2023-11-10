@@ -59,6 +59,17 @@ export const queryMarket = async (query: ScallopQuery) => {
   const collaterals: MarketCollaterals = {};
 
   for (const pool of marketData.pools) {
+    const coinType = '0x' + pool.type.name;
+    const poolCoinName =
+      query.utils.parseCoinNameFromType<SupportPoolCoins>(coinType);
+    const coinPrice =
+      (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName] ?? 0;
+
+    // Filter pools not yet supported by the SDK.
+    if (!SUPPORT_POOLS.includes(poolCoinName)) {
+      continue;
+    }
+
     const parsedMarketPoolData = parseOriginMarketPoolData({
       type: pool.type,
       maxBorrowRate: pool.maxBorrowRate,
@@ -85,12 +96,6 @@ export const queryMarket = async (query: ScallopQuery) => {
       parsedMarketPoolData
     );
 
-    const coinType = '0x' + pool.type.name;
-    const poolCoinName =
-      query.utils.parseCoinNameFromType<SupportPoolCoins>(coinType);
-    const coinPrice =
-      (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName] ?? 0;
-
     pools[poolCoinName] = {
       coinName: poolCoinName,
       symbol: query.utils.parseSymbol(poolCoinName),
@@ -110,6 +115,19 @@ export const queryMarket = async (query: ScallopQuery) => {
   }
 
   for (const collateral of marketData.collaterals) {
+    const coinType = '0x' + collateral.type.name;
+    const collateralCoinName =
+      query.utils.parseCoinNameFromType<SupportCollateralCoins>(coinType);
+    const coinPrice =
+      (await query.utils.getCoinPrices([collateralCoinName]))?.[
+        collateralCoinName
+      ] ?? 0;
+
+    // Filter collaterals not yet supported by the SDK.
+    if (!SUPPORT_COLLATERALS.includes(collateralCoinName)) {
+      continue;
+    }
+
     const parsedMarketCollateralData = parseOriginMarketCollateralData({
       type: collateral.type,
       collateralFactor: collateral.collateralFactor,
@@ -125,14 +143,6 @@ export const queryMarket = async (query: ScallopQuery) => {
       query.utils,
       parsedMarketCollateralData
     );
-
-    const coinType = '0x' + collateral.type.name;
-    const collateralCoinName =
-      query.utils.parseCoinNameFromType<SupportCollateralCoins>(coinType);
-    const coinPrice =
-      (await query.utils.getCoinPrices([collateralCoinName]))?.[
-        collateralCoinName
-      ] ?? 0;
 
     collaterals[collateralCoinName] = {
       coinName: collateralCoinName,
