@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.2...v0.44.3) (2023-11-12)
+
+### Features
+
+- add borrow incentive support ([d6ad251](https://github.com/scallop-io/sui-scallop-sdk/commit/d6ad2519a942cd847c7e0c9aa4ac253cb51e6271))
+- rename functions and constants for spool ([8d49c06](https://github.com/scallop-io/sui-scallop-sdk/commit/8d49c0607b9030c8d556cbe7a7003d41f9be5dc2))
+
 ### [0.44.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.1...v0.44.2) (2023-11-07)
 
 ### Features
