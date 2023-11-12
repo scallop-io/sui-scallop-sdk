@@ -4,6 +4,8 @@ import {
   SupportMarketCoins,
   SupportStakeMarketCoins,
   SupportStakeRewardCoins,
+  SupportBorrowIncentiveCoins,
+  SupportBorrowIncentiveRewardCoins,
 } from './common';
 
 export type Coins = {
@@ -24,6 +26,10 @@ export type StakeMarketCoins = {
 
 export type StakeRewardCoins = {
   [key in SupportStakeMarketCoins]: SupportStakeRewardCoins;
+};
+
+export type BorrowIncentiveRewardCoins = {
+  [key in SupportBorrowIncentiveCoins]: SupportBorrowIncentiveRewardCoins;
 };
 
 export type AssetCoinIds = {

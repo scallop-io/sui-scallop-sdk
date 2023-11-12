@@ -14,6 +14,8 @@ import {
   getMarketCollateral,
   getSpools,
   getSpool,
+  queryBorrowIncentivePools,
+  queryBorrowIncentiveAccounts,
   getCoinAmounts,
   getCoinAmount,
   getMarketCoinAmounts,
@@ -34,6 +36,7 @@ import {
   SupportMarketCoins,
   StakePools,
   StakeRewardPools,
+  SupportBorrowIncentiveCoins,
 } from '../types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -365,6 +368,32 @@ export class ScallopQuery {
     stakeMarketCoinName: SupportStakeMarketCoins
   ) {
     return await getStakeRewardPool(this, stakeMarketCoinName);
+  }
+
+  /**
+   * Get borrow incentive pools data.
+   *
+   * @param coinNames - Specific an array of support borrow incentive coin name.
+   * @return Borrow incentive pools data.
+   */
+  public async getBorrowIncentivePools(
+    coinNames?: SupportBorrowIncentiveCoins[]
+  ) {
+    return await queryBorrowIncentivePools(this, coinNames);
+  }
+
+  /**
+   * Get borrow incentive accounts data.
+   *
+   * @param coinNames - Specific support borrow incentive coin name.
+   * @param ownerAddress - The owner address.
+   * @return Borrow incentive accounts data.
+   */
+  public async getBorrowIncentiveAccounts(
+    obligationId: string,
+    coinNames?: SupportBorrowIncentiveCoins[]
+  ) {
+    return await queryBorrowIncentiveAccounts(this, obligationId, coinNames);
   }
 
   /**

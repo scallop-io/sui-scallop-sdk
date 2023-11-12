@@ -13,6 +13,7 @@ export interface AddressesInterface {
     market: string;
     adminCap: string;
     coinDecimalsRegistry: string;
+    obligationAccessStore: string;
     coins: Partial<
       Record<
         SupportAssetCoins,
@@ -79,6 +80,13 @@ export interface AddressesInterface {
         }
       >
     >;
+  };
+  borrowIncentive: {
+    id: string;
+    adminCap: string;
+    query: string;
+    incentivePools: string;
+    incentiveAccounts: string;
   };
 }
 

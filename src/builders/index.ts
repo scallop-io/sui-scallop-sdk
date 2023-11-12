@@ -2,6 +2,7 @@ import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { newCoreTxBlock } from './coreBuilder';
 import { newSpoolTxBlock } from './spoolBuilder';
+import { newBorrowIncentiveTxBlock } from './borrowIncentiveBuilder';
 import type { ScallopBuilder } from '../models';
 import type { ScallopTxBlock } from '../types';
 
@@ -16,12 +17,18 @@ export const newScallopTxBlock = (
   builder: ScallopBuilder,
   initTxBlock?: ScallopTxBlock | SuiKitTxBlock | TransactionBlock
 ): ScallopTxBlock => {
-  const spoolTxBlock = newSpoolTxBlock(builder, initTxBlock);
+  const borrowIncentiveTxBlock = newBorrowIncentiveTxBlock(
+    builder,
+    initTxBlock
+  );
+  const spoolTxBlock = newSpoolTxBlock(builder, borrowIncentiveTxBlock);
   const coreTxBlock = newCoreTxBlock(builder, spoolTxBlock);
 
   return new Proxy(coreTxBlock, {
     get: (target, prop) => {
-      if (prop in spoolTxBlock) {
+      if (prop in borrowIncentiveTxBlock) {
+        return Reflect.get(borrowIncentiveTxBlock, prop);
+      } else if (prop in spoolTxBlock) {
         return Reflect.get(spoolTxBlock, prop);
       }
       return Reflect.get(target, prop);
