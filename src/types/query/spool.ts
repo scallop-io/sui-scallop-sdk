@@ -17,10 +17,13 @@ export type Spool = {
   coinPrice: number;
   marketCoinPrice: number;
   rewardCoinPrice: number;
-} & CalculatedStakePoolData &
-  CalculatedRewardPoolData;
+} & Required<
+  Pick<ParsedSpoolData, 'maxPoint' | 'distributedPoint' | 'maxStake'>
+> &
+  CalculatedSpoolData &
+  SpoolRewardPool;
 
-export type OriginStakePoolData = {
+export type OriginSpoolData = {
   stakeType: { fields: { name: string } };
   maxDistributedPoint: string;
   distributedPoint: string;
@@ -33,7 +36,7 @@ export type OriginStakePoolData = {
   lastUpdate: string;
 };
 
-export type ParsedStakePoolData = {
+export type ParsedSpoolData = {
   stakeType: string;
   maxPoint: number;
   distributedPoint: number;
@@ -46,7 +49,7 @@ export type ParsedStakePoolData = {
   lastUpdate: number;
 };
 
-export type CalculatedStakePoolData = {
+export type CalculatedSpoolData = {
   stakedAmount: number;
   stakedCoin: number;
   stakedValue: number;
@@ -58,7 +61,15 @@ export type CalculatedStakePoolData = {
   endDate: Date;
 };
 
-export type OriginRewardPoolData = {
+export type SpoolRewardPool = Required<
+  Pick<
+    ParsedSpoolRewardPoolData,
+    'exchangeRateNumerator' | 'exchangeRateDenominator'
+  >
+> &
+  CalculatedSpoolRewardPoolData;
+
+export type OriginSpoolRewardPoolData = {
   claimed_rewards: string;
   exchange_rate_denominator: string;
   exchange_rate_numerator: string;
@@ -66,7 +77,7 @@ export type OriginRewardPoolData = {
   spool_id: string;
 };
 
-export type ParsedRewardPoolData = {
+export type ParsedSpoolRewardPoolData = {
   claimedRewards: number;
   exchangeRateNumerator: number;
   exchangeRateDenominator: number;
@@ -74,7 +85,7 @@ export type ParsedRewardPoolData = {
   spoolId: string;
 };
 
-export type CalculatedRewardPoolData = {
+export type CalculatedSpoolRewardPoolData = {
   rewardApr: number;
   totalRewardAmount: number;
   totalRewardCoin: number;
@@ -86,8 +97,6 @@ export type CalculatedRewardPoolData = {
   claimedRewardCoin: number;
   claimedRewardValue: number;
   rewardPerSec: number;
-  exchangeRateNumerator: number;
-  exchangeRateDenominator: number;
 };
 
 export type StakePools = OptionalKeys<
