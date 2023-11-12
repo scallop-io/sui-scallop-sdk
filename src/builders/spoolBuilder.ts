@@ -1,7 +1,7 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { rewardCoins } from '../constants/enum';
+import { spoolRewardCoins } from '../constants/enum';
 import { getStakeAccounts } from '../queries/spoolQuery';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui.js/transactions';
@@ -158,7 +158,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       );
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
-      const rewardCoinName = rewardCoins[stakeMarketCoinName];
+      const rewardCoinName = spoolRewardCoins[stakeMarketCoinName];
       const rewardCoinType = builder.utils.parseCoinType(rewardCoinName);
       return txBlock.moveCall(
         `${spoolIds.spoolPkg}::user::redeem_rewards`,

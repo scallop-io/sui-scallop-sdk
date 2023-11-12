@@ -189,8 +189,8 @@ export class ScallopClient {
    * @param stakeMarketCoinName - Support stake market coin.
    * @return Reward pool data.
    */
-  async getRewardPool(stakeMarketCoinName: SupportStakeMarketCoins) {
-    return await this.query.getRewardPool(stakeMarketCoinName);
+  async getStakeRewardPool(stakeMarketCoinName: SupportStakeMarketCoins) {
+    return await this.query.getStakeRewardPool(stakeMarketCoinName);
   }
 
   /* ==================== Core Method ==================== */

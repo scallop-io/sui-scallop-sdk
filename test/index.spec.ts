@@ -71,12 +71,12 @@ describe('Test Scallop Client - Query Method', async () => {
     expect(!!stakePoolData).toBe(true);
   });
 
-  it('Should get reward pool data', async () => {
-    const rewardPoolData = await client.getRewardPool('ssui');
+  it('Should get stake reward pool data', async () => {
+    const stakeRewardPoolData = await client.getStakeRewardPool('ssui');
     if (ENABLE_LOG) {
-      console.info('Reward pool data:', rewardPoolData);
+      console.info('Stake reward pool data:', stakeRewardPoolData);
     }
-    expect(!!rewardPoolData).toBe(true);
+    expect(!!stakeRewardPoolData).toBe(true);
   });
 });
 

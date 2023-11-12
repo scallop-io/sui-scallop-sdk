@@ -204,24 +204,24 @@ describe('Test Query Spool Contract On Chain Data', async () => {
     expect(!!suiStakePool).toBe(true);
   });
 
-  it('Should get all reward pools data', async () => {
-    const rewardPools = await scallopQuery.getRewardPools();
+  it('Should get all stake reward pools data', async () => {
+    const stakeRewardPools = await scallopQuery.getStakeRewardPools();
 
     if (ENABLE_LOG) {
       console.info('Reward pools:');
-      console.dir(rewardPools, { depth: null, colors: true });
+      console.dir(stakeRewardPools, { depth: null, colors: true });
     }
-    expect(!!rewardPools).toBe(true);
+    expect(!!stakeRewardPools).toBe(true);
   });
 
-  it('Should get all reward pool data', async () => {
-    const rewardPool = await scallopQuery.getRewardPool('ssui');
+  it('Should get all stake reward pool data', async () => {
+    const stakeRewardPool = await scallopQuery.getStakeRewardPool('ssui');
 
     if (ENABLE_LOG) {
       console.info('sSui Reward pool:');
-      console.dir(rewardPool, { depth: null, colors: true });
+      console.dir(stakeRewardPool, { depth: null, colors: true });
     }
-    expect(!!rewardPool).toBe(true);
+    expect(!!stakeRewardPool).toBe(true);
   });
 });
 
