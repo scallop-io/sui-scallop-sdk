@@ -14,6 +14,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     market: '',
     adminCap: '',
     coinDecimalsRegistry: '',
+    obligationAccessStore: '',
     coins: {
       btc: {
         id: '',
@@ -197,6 +198,13 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         rewardPoolId: '',
       },
     },
+  },
+  borrowIncentive: {
+    id: '',
+    adminCap: '',
+    query: '',
+    incentivePools: '',
+    incentiveAccounts: '',
   },
 };
 

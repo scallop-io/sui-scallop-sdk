@@ -225,6 +225,42 @@ describe('Test Query Spool Contract On Chain Data', async () => {
   });
 });
 
+describe('Test Query Borrow Incentive Contract On Chain Data', async () => {
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  it('Should get borrow incentive pools data', async () => {
+    const borrowIncentivePools = await scallopQuery.getBorrowIncentivePools();
+
+    if (ENABLE_LOG) {
+      console.info('BorrowIncentive pools:');
+      console.dir(borrowIncentivePools, { depth: null, colors: true });
+    }
+    expect(!!borrowIncentivePools).toBe(true);
+  });
+
+  it('Should get borrow incentive accounts data', async () => {
+    const obligations = await scallopQuery.getObligations();
+
+    if (ENABLE_LOG) {
+      console.info('Obligations', obligations);
+    }
+    expect(obligations.length).toBeGreaterThan(0);
+
+    const borrowIncentiveAccounts =
+      await scallopQuery.getBorrowIncentiveAccounts(obligations[0].id);
+
+    if (ENABLE_LOG) {
+      console.info('BorrowIncentive accounts:');
+      console.dir(borrowIncentiveAccounts, { depth: null, colors: true });
+    }
+    expect(!!borrowIncentiveAccounts).toBe(true);
+  });
+});
+
 describe('Test Portfolio Query', async () => {
   const scallopSDK = new Scallop({
     secretKey: process.env.SECRET_KEY,
