@@ -1,7 +1,7 @@
 import {
   SUPPORT_POOLS,
   SUPPORT_COLLATERALS,
-  SUPPORT_REWARD_POOLS,
+  SUPPORT_SPOOLS_REWARDS,
 } from '../constants';
 import type {
   SupportAssetCoins,
@@ -19,7 +19,7 @@ export const isMarketCoin = (
       ...new Set([
         ...SUPPORT_POOLS,
         ...SUPPORT_COLLATERALS,
-        ...SUPPORT_REWARD_POOLS,
+        ...SUPPORT_SPOOLS_REWARDS,
       ]),
     ].includes(assetCoinName)
   );

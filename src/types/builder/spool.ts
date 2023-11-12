@@ -38,7 +38,6 @@ export type SpoolQuickMethods = {
     stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiAddressArg
   ): Promise<void>;
-
   unstakeQuick(
     amount: number,
     stakeMarketCoinName: SupportStakeMarketCoins,

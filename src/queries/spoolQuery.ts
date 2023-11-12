@@ -14,7 +14,7 @@ import type {
   Spools,
   Spool,
   StakePool,
-  RewardPool,
+  StakeRewardPool,
   StakeAccounts,
   SupportStakeMarketCoins,
   SupportStakeCoins,
@@ -281,6 +281,10 @@ export const getStakeAccounts = async (
 /**
  * Get stake pool data.
  *
+ * @description
+ * For backward compatible, it is recommended to use `getSpool` method
+ * to get stake pool info in spool data.
+ *
  * @param query - The Scallop query instance.
  * @param marketCoinName - Specific support stake market coin name.
  * @return Stake pool data.
@@ -334,39 +338,46 @@ export const getStakePool = async (
 };
 
 /**
- * Get reward pool of the owner.
+ * Get stake reward pool of the owner.
+ *
+ * @description
+ * For backward compatible, it is recommended to use `getSpool` method
+ * to get reward info in spool data.
  *
  * @param query - The Scallop query instance.
  * @param marketCoinName - Specific support stake market coin name.
- * @return Reward pool.
+ * @return Stake reward pool.
  */
-export const getRewardPool = async (
+export const getStakeRewardPool = async (
   query: ScallopQuery,
   marketCoinName: SupportStakeMarketCoins
 ) => {
   const poolId = query.address.get(
     `spool.pools.${marketCoinName}.rewardPoolId`
   );
-  let rewardPool: RewardPool | undefined = undefined;
-  const rewardPoolObjectResponse = await query.suiKit.client().getObject({
+  let stakeRewardPool: StakeRewardPool | undefined = undefined;
+  const stakeRewardPoolObjectResponse = await query.suiKit.client().getObject({
     id: poolId,
     options: {
       showContent: true,
       showType: true,
     },
   });
-  if (rewardPoolObjectResponse.data) {
-    const rewardPoolObject = rewardPoolObjectResponse.data;
-    const id = rewardPoolObject.objectId;
-    const type = rewardPoolObject.type!;
-    if (rewardPoolObject.content && 'fields' in rewardPoolObject.content) {
-      const fields = rewardPoolObject.content.fields as any;
+  if (stakeRewardPoolObjectResponse.data) {
+    const stakeRewardPoolObject = stakeRewardPoolObjectResponse.data;
+    const id = stakeRewardPoolObject.objectId;
+    const type = stakeRewardPoolObject.type!;
+    if (
+      stakeRewardPoolObject.content &&
+      'fields' in stakeRewardPoolObject.content
+    ) {
+      const fields = stakeRewardPoolObject.content.fields as any;
       const stakePoolId = String(fields.spool_id);
       const ratioNumerator = Number(fields.exchange_rate_numerator);
       const ratioDenominator = Number(fields.exchange_rate_denominator);
       const rewards = Number(fields.rewards);
       const claimedRewards = Number(fields.claimed_rewards);
-      rewardPool = {
+      stakeRewardPool = {
         id,
         type,
         stakePoolId,
@@ -377,5 +388,5 @@ export const getRewardPool = async (
       };
     }
   }
-  return rewardPool;
+  return stakeRewardPool;
 };

@@ -8,7 +8,7 @@ import {
   PROTOCOL_OBJECT_ID,
   SUPPORT_POOLS,
   SUPPORT_COLLATERALS,
-  rewardCoins,
+  spoolRewardCoins,
   coinDecimals,
   wormholeCoinIds,
   voloCoinIds,
@@ -246,13 +246,15 @@ export class ScallopUtils {
   }
 
   /**
-   * Get reward type of stake pool.
+   * Get reward type of spool.
    *
    * @param stakeMarketCoinName - Support stake market coin.
-   * @return Reward coin name.
+   * @return Spool reward coin name.
    */
-  public getRewardCoinName = (stakeMarketCoinName: SupportStakeMarketCoins) => {
-    return rewardCoins[stakeMarketCoinName];
+  public getSpoolRewardCoinName = (
+    stakeMarketCoinName: SupportStakeMarketCoins
+  ) => {
+    return spoolRewardCoins[stakeMarketCoinName];
   };
 
   /**

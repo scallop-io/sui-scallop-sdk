@@ -162,11 +162,11 @@ describe('Test Scallop Utils', async () => {
   });
 
   it('Should get spool reward coin name', async () => {
-    const rewardCoinName = scallopUtils.getRewardCoinName('susdc');
+    const spoolRewardCoinName = scallopUtils.getSpoolRewardCoinName('susdc');
     if (ENABLE_LOG) {
-      console.info('Reward coin name:', rewardCoinName);
+      console.info('Spool reward coin name:', spoolRewardCoinName);
     }
-    expect(!!rewardCoinName).toBe(true);
+    expect(!!spoolRewardCoinName).toBe(true);
   });
 
   it('Should get coin decimal', async () => {

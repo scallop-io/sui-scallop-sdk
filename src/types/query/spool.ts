@@ -4,13 +4,6 @@ type OptionalKeys<T> = {
   [K in keyof T]?: T[K];
 };
 
-export type StakePools = OptionalKeys<
-  Record<SupportStakeMarketCoins, StakePool>
->;
-export type RewardPools = OptionalKeys<
-  Record<SupportStakeMarketCoins, RewardPool>
->;
-export type StakeAccounts = Record<SupportStakeMarketCoins, StakeAccount[]>;
 export type Spools = OptionalKeys<Record<SupportStakeMarketCoins, Spool>>;
 
 export type Spool = {
@@ -97,6 +90,14 @@ export type CalculatedRewardPoolData = {
   exchangeRateDenominator: number;
 };
 
+export type StakePools = OptionalKeys<
+  Record<SupportStakeMarketCoins, StakePool>
+>;
+export type StakeRewardPools = OptionalKeys<
+  Record<SupportStakeMarketCoins, StakeRewardPool>
+>;
+export type StakeAccounts = Record<SupportStakeMarketCoins, StakeAccount[]>;
+
 export interface StakeAccount {
   id: string;
   type: string;
@@ -123,7 +124,7 @@ export interface StakePool {
   lastUpdate: number;
 }
 
-export interface RewardPool {
+export interface StakeRewardPool {
   id: string;
   type: string;
   stakePoolId: string;
