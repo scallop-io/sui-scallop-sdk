@@ -221,3 +221,66 @@ describe('Test Scallop Spool Builder', async () => {
     expect(claimQuickResult.effects?.status.status).toEqual('success');
   });
 });
+
+describe('Test Scallop Borrow Incentive Builder', async () => {
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const sender = scallopBuilder.walletAddress;
+
+  console.info('Sender:', sender);
+
+  it('"stakeObligationQuick" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    // Sender is required to invoke "stakeObligationQuick".
+    tx.setSender(sender);
+    await tx.stakeObligationQuick('sui');
+    const stakeObligationQuickResult =
+      await scallopBuilder.signAndSendTxBlock(tx);
+    if (ENABLE_LOG) {
+      console.info('StakeObligationQuickResult:', stakeObligationQuickResult);
+    }
+    expect(stakeObligationQuickResult.effects?.status.status).toEqual(
+      'success'
+    );
+  });
+
+  it('"unstakeObligationQuick" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    // Sender is required to invoke "unstakeObligationQuick".
+    tx.setSender(sender);
+    await tx.unstakeObligationQuick('sui');
+    const unstakeObligationQuickResult =
+      await scallopBuilder.signAndSendTxBlock(tx);
+    if (ENABLE_LOG) {
+      console.info(
+        'UnstakeObligationQuickResult:',
+        unstakeObligationQuickResult
+      );
+    }
+    expect(unstakeObligationQuickResult.effects?.status.status).toEqual(
+      'success'
+    );
+  });
+
+  it('"claimBorrowIncentiveQuick" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    // Sender is required to invoke "claimQuick".
+    tx.setSender(sender);
+    const rewardCoins = await tx.claimBorrowIncentiveQuick('sui');
+    tx.transferObjects([rewardCoins], sender);
+    const claimBorrowIncentiveQuickResult =
+      await scallopBuilder.signAndSendTxBlock(tx);
+    if (ENABLE_LOG) {
+      console.info(
+        'ClaimBorrowIncentiveQuickResult:',
+        claimBorrowIncentiveQuickResult
+      );
+    }
+    expect(claimBorrowIncentiveQuickResult.effects?.status.status).toEqual(
+      'success'
+    );
+  });
+});

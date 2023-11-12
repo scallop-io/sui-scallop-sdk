@@ -255,7 +255,7 @@ export type Market = {
   data?: MarketQueryInterface;
 };
 
-export type Obligation = { id: string; keyId: string };
+export type Obligation = { id: string; keyId: string; locked: boolean };
 
 /**
  * The query interface for `market_query::market_data` inspectTxn.

@@ -1,8 +1,9 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { rewardCoins } from '../constants/enum';
+import { spoolRewardCoins } from '../constants/enum';
 import { getStakeAccounts } from '../queries/spoolQuery';
+import { requireSender } from '../utils';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui.js/transactions';
 import type { ScallopBuilder } from '../models';
@@ -15,20 +16,6 @@ import type {
   SupportStakeMarketCoins,
   ScallopTxBlock,
 } from '../types';
-
-/**
- * Check and get the sender from the transaction block.
- *
- * @param txBlock - TxBlock created by SuiKit.
- * @return Sender of transaction.
- */
-const requireSender = (txBlock: SuiKitTxBlock) => {
-  const sender = txBlock.blockData.sender;
-  if (!sender) {
-    throw new Error('Sender is required');
-  }
-  return sender;
-};
 
 /**
  * Check and get stake account id from transaction block.
@@ -158,7 +145,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       );
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
-      const rewardCoinName = rewardCoins[stakeMarketCoinName];
+      const rewardCoinName = spoolRewardCoins[stakeMarketCoinName];
       const rewardCoinType = builder.utils.parseCoinType(rewardCoinName);
       return txBlock.moveCall(
         `${spoolIds.spoolPkg}::user::redeem_rewards`,

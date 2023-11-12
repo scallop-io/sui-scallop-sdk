@@ -71,16 +71,68 @@ describe('Test Scallop Client - Query Method', async () => {
     expect(!!stakePoolData).toBe(true);
   });
 
-  it('Should get reward pool data', async () => {
-    const rewardPoolData = await client.getRewardPool('ssui');
+  it('Should get stake reward pool data', async () => {
+    const stakeRewardPoolData = await client.getStakeRewardPool('ssui');
     if (ENABLE_LOG) {
-      console.info('Reward pool data:', rewardPoolData);
+      console.info('Stake reward pool data:', stakeRewardPoolData);
     }
-    expect(!!rewardPoolData).toBe(true);
+    expect(!!stakeRewardPoolData).toBe(true);
   });
 });
 
 describe('Test Scallop Client - Spool Method', async () => {
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+  const client = await scallopSDK.createScallopClient();
+  console.info('Your wallet:', client.walletAddress);
+
+  it('Should create stake account success', async () => {
+    const createStakeAccountResult = await client.createStakeAccount('ssui');
+    if (ENABLE_LOG) {
+      console.info('CreateStakeAccountResult:', createStakeAccountResult);
+    }
+    expect(createStakeAccountResult.effects?.status.status).toEqual('success');
+  });
+
+  it('Should stake success', async () => {
+    const stakeResult = await client.stake('ssui', 10 ** 8);
+    if (ENABLE_LOG) {
+      console.info('StakeResult:', stakeResult);
+    }
+    expect(stakeResult.effects?.status.status).toEqual('success');
+  });
+
+  it('Should unstake success', async () => {
+    const unstakeResult = await client.unstake('ssui', 10 ** 8);
+    if (ENABLE_LOG) {
+      console.info('UnstakeResult:', unstakeResult);
+    }
+    expect(unstakeResult.effects?.status.status).toEqual('success');
+  });
+
+  it('Should unstake and withdraw asset success', async () => {
+    const unstakeAndWithdrawResult = await client.unstakeAndWithdraw(
+      'ssui',
+      2 * 10 ** 8
+    );
+    if (ENABLE_LOG) {
+      console.info('UnstakeAndWithdrawResult:', unstakeAndWithdrawResult);
+    }
+    expect(unstakeAndWithdrawResult.effects?.status.status).toEqual('success');
+  });
+
+  it('Should claim success', async () => {
+    const claimResult = await client.claim('ssui');
+    if (ENABLE_LOG) {
+      console.info('ClaimResult:', claimResult);
+    }
+    expect(claimResult.effects?.status.status).toEqual('success');
+  });
+});
+
+describe('Test Scallop Client - Borrow incentive Method', async () => {
   const scallopSDK = new Scallop({
     secretKey: process.env.SECRET_KEY,
     networkType: NETWORK,

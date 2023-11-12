@@ -3,7 +3,8 @@ import type {
   AssetCoins,
   MarketCoins,
   StakeMarketCoins,
-  RewardCoins,
+  StakeRewardCoins,
+  BorrowIncentiveRewardCoins,
   AssetCoinIds,
   WormholeCoinIds,
   VoloCoinIds,
@@ -68,10 +69,15 @@ export const stakeMarketCoins: StakeMarketCoins = {
   susdt: 'susdt',
 };
 
-export const rewardCoins: RewardCoins = {
+export const spoolRewardCoins: StakeRewardCoins = {
   ssui: 'sui',
   susdc: 'sui',
   susdt: 'sui',
+};
+
+export const borrowIncentiveRewardCoins: BorrowIncentiveRewardCoins = {
+  sui: 'sui',
+  usdc: 'sui',
 };
 
 export const coinIds: AssetCoinIds = {

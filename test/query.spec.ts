@@ -204,24 +204,60 @@ describe('Test Query Spool Contract On Chain Data', async () => {
     expect(!!suiStakePool).toBe(true);
   });
 
-  it('Should get all reward pools data', async () => {
-    const rewardPools = await scallopQuery.getRewardPools();
+  it('Should get all stake reward pools data', async () => {
+    const stakeRewardPools = await scallopQuery.getStakeRewardPools();
 
     if (ENABLE_LOG) {
       console.info('Reward pools:');
-      console.dir(rewardPools, { depth: null, colors: true });
+      console.dir(stakeRewardPools, { depth: null, colors: true });
     }
-    expect(!!rewardPools).toBe(true);
+    expect(!!stakeRewardPools).toBe(true);
   });
 
-  it('Should get all reward pool data', async () => {
-    const rewardPool = await scallopQuery.getRewardPool('ssui');
+  it('Should get all stake reward pool data', async () => {
+    const stakeRewardPool = await scallopQuery.getStakeRewardPool('ssui');
 
     if (ENABLE_LOG) {
       console.info('sSui Reward pool:');
-      console.dir(rewardPool, { depth: null, colors: true });
+      console.dir(stakeRewardPool, { depth: null, colors: true });
     }
-    expect(!!rewardPool).toBe(true);
+    expect(!!stakeRewardPool).toBe(true);
+  });
+});
+
+describe('Test Query Borrow Incentive Contract On Chain Data', async () => {
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  it('Should get borrow incentive pools data', async () => {
+    const borrowIncentivePools = await scallopQuery.getBorrowIncentivePools();
+
+    if (ENABLE_LOG) {
+      console.info('BorrowIncentive pools:');
+      console.dir(borrowIncentivePools, { depth: null, colors: true });
+    }
+    expect(!!borrowIncentivePools).toBe(true);
+  });
+
+  it('Should get borrow incentive accounts data', async () => {
+    const obligations = await scallopQuery.getObligations();
+
+    if (ENABLE_LOG) {
+      console.info('Obligations', obligations);
+    }
+    expect(obligations.length).toBeGreaterThan(0);
+
+    const borrowIncentiveAccounts =
+      await scallopQuery.getBorrowIncentiveAccounts(obligations[0].id);
+
+    if (ENABLE_LOG) {
+      console.info('BorrowIncentive accounts:');
+      console.dir(borrowIncentiveAccounts, { depth: null, colors: true });
+    }
+    expect(!!borrowIncentiveAccounts).toBe(true);
   });
 });
 

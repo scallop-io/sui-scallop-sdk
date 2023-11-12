@@ -6,7 +6,7 @@ import {
   queryObligation,
   getStakeAccounts,
   getStakePool,
-  getRewardPool,
+  getStakeRewardPool,
   getPythPrice,
   getMarketPools,
   getMarketPool,
@@ -14,6 +14,8 @@ import {
   getMarketCollateral,
   getSpools,
   getSpool,
+  queryBorrowIncentivePools,
+  queryBorrowIncentiveAccounts,
   getCoinAmounts,
   getCoinAmount,
   getMarketCoinAmounts,
@@ -33,7 +35,8 @@ import {
   SupportCollateralCoins,
   SupportMarketCoins,
   StakePools,
-  RewardPools,
+  StakeRewardPools,
+  SupportBorrowIncentiveCoins,
 } from '../types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -323,43 +326,74 @@ export class ScallopQuery {
   }
 
   /**
-   * Get reward pools data.
+   * Get stake reward pools data.
    *
    * @description
    * For backward compatible, it is recommended to use `getSpools` method
    * to get all spools data.
    *
    * @param stakeMarketCoinNames - Specific an array of stake market coin name.
-   * @return Reward pools data.
+   * @return Stake reward pools data.
    */
-  public async getRewardPools(
+  public async getStakeRewardPools(
     stakeMarketCoinNames?: SupportStakeMarketCoins[]
   ) {
     stakeMarketCoinNames = stakeMarketCoinNames ?? [...SUPPORT_SPOOLS];
-    const rewardPools: RewardPools = {};
+    const stakeRewardPools: StakeRewardPools = {};
     for (const stakeMarketCoinName of stakeMarketCoinNames) {
-      const rewardPool = await getRewardPool(this, stakeMarketCoinName);
+      const stakeRewardPool = await getStakeRewardPool(
+        this,
+        stakeMarketCoinName
+      );
 
-      if (rewardPool) {
-        rewardPools[stakeMarketCoinName] = rewardPool;
+      if (stakeRewardPool) {
+        stakeRewardPools[stakeMarketCoinName] = stakeRewardPool;
       }
     }
 
-    return rewardPools;
+    return stakeRewardPools;
   }
 
   /**
-   * Get reward pool data.
+   * Get stake reward pool data.
    *
    * @description
    * For backward compatible, it is recommended to use `getSpool` method
    * to get spool data.
    *
    * @param marketCoinName - Specific support stake market coin name.
-   * @return Reward pool data.
+   * @return Stake reward pool data.
    */
-  public async getRewardPool(stakeMarketCoinName: SupportStakeMarketCoins) {
-    return await getRewardPool(this, stakeMarketCoinName);
+  public async getStakeRewardPool(
+    stakeMarketCoinName: SupportStakeMarketCoins
+  ) {
+    return await getStakeRewardPool(this, stakeMarketCoinName);
+  }
+
+  /**
+   * Get borrow incentive pools data.
+   *
+   * @param coinNames - Specific an array of support borrow incentive coin name.
+   * @return Borrow incentive pools data.
+   */
+  public async getBorrowIncentivePools(
+    coinNames?: SupportBorrowIncentiveCoins[]
+  ) {
+    return await queryBorrowIncentivePools(this, coinNames);
+  }
+
+  /**
+   * Get borrow incentive accounts data.
+   *
+   * @param coinNames - Specific support borrow incentive coin name.
+   * @param ownerAddress - The owner address.
+   * @return Borrow incentive accounts data.
+   */
+  public async getBorrowIncentiveAccounts(
+    obligationId: string,
+    coinNames?: SupportBorrowIncentiveCoins[]
+  ) {
+    return await queryBorrowIncentiveAccounts(this, obligationId, coinNames);
   }
 
   /**
