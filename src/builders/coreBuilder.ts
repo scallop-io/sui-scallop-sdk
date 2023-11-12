@@ -3,6 +3,7 @@ import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { getObligations } from '../queries';
 import { updateOracles } from './oracle';
+import { requireSender } from '../utils';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
 import type {
@@ -13,20 +14,6 @@ import type {
   CoreTxBlock,
   ScallopTxBlock,
 } from '../types';
-
-/**
- * Check and get the sender from the transaction block.
- *
- * @param txBlock - txBlock created by SuiKit.
- * @return Sender of transaction.
- */
-const requireSender = (txBlock: SuiKitTxBlock) => {
-  const sender = txBlock.blockData.sender;
-  if (!sender) {
-    throw new Error('Sender is required');
-  }
-  return sender;
-};
 
 /**
  * Check and get Obligation information from transaction block.
