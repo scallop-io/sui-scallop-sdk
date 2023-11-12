@@ -1,10 +1,10 @@
 import { normalizeStructTag } from '@mysten/sui.js/utils';
 import { SUPPORT_SPOOLS } from '../constants';
 import {
-  parseOriginStakePoolData,
-  calculateStakePoolData,
-  parseOriginRewardPoolData,
-  calculateRewardPoolData,
+  parseOriginSpoolData,
+  calculateSpoolData,
+  parseOriginSpoolRewardPoolData,
+  calculateSpoolRewardPoolData,
   isMarketCoin,
 } from '../utils';
 import type { SuiObjectResponse } from '@mysten/sui.js/client';
@@ -14,7 +14,7 @@ import type {
   Spools,
   Spool,
   StakePool,
-  RewardPool,
+  StakeRewardPool,
   StakeAccounts,
   SupportStakeMarketCoins,
   SupportStakeCoins,
@@ -64,18 +64,17 @@ export const getSpools = async (
  */
 export const getSpool = async (
   query: ScallopQuery,
-  stakeMarketCoinName: SupportStakeMarketCoins,
+  marketCoinName: SupportStakeMarketCoins,
   marketPool?: MarketPool
 ) => {
-  const stakeCoinName =
-    query.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
-  marketPool = marketPool || (await query.getMarketPool(stakeCoinName));
-  const poolId = query.address.get(`spool.pools.${stakeMarketCoinName}.id`);
+  const coinName = query.utils.parseCoinName<SupportStakeCoins>(marketCoinName);
+  marketPool = marketPool || (await query.getMarketPool(coinName));
+  const poolId = query.address.get(`spool.pools.${marketCoinName}.id`);
   const rewardPoolId = query.address.get(
-    `spool.pools.${stakeMarketCoinName}.rewardPoolId`
+    `spool.pools.${marketCoinName}.rewardPoolId`
   );
   let spool: Spool | undefined = undefined;
-  const stakePoolObjectResponse = await query.suiKit.client().multiGetObjects({
+  const spoolObjectResponse = await query.suiKit.client().multiGetObjects({
     ids: [poolId, rewardPoolId],
     options: {
       showContent: true,
@@ -84,20 +83,20 @@ export const getSpool = async (
 
   if (
     marketPool &&
-    stakePoolObjectResponse[0].data &&
-    stakePoolObjectResponse[1].data
+    spoolObjectResponse[0].data &&
+    spoolObjectResponse[1].data
   ) {
-    const rewardCoin = query.utils.getRewardCoinName(stakeMarketCoinName);
+    const rewardCoinName = query.utils.getSpoolRewardCoinName(marketCoinName);
     const coinPrices = await query.utils.getCoinPrices([
-      stakeCoinName,
-      rewardCoin,
+      coinName,
+      rewardCoinName,
     ]);
 
-    const stakePoolObject = stakePoolObjectResponse[0].data;
-    const rewardPoolObject = stakePoolObjectResponse[1].data;
-    if (stakePoolObject.content && 'fields' in stakePoolObject.content) {
-      const fields = stakePoolObject.content.fields as any;
-      const parsedStakePoolData = parseOriginStakePoolData({
+    const spoolObject = spoolObjectResponse[0].data;
+    const rewardPoolObject = spoolObjectResponse[1].data;
+    if (spoolObject.content && 'fields' in spoolObject.content) {
+      const fields = spoolObject.content.fields as any;
+      const parsedSpoolData = parseOriginSpoolData({
         stakeType: fields.stake_type,
         maxDistributedPoint: fields.max_distributed_point,
         distributedPoint: fields.distributed_point,
@@ -110,19 +109,18 @@ export const getSpool = async (
         lastUpdate: fields.last_update,
       });
 
-      const stakeMarketCoinPrice =
-        (coinPrices?.[stakeCoinName] ?? 0) * marketPool.conversionRate;
-      const stakeMarketCoinDecimal =
-        query.utils.getCoinDecimal(stakeMarketCoinName);
-      const calculatedStakePoolData = calculateStakePoolData(
-        parsedStakePoolData,
-        stakeMarketCoinPrice,
-        stakeMarketCoinDecimal
+      const marketCoinPrice =
+        (coinPrices?.[coinName] ?? 0) * marketPool.conversionRate;
+      const marketCoinDecimal = query.utils.getCoinDecimal(marketCoinName);
+      const calculatedSpoolData = calculateSpoolData(
+        parsedSpoolData,
+        marketCoinPrice,
+        marketCoinDecimal
       );
 
       if (rewardPoolObject.content && 'fields' in rewardPoolObject.content) {
         const fields = rewardPoolObject.content.fields as any;
-        const parsedRewardPoolData = parseOriginRewardPoolData({
+        const parsedSpoolRewardPoolData = parseOriginSpoolRewardPoolData({
           claimed_rewards: fields.claimed_rewards,
           exchange_rate_numerator: fields.exchange_rate_numerator,
           exchange_rate_denominator: fields.exchange_rate_denominator,
@@ -130,31 +128,38 @@ export const getSpool = async (
           spool_id: fields.spool_id,
         });
 
-        const rewardCoinPrice = coinPrices?.[rewardCoin] ?? 0;
-        const rewardCoinDecimal = query.utils.getCoinDecimal(rewardCoin);
+        const rewardCoinPrice = coinPrices?.[rewardCoinName] ?? 0;
+        const rewardCoinDecimal = query.utils.getCoinDecimal(rewardCoinName);
 
-        const calculatedRewardPoolData = calculateRewardPoolData(
-          parsedStakePoolData,
-          parsedRewardPoolData,
-          calculatedStakePoolData,
+        const calculatedRewardPoolData = calculateSpoolRewardPoolData(
+          parsedSpoolData,
+          parsedSpoolRewardPoolData,
+          calculatedSpoolData,
           rewardCoinPrice,
           rewardCoinDecimal
         );
 
         spool = {
-          marketCoinName: stakeMarketCoinName,
-          symbol: query.utils.parseSymbol(stakeMarketCoinName),
-          coinType: query.utils.parseCoinType(stakeCoinName),
-          marketCoinType: query.utils.parseMarketCoinType(stakeCoinName),
-          rewardCoinType: isMarketCoin(rewardCoin)
-            ? query.utils.parseMarketCoinType(rewardCoin)
-            : query.utils.parseCoinType(rewardCoin),
-          coinDecimal: query.utils.getCoinDecimal(stakeCoinName),
-          rewardCoinDecimal: query.utils.getCoinDecimal(rewardCoin),
-          coinPrice: coinPrices?.[stakeCoinName] ?? 0,
-          marketCoinPrice: stakeMarketCoinPrice,
+          marketCoinName: marketCoinName,
+          symbol: query.utils.parseSymbol(marketCoinName),
+          coinType: query.utils.parseCoinType(coinName),
+          marketCoinType: query.utils.parseMarketCoinType(coinName),
+          rewardCoinType: isMarketCoin(rewardCoinName)
+            ? query.utils.parseMarketCoinType(rewardCoinName)
+            : query.utils.parseCoinType(rewardCoinName),
+          coinDecimal: query.utils.getCoinDecimal(coinName),
+          rewardCoinDecimal: query.utils.getCoinDecimal(rewardCoinName),
+          coinPrice: coinPrices?.[coinName] ?? 0,
+          marketCoinPrice: marketCoinPrice,
           rewardCoinPrice: rewardCoinPrice,
-          ...calculatedStakePoolData,
+          maxPoint: parsedSpoolData.maxPoint,
+          distributedPoint: parsedSpoolData.distributedPoint,
+          maxStake: parsedSpoolData.maxStake,
+          ...calculatedSpoolData,
+          exchangeRateNumerator:
+            parsedSpoolRewardPoolData.exchangeRateNumerator,
+          exchangeRateDenominator:
+            parsedSpoolRewardPoolData.exchangeRateDenominator,
           ...calculatedRewardPoolData,
         };
       }
@@ -281,6 +286,10 @@ export const getStakeAccounts = async (
 /**
  * Get stake pool data.
  *
+ * @description
+ * For backward compatible, it is recommended to use `getSpool` method
+ * to get stake pool info in spool data.
+ *
  * @param query - The Scallop query instance.
  * @param marketCoinName - Specific support stake market coin name.
  * @return Stake pool data.
@@ -334,39 +343,46 @@ export const getStakePool = async (
 };
 
 /**
- * Get reward pool of the owner.
+ * Get stake reward pool of the owner.
+ *
+ * @description
+ * For backward compatible, it is recommended to use `getSpool` method
+ * to get reward info in spool data.
  *
  * @param query - The Scallop query instance.
  * @param marketCoinName - Specific support stake market coin name.
- * @return Reward pool.
+ * @return Stake reward pool.
  */
-export const getRewardPool = async (
+export const getStakeRewardPool = async (
   query: ScallopQuery,
   marketCoinName: SupportStakeMarketCoins
 ) => {
   const poolId = query.address.get(
     `spool.pools.${marketCoinName}.rewardPoolId`
   );
-  let rewardPool: RewardPool | undefined = undefined;
-  const rewardPoolObjectResponse = await query.suiKit.client().getObject({
+  let stakeRewardPool: StakeRewardPool | undefined = undefined;
+  const stakeRewardPoolObjectResponse = await query.suiKit.client().getObject({
     id: poolId,
     options: {
       showContent: true,
       showType: true,
     },
   });
-  if (rewardPoolObjectResponse.data) {
-    const rewardPoolObject = rewardPoolObjectResponse.data;
-    const id = rewardPoolObject.objectId;
-    const type = rewardPoolObject.type!;
-    if (rewardPoolObject.content && 'fields' in rewardPoolObject.content) {
-      const fields = rewardPoolObject.content.fields as any;
+  if (stakeRewardPoolObjectResponse.data) {
+    const stakeRewardPoolObject = stakeRewardPoolObjectResponse.data;
+    const id = stakeRewardPoolObject.objectId;
+    const type = stakeRewardPoolObject.type!;
+    if (
+      stakeRewardPoolObject.content &&
+      'fields' in stakeRewardPoolObject.content
+    ) {
+      const fields = stakeRewardPoolObject.content.fields as any;
       const stakePoolId = String(fields.spool_id);
       const ratioNumerator = Number(fields.exchange_rate_numerator);
       const ratioDenominator = Number(fields.exchange_rate_denominator);
       const rewards = Number(fields.rewards);
       const claimedRewards = Number(fields.claimed_rewards);
-      rewardPool = {
+      stakeRewardPool = {
         id,
         type,
         stakePoolId,
@@ -377,5 +393,5 @@ export const getRewardPool = async (
       };
     }
   }
-  return rewardPool;
+  return stakeRewardPool;
 };

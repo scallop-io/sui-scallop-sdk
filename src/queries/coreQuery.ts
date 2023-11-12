@@ -596,10 +596,42 @@ export const getObligations = async (
     if (keyObject.content && 'fields' in keyObject.content) {
       const fields = keyObject.content.fields as any;
       const obligationId = String(fields.ownership.fields.of);
-      obligations.push({ id: obligationId, keyId });
+      const locked = await getObligationLocked(query, obligationId);
+      obligations.push({ id: obligationId, keyId, locked });
     }
   }
   return obligations;
+};
+
+/**
+ * Query obligation locked status.
+ *
+ * @param query - The Scallop query instance.
+ * @param obligationId - The obligation id.
+ * @return Obligation locked status.
+ */
+export const getObligationLocked = async (
+  query: ScallopQuery,
+  obligationId: string
+) => {
+  const obligationObjectResponse = await query.suiKit.client().getObject({
+    id: obligationId,
+    options: {
+      showContent: true,
+    },
+  });
+  let obligationLocked = false;
+  if (
+    obligationObjectResponse.data &&
+    obligationObjectResponse?.data?.content?.dataType === 'moveObject' &&
+    'lock_key' in obligationObjectResponse.data.content.fields
+  ) {
+    obligationLocked = Boolean(
+      obligationObjectResponse.data.content.fields.lock_key
+    );
+  }
+
+  return obligationLocked;
 };
 
 /**
