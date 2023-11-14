@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.3...v0.44.4) (2023-11-14)
+
+### Features
+
+- add avaliable claim of borrow incentive pools in getObligationAccount ([fcaac4c](https://github.com/scallop-io/sui-scallop-sdk/commit/fcaac4cc8e85539f6af8f06e21dcd085ff359a1b))
+
+### Bug Fixes
+
+- wrong `availableClaim` in getLending ([fee4ec6](https://github.com/scallop-io/sui-scallop-sdk/commit/fee4ec6b7024681538677d8d9ca05bbb0d185dbd))
+
 ### [0.44.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.2...v0.44.3) (2023-11-12)
 
 ### Features
