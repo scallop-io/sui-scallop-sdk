@@ -66,6 +66,9 @@ export type ObligationAccount = {
     Record<SupportCollateralCoins, ObligationCollateral>
   >;
   debts: OptionalKeys<Record<SupportPoolCoins, ObligationDebt>>;
+  borrowIncentives: OptionalKeys<
+    Record<SupportPoolCoins, ObligationBorrowIncentive>
+  >;
 };
 
 export type ObligationCollateral = {
@@ -100,6 +103,19 @@ export type ObligationDebt = {
   availableBorrowCoin: number;
   availableRepayAmount: number;
   availableRepayCoin: number;
+};
+
+export type ObligationBorrowIncentive = {
+  coinName: SupportPoolCoins;
+  coinType: string;
+  rewardCoinType: string;
+  symbol: string;
+  coinDecimal: number;
+  rewardCoinDecimal: number;
+  coinPrice: number;
+  rewardCoinPrice: number;
+  availableClaimAmount: number;
+  availableClaimCoin: number;
 };
 
 export type TotalValueLocked = {
