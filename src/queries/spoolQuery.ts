@@ -247,9 +247,9 @@ export const getStakeAccounts = async (
       if (normalizeStructTag(type) === stakeMarketCoinTypes.ssui) {
         stakeAccounts.ssui.push({
           id,
-          type,
+          type: normalizeStructTag(type),
           stakePoolId,
-          stakeType,
+          stakeType: normalizeStructTag(stakeType),
           staked,
           index,
           points,
@@ -258,9 +258,9 @@ export const getStakeAccounts = async (
       } else if (normalizeStructTag(type) === stakeMarketCoinTypes.susdc) {
         stakeAccounts.susdc.push({
           id,
-          type,
+          type: normalizeStructTag(type),
           stakePoolId,
-          stakeType,
+          stakeType: normalizeStructTag(stakeType),
           staked,
           index,
           points,
@@ -269,9 +269,9 @@ export const getStakeAccounts = async (
       } else if (normalizeStructTag(type) === stakeMarketCoinTypes.susdt) {
         stakeAccounts.susdt.push({
           id,
-          type,
+          type: normalizeStructTag(type),
           stakePoolId,
-          stakeType,
+          stakeType: normalizeStructTag(stakeType),
           staked,
           index,
           points,
@@ -325,13 +325,13 @@ export const getStakePool = async (
       const lastUpdate = Number(fields.last_update);
       stakePool = {
         id,
-        type,
+        type: normalizeStructTag(type),
         maxPoint,
         distributedPoint,
         pointPerPeriod,
         period,
         maxStake,
-        stakeType,
+        stakeType: normalizeStructTag(stakeType),
         totalStaked,
         index,
         createdAt,
@@ -384,7 +384,7 @@ export const getStakeRewardPool = async (
       const claimedRewards = Number(fields.claimed_rewards);
       stakeRewardPool = {
         id,
-        type,
+        type: normalizeStructTag(type),
         stakePoolId,
         ratioNumerator,
         ratioDenominator,
