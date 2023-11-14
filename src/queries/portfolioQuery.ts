@@ -164,7 +164,9 @@ export const getLending = async (
       availableUnstakeAmount = availableUnstakeAmount.plus(
         accountStakedMarketCoinAmount
       );
-      availableUnstakeCoin = availableUnstakeAmount.shiftedBy(-1 * coinDecimal);
+      availableUnstakeCoin = availableUnstakeAmount.shiftedBy(
+        -1 * spool.coinDecimal
+      );
 
       const baseIndexRate = 1_000_000_000;
       const increasedPointRate = spool?.currentPointIndex
@@ -173,13 +175,15 @@ export const getLending = async (
           )
         : 1;
       availableClaimAmount = availableClaimAmount.plus(
-        BigNumber(stakeAccount.staked)
+        accountStakedMarketCoinAmount
           .multipliedBy(increasedPointRate)
           .plus(stakeAccount.points)
           .multipliedBy(spool.exchangeRateNumerator)
           .dividedBy(spool.exchangeRateDenominator)
       );
-      availableClaimCoin = availableClaimAmount.shiftedBy(-1 * coinDecimal);
+      availableClaimCoin = availableClaimAmount.shiftedBy(
+        -1 * spool.rewardCoinDecimal
+      );
     }
   }
 
