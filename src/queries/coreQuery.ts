@@ -1,3 +1,4 @@
+import { normalizeStructTag } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import BigNumber from 'bignumber.js';
 import {
@@ -59,7 +60,7 @@ export const queryMarket = async (query: ScallopQuery) => {
   const collaterals: MarketCollaterals = {};
 
   for (const pool of marketData.pools) {
-    const coinType = '0x' + pool.type.name;
+    const coinType = normalizeStructTag(pool.type.name);
     const poolCoinName =
       query.utils.parseCoinNameFromType<SupportPoolCoins>(coinType);
     const coinPrice =
@@ -115,7 +116,7 @@ export const queryMarket = async (query: ScallopQuery) => {
   }
 
   for (const collateral of marketData.collaterals) {
-    const coinType = '0x' + collateral.type.name;
+    const coinType = normalizeStructTag(collateral.type.name);
     const collateralCoinName =
       query.utils.parseCoinNameFromType<SupportCollateralCoins>(coinType);
     const coinPrice =

@@ -1,3 +1,4 @@
+import { normalizeStructTag } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { SUPPORT_BORROW_INCENTIVE_POOLS } from '../constants';
 import {
@@ -49,7 +50,7 @@ export const queryBorrowIncentivePools = async (
 
   const borrowIncentivePools: BorrowIncentivePools = {};
   for (const pool of borrowIncentivePoolsQueryData.incentive_pools) {
-    const coinType = '0x' + pool.pool_type.name;
+    const coinType = normalizeStructTag(pool.pool_type.name);
     const coinName =
       query.utils.parseCoinNameFromType<SupportBorrowIncentiveCoins>(coinType);
     const rewardCoinName =
