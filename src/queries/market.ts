@@ -50,6 +50,7 @@ export const queryMarket = async (
     const reserve = Number(asset.reserve);
     const reserveFactor = Number(asset.reserveFactor.value) / 2 ** 32;
     const borrowWeight = Number(asset.borrowWeight.value) / 2 ** 32;
+    const borrowFee = Number(asset.borrowFeeRate.value) / 2 ** 32;
 
     // calculated  data
     const calculatedBaseBorrowRate =
@@ -152,6 +153,7 @@ export const queryMarket = async (
         maxBorrowRate: calculatedMaxBorrowRate,
         reserveFactor,
         borrowWeight,
+        borrowFee,
         borrowIndex,
         lastUpdated,
         debt,

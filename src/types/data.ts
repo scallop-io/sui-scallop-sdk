@@ -76,6 +76,9 @@ export interface MarketDataInterface {
     borrowWeight: {
       value: string;
     };
+    borrowFeeRate: {
+      value: string;
+    };
     type: {
       name: string;
     };
@@ -138,6 +141,7 @@ export interface AssetPoolOriginInterface {
   maxBorrowRate: number;
   reserveFactor: number;
   borrowWeight: number;
+  borrowFee: number;
   borrowIndex: number;
   lastUpdated: number;
   debt: number;
