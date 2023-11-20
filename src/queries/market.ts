@@ -107,6 +107,7 @@ export const queryMarket = async (
     ) as SupportAssetCoins;
     const symbol = coin.toUpperCase() as Uppercase<SupportAssetCoins>;
     const marketCoinType = scallopUtils.parseMarketCoinType(
+      scallopAddress.get(`core.object`),
       scallopAddress.get(`core.coins.${coin}.id`),
       coin
     );

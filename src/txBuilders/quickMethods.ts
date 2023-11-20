@@ -26,16 +26,17 @@ const requireObligationInfo = async (
   ...args: [
     txBlock: SuiTxBlock,
     suiKit: SuiKit,
+    scallopAddress: ScallopAddress,
     obligationId?: SuiTxArg | undefined,
     obligationKey?: SuiTxArg | undefined,
   ]
 ) => {
-  const [txBlock, suiKit, obligationId, obligationKey] = args;
+  const [txBlock, suiKit, scallopAddress, obligationId, obligationKey] = args;
   if (args.length === 3 && obligationId) return { obligationId };
   if (args.length === 4 && obligationId && obligationKey)
     return { obligationId, obligationKey };
   const sender = requireSender(txBlock);
-  const obligations = await getObligations(sender, suiKit);
+  const obligations = await getObligations(sender, suiKit, scallopAddress);
   if (obligations.length === 0) {
     throw new Error(`No obligation found for sender ${sender}`);
   }
@@ -53,6 +54,7 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
       const { obligationId: obligationArg } = await requireObligationInfo(
         txBlock,
         suiKit,
+        scallopAddress,
         obligationId
       );
 
@@ -79,6 +81,7 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
         await requireObligationInfo(
           txBlock,
           suiKit,
+          scallopAddress,
           obligationId,
           obligationKey
         );
@@ -140,6 +143,7 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
         await requireObligationInfo(
           txBlock,
           suiKit,
+          scallopAddress,
           obligationId,
           obligationKey
         );
@@ -167,6 +171,7 @@ const scallopQuickMethodsHandler: ScallopQuickMethodsHandler = {
       const { obligationId: obligationArg } = await requireObligationInfo(
         txBlock,
         suiKit,
+        scallopAddress,
         obligationId
       );
 

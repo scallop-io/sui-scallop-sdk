@@ -129,11 +129,15 @@ export class ScallopUtils {
    *
    * @return marketCoinType.
    */
-  public parseMarketCoinType(coinPackageId: string, coinName: string) {
+  public parseMarketCoinType(
+    protocolObjectId: string = PROTOCOL_OBJECT_ID,
+    coinPackageId: string,
+    coinName: string
+  ) {
     const coinType = this.parseCoinType(
       coinName === 'sui' ? SUI_FRAMEWORK_ADDRESS : coinPackageId,
       coinName
     );
-    return `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<${coinType}>`;
+    return `${protocolObjectId}::reserve::MarketCoin<${coinType}>`;
   }
 }
