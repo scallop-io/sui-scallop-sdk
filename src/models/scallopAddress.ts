@@ -11,6 +11,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
   core: {
     version: '',
     versionCap: '',
+    object: '',
     market: '',
     adminCap: '',
     coinDecimalsRegistry: '',

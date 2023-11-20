@@ -10,6 +10,7 @@ export interface AddressesInterface {
   core: {
     version: string;
     versionCap: string;
+    object: string;
     market: string;
     adminCap: string;
     coinDecimalsRegistry: string;
