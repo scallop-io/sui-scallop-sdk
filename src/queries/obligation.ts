@@ -16,12 +16,18 @@ export const queryObligation = async (
   return queryResult.events[0].parsedJson as ObligationInterface;
 };
 
-export const getObligations = async (ownerAddress: string, suiKit: SuiKit) => {
+export const getObligations = async (
+  ownerAddress: string,
+  suiKit: SuiKit,
+  scallopAddress: ScallopAddress
+) => {
   const owner = ownerAddress || suiKit.currentAddress();
+  const protocolObjectId =
+    scallopAddress.get('core.object') || PROTOCOL_OBJECT_ID;
   const keyObjectRefs = await suiKit.provider().getOwnedObjects({
     owner,
     filter: {
-      StructType: `${PROTOCOL_OBJECT_ID}::obligation::ObligationKey`,
+      StructType: `${protocolObjectId}::obligation::ObligationKey`,
     },
   });
   const keyIds = keyObjectRefs.data

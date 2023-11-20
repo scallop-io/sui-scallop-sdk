@@ -120,6 +120,7 @@ export class ScallopAddress {
         core: {
           version: '',
           versionCap: '',
+          object: '',
           market: '',
           adminCap: '',
           coinDecimalsRegistry: '',
