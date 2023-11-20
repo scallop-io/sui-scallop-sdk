@@ -564,6 +564,8 @@ export const getObligations = async (
   ownerAddress?: string
 ) => {
   const owner = ownerAddress || query.suiKit.currentAddress();
+  const protocolObjectId =
+    query.address.get('core.object') || PROTOCOL_OBJECT_ID;
   const keyObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
   let nextCursor: string | null = null;
@@ -573,7 +575,7 @@ export const getObligations = async (
       .getOwnedObjects({
         owner,
         filter: {
-          StructType: `${PROTOCOL_OBJECT_ID}::obligation::ObligationKey`,
+          StructType: `${protocolObjectId}::obligation::ObligationKey`,
         },
         cursor: nextCursor,
       });
