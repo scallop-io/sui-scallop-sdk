@@ -49,6 +49,7 @@ export const parseOriginMarketPoolData = (
     reserveAmount: Number(originMarketPoolData.reserve),
     reserveFactor: Number(originMarketPoolData.reserveFactor.value) / 2 ** 32,
     borrowWeight: Number(originMarketPoolData.borrowWeight.value) / 2 ** 32,
+    borrowFee: Number(originMarketPoolData.borrowFeeRate.value) / 2 ** 32,
     // Parse origin data required for additional display.
     baseBorrowRate:
       Number(originMarketPoolData.baseBorrowRatePerSec.value) / 2 ** 32,

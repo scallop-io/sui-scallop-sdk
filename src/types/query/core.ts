@@ -57,6 +57,11 @@ export type InterestModel = {
       value: string;
     };
   };
+  borrow_fee_rate: {
+    fields: {
+      value: string;
+    };
+  };
   high_kink: {
     fields: {
       value: string;
@@ -127,6 +132,7 @@ export type MarketPool = {
     | 'midKink'
     | 'reserveFactor'
     | 'borrowWeight'
+    | 'borrowFee'
     | 'marketCoinSupplyAmount'
     | 'minBorrowAmount'
   >
@@ -166,6 +172,7 @@ export type OriginMarketPoolData = {
   reserve: string;
   reserveFactor: { value: string };
   borrowWeight: { value: string };
+  borrowFeeRate: { value: string };
   baseBorrowRatePerSec: { value: string };
   borrowRateOnHighKink: { value: string };
   borrowRateOnMidKink: { value: string };
@@ -187,6 +194,7 @@ export type ParsedMarketPoolData = {
   reserveAmount: number;
   reserveFactor: number;
   borrowWeight: number;
+  borrowFee: number;
   baseBorrowRate: number;
   borrowRateOnHighKink: number;
   borrowRateOnMidKink: number;
@@ -317,6 +325,9 @@ export interface MarketQueryInterface {
       value: string;
     };
     borrowWeight: {
+      value: string;
+    };
+    borrowFeeRate: {
       value: string;
     };
     type: {
