@@ -5,6 +5,9 @@ export const ADDRESSES_ID = '6462a088a7ace142bb6d7e9b';
 export const PROTOCOL_OBJECT_ID =
   '0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf';
 
+export const BORROW_FEE_PROTOCOL_ID =
+  '0xc38f849e81cfe46d4e4320f508ea7dda42934a329d5a6571bb4c3cb6ea63f5da';
+
 export const SUPPORT_POOLS = [
   'eth',
   'btc',

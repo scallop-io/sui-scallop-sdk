@@ -49,6 +49,7 @@ export const parseOriginMarketPoolData = (
     reserveAmount: Number(originMarketPoolData.reserve),
     reserveFactor: Number(originMarketPoolData.reserveFactor.value) / 2 ** 32,
     borrowWeight: Number(originMarketPoolData.borrowWeight.value) / 2 ** 32,
+    borrowFee: Number(originMarketPoolData.borrowFeeRate.value) / 2 ** 32,
     // Parse origin data required for additional display.
     baseBorrowRate:
       Number(originMarketPoolData.baseBorrowRatePerSec.value) / 2 ** 32,
@@ -313,12 +314,14 @@ export const parseOriginSpoolRewardPoolData = (
 ): ParsedSpoolRewardPoolData => {
   return {
     claimedRewards: Number(originSpoolRewardPoolData.claimed_rewards),
-    exchangeRateNumerator: Number(
-      originSpoolRewardPoolData.exchange_rate_numerator
-    ),
     exchangeRateDenominator: Number(
       originSpoolRewardPoolData.exchange_rate_denominator
     ),
+    exchangeRateNumerator: Number(
+      originSpoolRewardPoolData.exchange_rate_numerator
+    ),
+    feeRateDenominator: Number(originSpoolRewardPoolData.fee_rate_denominator),
+    feeRateNumerator: Number(originSpoolRewardPoolData.fee_rate_numerator),
     rewards: Number(originSpoolRewardPoolData.rewards),
     spoolId: String(originSpoolRewardPoolData.spool_id),
   };
@@ -363,6 +366,9 @@ export const calculateSpoolRewardPoolData = (
     .isFinite()
     ? rewardValueForYear.dividedBy(calculatedSpoolData.stakedValue).toNumber()
     : Infinity;
+  const rewardFeeRate = BigNumber(parsedSpoolRewardPoolData.feeRateNumerator)
+    .dividedBy(parsedSpoolRewardPoolData.feeRateDenominator)
+    .toNumber();
 
   return {
     rewardApr: rewardRate,
@@ -376,6 +382,7 @@ export const calculateSpoolRewardPoolData = (
     claimedRewardCoin: claimedRewardCoin.toNumber(),
     claimedRewardValue: claimedRewardValue.toNumber(),
     rewardPerSec: rewardPerSec.toNumber(),
+    rewardFee: rewardFeeRate,
   };
 };
 
@@ -491,6 +498,12 @@ export const parseOriginBorrowIncentiveRewardPoolData = (
     exchangeRateDenominator: Number(
       originBorrowIncentiveRewardPoolData.exchange_rate_denominator
     ),
+    rewardsFeeRateNumerator: Number(
+      originBorrowIncentiveRewardPoolData.rewards_fee_rate_numerator
+    ),
+    rewardsFeeRateDenominator: Number(
+      originBorrowIncentiveRewardPoolData.rewards_fee_rate_denominator
+    ),
     remainingRewards: Number(
       originBorrowIncentiveRewardPoolData.remaining_reward
     ),
@@ -542,6 +555,11 @@ export const calculateBorrowIncentiveRewardPoolData = (
         .dividedBy(calculatedBorrowIncentivePoolData.stakedValue)
         .toNumber()
     : Infinity;
+  const rewardFeeRate = BigNumber(
+    parsedBorrowIncentiveRewardPoolData.rewardsFeeRateNumerator
+  )
+    .dividedBy(parsedBorrowIncentiveRewardPoolData.rewardsFeeRateDenominator)
+    .toNumber();
 
   return {
     rewardApr: rewardRate,
@@ -555,6 +573,7 @@ export const calculateBorrowIncentiveRewardPoolData = (
     claimedRewardCoin: claimedRewardCoin.toNumber(),
     claimedRewardValue: claimedRewardValue.toNumber(),
     rewardPerSec: rewardPerSec.toNumber(),
+    rewardFee: rewardFeeRate,
   };
 };
 

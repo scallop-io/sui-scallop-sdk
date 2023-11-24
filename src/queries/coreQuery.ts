@@ -5,6 +5,7 @@ import {
   SUPPORT_POOLS,
   PROTOCOL_OBJECT_ID,
   SUPPORT_COLLATERALS,
+  BORROW_FEE_PROTOCOL_ID,
 } from '../constants';
 import {
   parseOriginMarketPoolData,
@@ -84,6 +85,7 @@ export const queryMarket = async (query: ScallopQuery) => {
       reserve: pool.reserve,
       reserveFactor: pool.reserveFactor,
       borrowWeight: pool.borrowWeight,
+      borrowFeeRate: pool.borrowFeeRate,
       baseBorrowRatePerSec: pool.baseBorrowRatePerSec,
       borrowRateOnHighKink: pool.borrowRateOnHighKink,
       borrowRateOnMidKink: pool.borrowRateOnMidKink,
@@ -109,6 +111,7 @@ export const queryMarket = async (query: ScallopQuery) => {
       midKink: parsedMarketPoolData.midKink,
       reserveFactor: parsedMarketPoolData.reserveFactor,
       borrowWeight: parsedMarketPoolData.borrowWeight,
+      borrowFee: parsedMarketPoolData.borrowFee,
       marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
       ...calculatedMarketPoolData,
@@ -243,6 +246,7 @@ export const getMarketPool = async (
   let balanceSheet: BalanceSheet | undefined;
   let borrowIndex: BorrowIndex | undefined;
   let interestModel: InterestModel | undefined;
+  let borrowFeeRate: { value: string } | undefined;
   if (marketObject) {
     if (marketObject.content && 'fields' in marketObject.content) {
       const fields = marketObject.content.fields as any;
@@ -325,10 +329,36 @@ export const getMarketPool = async (
           .fields as any;
         interestModel = dynamicFields.value.fields;
       }
+
+      // Get borrow fee.
+      const borrowFeeDynamicFieldObjectResponse = await query.suiKit
+        .client()
+        .getDynamicFieldObject({
+          parentId: marketId,
+          name: {
+            type: `${BORROW_FEE_PROTOCOL_ID}::market_dynamic_keys::BorrowFeeKey`,
+            value: {
+              type: {
+                name: coinType.substring(2),
+              },
+            },
+          },
+        });
+
+      const borrowFeeDynamicFieldObject =
+        borrowFeeDynamicFieldObjectResponse.data;
+      if (
+        borrowFeeDynamicFieldObject &&
+        borrowFeeDynamicFieldObject.content &&
+        'fields' in borrowFeeDynamicFieldObject.content
+      ) {
+        const dynamicFields = borrowFeeDynamicFieldObject.content.fields as any;
+        borrowFeeRate = dynamicFields.value.fields;
+      }
     }
   }
 
-  if (balanceSheet && borrowIndex && interestModel) {
+  if (balanceSheet && borrowIndex && interestModel && borrowFeeRate) {
     const parsedMarketPoolData = parseOriginMarketPoolData({
       type: interestModel.type.fields,
       maxBorrowRate: interestModel.max_borrow_rate.fields,
@@ -342,6 +372,7 @@ export const getMarketPool = async (
       reserve: balanceSheet.revenue,
       reserveFactor: interestModel.revenue_factor.fields,
       borrowWeight: interestModel.borrow_weight.fields,
+      borrowFeeRate: borrowFeeRate,
       baseBorrowRatePerSec: interestModel.base_borrow_rate_per_sec.fields,
       borrowRateOnHighKink: interestModel.borrow_rate_on_high_kink.fields,
       borrowRateOnMidKink: interestModel.borrow_rate_on_mid_kink.fields,
@@ -370,6 +401,7 @@ export const getMarketPool = async (
       midKink: parsedMarketPoolData.midKink,
       reserveFactor: parsedMarketPoolData.reserveFactor,
       borrowWeight: parsedMarketPoolData.borrowWeight,
+      borrowFee: parsedMarketPoolData.borrowFee,
       marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
       ...calculatedMarketPoolData,
@@ -564,6 +596,8 @@ export const getObligations = async (
   ownerAddress?: string
 ) => {
   const owner = ownerAddress || query.suiKit.currentAddress();
+  const protocolObjectId =
+    query.address.get('core.object') || PROTOCOL_OBJECT_ID;
   const keyObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
   let nextCursor: string | null = null;
@@ -573,7 +607,7 @@ export const getObligations = async (
       .getOwnedObjects({
         owner,
         filter: {
-          StructType: `${PROTOCOL_OBJECT_ID}::obligation::ObligationKey`,
+          StructType: `${protocolObjectId}::obligation::ObligationKey`,
         },
         cursor: nextCursor,
       });

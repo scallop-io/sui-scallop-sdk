@@ -10,6 +10,7 @@ export interface AddressesInterface {
   core: {
     version: string;
     versionCap: string;
+    object: string;
     market: string;
     adminCap: string;
     coinDecimalsRegistry: string;
@@ -71,6 +72,7 @@ export interface AddressesInterface {
   spool: {
     id: string;
     adminCap: string;
+    object: string;
     pools: Partial<
       Record<
         SupportStakeMarketCoins,
@@ -84,6 +86,7 @@ export interface AddressesInterface {
   borrowIncentive: {
     id: string;
     adminCap: string;
+    object: string;
     query: string;
     incentivePools: string;
     incentiveAccounts: string;
