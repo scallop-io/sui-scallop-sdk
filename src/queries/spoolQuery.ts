@@ -69,6 +69,7 @@ export const getSpool = async (
 ) => {
   const coinName = query.utils.parseCoinName<SupportStakeCoins>(marketCoinName);
   marketPool = marketPool || (await query.getMarketPool(coinName));
+  const spoolPkgId = query.address.get(`spool.id`);
   const poolId = query.address.get(`spool.pools.${marketCoinName}.id`);
   const rewardPoolId = query.address.get(
     `spool.pools.${marketCoinName}.rewardPoolId`
@@ -80,6 +81,15 @@ export const getSpool = async (
       showContent: true,
     },
   });
+  const spoolRewardFeeDynamicFieldsResponse = await query.suiKit
+    .client()
+    .getDynamicFieldObject({
+      parentId: rewardPoolId,
+      name: {
+        type: `${spoolPkgId}::rewards_pool::RewardsPoolFeeKey`,
+        value: { dummy_field: false },
+      },
+    });
 
   if (
     marketPool &&
@@ -94,19 +104,20 @@ export const getSpool = async (
 
     const spoolObject = spoolObjectResponse[0].data;
     const rewardPoolObject = spoolObjectResponse[1].data;
+    const rewardFeeObject = spoolRewardFeeDynamicFieldsResponse.data;
     if (spoolObject.content && 'fields' in spoolObject.content) {
-      const fields = spoolObject.content.fields as any;
+      const spoolFields = spoolObject.content.fields as any;
       const parsedSpoolData = parseOriginSpoolData({
-        stakeType: fields.stake_type,
-        maxDistributedPoint: fields.max_distributed_point,
-        distributedPoint: fields.distributed_point,
-        distributedPointPerPeriod: fields.distributed_point_per_period,
-        pointDistributionTime: fields.point_distribution_time,
-        maxStake: fields.max_stakes,
-        stakes: fields.stakes,
-        index: fields.index,
-        createdAt: fields.created_at,
-        lastUpdate: fields.last_update,
+        stakeType: spoolFields.stake_type,
+        maxDistributedPoint: spoolFields.max_distributed_point,
+        distributedPoint: spoolFields.distributed_point,
+        distributedPointPerPeriod: spoolFields.distributed_point_per_period,
+        pointDistributionTime: spoolFields.point_distribution_time,
+        maxStake: spoolFields.max_stakes,
+        stakes: spoolFields.stakes,
+        index: spoolFields.index,
+        createdAt: spoolFields.created_at,
+        lastUpdate: spoolFields.last_update,
       });
 
       const marketCoinPrice =
@@ -118,14 +129,23 @@ export const getSpool = async (
         marketCoinDecimal
       );
 
-      if (rewardPoolObject.content && 'fields' in rewardPoolObject.content) {
-        const fields = rewardPoolObject.content.fields as any;
+      if (
+        rewardPoolObject.content &&
+        rewardFeeObject?.content &&
+        'fields' in rewardPoolObject.content &&
+        'fields' in rewardFeeObject.content
+      ) {
+        const rewardPoolFields = rewardPoolObject.content.fields as any;
+        const rewardFeeFields = (rewardFeeObject.content.fields as any).value
+          .fields;
         const parsedSpoolRewardPoolData = parseOriginSpoolRewardPoolData({
-          claimed_rewards: fields.claimed_rewards,
-          exchange_rate_numerator: fields.exchange_rate_numerator,
-          exchange_rate_denominator: fields.exchange_rate_denominator,
-          rewards: fields.rewards,
-          spool_id: fields.spool_id,
+          claimed_rewards: rewardPoolFields.claimed_rewards,
+          exchange_rate_numerator: rewardPoolFields.exchange_rate_numerator,
+          exchange_rate_denominator: rewardPoolFields.exchange_rate_denominator,
+          fee_rate_numerator: rewardFeeFields.fee_rate_numerator,
+          fee_rate_denominator: rewardFeeFields.fee_rate_denominator,
+          rewards: rewardPoolFields.rewards,
+          spool_id: rewardPoolFields.spool_id,
         });
 
         const rewardCoinPrice = coinPrices?.[rewardCoinName] ?? 0;
@@ -181,8 +201,8 @@ export const getStakeAccounts = async (
   ownerAddress?: string
 ) => {
   const owner = ownerAddress || query.suiKit.currentAddress();
-  const spoolPkgId = query.address.get('spool.id');
-  const stakeAccountType = `${spoolPkgId}::spool_account::SpoolAccount`;
+  const spoolObjectId = query.address.get('spool.object');
+  const stakeAccountType = `${spoolObjectId}::spool_account::SpoolAccount`;
   const stakeObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
   let nextCursor: string | null = null;
@@ -223,7 +243,7 @@ export const getStakeAccounts = async (
 
         types[
           stakeMarketCoinName as SupportStakeMarketCoins
-        ] = `${spoolPkgId}::spool_account::SpoolAccount<${marketCoinType}>`;
+        ] = `${spoolObjectId}::spool_account::SpoolAccount<${marketCoinType}>`;
         return types;
       },
       {} as Record<SupportStakeMarketCoins, string>
@@ -357,6 +377,7 @@ export const getStakeRewardPool = async (
   query: ScallopQuery,
   marketCoinName: SupportStakeMarketCoins
 ) => {
+  const spoolPkgId = query.address.get('spool.id');
   const poolId = query.address.get(
     `spool.pools.${marketCoinName}.rewardPoolId`
   );
@@ -368,26 +389,52 @@ export const getStakeRewardPool = async (
       showType: true,
     },
   });
-  if (stakeRewardPoolObjectResponse.data) {
+  const stakeRewardFeeDynamicFieldsResponse = await query.suiKit
+    .client()
+    .getDynamicFieldObject({
+      parentId: poolId,
+      name: {
+        type: `${spoolPkgId}::rewards_pool::RewardsPoolFeeKey`,
+        value: { dummy_field: false },
+      },
+    });
+  if (
+    stakeRewardPoolObjectResponse.data &&
+    stakeRewardFeeDynamicFieldsResponse.data
+  ) {
     const stakeRewardPoolObject = stakeRewardPoolObjectResponse.data;
+    const stakeRewardFeeDynamicFieldObject =
+      stakeRewardFeeDynamicFieldsResponse.data;
     const id = stakeRewardPoolObject.objectId;
     const type = stakeRewardPoolObject.type!;
     if (
       stakeRewardPoolObject.content &&
-      'fields' in stakeRewardPoolObject.content
+      stakeRewardFeeDynamicFieldObject.content &&
+      'fields' in stakeRewardPoolObject.content &&
+      'fields' in stakeRewardFeeDynamicFieldObject.content
     ) {
-      const fields = stakeRewardPoolObject.content.fields as any;
-      const stakePoolId = String(fields.spool_id);
-      const ratioNumerator = Number(fields.exchange_rate_numerator);
-      const ratioDenominator = Number(fields.exchange_rate_denominator);
-      const rewards = Number(fields.rewards);
-      const claimedRewards = Number(fields.claimed_rewards);
+      const rewardPoolFields = stakeRewardPoolObject.content.fields as any;
+      const rewardFeeFields = (
+        stakeRewardFeeDynamicFieldObject.content.fields as any
+      ).value.fields;
+      const stakePoolId = String(rewardPoolFields.spool_id);
+      const ratioNumerator = Number(rewardPoolFields.exchange_rate_numerator);
+      const ratioDenominator = Number(
+        rewardPoolFields.exchange_rate_denominator
+      );
+      const rewards = Number(rewardPoolFields.rewards);
+      const claimedRewards = Number(rewardPoolFields.claimed_rewards);
+      const feeRateNumerator = Number(rewardFeeFields.fee_rate_numerator);
+      const feeRateDenominator = Number(rewardFeeFields.fee_rate_denominator);
+
       stakeRewardPool = {
         id,
         type: normalizeStructTag(type),
         stakePoolId,
         ratioNumerator,
         ratioDenominator,
+        feeRateNumerator,
+        feeRateDenominator,
         rewards,
         claimedRewards,
       };

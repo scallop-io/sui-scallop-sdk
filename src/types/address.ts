@@ -72,6 +72,7 @@ export interface AddressesInterface {
   spool: {
     id: string;
     adminCap: string;
+    object: string;
     pools: Partial<
       Record<
         SupportStakeMarketCoins,
@@ -85,6 +86,7 @@ export interface AddressesInterface {
   borrowIncentive: {
     id: string;
     adminCap: string;
+    object: string;
     query: string;
     incentivePools: string;
     incentiveAccounts: string;
