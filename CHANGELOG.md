@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.4...v0.44.5) (2023-11-24)
+
+### Features
+
+- add an object id address to dynamically update protocol objec ([df8faa3](https://github.com/scallop-io/sui-scallop-sdk/commit/df8faa3b55f7cb558770081b0180407387672649))
+- add borrow fee information in core query ([2a4dfa8](https://github.com/scallop-io/sui-scallop-sdk/commit/2a4dfa8170d2f772747068e17d5607fe9349afe8))
+- add reward fee information in spool and borrow incentive query ([0b26403](https://github.com/scallop-io/sui-scallop-sdk/commit/0b264031646ba598bfc4888db5b8e357bacf4b59))
+
 ### [0.44.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.3...v0.44.4) (2023-11-14)
 
 ### Features
