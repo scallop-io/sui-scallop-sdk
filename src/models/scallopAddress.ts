@@ -11,6 +11,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
   core: {
     version: '',
     versionCap: '',
+    object: '',
     market: '',
     adminCap: '',
     coinDecimalsRegistry: '',
@@ -188,6 +189,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
   spool: {
     id: '',
     adminCap: '',
+    object: '',
     pools: {
       ssui: {
         id: '',
@@ -202,6 +204,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
   borrowIncentive: {
     id: '',
     adminCap: '',
+    object: '',
     query: '',
     incentivePools: '',
     incentiveAccounts: '',
