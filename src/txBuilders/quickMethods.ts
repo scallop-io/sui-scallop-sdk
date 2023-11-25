@@ -32,8 +32,8 @@ const requireObligationInfo = async (
   ]
 ) => {
   const [txBlock, suiKit, scallopAddress, obligationId, obligationKey] = args;
-  if (args.length === 3 && obligationId) return { obligationId };
-  if (args.length === 4 && obligationId && obligationKey)
+  if (args.length === 4 && obligationId) return { obligationId };
+  if (args.length === 5 && obligationId && obligationKey)
     return { obligationId, obligationKey };
   const sender = requireSender(txBlock);
   const obligations = await getObligations(sender, suiKit, scallopAddress);
