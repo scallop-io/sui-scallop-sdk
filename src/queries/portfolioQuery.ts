@@ -321,18 +321,22 @@ export const getObligationAccount = async (
   let totalBorrowedValue = BigNumber(0);
   let totalBorrowedValueWithWeight = BigNumber(0);
 
-  for (const collateral of obligationQuery.collaterals) {
-    const collateralCoinName =
-      query.utils.parseCoinNameFromType<SupportCollateralCoins>(
-        collateral.type.name
-      );
-    const coinDecimal = query.utils.getCoinDecimal(collateralCoinName);
-    const marketCollateral = market.collaterals[collateralCoinName];
-    const coinPrice = coinPrices?.[collateralCoinName];
-    const coinAmount = coinAmounts?.[collateralCoinName] ?? 0;
+  for (const assetCoinName of assetCoinNames) {
+    const collateral = obligationQuery.collaterals.find((collateral) => {
+      const collateralCoinName =
+        query.utils.parseCoinNameFromType<SupportCollateralCoins>(
+          collateral.type.name
+        );
+      return assetCoinName === collateralCoinName;
+    });
+
+    const coinDecimal = query.utils.getCoinDecimal(assetCoinName);
+    const marketCollateral = market.collaterals[assetCoinName];
+    const coinPrice = coinPrices?.[assetCoinName];
+    const coinAmount = coinAmounts?.[assetCoinName] ?? 0;
 
     if (marketCollateral && coinPrice) {
-      const depositedAmount = BigNumber(collateral.amount);
+      const depositedAmount = BigNumber(collateral?.amount ?? 0);
       const depositedCoin = depositedAmount.shiftedBy(-1 * coinDecimal);
       const depositedValue = depositedCoin.multipliedBy(coinPrice);
       const borrowCapacityValue = depositedValue.multipliedBy(
@@ -357,10 +361,10 @@ export const getObligationAccount = async (
         totalDepositedPools++;
       }
 
-      collaterals[collateralCoinName] = {
-        coinName: collateralCoinName,
-        coinType: collateral.type.name,
-        symbol: query.utils.parseSymbol(collateralCoinName),
+      collaterals[assetCoinName] = {
+        coinName: assetCoinName,
+        coinType: query.utils.parseCoinType(assetCoinName),
+        symbol: query.utils.parseSymbol(assetCoinName),
         coinDecimal: coinDecimal,
         coinPrice: coinPrice,
         depositedAmount: depositedAmount.toNumber(),
@@ -376,18 +380,23 @@ export const getObligationAccount = async (
     }
   }
 
-  for (const debt of obligationQuery.debts) {
-    const poolCoinName = query.utils.parseCoinNameFromType<SupportPoolCoins>(
-      debt.type.name
-    );
-    const coinDecimal = query.utils.getCoinDecimal(poolCoinName);
-    const marketPool = market.pools[poolCoinName];
-    const coinPrice = coinPrices?.[poolCoinName];
+  for (const assetCoinName of assetCoinNames) {
+    const debt = obligationQuery.debts.find((debt) => {
+      const poolCoinName = query.utils.parseCoinNameFromType<SupportPoolCoins>(
+        debt.type.name
+      );
+      return assetCoinName === poolCoinName;
+    });
+
+    const coinDecimal = query.utils.getCoinDecimal(assetCoinName);
+    const marketPool = market.pools[assetCoinName];
+    const coinPrice = coinPrices?.[assetCoinName];
 
     if (marketPool && coinPrice) {
-      const increasedRate =
-        marketPool.borrowIndex / Number(debt.borrowIndex) - 1;
-      const borrowedAmount = BigNumber(debt.amount);
+      const increasedRate = debt?.borrowIndex
+        ? marketPool.borrowIndex / Number(debt.borrowIndex) - 1
+        : 0;
+      const borrowedAmount = BigNumber(debt?.amount ?? 0);
       const borrowedCoin = borrowedAmount.shiftedBy(-1 * coinDecimal);
       const availableRepayAmount = borrowedAmount.multipliedBy(
         increasedRate + 1
@@ -409,17 +418,17 @@ export const getObligationAccount = async (
         totalBorrowedPools++;
       }
 
-      debts[poolCoinName] = {
-        coinName: poolCoinName,
-        coinType: debt.type.name,
-        symbol: query.utils.parseSymbol(poolCoinName),
+      debts[assetCoinName] = {
+        coinName: assetCoinName,
+        coinType: query.utils.parseCoinType(assetCoinName),
+        symbol: query.utils.parseSymbol(assetCoinName),
         coinDecimal: coinDecimal,
         coinPrice: coinPrice,
         borrowedAmount: borrowedAmount.toNumber(),
         borrowedCoin: borrowedCoin.toNumber(),
         borrowedValue: borrowedValue.toNumber(),
         borrowedValueWithWeight: borrowedValueWithWeight.toNumber(),
-        borrowIndex: Number(debt.borrowIndex),
+        borrowIndex: Number(debt?.borrowIndex ?? 0),
         availableBorrowAmount: 0,
         availableBorrowCoin: 0,
         availableRepayAmount: availableRepayAmount.toNumber(),

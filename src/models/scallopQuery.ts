@@ -444,10 +444,14 @@ export class ScallopQuery {
    * borrowing and obligation information for specific pool.
    *
    * @param obligationId - The obligation id.
+   * @param ownerAddress - The owner address.
    * @return Borrowing and collateral information.
    */
-  public async getObligationAccount(obligationId: string) {
-    return await getObligationAccount(this, obligationId);
+  public async getObligationAccount(
+    obligationId: string,
+    ownerAddress?: string
+  ) {
+    return await getObligationAccount(this, obligationId, ownerAddress);
   }
 
   /**
