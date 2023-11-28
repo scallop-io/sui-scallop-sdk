@@ -267,6 +267,7 @@ describe('Test Portfolio Query', async () => {
     networkType: NETWORK,
   });
   const scallopQuery = await scallopSDK.createScallopQuery();
+  console.info('Your wallet:', scallopQuery.suiKit.currentAddress());
 
   it('Should get user lendings data', async () => {
     const lendings = await scallopQuery.getLendings(['sui', 'usdc']);
@@ -304,7 +305,8 @@ describe('Test Portfolio Query', async () => {
     expect(obligations.length).toBeGreaterThan(0);
 
     const obligationAccount = await scallopQuery.getObligationAccount(
-      obligations[0].id
+      obligations[0].id,
+      scallopQuery.suiKit.currentAddress()
     );
     if (ENABLE_LOG) {
       console.info('Obligation account:');
