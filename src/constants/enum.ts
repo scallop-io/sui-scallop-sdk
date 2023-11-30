@@ -78,6 +78,7 @@ export const spoolRewardCoins: StakeRewardCoins = {
 export const borrowIncentiveRewardCoins: BorrowIncentiveRewardCoins = {
   sui: 'sui',
   usdc: 'sui',
+  usdt: 'sui',
 };
 
 export const coinIds: AssetCoinIds = {

@@ -277,7 +277,8 @@ describe('Test Scallop Client - Core Method', async () => {
       'sui',
       0.4 * 10 ** 8,
       true,
-      obligations[0].id
+      obligations[0].id,
+      obligations[0].keyId
     );
     if (ENABLE_LOG) {
       console.info('RepayResult:', repayResult);
