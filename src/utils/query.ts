@@ -612,3 +612,29 @@ export const maxBigNumber = (...args: BigNumber.Value[]) => {
     )
   );
 };
+
+/**
+ * Dynamically adjust the decrease or increase ratio according to the amout
+ * @param amount - The amount required to calculate factor.
+ * @param scaleStep - The scale step required to determine the factor..
+ * @param type - The type of the calculation.
+ * @return The estimated factor
+ * */
+export const estimatedFactor = (
+  amount: number,
+  scaleStep: number,
+  type: 'increase' | 'decrease'
+) => {
+  const amountOfDigits = Math.max(
+    1,
+    Math.floor(Math.log10(Math.abs(amount)) + 1)
+  );
+
+  const adjustScale =
+    Math.max(Math.floor((amountOfDigits - 1) / scaleStep), 1) + 1;
+
+  let adjustFactor = Math.pow(10, -adjustScale);
+  adjustFactor = type === 'increase' ? 1 - adjustFactor : 1 + adjustFactor;
+
+  return adjustFactor;
+};

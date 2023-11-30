@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
-import { minBigNumber } from 'src/utils';
+import { minBigNumber, estimatedFactor } from 'src/utils';
 import type { ScallopQuery } from '../models';
 import type {
   Market,
@@ -330,8 +330,8 @@ export const getObligationAccount = async (
       return assetCoinName === collateralCoinName;
     });
 
-    const coinDecimal = query.utils.getCoinDecimal(assetCoinName);
     const marketCollateral = market.collaterals[assetCoinName];
+    const coinDecimal = query.utils.getCoinDecimal(assetCoinName);
     const coinPrice = coinPrices?.[assetCoinName];
     const coinAmount = coinAmounts?.[assetCoinName] ?? 0;
 
@@ -388,9 +388,10 @@ export const getObligationAccount = async (
       return assetCoinName === poolCoinName;
     });
 
-    const coinDecimal = query.utils.getCoinDecimal(assetCoinName);
     const marketPool = market.pools[assetCoinName];
+    const coinDecimal = query.utils.getCoinDecimal(assetCoinName);
     const coinPrice = coinPrices?.[assetCoinName];
+    const coinAmount = coinAmounts?.[assetCoinName] ?? 0;
 
     if (marketPool && coinPrice) {
       const increasedRate = debt?.borrowIndex
@@ -398,13 +399,18 @@ export const getObligationAccount = async (
         : 0;
       const borrowedAmount = BigNumber(debt?.amount ?? 0);
       const borrowedCoin = borrowedAmount.shiftedBy(-1 * coinDecimal);
-      const availableRepayAmount = borrowedAmount.multipliedBy(
+
+      const requiredRepayAmount = borrowedAmount.multipliedBy(
         increasedRate + 1
       );
+      const requiredRepayCoin = requiredRepayAmount.shiftedBy(-1 * coinDecimal);
+
+      const availableRepayAmount = BigNumber(coinAmount);
       const availableRepayCoin = availableRepayAmount.shiftedBy(
         -1 * coinDecimal
       );
-      const borrowedValue = availableRepayCoin.multipliedBy(coinPrice);
+
+      const borrowedValue = requiredRepayCoin.multipliedBy(coinPrice);
       const borrowedValueWithWeight = borrowedValue.multipliedBy(
         marketPool.borrowWeight
       );
@@ -429,6 +435,8 @@ export const getObligationAccount = async (
         borrowedValue: borrowedValue.toNumber(),
         borrowedValueWithWeight: borrowedValueWithWeight.toNumber(),
         borrowIndex: Number(debt?.borrowIndex ?? 0),
+        requiredRepayAmount: requiredRepayAmount.toNumber(),
+        requiredRepayCoin: requiredRepayCoin.toNumber(),
         availableBorrowAmount: 0,
         availableBorrowCoin: 0,
         availableRepayAmount: availableRepayAmount.toNumber(),
@@ -481,16 +489,11 @@ export const getObligationAccount = async (
     }
   }
 
-  let riskLevel =
-    totalRequiredCollateralValue.isZero() &&
-    totalBorrowedValueWithWeight.isZero()
-      ? BigNumber(0)
-      : totalBorrowedValueWithWeight.dividedBy(totalRequiredCollateralValue);
-  riskLevel = riskLevel.isFinite()
-    ? riskLevel.isLessThan(1)
-      ? riskLevel
-      : BigNumber(1)
-    : BigNumber(1);
+  let riskLevel = totalRequiredCollateralValue.isZero()
+    ? BigNumber(0)
+    : totalBorrowedValueWithWeight.dividedBy(totalRequiredCollateralValue);
+  // Note: 100% represents the safety upper limit. Even if it exceeds 100% before it is liquidated, it will only display 100%.
+  riskLevel = riskLevel.isLessThan(1) ? riskLevel : BigNumber(1);
 
   const accountBalanceValue = totalDepositedValue
     .minus(totalBorrowedValue)
@@ -543,24 +546,38 @@ export const getObligationAccount = async (
     const marketCollateral =
       market.collaterals[collateralCoinName as SupportCollateralCoins];
     if (marketCollateral) {
-      const availableWithdrawAmount =
+      let estimatedAvailableWithdrawAmount = BigNumber(
+        obligationAccount.totalAvailableCollateralValue
+      )
+        .dividedBy(marketCollateral.collateralFactor)
+        .dividedBy(marketCollateral.coinPrice)
+        .shiftedBy(marketCollateral.coinDecimal);
+      estimatedAvailableWithdrawAmount =
         obligationAccount.totalBorrowedValueWithWeight === 0
-          ? BigNumber(obligationCollateral.depositedAmount)
+          ? // Note: when there is no debt record, there is no need to estimate and the deposited amount is directly used as available withdraw.
+            BigNumber(obligationCollateral.depositedAmount)
           : minBigNumber(
-              BigNumber(obligationAccount.totalAvailableCollateralValue)
-                .dividedBy(marketCollateral.collateralFactor)
-                .dividedBy(marketCollateral.coinPrice)
+              estimatedAvailableWithdrawAmount
                 // Note: reduced chance of failure when calculations are inaccurate
-                .multipliedBy(0.99)
+                .multipliedBy(
+                  estimatedFactor(
+                    BigNumber(obligationAccount.totalAvailableCollateralValue)
+                      .dividedBy(marketCollateral.collateralFactor)
+                      .toNumber(),
+                    3,
+                    'increase'
+                  )
+                )
                 .toNumber(),
               obligationCollateral.depositedAmount,
               marketCollateral.depositAmount
             );
       obligationCollateral.availableWithdrawAmount =
-        availableWithdrawAmount.toNumber();
-      obligationCollateral.availableWithdrawCoin = availableWithdrawAmount
-        .shiftedBy(-1 * obligationCollateral.coinDecimal)
-        .toNumber();
+        estimatedAvailableWithdrawAmount.toNumber();
+      obligationCollateral.availableWithdrawCoin =
+        estimatedAvailableWithdrawAmount
+          .shiftedBy(-1 * obligationCollateral.coinDecimal)
+          .toNumber();
     }
   }
   for (const [poolCoinName, obligationDebt] of Object.entries(
@@ -568,33 +585,49 @@ export const getObligationAccount = async (
   )) {
     const marketPool = market.pools[poolCoinName as SupportPoolCoins];
     if (marketPool) {
-      const availableRepayAmount = BigNumber(
-        obligationDebt.availableRepayAmount
+      const estimatedRequiredRepayAmount = BigNumber(
+        obligationDebt.requiredRepayAmount
       )
-        // Note: reduced chance of failure when calculations are inaccurate
-        .multipliedBy(1.01);
+        // Note: reduced chance of not being able to repay in full when calculations are inaccurate,
+        // and the contract will not actually take the excess amount.
+        .multipliedBy(
+          estimatedFactor(obligationDebt.borrowedValue, 3, 'decrease')
+        );
 
-      const availableBorrowAmount =
+      let estimatedAvailableBorrowAmount = BigNumber(
+        obligationAccount.totalAvailableCollateralValue
+      )
+        .dividedBy(marketPool.borrowWeight)
+        .shiftedBy(marketPool.coinDecimal)
+        .dividedBy(marketPool.coinPrice);
+      estimatedAvailableBorrowAmount =
         obligationAccount.totalAvailableCollateralValue !== 0
           ? minBigNumber(
-              BigNumber(obligationAccount.totalAvailableCollateralValue)
-                .dividedBy(
-                  BigNumber(marketPool.coinPrice).multipliedBy(
-                    marketPool.borrowWeight
+              estimatedAvailableBorrowAmount
+                // Note: reduced chance of failure when calculations are inaccurate
+                .multipliedBy(
+                  estimatedFactor(
+                    estimatedAvailableBorrowAmount
+                      .shiftedBy(-1 * marketPool.coinDecimal)
+                      .multipliedBy(marketPool.coinPrice)
+                      .toNumber(),
+                    3,
+                    'increase'
                   )
                 )
-                // Note: reduced chance of failure when calculations are inaccurate
-                .multipliedBy(0.99)
                 .toNumber(),
               marketPool.supplyAmount
             )
           : BigNumber(0);
-      obligationDebt.availableBorrowAmount = availableBorrowAmount.toNumber();
-      obligationDebt.availableBorrowCoin = availableBorrowAmount
+
+      obligationDebt.availableBorrowAmount =
+        estimatedAvailableBorrowAmount.toNumber();
+      obligationDebt.availableBorrowCoin = estimatedAvailableBorrowAmount
         .shiftedBy(-1 * obligationDebt.coinDecimal)
         .toNumber();
-      obligationDebt.availableRepayAmount = availableRepayAmount.toNumber();
-      obligationDebt.availableRepayCoin = availableRepayAmount
+      obligationDebt.requiredRepayAmount =
+        estimatedRequiredRepayAmount.toNumber();
+      obligationDebt.requiredRepayCoin = estimatedRequiredRepayAmount
         .shiftedBy(-1 * obligationDebt.coinDecimal)
         .toNumber();
     }
