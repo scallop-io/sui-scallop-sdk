@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.6...v0.44.7) (2023-11-30)
+
+### Features
+
+- add `requiredRepay` field and change the value of `availableRepay` in `obligationAccount` ([4118a29](https://github.com/scallop-io/sui-scallop-sdk/commit/4118a29dbbe0be422a1d79b4d6837c6602a62545))
+- add usdt borrow incentive support ([d89d558](https://github.com/scallop-io/sui-scallop-sdk/commit/d89d55851e8de53c4a3d528425ee344d1717aa0d))
+- borrow and repay with sign tx in client support incentive ([ddf8298](https://github.com/scallop-io/sui-scallop-sdk/commit/ddf82981bfc6fd0bc0f0228d43c4ae4180839a0f))
+
 ### [0.44.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.5...v0.44.6) (2023-11-28)
 
 ### [0.44.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.4...v0.44.5) (2023-11-24)
