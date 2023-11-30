@@ -1,6 +1,6 @@
 import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ADDRESSES_ID } from '../constants';
+import { ADDRESSES_ID, SUPPORT_BORROW_INCENTIVE_POOLS } from '../constants';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopBuilder } from './scallopBuilder';
@@ -481,6 +481,16 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
+    const availableStake = (
+      SUPPORT_BORROW_INCENTIVE_POOLS as readonly SupportPoolCoins[]
+    ).includes(poolCoinName);
+    if (sign && availableStake) {
+      await txBlock.unstakeObligationQuick(
+        poolCoinName as SupportBorrowIncentiveCoins,
+        obligationId,
+        obligationKey
+      );
+    }
     const coin = await txBlock.borrowQuick(
       amount,
       poolCoinName,
@@ -488,6 +498,13 @@ export class ScallopClient {
       obligationKey
     );
     txBlock.transferObjects([coin], sender);
+    if (sign && availableStake) {
+      await txBlock.stakeObligationQuick(
+        poolCoinName as SupportBorrowIncentiveCoins,
+        obligationId,
+        obligationKey
+      );
+    }
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -513,13 +530,31 @@ export class ScallopClient {
     amount: number,
     sign: S = true as S,
     obligationId: string,
+    obligationKey: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
+    const availableStake = (
+      SUPPORT_BORROW_INCENTIVE_POOLS as readonly SupportPoolCoins[]
+    ).includes(poolCoinName);
+    if (sign && availableStake) {
+      await txBlock.unstakeObligationQuick(
+        poolCoinName as SupportBorrowIncentiveCoins,
+        obligationId,
+        obligationKey
+      );
+    }
     await txBlock.repayQuick(amount, poolCoinName, obligationId);
+    if (sign && availableStake) {
+      await txBlock.stakeObligationQuick(
+        poolCoinName as SupportBorrowIncentiveCoins,
+        obligationId,
+        obligationKey
+      );
+    }
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
