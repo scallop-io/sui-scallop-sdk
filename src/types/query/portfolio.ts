@@ -99,6 +99,8 @@ export type ObligationDebt = {
   borrowedValue: number;
   borrowedValueWithWeight: number;
   borrowIndex: number;
+  requiredRepayAmount: number;
+  requiredRepayCoin: number;
   availableBorrowAmount: number;
   availableBorrowCoin: number;
   availableRepayAmount: number;
