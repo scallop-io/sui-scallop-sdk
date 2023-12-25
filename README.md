@@ -16,7 +16,7 @@
 
 ## Description
 
-This SDK is used to interact with [sui-lending-protocal](https://github.com/scallop-io/sui-lending-protocol) and is written based on another sui-integrated tool, [sui-kit](https://github.com/scallop-io/sui-kit). It consists of six main functional models, here's a brief introduction to each of them:
+This SDK is used to interact with [sui-lending-protocal](https://github.com/scallop-io/sui-lending-protocol) and is written based on another sui-integrated tool, [sui-kit](https://github.com/scallop-io/sui-kit). It consists of seven main functional models, here's a brief introduction to each of them:
 
 - **Scallop**: Provide an entry to quickly create an instance (client, address, query, builder, utils) and complete initialization at the same time.
 
@@ -29,6 +29,8 @@ This SDK is used to interact with [sui-lending-protocal](https://github.com/scal
 - **ScallopBuilder**: Used for more detailed organization of the lending protocol's transaction blocks. You can build your own transaction combinations according to your needs by this model.
 
 - **ScallopUtils**: Used to encapsulate some useful methods that will be used when interacting with the scallop contract.
+
+- **ScallopIndexer**: It is used to query the on-chain index data through the SDK API. It is mainly used in query instances, effectively reducing the number of RPC requests..
 
 ## Pre-requisites
 
@@ -50,6 +52,7 @@ This SDK is used to interact with [sui-lending-protocal](https://github.com/scal
   const scallopBuilder = await scallopSDK.createScallopBuilder(...);
   const scallopUtils = await scallopSDK.createScallopUtils(...);
   const scallopClient = await scallopSDK.createScallopClient(...);
+  const scallopIndexer = await scallopSDK.createScallopIndexer();
 
   // Or, you can choose to import the class directly to create an instance.
   import {
@@ -57,6 +60,7 @@ This SDK is used to interact with [sui-lending-protocal](https://github.com/scal
     ScallopBuilder,
     ScallopQuery,
     ScallopUtils,
+    ScallopIndexer,
     ScallopClient,
   } from '@scallop-io/sui-scallop-sdk'
 
@@ -65,6 +69,7 @@ This SDK is used to interact with [sui-lending-protocal](https://github.com/scal
   const ScallopBuilder = new ScallopBuilder(...);
   const ScallopUtils = new ScallopUtils(...);
   const scallopClient = new ScallopClient(...);
+  const ScallopIndexer = new ScallopIndexer();
   // Remember to initialize the instance before using it
   await scallopAddress.read();
   await ScallopQuery.init();
@@ -82,6 +87,7 @@ Below we will give a brief introduction to these instances respectively, and int
 - [Use Scallop Address](./document/address.md)
 - [Use Scallop Builder](./document/builder.md)
 - [Use Scallop Utils](./document/utils.md)
+- [Use Scallop Indexer](./document/indexer.md)
 
 For the original codes, please refer to `test` folder.
 
@@ -95,6 +101,7 @@ You need to set up the `.env` file before testing. (Reference `.env.example`)
   pnpm run test:unit test/builder.spec.ts
   pnpm run test:unit test/query.spec.ts
   pnpm run test:unit test/utils.spec.ts
+  pnpm run test:unit test/indexer.spec.ts
   ```
 
 ## License
