@@ -28,12 +28,14 @@ import type {
  * @param query - The ScallopQuery instance.
  * @param poolCoinNames - Specific an array of support pool coin name.
  * @param ownerAddress - The owner address.
+ * @param indexer - Whether to use indexer.
  * @return User lending infomation for specific pools.
  */
 export const getLendings = async (
   query: ScallopQuery,
   poolCoinNames?: SupportPoolCoins[],
-  ownerAddress?: string
+  ownerAddress?: string,
+  indexer: boolean = false
 ) => {
   poolCoinNames = poolCoinNames || [...SUPPORT_POOLS];
   const marketCoinNames = poolCoinNames.map((poolCoinName) =>
@@ -43,8 +45,8 @@ export const getLendings = async (
     (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName)
   ) as SupportStakeMarketCoins[];
 
-  const marketPools = await query.getMarketPools(poolCoinNames);
-  const spools = await query.getSpools(stakeMarketCoinNames);
+  const marketPools = await query.getMarketPools(poolCoinNames, indexer);
+  const spools = await query.getSpools(stakeMarketCoinNames, indexer);
   const coinAmounts = await query.getCoinAmounts(poolCoinNames, ownerAddress);
   const marketCoinAmounts = await query.getMarketCoinAmounts(
     marketCoinNames,
@@ -64,6 +66,7 @@ export const getLendings = async (
       query,
       poolCoinName,
       ownerAddress,
+      indexer,
       marketPools?.[poolCoinName],
       stakeMarketCoinName ? spools[stakeMarketCoinName] : undefined,
       stakeMarketCoinName ? allStakeAccounts[stakeMarketCoinName] : undefined,
@@ -85,6 +88,7 @@ export const getLendings = async (
  * @param query - The ScallopQuery instance.
  * @param poolCoinName - Specific support coin name.
  * @param ownerAddress - The owner address.
+ * @param indexer - Whether to use indexer.
  * @param marketPool - The market pool data.
  * @param spool - The spool data.
  * @param stakeAccounts - The stake accounts data.
@@ -96,6 +100,7 @@ export const getLending = async (
   query: ScallopQuery,
   poolCoinName: SupportPoolCoins,
   ownerAddress?: string,
+  indexer: boolean = false,
   marketPool?: MarketPool,
   spool?: Spool,
   stakeAccounts?: StakeAccount[],
@@ -104,11 +109,11 @@ export const getLending = async (
   coinPrice?: number
 ) => {
   const marketCoinName = query.utils.parseMarketCoinName(poolCoinName);
-  marketPool = marketPool || (await query.getMarketPool(poolCoinName));
+  marketPool = marketPool || (await query.getMarketPool(poolCoinName, indexer));
   spool =
     spool ||
     (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName)
-      ? await query.getSpool(marketCoinName as SupportStakeMarketCoins)
+      ? await query.getSpool(marketCoinName as SupportStakeMarketCoins, indexer)
       : undefined;
   stakeAccounts =
     stakeAccounts ||
@@ -170,7 +175,7 @@ export const getLending = async (
       );
 
       const baseIndexRate = 1_000_000_000;
-      const increasedPointRate = spool?.currentPointIndex
+      const increasedPointRate = spool.currentPointIndex
         ? BigNumber(spool.currentPointIndex - stakeAccount.index).dividedBy(
             baseIndexRate
           )
@@ -252,13 +257,15 @@ export const getLending = async (
  *
  * @param query - The Scallop query instance.
  * @param ownerAddress - The owner address.
+ * @param indexer - Whether to use indexer.
  * @return All obligation accounts data.
  */
 export const getObligationAccounts = async (
   query: ScallopQuery,
-  ownerAddress?: string
+  ownerAddress?: string,
+  indexer: boolean = false
 ) => {
-  const market = await query.queryMarket();
+  const market = await query.queryMarket(indexer);
   const coinPrices = await query.utils.getCoinPrices();
   const coinAmounts = await query.getCoinAmounts(undefined, ownerAddress);
   const obligations = await query.getObligations(ownerAddress);
@@ -269,6 +276,7 @@ export const getObligationAccounts = async (
       query,
       obligation.id,
       ownerAddress,
+      indexer,
       market,
       coinPrices,
       coinAmounts
@@ -283,17 +291,19 @@ export const getObligationAccounts = async (
  *
  * @param query - The Scallop query instance.
  * @param obligationId - The obligation id.
+ * @param indexer - Whether to use indexer.
  * @return Obligation account data.
  */
 export const getObligationAccount = async (
   query: ScallopQuery,
   obligationId: string,
   ownerAddress?: string,
+  indexer: boolean = false,
   market?: Market,
   coinPrices?: CoinPrices,
   coinAmounts?: CoinAmounts
 ) => {
-  market = market || (await query.queryMarket());
+  market = market || (await query.queryMarket(indexer));
   const assetCoinNames: SupportAssetCoins[] = [
     ...new Set([
       ...Object.values(market.pools).map((pool) => pool.coinName),
@@ -303,7 +313,10 @@ export const getObligationAccount = async (
     ]),
   ];
   const obligationQuery = await query.queryObligation(obligationId);
-  const borrowIncentivePools = await query.getBorrowIncentivePools();
+  const borrowIncentivePools = await query.getBorrowIncentivePools(
+    undefined,
+    indexer
+  );
   const borrowIncentiveAccounts =
     await query.getBorrowIncentiveAccounts(obligationId);
   coinPrices = coinPrices || (await query.utils.getCoinPrices(assetCoinNames));
@@ -640,13 +653,26 @@ export const getObligationAccount = async (
  * Get total value locked data.
  *
  * @param query - The Scallop query instance.
+ * @param indexer - Whether to use indexer.
  * @return Total value locked data.
  */
-export const getTotalValueLocked = async (query: ScallopQuery) => {
-  const market = await query.queryMarket();
+export const getTotalValueLocked = async (
+  query: ScallopQuery,
+  indexer: boolean = false
+) => {
+  const market = await query.queryMarket(indexer);
 
   let supplyValue = BigNumber(0);
   let borrowValue = BigNumber(0);
+
+  if (indexer) {
+    const tvl = await query.indexer.getTotalValueLocked();
+    return {
+      supplyValue: tvl.supplyValue,
+      borrowValue: tvl.borrowValue,
+      totalValue: tvl.totalValue,
+    };
+  }
 
   for (const pool of Object.values(market.pools)) {
     supplyValue = supplyValue.plus(
