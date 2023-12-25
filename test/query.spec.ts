@@ -30,7 +30,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
     const marketPools = await scallopQuery.getMarketPools(['sui', 'usdc']);
 
     if (ENABLE_LOG) {
-      console.info('Market:');
+      console.info('Market pool:');
       console.dir(marketPools, { depth: null, colors: true });
     }
     expect(!!marketPools).toBe(true);
