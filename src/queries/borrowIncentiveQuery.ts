@@ -23,11 +23,13 @@ import type {
  *
  * @param query - The Scallop query instance.
  * @param borrowIncentiveCoinNames - Specific an array of support borrow incentive coin name.
+ * @param indexer - Whether to use indexer.
  * @return Borrow incentive pools data.
  */
 export const queryBorrowIncentivePools = async (
   query: ScallopQuery,
-  borrowIncentiveCoinNames?: SupportBorrowIncentiveCoins[]
+  borrowIncentiveCoinNames?: SupportBorrowIncentiveCoins[],
+  indexer: boolean = false
 ) => {
   borrowIncentiveCoinNames = borrowIncentiveCoinNames || [
     ...SUPPORT_BORROW_INCENTIVE_POOLS,
@@ -47,8 +49,32 @@ export const queryBorrowIncentivePools = async (
       borrowIncentivePoolsQueryData.reward_pool
     );
   const rewardCoinType = parsedBorrowIncentiveRewardPoolData.rewardType;
+  const rewardCoinName =
+    query.utils.parseCoinNameFromType<SupportAssetCoins>(rewardCoinType);
+  const coinPrices = await query.utils.getCoinPrices(
+    [...new Set([...borrowIncentiveCoinNames, rewardCoinName])] ?? []
+  );
 
   const borrowIncentivePools: BorrowIncentivePools = {};
+
+  if (indexer) {
+    const borrowIncentivePoolsIndexer =
+      await query.indexer.getBorrowIncentivePools();
+    for (const borrowIncentivePool of Object.values(
+      borrowIncentivePoolsIndexer
+    )) {
+      if (!borrowIncentiveCoinNames.includes(borrowIncentivePool.coinName))
+        continue;
+      borrowIncentivePool.coinPrice =
+        coinPrices[borrowIncentivePool.coinName] ||
+        borrowIncentivePool.coinPrice;
+      borrowIncentivePool.rewardCoinPrice =
+        coinPrices[rewardCoinName] || borrowIncentivePool.rewardCoinPrice;
+      borrowIncentivePools[borrowIncentivePool.coinName] = borrowIncentivePool;
+    }
+    return borrowIncentivePools;
+  }
+
   for (const pool of borrowIncentivePoolsQueryData.incentive_pools) {
     const coinType = normalizeStructTag(pool.pool_type.name);
     const coinName =
@@ -60,11 +86,6 @@ export const queryBorrowIncentivePools = async (
     if (!borrowIncentiveCoinNames.includes(coinName)) {
       continue;
     }
-
-    const coinPrices = await query.utils.getCoinPrices([
-      coinName,
-      rewardCoinName,
-    ]);
 
     const parsedBorrowIncentivePoolData =
       parseOriginBorrowIncentivePoolData(pool);
