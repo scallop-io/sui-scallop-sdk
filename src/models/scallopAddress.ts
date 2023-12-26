@@ -213,7 +213,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
 
 /**
  * @description
- * it provides methods for managing addresses.
+ * It provides methods for managing addresses.
  *
  * @example
  * ```typescript

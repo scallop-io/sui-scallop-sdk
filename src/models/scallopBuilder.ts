@@ -18,7 +18,7 @@ import type {
 
 /**
  * @description
- * it provides methods for operating the transaction block, making it more convenient to organize transaction combinations.
+ * It provides methods for operating the transaction block, making it more convenient to organize transaction combinations.
  *
  * @example
  * ```typescript

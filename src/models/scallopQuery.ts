@@ -40,10 +40,11 @@ import {
 } from '../types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
+import { ScallopIndexer } from './scallopIndexer';
 
 /**
  * @description
- * it provides methods for getting on-chain data from the Scallop contract.
+ * It provides methods for getting on-chain data from the Scallop contract.
  *
  * @example
  * ```typescript
@@ -59,6 +60,7 @@ export class ScallopQuery {
   public suiKit: SuiKit;
   public address: ScallopAddress;
   public utils: ScallopUtils;
+  public indexer: ScallopIndexer;
 
   public constructor(
     params: ScallopQueryParams,
@@ -79,6 +81,7 @@ export class ScallopQuery {
         address: this.address,
         query: this,
       });
+    this.indexer = new ScallopIndexer();
   }
 
   /**
@@ -97,11 +100,11 @@ export class ScallopQuery {
 
   /**
    * Query market data.
-   *
+   * @param indexer - Whether to use indexer.
    * @return Market data.
    */
-  public async queryMarket() {
-    return await queryMarket(this);
+  public async queryMarket(indexer: boolean = false) {
+    return await queryMarket(this, indexer);
   }
 
   /**
@@ -112,20 +115,28 @@ export class ScallopQuery {
    * the `queryMarket` method to reduce time consumption.
    *
    * @param poolCoinNames - Specific an array of support pool coin name.
+   * @param indexer - Whether to use indexer.
    * @return Market pools data.
    */
-  public async getMarketPools(poolCoinNames?: SupportPoolCoins[]) {
-    return await getMarketPools(this, poolCoinNames);
+  public async getMarketPools(
+    poolCoinNames?: SupportPoolCoins[],
+    indexer: boolean = false
+  ) {
+    return await getMarketPools(this, poolCoinNames, indexer);
   }
 
   /**
    * Get  market pool
    *
    * @param poolCoinName - Specific support pool coin name.
+   * @param indexer - Whether to use indexer.
    * @return Market pool data.
    */
-  public async getMarketPool(poolCoinName: SupportPoolCoins) {
-    return await getMarketPool(this, poolCoinName);
+  public async getMarketPool(
+    poolCoinName: SupportPoolCoins,
+    indexer: boolean = false
+  ) {
+    return await getMarketPool(this, poolCoinName, indexer);
   }
 
   /**
@@ -136,22 +147,28 @@ export class ScallopQuery {
    * the `queryMarket` method to reduce time consumption.
    *
    * @param collateralCoinNames - Specific an array of support collateral coin name.
+   * @param indexer - Whether to use indexer.
    * @return Market collaterals data.
    */
   public async getMarketCollaterals(
-    collateralCoinNames?: SupportCollateralCoins[]
+    collateralCoinNames?: SupportCollateralCoins[],
+    indexer: boolean = false
   ) {
-    return await getMarketCollaterals(this, collateralCoinNames);
+    return await getMarketCollaterals(this, collateralCoinNames, indexer);
   }
 
   /**
    * Get market collateral
    *
    * @param collateralCoinName - Specific support collateral coin name.
+   * @param indexer - Whether to use indexer.
    * @return Market collateral data.
    */
-  public async getMarketCollateral(collateralCoinName: SupportCollateralCoins) {
-    return await getMarketCollateral(this, collateralCoinName);
+  public async getMarketCollateral(
+    collateralCoinName: SupportCollateralCoins,
+    indexer: boolean = false
+  ) {
+    return await getMarketCollateral(this, collateralCoinName, indexer);
   }
 
   /**
@@ -246,20 +263,28 @@ export class ScallopQuery {
    * Get spools data.
    *
    * @param stakeMarketCoinNames - Specific an array of support stake market coin name.
+   * @param indexer - Whether to use indexer.
    * @return Spools data.
    */
-  public async getSpools(stakeMarketCoinNames?: SupportStakeMarketCoins[]) {
-    return await getSpools(this, stakeMarketCoinNames);
+  public async getSpools(
+    stakeMarketCoinNames?: SupportStakeMarketCoins[],
+    indexer: boolean = false
+  ) {
+    return await getSpools(this, stakeMarketCoinNames, indexer);
   }
 
   /**
    * Get spool data.
    *
    * @param stakeMarketCoinName - Specific support stake market coin name.
+   * @param indexer - Whether to use indexer.
    * @return Spool data.
    */
-  public async getSpool(stakeMarketCoinName: SupportStakeMarketCoins) {
-    return await getSpool(this, stakeMarketCoinName);
+  public async getSpool(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    indexer: boolean = false
+  ) {
+    return await getSpool(this, stakeMarketCoinName, indexer);
   }
 
   /**
@@ -374,12 +399,14 @@ export class ScallopQuery {
    * Get borrow incentive pools data.
    *
    * @param coinNames - Specific an array of support borrow incentive coin name.
+   * @param indexer - Whether to use indexer.
    * @return Borrow incentive pools data.
    */
   public async getBorrowIncentivePools(
-    coinNames?: SupportBorrowIncentiveCoins[]
+    coinNames?: SupportBorrowIncentiveCoins[],
+    indexer: boolean = false
   ) {
-    return await queryBorrowIncentivePools(this, coinNames);
+    return await queryBorrowIncentivePools(this, coinNames, indexer);
   }
 
   /**
@@ -401,13 +428,15 @@ export class ScallopQuery {
    *
    * @param poolCoinNames - Specific an array of support pool coin name.
    * @param ownerAddress - The owner address.
+   * @param indexer - Whether to use indexer.
    * @return All lending and spool infomation.
    */
   public async getLendings(
     poolCoinNames?: SupportPoolCoins[],
-    ownerAddress?: string
+    ownerAddress?: string,
+    indexer: boolean = false
   ) {
-    return await getLendings(this, poolCoinNames, ownerAddress);
+    return await getLendings(this, poolCoinNames, ownerAddress, indexer);
   }
 
   /**
@@ -415,13 +444,15 @@ export class ScallopQuery {
    *
    * @param poolCoinName - Specific support pool coin name.
    * @param ownerAddress - The owner address.
+   * @param indexer - Whether to use indexer.
    * @return Lending pool data.
    */
   public async getLending(
     poolCoinName: SupportPoolCoins,
-    ownerAddress?: string
+    ownerAddress?: string,
+    indexer: boolean = false
   ) {
-    return await getLending(this, poolCoinName, ownerAddress);
+    return await getLending(this, poolCoinName, ownerAddress, indexer);
   }
 
   /**
@@ -431,10 +462,14 @@ export class ScallopQuery {
    * All collateral and borrowing information in all obligation accounts owned by the user.
    *
    * @param ownerAddress - The owner address.
+   * @param indexer - Whether to use indexer.
    * @return All obligation accounts information.
    */
-  public async getObligationAccounts(ownerAddress?: string) {
-    return await getObligationAccounts(this, ownerAddress);
+  public async getObligationAccounts(
+    ownerAddress?: string,
+    indexer: boolean = false
+  ) {
+    return await getObligationAccounts(this, ownerAddress, indexer);
   }
 
   /**
@@ -445,24 +480,32 @@ export class ScallopQuery {
    *
    * @param obligationId - The obligation id.
    * @param ownerAddress - The owner address.
+   * @param indexer - Whether to use indexer.
    * @return Borrowing and collateral information.
    */
   public async getObligationAccount(
     obligationId: string,
-    ownerAddress?: string
+    ownerAddress?: string,
+    indexer: boolean = false
   ) {
-    return await getObligationAccount(this, obligationId, ownerAddress);
+    return await getObligationAccount(
+      this,
+      obligationId,
+      ownerAddress,
+      indexer
+    );
   }
 
   /**
    * Get total value locked.
    *
+   * @param indexer - Whether to use indexer.
    * @description
    * Include total supplied value and total borrowed value.
    *
    * @return Total value locked.
    */
-  public async getTvl() {
-    return await getTotalValueLocked(this);
+  public async getTvl(indexer: boolean = false) {
+    return await getTotalValueLocked(this, indexer);
   }
 }

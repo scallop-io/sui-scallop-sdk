@@ -4,3 +4,4 @@ export * from './scallopClient';
 export * from './scallopBuilder';
 export * from './scallopQuery';
 export * from './scallopUtils';
+export * from './scallopIndexer';

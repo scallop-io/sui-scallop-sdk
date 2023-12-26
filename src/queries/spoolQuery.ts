@@ -18,6 +18,7 @@ import type {
   StakeAccounts,
   SupportStakeMarketCoins,
   SupportStakeCoins,
+  CoinPrices,
 } from '../types';
 
 /**
@@ -25,25 +26,62 @@ import type {
  *
  * @param query - The Scallop query instance.
  * @param marketCoinNames - Specific an array of support stake market coin name.
+ * @param indexer - Whether to use indexer.
  * @return Spools data.
  */
 export const getSpools = async (
   query: ScallopQuery,
-  stakeMarketCoinNames?: SupportStakeMarketCoins[]
+  stakeMarketCoinNames?: SupportStakeMarketCoins[],
+  indexer: boolean = false
 ) => {
   stakeMarketCoinNames = stakeMarketCoinNames || [...SUPPORT_SPOOLS];
   const stakeCoinNames = stakeMarketCoinNames.map((stakeMarketCoinName) =>
     query.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName)
   );
-  const marketPool = await query.getMarketPools(stakeCoinNames);
+  const rewardCoinNames = stakeMarketCoinNames.map((stakeMarketCoinName) => {
+    const rewardCoinName =
+      query.utils.getSpoolRewardCoinName(stakeMarketCoinName);
+    return rewardCoinName;
+  });
+  const coinPrices = await query.utils.getCoinPrices(
+    [...new Set([...stakeCoinNames, ...rewardCoinNames])] ?? []
+  );
+
+  const marketPools = await query.getMarketPools(stakeCoinNames, indexer);
   const spools: Spools = {};
+
+  if (indexer) {
+    const spoolsIndexer = await query.indexer.getSpools();
+    for (const spool of Object.values(spoolsIndexer)) {
+      if (!stakeMarketCoinNames.includes(spool.marketCoinName)) continue;
+      const coinName = query.utils.parseCoinName<SupportStakeCoins>(
+        spool.marketCoinName
+      );
+      const rewardCoinName = query.utils.getSpoolRewardCoinName(
+        spool.marketCoinName
+      );
+      const marketPool = marketPools[coinName];
+      spool.coinPrice = coinPrices[coinName] || spool.coinPrice;
+      spool.marketCoinPrice =
+        (coinPrices[coinName] ?? 0) *
+          (marketPool ? marketPool.conversionRate : 0) || spool.marketCoinPrice;
+      spool.rewardCoinPrice =
+        coinPrices[rewardCoinName] || spool.rewardCoinPrice;
+      spools[spool.marketCoinName] = spool;
+    }
+
+    return spools;
+  }
+
   for (const stakeMarketCoinName of stakeMarketCoinNames) {
     const stakeCoinName =
       query.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
     const spool = await getSpool(
       query,
       stakeMarketCoinName,
-      marketPool[stakeCoinName]
+      indexer,
+      marketPools[stakeCoinName],
+      coinPrices
     );
 
     if (spool) {
@@ -59,22 +97,43 @@ export const getSpools = async (
  *
  * @param query - The Scallop query instance.
  * @param marketCoinName - Specific support stake market coin name.
+ * @param indexer - Whether to use indexer.
  * @param marketPool - The market pool data.
+ * @param coinPrices - The coin prices.
  * @return Spool data.
  */
 export const getSpool = async (
   query: ScallopQuery,
   marketCoinName: SupportStakeMarketCoins,
-  marketPool?: MarketPool
+  indexer: boolean = false,
+  marketPool?: MarketPool,
+  coinPrices?: CoinPrices
 ) => {
   const coinName = query.utils.parseCoinName<SupportStakeCoins>(marketCoinName);
-  marketPool = marketPool || (await query.getMarketPool(coinName));
+  marketPool = marketPool || (await query.getMarketPool(coinName, indexer));
   const spoolPkgId = query.address.get(`spool.id`);
   const poolId = query.address.get(`spool.pools.${marketCoinName}.id`);
   const rewardPoolId = query.address.get(
     `spool.pools.${marketCoinName}.rewardPoolId`
   );
   let spool: Spool | undefined = undefined;
+
+  if (indexer) {
+    const spoolIndexer = await query.indexer.getSpool(marketCoinName);
+    const coinName =
+      query.utils.parseCoinName<SupportStakeCoins>(marketCoinName);
+    const rewardCoinName = query.utils.getSpoolRewardCoinName(marketCoinName);
+    spoolIndexer.coinPrice = coinPrices?.[coinName] || spoolIndexer.coinPrice;
+    spoolIndexer.marketCoinPrice =
+      (coinPrices?.[coinName] ?? 0) *
+        (marketPool ? marketPool.conversionRate : 0) ||
+      spoolIndexer.marketCoinPrice;
+    spoolIndexer.rewardCoinPrice =
+      coinPrices?.[rewardCoinName] || spoolIndexer.rewardCoinPrice;
+
+    return spoolIndexer;
+  }
+
   const spoolObjectResponse = await query.suiKit.client().multiGetObjects({
     ids: [poolId, rewardPoolId],
     options: {
@@ -97,10 +156,9 @@ export const getSpool = async (
     spoolObjectResponse[1].data
   ) {
     const rewardCoinName = query.utils.getSpoolRewardCoinName(marketCoinName);
-    const coinPrices = await query.utils.getCoinPrices([
-      coinName,
-      rewardCoinName,
-    ]);
+    coinPrices =
+      coinPrices ||
+      (await query.utils.getCoinPrices([coinName, rewardCoinName]));
 
     const spoolObject = spoolObjectResponse[0].data;
     const rewardPoolObject = spoolObjectResponse[1].data;

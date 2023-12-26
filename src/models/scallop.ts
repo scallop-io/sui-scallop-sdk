@@ -6,6 +6,7 @@ import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
 import { ADDRESSES_ID } from '../constants';
 import type { ScallopParams } from '../types/';
+import { ScallopIndexer } from './scallopIndexer';
 
 /**
  * @description
@@ -14,10 +15,11 @@ import type { ScallopParams } from '../types/';
  * @example
  * ```typescript
  * const sdk = new Scallop(<parameters>);
- * const scallopUtils= await sdk.getScallopUtils();
  * const scallopAddress = await sdk.getScallopAddress();
  * const scallopBuilder = await sdk.createScallopBuilder();
  * const scallopClient = await sdk.createScallopClient();
+ * const scallopIndexer= await sdk.createScallopIndexer();
+ * const scallopUtils= await sdk.createScallopUtils();
  * ```
  */
 export class Scallop {
@@ -91,6 +93,17 @@ export class Scallop {
     });
 
     return scallopQuery;
+  }
+
+  /**
+   * Create a scallop indexer instance.
+   *
+   * @return Scallop Indexer.
+   */
+  public async createScallopIndexer() {
+    const scallopIndexer = new ScallopIndexer();
+
+    return scallopIndexer;
   }
 
   /**
