@@ -673,12 +673,16 @@ export const getTotalValueLocked = async (
   let borrowValue = BigNumber(0);
 
   if (indexer) {
-    const tvl = await query.indexer.getTotalValueLocked();
-    return {
-      supplyValue: tvl.supplyValue,
-      borrowValue: tvl.borrowValue,
-      totalValue: tvl.totalValue,
+    const tvlIndexer = await query.indexer.getTotalValueLocked();
+    const tvl: TotalValueLocked = {
+      supplyValue: tvlIndexer.supplyValue,
+      supplyValueChangeRatio: tvlIndexer.supplyValueChangeRatio,
+      borrowValue: tvlIndexer.borrowValue,
+      borrowValueChangeRatio: tvlIndexer.borrowValueChangeRatio,
+      totalValue: tvlIndexer.totalValue,
+      totalValueChangeRatio: tvlIndexer.totalValueChangeRatio,
     };
+    return tvl;
   }
 
   for (const pool of Object.values(market.pools)) {
