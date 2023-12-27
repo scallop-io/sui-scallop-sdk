@@ -358,7 +358,14 @@ export const getObligationAccount = async (
       const requiredCollateralValue = depositedValue.multipliedBy(
         marketCollateral.liquidationFactor
       );
-      const availableDepositAmount = BigNumber(coinAmount);
+
+      const poolSizeAmount = BigNumber(marketCollateral.maxDepositAmount).minus(
+        marketCollateral.depositAmount
+      );
+      const availableDepositAmount = minBigNumber(
+        BigNumber(coinAmount),
+        poolSizeAmount
+      );
       const availableDepositCoin = availableDepositAmount.shiftedBy(
         -1 * coinDecimal
       );
