@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.10](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.9...v0.44.10) (2023-12-27)
+
+### Features
+
+- add change ratio when using indexer for getTvl ([e4e9ce6](https://github.com/scallop-io/sui-scallop-sdk/commit/e4e9ce6e9011768e4238318b6ddb4acb78be0776))
+
 ### [0.44.9](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.8...v0.44.9) (2023-12-27)
 
 ### Features
