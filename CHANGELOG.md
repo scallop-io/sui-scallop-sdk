@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.9](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.8...v0.44.9) (2023-12-27)
+
+### Features
+
+- add poolSize limit to `availableDepositAmount` ([e42be8a](https://github.com/scallop-io/sui-scallop-sdk/commit/e42be8abc00959bfcfb506bcd94d3b6f903d0cb9))
+- update sdk api endpoint ([78ea1d4](https://github.com/scallop-io/sui-scallop-sdk/commit/78ea1d44e07290b6bb3987f2e65e82f0622d481f))
+
 ### [0.44.8](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.7...v0.44.8) (2023-12-26)
 
 ### Features
