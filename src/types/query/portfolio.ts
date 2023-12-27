@@ -124,4 +124,7 @@ export type TotalValueLocked = {
   supplyValue: number;
   borrowValue: number;
   totalValue: number;
+  supplyValueChangeRatio?: number;
+  borrowValueChangeRatio?: number;
+  totalValueChangeRatio?: number;
 };
