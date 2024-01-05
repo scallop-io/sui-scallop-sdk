@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.12](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.11...v0.44.12) (2024-01-05)
+
+### Bug Fixes
+
+- wrong obligation id obtaining ([2e4e6e9](https://github.com/scallop-io/sui-scallop-sdk/commit/2e4e6e9974c6c413b0485e1a0d60d88dfd0ddd3f))
+
 ### [0.44.11](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.10...v0.44.11) (2024-01-05)
 
 ### Bug Fixes
