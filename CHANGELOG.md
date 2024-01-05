@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.11](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.10...v0.44.11) (2024-01-05)
+
+### Bug Fixes
+
+- avoid loop getOwnedObjects ([327e82b](https://github.com/scallop-io/sui-scallop-sdk/commit/327e82b4dff5f1294271c5c55e8e40ead5ed2d0d))
+
 ### [0.44.10](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.9...v0.44.10) (2023-12-27)
 
 ### Features
