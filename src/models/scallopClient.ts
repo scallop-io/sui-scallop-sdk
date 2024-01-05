@@ -253,12 +253,12 @@ export class ScallopClient {
     txBlock.setSender(sender);
 
     const obligations = await this.query.getObligations(sender);
-    const tarketObligationId = obligationId || obligations[0].id;
-    if (tarketObligationId) {
+    const specificObligationId = obligationId || obligations?.[0]?.id;
+    if (specificObligationId) {
       await txBlock.addCollateralQuick(
         amount,
         collateralCoinName,
-        tarketObligationId
+        specificObligationId
       );
     } else {
       const [obligation, obligationKey, hotPotato] = txBlock.openObligation();
