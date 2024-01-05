@@ -24,8 +24,8 @@ dependencies:
     specifier: ^1.2.4
     version: 1.2.4
   '@scallop-io/sui-kit':
-    specifier: ^0.44.0
-    version: 0.44.0(@mysten/sui.js@0.44.0)
+    specifier: ^0.44.2
+    version: 0.44.2(@mysten/sui.js@0.44.0)
   '@scure/bip39':
     specifier: ^1.2.1
     version: 1.2.1
@@ -765,8 +765,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@scallop-io/sui-kit@0.44.0(@mysten/sui.js@0.44.0):
-    resolution: {integrity: sha512-IEJqXDQbcUln1Mt6HaAqjtYtEYaEmdhyj0tGGEVHKkQOCrxVjqxsoaEsLadQo5WSWWg2TbrZuKK+cnRi59Usnw==}
+  /@scallop-io/sui-kit@0.44.2(@mysten/sui.js@0.44.0):
+    resolution: {integrity: sha512-XBVBDSplzL/vf6dy2rJXTjZzpr1JjMlzzzkJEPbmNbcJPWQ0zFlHLcrtxYk3g+LbdvDuDaPeFw+VpFujMy/ncA==}
     engines: {node: '>=16'}
     peerDependencies:
       '@mysten/sui.js': ^0.44.0
