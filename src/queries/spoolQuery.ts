@@ -283,6 +283,8 @@ export const getStakeAccounts = async (
     ) {
       hasNextPage = true;
       nextCursor = paginatedStakeObjectsResponse.nextCursor;
+    } else {
+      hasNextPage = false;
     }
   } while (hasNextPage);
 

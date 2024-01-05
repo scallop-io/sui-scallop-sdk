@@ -704,6 +704,8 @@ export const getObligations = async (
     ) {
       hasNextPage = true;
       nextCursor = paginatedKeyObjectsResponse.nextCursor;
+    } else {
+      hasNextPage = false;
     }
   } while (hasNextPage);
 
@@ -820,6 +822,8 @@ export const getCoinAmounts = async (
     ) {
       hasNextPage = true;
       nextCursor = paginatedCoinObjectsResponse.nextCursor;
+    } else {
+      hasNextPage = false;
     }
   } while (hasNextPage);
 
@@ -884,6 +888,8 @@ export const getCoinAmount = async (
     ) {
       hasNextPage = true;
       nextCursor = paginatedCoinObjectsResponse.nextCursor;
+    } else {
+      hasNextPage = false;
     }
   } while (hasNextPage);
 
@@ -952,6 +958,8 @@ export const getMarketCoinAmounts = async (
     ) {
       hasNextPage = true;
       nextCursor = paginatedMarketCoinObjectsResponse.nextCursor;
+    } else {
+      hasNextPage = false;
     }
   } while (hasNextPage);
 
@@ -1018,6 +1026,8 @@ export const getMarketCoinAmount = async (
     ) {
       hasNextPage = true;
       nextCursor = paginatedMarketCoinObjectsResponse.nextCursor;
+    } else {
+      hasNextPage = false;
     }
   } while (hasNextPage);
 
