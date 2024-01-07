@@ -154,7 +154,7 @@ export const queryMarket = async (
     const parsedMarketCollateralData = parseOriginMarketCollateralData({
       type: collateral.type,
       collateralFactor: collateral.collateralFactor,
-      liquidationFactor: collateral.collateralFactor,
+      liquidationFactor: collateral.liquidationFactor,
       liquidationDiscount: collateral.liquidationDiscount,
       liquidationPanelty: collateral.liquidationPanelty,
       liquidationReserveFactor: collateral.liquidationReserveFactor,
