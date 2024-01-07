@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.13](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.12...v0.44.13) (2024-01-07)
+
+### Bug Fixes
+
+- wrong variable ([46d35cb](https://github.com/scallop-io/sui-scallop-sdk/commit/46d35cb799018a00eae462a515f4cc4e42957ea7))
+
 ### [0.44.12](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.11...v0.44.12) (2024-01-05)
 
 ### Bug Fixes
