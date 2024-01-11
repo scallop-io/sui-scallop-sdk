@@ -17,13 +17,11 @@ export type BorrowIncentiveIds = {
 export type BorrowIncentiveNormalMethods = {
   stakeObligation: (
     obligation: SuiAddressArg,
-    obligaionKey: SuiAddressArg,
-    coinName: SupportBorrowIncentiveCoins
+    obligaionKey: SuiAddressArg
   ) => void;
   unstakeObligation: (
     obligation: SuiAddressArg,
-    obligaionKey: SuiAddressArg,
-    coinName: SupportBorrowIncentiveCoins
+    obligaionKey: SuiAddressArg
   ) => void;
   claimBorrowIncentive: (
     obligation: SuiAddressArg,
@@ -34,12 +32,10 @@ export type BorrowIncentiveNormalMethods = {
 
 export type BorrowIncentiveQuickMethods = {
   stakeObligationQuick(
-    coinName: SupportBorrowIncentiveCoins,
     obligation?: SuiAddressArg,
     obligationKey?: SuiAddressArg
   ): Promise<void>;
   unstakeObligationQuick(
-    coinName: SupportBorrowIncentiveCoins,
     obligation?: SuiAddressArg,
     obligationKey?: SuiAddressArg
   ): Promise<void>;
