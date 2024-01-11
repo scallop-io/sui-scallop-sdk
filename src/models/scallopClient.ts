@@ -485,11 +485,7 @@ export class ScallopClient {
       SUPPORT_BORROW_INCENTIVE_POOLS as readonly SupportPoolCoins[]
     ).includes(poolCoinName);
     if (sign && availableStake) {
-      await txBlock.unstakeObligationQuick(
-        poolCoinName as SupportBorrowIncentiveCoins,
-        obligationId,
-        obligationKey
-      );
+      await txBlock.unstakeObligationQuick(obligationId, obligationKey);
     }
     const coin = await txBlock.borrowQuick(
       amount,
@@ -499,11 +495,7 @@ export class ScallopClient {
     );
     txBlock.transferObjects([coin], sender);
     if (sign && availableStake) {
-      await txBlock.stakeObligationQuick(
-        poolCoinName as SupportBorrowIncentiveCoins,
-        obligationId,
-        obligationKey
-      );
+      await txBlock.stakeObligationQuick(obligationId, obligationKey);
     }
 
     if (sign) {
@@ -541,19 +533,11 @@ export class ScallopClient {
       SUPPORT_BORROW_INCENTIVE_POOLS as readonly SupportPoolCoins[]
     ).includes(poolCoinName);
     if (sign && availableStake) {
-      await txBlock.unstakeObligationQuick(
-        poolCoinName as SupportBorrowIncentiveCoins,
-        obligationId,
-        obligationKey
-      );
+      await txBlock.unstakeObligationQuick(obligationId, obligationKey);
     }
     await txBlock.repayQuick(amount, poolCoinName, obligationId);
     if (sign && availableStake) {
-      await txBlock.stakeObligationQuick(
-        poolCoinName as SupportBorrowIncentiveCoins,
-        obligationId,
-        obligationKey
-      );
+      await txBlock.stakeObligationQuick(obligationId, obligationKey);
     }
 
     if (sign) {
@@ -860,14 +844,13 @@ export class ScallopClient {
   /**
    * stake obligaion.
    *
-   * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param obligaionId - The obligation account object.
    * @param obligaionKeyId - The obligation key account object.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block
    */
   public async stakeObligation<S extends boolean>(
-    coinName: SupportBorrowIncentiveCoins,
     obligaionId: string,
     obligaionKeyId: string,
     sign: S = true as S,
@@ -877,7 +860,7 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    await txBlock.stakeObligationQuick(coinName, obligaionId, obligaionKeyId);
+    await txBlock.stakeObligationQuick(obligaionId, obligaionKeyId);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -891,14 +874,13 @@ export class ScallopClient {
   /**
    * unstake obligaion.
    *
-   * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param obligaionId - The obligation account object.
    * @param obligaionKeyId - The obligation key account object.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block
    */
   public async unstakeObligation<S extends boolean>(
-    coinName: SupportBorrowIncentiveCoins,
     obligaionId: string,
     obligaionKeyId: string,
     sign: S = true as S,
@@ -908,7 +890,7 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    await txBlock.unstakeObligationQuick(coinName, obligaionId, obligaionKeyId);
+    await txBlock.unstakeObligationQuick(obligaionId, obligaionKeyId);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(

@@ -236,7 +236,7 @@ describe('Test Scallop Borrow Incentive Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "stakeObligationQuick".
     tx.setSender(sender);
-    await tx.stakeObligationQuick('sui');
+    await tx.stakeObligationQuick();
     const stakeObligationQuickResult =
       await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
@@ -251,7 +251,7 @@ describe('Test Scallop Borrow Incentive Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "unstakeObligationQuick".
     tx.setSender(sender);
-    await tx.unstakeObligationQuick('sui');
+    await tx.unstakeObligationQuick();
     const unstakeObligationQuickResult =
       await scallopBuilder.signAndSendTxBlock(tx);
     if (ENABLE_LOG) {
