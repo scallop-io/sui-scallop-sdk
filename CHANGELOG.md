@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.14](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.13...v0.44.14) (2024-01-11)
+
+### Bug Fixes
+
+- remove coin name for `stakeObligation` and `unstakeObligation` ([186cf2e](https://github.com/scallop-io/sui-scallop-sdk/commit/186cf2efe9cec3d4732fcd7ccb4e10a1888a3629))
+
 ### [0.44.13](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.12...v0.44.13) (2024-01-07)
 
 ### Bug Fixes
