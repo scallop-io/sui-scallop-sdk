@@ -81,8 +81,10 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
       obligationAccessStore: builder.address.get('core.obligationAccessStore'),
     };
     return {
-      stakeObligation: (obligationId, obligaionKey, coinName) => {
-        const rewardCoinName = borrowIncentiveRewardCoins[coinName];
+      stakeObligation: (obligationId, obligaionKey) => {
+        // NOTE: Pools without incentives also need to stake after change obligation,
+        // the default here use sui as reward coin.
+        const rewardCoinName = 'sui';
         const rewardType = builder.utils.parseCoinType(rewardCoinName);
         txBlock.moveCall(
           `${borrowIncentiveIds.borrowIncentivePkg}::user::stake`,
@@ -97,8 +99,10 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           [rewardType]
         );
       },
-      unstakeObligation: (obligationId, obligaionKey, coinName) => {
-        const rewardCoinName = borrowIncentiveRewardCoins[coinName];
+      unstakeObligation: (obligationId, obligaionKey) => {
+        // NOTE: Pools without incentives also need to unstake to change obligation,
+        // the default here use sui as reward coin.
+        const rewardCoinName = 'sui';
         const rewardType = builder.utils.parseCoinType(rewardCoinName);
         txBlock.moveCall(
           `${borrowIncentiveIds.borrowIncentivePkg}::user::unstake`,
@@ -145,7 +149,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
 const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
   ({ builder, txBlock }) => {
     return {
-      stakeObligationQuick: async (coinName, obligation, obligationKey) => {
+      stakeObligationQuick: async (obligation, obligationKey) => {
         const {
           obligationId: obligationArg,
           obligationKey: obligationtKeyArg,
@@ -166,10 +170,10 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
-          txBlock.stakeObligation(obligationArg, obligationtKeyArg, coinName);
+          txBlock.stakeObligation(obligationArg, obligationtKeyArg);
         }
       },
-      unstakeObligationQuick: async (coinName, obligation, obligationKey) => {
+      unstakeObligationQuick: async (obligation, obligationKey) => {
         const {
           obligationId: obligationArg,
           obligationKey: obligationtKeyArg,
@@ -182,7 +186,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
         );
 
         if (obligationLocked) {
-          txBlock.unstakeObligation(obligationArg, obligationtKeyArg, coinName);
+          txBlock.unstakeObligation(obligationArg, obligationtKeyArg);
         }
       },
       claimBorrowIncentiveQuick: async (
