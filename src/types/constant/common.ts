@@ -7,6 +7,7 @@ import {
   SUPPORT_SPOOLS_REWARDS,
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
+  API_NETWORKS,
 } from '../../constants';
 
 type ParseMarketCoins<T extends string> = `s${T}`;
@@ -40,6 +41,8 @@ export type SupportBorrowIncentiveRewardCoins =
 export type SupportOracleType = (typeof SUPPORT_ORACLES)[number];
 
 export type SupportPackageType = (typeof SUPPORT_PACKAGES)[number];
+
+export type ApiNetworkType = (typeof API_NETWORKS)[number];
 
 export type SupportCoinDecimals = Record<SupportCoins, number>;
 

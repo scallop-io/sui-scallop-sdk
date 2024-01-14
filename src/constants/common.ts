@@ -45,6 +45,7 @@ export const SUPPORT_BORROW_INCENTIVE_POOLS = ['sui', 'usdc', 'usdt'] as const;
 
 export const SUPPORT_BORROW_INCENTIVE_REWARDS = ['sui'] as const;
 export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
+export const API_NETWORKS = ['mainnet', 'development'] as const;
 
 export const SUPPORT_PACKAGES = [
   'coinDecimalsRegistry',

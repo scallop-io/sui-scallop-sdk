@@ -15,6 +15,7 @@ import type {
   SupportStakeMarketCoins,
   SupportBorrowIncentiveCoins,
   TotalValueLocked,
+  ApiNetworkType,
 } from '../types';
 
 /**
@@ -32,9 +33,15 @@ import type {
 export class ScallopIndexer {
   private _requestClient: AxiosInstance;
 
-  public constructor() {
+  public constructor(
+    networkType: ApiNetworkType = 'mainnet',
+    developmentPort: number = 3000
+  ) {
     this._requestClient = axios.create({
-      baseURL: SDK_API_BASE_URL,
+      baseURL:
+        networkType === 'mainnet'
+          ? SDK_API_BASE_URL
+          : `localhost:${developmentPort}`,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -52,7 +59,7 @@ export class ScallopIndexer {
     const response = await this._requestClient.get<{
       pools: MarketPool[];
       collaterals: MarketCollateral[];
-    }>(`${SDK_API_BASE_URL}/api/market`);
+    }>(`/api/market`);
 
     if (response.status === 200) {
       return {
@@ -81,7 +88,7 @@ export class ScallopIndexer {
   public async getMarketPools(): Promise<Required<MarketPools>> {
     const response = await this._requestClient.get<{
       pools: MarketPool[];
-    }>(`${SDK_API_BASE_URL}/api/market/pools`);
+    }>(`/api/market/pools`);
 
     if (response.status === 200) {
       return response.data.pools.reduce((marketPools, marketPool) => {
@@ -103,7 +110,7 @@ export class ScallopIndexer {
   ): Promise<MarketPool> {
     const response = await this._requestClient.get<{
       pool: MarketPool;
-    }>(`${SDK_API_BASE_URL}/api/market/pool/${poolCoinName}`);
+    }>(`/api/market/pool/${poolCoinName}`);
 
     if (response.status === 200) {
       return response.data.pool;
@@ -120,7 +127,7 @@ export class ScallopIndexer {
   public async getMarketCollaterals(): Promise<Required<MarketCollaterals>> {
     const response = await this._requestClient.get<{
       collaterals: MarketCollateral[];
-    }>(`${SDK_API_BASE_URL}/api/market/collaterals`);
+    }>(`/api/market/collaterals`);
 
     if (response.status === 200) {
       return response.data.collaterals.reduce(
@@ -145,7 +152,7 @@ export class ScallopIndexer {
   ): Promise<MarketCollateral> {
     const response = await this._requestClient.get<{
       collateral: MarketCollateral;
-    }>(`${SDK_API_BASE_URL}/api/market/collateral/${collateralCoinName}`);
+    }>(`/api/market/collateral/${collateralCoinName}`);
 
     if (response.status === 200) {
       return response.data.collateral;
@@ -162,7 +169,7 @@ export class ScallopIndexer {
   public async getSpools(): Promise<Required<Spools>> {
     const response = await this._requestClient.get<{
       spools: Spool[];
-    }>(`${SDK_API_BASE_URL}/api/spools`);
+    }>(`/api/spools`);
 
     if (response.status === 200) {
       return response.data.spools.reduce((spools, spool) => {
@@ -184,7 +191,7 @@ export class ScallopIndexer {
   ): Promise<Spool> {
     const response = await this._requestClient.get<{
       spool: Spool;
-    }>(`${SDK_API_BASE_URL}/api/spool/${marketCoinName}`);
+    }>(`/api/spool/${marketCoinName}`);
 
     if (response.status === 200) {
       return response.data.spool;
@@ -203,7 +210,7 @@ export class ScallopIndexer {
   > {
     const response = await this._requestClient.get<{
       borrowIncentivePools: BorrowIncentivePool[];
-    }>(`${SDK_API_BASE_URL}/api/borrowIncentivePools`);
+    }>(`/api/borrowIncentivePools`);
 
     if (response.status === 200) {
       return response.data.borrowIncentivePools.reduce(
@@ -229,9 +236,7 @@ export class ScallopIndexer {
   ): Promise<BorrowIncentivePool> {
     const response = await this._requestClient.get<{
       borrowIncentivePool: BorrowIncentivePool;
-    }>(
-      `${SDK_API_BASE_URL}/api/borrowIncentivePool/${borrowIncentiveCoinName}`
-    );
+    }>(`/api/borrowIncentivePool/${borrowIncentiveCoinName}`);
 
     if (response.status === 200) {
       return response.data.borrowIncentivePool;
@@ -258,7 +263,7 @@ export class ScallopIndexer {
         borrowValueChangeRatio: number;
         supplyValueChangeRatio: number;
       }
-    >(`${SDK_API_BASE_URL}/api/market/tvl`);
+    >(`/api/market/tvl`);
 
     if (response.status === 200) {
       return response.data;
