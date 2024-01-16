@@ -37,7 +37,14 @@ export const SUPPORT_COLLATERALS = [
   'vsui',
 ] as const;
 
-export const SUPPORT_SPOOLS = ['ssui', 'susdc', 'susdt'] as const;
+export const SUPPORT_SPOOLS = [
+  'ssui',
+  'susdc',
+  'susdt',
+  'shasui',
+  'svsui',
+  'safsui',
+] as const;
 
 export const SUPPORT_SPOOLS_REWARDS = ['sui'] as const;
 

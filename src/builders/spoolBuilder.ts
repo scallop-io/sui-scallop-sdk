@@ -21,7 +21,7 @@ import type {
  * Check and get stake account id from transaction block.
  *
  * @description
- * If the stake account id is provided, direactly return it.
+ * If the stake account id is provided, directly return it.
  * Otherwise, automatically get all stake account id from the sender.
  *
  * @param builder - Scallop builder instance.
@@ -52,7 +52,7 @@ const requireStakeAccountIds = async (
  * Check and get stake accounts information from transaction block.
  *
  * @description
- * If the stake account id is provided, direactly return its account.
+ * If the stake account id is provided, directly return its account.
  * Otherwise, automatically get all stake account from the sender.
  *
  * @param builder - Scallop builder instance.

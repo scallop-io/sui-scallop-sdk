@@ -233,6 +233,22 @@ describe('Test Scallop Address', () => {
               "susdc": {
                 "id": "0x4ace6648ddc64e646ba47a957c562c32c9599b3bba8f5ac1aadb2ae23a2f8ca0",
                 "rewardPoolId": "0xf4268cc9b9413b9bfe09e8966b8de650494c9e5784bf0930759cfef4904daff8"
+              },
+              "susdt" : {
+                "id": "",
+                "rewardPoolId": ""
+              },
+              "shasui": {
+                "id": "",
+                "rewardPoolId": ""
+              },
+              "safsui": {
+                "id": "",
+                "rewardPoolId": ""
+              },
+              "svsui": {
+                "id": "",
+                "rewardPoolId": ""
               }
             }
         }
