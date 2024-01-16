@@ -292,6 +292,9 @@ export const getStakeAccounts = async (
     ssui: [],
     susdc: [],
     susdt: [],
+    safsui: [],
+    shasui: [],
+    svsui: [],
   };
 
   const stakeMarketCoinTypes: Record<SupportStakeMarketCoins, string> =
