@@ -1,4 +1,5 @@
 import type { MarketPool } from './core';
+import type { Spool } from './spool';
 import type { SupportPoolCoins, SupportCollateralCoins } from '../constant';
 
 type OptionalKeys<T> = {
@@ -19,7 +20,9 @@ export type Lending = Required<
     | 'marketCoinType'
     | 'coinDecimal'
     | 'coinPrice'
-  >
+    | 'conversionRate'
+  > &
+    Pick<Spool, 'marketCoinPrice'>
 > & {
   supplyApr: number;
   supplyApy: number;
