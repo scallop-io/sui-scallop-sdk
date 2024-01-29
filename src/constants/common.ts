@@ -41,9 +41,9 @@ export const SUPPORT_SPOOLS = [
   'ssui',
   'susdc',
   'susdt',
+  'safsui',
   'shasui',
   'svsui',
-  'safsui',
 ] as const;
 
 export const SUPPORT_SPOOLS_REWARDS = ['sui'] as const;
