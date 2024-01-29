@@ -83,8 +83,6 @@ export type OriginBorrowIncentiveRewardPoolData = {
   claimed_rewards: string;
   exchange_rate_denominator: string;
   exchange_rate_numerator: string;
-  rewards_fee_rate_denominator: string;
-  rewards_fee_rate_numerator: string;
   remaining_reward: string;
   reward_type: {
     name: string;
@@ -96,8 +94,6 @@ export type ParsedBorrowIncentiveRewardPoolData = {
   claimedRewards: number;
   exchangeRateDenominator: number;
   exchangeRateNumerator: number;
-  rewardsFeeRateDenominator: number;
-  rewardsFeeRateNumerator: number;
   remainingRewards: number;
 };
 
@@ -113,7 +109,6 @@ export type CalculatedBorrowIncentiveRewardPoolData = {
   claimedRewardCoin: number;
   claimedRewardValue: number;
   rewardPerSec: number;
-  rewardFee: number;
 };
 
 export type BorrowIncentiveAccounts = OptionalKeys<
