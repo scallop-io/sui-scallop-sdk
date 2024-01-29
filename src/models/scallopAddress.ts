@@ -203,11 +203,11 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         rewardPoolId: '',
       },
-      shasui: {
+      safsui: {
         id: '',
         rewardPoolId: '',
       },
-      safsui: {
+      shasui: {
         id: '',
         rewardPoolId: '',
       },
