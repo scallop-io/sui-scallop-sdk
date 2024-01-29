@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.15](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.14...v0.44.15) (2024-01-29)
+
+### Features
+
+- add LSDs to the const of empty addresses ([eebc5ed](https://github.com/scallop-io/sui-scallop-sdk/commit/eebc5ed9d61e93ecb374f39f934e0728bd62718f))
+- add support for new spools in `getStakeAccounts` ([aad24e0](https://github.com/scallop-io/sui-scallop-sdk/commit/aad24e08234ad1c8ede2a67bbafbb110622a6f22))
+- lending query adds `conversionRate` and `marketCoinPrice` fields ([ebe4e33](https://github.com/scallop-io/sui-scallop-sdk/commit/ebe4e3391820cda8de30bd94d4ce07e0a8a1e067))
+- update for lsd incentive ([e37ccdb](https://github.com/scallop-io/sui-scallop-sdk/commit/e37ccdb3a85bbb0994c427a65dbaf50e7d4a2483))
+
 ### [0.44.14](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.13...v0.44.14) (2024-01-11)
 
 ### Bug Fixes
