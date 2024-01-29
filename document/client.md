@@ -22,7 +22,7 @@ The query methods in the client have been migrated to the query instance. These 
   // Get stake pool data.
   const stakePoolData = await client.getStakePool('ssui');
   // Get reward pool data.
-  const rewardPoolData = await client.getRewardPool('ssui');
+  const rewardPoolData = await client.getStakeRewardPool('ssui');
   ```
 
 ## Core Interaction Method

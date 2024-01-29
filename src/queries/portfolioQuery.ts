@@ -200,6 +200,9 @@ export const getLending = async (
   const suppliedCoin = suppliedAmount.shiftedBy(-1 * coinDecimal);
   const suppliedValue = suppliedCoin.multipliedBy(coinPrice ?? 0);
 
+  const marketCoinPrice = BigNumber(coinPrice ?? 0).multipliedBy(
+    marketPool?.conversionRate ?? 1
+  );
   const unstakedMarketAmount = BigNumber(marketCoinAmount);
   const unstakedMarketCoin = unstakedMarketAmount.shiftedBy(-1 * coinDecimal);
 
@@ -221,6 +224,8 @@ export const getLending = async (
     marketCoinType: query.utils.parseMarketCoinType(poolCoinName),
     coinDecimal: coinDecimal,
     coinPrice: coinPrice ?? 0,
+    conversionRate: marketPool?.conversionRate ?? 1,
+    marketCoinPrice: marketCoinPrice.toNumber(),
     supplyApr: marketPool?.supplyApr ?? 0,
     supplyApy: marketPool?.supplyApy ?? 0,
     rewardApr: spool?.rewardApr ?? 0,

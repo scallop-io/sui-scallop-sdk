@@ -102,10 +102,10 @@
   const suiStakePool = await scallopQuery.getStakePool('ssui');
 
   // Get multiple reward pools data.
-  const rewardPools = await scallopQuery.getRewardPools(['ssui', 'susdc']);
+  const rewardPools = await scallopQuery.getStakeRewardPools(['ssui', 'susdc']);
 
   // Get reward pool data separately.
-  const rewardPool = await scallopQuery.getRewardPool('ssui');
+  const rewardPool = await scallopQuery.getStakeRewardPool('ssui');
 
   // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```

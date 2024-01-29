@@ -292,6 +292,9 @@ export const getStakeAccounts = async (
     ssui: [],
     susdc: [],
     susdt: [],
+    safsui: [],
+    shasui: [],
+    svsui: [],
   };
 
   const stakeMarketCoinTypes: Record<SupportStakeMarketCoins, string> =
@@ -348,6 +351,39 @@ export const getStakeAccounts = async (
         });
       } else if (normalizeStructTag(type) === stakeMarketCoinTypes.susdt) {
         stakeAccounts.susdt.push({
+          id,
+          type: normalizeStructTag(type),
+          stakePoolId,
+          stakeType: normalizeStructTag(stakeType),
+          staked,
+          index,
+          points,
+          totalPoints,
+        });
+      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.safsui) {
+        stakeAccounts.safsui.push({
+          id,
+          type: normalizeStructTag(type),
+          stakePoolId,
+          stakeType: normalizeStructTag(stakeType),
+          staked,
+          index,
+          points,
+          totalPoints,
+        });
+      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.shasui) {
+        stakeAccounts.shasui.push({
+          id,
+          type: normalizeStructTag(type),
+          stakePoolId,
+          stakeType: normalizeStructTag(stakeType),
+          staked,
+          index,
+          points,
+          totalPoints,
+        });
+      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.svsui) {
+        stakeAccounts.svsui.push({
           id,
           type: normalizeStructTag(type),
           stakePoolId,
