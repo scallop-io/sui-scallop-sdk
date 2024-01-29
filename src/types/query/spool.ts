@@ -73,8 +73,6 @@ export type OriginSpoolRewardPoolData = {
   claimed_rewards: string;
   exchange_rate_denominator: string;
   exchange_rate_numerator: string;
-  fee_rate_denominator: string;
-  fee_rate_numerator: string;
   rewards: string;
   spool_id: string;
 };
@@ -83,8 +81,6 @@ export type ParsedSpoolRewardPoolData = {
   claimedRewards: number;
   exchangeRateDenominator: number;
   exchangeRateNumerator: number;
-  feeRateDenominator: number;
-  feeRateNumerator: number;
   rewards: number;
   spoolId: string;
 };
@@ -101,7 +97,6 @@ export type CalculatedSpoolRewardPoolData = {
   claimedRewardCoin: number;
   claimedRewardValue: number;
   rewardPerSec: number;
-  rewardFee: number;
 };
 
 export type StakePools = OptionalKeys<
@@ -144,8 +139,6 @@ export interface StakeRewardPool {
   stakePoolId: string;
   ratioDenominator: number;
   ratioNumerator: number;
-  feeRateDenominator: number;
-  feeRateNumerator: number;
   rewards: number;
   claimedRewards: number;
 }
