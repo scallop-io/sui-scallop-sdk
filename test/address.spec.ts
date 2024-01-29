@@ -223,8 +223,9 @@ describe('Test Scallop Address', () => {
             }
         },
         "spool": {
-            "id": "0xe87f1b2d498106a2c61421cec75b7b5c5e348512b0dc263949a0e7a3c256571a",
+            "id": "0xec1ac7f4d01c5bf178ff4e62e523e7df7721453d81d4904a42a0ffc2686c843d",
             "adminCap": "0xdd8a047cbbf802bfcde5288b8ef1910965d789cc614da11d39af05fca0bd020a",
+            "object": "0xe87f1b2d498106a2c61421cec75b7b5c5e348512b0dc263949a0e7a3c256571a",
             "pools": {
               "ssui": {
                 "id": "0x4f0ba970d3c11db05c8f40c64a15b6a33322db3702d634ced6536960ab6f3ee4",
@@ -233,6 +234,22 @@ describe('Test Scallop Address', () => {
               "susdc": {
                 "id": "0x4ace6648ddc64e646ba47a957c562c32c9599b3bba8f5ac1aadb2ae23a2f8ca0",
                 "rewardPoolId": "0xf4268cc9b9413b9bfe09e8966b8de650494c9e5784bf0930759cfef4904daff8"
+              },
+              "susdt" : {
+                "id": "0xcb328f7ffa7f9342ed85af3fdb2f22919e1a06dfb2f713c04c73543870d7548f",
+                "rewardPoolId": "0x2c9f934d67a5baa586ceec2cc24163a2f049a6af3d5ba36b84d8ac40f25c4080"
+              },
+              "safsui": {
+                "id": "0xeedf438abcaa6ce4d9625ffca110920592d5867e4c5637d84ad9f466c4feb800",
+                "rewardPoolId": "0x89255a2f86ed7fbfef35ab8b7be48cc7667015975be2685dd9a55a9a64baf76e"
+              },
+              "shasui": {
+                "id": "0xa6148bc1b623e936d39a952ceb5bea79e8b37228a8f595067bf1852efd3c34aa",
+                "rewardPoolId": "0x6f3563644d3e2ef13176dbf9d865bd93479df60ccbe07b7e66db57f6309f5a66"
+              },
+              "svsui": {
+                "id": "0x69ce8e537e750a95381e6040794afa5ab1758353a1a2e1de7760391b01f91670",
+                "rewardPoolId": "0xbca914adce058ad0902c7f3cfcd698392a475f00dcfdc3f76001d0370b98777a"
               }
             }
         }

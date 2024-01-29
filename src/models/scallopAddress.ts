@@ -199,6 +199,22 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         rewardPoolId: '',
       },
+      susdt: {
+        id: '',
+        rewardPoolId: '',
+      },
+      safsui: {
+        id: '',
+        rewardPoolId: '',
+      },
+      shasui: {
+        id: '',
+        rewardPoolId: '',
+      },
+      svsui: {
+        id: '',
+        rewardPoolId: '',
+      },
     },
   },
   borrowIncentive: {
