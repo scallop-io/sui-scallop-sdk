@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.16](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.15...v0.44.16) (2024-01-29)
+
+### Features
+
+- remove reward fee ([78e62d8](https://github.com/scallop-io/sui-scallop-sdk/commit/78e62d8fe2ea2857f8ea491bd7e47053f046b927))
+
 ### [0.44.15](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.14...v0.44.15) (2024-01-29)
 
 ### Features
