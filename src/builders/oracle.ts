@@ -36,7 +36,7 @@ export const updateOracles = async (
       builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`)
     );
 
-    // iterate through the priceIds and update the price feeds
+    // iterate through the endpoints
     const endpoints = PYTH_ENDPOINTS[builder.isTestnet ? 'testnet' : 'mainnet'];
     for (const endpoint of endpoints) {
       try {
