@@ -8,6 +8,7 @@ import type { TransactionArgument } from '@mysten/sui.js/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
 import type { SupportAssetCoins, SupportOracleType } from '../types';
+import { PYTH_ENDPOINTS } from 'src/constants/pyth';
 
 /**
  * Update the price of the oracle for multiple coin.
@@ -34,18 +35,29 @@ export const updateOracles = async (
     const priceIds = assetCoinNames.map((assetCoinName) =>
       builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`)
     );
-    const pythConnection = new SuiPriceServiceConnection(
-      builder.isTestnet
-        ? 'https://hermes-beta.pyth.network'
-        : 'https://hermes.pyth.network'
-    );
-    const priceUpdateData =
-      await pythConnection.getPriceFeedsUpdateData(priceIds);
-    await pythClient.updatePriceFeeds(
-      txBlock.txBlock,
-      priceUpdateData,
-      priceIds
-    );
+
+    // iterate through the priceIds and update the price feeds
+    const endpoints = PYTH_ENDPOINTS[builder.isTestnet ? 'testnet' : 'mainnet'];
+    for (const endpoint of endpoints) {
+      try {
+        const pythConnection = new SuiPriceServiceConnection(endpoint);
+        const priceUpdateData =
+          await pythConnection.getPriceFeedsUpdateData(priceIds);
+        await pythClient.updatePriceFeeds(
+          txBlock.txBlock,
+          priceUpdateData,
+          priceIds
+        );
+
+        return;
+      } catch (e) {
+        console.warn(
+          `Failed to update price feeds with endpoint ${endpoint}: ${e}`
+        );
+      }
+    }
+
+    throw new Error('Failed to update price feeds with all endpoins');
   }
 
   // Remove duplicate coin names.
