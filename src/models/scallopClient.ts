@@ -90,8 +90,7 @@ export class ScallopClient {
     if (force || !this.address.getAddresses()) {
       await this.address.read();
     }
-    await this.query.init(force);
-    // Pass the query instance to the utils instance to avoid redundant initialization.
+    await this.query.init(force, this.utils);
     await this.utils.init(force, this.query);
     await this.builder.init(force);
   }
