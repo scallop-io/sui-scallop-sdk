@@ -80,7 +80,8 @@ export class ScallopBuilder {
       await this.address.read();
     }
     await this.query.init(force);
-    await this.utils.init(force);
+    // Pass the query instance to the utils instance to avoid redundant initialization.
+    await this.utils.init(force, this.query);
   }
 
   /**
