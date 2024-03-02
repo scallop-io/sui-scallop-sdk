@@ -392,7 +392,9 @@ export class ScallopUtils {
     }
 
     if (lackPricesCoinNames.length > 0) {
-      const endpoints = PYTH_ENDPOINTS[this.isTestnet ? 'testnet' : 'mainnet'];
+      const endpoints =
+        this.params.pythEndpoints ??
+        PYTH_ENDPOINTS[this.isTestnet ? 'testnet' : 'mainnet'];
       try {
         for (const endpoint of endpoints) {
           try {

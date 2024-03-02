@@ -37,7 +37,9 @@ export const updateOracles = async (
     );
 
     // iterate through the endpoints
-    const endpoints = PYTH_ENDPOINTS[builder.isTestnet ? 'testnet' : 'mainnet'];
+    const endpoints =
+      builder.params.pythEndpoints ??
+      PYTH_ENDPOINTS[builder.isTestnet ? 'testnet' : 'mainnet'];
     for (const endpoint of endpoints) {
       try {
         const pythConnection = new SuiPriceServiceConnection(endpoint);
@@ -49,15 +51,13 @@ export const updateOracles = async (
           priceIds
         );
 
-        return;
+        break;
       } catch (e) {
         console.warn(
           `Failed to update price feeds with endpoint ${endpoint}: ${e}`
         );
       }
     }
-
-    throw new Error('Failed to update price feeds with all endpoins');
   }
 
   // Remove duplicate coin names.
