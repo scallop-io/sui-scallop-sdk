@@ -269,9 +269,11 @@ export const getStakeAccounts = async (
   } while (hasNextPage);
 
   const stakeAccounts: StakeAccounts = {
+    seth: [],
     ssui: [],
     susdc: [],
     susdt: [],
+    scetus: [],
     safsui: [],
     shasui: [],
     svsui: [],
@@ -307,7 +309,18 @@ export const getStakeAccounts = async (
       const index = Number(fields.index);
       const points = Number(fields.points);
       const totalPoints = Number(fields.total_points);
-      if (normalizeStructTag(type) === stakeMarketCoinTypes.ssui) {
+      if (normalizeStructTag(type) === stakeMarketCoinTypes.seth) {
+        stakeAccounts.seth.push({
+          id,
+          type: normalizeStructTag(type),
+          stakePoolId,
+          stakeType: normalizeStructTag(stakeType),
+          staked,
+          index,
+          points,
+          totalPoints,
+        });
+      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.ssui) {
         stakeAccounts.ssui.push({
           id,
           type: normalizeStructTag(type),
@@ -331,6 +344,17 @@ export const getStakeAccounts = async (
         });
       } else if (normalizeStructTag(type) === stakeMarketCoinTypes.susdt) {
         stakeAccounts.susdt.push({
+          id,
+          type: normalizeStructTag(type),
+          stakePoolId,
+          stakeType: normalizeStructTag(stakeType),
+          staked,
+          index,
+          points,
+          totalPoints,
+        });
+      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.scetus) {
+        stakeAccounts.scetus.push({
           id,
           type: normalizeStructTag(type),
           stakePoolId,
