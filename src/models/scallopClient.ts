@@ -90,6 +90,7 @@ export class ScallopClient {
     if (force || !this.address.getAddresses()) {
       await this.address.read();
     }
+
     await this.builder.init(force, this.address);
     await this.query.init(force, this.address);
     await this.utils.init(force, this.address);
