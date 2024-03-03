@@ -33,6 +33,7 @@ import type {
   PriceMap,
   CoinWrappedType,
 } from '../types';
+import { PYTH_ENDPOINTS } from 'src/constants/pyth';
 
 /**
  * @description
@@ -397,25 +398,36 @@ export class ScallopUtils {
     }
 
     if (lackPricesCoinNames.length > 0) {
-      const pythConnection = new SuiPriceServiceConnection(
-        this.isTestnet
-          ? 'https://hermes-beta.pyth.network'
-          : 'https://hermes.pyth.network'
-      );
-      const priceIds = lackPricesCoinNames.map((coinName) =>
-        this._address.get(`core.coins.${coinName}.oracle.pyth.feed`)
-      );
+      const endpoints =
+        this.params.pythEndpoints ??
+        PYTH_ENDPOINTS[this.isTestnet ? 'testnet' : 'mainnet'];
       try {
-        const priceFeeds =
-          (await pythConnection.getLatestPriceFeeds(priceIds)) || [];
-        for (const [index, feed] of priceFeeds.entries()) {
-          const data = parseDataFromPythPriceFeed(feed, this._address);
-          const coinName = lackPricesCoinNames[index];
-          this._priceMap.set(coinName, {
-            price: data.price,
-            publishTime: data.publishTime,
-          });
-          coinPrices[coinName] = data.price;
+        for (const endpoint of endpoints) {
+          try {
+            const pythConnection = new SuiPriceServiceConnection(endpoint);
+            const priceIds = lackPricesCoinNames.map((coinName) =>
+              this._address.get(`core.coins.${coinName}.oracle.pyth.feed`)
+            );
+            const priceFeeds =
+              (await pythConnection.getLatestPriceFeeds(priceIds)) || [];
+            for (const [index, feed] of priceFeeds.entries()) {
+              const data = parseDataFromPythPriceFeed(feed, this._address);
+              const coinName = lackPricesCoinNames[index];
+              this._priceMap.set(coinName, {
+                price: data.price,
+                publishTime: data.publishTime,
+              });
+              coinPrices[coinName] = data.price;
+            }
+
+            break;
+          } catch (e) {
+            console.warn(
+              `Failed to update price feeds with endpoint ${endpoint}: ${e}`
+            );
+          }
+
+          throw new Error('Failed to update price feeds with all endpoins');
         }
       } catch (_e) {
         for (const coinName of lackPricesCoinNames) {
