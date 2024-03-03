@@ -38,9 +38,11 @@ export const SUPPORT_COLLATERALS = [
 ] as const;
 
 export const SUPPORT_SPOOLS = [
+  'seth',
   'ssui',
   'susdc',
   'susdt',
+  'scetus',
   'safsui',
   'shasui',
   'svsui',
