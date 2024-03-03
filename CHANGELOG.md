@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.17](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.16...v0.44.17) (2024-03-03)
+
+### Features
+
+- add multiple pyth endpoints ([216b6a3](https://github.com/scallop-io/sui-scallop-sdk/commit/216b6a3de1b5f8a9c4018ff10c138f6132cd3bb6))
+- add new spools ([fc08c12](https://github.com/scallop-io/sui-scallop-sdk/commit/fc08c12e559690c7e57ae4ae24ad9ab150e2e239))
+- support specifying pyth endpoints ([a526c36](https://github.com/scallop-io/sui-scallop-sdk/commit/a526c361f532f3011f124196d39191bd834e0f07))
+
+### Bug Fixes
+
+- redundant initialization ([bd74a99](https://github.com/scallop-io/sui-scallop-sdk/commit/bd74a99568c6a2044a8c493517b163447bc354f3))
+
 ### [0.44.16](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.15...v0.44.16) (2024-01-29)
 
 ### Features
