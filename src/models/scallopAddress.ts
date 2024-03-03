@@ -191,6 +191,10 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     adminCap: '',
     object: '',
     pools: {
+      seth: {
+        id: '',
+        rewardPoolId: '',
+      },
       ssui: {
         id: '',
         rewardPoolId: '',
@@ -200,6 +204,10 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         rewardPoolId: '',
       },
       susdt: {
+        id: '',
+        rewardPoolId: '',
+      },
+      scetus: {
         id: '',
         rewardPoolId: '',
       },

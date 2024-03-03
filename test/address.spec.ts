@@ -227,6 +227,10 @@ describe('Test Scallop Address', () => {
             "adminCap": "0xdd8a047cbbf802bfcde5288b8ef1910965d789cc614da11d39af05fca0bd020a",
             "object": "0xe87f1b2d498106a2c61421cec75b7b5c5e348512b0dc263949a0e7a3c256571a",
             "pools": {
+              "seth": {
+                "id": "0xeec40beccb07c575bebd842eeaabb835f77cd3dab73add433477e57f583a6787",
+                "rewardPoolId": "0x957de68a18d87817de8309b30c1ec269a4d87ae513abbeed86b5619cb9ce1077"
+              },
               "ssui": {
                 "id": "0x4f0ba970d3c11db05c8f40c64a15b6a33322db3702d634ced6536960ab6f3ee4",
                 "rewardPoolId": "0x162250ef72393a4ad3d46294c4e1bdfcb03f04c869d390e7efbfc995353a7ee9"
@@ -238,6 +242,10 @@ describe('Test Scallop Address', () => {
               "susdt" : {
                 "id": "0xcb328f7ffa7f9342ed85af3fdb2f22919e1a06dfb2f713c04c73543870d7548f",
                 "rewardPoolId": "0x2c9f934d67a5baa586ceec2cc24163a2f049a6af3d5ba36b84d8ac40f25c4080"
+              },
+              "scetus": {
+                "id": "0xac1bb13bf4472a637c18c2415fb0e3c1227ea2bcf35242e50563c98215bd298e",
+                "rewardPoolId": "0x6835c1224126a45086fc6406adc249e3f30df18d779ca4f4e570e38716a17f3f"
               },
               "safsui": {
                 "id": "0xeedf438abcaa6ce4d9625ffca110920592d5867e4c5637d84ad9f466c4feb800",

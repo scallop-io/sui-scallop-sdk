@@ -64,18 +64,22 @@ export const marketCoins: MarketCoins = {
 };
 
 export const stakeMarketCoins: StakeMarketCoins = {
+  seth: 'seth',
   ssui: 'ssui',
   susdc: 'susdc',
   susdt: 'susdt',
+  scetus: 'scetus',
   safsui: 'safsui',
   shasui: 'shasui',
   svsui: 'svsui',
 };
 
 export const spoolRewardCoins: StakeRewardCoins = {
+  seth: 'sui',
   ssui: 'sui',
   susdc: 'sui',
   susdt: 'sui',
+  scetus: 'sui',
   safsui: 'sui',
   shasui: 'sui',
   svsui: 'sui',
