@@ -359,11 +359,16 @@ export const calculateSpoolRewardPoolData = (
     .shiftedBy(-1 * rewardCoinDecimal)
     .multipliedBy(rateYearFactor)
     .multipliedBy(rewardCoinPrice);
-  const rewardRate = rewardValueForYear
+
+  let rewardRate = rewardValueForYear
     .dividedBy(calculatedSpoolData.stakedValue)
     .isFinite()
     ? rewardValueForYear.dividedBy(calculatedSpoolData.stakedValue).toNumber()
     : Infinity;
+
+  if (parsedSpoolData.maxPoint === parsedSpoolData.distributedPoint) {
+    rewardRate = Infinity;
+  }
 
   return {
     rewardApr: rewardRate,
