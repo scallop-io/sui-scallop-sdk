@@ -83,12 +83,18 @@ export class ScallopUtils {
    * Request the scallop API to initialize data.
    *
    * @param force - Whether to force initialization.
+   * @param address - ScallopAddress instance.
    */
-  public async init(force: boolean = false) {
-    if (force || !this._address.getAddresses()) {
+  public async init(force: boolean = false, address?: ScallopAddress) {
+    if (force || !this._address.getAddresses() || !address?.getAddresses()) {
       await this._address.read();
+    } else {
+      this._address = address;
     }
-    await this._query.init(force);
+
+    if (!this._query.address.getAddresses()) {
+      await this._query.init(force, this._address);
+    }
   }
 
   /**
