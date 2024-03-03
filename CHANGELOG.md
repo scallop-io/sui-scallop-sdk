@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.18](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.17...v0.44.18) (2024-03-03)
+
+### Bug Fixes
+
+- reward apr rate ([37beb89](https://github.com/scallop-io/sui-scallop-sdk/commit/37beb892b278519f5e466c9935cef2f9d1b5bfe4))
+
 ### [0.44.17](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.16...v0.44.17) (2024-03-03)
 
 ### Features
