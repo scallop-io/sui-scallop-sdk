@@ -37,14 +37,14 @@ export const queryBorrowIncentivePools = async (
   const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
   // const txBlock = new SuiKitTxBlock();
   const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
-  // The reward coin type currently only support sui, so bring it in directly here.
-  // txBlock.moveCall(queryTarget, [incentivePoolsId], ['0x2::sui::SUI']);
+
   const txBlock = await query.cache.queryMoveCall(
     queryTarget,
     [incentivePoolsId],
     ['0x2::sui::SUI']
   );
-  const queryResult = await query.suiKit.inspectTxn(txBlock);
+  const queryResult = await query.cache.queryInspectTxn(query.suiKit, txBlock);
+
   const borrowIncentivePoolsQueryData = queryResult.events[0]
     .parsedJson as BorrowIncentivePoolsQueryInterface;
 
@@ -157,14 +157,13 @@ export const queryBorrowIncentiveAccounts = async (
     'borrowIncentive.incentiveAccounts'
   );
   const queryTarget = `${queryPkgId}::incentive_account_query::incentive_account_data`;
-  // const txBlock = new SuiKitTxBlock();
-  // txBlock.moveCall(queryTarget, [incentiveAccountsId, obligationId]);
+
   const txBlock = await query.cache.queryMoveCall(
     queryTarget,
     [incentiveAccountsId, obligationId],
     []
   );
-  const queryResult = await query.suiKit.inspectTxn(txBlock);
+  const queryResult = await query.cache.queryInspectTxn(query.suiKit, txBlock);
   const borrowIncentiveAccountsQueryData = queryResult.events[0]
     .parsedJson as BorrowIncentiveAccountsQueryInterface;
 

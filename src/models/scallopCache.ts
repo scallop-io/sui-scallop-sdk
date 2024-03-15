@@ -1,14 +1,15 @@
 import axios, { AxiosInstance } from 'axios';
 import { SDK_API_BASE_URL } from '../constants';
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
-import type { SuiKit } from '@scallop-io/sui-kit';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
+import type { SuiKit } from '@scallop-io/sui-kit';
 import type {
   SuiObjectResponse,
   SuiObjectDataOptions,
   SuiObjectData,
   PaginatedObjectsResponse,
   GetOwnedObjectsParams,
+  DevInspectResults,
 } from '@mysten/sui.js/client';
 
 type QueryObjectParams = {
@@ -31,7 +32,7 @@ type QueryObjectParams = {
 const DEFAULT_CACHE_OPTIONS: QueryClientConfig = {
   defaultOptions: {
     queries: {
-      staleTime: 1000,
+      staleTime: 1000 * 60, // 1 Minutes
     },
   },
 };
@@ -63,6 +64,19 @@ export class ScallopCache {
         const txBlock = new SuiTxBlock();
         txBlock.moveCall(queryTarget, args, typeArgs ?? []);
         return txBlock;
+      },
+    });
+    return query;
+  }
+
+  public async queryInspectTxn(
+    suiKit: SuiKit,
+    txBlock: SuiTxBlock
+  ): Promise<DevInspectResults> {
+    const query = await this.client.fetchQuery({
+      queryKey: ['inspectTxn', txBlock.serialize()],
+      queryFn: async () => {
+        return await suiKit.inspectTxn(txBlock);
       },
     });
     return query;
