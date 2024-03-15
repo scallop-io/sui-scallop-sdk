@@ -2,6 +2,8 @@ import { SuiKit, SuiTxBlock } from '@scallop-io/sui-kit';
 import { scallopQueryClient } from './client';
 import {
   GetOwnedObjectsParams,
+  PaginatedObjectsResponse,
+  SuiObjectData,
   SuiObjectDataOptions,
   SuiObjectResponse,
 } from '@mysten/sui.js/client';
@@ -50,7 +52,7 @@ export const queryGetObjects = async (
   suiKit: SuiKit,
   objectIds: string[],
   staleTime: number | undefined
-) => {
+): Promise<SuiObjectData[]> => {
   return scallopQueryClient.fetchQuery({
     queryKey: ['getObjects', objectIds, suiKit.currentAddress()],
     queryFn: async () => {
@@ -64,7 +66,7 @@ export const queryGetOwnedObjects = async (
   suiKit: SuiKit,
   input: GetOwnedObjectsParams,
   staleTime: number | undefined
-) => {
+): Promise<PaginatedObjectsResponse> => {
   const queryKey = [
     'getOwnedObjects',
     input.owner,
