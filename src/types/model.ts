@@ -28,6 +28,8 @@ export type ScallopAddressParams = {
 
 export type ScallopParams = {
   addressesId?: string;
+  enableCache?: boolean;
+  staleTime?: number;
 } & SuiKitParams;
 
 export type ScallopClientParams = ScallopParams & {

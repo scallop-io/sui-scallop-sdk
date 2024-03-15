@@ -20,6 +20,7 @@ import type {
   SupportStakeCoins,
   CoinPrices,
 } from '../types';
+import { queryGetObjects, queryGetOwnedObjects } from './cacheQuery';
 
 /**
  * Get spools data.
@@ -245,9 +246,20 @@ export const getStakeAccounts = async (
   let hasNextPage = false;
   let nextCursor: string | null = null;
   do {
-    const paginatedStakeObjectsResponse = await query.suiKit
-      .client()
-      .getOwnedObjects({
+    // const paginatedStakeObjectsResponse = await query.suiKit
+    //   .client()
+    //   .getOwnedObjects({
+    //     owner,
+    //     filter: { StructType: stakeAccountType },
+    //     options: {
+    //       showContent: true,
+    //       showType: true,
+    //     },
+    //     cursor: nextCursor,
+    //   });
+    const paginatedStakeObjectsResponse = await queryGetOwnedObjects(
+      query.suiKit,
+      {
         owner,
         filter: { StructType: stakeAccountType },
         options: {
@@ -255,7 +267,9 @@ export const getStakeAccounts = async (
           showType: true,
         },
         cursor: nextCursor,
-      });
+      },
+      query.params.staleTime
+    );
     stakeObjectsResponse.push(...paginatedStakeObjectsResponse.data);
     if (
       paginatedStakeObjectsResponse.hasNextPage &&
@@ -297,7 +311,12 @@ export const getStakeAccounts = async (
   const stakeObjectIds: string[] = stakeObjectsResponse
     .map((ref: any) => ref?.data?.objectId)
     .filter((id: any) => id !== undefined);
-  const stakeObjects = await query.suiKit.getObjects(stakeObjectIds);
+  // const stakeObjects = await query.suiKit.getObjects(stakeObjectIds);
+  const stakeObjects = await queryGetObjects(
+    query.suiKit,
+    stakeObjectIds,
+    query.params.staleTime
+  );
   for (const stakeObject of stakeObjects) {
     const id = stakeObject.objectId;
     const type = stakeObject.type!;
