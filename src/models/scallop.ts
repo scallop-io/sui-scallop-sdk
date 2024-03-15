@@ -30,6 +30,9 @@ export class Scallop {
 
   public constructor(params: ScallopParams) {
     this.params = params;
+    if (!this.params.enableCache) {
+      this.params.staleTime = undefined;
+    }
     this.suiKit = new SuiKit(params);
     this._address = new ScallopAddress({
       id: params?.addressesId || ADDRESSES_ID,
@@ -101,7 +104,7 @@ export class Scallop {
    * @return Scallop Indexer.
    */
   public async createScallopIndexer() {
-    const scallopIndexer = new ScallopIndexer();
+    const scallopIndexer = new ScallopIndexer(this.params);
 
     return scallopIndexer;
   }

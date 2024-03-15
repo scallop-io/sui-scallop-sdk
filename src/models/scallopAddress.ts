@@ -6,6 +6,7 @@ import type {
   AddressesInterface,
   AddressStringPath,
 } from '../types';
+import { scallopQueryClient } from 'src/queries/client';
 
 const EMPTY_ADDRESSES: AddressesInterface = {
   core: {
@@ -454,14 +455,28 @@ export class ScallopAddress {
     const addressesId = id || this._id || undefined;
 
     if (addressesId !== undefined) {
-      const response = await this._requestClient.get(
-        `${API_BASE_URL}/addresses/${addressesId}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      // const response = await this._requestClient.get(
+      //   `${API_BASE_URL}/addresses/${addressesId}`,
+      //   {
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //   }
+      // );
+
+      const response = await scallopQueryClient.fetchQuery({
+        queryKey: ['getAddresses', addressesId],
+        queryFn: async () => {
+          return await this._requestClient.get(
+            `${API_BASE_URL}/addresses/${addressesId}`,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+        },
+      });
 
       if (response.status === 200) {
         for (const [network, addresses] of Object.entries<AddressesInterface>(

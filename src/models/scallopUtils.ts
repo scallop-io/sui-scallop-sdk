@@ -34,6 +34,7 @@ import type {
   CoinWrappedType,
 } from '../types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
+import { scallopQueryClient } from 'src/queries/client';
 
 /**
  * @description
@@ -408,8 +409,16 @@ export class ScallopUtils {
             const priceIds = lackPricesCoinNames.map((coinName) =>
               this._address.get(`core.coins.${coinName}.oracle.pyth.feed`)
             );
+            // const priceFeeds =
+            //   (await pythConnection.getLatestPriceFeeds(priceIds)) || [];
             const priceFeeds =
-              (await pythConnection.getLatestPriceFeeds(priceIds)) || [];
+              (await scallopQueryClient.fetchQuery({
+                queryKey: priceIds,
+                queryFn: async () => {
+                  return await pythConnection.getLatestPriceFeeds(priceIds);
+                },
+                staleTime: this.params.staleTime,
+              })) ?? [];
             for (const [index, feed] of priceFeeds.entries()) {
               const data = parseDataFromPythPriceFeed(feed, this._address);
               const coinName = lackPricesCoinNames[index];

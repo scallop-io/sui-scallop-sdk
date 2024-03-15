@@ -81,7 +81,7 @@ export class ScallopQuery {
         address: this.address,
         query: this,
       });
-    this.indexer = new ScallopIndexer();
+    this.indexer = new ScallopIndexer(this.params);
   }
 
   /**
