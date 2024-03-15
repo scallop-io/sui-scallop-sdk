@@ -54,11 +54,9 @@ export const queryMarket = async (
 ) => {
   const packageId = query.address.get('core.packages.query.id');
   const marketId = query.address.get('core.market');
-  // const txBlock = new SuiKitTxBlock();
-  // txBlock.moveCall(queryTarget, [marketId]);
   const queryTarget = `${packageId}::market_query::market_data`;
   const txBlock = await query.cache.queryMoveCall(queryTarget, [marketId], []);
-  const queryResult = await query.suiKit.inspectTxn(txBlock);
+  const queryResult = await query.cache.queryInspectTxn(query.suiKit, txBlock);
   const marketData = queryResult.events[0].parsedJson as MarketQueryInterface;
   const coinPrices = await query.utils.getCoinPrices();
 
@@ -785,7 +783,7 @@ export const queryObligation = async (
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
   const txBlock = new SuiKitTxBlock();
   txBlock.moveCall(queryTarget, [obligationId]);
-  const queryResult = await query.suiKit.inspectTxn(txBlock);
+  const queryResult = await query.cache.queryInspectTxn(query.suiKit, txBlock);
   return queryResult.events[0].parsedJson as ObligationQueryInterface;
 };
 
