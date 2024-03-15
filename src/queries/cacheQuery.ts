@@ -6,12 +6,6 @@ import {
   SuiObjectResponse,
 } from '@mysten/sui.js/client';
 
-const queryFn = (queryTarget: string, args: any[], typeArgs?: any[]) => {
-  const txBlock = new SuiTxBlock();
-  txBlock.moveCall(queryTarget, args, typeArgs ?? []);
-  return txBlock;
-};
-
 export const queryMoveCall = async (
   queryTarget: string,
   args: any[],
@@ -20,7 +14,11 @@ export const queryMoveCall = async (
 ): Promise<SuiTxBlock> => {
   const query = await scallopQueryClient.fetchQuery({
     queryKey: ['movecall', queryTarget],
-    queryFn: () => queryFn(queryTarget, args, typeArgs),
+    queryFn: async () => {
+      const txBlock = new SuiTxBlock();
+      txBlock.moveCall(queryTarget, args, typeArgs ?? []);
+      return txBlock;
+    },
     staleTime,
   });
 
