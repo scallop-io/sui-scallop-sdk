@@ -37,11 +37,6 @@ import {
   MarketCoinAmounts,
   SupportMarketCoins,
 } from '../types';
-import {
-  queryGetObject,
-  queryGetOwnedObjects,
-  queryMoveCall,
-} from './cacheQuery';
 
 /**
  * Query market data.
@@ -62,12 +57,7 @@ export const queryMarket = async (
   // const txBlock = new SuiKitTxBlock();
   // txBlock.moveCall(queryTarget, [marketId]);
   const queryTarget = `${packageId}::market_query::market_data`;
-  const txBlock = await queryMoveCall(
-    queryTarget,
-    [marketId],
-    [],
-    query.params.staleTime
-  );
+  const txBlock = await query.cache.queryMoveCall(queryTarget, [marketId], []);
   const queryResult = await query.suiKit.inspectTxn(txBlock);
   const marketData = queryResult.events[0].parsedJson as MarketQueryInterface;
   const coinPrices = await query.utils.getCoinPrices();
@@ -222,12 +212,15 @@ export const getMarketPools = async (
 ) => {
   poolCoinNames = poolCoinNames || [...SUPPORT_POOLS];
   const marketId = query.address.get('core.market');
-  const marketObjectResponse = await queryGetObject(query.suiKit, marketId, {
-    options: {
-      showContent: true,
-    },
-    staleTime: query.params.staleTime,
-  });
+  const marketObjectResponse = await query.cache.queryGetObject(
+    query.suiKit,
+    marketId,
+    {
+      options: {
+        showContent: true,
+      },
+    }
+  );
   const coinPrices = await query.utils.getCoinPrices(poolCoinNames ?? []);
 
   const marketPools: MarketPools = {};
@@ -285,11 +278,10 @@ export const getMarketPool = async (
   marketObject =
     marketObject ||
     (
-      await queryGetObject(query.suiKit, marketId, {
+      await query.cache.queryGetObject(query.suiKit, marketId, {
         options: {
           showContent: true,
         },
-        staleTime: query.params.staleTime,
       })
     ).data;
 
@@ -493,12 +485,15 @@ export const getMarketCollaterals = async (
 ) => {
   collateralCoinNames = collateralCoinNames || [...SUPPORT_COLLATERALS];
   const marketId = query.address.get('core.market');
-  const marketObjectResponse = await queryGetObject(query.suiKit, marketId, {
-    options: {
-      showContent: true,
-    },
-    staleTime: query.params.staleTime,
-  });
+  const marketObjectResponse = await query.cache.queryGetObject(
+    query.suiKit,
+    marketId,
+    {
+      options: {
+        showContent: true,
+      },
+    }
+  );
   const coinPrices = await query.utils.getCoinPrices(collateralCoinNames ?? []);
 
   const marketCollaterals: MarketCollaterals = {};
@@ -555,11 +550,10 @@ export const getMarketCollateral = async (
   marketObject =
     marketObject ||
     (
-      await queryGetObject(query.suiKit, marketId, {
+      await query.cache.queryGetObject(query.suiKit, marketId, {
         options: {
           showContent: true,
         },
-        staleTime: query.params.staleTime,
       })
     ).data;
 
@@ -699,15 +693,17 @@ export const getObligations = async (
   let hasNextPage = false;
   let nextCursor: string | null = null;
   do {
-    const paginatedKeyObjectsResponse = await query.suiKit
-      .client()
-      .getOwnedObjects({
+    const paginatedKeyObjectsResponse = await query.cache.queryGetOwnedObjects(
+      query.suiKit,
+      {
         owner,
         filter: {
           StructType: `${protocolObjectId}::obligation::ObligationKey`,
         },
         cursor: nextCursor,
-      });
+      }
+    );
+
     keyObjectsResponse.push(...paginatedKeyObjectsResponse.data);
     if (
       paginatedKeyObjectsResponse.hasNextPage &&
@@ -723,7 +719,11 @@ export const getObligations = async (
   const keyObjectIds: string[] = keyObjectsResponse
     .map((ref: any) => ref?.data?.objectId)
     .filter((id: any) => id !== undefined);
-  const keyObjects = await query.suiKit.getObjects(keyObjectIds);
+  const keyObjects = await query.cache.queryGetObjects(
+    query.suiKit,
+    keyObjectIds
+  );
+
   const obligations: Obligation[] = [];
   for (const keyObject of keyObjects) {
     const keyId = keyObject.objectId;
@@ -748,12 +748,11 @@ export const getObligationLocked = async (
   query: ScallopQuery,
   obligationId: string
 ) => {
-  const obligationObjectResponse = await query.suiKit.client().getObject({
-    id: obligationId,
-    options: {
-      showContent: true,
-    },
-  });
+  const obligationObjectResponse = await query.cache.queryGetObject(
+    query.suiKit,
+    obligationId,
+    { options: { showContent: true } }
+  );
   let obligationLocked = false;
   if (
     obligationObjectResponse.data &&
@@ -809,9 +808,9 @@ export const getCoinAmounts = async (
   let hasNextPage = false;
   let nextCursor: string | null = null;
   do {
-    const paginatedCoinObjectsResponse = await query.suiKit
-      .client()
-      .getOwnedObjects({
+    const paginatedCoinObjectsResponse = await query.cache.queryGetOwnedObjects(
+      query.suiKit,
+      {
         owner,
         filter: {
           MatchAny: assetCoinNames.map((assetCoinName) => {
@@ -824,7 +823,8 @@ export const getCoinAmounts = async (
           showContent: true,
         },
         cursor: nextCursor,
-      });
+      }
+    );
 
     coinObjectsResponse.push(...paginatedCoinObjectsResponse.data);
     if (
@@ -881,17 +881,7 @@ export const getCoinAmount = async (
   let hasNextPage = false;
   let nextCursor: string | null = null;
   do {
-    // const paginatedCoinObjectsResponse = await query.suiKit
-    //   .client()
-    //   .getOwnedObjects({
-    //     owner,
-    //     filter: { StructType: `0x2::coin::Coin<${coinType}>` },
-    //     options: {
-    //       showContent: true,
-    //     },
-    //     cursor: nextCursor,
-    //   });
-    const paginatedCoinObjectsResponse = await queryGetOwnedObjects(
+    const paginatedCoinObjectsResponse = await query.cache.queryGetOwnedObjects(
       query.suiKit,
       {
         owner,
@@ -900,8 +890,7 @@ export const getCoinAmount = async (
           showContent: true,
         },
         cursor: nextCursor,
-      },
-      query.params.staleTime
+      }
     );
 
     coinObjectsResponse.push(...paginatedCoinObjectsResponse.data);
@@ -956,9 +945,8 @@ export const getMarketCoinAmounts = async (
   let hasNextPage = false;
   let nextCursor: string | null = null;
   do {
-    const paginatedMarketCoinObjectsResponse = await query.suiKit
-      .client()
-      .getOwnedObjects({
+    const paginatedMarketCoinObjectsResponse =
+      await query.cache.queryGetOwnedObjects(query.suiKit, {
         owner,
         filter: {
           MatchAny: marketCoinNames.map((marketCoinName) => {
@@ -1031,29 +1019,15 @@ export const getMarketCoinAmount = async (
   let hasNextPage = false;
   let nextCursor: string | null = null;
   do {
-    // const paginatedMarketCoinObjectsResponse = await query.suiKit
-    //   .client()
-    //   .getOwnedObjects({
-    //     owner,
-    //     filter: { StructType: `0x2::coin::Coin<${marketCoinType}>` },
-    //     options: {
-    //       showContent: true,
-    //     },
-    //     cursor: nextCursor,
-    //   });
-
-    const paginatedMarketCoinObjectsResponse = await queryGetOwnedObjects(
-      query.suiKit,
-      {
+    const paginatedMarketCoinObjectsResponse =
+      await query.cache.queryGetOwnedObjects(query.suiKit, {
         owner,
         filter: { StructType: `0x2::coin::Coin<${marketCoinType}>` },
         options: {
           showContent: true,
         },
         cursor: nextCursor,
-      },
-      query.params.staleTime
-    );
+      });
 
     marketCoinObjectsResponse.push(...paginatedMarketCoinObjectsResponse.data);
     if (

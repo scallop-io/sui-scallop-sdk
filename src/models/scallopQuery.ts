@@ -41,6 +41,7 @@ import {
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopIndexer } from './scallopIndexer';
+import { ScallopCache } from './scallopCache';
 
 /**
  * @description
@@ -61,27 +62,33 @@ export class ScallopQuery {
   public address: ScallopAddress;
   public utils: ScallopUtils;
   public indexer: ScallopIndexer;
+  public cache: ScallopCache;
 
   public constructor(
     params: ScallopQueryParams,
-    instance?: ScallopInstanceParams
+    instance: ScallopInstanceParams
   ) {
     this.params = params;
     this.suiKit = instance?.suiKit ?? new SuiKit(params);
+    this.cache = instance?.cache;
     this.address =
       instance?.address ??
-      new ScallopAddress({
-        id: params?.addressesId || ADDRESSES_ID,
-        network: params?.networkType,
-      });
+      new ScallopAddress(
+        {
+          id: params?.addressesId || ADDRESSES_ID,
+          network: params?.networkType,
+        },
+        this.cache
+      );
     this.utils =
       instance?.utils ??
       new ScallopUtils(this.params, {
         suiKit: this.suiKit,
         address: this.address,
+        cache: this.cache,
         query: this,
       });
-    this.indexer = new ScallopIndexer(this.params);
+    this.indexer = new ScallopIndexer(this.params, { cache: this.cache });
   }
 
   /**
