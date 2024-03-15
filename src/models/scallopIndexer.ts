@@ -1,4 +1,3 @@
-import axios, { AxiosInstance } from 'axios';
 import { SDK_API_BASE_URL } from '../constants';
 import type {
   Market,
@@ -17,8 +16,9 @@ import type {
   TotalValueLocked,
   ScallopQueryParams,
   ScallopParams,
+  ScallopInstanceParams,
 } from '../types';
-import { scallopQueryClient } from 'src/queries/client';
+import { ScallopCache } from './scallopCache';
 
 /**
  * @description
@@ -33,19 +33,13 @@ import { scallopQueryClient } from 'src/queries/client';
  * ```
  */
 export class ScallopIndexer {
-  private _requestClient: AxiosInstance;
+  private readonly _cache: ScallopCache;
+
   public readonly params: ScallopQueryParams;
 
-  public constructor(params: ScallopParams) {
+  public constructor(params: ScallopParams, instance: ScallopInstanceParams) {
     this.params = params;
-    this._requestClient = axios.create({
-      baseURL: SDK_API_BASE_URL,
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      timeout: 30000,
-    });
+    this._cache = instance.cache;
   }
 
   /**
@@ -54,15 +48,10 @@ export class ScallopIndexer {
    * @return Market data.
    */
   public async getMarket(): Promise<Pick<Market, 'pools' | 'collaterals'>> {
-    // const response = await this._requestClient.get<{
-    //   pools: MarketPool[];
-    //   collaterals: MarketCollateral[];
-    // }>(`${SDK_API_BASE_URL}/api/market`);
-
-    const response = await scallopQueryClient.fetchQuery({
+    const response = await this._cache.client.fetchQuery({
       queryKey: ['market'],
       queryFn: async () => {
-        return await this._requestClient.get<{
+        return await this._cache.requestClient.get<{
           pools: MarketPool[];
           collaterals: MarketCollateral[];
         }>(`${SDK_API_BASE_URL}/api/market`);
@@ -94,14 +83,10 @@ export class ScallopIndexer {
    * @return Market pools data.
    */
   public async getMarketPools(): Promise<Required<MarketPools>> {
-    // const response = await this._requestClient.get<{
-    //   pools: MarketPool[];
-    // }>(`${SDK_API_BASE_URL}/api/market/pools`);
-
-    const response = await scallopQueryClient.fetchQuery({
+    const response = await this._cache.client.fetchQuery({
       queryKey: ['marketPools'],
       queryFn: async () => {
-        return await this._requestClient.get<{
+        return await this._cache.requestClient.get<{
           pools: MarketPool[];
         }>(`${SDK_API_BASE_URL}/api/market/pools`);
       },
@@ -124,14 +109,10 @@ export class ScallopIndexer {
   public async getMarketPool(
     poolCoinName: SupportPoolCoins
   ): Promise<MarketPool> {
-    // const response = await this._requestClient.get<{
-    //   pool: MarketPool;
-    // }>(`${SDK_API_BASE_URL}/api/market/pool/${poolCoinName}`);
-
-    const response = await scallopQueryClient.fetchQuery({
+    const response = await this._cache.client.fetchQuery({
       queryKey: ['marketPool', poolCoinName],
       queryFn: async () => {
-        return await this._requestClient.get<{
+        return await this._cache.requestClient.get<{
           pool: MarketPool;
         }>(`${SDK_API_BASE_URL}/api/market/pool/${poolCoinName}`);
       },
@@ -149,14 +130,10 @@ export class ScallopIndexer {
    * @return Market collaterals data.
    */
   public async getMarketCollaterals(): Promise<Required<MarketCollaterals>> {
-    // const response = await this._requestClient.get<{
-    //   collaterals: MarketCollateral[];
-    // }>(`${SDK_API_BASE_URL}/api/market/collaterals`);
-
-    const response = await scallopQueryClient.fetchQuery({
+    const response = await this._cache.client.fetchQuery({
       queryKey: ['marketCollaterals'],
       queryFn: async () => {
-        return await this._requestClient.get<{
+        return await this._cache.requestClient.get<{
           collaterals: MarketCollateral[];
         }>(`${SDK_API_BASE_URL}/api/market/collaterals`);
       },
@@ -183,14 +160,10 @@ export class ScallopIndexer {
   public async getMarketCollateral(
     collateralCoinName: SupportCollateralCoins
   ): Promise<MarketCollateral> {
-    // const response = await this._requestClient.get<{
-    //   collateral: MarketCollateral;
-    // }>(`${SDK_API_BASE_URL}/api/market/collateral/${collateralCoinName}`);
-
-    const response = await scallopQueryClient.fetchQuery({
+    const response = await this._cache.client.fetchQuery({
       queryKey: ['marketCollateral', collateralCoinName],
       queryFn: async () => {
-        return await this._requestClient.get<{
+        return await this._cache.requestClient.get<{
           collateral: MarketCollateral;
         }>(`${SDK_API_BASE_URL}/api/market/collateral/${collateralCoinName}`);
       },
@@ -208,14 +181,10 @@ export class ScallopIndexer {
    * @return Spools data.
    */
   public async getSpools(): Promise<Required<Spools>> {
-    // const response = await this._requestClient.get<{
-    //   spools: Spool[];
-    // }>(`${SDK_API_BASE_URL}/api/spools`);
-
-    const response = await scallopQueryClient.fetchQuery({
+    const response = await this._cache.client.fetchQuery({
       queryKey: ['spools'],
       queryFn: async () => {
-        return await this._requestClient.get<{
+        return await this._cache.requestClient.get<{
           spools: Spool[];
         }>(`${SDK_API_BASE_URL}/api/spools`);
       },
@@ -243,10 +212,10 @@ export class ScallopIndexer {
     //   spool: Spool;
     // }>(`${SDK_API_BASE_URL}/api/spool/${marketCoinName}`);
 
-    const response = await scallopQueryClient.fetchQuery({
+    const response = await this._cache.client.fetchQuery({
       queryKey: ['spool', marketCoinName],
       queryFn: async () => {
-        return await this._requestClient.get<{
+        return await this._cache.requestClient.get<{
           spool: Spool;
         }>(`${SDK_API_BASE_URL}/api/spool/${marketCoinName}`);
       },
@@ -266,14 +235,10 @@ export class ScallopIndexer {
   public async getBorrowIncentivePools(): Promise<
     Required<BorrowIncentivePools>
   > {
-    // const response = await this._requestClient.get<{
-    //   borrowIncentivePools: BorrowIncentivePool[];
-    // }>(`${SDK_API_BASE_URL}/api/borrowIncentivePools`);
-
-    const response = await scallopQueryClient.fetchQuery({
+    const response = await this._cache.client.fetchQuery({
       queryKey: ['borrowIncentivePools'],
       queryFn: async () => {
-        return await this._requestClient.get<{
+        return await this._cache.requestClient.get<{
           borrowIncentivePools: BorrowIncentivePool[];
         }>(`${SDK_API_BASE_URL}/api/borrowIncentivePools`);
       },
@@ -301,16 +266,10 @@ export class ScallopIndexer {
   public async getBorrowIncentivePool(
     borrowIncentiveCoinName: SupportBorrowIncentiveCoins
   ): Promise<BorrowIncentivePool> {
-    // const response = await this._requestClient.get<{
-    //   borrowIncentivePool: BorrowIncentivePool;
-    // }>(
-    //   `${SDK_API_BASE_URL}/api/borrowIncentivePool/${borrowIncentiveCoinName}`
-    // );
-
-    const response = await scallopQueryClient.fetchQuery({
+    const response = await this._cache.client.fetchQuery({
       queryKey: ['borrowIncentivePool', borrowIncentiveCoinName],
       queryFn: async () => {
-        return await this._requestClient.get<{
+        return await this._cache.requestClient.get<{
           borrowIncentivePool: BorrowIncentivePool;
         }>(
           `${SDK_API_BASE_URL}/api/borrowIncentivePool/${borrowIncentiveCoinName}`
@@ -337,18 +296,10 @@ export class ScallopIndexer {
       supplyValueChangeRatio: number;
     }
   > {
-    // const response = await this._requestClient.get<
-    //   TotalValueLocked & {
-    //     totalValueChangeRatio: number;
-    //     borrowValueChangeRatio: number;
-    //     supplyValueChangeRatio: number;
-    //   }
-    // >(`${SDK_API_BASE_URL}/api/market/tvl`);
-
-    const response = await scallopQueryClient.fetchQuery({
+    const response = await this._cache.client.fetchQuery({
       queryKey: ['totalValueLocked'],
       queryFn: async () => {
-        return await this._requestClient.get<
+        return await this._cache.requestClient.get<
           TotalValueLocked & {
             totalValueChangeRatio: number;
             borrowValueChangeRatio: number;

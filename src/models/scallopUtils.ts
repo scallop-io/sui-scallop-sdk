@@ -34,7 +34,7 @@ import type {
   CoinWrappedType,
 } from '../types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
-import { scallopQueryClient } from 'src/queries/client';
+import { ScallopCache } from './scallopCache';
 
 /**
  * @description
@@ -56,6 +56,7 @@ export class ScallopUtils {
   private _address: ScallopAddress;
   private _query: ScallopQuery;
   private _priceMap: PriceMap = new Map();
+  private _cache: ScallopCache;
 
   public constructor(
     params: ScallopUtilsParams,
@@ -63,17 +64,22 @@ export class ScallopUtils {
   ) {
     this.params = params;
     this._suiKit = instance?.suiKit ?? new SuiKit(params);
+    this._cache = instance?.cache ?? new ScallopCache();
     this._address =
       instance?.address ??
-      new ScallopAddress({
-        id: params?.addressesId || ADDRESSES_ID,
-        network: params?.networkType,
-      });
+      new ScallopAddress(
+        {
+          id: params?.addressesId || ADDRESSES_ID,
+          network: params?.networkType,
+        },
+        this._cache
+      );
     this._query =
       instance?.query ??
       new ScallopQuery(params, {
         suiKit: this._suiKit,
         address: this._address,
+        cache: this._cache,
       });
     this.isTestnet = params.networkType
       ? params.networkType === 'testnet'
@@ -412,12 +418,11 @@ export class ScallopUtils {
             // const priceFeeds =
             //   (await pythConnection.getLatestPriceFeeds(priceIds)) || [];
             const priceFeeds =
-              (await scallopQueryClient.fetchQuery({
+              (await this._cache.client.fetchQuery({
                 queryKey: priceIds,
                 queryFn: async () => {
                   return await pythConnection.getLatestPriceFeeds(priceIds);
                 },
-                staleTime: this.params.staleTime,
               })) ?? [];
             for (const [index, feed] of priceFeeds.entries()) {
               const data = parseDataFromPythPriceFeed(feed, this._address);

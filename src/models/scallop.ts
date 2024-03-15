@@ -7,6 +7,7 @@ import { ScallopUtils } from './scallopUtils';
 import { ADDRESSES_ID } from '../constants';
 import type { ScallopParams } from '../types/';
 import { ScallopIndexer } from './scallopIndexer';
+import { ScallopCache } from './scallopCache';
 
 /**
  * @description
@@ -27,17 +28,19 @@ export class Scallop {
   public suiKit: SuiKit;
 
   private _address: ScallopAddress;
+  private _cache: ScallopCache;
 
-  public constructor(params: ScallopParams) {
+  public constructor(params: ScallopParams, cache?: ScallopCache) {
     this.params = params;
-    if (!this.params.enableCache) {
-      this.params.staleTime = undefined;
-    }
     this.suiKit = new SuiKit(params);
-    this._address = new ScallopAddress({
-      id: params?.addressesId || ADDRESSES_ID,
-      network: params?.networkType,
-    });
+    this._cache = cache ?? new ScallopCache();
+    this._address = new ScallopAddress(
+      {
+        id: params?.addressesId || ADDRESSES_ID,
+        network: params?.networkType,
+      },
+      this._cache
+    );
   }
 
   /**
@@ -62,6 +65,7 @@ export class Scallop {
     const scallopBuilder = new ScallopBuilder(this.params, {
       suiKit: this.suiKit,
       address: this._address,
+      cache: this._cache,
     });
 
     return scallopBuilder;
@@ -77,7 +81,7 @@ export class Scallop {
     if (!this._address.getAddresses()) await this._address.read();
     const scallopClient = new ScallopClient(
       { ...this.params, walletAddress },
-      { suiKit: this.suiKit, address: this._address }
+      { suiKit: this.suiKit, address: this._address, cache: this._cache }
     );
 
     return scallopClient;
@@ -93,6 +97,7 @@ export class Scallop {
     const scallopQuery = new ScallopQuery(this.params, {
       suiKit: this.suiKit,
       address: this._address,
+      cache: this._cache,
     });
 
     return scallopQuery;
@@ -104,7 +109,9 @@ export class Scallop {
    * @return Scallop Indexer.
    */
   public async createScallopIndexer() {
-    const scallopIndexer = new ScallopIndexer(this.params);
+    const scallopIndexer = new ScallopIndexer(this.params, {
+      cache: this._cache,
+    });
 
     return scallopIndexer;
   }
@@ -119,6 +126,7 @@ export class Scallop {
     const scallopUtils = new ScallopUtils(this.params, {
       suiKit: this.suiKit,
       address: this._address,
+      cache: this._cache,
     });
 
     return scallopUtils;
