@@ -15,7 +15,7 @@ export const queryMoveCall = async (
   staleTime: number | undefined
 ): Promise<SuiTxBlock> => {
   const query = await scallopQueryClient.fetchQuery({
-    queryKey: ['movecall', queryTarget],
+    queryKey: ['movecall', queryTarget, ...(args || []), ...(typeArgs || [])],
     queryFn: async () => {
       const txBlock = new SuiTxBlock();
       txBlock.moveCall(queryTarget, args, typeArgs ?? []);
@@ -36,8 +36,12 @@ export const queryGetObject = async (
   objectId: string,
   { options, staleTime }: QueryObjectParams
 ): Promise<SuiObjectResponse> => {
+  const queryKey = ['getObject', objectId, suiKit.currentAddress()];
+  if (options) {
+    queryKey.push(JSON.stringify(options));
+  }
   return scallopQueryClient.fetchQuery({
-    queryKey: ['getObject', objectId, suiKit.currentAddress()],
+    queryKey,
     queryFn: async () => {
       return await suiKit.client().getObject({
         id: objectId,
@@ -67,14 +71,19 @@ export const queryGetOwnedObjects = async (
   input: GetOwnedObjectsParams,
   staleTime: number | undefined
 ): Promise<PaginatedObjectsResponse> => {
-  const queryKey = [
-    'getOwnedObjects',
-    input.owner,
-    input.options && JSON.stringify(input.filter),
-    input.cursor,
-  ]
-    .filter(Boolean)
-    .map(String);
+  const queryKey = ['getOwnedObjects', input.owner];
+  if (input.cursor) {
+    queryKey.push(JSON.stringify(input.cursor));
+  }
+  if (input.options) {
+    queryKey.push(JSON.stringify(input.options));
+  }
+  if (input.filter) {
+    queryKey.push(JSON.stringify(input.filter));
+  }
+  if (input.limit) {
+    queryKey.push(JSON.stringify(input.limit));
+  }
 
   return scallopQueryClient.fetchQuery({
     queryKey,
