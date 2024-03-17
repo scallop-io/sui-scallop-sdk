@@ -1,8 +1,6 @@
-import axios, { AxiosInstance } from 'axios';
-import { SDK_API_BASE_URL } from '../constants';
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
-import { SuiTxBlock } from '@scallop-io/sui-kit';
-import type { SuiKit } from '@scallop-io/sui-kit';
+import { SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
+import { SuiKit } from '@scallop-io/sui-kit';
 import type {
   SuiObjectResponse,
   SuiObjectDataOptions,
@@ -11,14 +9,21 @@ import type {
   GetOwnedObjectsParams,
   DevInspectResults,
 } from '@mysten/sui.js/client';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 
 type QueryObjectParams = {
   options?: SuiObjectDataOptions;
 };
 
+type QueryInspectTxnParams = {
+  queryTarget: string;
+  args: SuiTxArg[];
+  typeArgs?: any[];
+};
+
 /**
  * @description
- * It provides caching for query.
+ * It provides caching for moveCall, RPC Request, and API Request.
  *
  *
  * @example
@@ -29,72 +34,122 @@ type QueryObjectParams = {
  * ```
  */
 
-const DEFAULT_CACHE_OPTIONS: QueryClientConfig = {
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60, // 1 Minutes
-    },
-  },
-};
 export class ScallopCache {
-  public readonly requestClient: AxiosInstance;
-  public readonly client: QueryClient;
+  public readonly queryClient: QueryClient;
+  public readonly _suiKit?: SuiKit;
 
-  public constructor(cacheOptions: QueryClientConfig = DEFAULT_CACHE_OPTIONS) {
-    this.client = new QueryClient(cacheOptions);
+  public constructor(cacheOptions?: QueryClientConfig, suiKit?: SuiKit) {
+    this.queryClient = new QueryClient(cacheOptions ?? DEFAULT_CACHE_OPTIONS);
+    this._suiKit = suiKit;
+  }
 
-    this.requestClient = axios.create({
-      baseURL: SDK_API_BASE_URL,
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      timeout: 30000,
+  private get suiKit(): SuiKit {
+    if (!this._suiKit) {
+      throw new Error('SuiKit instance is not initialized');
+    }
+    return this._suiKit;
+  }
+
+  /**
+   * @description Invalidate cache based on the refetchType parameter
+   * @param refetchType Determines the type of queries to be refetched. Defaults to `active`.
+   *
+   * - `active`: Only queries that match the refetch predicate and are actively being rendered via useQuery and related functions will be refetched in the background.
+   * - `inactive`: Only queries that match the refetch predicate and are NOT actively being rendered via useQuery and related functions will be refetched in the background.
+   * - `all`: All queries that match the refetch predicate will be refetched in the background.
+   * - `none`: No queries will be refetched. Queries that match the refetch predicate will only be marked as invalid.
+   */
+  public invalidateAndRefetchAllCache(
+    refetchType: 'all' | 'active' | 'inactive' | 'none'
+  ) {
+    this.queryClient.invalidateQueries({
+      refetchType,
     });
   }
 
-  public async queryMoveCall(
-    queryTarget: string,
-    args: any[],
-    typeArgs: any[]
-  ): Promise<SuiTxBlock> {
-    const query = await this.client.fetchQuery({
-      queryKey: ['movecall', queryTarget, ...(args || []), ...(typeArgs || [])],
+  /**
+   * @description Cache protocol config call for 60 seconds.
+   * @returns Promise<ProtocolConfig>
+   */
+  private async getProtocolConfig() {
+    return await this.queryClient.fetchQuery({
+      queryKey: ['getProtocolConfig'],
       queryFn: async () => {
-        const txBlock = new SuiTxBlock();
-        txBlock.moveCall(queryTarget, args, typeArgs ?? []);
-        return txBlock;
+        return await this.suiKit.client().getProtocolConfig();
+      },
+      staleTime: 60000,
+    });
+  }
+
+  /**
+   * @description Provides cache for inspectTxn of the SuiKit.
+   * @param QueryInspectTxnParams
+   * @param txBlock
+   * @returns Promise<DevInspectResults>
+   */
+  public async queryInspectTxn({
+    queryTarget,
+    args,
+    typeArgs,
+  }: QueryInspectTxnParams): Promise<DevInspectResults> {
+    const txBlock = new SuiTxBlock();
+
+    // resolve all the object args to prevent duplicate getNormalizedMoveFunction calls
+    const resolvedArgs = await Promise.all(
+      args.map(async (arg) => {
+        if (typeof arg === 'string') {
+          return (
+            await this.queryGetObject(arg, {
+              options: { showContent: true },
+            })
+          ).data;
+        }
+        return arg;
+      })
+    );
+    txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
+
+    // build the txBlock to prevent duplicate getProtocolConfig calls
+    const txBytes = await txBlock.txBlock.build({
+      client: this.suiKit.client(),
+      onlyTransactionKind: true,
+      protocolConfig: await this.getProtocolConfig(),
+    });
+
+    const query = await this.queryClient.fetchQuery({
+      queryKey: typeArgs
+        ? ['inspectTxn', queryTarget, JSON.stringify(args)]
+        : [
+            'inspectTxn',
+            queryTarget,
+            JSON.stringify(args),
+            JSON.stringify(typeArgs),
+          ],
+      queryFn: async () => {
+        return await this.suiKit.inspectTxn(txBytes);
       },
     });
     return query;
   }
 
-  public async queryInspectTxn(
-    suiKit: SuiKit,
-    txBlock: SuiTxBlock
-  ): Promise<DevInspectResults> {
-    const query = await this.client.fetchQuery({
-      queryKey: ['inspectTxn', txBlock.serialize()],
-      queryFn: async () => {
-        return await suiKit.inspectTxn(txBlock);
-      },
-    });
-    return query;
-  }
-
+  /**
+   * @description Provides cache for getObject of the SuiKit.
+   * @param objectId
+   * @param QueryObjectParams
+   * @returns Promise<SuiObjectResponse>
+   */
   public async queryGetObject(
-    suiKit: SuiKit,
     objectId: string,
     { options }: QueryObjectParams
   ): Promise<SuiObjectResponse> {
-    const queryKey = ['getObject', objectId, suiKit.currentAddress()];
+    const queryKey = ['getObject', objectId, this.suiKit.currentAddress()];
     if (options) {
       queryKey.push(JSON.stringify(options));
     }
-    return this.client.fetchQuery({
+    return this.queryClient.fetchQuery({
       queryKey,
       queryFn: async () => {
-        return await suiKit.client().getObject({
+        return await this.suiKit.client().getObject({
           id: objectId,
           options,
         });
@@ -102,20 +157,30 @@ export class ScallopCache {
     });
   }
 
-  public async queryGetObjects(
-    suiKit: SuiKit,
-    objectIds: string[]
-  ): Promise<SuiObjectData[]> {
-    return this.client.fetchQuery({
-      queryKey: ['getObjects', objectIds, suiKit.currentAddress()],
+  /**
+   * @description Provides cache for getObjects of the SuiKit.
+   * @param objectIds
+   * @returns Promise<SuiObjectData[]>
+   */
+  public async queryGetObjects(objectIds: string[]): Promise<SuiObjectData[]> {
+    return this.queryClient.fetchQuery({
+      queryKey: [
+        'getObjects',
+        JSON.stringify(objectIds),
+        this.suiKit.currentAddress(),
+      ],
       queryFn: async () => {
-        return await suiKit.getObjects(objectIds);
+        return await this.suiKit.getObjects(objectIds);
       },
     });
   }
 
+  /**
+   * @description Provides cache for getOwnedObjects of the SuiKit.
+   * @param input
+   * @returns Promise<PaginatedObjectsResponse>
+   */
   public async queryGetOwnedObjects(
-    suiKit: SuiKit,
     input: GetOwnedObjectsParams
   ): Promise<PaginatedObjectsResponse> {
     const queryKey = ['getOwnedObjects', input.owner];
@@ -132,10 +197,10 @@ export class ScallopCache {
       queryKey.push(JSON.stringify(input.limit));
     }
 
-    return this.client.fetchQuery({
+    return this.queryClient.fetchQuery({
       queryKey,
       queryFn: async () => {
-        return await suiKit.client().getOwnedObjects(input);
+        return await this.suiKit.client().getOwnedObjects(input);
       },
     });
   }
