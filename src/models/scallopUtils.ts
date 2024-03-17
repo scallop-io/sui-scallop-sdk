@@ -412,38 +412,42 @@ export class ScallopUtils {
         for (const endpoint of endpoints) {
           try {
             const pythConnection = new SuiPriceServiceConnection(endpoint);
-            const priceIds = lackPricesCoinNames.map((coinName) =>
-              this._address.get(`core.coins.${coinName}.oracle.pyth.feed`)
+            const priceIds = Array.from(
+              new Set(
+                lackPricesCoinNames.map((coinName) =>
+                  this._address.get(`core.coins.${coinName}.oracle.pyth.feed`)
+                )
+              )
             );
-            // const priceFeeds =
-            //   (await pythConnection.getLatestPriceFeeds(priceIds)) || [];
-            const priceFeeds =
-              (await this._cache.client.fetchQuery({
-                queryKey: priceIds,
-                queryFn: async () => {
-                  return await pythConnection.getLatestPriceFeeds(priceIds);
-                },
-              })) ?? [];
-            for (const [index, feed] of priceFeeds.entries()) {
-              const data = parseDataFromPythPriceFeed(feed, this._address);
-              const coinName = lackPricesCoinNames[index];
-              this._priceMap.set(coinName, {
-                price: data.price,
-                publishTime: data.publishTime,
-              });
-              coinPrices[coinName] = data.price;
-            }
 
+            for (const [index, priceId] of priceIds.entries()) {
+              const feed = await this._cache.queryClient.fetchQuery({
+                queryKey: [priceId],
+                queryFn: async () => {
+                  return await pythConnection.getLatestPriceFeeds([priceId]);
+                },
+              });
+              if (feed) {
+                const data = parseDataFromPythPriceFeed(feed[0], this._address);
+                const coinName = lackPricesCoinNames[index];
+                this._priceMap.set(coinName, {
+                  price: data.price,
+                  publishTime: data.publishTime,
+                });
+                coinPrices[coinName] = data.price;
+              }
+            }
             break;
           } catch (e) {
             console.warn(
-              `Failed to update price feeds with endpoint ${endpoint}: ${e}`
+              `Failed to get price feeds with endpoint ${endpoint}: ${e}`
             );
           }
 
-          throw new Error('Failed to update price feeds with all endpoins');
+          throw new Error('Failed to get price feeds with all endpoints');
         }
       } catch (_e) {
+        console.warn(_e);
         for (const coinName of lackPricesCoinNames) {
           const price = await this._query.getPriceFromPyth(coinName);
           this._priceMap.set(coinName, {

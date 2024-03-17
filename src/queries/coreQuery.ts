@@ -1,5 +1,4 @@
 import { normalizeStructTag } from '@mysten/sui.js/utils';
-import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import BigNumber from 'bignumber.js';
 import {
   SUPPORT_POOLS,
@@ -55,8 +54,14 @@ export const queryMarket = async (
   const packageId = query.address.get('core.packages.query.id');
   const marketId = query.address.get('core.market');
   const queryTarget = `${packageId}::market_query::market_data`;
-  const txBlock = await query.cache.queryMoveCall(queryTarget, [marketId], []);
-  const queryResult = await query.cache.queryInspectTxn(query.suiKit, txBlock);
+  const args = [marketId];
+
+  // const txBlock = new SuiKitTxBlock();
+  // txBlock.moveCall(queryTarget, args);
+  const queryResult = await query.cache.queryInspectTxn(
+    { queryTarget, args }
+    // txBlock
+  );
   const marketData = queryResult.events[0].parsedJson as MarketQueryInterface;
   const coinPrices = await query.utils.getCoinPrices();
 
@@ -210,15 +215,11 @@ export const getMarketPools = async (
 ) => {
   poolCoinNames = poolCoinNames || [...SUPPORT_POOLS];
   const marketId = query.address.get('core.market');
-  const marketObjectResponse = await query.cache.queryGetObject(
-    query.suiKit,
-    marketId,
-    {
-      options: {
-        showContent: true,
-      },
-    }
-  );
+  const marketObjectResponse = await query.cache.queryGetObject(marketId, {
+    options: {
+      showContent: true,
+    },
+  });
   const coinPrices = await query.utils.getCoinPrices(poolCoinNames ?? []);
 
   const marketPools: MarketPools = {};
@@ -276,7 +277,7 @@ export const getMarketPool = async (
   marketObject =
     marketObject ||
     (
-      await query.cache.queryGetObject(query.suiKit, marketId, {
+      await query.cache.queryGetObject(marketId, {
         options: {
           showContent: true,
         },
@@ -483,15 +484,11 @@ export const getMarketCollaterals = async (
 ) => {
   collateralCoinNames = collateralCoinNames || [...SUPPORT_COLLATERALS];
   const marketId = query.address.get('core.market');
-  const marketObjectResponse = await query.cache.queryGetObject(
-    query.suiKit,
-    marketId,
-    {
-      options: {
-        showContent: true,
-      },
-    }
-  );
+  const marketObjectResponse = await query.cache.queryGetObject(marketId, {
+    options: {
+      showContent: true,
+    },
+  });
   const coinPrices = await query.utils.getCoinPrices(collateralCoinNames ?? []);
 
   const marketCollaterals: MarketCollaterals = {};
@@ -548,7 +545,7 @@ export const getMarketCollateral = async (
   marketObject =
     marketObject ||
     (
-      await query.cache.queryGetObject(query.suiKit, marketId, {
+      await query.cache.queryGetObject(marketId, {
         options: {
           showContent: true,
         },
@@ -691,16 +688,13 @@ export const getObligations = async (
   let hasNextPage = false;
   let nextCursor: string | null = null;
   do {
-    const paginatedKeyObjectsResponse = await query.cache.queryGetOwnedObjects(
-      query.suiKit,
-      {
-        owner,
-        filter: {
-          StructType: `${protocolObjectId}::obligation::ObligationKey`,
-        },
-        cursor: nextCursor,
-      }
-    );
+    const paginatedKeyObjectsResponse = await query.cache.queryGetOwnedObjects({
+      owner,
+      filter: {
+        StructType: `${protocolObjectId}::obligation::ObligationKey`,
+      },
+      cursor: nextCursor,
+    });
 
     keyObjectsResponse.push(...paginatedKeyObjectsResponse.data);
     if (
@@ -717,10 +711,7 @@ export const getObligations = async (
   const keyObjectIds: string[] = keyObjectsResponse
     .map((ref: any) => ref?.data?.objectId)
     .filter((id: any) => id !== undefined);
-  const keyObjects = await query.cache.queryGetObjects(
-    query.suiKit,
-    keyObjectIds
-  );
+  const keyObjects = await query.cache.queryGetObjects(keyObjectIds);
 
   const obligations: Obligation[] = [];
   for (const keyObject of keyObjects) {
@@ -747,7 +738,6 @@ export const getObligationLocked = async (
   obligationId: string
 ) => {
   const obligationObjectResponse = await query.cache.queryGetObject(
-    query.suiKit,
     obligationId,
     { options: { showContent: true } }
   );
@@ -781,9 +771,14 @@ export const queryObligation = async (
 ) => {
   const packageId = query.address.get('core.packages.query.id');
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
-  const txBlock = new SuiKitTxBlock();
-  txBlock.moveCall(queryTarget, [obligationId]);
-  const queryResult = await query.cache.queryInspectTxn(query.suiKit, txBlock);
+  const args = [obligationId];
+
+  // const txBlock = new SuiKitTxBlock();
+  // txBlock.moveCall(queryTarget, args);
+  const queryResult = await query.cache.queryInspectTxn(
+    { queryTarget, args }
+    // txBlock
+  );
   return queryResult.events[0].parsedJson as ObligationQueryInterface;
 };
 
@@ -807,7 +802,6 @@ export const getCoinAmounts = async (
   let nextCursor: string | null = null;
   do {
     const paginatedCoinObjectsResponse = await query.cache.queryGetOwnedObjects(
-      query.suiKit,
       {
         owner,
         filter: {
@@ -880,7 +874,6 @@ export const getCoinAmount = async (
   let nextCursor: string | null = null;
   do {
     const paginatedCoinObjectsResponse = await query.cache.queryGetOwnedObjects(
-      query.suiKit,
       {
         owner,
         filter: { StructType: `0x2::coin::Coin<${coinType}>` },
@@ -944,7 +937,7 @@ export const getMarketCoinAmounts = async (
   let nextCursor: string | null = null;
   do {
     const paginatedMarketCoinObjectsResponse =
-      await query.cache.queryGetOwnedObjects(query.suiKit, {
+      await query.cache.queryGetOwnedObjects({
         owner,
         filter: {
           MatchAny: marketCoinNames.map((marketCoinName) => {
@@ -1018,7 +1011,7 @@ export const getMarketCoinAmount = async (
   let nextCursor: string | null = null;
   do {
     const paginatedMarketCoinObjectsResponse =
-      await query.cache.queryGetOwnedObjects(query.suiKit, {
+      await query.cache.queryGetOwnedObjects({
         owner,
         filter: { StructType: `0x2::coin::Coin<${marketCoinType}>` },
         options: {

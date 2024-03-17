@@ -246,7 +246,7 @@ export const getStakeAccounts = async (
   let nextCursor: string | null = null;
   do {
     const paginatedStakeObjectsResponse =
-      await query.cache.queryGetOwnedObjects(query.suiKit, {
+      await query.cache.queryGetOwnedObjects({
         owner,
         filter: { StructType: stakeAccountType },
         options: {
@@ -296,10 +296,7 @@ export const getStakeAccounts = async (
   const stakeObjectIds: string[] = stakeObjectsResponse
     .map((ref: any) => ref?.data?.objectId)
     .filter((id: any) => id !== undefined);
-  const stakeObjects = await query.cache.queryGetObjects(
-    query.suiKit,
-    stakeObjectIds
-  );
+  const stakeObjects = await query.cache.queryGetObjects(stakeObjectIds);
   for (const stakeObject of stakeObjects) {
     const id = stakeObject.objectId;
     const type = stakeObject.type!;
@@ -422,16 +419,12 @@ export const getStakePool = async (
 ) => {
   const poolId = query.address.get(`spool.pools.${marketCoinName}.id`);
   let stakePool: StakePool | undefined = undefined;
-  const stakePoolObjectResponse = await query.cache.queryGetObject(
-    query.suiKit,
-    poolId,
-    {
-      options: {
-        showContent: true,
-        showType: true,
-      },
-    }
-  );
+  const stakePoolObjectResponse = await query.cache.queryGetObject(poolId, {
+    options: {
+      showContent: true,
+      showType: true,
+    },
+  });
   if (stakePoolObjectResponse.data) {
     const stakePoolObject = stakePoolObjectResponse.data;
     const id = stakePoolObject.objectId;
@@ -487,7 +480,6 @@ export const getStakeRewardPool = async (
   );
   let stakeRewardPool: StakeRewardPool | undefined = undefined;
   const stakeRewardPoolObjectResponse = await query.cache.queryGetObject(
-    query.suiKit,
     poolId,
     {
       options: {

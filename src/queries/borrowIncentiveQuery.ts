@@ -35,15 +35,16 @@ export const queryBorrowIncentivePools = async (
   ];
   const queryPkgId = query.address.get('borrowIncentive.query');
   const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
-  // const txBlock = new SuiKitTxBlock();
   const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
+  const args = [incentivePoolsId];
+  const typeArgs = ['0x2::sui::SUI'];
 
-  const txBlock = await query.cache.queryMoveCall(
-    queryTarget,
-    [incentivePoolsId],
-    ['0x2::sui::SUI']
+  // const txBlock = new SuiKitTxBlock();
+  // txBlock.moveCall(queryTarget, args, typeArgs);
+  const queryResult = await query.cache.queryInspectTxn(
+    { queryTarget, args, typeArgs }
+    // txBlock
   );
-  const queryResult = await query.cache.queryInspectTxn(query.suiKit, txBlock);
 
   const borrowIncentivePoolsQueryData = queryResult.events[0]
     .parsedJson as BorrowIncentivePoolsQueryInterface;
@@ -157,13 +158,14 @@ export const queryBorrowIncentiveAccounts = async (
     'borrowIncentive.incentiveAccounts'
   );
   const queryTarget = `${queryPkgId}::incentive_account_query::incentive_account_data`;
+  const args = [incentiveAccountsId, obligationId];
 
-  const txBlock = await query.cache.queryMoveCall(
-    queryTarget,
-    [incentiveAccountsId, obligationId],
-    []
+  // const txBlock = new SuiKitTxBlock();
+  // txBlock.moveCall(queryTarget, args);
+  const queryResult = await query.cache.queryInspectTxn(
+    { queryTarget, args }
+    // txBlock
   );
-  const queryResult = await query.cache.queryInspectTxn(query.suiKit, txBlock);
   const borrowIncentiveAccountsQueryData = queryResult.events[0]
     .parsedJson as BorrowIncentiveAccountsQueryInterface;
 

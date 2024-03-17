@@ -16,9 +16,10 @@ export const getPythPrice = async (
     `core.coins.${assetCoinName}.oracle.pyth.feedObject`
   );
   const priceFeedObjectResponse = await query.cache.queryGetObject(
-    query.suiKit,
     pythFeedObjectId,
-    { options: { showContent: true } }
+    {
+      options: { showContent: true },
+    }
   );
 
   if (priceFeedObjectResponse.data) {
