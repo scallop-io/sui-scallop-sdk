@@ -13,14 +13,16 @@ import type {
   SuiTxBlockWithBorrowIncentiveNormalMethods,
   BorrowIncentiveTxBlock,
   ScallopTxBlock,
+  VescaIds,
 } from '../types';
+import { requireVeSca } from './vesca';
 
 /**
  * Check and get Obligation information from transaction block.
  *
  * @description
- * If the obligation id is provided, direactly return it.
- * If both obligation id and key is provided, direactly return them.
+ * If the obligation id is provided, directly return it.
+ * If both obligation id and key is provided, directly return them.
  * Otherwise, automatically get obligation id and key from the sender.
  *
  * @param builder - Scallop builder instance.
@@ -74,14 +76,22 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
     const borrowIncentiveIds: BorrowIncentiveIds = {
       borrowIncentivePkg: builder.address.get('borrowIncentive.id'),
       query: builder.address.get('borrowIncentive.query'),
+      incentiveConfig: builder.address.get('borrowIncentive.incentiveConfig'),
       incentivePools: builder.address.get('borrowIncentive.incentivePools'),
       incentiveAccounts: builder.address.get(
         'borrowIncentive.incentiveAccounts'
       ),
       obligationAccessStore: builder.address.get('core.obligationAccessStore'),
     };
+
+    const veScaIds: Omit<VescaIds, 'pkgId'> = {
+      table: builder.address.get('vesca.table'),
+      treasury: builder.address.get('vesca.treasury'),
+      config: builder.address.get('vesca.config'),
+    };
+
     return {
-      stakeObligation: (obligationId, obligaionKey) => {
+      stakeObligation: (obligationId, obligationKey) => {
         // NOTE: Pools without incentives also need to stake after change obligation,
         // the default here use sui as reward coin.
         const rewardCoinName = 'sui';
@@ -89,9 +99,10 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
         txBlock.moveCall(
           `${borrowIncentiveIds.borrowIncentivePkg}::user::stake`,
           [
+            borrowIncentiveIds.incentiveConfig,
             borrowIncentiveIds.incentivePools,
             borrowIncentiveIds.incentiveAccounts,
-            obligaionKey,
+            obligationKey,
             obligationId,
             borrowIncentiveIds.obligationAccessStore,
             SUI_CLOCK_OBJECT_ID,
@@ -99,7 +110,26 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           [rewardType]
         );
       },
-      unstakeObligation: (obligationId, obligaionKey) => {
+      stakeObligationWithVesca: (obligationId, obligationKey, veScaKey) => {
+        txBlock.moveCall(
+          `${borrowIncentiveIds.borrowIncentivePkg}::user::stake_with_vesca`,
+          [
+            borrowIncentiveIds.incentiveConfig,
+            borrowIncentiveIds.incentivePools,
+            borrowIncentiveIds.incentiveAccounts,
+            obligationKey,
+            obligationId,
+            borrowIncentiveIds.obligationAccessStore,
+            veScaIds.config,
+            veScaIds.treasury,
+            veScaIds.table,
+            veScaKey,
+            SUI_CLOCK_OBJECT_ID,
+          ],
+          []
+        );
+      },
+      unstakeObligation: (obligationId, obligationKey) => {
         // NOTE: Pools without incentives also need to unstake to change obligation,
         // the default here use sui as reward coin.
         const rewardCoinName = 'sui';
@@ -109,14 +139,14 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           [
             borrowIncentiveIds.incentivePools,
             borrowIncentiveIds.incentiveAccounts,
-            obligaionKey,
+            obligationKey,
             obligationId,
             SUI_CLOCK_OBJECT_ID,
           ],
           [rewardType]
         );
       },
-      claimBorrowIncentive: (obligationId, obligaionKey, coinName) => {
+      claimBorrowIncentive: (obligationId, obligationKey, coinName) => {
         const rewardCoinName = borrowIncentiveRewardCoins[coinName];
         const rewardType = builder.utils.parseCoinType(rewardCoinName);
         return txBlock.moveCall(
@@ -124,7 +154,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           [
             borrowIncentiveIds.incentivePools,
             borrowIncentiveIds.incentiveAccounts,
-            obligaionKey,
+            obligationKey,
             obligationId,
             SUI_CLOCK_OBJECT_ID,
           ],
@@ -144,7 +174,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
  *
  * @param builder - Scallop builder instance.
  * @param txBlock - TxBlock created by SuiKit .
- * @return Spool quick methods.
+ * @return Borrow Incentive quick methods.
  */
 const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
   ({ builder, txBlock }) => {
@@ -171,6 +201,44 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
           txBlock.stakeObligation(obligationArg, obligationtKeyArg);
+        }
+      },
+      stakeObligationWithVeScaQuick: async (
+        obligation,
+        obligationKey,
+        veScaKey
+      ) => {
+        const {
+          obligationId: obligationArg,
+          obligationKey: obligationtKeyArg,
+          obligationLocked: obligationLocked,
+        } = await requireObligationInfo(
+          builder,
+          txBlock,
+          obligation,
+          obligationKey
+        );
+
+        const { veScaKey: veScaKeyArg } = await requireVeSca(
+          builder,
+          txBlock,
+          veScaKey
+        );
+
+        const unstakeObligationBeforeStake =
+          !!txBlock.txBlock.blockData.transactions.find(
+            (txn) =>
+              txn.kind === 'MoveCall' &&
+              txn.target ===
+                `${builder.address.get('borrowIncentive.id')}::user::unstake`
+          );
+
+        if (!obligationLocked || unstakeObligationBeforeStake) {
+          txBlock.stakeObligationWithVesca(
+            obligationArg,
+            obligationtKeyArg,
+            veScaKeyArg
+          );
         }
       },
       unstakeObligationQuick: async (obligation, obligationKey) => {

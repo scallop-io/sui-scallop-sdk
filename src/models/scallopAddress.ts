@@ -230,8 +230,17 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     adminCap: '',
     object: '',
     query: '',
+    incentiveConfig: '',
     incentivePools: '',
     incentiveAccounts: '',
+  },
+  vesca: {
+    id: '',
+    adminCap: '',
+    tableId: '',
+    table: '',
+    treasury: '',
+    config: '',
   },
 };
 
