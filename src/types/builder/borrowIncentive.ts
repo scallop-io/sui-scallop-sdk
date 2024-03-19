@@ -9,6 +9,7 @@ import type { SupportBorrowIncentiveCoins } from '../constant';
 export type BorrowIncentiveIds = {
   borrowIncentivePkg: string;
   query: string;
+  incentiveConfig: string;
   incentivePools: string;
   incentiveAccounts: string;
   obligationAccessStore: string;
@@ -17,15 +18,20 @@ export type BorrowIncentiveIds = {
 export type BorrowIncentiveNormalMethods = {
   stakeObligation: (
     obligation: SuiAddressArg,
-    obligaionKey: SuiAddressArg
+    obligationKey: SuiAddressArg
+  ) => void;
+  stakeObligationWithVesca: (
+    obligation: SuiAddressArg,
+    obligationKey: SuiAddressArg,
+    veScaKey: SuiAddressArg
   ) => void;
   unstakeObligation: (
     obligation: SuiAddressArg,
-    obligaionKey: SuiAddressArg
+    obligationKey: SuiAddressArg
   ) => void;
   claimBorrowIncentive: (
     obligation: SuiAddressArg,
-    obligaionKey: SuiAddressArg,
+    obligationKey: SuiAddressArg,
     coinName: SupportBorrowIncentiveCoins
   ) => TransactionResult;
 };
@@ -34,6 +40,11 @@ export type BorrowIncentiveQuickMethods = {
   stakeObligationQuick(
     obligation?: SuiAddressArg,
     obligationKey?: SuiAddressArg
+  ): Promise<void>;
+  stakeObligationWithVeScaQuick(
+    obligation?: SuiAddressArg,
+    obligationKey?: SuiAddressArg,
+    veScaKey?: SuiAddressArg
   ): Promise<void>;
   unstakeObligationQuick(
     obligation?: SuiAddressArg,
