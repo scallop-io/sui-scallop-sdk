@@ -27,7 +27,6 @@ export type VeScaNormalMethods = {
 };
 
 export type VeScaQuickMethods = {
-  lockScaQuick: (scaCoinAmount: number, unlock_at: number) => Promise<void>;
   extendLockPeriodQuick: (
     new_unlock_at: number,
     veScaKey?: SuiAddressArg
@@ -40,7 +39,7 @@ export type VeScaQuickMethods = {
     scaCoinAmount: number,
     new_unlock_at: number,
     veScaKey?: SuiAddressArg
-  ) => void;
+  ) => Promise<void>;
   withdrawScaQuick: (veScaKey?: SuiAddressArg) => Promise<TransactionResult>;
 };
 
@@ -55,5 +54,5 @@ export type GenerateVeScaNormalMethod = (params: {
 }) => VeScaNormalMethods;
 export type GenerateVeScaQuickMethod = (params: {
   builder: ScallopBuilder;
-  txBlock: SuiKitTxBlock;
+  txBlock: SuiTxBlockWithVeScaNormalMethods;
 }) => VeScaQuickMethods;
