@@ -284,3 +284,42 @@ describe('Test Scallop Borrow Incentive Builder', async () => {
     );
   });
 });
+
+describe('Test Scallop VeSca Builder', async () => {
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const sender = scallopBuilder.walletAddress;
+
+  console.info('Sender:', sender);
+
+  it('"lockScaQuick" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    // Sender is required to invoke "lockScaQuick".
+    tx.setSender(sender);
+
+    // TODO: get the lockAt from untils.
+    const lockAt = 1000;
+
+    await tx.lockScaQuick(10 * 10 ** 8, lockAt);
+    const lockScaQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    if (ENABLE_LOG) {
+      console.info('LockScaQuickResult:', lockScaQuickResult);
+    }
+    expect(lockScaQuickResult.effects?.status.status).toEqual('success');
+  });
+
+  it('"redeemScaQuick" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    // Sender is required to invoke "redeemScaQuick".
+    tx.setSender(sender);
+    await tx.redeemScaQuick();
+    const redeemScaQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    if (ENABLE_LOG) {
+      console.info('RedeemScaQuickResult:', redeemScaQuickResult);
+    }
+    expect(redeemScaQuickResult.effects?.status.status).toEqual('success');
+  });
+});

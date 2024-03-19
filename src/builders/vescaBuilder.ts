@@ -5,10 +5,15 @@ import {
   TransactionBlock,
   SuiTxBlock as SuiKitTxBlock,
 } from '@scallop-io/sui-kit';
+import { SCA_COIN_TYPE } from 'src/constants';
 import { ScallopBuilder } from '../models';
 import { getVeSca, getVeScas } from '../queries';
 import { requireSender } from '../utils';
-import {
+import type {
+  TransactionObjectArgument,
+  SuiObjectArg,
+} from '@scallop-io/sui-kit';
+import type {
   GenerateVeScaNormalMethod,
   GenerateVeScaQuickMethod,
   ScallopTxBlock,
@@ -16,10 +21,9 @@ import {
   VeScaTxBlock,
   VescaIds,
 } from 'src/types';
-import { SCA_COIN_TYPE } from 'src/constants';
 
 /**
- * Check and get veSCA information from transaction block.
+ * Check and get veSCA data from transaction block.
  *
  * @description
  * If the veScaKey id is provided, directly return it.
@@ -41,26 +45,21 @@ export const requireVeSca = async (
   const [builder, txBlock, veScaKey] = params;
   if (params.length === 3 && veScaKey && typeof veScaKey === 'string') {
     const veSca = await getVeSca(builder.query, veScaKey);
-    return {
-      veScaKey: veSca.keyId,
-      veScaId: veSca.id,
-      lockedScaAmount: veSca.locked_sca_amount,
-      unlockAt: veSca.unlock_at,
-    };
+
+    if (!veSca) {
+      return undefined;
+    }
+
+    return veSca;
   }
 
   const sender = requireSender(txBlock);
   const veScas = await getVeScas(builder.query, sender);
   if (veScas.length === 0) {
-    throw new Error('VeSca not found');
+    return undefined;
   }
 
-  return {
-    veScaKey: veScas[0].keyId,
-    veScaId: veScas[0].id,
-    lockedScaAmount: veScas[0].locked_sca_amount,
-    unlockAt: veScas[0].unlock_at,
-  };
+  return veScas[0];
 };
 
 /**
@@ -70,7 +69,6 @@ export const requireVeSca = async (
  * @param txBlock - TxBlock created by SuiKit .
  * @return veSCA normal methods.
  */
-
 const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
   builder,
   txBlock,
@@ -83,21 +81,21 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
   };
 
   return {
-    lockSca: (scaCoin, unlock_at) => {
-      txBlock.moveCall(
+    lockSca: (scaCoin, unlockAt) => {
+      return txBlock.moveCall(
         `${veScaIds.pkgId}::ve_sca::mint_ve_sca_key`,
         [
           veScaIds.config,
           veScaIds.table,
           veScaIds.treasury,
           scaCoin,
-          unlock_at,
+          unlockAt,
           SUI_CLOCK_OBJECT_ID,
         ],
         []
       );
     },
-    extendLockPeriod: (veScaKey, new_unlock_at) => {
+    extendLockPeriod: (veScaKey, newUnlockAt) => {
       txBlock.moveCall(
         `${veScaIds.pkgId}::ve_sca::extend_lock_period`,
         [
@@ -105,13 +103,13 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaKey,
           veScaIds.table,
           veScaIds.treasury,
-          new_unlock_at,
+          newUnlockAt,
           SUI_CLOCK_OBJECT_ID,
         ],
         []
       );
     },
-    lockMoreSca: (veScaKey, scaCoin) => {
+    extendLockAmount: (veScaKey, scaCoin) => {
       txBlock.moveCall(
         `${veScaIds.pkgId}::ve_sca::lock_more_sca`,
         [
@@ -125,7 +123,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    renewExpiredVeSca: (veScaKey, scaCoin, new_unlock_at) => {
+    renewExpiredVeSca: (veScaKey, scaCoin, newUnlockAt) => {
       txBlock.moveCall(
         `${veScaIds.pkgId}::ve_sca::renew_expired_ve_sca`,
         [
@@ -134,13 +132,13 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.table,
           veScaIds.treasury,
           scaCoin,
-          new_unlock_at,
+          newUnlockAt,
           SUI_CLOCK_OBJECT_ID,
         ],
         []
       );
     },
-    withdrawSca: (veScaKey) => {
+    redeemSca: (veScaKey) => {
       return txBlock.moveCall(
         `${veScaIds.pkgId}::ve_sca::redeem`,
         [
@@ -156,32 +154,111 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
   };
 };
 
+/**
+ * Generate veSCA quick methods.
+ *
+ * @description
+ * The quick methods are the same as the normal methods, but they will automatically
+ * help users organize transaction blocks, include get veSca info, and transfer
+ * coins to the sender. So, they are all asynchronous methods.
+ *
+ * @param builder - Scallop builder instance.
+ * @param txBlock - TxBlock created by SuiKit .
+ * @return Spool quick methods.
+ */
 const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
   builder,
   txBlock,
 }) => {
   return {
+    // TODO: update new check logic.
+    lockScaQuick: async (amountOrCoin, lockPeriodInSeconds) => {
+      const sender = requireSender(txBlock);
+      const vesca = await requireVeSca(builder, txBlock);
+
+      let lockCoin: TransactionObjectArgument | SuiObjectArg | undefined =
+        undefined;
+      const transferObjects = [];
+      if (amountOrCoin !== undefined && typeof amountOrCoin === 'number') {
+        const coins = await builder.utils.selectCoinIds(
+          amountOrCoin,
+          SCA_COIN_TYPE,
+          sender
+        );
+        const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
+          coins,
+          amountOrCoin
+        );
+        lockCoin = takeCoin;
+        transferObjects.push(leftCoin);
+      } else {
+        lockCoin = amountOrCoin;
+      }
+
+      if (vesca?.unlockAt && !!lockCoin && !!lockPeriodInSeconds) {
+        // Extend lock amount and peroid
+        const lockAt = findClosestThursday(
+          Math.floor(vesca.unlockAt + lockPeriodInSeconds * 1000)
+        );
+        if (vesca.unlockAt * 1000 <= new Date().getTime()) {
+          if (vesca.lockedScaAmount > 0) {
+            const sca = txBlock.redeemSca(vesca.keyId);
+            transferObjects.push(sca);
+          }
+          txBlock.renewExpiredVeSca(vesca.keyId, lockCoin, lockAt);
+        }
+        txBlock.extendLockPeriod(vesca.keyId, lockAt);
+        txBlock.extendLockAmount(vesca.keyId, lockCoin);
+      } else if (!!lockCoin && !!lockPeriodInSeconds) {
+        // New lock.
+        const now = new Date().getTime();
+        console.log(Math.floor(now + lockPeriodInSeconds * 1000));
+        const lockAt = findClosestThursday(
+          Math.floor(now + lockPeriodInSeconds * 1000)
+        );
+        console.log(lockAt);
+        console.log(
+          new Date(lockAt).toLocaleString('en-GB', {
+            hour12: true,
+          })
+        );
+        const veScaKey = txBlock.lockSca(lockCoin, lockAt);
+        transferObjects.push(veScaKey);
+        txBlock.transferObjects(transferObjects, sender);
+      } else if (vesca?.unlockAt && !!lockCoin) {
+        // Extend lock amount.
+        txBlock.extendLockAmount(vesca.keyId, lockCoin);
+      } else if (vesca?.unlockAt && !!lockPeriodInSeconds) {
+        // Extend lock period.
+        const lockAt = findClosestThursday(
+          Math.floor(vesca.unlockAt + lockPeriodInSeconds * 1000)
+        );
+        txBlock.extendLockPeriod(vesca.keyId, lockAt);
+      }
+    },
     extendLockPeriodQuick: async (
-      new_unlock_at: number,
+      newUnlockAt: number,
       veScaKey?: SuiAddressArg
     ) => {
-      const { veScaKey: veScaKeyArg } = await requireVeSca(
-        builder,
-        txBlock,
-        veScaKey
-      );
-      txBlock.extendLockPeriod(veScaKeyArg, new_unlock_at);
+      const veSca = await requireVeSca(builder, txBlock, veScaKey);
+
+      if (!veSca) {
+        throw new Error('veSca not found');
+      }
+
+      txBlock.extendLockPeriod(veSca.keyId, newUnlockAt);
     },
-    lockMoreScaQuick: async (
+    extendLockAmountQuick: async (
       scaCoinAmount: number,
       veScaKey?: SuiAddressArg
     ) => {
       const sender = requireSender(txBlock);
-      const { veScaKey: veScaKeyArg } = await requireVeSca(
-        builder,
-        txBlock,
-        veScaKey
-      );
+      const veSca = await requireVeSca(builder, txBlock, veScaKey);
+
+      if (!veSca) {
+        throw new Error('veSca not found');
+      }
+
       const scaCoins = await builder.utils.selectCoinIds(
         scaCoinAmount,
         SCA_COIN_TYPE,
@@ -192,20 +269,21 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         scaCoinAmount
       );
 
-      txBlock.lockMoreSca(veScaKeyArg, takeCoin);
+      txBlock.extendLockAmount(veSca.keyId, takeCoin);
       txBlock.transferObjects([leftCoin], sender);
     },
     renewExpiredVeScaQuick: async (
       scaCoinAmount: number,
-      new_unlock_at: number,
+      newUnlockAt: number,
       veScaKey?: SuiAddressArg
     ) => {
       const sender = requireSender(txBlock);
-      const { veScaKey: veScaKeyArg } = await requireVeSca(
-        builder,
-        txBlock,
-        veScaKey
-      );
+      const veSca = await requireVeSca(builder, txBlock, veScaKey);
+
+      if (!veSca) {
+        throw new Error('veSca not found');
+      }
+
       const scaCoins = await builder.utils.selectCoinIds(
         scaCoinAmount,
         SCA_COIN_TYPE,
@@ -215,16 +293,19 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         scaCoins,
         scaCoinAmount
       );
-      txBlock.renewExpiredVeSca(veScaKeyArg, takeCoin, new_unlock_at);
+      txBlock.renewExpiredVeSca(veSca.keyId, takeCoin, newUnlockAt);
       txBlock.transferObjects([leftCoin], sender);
     },
-    withdrawScaQuick: async (veScaKey?: SuiAddressArg) => {
-      const { veScaKey: veScaKeyArg } = await requireVeSca(
-        builder,
-        txBlock,
-        veScaKey
-      );
-      return txBlock.withdrawSca(veScaKeyArg);
+    redeemScaQuick: async (veScaKey?: SuiAddressArg) => {
+      const sender = requireSender(txBlock);
+      const veSca = await requireVeSca(builder, txBlock, veScaKey);
+
+      if (!veSca) {
+        throw new Error('veSca not found');
+      }
+
+      const sca = txBlock.redeemSca(veSca.keyId);
+      txBlock.transferObjects([sca], sender);
     },
   };
 };
