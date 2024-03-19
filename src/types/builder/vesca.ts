@@ -15,32 +15,36 @@ export type VescaIds = {
 };
 
 export type VeScaNormalMethods = {
-  lockSca: (scaCoin: SuiObjectArg, unlock_at: SuiTxArg) => void;
-  extendLockPeriod: (veScaKey: SuiAddressArg, new_unlock_at: SuiTxArg) => void;
-  lockMoreSca: (veScaKey: SuiAddressArg, scaCoin: SuiObjectArg) => void;
+  lockSca: (scaCoin: SuiObjectArg, unlockAt: SuiTxArg) => TransactionResult;
+  extendLockPeriod: (veScaKey: SuiAddressArg, newUnlockAt: SuiTxArg) => void;
+  extendLockAmount: (veScaKey: SuiAddressArg, scaCoin: SuiObjectArg) => void;
   renewExpiredVeSca: (
     veScaKey: SuiAddressArg,
     scaCoin: SuiObjectArg,
-    new_unlock_at: SuiTxArg
+    newUnlockAt: SuiTxArg
   ) => void;
-  withdrawSca: (veScaKey: SuiAddressArg) => TransactionResult;
+  redeemSca: (veScaKey: SuiAddressArg) => TransactionResult;
 };
 
 export type VeScaQuickMethods = {
+  lockScaQuick(
+    amountOrCoin?: SuiObjectArg | number,
+    lockPeriodInWeek?: number
+  ): Promise<void>;
   extendLockPeriodQuick: (
-    new_unlock_at: number,
+    newUnlockAt: number,
     veScaKey?: SuiAddressArg
   ) => Promise<void>;
-  lockMoreScaQuick: (
+  extendLockAmountQuick: (
     scaCoinAmount: number,
     veScaKey?: SuiAddressArg
   ) => Promise<void>;
   renewExpiredVeScaQuick: (
     scaCoinAmount: number,
-    new_unlock_at: number,
+    newUnlockAt: number,
     veScaKey?: SuiAddressArg
   ) => Promise<void>;
-  withdrawScaQuick: (veScaKey?: SuiAddressArg) => Promise<TransactionResult>;
+  redeemScaQuick: (veScaKey?: SuiAddressArg) => Promise<void>;
 };
 
 export type SuiTxBlockWithVeScaNormalMethods = SuiKitTxBlock &
@@ -52,6 +56,7 @@ export type GenerateVeScaNormalMethod = (params: {
   builder: ScallopBuilder;
   txBlock: SuiKitTxBlock;
 }) => VeScaNormalMethods;
+
 export type GenerateVeScaQuickMethod = (params: {
   builder: ScallopBuilder;
   txBlock: SuiTxBlockWithVeScaNormalMethods;
