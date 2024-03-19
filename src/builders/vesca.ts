@@ -9,12 +9,14 @@ import { ScallopBuilder } from '../models';
 import { getVeSca, getVeScas } from '../queries';
 import { requireSender } from '../utils';
 import {
-  BorrowIncentiveTxBlock,
   GenerateVeScaNormalMethod,
+  GenerateVeScaQuickMethod,
   ScallopTxBlock,
-  SuiTxBlockWithBorrowIncentiveNormalMethods,
+  SuiTxBlockWithVeScaNormalMethods,
+  VeScaTxBlock,
   VescaIds,
 } from 'src/types';
+import { SCA_COIN_TYPE } from 'src/constants';
 
 /**
  * Check and get veSCA information from transaction block.
@@ -154,6 +156,79 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
   };
 };
 
+const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
+  builder,
+  txBlock,
+}) => {
+  return {
+    extendLockPeriodQuick: async (
+      new_unlock_at: number,
+      veScaKey?: SuiAddressArg
+    ) => {
+      const { veScaKey: veScaKeyArg } = await requireVeSca(
+        builder,
+        txBlock,
+        veScaKey
+      );
+      txBlock.extendLockPeriod(veScaKeyArg, new_unlock_at);
+    },
+    lockMoreScaQuick: async (
+      scaCoinAmount: number,
+      veScaKey?: SuiAddressArg
+    ) => {
+      const sender = requireSender(txBlock);
+      const { veScaKey: veScaKeyArg } = await requireVeSca(
+        builder,
+        txBlock,
+        veScaKey
+      );
+      const scaCoins = await builder.utils.selectCoinIds(
+        scaCoinAmount,
+        SCA_COIN_TYPE,
+        sender
+      );
+      const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
+        scaCoins,
+        scaCoinAmount
+      );
+
+      txBlock.lockMoreSca(veScaKeyArg, takeCoin);
+      txBlock.transferObjects([leftCoin], sender);
+    },
+    renewExpiredVeScaQuick: async (
+      scaCoinAmount: number,
+      new_unlock_at: number,
+      veScaKey?: SuiAddressArg
+    ) => {
+      const sender = requireSender(txBlock);
+      const { veScaKey: veScaKeyArg } = await requireVeSca(
+        builder,
+        txBlock,
+        veScaKey
+      );
+      const scaCoins = await builder.utils.selectCoinIds(
+        scaCoinAmount,
+        SCA_COIN_TYPE,
+        sender
+      );
+      const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
+        scaCoins,
+        scaCoinAmount
+      );
+      txBlock.renewExpiredVeSca(veScaKeyArg, takeCoin, new_unlock_at);
+      txBlock.transferObjects([leftCoin], sender);
+    },
+    withdrawScaQuick: async (veScaKey?: SuiAddressArg) => {
+      const { veScaKey: veScaKeyArg } = await requireVeSca(
+        builder,
+        txBlock,
+        veScaKey
+      );
+      return txBlock.withdrawSca(veScaKeyArg);
+    },
+  };
+};
+
 /**
  * Create an enhanced transaction block instance for interaction with veSCA modules of the Scallop contract.
  *
@@ -184,10 +259,10 @@ export const newVeScaTxBlock = (
       }
       return Reflect.get(target, prop);
     },
-  }) as SuiTxBlockWithBorrowIncentiveNormalMethods;
+  }) as SuiTxBlockWithVeScaNormalMethods;
 
   // TODO: Add quickMethod for veSCA
-  const quickMethod = generateNormalVeScaMethod({
+  const quickMethod = generateQuickVeScaMethod({
     builder,
     txBlock: normalTxBlock,
   });
@@ -199,5 +274,5 @@ export const newVeScaTxBlock = (
       }
       return Reflect.get(target, prop);
     },
-  }) as BorrowIncentiveTxBlock;
+  }) as VeScaTxBlock;
 };

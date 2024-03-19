@@ -9,6 +9,8 @@ export const PROTOCOL_OBJECT_ID =
 export const BORROW_FEE_PROTOCOL_ID =
   '0xc38f849e81cfe46d4e4320f508ea7dda42934a329d5a6571bb4c3cb6ea63f5da';
 
+export const SCA_COIN_TYPE =
+  '0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6::sca::SCA' as const;
 export const SUPPORT_POOLS = [
   'eth',
   'btc',
