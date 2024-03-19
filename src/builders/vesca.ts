@@ -142,7 +142,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
     },
     withdrawSca: (veScaKey) => {
       return txBlock.moveCall(
-        `${veScaIds.pkgId}::ve_sca::withdraw_sca`,
+        `${veScaIds.pkgId}::ve_sca::redeem`,
         [
           veScaIds.config,
           veScaKey,
