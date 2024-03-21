@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { TransactionBlock } from '@scallop-io/sui-kit';
 import { Scallop } from '../src';
 import type { NetworkType } from '@scallop-io/sui-kit';
+import { getVeScas } from 'src/queries';
 
 dotenv.config();
 
@@ -292,24 +293,167 @@ describe('Test Scallop VeSca Builder', async () => {
   });
   const scallopBuilder = await scallopSDK.createScallopBuilder();
   const sender = scallopBuilder.walletAddress;
-
   console.info('Sender:', sender);
 
-  it('"lockScaQuick" should succeed', async () => {
-    const tx = scallopBuilder.createTxBlock();
-    // Sender is required to invoke "lockScaQuick".
-    tx.setSender(sender);
+  const vescas = await getVeScas(scallopBuilder.query, sender);
+  if (vescas.length === 0) {
+    it('initial lock w/"lockScaQuick" should succeed', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
 
-    // TODO: get the lockAt from untils.
-    const lockAt = 1000;
+      // TODO: get the lockAt from utils.
+      const lockPeriodInDays = 1; // lock for 10 days
 
-    await tx.lockScaQuick(10 * 10 ** 8, lockAt);
-    const lockScaQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
-    if (ENABLE_LOG) {
-      console.info('LockScaQuickResult:', lockScaQuickResult);
-    }
-    expect(lockScaQuickResult.effects?.status.status).toEqual('success');
-  });
+      await tx.lockScaQuick(10e9, lockPeriodInDays);
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('LockScaQuickResult:', lockScaQuickResult);
+      }
+      expect(lockScaQuickResult.effects?.status.status).toEqual('success');
+    });
+
+    it('initial lock w/"lockScaQuick" should fail', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      // TODO: get the lockAt from utils.
+      const lockPeriodInDays = 0.4; // lock for less than 1 day
+
+      await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays);
+      await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays);
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('LockScaQuickResult:', lockScaQuickResult);
+      }
+      expect(lockScaQuickResult.effects?.status.status).toEqual('failed');
+    });
+
+    it('initial lock w/"lockScaQuick" should fail', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      // TODO: get the lockAt from utils.
+      const lockPeriodInDays = 1461; // lock for more than 1460 day
+
+      await tx.lockScaQuick(10 * 10 ** 8, lockPeriodInDays);
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('LockScaQuickResult:', lockScaQuickResult);
+      }
+      expect(lockScaQuickResult.effects?.status.status).toEqual('failed');
+    });
+
+    it('"lockScaQuick" should fail', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      // TODO: get the lockAt from utils.
+      const lockPeriodInDays = 10; // lock for 10 days
+
+      await tx.lockScaQuick(1 * 10 ** 9, lockPeriodInDays); // lock less than 10 as initial lock
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('LockScaQuickResult:', lockScaQuickResult);
+      }
+      expect(lockScaQuickResult.effects?.status.status).toEqual('failed');
+    });
+  } else {
+    const veScaKey = vescas[0].keyId;
+    it(`Extend lock amount w/"lockScaQuick" should succeed`, async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      await tx.lockScaQuick(1e9); // extend lock amount by 1
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('LockScaQuickResult:', lockScaQuickResult);
+      }
+      expect(lockScaQuickResult.effects?.status.status).toEqual('success');
+    });
+
+    it(`Extend lock amount w/"lockScaQuick" should fail`, async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      await tx.lockScaQuick(5e8);
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('LockScaQuickResult:', lockScaQuickResult);
+      }
+      expect(lockScaQuickResult.effects?.status.status).toEqual('failure');
+    });
+
+    it(`Extend lock amount w/"extendLockAmountQuick" should succeed`, async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      await tx.extendLockAmountQuick(1e9);
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('LockScaQuickResult:', lockScaQuickResult);
+      }
+      expect(lockScaQuickResult.effects?.status.status).toEqual('success');
+    });
+
+    it(`Extend lock amount w/"extendLockAmountQuick" should fail`, async () => {
+      // extend lock amount
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      await tx.extendLockAmountQuick(5e8);
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('LockScaQuickResult:', lockScaQuickResult);
+      }
+      expect(lockScaQuickResult.effects?.status.status).toEqual('failure');
+    });
+
+    it(`Extend lock period w/"lockScaQuick" should succeed`, async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      await tx.lockScaQuick(undefined, 1);
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('LockScaQuickResult:', lockScaQuickResult);
+      }
+      expect(lockScaQuickResult.effects?.status.status).toEqual('success');
+    });
+
+    it(`Extend lock period w/"lockScaQuick" should fail`, async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      try {
+        await tx.lockScaQuick(undefined, 9999);
+      } catch (error) {
+        expect(error).toBeDefined();
+      }
+    });
+
+    it(`Extend lock period w/"extendLockPeriodQuick" should succeed`, async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      await tx.extendLockPeriodQuick(1, veScaKey);
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('LockScaQuickResult:', lockScaQuickResult);
+      }
+      expect(lockScaQuickResult.effects?.status.status).toEqual('success');
+    });
+
+    it(`Extend lock period w/"extendLockPeriodQuick" should fail`, async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      try {
+        await tx.extendLockPeriodQuick(9999, veScaKey);
+      } catch (error) {
+        expect(error).toBeDefined();
+      }
+    });
+  }
 
   it('"redeemScaQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();

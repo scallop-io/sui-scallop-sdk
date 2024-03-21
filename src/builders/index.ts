@@ -21,7 +21,7 @@ export const newScallopTxBlock = (
   const vescaTxBlock = newVeScaTxBlock(builder, initTxBlock);
   const borrowIncentiveTxBlock = newBorrowIncentiveTxBlock(
     builder,
-    initTxBlock
+    vescaTxBlock
   );
   const spoolTxBlock = newSpoolTxBlock(builder, borrowIncentiveTxBlock);
   const coreTxBlock = newCoreTxBlock(builder, spoolTxBlock);
