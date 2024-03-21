@@ -5,10 +5,17 @@ import {
   TransactionBlock,
   SuiTxBlock as SuiKitTxBlock,
 } from '@scallop-io/sui-kit';
-import { SCA_COIN_TYPE } from 'src/constants';
+import {
+  MAX_LOCK_DURATION,
+  MAX_LOCK_ROUNDS,
+  MIN_INITIAL_LOCK_AMOUNT,
+  MIN_TOP_UP_AMOUNT,
+  SCA_COIN_TYPE,
+  SECONDS_IN_A_DAY,
+} from 'src/constants';
 import { ScallopBuilder } from '../models';
 import { getVeSca, getVeScas } from '../queries';
-import { requireSender } from '../utils';
+import { findClosest12AM, requireSender } from '../utils';
 import type {
   TransactionObjectArgument,
   SuiObjectArg,
@@ -172,7 +179,10 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
 }) => {
   return {
     // TODO: update new check logic.
-    lockScaQuick: async (amountOrCoin, lockPeriodInSeconds) => {
+    lockScaQuick: async (amountOrCoin, lockPeriodInDays) => {
+      const lockPeriodInSeconds = lockPeriodInDays
+        ? lockPeriodInDays * SECONDS_IN_A_DAY
+        : undefined;
       const sender = requireSender(txBlock);
       const vesca = await requireVeSca(builder, txBlock);
 
@@ -192,71 +202,161 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         lockCoin = takeCoin;
         transferObjects.push(leftCoin);
       } else {
+        // With amountOrCoin is SuiObjectArg, we cannot validate the minimum sca amount for locking and topup
         lockCoin = amountOrCoin;
       }
 
-      if (vesca?.unlockAt && !!lockCoin && !!lockPeriodInSeconds) {
-        // Extend lock amount and peroid
-        const lockAt = findClosestThursday(
-          Math.floor(vesca.unlockAt + lockPeriodInSeconds * 1000)
-        );
-        if (vesca.unlockAt * 1000 <= new Date().getTime()) {
-          if (vesca.lockedScaAmount > 0) {
-            const sca = txBlock.redeemSca(vesca.keyId);
-            transferObjects.push(sca);
+      if (!vesca) {
+        // no veSca but has sca and lock period
+        if (!!lockCoin && !!lockPeriodInSeconds) {
+          if (
+            typeof amountOrCoin === 'number' &&
+            amountOrCoin < MIN_INITIAL_LOCK_AMOUNT
+          ) {
+            throw new Error('Minimum lock amount for initial lock is 10 SCA');
           }
-          txBlock.renewExpiredVeSca(vesca.keyId, lockCoin, lockAt);
+          if (lockPeriodInSeconds >= MAX_LOCK_DURATION - SECONDS_IN_A_DAY) {
+            throw new Error(
+              `Maximum lock period is ~4 years (${MAX_LOCK_ROUNDS - 1} days)`
+            );
+          }
+          // console.log(Math.floor(now + lockPeriodInSeconds * 1000));
+          const unlockAt = findClosest12AM(
+            new Date().getTime() + lockPeriodInSeconds * 1000
+          );
+          // console.log(
+          //   new Date(unlockAt * 1000).toLocaleString('en-GB', {
+          //     hour12: true,
+          //   })
+          // );
+
+          // new lock
+          const veScaKey = txBlock.lockSca(lockCoin, unlockAt);
+          transferObjects.push(veScaKey);
+        } else {
+          throw new Error(
+            'SCA amount and lock period is required for initial lock'
+          );
         }
-        txBlock.extendLockPeriod(vesca.keyId, lockAt);
-        txBlock.extendLockAmount(vesca.keyId, lockCoin);
-      } else if (!!lockCoin && !!lockPeriodInSeconds) {
-        // New lock.
-        const now = new Date().getTime();
-        console.log(Math.floor(now + lockPeriodInSeconds * 1000));
-        const lockAt = findClosestThursday(
-          Math.floor(now + lockPeriodInSeconds * 1000)
-        );
-        console.log(lockAt);
-        console.log(
-          new Date(lockAt).toLocaleString('en-GB', {
-            hour12: true,
-          })
-        );
-        const veScaKey = txBlock.lockSca(lockCoin, lockAt);
-        transferObjects.push(veScaKey);
+      } else {
+        // check for expiration
+        const isVeScaExpired = vesca.unlockAt * 1000 <= new Date().getTime();
+        if (isVeScaExpired) {
+          if (!!lockCoin && !!lockPeriodInSeconds) {
+            // if veScaExpired, user must withdraw current unlocked SCA first if any and renew
+            const newUnlockAt = findClosest12AM(
+              new Date().getTime() + lockPeriodInSeconds * 1000
+            );
+            if (lockPeriodInSeconds >= MAX_LOCK_DURATION - SECONDS_IN_A_DAY) {
+              throw new Error(
+                `Maximum lock period is ~4 years (${MAX_LOCK_ROUNDS - 1} days)`
+              );
+            }
+            // user must withdraw current unlocked SCA first if any
+            if (vesca.lockedScaAmount !== 0) {
+              const unlockedSca = txBlock.redeemSca(vesca.keyId);
+              transferObjects.push(unlockedSca);
+            }
+            // renew expired veSca is considered as initial lock
+            if (
+              typeof amountOrCoin === 'number' &&
+              amountOrCoin < MIN_INITIAL_LOCK_AMOUNT
+            ) {
+              throw new Error(
+                'Minimum lock amount for renewing expired vesca 10 SCA'
+              );
+            }
+            // enforce renew on expired
+            txBlock.renewExpiredVeSca(vesca.keyId, lockCoin, newUnlockAt);
+          } else {
+            throw new Error(
+              'SCA amount and lock period is required for renewing expired vesca'
+            );
+          }
+        } else if (lockCoin) {
+          if (
+            typeof amountOrCoin === 'number' &&
+            amountOrCoin < MIN_TOP_UP_AMOUNT
+          ) {
+            throw new Error('Minimum top up amount is 1 SCA');
+          }
+          // extend lock amount
+          txBlock.extendLockAmount(vesca.keyId, lockCoin);
+        } else if (lockPeriodInSeconds) {
+          /**
+           * Extend lock period
+           * newUnlockAt = previousUnlockTimestamp + lockPeriodInSeconds
+           *
+           * e.g.
+           *  Bob locked 100 SCA for 30 days
+           *  Bob wants to extend the lock period for 20 more days
+           *  newUnlockAt = prevUnlockAt + 20 days
+           */
+          const prevUnlockAt = vesca.unlockAt;
+          const newUnlockAt = findClosest12AM(
+            (prevUnlockAt + lockPeriodInSeconds) * 1000
+          );
+          const totalLockDuration = newUnlockAt - prevUnlockAt;
+          if (totalLockDuration >= MAX_LOCK_DURATION - SECONDS_IN_A_DAY) {
+            throw new Error(
+              `Maximum lock period is ~4 years (${MAX_LOCK_ROUNDS - 1} days)`
+            );
+          }
+          txBlock.extendLockPeriod(vesca.keyId, newUnlockAt);
+        }
+      }
+
+      if (transferObjects.length > 0) {
         txBlock.transferObjects(transferObjects, sender);
-      } else if (vesca?.unlockAt && !!lockCoin) {
-        // Extend lock amount.
-        txBlock.extendLockAmount(vesca.keyId, lockCoin);
-      } else if (vesca?.unlockAt && !!lockPeriodInSeconds) {
-        // Extend lock period.
-        const lockAt = findClosestThursday(
-          Math.floor(vesca.unlockAt + lockPeriodInSeconds * 1000)
-        );
-        txBlock.extendLockPeriod(vesca.keyId, lockAt);
       }
     },
     extendLockPeriodQuick: async (
-      newUnlockAt: number,
+      lockPeriodInDays: number,
       veScaKey?: SuiAddressArg
     ) => {
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
-
       if (!veSca) {
         throw new Error('veSca not found');
       }
+      if (lockPeriodInDays < 0) {
+        throw new Error('Lock period must be greater than 0');
+      }
 
+      const isVeScaExpired =
+        (veSca.unlockAt ?? 0) * 1000 <= new Date().getTime();
+      if (isVeScaExpired) {
+        throw new Error('veSca is expired, use renewExpiredVeScaQuick instead');
+      }
+
+      const prevUnlockAt = veSca.unlockAt;
+      const newUnlockAt = findClosest12AM(
+        (prevUnlockAt + lockPeriodInDays * SECONDS_IN_A_DAY) * 1000
+      );
+      const totalLockDuration = newUnlockAt - prevUnlockAt;
+      if (totalLockDuration >= MAX_LOCK_DURATION - SECONDS_IN_A_DAY) {
+        throw new Error(
+          `Maximum lock period is ~4 years (${MAX_LOCK_ROUNDS - 1} days)`
+        );
+      }
       txBlock.extendLockPeriod(veSca.keyId, newUnlockAt);
     },
     extendLockAmountQuick: async (
       scaCoinAmount: number,
       veScaKey?: SuiAddressArg
     ) => {
+      if (scaCoinAmount < MIN_TOP_UP_AMOUNT) {
+        throw new Error('Minimum top up amount is 1 SCA');
+      }
       const sender = requireSender(txBlock);
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
 
       if (!veSca) {
         throw new Error('veSca not found');
+      }
+      const isVeScaExpired =
+        (veSca.unlockAt ?? 0) * 1000 <= new Date().getTime();
+      if (isVeScaExpired) {
+        throw new Error('veSca is expired, use renewExpiredVeScaQuick instead');
       }
 
       const scaCoins = await builder.utils.selectCoinIds(
@@ -274,16 +374,25 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
     },
     renewExpiredVeScaQuick: async (
       scaCoinAmount: number,
-      newUnlockAt: number,
+      lockPeriodInDays: number,
       veScaKey?: SuiAddressArg
     ) => {
+      if (scaCoinAmount < MIN_INITIAL_LOCK_AMOUNT) {
+        throw new Error(
+          'Minimum lock amount for renewing expired vesca 10 SCA'
+        );
+      }
       const sender = requireSender(txBlock);
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
-
+      const transferObjects = [];
       if (!veSca) {
         throw new Error('veSca not found');
       }
 
+      if (veSca.lockedScaAmount !== 0) {
+        const unlockedSca = txBlock.redeemSca(veSca.keyId);
+        transferObjects.push(unlockedSca);
+      }
       const scaCoins = await builder.utils.selectCoinIds(
         scaCoinAmount,
         SCA_COIN_TYPE,
@@ -293,8 +402,13 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         scaCoins,
         scaCoinAmount
       );
+      transferObjects.push(leftCoin);
+
+      const newUnlockAt = findClosest12AM(
+        lockPeriodInDays * SECONDS_IN_A_DAY * 1000
+      );
       txBlock.renewExpiredVeSca(veSca.keyId, takeCoin, newUnlockAt);
-      txBlock.transferObjects([leftCoin], sender);
+      txBlock.transferObjects(transferObjects, sender);
     },
     redeemScaQuick: async (veScaKey?: SuiAddressArg) => {
       const sender = requireSender(txBlock);

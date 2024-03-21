@@ -104,11 +104,14 @@ export const getVeSca = async (
     veScaDynamicFieldObject.content.dataType === 'moveObject' &&
     'fields' in veScaDynamicFieldObject.content
   ) {
-    const dynamicFields = veScaDynamicFieldObject.content.fields as any;
+    const dynamicFields = (veScaDynamicFieldObject.content.fields as any).value
+      .fields;
     vesca = {
       id: veScaDynamicFieldObject.objectId,
       keyId: veScaKeyId,
-      lockedScaAmount: BigNumber(dynamicFields.locked_sca_amount).toNumber(),
+      lockedScaAmount: BigNumber(dynamicFields.locked_sca_amount)
+        .shiftedBy(-9)
+        .toNumber(),
       unlockAt: BigNumber(dynamicFields.unlock_at).toNumber(),
     } as Vesca;
   }

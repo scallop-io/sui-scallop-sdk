@@ -3,6 +3,7 @@ import {
   SUPPORT_POOLS,
   SUPPORT_COLLATERALS,
   SUPPORT_SPOOLS_REWARDS,
+  MAX_LOCK_DURATION,
 } from '../constants';
 import type { ScallopAddress } from '../models';
 import type {
@@ -70,4 +71,30 @@ export const parseDataFromPythPriceFeed = (
   } else {
     throw new Error('Invalid feed id');
   }
+};
+
+/**
+ * Find closest 12AM to the given date in seconds.
+ * @param date
+ * @returns closest 12AM in seconds timestamp
+ */
+export const findClosest12AM = (date: Date | number) => {
+  if (typeof date === 'number') {
+    date = new Date(date);
+  }
+  const closestTwelveAM = new Date(date);
+
+  closestTwelveAM.setUTCHours(0, 0, 0, 0); // Set the time to the next 12 AM UTC
+
+  // If the current time is past 12 AM, set the date to the next day
+  if (date.getUTCHours() >= 0) {
+    closestTwelveAM.setUTCDate(closestTwelveAM.getUTCDate() + 1);
+  }
+
+  const now = new Date().getTime();
+  // check if unlock period > 4 years
+  if (closestTwelveAM.getTime() / 1000 - now / 1000 > MAX_LOCK_DURATION) {
+    closestTwelveAM.setUTCDate(closestTwelveAM.getUTCDate() - 1);
+  }
+  return Math.floor(closestTwelveAM.getTime() / 1000);
 };
