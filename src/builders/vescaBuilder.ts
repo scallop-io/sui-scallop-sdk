@@ -88,7 +88,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
   };
 
   return {
-    lockSca: (scaCoin, unlockAt) => {
+    lockSca: (scaCoin, unlockAtInSecondTimestamp) => {
       return txBlock.moveCall(
         `${veScaIds.pkgId}::ve_sca::mint_ve_sca_key`,
         [
@@ -96,13 +96,13 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.table,
           veScaIds.treasury,
           scaCoin,
-          unlockAt,
+          unlockAtInSecondTimestamp,
           SUI_CLOCK_OBJECT_ID,
         ],
         []
       );
     },
-    extendLockPeriod: (veScaKey, newUnlockAt) => {
+    extendLockPeriod: (veScaKey, newUnlockAtInSecondTimestamp) => {
       txBlock.moveCall(
         `${veScaIds.pkgId}::ve_sca::extend_lock_period`,
         [
@@ -110,7 +110,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaKey,
           veScaIds.table,
           veScaIds.treasury,
-          newUnlockAt,
+          newUnlockAtInSecondTimestamp,
           SUI_CLOCK_OBJECT_ID,
         ],
         []
@@ -130,7 +130,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    renewExpiredVeSca: (veScaKey, scaCoin, newUnlockAt) => {
+    renewExpiredVeSca: (veScaKey, scaCoin, newUnlockAtInSecondTimestamp) => {
       txBlock.moveCall(
         `${veScaIds.pkgId}::ve_sca::renew_expired_ve_sca`,
         [
@@ -139,7 +139,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.table,
           veScaIds.treasury,
           scaCoin,
-          newUnlockAt,
+          newUnlockAtInSecondTimestamp,
           SUI_CLOCK_OBJECT_ID,
         ],
         []
