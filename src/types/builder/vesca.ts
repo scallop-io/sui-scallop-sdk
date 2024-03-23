@@ -35,20 +35,24 @@ export type VeScaNormalMethods = {
 export type VeScaQuickMethods = {
   lockScaQuick(
     amountOrCoin?: SuiObjectArg | number,
-    lockPeriodInDays?: number
+    lockPeriodInDays?: number,
+    autoCheck?: boolean
   ): Promise<void>;
   extendLockPeriodQuick: (
     lockPeriodInDays: number,
-    veScaKey?: SuiAddressArg
+    veScaKey?: SuiAddressArg,
+    autoCheck?: boolean
   ) => Promise<void>;
   extendLockAmountQuick: (
-    scaCoinAmount: number,
-    veScaKey?: SuiAddressArg
+    scaAmount: number,
+    veScaKey?: SuiAddressArg,
+    autoCheck?: boolean
   ) => Promise<void>;
   renewExpiredVeScaQuick: (
-    scaCoinAmount: number,
+    scaAmount: number,
     lockPeriodInDays: number,
-    veScaKey?: SuiAddressArg
+    veScaKey?: SuiAddressArg,
+    autoCheck?: boolean
   ) => Promise<void>;
   redeemScaQuick: (veScaKey?: SuiAddressArg) => Promise<void>;
 };

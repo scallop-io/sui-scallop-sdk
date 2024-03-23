@@ -109,7 +109,8 @@ export const getVeSca = async (
     vesca = {
       id: veScaDynamicFieldObject.objectId,
       keyId: veScaKeyId,
-      lockedScaAmount: BigNumber(dynamicFields.locked_sca_amount)
+      lockedScaAmount: BigNumber(dynamicFields.locked_sca_amount).toNumber(),
+      lockedScaCoin: BigNumber(dynamicFields.locked_sca_amount)
         .shiftedBy(-9)
         .toNumber(),
       unlockAt: BigNumber(dynamicFields.unlock_at).toNumber(),
