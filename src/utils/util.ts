@@ -74,26 +74,25 @@ export const parseDataFromPythPriceFeed = (
 };
 
 /**
- * Find closest 12AM to the given date in seconds.
- * @param date
- * @returns closest 12AM in seconds timestamp
+ * Find the closest unlock round timestamp (12AM) to the given unlock at timestamp in seconds.
+ *
+ * @param unlockAtInSecondTimestamp - Unlock at in seconds timestamp to find the closest round.
+ * @returns Closest round (12AM) in seconds timestamp.
  */
-export const findClosest12AM = (date: Date | number) => {
-  if (typeof date === 'number') {
-    date = new Date(date);
-  }
-  const closestTwelveAM = new Date(date);
+export const findClosestUnlockRound = (unlockAtInSecondTimestamp: number) => {
+  const unlockDate = new Date(unlockAtInSecondTimestamp * 1000);
+  const closestTwelveAM = new Date(unlockAtInSecondTimestamp * 1000);
 
   closestTwelveAM.setUTCHours(0, 0, 0, 0); // Set the time to the next 12 AM UTC
 
   // If the current time is past 12 AM, set the date to the next day
-  if (date.getUTCHours() >= 0) {
+  if (unlockDate.getUTCHours() >= 0) {
     closestTwelveAM.setUTCDate(closestTwelveAM.getUTCDate() + 1);
   }
 
   const now = new Date().getTime();
   // check if unlock period > 4 years
-  if (closestTwelveAM.getTime() / 1000 - now / 1000 > MAX_LOCK_DURATION) {
+  if (closestTwelveAM.getTime() - now > MAX_LOCK_DURATION * 1000) {
     closestTwelveAM.setUTCDate(closestTwelveAM.getUTCDate() - 1);
   }
   return Math.floor(closestTwelveAM.getTime() / 1000);
