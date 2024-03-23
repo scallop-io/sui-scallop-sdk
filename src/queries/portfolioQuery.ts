@@ -511,11 +511,6 @@ export const getObligationAccount = async (
           );
 
           // for veSCA
-          console.log('poolPoint.weightedAmount', poolPoint.weightedAmount);
-          console.log(
-            'borrowIncentiveAccount.amount',
-            borrowIncentiveAccount.debtAmount
-          );
           const boostValue = BigNumber(poolPoint.weightedAmount)
             .div(borrowIncentiveAccount.debtAmount)
             .toNumber();

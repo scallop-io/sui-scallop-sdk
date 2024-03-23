@@ -74,7 +74,9 @@ const requireObligationInfo = async (
 const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
   ({ builder, txBlock }) => {
     const borrowIncentiveIds: BorrowIncentiveIds = {
-      borrowIncentivePkg: builder.address.get('borrowIncentive.id'),
+      // borrowIncentivePkg: builder.address.get('borrowIncentive.id'),
+      borrowIncentivePkg:
+        '0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246',
       query: builder.address.get('borrowIncentive.query'),
       config: builder.address.get('borrowIncentive.config'),
       incentivePools: builder.address.get('borrowIncentive.incentivePools'),
@@ -196,7 +198,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
             (txn) =>
               txn.kind === 'MoveCall' &&
               txn.target ===
-                `${builder.address.get('borrowIncentive.id')}::user::unstake`
+                `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
@@ -224,9 +226,10 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
             (txn) =>
               txn.kind === 'MoveCall' &&
               txn.target ===
-                `${builder.address.get('borrowIncentive.id')}::user::unstake`
+                `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
           );
 
+        console.log(obligationLocked, unstakeObligationBeforeStake);
         if (!obligationLocked || unstakeObligationBeforeStake) {
           try {
             const { veScaKey: veScaKeyArg } = await requireVeSca(
