@@ -20,7 +20,8 @@ export const getVeScas = async (query: ScallopQuery, ownerAddress: string) => {
       .getOwnedObjects({
         owner,
         filter: {
-          StructType: `${pkgId}::ve_sca::VeScaKey`,
+          // StructType: `${pkgId}::ve_sca::VeScaKey`,
+          StructType: `0xb220d034bdf335d77ae5bfbf6daf059c2cc7a1f719b12bfed75d1736fac038c8::ve_sca::VeScaKey`,
         },
         cursor: nextCursor,
       });
@@ -50,7 +51,9 @@ export const getVeScas = async (query: ScallopQuery, ownerAddress: string) => {
 };
 
 export const getVeSca = async (query: ScallopQuery, veScaKeyId: string) => {
-  const tableId = query.address.get('vesca.tableId');
+  // const tableId = query.address.get('vesca.tableId');
+  const tableId =
+    '0xc607241e4a679fe376d1170b2fbe07b64917bfe69100d4825241cda20039d4bd';
   if (!tableId) {
     throw new Error('Vesca table id not found');
   }

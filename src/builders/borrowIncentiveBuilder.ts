@@ -229,24 +229,33 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
                 `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
           );
 
-        console.log(obligationLocked, unstakeObligationBeforeStake);
         if (!obligationLocked || unstakeObligationBeforeStake) {
-          try {
-            const { veScaKey: veScaKeyArg } = await requireVeSca(
-              builder,
-              txBlock,
-              veScaKey
-            );
-            txBlock.stakeObligationWithVesca(
-              obligationArg,
-              obligationtKeyArg,
-              veScaKeyArg
-            );
-          } catch (e: any) {
-            if (e.message === 'No vesca found for sender') {
-              txBlock.stakeObligation(obligationArg, obligationtKeyArg);
-            }
-          }
+          const { veScaKey: veScaKeyArg } = await requireVeSca(
+            builder,
+            txBlock,
+            veScaKey
+          );
+          txBlock.stakeObligationWithVesca(
+            obligationArg,
+            obligationtKeyArg,
+            veScaKeyArg
+          );
+          // try {
+          //   const { veScaKey: veScaKeyArg } = await requireVeSca(
+          //     builder,
+          //     txBlock,
+          //     veScaKey
+          //   );
+          //   txBlock.stakeObligationWithVesca(
+          //     obligationArg,
+          //     obligationtKeyArg,
+          //     veScaKeyArg
+          //   );
+          // } catch (e: any) {
+          //   if (e.message === 'No vesca found for sender') {
+          //     txBlock.stakeObligation(obligationArg, obligationtKeyArg);
+          //   }
+          // }
         }
       },
       unstakeObligationQuick: async (obligation, obligationKey) => {
