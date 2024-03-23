@@ -1,6 +1,10 @@
 import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ADDRESSES_ID, SUPPORT_BORROW_INCENTIVE_POOLS } from '../constants';
+import {
+  ADDRESSES_ID,
+  SUPPORT_BORROW_INCENTIVE_POOLS,
+  SUPPORT_BORROW_INCENTIVE_REWARDS,
+} from '../constants';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopBuilder } from './scallopBuilder';
@@ -923,12 +927,17 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const rewardCoin = await txBlock.claimBorrowIncentiveQuick(
-      coinName,
-      obligationId,
-      obligationKeyId
-    );
-    txBlock.transferObjects([rewardCoin], sender);
+    const rewardCoins = [];
+    for (const rewardCoinName of SUPPORT_BORROW_INCENTIVE_REWARDS) {
+      const rewardCoin = await txBlock.claimBorrowIncentiveQuick(
+        coinName,
+        rewardCoinName,
+        obligationId,
+        obligationKeyId
+      );
+      rewardCoins.push(rewardCoin);
+    }
+    txBlock.transferObjects(rewardCoins, sender);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(

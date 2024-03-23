@@ -88,7 +88,7 @@ export interface AddressesInterface {
     adminCap: string;
     object: string;
     query: string;
-    incentiveConfig: string;
+    config: string;
     incentivePools: string;
     incentiveAccounts: string;
   };
