@@ -4,6 +4,7 @@ import {
   SUPPORT_COLLATERALS,
   SUPPORT_SPOOLS_REWARDS,
   MAX_LOCK_DURATION,
+  SUPPORT_BORROW_INCENTIVE_REWARDS,
 } from '../constants';
 import type { ScallopAddress } from '../models';
 import type {
@@ -23,6 +24,7 @@ export const isMarketCoin = (
         ...SUPPORT_POOLS,
         ...SUPPORT_COLLATERALS,
         ...SUPPORT_SPOOLS_REWARDS,
+        ...SUPPORT_BORROW_INCENTIVE_REWARDS,
       ]),
     ].includes(assetCoinName)
   );
