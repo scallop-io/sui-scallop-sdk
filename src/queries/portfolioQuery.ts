@@ -516,8 +516,14 @@ export const getObligationAccount = async (
           //   'borrowIncentiveAccount.amount',
           //   borrowIncentiveAccount.debtAmount
           // );
+          const weightScale = BigNumber('1000000000000');
+
           const boostValue = BigNumber(accountPoint.weightedAmount)
-            .div(borrowIncentiveAccount.debtAmount)
+            .div(
+              BigNumber(borrowIncentiveAccount.debtAmount)
+                .multipliedBy(poolPoint.baseWeight)
+                .dividedBy(weightScale)
+            )
             .toNumber();
 
           if (availableClaimAmount.isGreaterThan(0)) {
