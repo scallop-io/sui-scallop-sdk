@@ -483,10 +483,21 @@ export const calculateBorrowIncentivePoolPointData = (
     parsedBorrowIncentivePoolPointData.distributedPoint
   ).plus(accumulatedPoints);
 
+  // pure staked amount
   const stakedAmount = BigNumber(pasredBorrowIncentinvePoolData.staked);
 
   const stakedCoin = stakedAmount.shiftedBy(-1 * poolCoinDecimal);
   const stakedValue = stakedCoin.multipliedBy(poolCoinPrice);
+
+  // staked amount applied with weight
+  const weightedStakedAmount = BigNumber(
+    parsedBorrowIncentivePoolPointData.weightedAmount
+  );
+
+  const weightedStakedCoin = weightedStakedAmount.shiftedBy(
+    -1 * poolCoinDecimal
+  );
+  const weightedStakedValue = weightedStakedCoin.multipliedBy(poolCoinPrice);
 
   // Calculate the reward rate
   const rateYearFactor = 365 * 24 * 60 * 60;
@@ -499,8 +510,17 @@ export const calculateBorrowIncentivePoolPointData = (
     .multipliedBy(rateYearFactor)
     .multipliedBy(rewardCoinPrice);
 
-  const rewardRate = rewardValueForYear.dividedBy(stakedValue).isFinite()
-    ? rewardValueForYear.dividedBy(stakedValue).toNumber()
+  const weightScale = BigNumber('1000000000000');
+  const rewardRate = rewardValueForYear
+    .dividedBy(weightedStakedValue)
+    .multipliedBy(parsedBorrowIncentivePoolPointData.baseWeight)
+    .dividedBy(weightScale)
+    .isFinite()
+    ? rewardValueForYear
+        .dividedBy(weightedStakedValue)
+        .multipliedBy(parsedBorrowIncentivePoolPointData.baseWeight)
+        .dividedBy(weightScale)
+        .toNumber()
     : Infinity;
 
   return {
@@ -511,6 +531,9 @@ export const calculateBorrowIncentivePoolPointData = (
     stakedAmount: stakedAmount.toNumber(),
     stakedCoin: stakedCoin.toNumber(),
     stakedValue: stakedValue.toNumber(),
+    weightedStakedAmount: weightedStakedAmount.toNumber(),
+    weightedStakedCoin: weightedStakedCoin.toNumber(),
+    weightedStakedValue: weightedStakedValue.toNumber(),
     rewardApr: rewardRate,
     rewardPerSec: rewardPerSec.toNumber(),
   };

@@ -141,6 +141,9 @@ export type CalculatedBorrowIncentivePoolPointData = {
   stakedAmount: number;
   stakedCoin: number;
   stakedValue: number;
+  weightedStakedAmount: number;
+  weightedStakedCoin: number;
+  weightedStakedValue: number;
   distributedPointPerSec: number;
   accumulatedPoints: number;
   currentPointIndex: number;
