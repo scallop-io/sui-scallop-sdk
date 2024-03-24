@@ -32,6 +32,7 @@ import type {
   CoinPrices,
   PriceMap,
   CoinWrappedType,
+  SupportPoolCoins,
 } from '../types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
 
@@ -235,12 +236,12 @@ export class ScallopUtils {
   }
 
   /**
-   * Convert marke coin name to coin name.
+   * Convert market coin name to coin name.
    *
    * @param marketCoinName - Specific support market coin name.
    * @return Coin Name.
    */
-  public parseCoinName<T extends SupportAssetCoins>(marketCoinName: string) {
+  public parseCoinName<T extends SupportPoolCoins>(marketCoinName: string) {
     return marketCoinName.slice(1) as T;
   }
 
