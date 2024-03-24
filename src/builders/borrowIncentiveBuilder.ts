@@ -228,21 +228,19 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
-          try {
-            const { veScaKey: veScaKeyArg } = await requireVeSca(
-              builder,
-              txBlock,
-              veScaKey
-            );
+          const { veScaKey: veScaKeyArg } = await requireVeSca(
+            builder,
+            txBlock,
+            veScaKey
+          );
+          if (veScaKey) {
             txBlock.stakeObligationWithVesca(
               obligationArg,
               obligationtKeyArg,
               veScaKeyArg
             );
-          } catch (e: any) {
-            if (e.message === 'No vesca found for sender') {
-              txBlock.stakeObligation(obligationArg, obligationtKeyArg);
-            }
+          } else {
+            txBlock.stakeObligation(obligationArg, obligationtKeyArg);
           }
         }
       },
