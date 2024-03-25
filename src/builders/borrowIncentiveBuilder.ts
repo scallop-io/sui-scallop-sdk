@@ -16,7 +16,10 @@ import type {
   VescaIds,
 } from '../types';
 import { requireVeSca } from './vescaBuilder';
-import { IS_VE_SCA_TEST } from 'src/constants';
+import {
+  IS_VE_SCA_TEST,
+  OLD_BORROW_INCENTIVE_PROTOCOL_ID,
+} from 'src/constants';
 
 /**
  * Check and get Obligation information from transaction block.
@@ -251,12 +254,14 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           !!txBlock.txBlock.blockData.transactions.find(
             (txn) =>
               txn.kind === 'MoveCall' &&
-              txn.target ===
-                (IS_VE_SCA_TEST
-                  ? `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
-                  : `${builder.address.get(
-                      'borrowIncentive.id'
-                    )}::user::unstake`)
+              (txn.target ===
+                `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
+                txn.target ===
+                  (IS_VE_SCA_TEST
+                    ? `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
+                    : `${builder.address.get(
+                        'borrowIncentive.id'
+                      )}::user::unstake`))
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
@@ -283,12 +288,14 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           !!txBlock.txBlock.blockData.transactions.find(
             (txn) =>
               txn.kind === 'MoveCall' &&
-              txn.target ===
-                (IS_VE_SCA_TEST
-                  ? `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
-                  : `${builder.address.get(
-                      'borrowIncentive.id'
-                    )}::user::unstake`)
+              (txn.target ===
+                `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
+                txn.target ===
+                  (IS_VE_SCA_TEST
+                    ? `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
+                    : `${builder.address.get(
+                        'borrowIncentive.id'
+                      )}::user::unstake`))
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
