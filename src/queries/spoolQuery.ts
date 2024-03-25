@@ -243,7 +243,7 @@ export const getStakeAccounts = async (
   const stakeAccountType = `${spoolObjectId}::spool_account::SpoolAccount`;
   const stakeObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
-  let nextCursor: string | null = null;
+  let nextCursor: string | null | undefined = null;
   do {
     const paginatedStakeObjectsResponse = await query.suiKit
       .client()

@@ -15,7 +15,7 @@ import type {
   ScallopTxBlock,
   VescaIds,
 } from '../types';
-import { requireVeSca } from './vesca';
+import { requireVeSca } from './vescaBuilder';
 
 /**
  * Check and get Obligation information from transaction block.
@@ -230,16 +230,12 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
-          const { veScaKey: veScaKeyArg } = await requireVeSca(
-            builder,
-            txBlock,
-            veScaKey
-          );
-          if (veScaKey) {
+          const veSca = await requireVeSca(builder, txBlock, veScaKey);
+          if (veSca) {
             txBlock.stakeObligationWithVesca(
               obligationArg,
               obligationtKeyArg,
-              veScaKeyArg
+              veSca.keyId
             );
           } else {
             txBlock.stakeObligation(obligationArg, obligationtKeyArg);

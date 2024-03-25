@@ -15,32 +15,46 @@ export type VescaIds = {
 };
 
 export type VeScaNormalMethods = {
-  lockSca: (scaCoin: SuiObjectArg, unlock_at: SuiTxArg) => void;
-  extendLockPeriod: (veScaKey: SuiAddressArg, new_unlock_at: SuiTxArg) => void;
-  lockMoreSca: (veScaKey: SuiAddressArg, scaCoin: SuiObjectArg) => void;
+  lockSca: (
+    scaCoin: SuiObjectArg,
+    unlockAtInSecondTimestamp: SuiTxArg
+  ) => TransactionResult;
+  extendLockPeriod: (
+    veScaKey: SuiAddressArg,
+    newUnlockAtInSecondTimestamp: SuiTxArg
+  ) => void;
+  extendLockAmount: (veScaKey: SuiAddressArg, scaCoin: SuiObjectArg) => void;
   renewExpiredVeSca: (
     veScaKey: SuiAddressArg,
     scaCoin: SuiObjectArg,
-    new_unlock_at: SuiTxArg
+    newUnlockAtInSecondTimestamp: SuiTxArg
   ) => void;
-  withdrawSca: (veScaKey: SuiAddressArg) => TransactionResult;
+  redeemSca: (veScaKey: SuiAddressArg) => TransactionResult;
 };
 
 export type VeScaQuickMethods = {
+  lockScaQuick(
+    amountOrCoin?: SuiObjectArg | number,
+    lockPeriodInDays?: number,
+    autoCheck?: boolean
+  ): Promise<void>;
   extendLockPeriodQuick: (
-    new_unlock_at: number,
-    veScaKey?: SuiAddressArg
+    lockPeriodInDays: number,
+    veScaKey?: SuiAddressArg,
+    autoCheck?: boolean
   ) => Promise<void>;
-  lockMoreScaQuick: (
-    scaCoinAmount: number,
-    veScaKey?: SuiAddressArg
+  extendLockAmountQuick: (
+    scaAmount: number,
+    veScaKey?: SuiAddressArg,
+    autoCheck?: boolean
   ) => Promise<void>;
   renewExpiredVeScaQuick: (
-    scaCoinAmount: number,
-    new_unlock_at: number,
-    veScaKey?: SuiAddressArg
+    scaAmount: number,
+    lockPeriodInDays: number,
+    veScaKey?: SuiAddressArg,
+    autoCheck?: boolean
   ) => Promise<void>;
-  withdrawScaQuick: (veScaKey?: SuiAddressArg) => Promise<TransactionResult>;
+  redeemScaQuick: (veScaKey?: SuiAddressArg) => Promise<void>;
 };
 
 export type SuiTxBlockWithVeScaNormalMethods = SuiKitTxBlock &
@@ -52,6 +66,7 @@ export type GenerateVeScaNormalMethod = (params: {
   builder: ScallopBuilder;
   txBlock: SuiKitTxBlock;
 }) => VeScaNormalMethods;
+
 export type GenerateVeScaQuickMethod = (params: {
   builder: ScallopBuilder;
   txBlock: SuiTxBlockWithVeScaNormalMethods;
