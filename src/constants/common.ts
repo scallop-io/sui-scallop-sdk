@@ -5,7 +5,8 @@ export const IS_VE_SCA_TEST = false;
 
 export const ADDRESSES_ID = IS_VE_SCA_TEST
   ? ('65fb07c39c845425d71d7b18' as const)
-  : ('6462a088a7ace142bb6d7e9b' as const);
+  : ('6601955b8b0024600a917079' as const);
+// : ('6462a088a7ace142bb6d7e9b' as const);
 
 export const PROTOCOL_OBJECT_ID = IS_VE_SCA_TEST
   ? ('0xc9f859f98ca352a11b97a038c4b4162bee437b8df8caa047990fe9cb03d4f778' as const)
