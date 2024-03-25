@@ -2,7 +2,6 @@ import BigNumber from 'bignumber.js';
 import { Vesca } from '../types';
 import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui.js/client';
 import type { ScallopQuery } from '../models';
-
 /**
  * Query all owned veSca key.
  *
