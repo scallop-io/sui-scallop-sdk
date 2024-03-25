@@ -15,7 +15,9 @@ export const getVescaKeys = async (
   ownerAddress?: string
 ) => {
   const owner = ownerAddress || query.suiKit.currentAddress();
-  const veScaPkgId = query.address.get('vesca.id');
+  // const veScaPkgId = query.address.get('vesca.id');
+  const veScaPkgId =
+    '0xb220d034bdf335d77ae5bfbf6daf059c2cc7a1f719b12bfed75d1736fac038c8';
   const veScaKeyType = `${veScaPkgId}::ve_sca::VeScaKey`;
   const keyObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
@@ -57,7 +59,6 @@ export const getVescaKeys = async (
  */
 export const getVeScas = async (query: ScallopQuery, ownerAddress?: string) => {
   const keyObjectDatas = await getVescaKeys(query, ownerAddress);
-
   const keyObjectId: string[] = keyObjectDatas.map((data) => data.objectId);
 
   const veScas: Vesca[] = [];
@@ -82,7 +83,9 @@ export const getVeSca = async (
   veScaKeyId?: string,
   ownerAddress?: string
 ) => {
-  const tableId = query.address.get('vesca.tableId');
+  // const tableId = query.address.get('vesca.tableId');
+  const tableId =
+    '0xc607241e4a679fe376d1170b2fbe07b64917bfe69100d4825241cda20039d4bd';
   veScaKeyId =
     veScaKeyId || (await getVescaKeys(query, ownerAddress))[0].objectId;
 
