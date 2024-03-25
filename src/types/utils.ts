@@ -1,6 +1,6 @@
 import type { SupportAssetCoins } from './constant';
 
-type OptionalKeys<T> = {
+export type OptionalKeys<T> = {
   [K in keyof T]?: T[K];
 };
 
