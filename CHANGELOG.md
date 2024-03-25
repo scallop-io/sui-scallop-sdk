@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.19](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.18...v0.44.19) (2024-03-25)
+
+### Features
+
+- add veSCA and stakeObligationWithVeSca implementation ([dbd6c68](https://github.com/scallop-io/sui-scallop-sdk/commit/dbd6c6869228834f1df12a779356086892c52632))
+- add vesca bind check before using it ([873826b](https://github.com/scallop-io/sui-scallop-sdk/commit/873826bb511708cbcb756407cfae91c4a1dea71c))
+- done veScaQuickMethods ([d96fe36](https://github.com/scallop-io/sui-scallop-sdk/commit/d96fe366d99d2c8e970a1d87b530e0707aff8e01))
+- finish borrow incentive ([bd466fb](https://github.com/scallop-io/sui-scallop-sdk/commit/bd466fbf8312c791cd6eec1b4ce5e1f3faef5918))
+- update address id ([0f9d6a9](https://github.com/scallop-io/sui-scallop-sdk/commit/0f9d6a9f600c9a3b70e84a4431de09f587b3177c))
+- use test vesca ([d700b3c](https://github.com/scallop-io/sui-scallop-sdk/commit/d700b3c92411afbf5084d9d2ac3ffebe489910de))
+
+### Bug Fixes
+
+- Add OLD_BORROW_INCENTIVE_PROTOCOL_ID constant to borrowIncentiveBuilder.ts ([01c0d0a](https://github.com/scallop-io/sui-scallop-sdk/commit/01c0d0aea86e86b3a18de690dc10db15e051c934))
+- add weighted staked on query ([6e79d08](https://github.com/scallop-io/sui-scallop-sdk/commit/6e79d08d9236a1cb5b167fbb864463eb54f6cc50))
+- boost calculation ([270ed16](https://github.com/scallop-io/sui-scallop-sdk/commit/270ed169f758c2416022502c7856f72c1d92c61b))
+- minor ([df4d118](https://github.com/scallop-io/sui-scallop-sdk/commit/df4d118a68bfe3a7e9eebce222641ad24851562f))
+- minor typo ([c1ba7ff](https://github.com/scallop-io/sui-scallop-sdk/commit/c1ba7ff26bf64581d687db40bb601c9bd7857449))
+- typo ([fb57c5a](https://github.com/scallop-io/sui-scallop-sdk/commit/fb57c5a992a3dd791b646d2735331c4175a92526))
+- use normal stake if no vesca ([4dda1df](https://github.com/scallop-io/sui-scallop-sdk/commit/4dda1df272d43c5c6c745520db439a968ca3f5b0))
+- use production addressses ([3f14e82](https://github.com/scallop-io/sui-scallop-sdk/commit/3f14e8258c3a1c1d52cc2e054838c53fdd1c786e))
+
 ### [0.44.18](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.17...v0.44.18) (2024-03-03)
 
 ### Bug Fixes
