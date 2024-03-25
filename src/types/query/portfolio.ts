@@ -1,6 +1,10 @@
 import type { MarketPool } from './core';
 import type { Spool } from './spool';
-import type { SupportPoolCoins, SupportCollateralCoins } from '../constant';
+import type {
+  SupportPoolCoins,
+  SupportCollateralCoins,
+  SupportBorrowIncentiveRewardCoins,
+} from '../constant';
 
 type OptionalKeys<T> = {
   [K in keyof T]?: T[K];
@@ -110,17 +114,24 @@ export type ObligationDebt = {
   availableRepayCoin: number;
 };
 
+export type ObligationBorrowIcentiveReward = {
+  coinName: SupportBorrowIncentiveRewardCoins;
+  coinType: string;
+  symbol: string;
+  coinDecimal: number;
+  coinPrice: number;
+  availableClaimCoin: number;
+  availableClaimAmount: number;
+  boostValue: number;
+};
+
 export type ObligationBorrowIncentive = {
   coinName: SupportPoolCoins;
   coinType: string;
-  rewardCoinType: string;
   symbol: string;
   coinDecimal: number;
-  rewardCoinDecimal: number;
   coinPrice: number;
-  rewardCoinPrice: number;
-  availableClaimAmount: number;
-  availableClaimCoin: number;
+  rewards: ObligationBorrowIcentiveReward[];
 };
 
 export type TotalValueLocked = {
