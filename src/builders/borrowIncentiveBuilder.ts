@@ -16,6 +16,10 @@ import type {
   VescaIds,
 } from '../types';
 import { requireVeSca } from './vescaBuilder';
+import {
+  IS_VE_SCA_TEST,
+  OLD_BORROW_INCENTIVE_PROTOCOL_ID,
+} from 'src/constants';
 
 /**
  * Check and get Obligation information from transaction block.
@@ -78,10 +82,9 @@ export const getBindedObligationId = async (
   const incentivePoolsId = builder.address.get(
     'borrowIncentive.incentivePools'
   );
-  // const veScaPkgId = builder.address.get('vesca.id');
-  const veScaPkgId =
-    '0xb220d034bdf335d77ae5bfbf6daf059c2cc7a1f719b12bfed75d1736fac038c8';
-  ('0x0000000000000000000000000000000000000000000000000000000000000000');
+  const veScaPkgId = IS_VE_SCA_TEST
+    ? '0xb220d034bdf335d77ae5bfbf6daf059c2cc7a1f719b12bfed75d1736fac038c8'
+    : builder.address.get('vesca.id');
 
   const client = builder.suiKit.client();
 
@@ -128,9 +131,9 @@ export const getBindedObligationId = async (
 const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
   ({ builder, txBlock }) => {
     const borrowIncentiveIds: BorrowIncentiveIds = {
-      // borrowIncentivePkg: builder.address.get('borrowIncentive.id'),
-      borrowIncentivePkg:
-        '0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246',
+      borrowIncentivePkg: IS_VE_SCA_TEST
+        ? '0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'
+        : builder.address.get('borrowIncentive.id'),
       query: builder.address.get('borrowIncentive.query'),
       config: builder.address.get('borrowIncentive.config'),
       incentivePools: builder.address.get('borrowIncentive.incentivePools'),
@@ -251,9 +254,14 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           !!txBlock.txBlock.blockData.transactions.find(
             (txn) =>
               txn.kind === 'MoveCall' &&
-              txn.target ===
-                // `${builder.address.get('borrowIncentive.id')}::user::unstake`
-                `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
+              (txn.target ===
+                `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
+                txn.target ===
+                  (IS_VE_SCA_TEST
+                    ? `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
+                    : `${builder.address.get(
+                        'borrowIncentive.id'
+                      )}::user::unstake`))
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
@@ -280,9 +288,14 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           !!txBlock.txBlock.blockData.transactions.find(
             (txn) =>
               txn.kind === 'MoveCall' &&
-              txn.target ===
-                // `${builder.address.get('borrowIncentive.id')}::user::unstake`
-                `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
+              (txn.target ===
+                `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
+                txn.target ===
+                  (IS_VE_SCA_TEST
+                    ? `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
+                    : `${builder.address.get(
+                        'borrowIncentive.id'
+                      )}::user::unstake`))
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {

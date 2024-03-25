@@ -9,6 +9,7 @@ import type {
   WormholeCoinIds,
   VoloCoinIds,
 } from '../types';
+import { IS_VE_SCA_TEST } from './common';
 
 export const coinDecimals: SupportCoinDecimals = {
   eth: 8,
@@ -105,8 +106,9 @@ export const coinIds: AssetCoinIds = {
   afsui: '0xf325ce1300e8dac124071d3152c5c5ee6174914f8bc2161e88329cf579246efc',
   hasui: '0xbde4ba4c2e274a60ce15c1cfff9e5c42e41654ac8b6d906a57efa4bd3c29f47d',
   vsui: '0x549e8b69270defbfafd4f94e17ec44cdbdd99820b33bda2278dea3b9a32d3f55',
-  // sca: '0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6',
-  sca: '0x6cd813061a3adf3602b76545f076205f0c8e7ec1d3b1eab9a1da7992c18c0524',
+  sca: IS_VE_SCA_TEST
+    ? '0x6cd813061a3adf3602b76545f076205f0c8e7ec1d3b1eab9a1da7992c18c0524'
+    : '0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6',
 };
 
 export const wormholeCoinIds: WormholeCoinIds = {
