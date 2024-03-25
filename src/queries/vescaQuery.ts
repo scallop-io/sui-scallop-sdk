@@ -2,6 +2,7 @@ import BigNumber from 'bignumber.js';
 import { Vesca } from '../types';
 import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui.js/client';
 import type { ScallopQuery } from '../models';
+import { IS_VE_SCA_TEST } from 'src/constants';
 /**
  * Query all owned veSca key.
  *
@@ -14,9 +15,9 @@ export const getVescaKeys = async (
   ownerAddress?: string
 ) => {
   const owner = ownerAddress || query.suiKit.currentAddress();
-  // const veScaPkgId = query.address.get('vesca.id');
-  const veScaPkgId =
-    '0xb220d034bdf335d77ae5bfbf6daf059c2cc7a1f719b12bfed75d1736fac038c8';
+  const veScaPkgId = IS_VE_SCA_TEST
+    ? '0xb220d034bdf335d77ae5bfbf6daf059c2cc7a1f719b12bfed75d1736fac038c8'
+    : query.address.get('vesca.id');
   const veScaKeyType = `${veScaPkgId}::ve_sca::VeScaKey`;
   const keyObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
@@ -82,9 +83,9 @@ export const getVeSca = async (
   veScaKeyId?: string,
   ownerAddress?: string
 ) => {
-  // const tableId = query.address.get('vesca.tableId');
-  const tableId =
-    '0xc607241e4a679fe376d1170b2fbe07b64917bfe69100d4825241cda20039d4bd';
+  const tableId = IS_VE_SCA_TEST
+    ? '0xc607241e4a679fe376d1170b2fbe07b64917bfe69100d4825241cda20039d4bd'
+    : query.address.get(`vesca.tableId`);
   veScaKeyId =
     veScaKeyId || (await getVescaKeys(query, ownerAddress))[0].objectId;
 
