@@ -65,6 +65,60 @@ const requireObligationInfo = async (
 };
 
 /**
+ * Check veSca bind status
+ * @param query
+ * @param veScaKey
+ * @returns
+ */
+export const getBindedObligationId = async (
+  builder: ScallopBuilder,
+  veScaKey: string
+) => {
+  const borrowIncentivePkgId = builder.address.get('borrowIncentive.id');
+  const incentivePoolsId = builder.address.get(
+    'borrowIncentive.incentivePools'
+  );
+  // const veScaPkgId = builder.address.get('vesca.id');
+  const veScaPkgId =
+    '0xb220d034bdf335d77ae5bfbf6daf059c2cc7a1f719b12bfed75d1736fac038c8';
+  ('0x0000000000000000000000000000000000000000000000000000000000000000');
+
+  const client = builder.suiKit.client();
+
+  // get incentive pools
+  const incentivePoolsResponse = await client.getObject({
+    id: incentivePoolsId,
+    options: {
+      showContent: true,
+    },
+  });
+
+  if (incentivePoolsResponse.data?.content?.dataType !== 'moveObject')
+    return false;
+  const incentivePoolFields = incentivePoolsResponse.data.content.fields as any;
+  const veScaBindTableId = incentivePoolFields.ve_sca_bind.fields.id
+    .id as string;
+
+  // check if veSca is inside the bind table
+  const keyType = `${borrowIncentivePkgId}::typed_id::TypedID<${veScaPkgId}::ve_sca::VeScaKey>`;
+  const veScaBindTableResponse = await client.getDynamicFieldObject({
+    parentId: veScaBindTableId,
+    name: {
+      type: keyType,
+      value: veScaKey,
+    },
+  });
+
+  if (veScaBindTableResponse.data?.content?.dataType !== 'moveObject')
+    return false;
+  const veScaBindTableFields = veScaBindTableResponse.data.content
+    .fields as any;
+  // get obligationId pair
+  const obligationId = veScaBindTableFields.value.fields.id as string;
+
+  return obligationId;
+};
+/**
  * Generate borrow incentive normal methods.
  *
  * @param builder - Scallop builder instance.
@@ -74,7 +128,9 @@ const requireObligationInfo = async (
 const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
   ({ builder, txBlock }) => {
     const borrowIncentiveIds: BorrowIncentiveIds = {
-      borrowIncentivePkg: builder.address.get('borrowIncentive.id'),
+      // borrowIncentivePkg: builder.address.get('borrowIncentive.id'),
+      borrowIncentivePkg:
+        '0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246',
       query: builder.address.get('borrowIncentive.query'),
       config: builder.address.get('borrowIncentive.config'),
       incentivePools: builder.address.get('borrowIncentive.incentivePools'),
@@ -196,7 +252,8 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
             (txn) =>
               txn.kind === 'MoveCall' &&
               txn.target ===
-                `${builder.address.get('borrowIncentive.id')}::user::unstake`
+                // `${builder.address.get('borrowIncentive.id')}::user::unstake`
+                `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
@@ -224,17 +281,27 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
             (txn) =>
               txn.kind === 'MoveCall' &&
               txn.target ===
-                `${builder.address.get('borrowIncentive.id')}::user::unstake`
+                // `${builder.address.get('borrowIncentive.id')}::user::unstake`
+                `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
           const veSca = await requireVeSca(builder, txBlock, veScaKey);
           if (veSca) {
-            txBlock.stakeObligationWithVesca(
-              obligationArg,
-              obligationtKeyArg,
+            const bindedObligationId = await getBindedObligationId(
+              builder,
               veSca.keyId
             );
+            // if bindedObligationId is equal to obligationId, then use it again
+            if (!bindedObligationId || bindedObligationId === obligationArg) {
+              txBlock.stakeObligationWithVesca(
+                obligationArg,
+                obligationtKeyArg,
+                veSca.keyId
+              );
+            } else {
+              txBlock.stakeObligation(obligationArg, obligationtKeyArg);
+            }
           } else {
             txBlock.stakeObligation(obligationArg, obligationtKeyArg);
           }
