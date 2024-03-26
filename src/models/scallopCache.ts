@@ -77,7 +77,7 @@ export class ScallopCache {
       queryFn: async () => {
         return await this.suiKit.client().getProtocolConfig();
       },
-      staleTime: 60000,
+      staleTime: 30000,
     });
   }
 
