@@ -55,7 +55,12 @@ export const parseDataFromPythPriceFeed = (
   address: ScallopAddress
 ) => {
   const assetCoinNames = [
-    ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
+    ...new Set([
+      ...SUPPORT_POOLS,
+      ...SUPPORT_COLLATERALS,
+      ...SUPPORT_SPOOLS_REWARDS,
+      ...SUPPORT_BORROW_INCENTIVE_REWARDS,
+    ]),
   ] as SupportAssetCoins[];
   const assetCoinName = assetCoinNames.find((assetCoinName) => {
     return (
