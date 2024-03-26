@@ -502,25 +502,30 @@ export const calculateBorrowIncentivePoolPointData = (
 
   // Calculate the reward rate
   const rateYearFactor = 365 * 24 * 60 * 60;
-  const rewardPerSec = BigNumber(distributedPointPerSec).dividedBy(
-    parsedBorrowIncentivePoolPointData.period
+  const rewardPerSec = BigNumber(distributedPointPerSec).shiftedBy(
+    -1 * rewardCoinDecimal
   );
 
   const rewardValueForYear = BigNumber(rewardPerSec)
-    .shiftedBy(-1 * rewardCoinDecimal)
     .multipliedBy(rateYearFactor)
     .multipliedBy(rewardCoinPrice);
 
   const weightScale = BigNumber('1000000000000');
   const rewardRate = rewardValueForYear
+    .multipliedBy(
+      BigNumber(parsedBorrowIncentivePoolPointData.baseWeight).dividedBy(
+        weightScale
+      )
+    )
     .dividedBy(weightedStakedValue)
-    .multipliedBy(parsedBorrowIncentivePoolPointData.baseWeight)
-    .dividedBy(weightScale)
     .isFinite()
     ? rewardValueForYear
+        .multipliedBy(
+          BigNumber(parsedBorrowIncentivePoolPointData.baseWeight).dividedBy(
+            weightScale
+          )
+        )
         .dividedBy(weightedStakedValue)
-        .multipliedBy(parsedBorrowIncentivePoolPointData.baseWeight)
-        .dividedBy(weightScale)
         .toNumber()
     : Infinity;
 
