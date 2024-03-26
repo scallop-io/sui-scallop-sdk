@@ -1,5 +1,4 @@
 import { normalizeStructTag } from '@mysten/sui.js/utils';
-import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import {
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
@@ -40,10 +39,9 @@ export const queryBorrowIncentivePools = async (
   const queryPkgId = query.address.get('borrowIncentive.query');
   const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
 
-  const txBlock = new SuiKitTxBlock();
   const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
-  txBlock.moveCall(queryTarget, [incentivePoolsId]);
-  const queryResult = await query.suiKit.inspectTxn(txBlock);
+  const args = [incentivePoolsId];
+  const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
   const borrowIncentivePoolsQueryData = queryResult.events[0]
     .parsedJson as BorrowIncentivePoolsQueryInterface;
 
