@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.20](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.19...v0.44.20) (2024-03-26)
+
+### Bug Fixes
+
+- borrow incentive reward apr calculation ([555671f](https://github.com/scallop-io/sui-scallop-sdk/commit/555671f944187fc2d8b0cac73e3fb595e53b1632))
+- get sca price in with pyth feed ([2347b87](https://github.com/scallop-io/sui-scallop-sdk/commit/2347b879156969cbc62a0be29134bdb97f24460d))
+
 ### [0.44.19](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.18...v0.44.19) (2024-03-25)
 
 ### Features
