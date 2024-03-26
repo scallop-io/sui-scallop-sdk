@@ -1,6 +1,10 @@
 import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ADDRESSES_ID, SUPPORT_BORROW_INCENTIVE_POOLS } from '../constants';
+import {
+  ADDRESSES_ID,
+  SUPPORT_BORROW_INCENTIVE_POOLS,
+  SUPPORT_BORROW_INCENTIVE_REWARDS,
+} from '../constants';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopBuilder } from './scallopBuilder';
@@ -791,7 +795,7 @@ export class ScallopClient {
     for (const stakeMarketCoin of stakeMarketCoins) {
       const stakeCoinName =
         this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
-      const coin = await txBlock.withdraw(stakeMarketCoin, stakeCoinName);
+      const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
       coins.push(coin);
     }
     txBlock.transferObjects(coins, sender);
@@ -854,15 +858,15 @@ export class ScallopClient {
   /**
    * stake obligaion.
    *
-   * @param obligaionId - The obligation account object.
-   * @param obligaionKeyId - The obligation key account object.
+   * @param obligationId - The obligation account object.
+   * @param obligationKeyId - The obligation key account object.
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block
    */
   public async stakeObligation<S extends boolean>(
-    obligaionId: string,
-    obligaionKeyId: string,
+    obligationId: string,
+    obligationKeyId: string,
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
@@ -870,7 +874,7 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    await txBlock.stakeObligationQuick(obligaionId, obligaionKeyId);
+    await txBlock.stakeObligationQuick(obligationId, obligationKeyId);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -884,15 +888,15 @@ export class ScallopClient {
   /**
    * unstake obligaion.
    *
-   * @param obligaionId - The obligation account object.
-   * @param obligaionKeyId - The obligation key account object.
+   * @param obligationId - The obligation account object.
+   * @param obligationKeyId - The obligation key account object.
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block
    */
   public async unstakeObligation<S extends boolean>(
-    obligaionId: string,
-    obligaionKeyId: string,
+    obligationId: string,
+    obligationKeyId: string,
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
@@ -900,7 +904,7 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    await txBlock.unstakeObligationQuick(obligaionId, obligaionKeyId);
+    await txBlock.unstakeObligationQuick(obligationId, obligationKeyId);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -923,8 +927,8 @@ export class ScallopClient {
    */
   public async claimBorrowIncentive<S extends boolean>(
     coinName: SupportBorrowIncentiveCoins,
-    obligaionId: string,
-    obligaionKeyId: string,
+    obligationId: string,
+    obligationKeyId: string,
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
@@ -932,12 +936,17 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const rewardCoin = await txBlock.claimBorrowIncentiveQuick(
-      coinName,
-      obligaionId,
-      obligaionKeyId
-    );
-    txBlock.transferObjects([rewardCoin], sender);
+    const rewardCoins = [];
+    for (const rewardCoinName of SUPPORT_BORROW_INCENTIVE_REWARDS) {
+      const rewardCoin = await txBlock.claimBorrowIncentiveQuick(
+        coinName,
+        rewardCoinName,
+        obligationId,
+        obligationKeyId
+      );
+      rewardCoins.push(rewardCoin);
+    }
+    txBlock.transferObjects(rewardCoins, sender);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
