@@ -232,8 +232,17 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     adminCap: '',
     object: '',
     query: '',
+    config: '',
     incentivePools: '',
     incentiveAccounts: '',
+  },
+  vesca: {
+    id: '',
+    adminCap: '',
+    tableId: '',
+    table: '',
+    treasury: '',
+    config: '',
   },
 };
 
@@ -454,8 +463,7 @@ export class ScallopAddress {
    * @return All addresses.
    */
   public async read(id?: string) {
-    const addressesId = id ?? this._id ?? undefined;
-
+    const addressesId = id || this._id || undefined;
     if (addressesId !== undefined) {
       const response = await this._cache.queryClient.fetchQuery({
         queryKey: ['api-getAddresses', addressesId],

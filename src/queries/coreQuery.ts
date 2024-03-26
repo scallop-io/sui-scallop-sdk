@@ -312,7 +312,7 @@ export const getMarketPool = async (
       // Get balance sheet.
       const balanceSheetParentId =
         fields.vault.fields.balance_sheets.fields.table.fields.id.id;
-      const balanceSheetDdynamicFieldObjectResponse = await query.suiKit
+      const balanceSheetDynamicFieldObjectResponse = await query.suiKit
         .client()
         .getDynamicFieldObject({
           parentId: balanceSheetParentId,
@@ -323,14 +323,14 @@ export const getMarketPool = async (
             },
           },
         });
-      const balanceSheetDdynamicFieldObject =
-        balanceSheetDdynamicFieldObjectResponse.data;
+      const balanceSheetDynamicFieldObject =
+        balanceSheetDynamicFieldObjectResponse.data;
       if (
-        balanceSheetDdynamicFieldObject &&
-        balanceSheetDdynamicFieldObject.content &&
-        'fields' in balanceSheetDdynamicFieldObject.content
+        balanceSheetDynamicFieldObject &&
+        balanceSheetDynamicFieldObject.content &&
+        'fields' in balanceSheetDynamicFieldObject.content
       ) {
-        const dynamicFields = balanceSheetDdynamicFieldObject.content
+        const dynamicFields = balanceSheetDynamicFieldObject.content
           .fields as any;
         balanceSheet = dynamicFields.value.fields;
       }
@@ -581,7 +581,7 @@ export const getMarketCollateral = async (
 
       // Get risk model.
       const riskModelParentId = fields.risk_models.fields.table.fields.id.id;
-      const riskModelDdynamicFieldObjectResponse = await query.suiKit
+      const riskModelDynamicFieldObjectResponse = await query.suiKit
         .client()
         .getDynamicFieldObject({
           parentId: riskModelParentId,
@@ -592,15 +592,14 @@ export const getMarketCollateral = async (
             },
           },
         });
-      const riskModelDdynamicFieldObject =
-        riskModelDdynamicFieldObjectResponse.data;
+      const riskModelDynamicFieldObject =
+        riskModelDynamicFieldObjectResponse.data;
       if (
-        riskModelDdynamicFieldObject &&
-        riskModelDdynamicFieldObject.content &&
-        'fields' in riskModelDdynamicFieldObject.content
+        riskModelDynamicFieldObject &&
+        riskModelDynamicFieldObject.content &&
+        'fields' in riskModelDynamicFieldObject.content
       ) {
-        const dynamicFields = riskModelDdynamicFieldObject.content
-          .fields as any;
+        const dynamicFields = riskModelDynamicFieldObject.content.fields as any;
         riskModel = dynamicFields.value.fields;
       }
 
@@ -686,7 +685,7 @@ export const getObligations = async (
     query.address.get('core.object') || PROTOCOL_OBJECT_ID;
   const keyObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
-  let nextCursor: string | null = null;
+  let nextCursor: string | null | undefined = null;
   do {
     const paginatedKeyObjectsResponse = await query.cache.queryGetOwnedObjects({
       owner,
@@ -799,7 +798,7 @@ export const getCoinAmounts = async (
   const owner = ownerAddress || query.suiKit.currentAddress();
   const coinObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
-  let nextCursor: string | null = null;
+  let nextCursor: string | null | undefined = null;
   do {
     const paginatedCoinObjectsResponse = await query.cache.queryGetOwnedObjects(
       {
@@ -871,7 +870,7 @@ export const getCoinAmount = async (
   const coinType = query.utils.parseCoinType(assetCoinName);
   const coinObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
-  let nextCursor: string | null = null;
+  let nextCursor: string | null | undefined = null;
   do {
     const paginatedCoinObjectsResponse = await query.cache.queryGetOwnedObjects(
       {
@@ -934,7 +933,7 @@ export const getMarketCoinAmounts = async (
   const owner = ownerAddress || query.suiKit.currentAddress();
   const marketCoinObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
-  let nextCursor: string | null = null;
+  let nextCursor: string | null | undefined = null;
   do {
     const paginatedMarketCoinObjectsResponse =
       await query.cache.queryGetOwnedObjects({
@@ -1008,7 +1007,7 @@ export const getMarketCoinAmount = async (
   const marketCoinType = query.utils.parseMarketCoinType(marketCoinName);
   const marketCoinObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
-  let nextCursor: string | null = null;
+  let nextCursor: string | null | undefined = null;
   do {
     const paginatedMarketCoinObjectsResponse =
       await query.cache.queryGetOwnedObjects({
