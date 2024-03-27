@@ -411,47 +411,56 @@ export class ScallopUtils {
       const endpoints =
         this.params.pythEndpoints ??
         PYTH_ENDPOINTS[this.isTestnet ? 'testnet' : 'mainnet'];
-      try {
-        for (const endpoint of endpoints) {
-          try {
-            const pythConnection = new SuiPriceServiceConnection(endpoint);
-            const priceIds = Array.from(
-              new Set(
-                lackPricesCoinNames.map((coinName) =>
-                  this._address.get(`core.coins.${coinName}.oracle.pyth.feed`)
-                )
-              )
-            );
 
-            for (const [index, priceId] of priceIds.entries()) {
-              const feed = await this._cache.queryClient.fetchQuery({
-                queryKey: [priceId],
-                queryFn: async () => {
-                  return await pythConnection.getLatestPriceFeeds([priceId]);
-                },
+      const failedRequests: Set<SupportAssetCoins> = new Set(
+        lackPricesCoinNames
+      );
+
+      for (const endpoint of endpoints) {
+        let hasFailRequest = false;
+        const pythConnection = new SuiPriceServiceConnection(endpoint);
+
+        const priceIds = Array.from(failedRequests.values()).reduce(
+          (acc, coinName) => {
+            const priceId = this._address.get(
+              `core.coins.${coinName}.oracle.pyth.feed`
+            );
+            acc[coinName] = priceId;
+            return acc;
+          },
+          {} as Record<SupportAssetCoins, string>
+        );
+
+        for (const [coinName, priceId] of Object.entries(priceIds)) {
+          try {
+            const feed = await this._cache.queryClient.fetchQuery({
+              queryKey: [priceId],
+              queryFn: async () => {
+                return await pythConnection.getLatestPriceFeeds([priceId]);
+              },
+              // staleTime: 15000,
+            });
+            if (feed) {
+              const data = parseDataFromPythPriceFeed(feed[0], this._address);
+              this._priceMap.set(coinName as SupportAssetCoins, {
+                price: data.price,
+                publishTime: data.publishTime,
               });
-              if (feed) {
-                const data = parseDataFromPythPriceFeed(feed[0], this._address);
-                const coinName = lackPricesCoinNames[index];
-                this._priceMap.set(coinName, {
-                  price: data.price,
-                  publishTime: data.publishTime,
-                });
-                coinPrices[coinName] = data.price;
-              }
+              coinPrices[coinName as SupportAssetCoins] = data.price;
             }
-            break;
+            failedRequests.delete(coinName as SupportAssetCoins); // remove success price feed to prevent duplicate request on the next endpoint
           } catch (e) {
             console.warn(
-              `Failed to get price feeds with endpoint ${endpoint}: ${e}`
+              `Failed to get price ${coinName} feeds with endpoint ${endpoint}: ${e}`
             );
+            hasFailRequest = true;
           }
-
-          throw new Error('Failed to get price feeds with all endpoints');
         }
-      } catch (_e) {
-        console.warn(_e);
-        for (const coinName of lackPricesCoinNames) {
+        if (!hasFailRequest) break;
+      }
+
+      if (failedRequests.size > 0) {
+        for (const coinName of failedRequests.values()) {
           const price = await this._query.getPriceFromPyth(coinName);
           this._priceMap.set(coinName, {
             price: price,
