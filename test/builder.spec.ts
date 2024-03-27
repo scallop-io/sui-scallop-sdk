@@ -1,11 +1,6 @@
 import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
-import {
-  MAX_LOCK_ROUNDS,
-  SCA_COIN_TYPE,
-  SUPPORT_BORROW_INCENTIVE_REWARDS,
-  Scallop,
-} from '../src';
+import { MAX_LOCK_ROUNDS, SCA_COIN_TYPE, Scallop } from '../src';
 import { type NetworkType, TransactionBlock } from '@scallop-io/sui-kit';
 
 dotenv.config();
@@ -273,16 +268,8 @@ describe('Test Scallop Borrow Incentive Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "claimQuick".
     tx.setSender(sender);
-    const rewardCoins = [];
-
-    for (const rewardCoinName of SUPPORT_BORROW_INCENTIVE_REWARDS) {
-      const rewardCoin = await tx.claimBorrowIncentiveQuick(
-        'sui',
-        rewardCoinName
-      );
-      rewardCoins.push(rewardCoin);
-    }
-    tx.transferObjects(rewardCoins, sender);
+    const rewardCoin = await tx.claimBorrowIncentiveQuick('sui', 'sca');
+    tx.transferObjects([rewardCoin], sender);
     const claimBorrowIncentiveQuickResult =
       await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
