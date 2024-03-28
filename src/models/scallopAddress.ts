@@ -1,4 +1,3 @@
-import axios, { AxiosInstance } from 'axios';
 import { API_BASE_URL } from '../constants';
 import type { NetworkType } from '@scallop-io/sui-kit';
 import type {
@@ -6,6 +5,9 @@ import type {
   AddressesInterface,
   AddressStringPath,
 } from '../types';
+import { ScallopCache } from './scallopCache';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
+import axios, { AxiosInstance } from 'axios';
 
 const EMPTY_ADDRESSES: AddressesInterface = {
   core: {
@@ -257,20 +259,17 @@ const EMPTY_ADDRESSES: AddressesInterface = {
  */
 export class ScallopAddress {
   private readonly _auth?: string;
+  private readonly _requestClient: AxiosInstance;
 
-  private _requestClient: AxiosInstance;
   private _id?: string;
   private _network: NetworkType;
   private _currentAddresses?: AddressesInterface;
   private _addressesMap: Map<NetworkType, AddressesInterface>;
+  private _cache: ScallopCache;
 
-  public constructor(params: ScallopAddressParams) {
+  public constructor(params: ScallopAddressParams, cache?: ScallopCache) {
     const { id, auth, network } = params;
-
-    if (auth) this._auth = auth;
-    this._id = id;
-    this._network = network || 'mainnet';
-    this._addressesMap = new Map();
+    this._cache = cache ?? new ScallopCache(DEFAULT_CACHE_OPTIONS);
     this._requestClient = axios.create({
       baseURL: API_BASE_URL,
       headers: {
@@ -279,6 +278,10 @@ export class ScallopAddress {
       },
       timeout: 30000,
     });
+    if (auth) this._auth = auth;
+    this._id = id;
+    this._network = network || 'mainnet';
+    this._addressesMap = new Map();
   }
 
   /**
@@ -424,7 +427,7 @@ export class ScallopAddress {
       this._addressesMap.clear();
       this.setAddresses(targetAddresses, targetNetwork);
       const response = await this._requestClient.post(
-        `${API_BASE_URL}/addresses`,
+        `/addresses`,
         JSON.stringify({ ...Object.fromEntries(this._addressesMap), memo }),
         {
           headers: {
@@ -462,14 +465,16 @@ export class ScallopAddress {
   public async read(id?: string) {
     const addressesId = id || this._id || undefined;
     if (addressesId !== undefined) {
-      const response = await this._requestClient.get(
-        `${API_BASE_URL}/addresses/${addressesId}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await this._cache.queryClient.fetchQuery({
+        queryKey: ['api-getAddresses', addressesId],
+        queryFn: async () => {
+          return await this._requestClient.get(`/addresses/${addressesId}`, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+        },
+      });
 
       if (response.status === 200) {
         for (const [network, addresses] of Object.entries<AddressesInterface>(
@@ -535,7 +540,7 @@ export class ScallopAddress {
       }
       this.setAddresses(targetAddresses, targetNetwork);
       const response = await this._requestClient.put(
-        `${API_BASE_URL}/addresses/${targetId}`,
+        `/addresses/${targetId}`,
         JSON.stringify({ ...Object.fromEntries(this._addressesMap), memo }),
         {
           headers: {
@@ -579,7 +584,7 @@ export class ScallopAddress {
       throw Error('Require specific addresses id to be deleted.');
     if (apiKey !== undefined) {
       const response = await this._requestClient.delete(
-        `${API_BASE_URL}/addresses/${targetId}`,
+        `/addresses/${targetId}`,
         {
           headers: {
             'Content-Type': 'application/json',

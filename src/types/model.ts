@@ -7,6 +7,7 @@ import type {
   ScallopUtils,
   ScallopBuilder,
 } from '../models';
+import { ScallopCache } from 'src/models/scallopCache';
 
 export type ScallopClientFnReturnType<T extends boolean> = T extends true
   ? SuiTransactionBlockResponse
@@ -18,6 +19,7 @@ export type ScallopInstanceParams = {
   query?: ScallopQuery;
   utils?: ScallopUtils;
   builder?: ScallopBuilder;
+  cache: ScallopCache;
 };
 
 export type ScallopAddressParams = {

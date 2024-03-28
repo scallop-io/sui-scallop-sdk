@@ -24,6 +24,8 @@ import type {
   SupportBorrowIncentiveCoins,
   ScallopTxBlock,
 } from '../types';
+import { ScallopCache } from './scallopCache';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 
 /**
  * @description
@@ -45,6 +47,7 @@ export class ScallopClient {
   public builder: ScallopBuilder;
   public query: ScallopQuery;
   public utils: ScallopUtils;
+  public cache: ScallopCache;
   public walletAddress: string;
 
   public constructor(
@@ -53,17 +56,23 @@ export class ScallopClient {
   ) {
     this.params = params;
     this.suiKit = instance?.suiKit ?? new SuiKit(params);
+    this.cache =
+      instance?.cache ?? new ScallopCache(DEFAULT_CACHE_OPTIONS, this.suiKit);
     this.address =
       instance?.address ??
-      new ScallopAddress({
-        id: params?.addressesId || ADDRESSES_ID,
-        network: params?.networkType,
-      });
+      new ScallopAddress(
+        {
+          id: params?.addressesId || ADDRESSES_ID,
+          network: params?.networkType,
+        },
+        this.cache
+      );
     this.query =
       instance?.query ??
       new ScallopQuery(params, {
         suiKit: this.suiKit,
         address: this.address,
+        cache: this.cache,
       });
     this.utils =
       instance?.utils ??
@@ -71,6 +80,7 @@ export class ScallopClient {
         suiKit: this.suiKit,
         address: this.address,
         query: this.query,
+        cache: this.cache,
       });
     this.builder =
       instance?.builder ??
@@ -79,6 +89,7 @@ export class ScallopClient {
         address: this.address,
         query: this.query,
         utils: this.utils,
+        cache: this.cache,
       });
     this.walletAddress = normalizeSuiAddress(
       params?.walletAddress || this.suiKit.currentAddress()

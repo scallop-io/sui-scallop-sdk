@@ -15,7 +15,11 @@ import type {
   SupportStakeMarketCoins,
   SupportBorrowIncentiveCoins,
   TotalValueLocked,
+  ScallopQueryParams,
+  ScallopParams,
+  ScallopInstanceParams,
 } from '../types';
+import { ScallopCache } from './scallopCache';
 
 /**
  * @description
@@ -30,9 +34,13 @@ import type {
  * ```
  */
 export class ScallopIndexer {
-  private _requestClient: AxiosInstance;
+  private readonly _cache: ScallopCache;
+  public readonly params: ScallopQueryParams;
+  private readonly _requestClient: AxiosInstance;
 
-  public constructor() {
+  public constructor(params: ScallopParams, instance?: ScallopInstanceParams) {
+    this.params = params;
+    this._cache = instance?.cache ?? new ScallopCache();
     this._requestClient = axios.create({
       baseURL: SDK_API_BASE_URL,
       headers: {
@@ -49,10 +57,15 @@ export class ScallopIndexer {
    * @return Market data.
    */
   public async getMarket(): Promise<Pick<Market, 'pools' | 'collaterals'>> {
-    const response = await this._requestClient.get<{
-      pools: MarketPool[];
-      collaterals: MarketCollateral[];
-    }>(`${SDK_API_BASE_URL}/api/market`);
+    const response = await this._cache.queryClient.fetchQuery({
+      queryKey: ['market'],
+      queryFn: async () => {
+        return await this._requestClient.get<{
+          pools: MarketPool[];
+          collaterals: MarketCollateral[];
+        }>(`/api/market`);
+      },
+    });
 
     if (response.status === 200) {
       return {
@@ -79,18 +92,8 @@ export class ScallopIndexer {
    * @return Market pools data.
    */
   public async getMarketPools(): Promise<Required<MarketPools>> {
-    const response = await this._requestClient.get<{
-      pools: MarketPool[];
-    }>(`${SDK_API_BASE_URL}/api/market/pools`);
-
-    if (response.status === 200) {
-      return response.data.pools.reduce((marketPools, marketPool) => {
-        marketPools[marketPool.coinName] = marketPool;
-        return marketPools;
-      }, {} as MarketPools) as Required<MarketPools>;
-    } else {
-      throw Error('Failed to getMarketPools.');
-    }
+    const response = (await this.getMarket()).pools;
+    return response as Required<MarketPools>;
   }
 
   /**
@@ -101,15 +104,7 @@ export class ScallopIndexer {
   public async getMarketPool(
     poolCoinName: SupportPoolCoins
   ): Promise<MarketPool> {
-    const response = await this._requestClient.get<{
-      pool: MarketPool;
-    }>(`${SDK_API_BASE_URL}/api/market/pool/${poolCoinName}`);
-
-    if (response.status === 200) {
-      return response.data.pool;
-    } else {
-      throw Error('Failed to getMarketPool.');
-    }
+    return (await this.getMarketPools())[poolCoinName] as MarketPool;
   }
 
   /**
@@ -118,21 +113,7 @@ export class ScallopIndexer {
    * @return Market collaterals data.
    */
   public async getMarketCollaterals(): Promise<Required<MarketCollaterals>> {
-    const response = await this._requestClient.get<{
-      collaterals: MarketCollateral[];
-    }>(`${SDK_API_BASE_URL}/api/market/collaterals`);
-
-    if (response.status === 200) {
-      return response.data.collaterals.reduce(
-        (marketCollaterals, marketCollateral) => {
-          marketCollaterals[marketCollateral.coinName] = marketCollateral;
-          return marketCollaterals;
-        },
-        {} as MarketCollaterals
-      ) as Required<MarketCollaterals>;
-    } else {
-      throw Error('Failed to getMarketCollaterals.');
-    }
+    return (await this.getMarket()).collaterals as Required<MarketCollaterals>;
   }
 
   /**
@@ -143,15 +124,9 @@ export class ScallopIndexer {
   public async getMarketCollateral(
     collateralCoinName: SupportCollateralCoins
   ): Promise<MarketCollateral> {
-    const response = await this._requestClient.get<{
-      collateral: MarketCollateral;
-    }>(`${SDK_API_BASE_URL}/api/market/collateral/${collateralCoinName}`);
-
-    if (response.status === 200) {
-      return response.data.collateral;
-    } else {
-      throw Error('Failed to getMarketCollateral.');
-    }
+    return (await this.getMarketCollaterals())[
+      collateralCoinName
+    ] as MarketCollateral;
   }
 
   /**
@@ -160,9 +135,14 @@ export class ScallopIndexer {
    * @return Spools data.
    */
   public async getSpools(): Promise<Required<Spools>> {
-    const response = await this._requestClient.get<{
-      spools: Spool[];
-    }>(`${SDK_API_BASE_URL}/api/spools`);
+    const response = await this._cache.queryClient.fetchQuery({
+      queryKey: ['spools'],
+      queryFn: async () => {
+        return await this._requestClient.get<{
+          spools: Spool[];
+        }>(`/api/spools`);
+      },
+    });
 
     if (response.status === 200) {
       return response.data.spools.reduce((spools, spool) => {
@@ -182,15 +162,7 @@ export class ScallopIndexer {
   public async getSpool(
     marketCoinName: SupportStakeMarketCoins
   ): Promise<Spool> {
-    const response = await this._requestClient.get<{
-      spool: Spool;
-    }>(`${SDK_API_BASE_URL}/api/spool/${marketCoinName}`);
-
-    if (response.status === 200) {
-      return response.data.spool;
-    } else {
-      throw Error('Failed to getSpool.');
-    }
+    return (await this.getSpools())[marketCoinName] as Spool;
   }
 
   /**
@@ -201,9 +173,14 @@ export class ScallopIndexer {
   public async getBorrowIncentivePools(): Promise<
     Required<BorrowIncentivePools>
   > {
-    const response = await this._requestClient.get<{
-      borrowIncentivePools: BorrowIncentivePool[];
-    }>(`${SDK_API_BASE_URL}/api/borrowIncentivePools`);
+    const response = await this._cache.queryClient.fetchQuery({
+      queryKey: ['borrowIncentivePools'],
+      queryFn: async () => {
+        return await this._requestClient.get<{
+          borrowIncentivePools: BorrowIncentivePool[];
+        }>(`/api/borrowIncentivePools`);
+      },
+    });
 
     if (response.status === 200) {
       return response.data.borrowIncentivePools.reduce(
@@ -227,17 +204,9 @@ export class ScallopIndexer {
   public async getBorrowIncentivePool(
     borrowIncentiveCoinName: SupportBorrowIncentiveCoins
   ): Promise<BorrowIncentivePool> {
-    const response = await this._requestClient.get<{
-      borrowIncentivePool: BorrowIncentivePool;
-    }>(
-      `${SDK_API_BASE_URL}/api/borrowIncentivePool/${borrowIncentiveCoinName}`
-    );
-
-    if (response.status === 200) {
-      return response.data.borrowIncentivePool;
-    } else {
-      throw Error('Failed to getSpool.');
-    }
+    return (await this.getBorrowIncentivePools())[
+      borrowIncentiveCoinName
+    ] as BorrowIncentivePool;
   }
 
   /**
@@ -252,13 +221,18 @@ export class ScallopIndexer {
       supplyValueChangeRatio: number;
     }
   > {
-    const response = await this._requestClient.get<
-      TotalValueLocked & {
-        totalValueChangeRatio: number;
-        borrowValueChangeRatio: number;
-        supplyValueChangeRatio: number;
-      }
-    >(`${SDK_API_BASE_URL}/api/market/tvl`);
+    const response = await this._cache.queryClient.fetchQuery({
+      queryKey: ['totalValueLocked'],
+      queryFn: async () => {
+        return await this._requestClient.get<
+          TotalValueLocked & {
+            totalValueChangeRatio: number;
+            borrowValueChangeRatio: number;
+            supplyValueChangeRatio: number;
+          }
+        >(`/api/market/tvl`);
+      },
+    });
 
     if (response.status === 200) {
       return response.data;
