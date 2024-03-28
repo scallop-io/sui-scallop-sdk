@@ -16,6 +16,7 @@ import type {
   SupportAssetCoins,
 } from '../types';
 import { ScallopCache } from './scallopCache';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 
 /**
  * @description
@@ -41,11 +42,12 @@ export class ScallopBuilder {
 
   public constructor(
     params: ScallopBuilderParams,
-    instance: ScallopInstanceParams
+    instance?: ScallopInstanceParams
   ) {
     this.params = params;
-    this.suiKit = instance.suiKit ?? new SuiKit(params);
-    this.cache = instance.cache;
+    this.suiKit = instance?.suiKit ?? new SuiKit(params);
+    this.cache =
+      instance?.cache ?? new ScallopCache(DEFAULT_CACHE_OPTIONS, this.suiKit);
     this.address =
       instance?.address ??
       new ScallopAddress(
