@@ -50,7 +50,7 @@ export const checkLockSca = (
       const extendLockPeriodInSecond = lockPeriodInDays * UNLOCK_ROUND_DURATION;
       if (extendLockPeriodInSecond > MAX_LOCK_DURATION) {
         throw new Error(
-          `Maximum lock period is ~4 years (${MAX_LOCK_ROUNDS - 1} days)`
+          `Maximum lock period is ~4 years (${MAX_LOCK_ROUNDS} days)`
         );
       }
     } else {
