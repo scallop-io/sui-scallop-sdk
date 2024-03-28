@@ -511,20 +511,22 @@ export const getObligationAccount = async (
           );
 
           // for veSCA
-          // console.log('poolPoint.weightedAmount', poolPoint.weightedAmount);
-          // console.log(
-          //   'borrowIncentiveAccount.amount',
-          //   borrowIncentiveAccount.debtAmount
-          // );
-          const weightScale = BigNumber('1000000000000');
-
+          const weightScale = BigNumber(1_000_000_000_000);
           const boostValue = BigNumber(accountPoint.weightedAmount)
             .div(
               BigNumber(borrowIncentiveAccount.debtAmount)
                 .multipliedBy(poolPoint.baseWeight)
                 .dividedBy(weightScale)
             )
-            .toNumber();
+            .isFinite()
+            ? BigNumber(accountPoint.weightedAmount)
+                .div(
+                  BigNumber(borrowIncentiveAccount.debtAmount)
+                    .multipliedBy(poolPoint.baseWeight)
+                    .dividedBy(weightScale)
+                )
+                .toNumber()
+            : 1;
 
           if (availableClaimAmount.isGreaterThan(0)) {
             rewards.push({

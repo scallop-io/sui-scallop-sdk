@@ -510,7 +510,7 @@ export const calculateBorrowIncentivePoolPointData = (
     .multipliedBy(rateYearFactor)
     .multipliedBy(rewardCoinPrice);
 
-  const weightScale = BigNumber('1000000000000');
+  const weightScale = BigNumber(1_000_000_000_000);
   const rewardRate = rewardValueForYear
     .multipliedBy(
       BigNumber(parsedBorrowIncentivePoolPointData.baseWeight).dividedBy(

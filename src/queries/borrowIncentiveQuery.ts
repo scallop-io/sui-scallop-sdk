@@ -140,6 +140,7 @@ export const queryBorrowIncentivePools = async (
       coinDecimal: poolCoinDecimal,
       coinPrice: poolCoinPrice,
       points: borrowIncentivePoolPoints,
+      staked: parsedBorrowIncentivePoolData.staked,
     };
   }
 
