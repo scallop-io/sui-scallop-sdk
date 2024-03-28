@@ -38,9 +38,9 @@ export class ScallopIndexer {
   public readonly params: ScallopQueryParams;
   private readonly _requestClient: AxiosInstance;
 
-  public constructor(params: ScallopParams, instance: ScallopInstanceParams) {
+  public constructor(params: ScallopParams, instance?: ScallopInstanceParams) {
     this.params = params;
-    this._cache = instance.cache;
+    this._cache = instance?.cache ?? new ScallopCache();
     this._requestClient = axios.create({
       baseURL: SDK_API_BASE_URL,
       headers: {

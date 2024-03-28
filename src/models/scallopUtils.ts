@@ -38,6 +38,7 @@ import type {
 } from '../types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
 import { ScallopCache } from './scallopCache';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 
 /**
  * @description
@@ -67,7 +68,8 @@ export class ScallopUtils {
   ) {
     this.params = params;
     this._suiKit = instance?.suiKit ?? new SuiKit(params);
-    this._cache = instance?.cache ?? new ScallopCache();
+    this._cache =
+      instance?.cache ?? new ScallopCache(DEFAULT_CACHE_OPTIONS, this._suiKit);
     this._address =
       instance?.address ??
       new ScallopAddress(
