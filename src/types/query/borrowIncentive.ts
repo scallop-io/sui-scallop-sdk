@@ -54,6 +54,7 @@ export type BorrowIncentivePool = {
   coinType: string;
   coinDecimal: number;
   coinPrice: number;
+  staked: number;
   points: OptionalKeys<
     Record<SupportBorrowIncentiveRewardCoins, BorrowIncentivePoolPoints>
   >;
