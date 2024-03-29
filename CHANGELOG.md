@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.21](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.20...v0.44.21) (2024-03-29)
+
+### Bug Fixes
+
+- Minor fix on borrow incentive builder test ([39af1fa](https://github.com/scallop-io/sui-scallop-sdk/pull/74/commits/39af1fae44eecf1c259ef7942ac5dc05c977571c))
+- add `isFinite` check to `boostValue` calculation, add `staked` property to `BorrowIncentivePool` type ([97640b5](https://github.com/scallop-io/sui-scallop-sdk/commit/97640b5cfb59f9e615413bc1e755da50c85b4154))
+
+### Features
+
+- Refactor unit tests for veSCA builder ([3d0acf4](https://github.com/scallop-io/sui-scallop-sdk/pull/74/commits/3d0acf48736a9336f2cdc2cb98df8bdf1a9981e2))
+
 ### [0.44.20](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.19...v0.44.20) (2024-03-26)
 
 ### Bug Fixes
