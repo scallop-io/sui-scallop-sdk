@@ -61,7 +61,7 @@ export const SUPPORT_SPOOLS = [
   'svsui',
 ] as const;
 
-export const SUPPORT_SPOOLS_REWARDS = ['sui'] as const;
+export const SUPPORT_SPOOLS_REWARDS = ['sui', 'sca'] as const;
 
 export const SUPPORT_BORROW_INCENTIVE_POOLS = ['sui', 'usdc', 'usdt'] as const;
 

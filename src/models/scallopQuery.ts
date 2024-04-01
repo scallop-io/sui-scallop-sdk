@@ -5,7 +5,6 @@ import {
   getObligations,
   queryObligation,
   getStakeAccounts,
-  getStakePool,
   getStakeRewardPool,
   getPythPrice,
   getMarketPools,
@@ -34,7 +33,6 @@ import {
   SupportPoolCoins,
   SupportCollateralCoins,
   SupportMarketCoins,
-  StakePools,
   StakeRewardPools,
   SupportBorrowIncentiveCoins,
 } from '../types';
@@ -326,19 +324,19 @@ export class ScallopQuery {
    * @param stakeMarketCoinNames - Specific an array of support stake market coin name.
    * @return Stake pools data.
    */
-  public async getStakePools(stakeMarketCoinNames?: SupportStakeMarketCoins[]) {
-    stakeMarketCoinNames = stakeMarketCoinNames ?? [...SUPPORT_SPOOLS];
-    const stakePools: StakePools = {};
-    for (const stakeMarketCoinName of stakeMarketCoinNames) {
-      const stakePool = await getStakePool(this, stakeMarketCoinName);
+  // public async getStakePools(stakeMarketCoinNames?: SupportStakeMarketCoins[]) {
+  //   stakeMarketCoinNames = stakeMarketCoinNames ?? [...SUPPORT_SPOOLS];
+  //   const stakePools: StakePools = {};
+  //   for (const stakeMarketCoinName of stakeMarketCoinNames) {
+  //     const stakePool = await getStakePool(this, stakeMarketCoinName);
 
-      if (stakePool) {
-        stakePools[stakeMarketCoinName] = stakePool;
-      }
-    }
+  //     if (stakePool) {
+  //       stakePools[stakeMarketCoinName] = stakePool;
+  //     }
+  //   }
 
-    return stakePools;
-  }
+  //   return stakePools;
+  // }
 
   /**
    * Get stake pool (spool) data.
@@ -350,9 +348,9 @@ export class ScallopQuery {
    * @param stakeMarketCoinName - Specific support stake market coin name.
    * @return Stake pool data.
    */
-  public async getStakePool(stakeMarketCoinName: SupportStakeMarketCoins) {
-    return await getStakePool(this, stakeMarketCoinName);
-  }
+  // public async getStakePool(stakeMarketCoinName: SupportStakeMarketCoins) {
+  //   return await getStakePool(this, stakeMarketCoinName);
+  // }
 
   /**
    * Get stake reward pools data.

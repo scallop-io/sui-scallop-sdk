@@ -188,6 +188,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
   },
   spool: {
     id: '',
+    config: '',
     adminCap: '',
     object: '',
     pools: {

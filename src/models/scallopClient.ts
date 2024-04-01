@@ -173,18 +173,18 @@ export class ScallopClient {
     return await this.query.getStakeAccounts(stakeMarketCoinName, owner);
   }
 
-  /**
-   * Query stake pool data.
-   *
-   * @description
-   * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
-   *
-   * @param stakeMarketCoinName - Support stake market coin.
-   * @return Stake pool data.
-   */
-  async getStakePool(stakeMarketCoinName: SupportStakeMarketCoins) {
-    return await this.query.getStakePool(stakeMarketCoinName);
-  }
+  // /**
+  //  * Query stake pool data.
+  //  *
+  //  * @description
+  //  * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
+  //  *
+  //  * @param stakeMarketCoinName - Support stake market coin.
+  //  * @return Stake pool data.
+  //  */
+  // async getStakePool(stakeMarketCoinName: SupportStakeMarketCoins) {
+  //   return await this.query.getStakePool(stakeMarketCoinName);
+  // }
 
   /**
    * Query reward pool data.

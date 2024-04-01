@@ -71,6 +71,7 @@ export interface AddressesInterface {
   };
   spool: {
     id: string;
+    config: string;
     adminCap: string;
     object: string;
     pools: Partial<

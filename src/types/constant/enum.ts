@@ -25,7 +25,7 @@ export type StakeMarketCoins = {
 };
 
 export type StakeRewardCoins = {
-  [key in SupportStakeMarketCoins]: SupportStakeRewardCoins;
+  [key in SupportStakeMarketCoins]: SupportStakeRewardCoins[];
 };
 
 export type BorrowIncentiveRewardCoins = {

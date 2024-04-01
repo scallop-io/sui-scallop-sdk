@@ -145,8 +145,8 @@ export const getLending = async (
   let stakedValue = BigNumber(0);
   let availableUnstakeAmount = BigNumber(0);
   let availableUnstakeCoin = BigNumber(0);
-  let availableClaimAmount = BigNumber(0);
-  let availableClaimCoin = BigNumber(0);
+  const availableClaimAmount = BigNumber(0);
+  const availableClaimCoin = BigNumber(0);
 
   if (spool) {
     for (const stakeAccount of stakeAccounts) {
@@ -176,23 +176,6 @@ export const getLending = async (
       );
       availableUnstakeCoin = availableUnstakeAmount.shiftedBy(
         -1 * spool.coinDecimal
-      );
-
-      const baseIndexRate = 1_000_000_000;
-      const increasedPointRate = spool.currentPointIndex
-        ? BigNumber(spool.currentPointIndex - stakeAccount.index).dividedBy(
-            baseIndexRate
-          )
-        : 1;
-      availableClaimAmount = availableClaimAmount.plus(
-        accountStakedMarketCoinAmount
-          .multipliedBy(increasedPointRate)
-          .plus(stakeAccount.points)
-          .multipliedBy(spool.exchangeRateNumerator)
-          .dividedBy(spool.exchangeRateDenominator)
-      );
-      availableClaimCoin = availableClaimAmount.shiftedBy(
-        -1 * spool.rewardCoinDecimal
       );
     }
   }
@@ -232,7 +215,7 @@ export const getLending = async (
     marketCoinPrice: marketCoinPrice.toNumber(),
     supplyApr: marketPool?.supplyApr ?? 0,
     supplyApy: marketPool?.supplyApy ?? 0,
-    rewardApr: spool?.rewardApr ?? 0,
+    // rewardApr: spool?.rewardApr ?? 0,
     suppliedAmount: suppliedAmount.plus(stakedAmount).toNumber(),
     suppliedCoin: suppliedCoin.plus(stakedCoin).toNumber(),
     suppliedValue: suppliedValue.plus(stakedValue).toNumber(),
@@ -256,6 +239,7 @@ export const getLending = async (
     availableUnstakeCoin: availableUnstakeCoin.toNumber(),
     availableClaimAmount: availableClaimAmount.toNumber(),
     availableClaimCoin: availableClaimCoin.toNumber(),
+    rewards: spool?.rewards,
   };
 
   return lending;

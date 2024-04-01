@@ -1,9 +1,10 @@
 import type { MarketPool } from './core';
-import type { Spool } from './spool';
+import type { CalculatedSpoolRewardData, Spool } from './spool';
 import type {
   SupportPoolCoins,
   SupportCollateralCoins,
   SupportBorrowIncentiveRewardCoins,
+  SupportStakeRewardCoins,
 } from '../constant';
 
 type OptionalKeys<T> = {
@@ -30,7 +31,7 @@ export type Lending = Required<
 > & {
   supplyApr: number;
   supplyApy: number;
-  rewardApr: number;
+  // rewardApr: number;
   suppliedAmount: number;
   suppliedCoin: number;
   suppliedValue: number;
@@ -54,6 +55,9 @@ export type Lending = Required<
   availableUnstakeCoin: number;
   availableClaimAmount: number;
   availableClaimCoin: number;
+  rewards:
+    | OptionalKeys<Record<SupportStakeRewardCoins, CalculatedSpoolRewardData>>
+    | undefined;
 };
 
 export type ObligationAccount = {
