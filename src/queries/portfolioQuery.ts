@@ -3,6 +3,7 @@ import {
   SUPPORT_BORROW_INCENTIVE_REWARDS,
   SUPPORT_POOLS,
   SUPPORT_SPOOLS,
+  SUPPORT_SPOOLS_REWARDS,
 } from '../constants';
 import { minBigNumber, estimatedFactor } from 'src/utils';
 import type { ScallopQuery } from '../models';
@@ -24,6 +25,8 @@ import type {
   TotalValueLocked,
   SupportBorrowIncentiveCoins,
   ObligationBorrowIcentiveReward,
+  LendingReward,
+  SupportAssetCoins,
 } from '../types';
 
 /**
@@ -76,7 +79,7 @@ export const getLendings = async (
       stakeMarketCoinName ? allStakeAccounts[stakeMarketCoinName] : undefined,
       coinAmounts?.[poolCoinName],
       marketCoinAmounts?.[marketCoinName],
-      coinPrices?.[poolCoinName] ?? 0
+      coinPrices
     );
   }
 
@@ -110,8 +113,8 @@ export const getLending = async (
   stakeAccounts?: StakeAccount[],
   coinAmount?: number,
   marketCoinAmount?: number,
-  coinPrice?: number
-) => {
+  coinPrices?: CoinPrices
+): Promise<Lending> => {
   const marketCoinName = query.utils.parseMarketCoinName(poolCoinName);
   marketPool = marketPool || (await query.getMarketPool(poolCoinName, indexer));
   spool =
@@ -132,9 +135,12 @@ export const getLending = async (
   marketCoinAmount =
     marketCoinAmount ||
     (await query.getMarketCoinAmount(marketCoinName, ownerAddress));
-  coinPrice =
-    coinPrice ||
-    (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName];
+
+  const assetCoinNames: SupportAssetCoins[] = [
+    poolCoinName,
+    ...SUPPORT_SPOOLS_REWARDS,
+  ];
+  coinPrices = coinPrices || (await query.utils.getCoinPrices(assetCoinNames));
   const coinDecimal = query.utils.getCoinDecimal(poolCoinName);
 
   // Handle staked scoin
@@ -145,8 +151,7 @@ export const getLending = async (
   let stakedValue = BigNumber(0);
   let availableUnstakeAmount = BigNumber(0);
   let availableUnstakeCoin = BigNumber(0);
-  const availableClaimAmount = BigNumber(0);
-  const availableClaimCoin = BigNumber(0);
+  const rewards: LendingReward[] = [];
 
   if (spool) {
     for (const stakeAccount of stakeAccounts) {
@@ -177,6 +182,59 @@ export const getLending = async (
       availableUnstakeCoin = availableUnstakeAmount.shiftedBy(
         -1 * spool.coinDecimal
       );
+
+      // iterate reward coin
+      for (const rewardCoinName of SUPPORT_SPOOLS_REWARDS) {
+        const spoolReward = spool.rewards[rewardCoinName];
+        const accountReward = stakeAccount.rewards[rewardCoinName];
+
+        if (spoolReward && accountReward) {
+          let availableClaimAmount = BigNumber(0);
+          let availableClaimCoin = BigNumber(0);
+
+          const accountStakedAmount = BigNumber(accountReward.weightedAmount);
+          const baseIndexRate = 1_000_000_000;
+          const increasedPointRate = spoolReward.currentPointIndex
+            ? BigNumber(
+                spoolReward.currentPointIndex - accountReward.index
+              ).dividedBy(baseIndexRate)
+            : 1;
+          availableClaimAmount = availableClaimAmount.plus(
+            accountStakedAmount
+              .multipliedBy(increasedPointRate)
+              .plus(accountReward.points)
+          );
+          availableClaimCoin = availableClaimAmount.shiftedBy(
+            -1 * spoolReward.coinDecimal
+          );
+
+          const weightScale = BigNumber(1_000_000_000_000);
+          const boostValue = accountStakedAmount
+            .div(
+              BigNumber(stakeAccount.staked)
+                .multipliedBy(spoolReward.baseWeight)
+                .dividedBy(weightScale)
+            )
+            .isFinite()
+            ? accountStakedAmount
+                .div(
+                  BigNumber(stakeAccount.staked)
+                    .multipliedBy(spoolReward.baseWeight)
+                    .dividedBy(weightScale)
+                )
+                .toNumber()
+            : 1;
+
+          if (availableClaimAmount.isGreaterThan(0)) {
+            rewards.push({
+              availableClaimAmount: availableClaimAmount.toNumber(),
+              availableClaimCoin: availableClaimCoin.toNumber(),
+              boostValue,
+              ...spoolReward,
+            });
+          }
+        }
+      }
     }
   }
 
@@ -185,9 +243,11 @@ export const getLending = async (
     marketPool?.conversionRate ?? 1
   );
   const suppliedCoin = suppliedAmount.shiftedBy(-1 * coinDecimal);
-  const suppliedValue = suppliedCoin.multipliedBy(coinPrice ?? 0);
+  const suppliedValue = suppliedCoin.multipliedBy(
+    coinPrices[poolCoinName] ?? 0
+  );
 
-  const marketCoinPrice = BigNumber(coinPrice ?? 0).multipliedBy(
+  const marketCoinPrice = BigNumber(coinPrices[poolCoinName] ?? 0).multipliedBy(
     marketPool?.conversionRate ?? 1
   );
   const unstakedMarketAmount = BigNumber(marketCoinAmount);
@@ -210,12 +270,11 @@ export const getLending = async (
     coinType: query.utils.parseCoinType(poolCoinName),
     marketCoinType: query.utils.parseMarketCoinType(poolCoinName),
     coinDecimal: coinDecimal,
-    coinPrice: coinPrice ?? 0,
+    coinPrice: coinPrices[poolCoinName] ?? 0,
     conversionRate: marketPool?.conversionRate ?? 1,
     marketCoinPrice: marketCoinPrice.toNumber(),
     supplyApr: marketPool?.supplyApr ?? 0,
     supplyApy: marketPool?.supplyApy ?? 0,
-    // rewardApr: spool?.rewardApr ?? 0,
     suppliedAmount: suppliedAmount.plus(stakedAmount).toNumber(),
     suppliedCoin: suppliedCoin.plus(stakedCoin).toNumber(),
     suppliedValue: suppliedValue.plus(stakedValue).toNumber(),
@@ -237,9 +296,7 @@ export const getLending = async (
     availableStakeCoin: unstakedMarketCoin.toNumber(),
     availableUnstakeAmount: availableUnstakeAmount.toNumber(),
     availableUnstakeCoin: availableUnstakeCoin.toNumber(),
-    availableClaimAmount: availableClaimAmount.toNumber(),
-    availableClaimCoin: availableClaimCoin.toNumber(),
-    rewards: spool?.rewards,
+    rewards,
   };
 
   return lending;
@@ -496,7 +553,7 @@ export const getObligationAccount = async (
 
           // for veSCA
           const weightScale = BigNumber(1_000_000_000_000);
-          const boostValue = BigNumber(accountPoint.weightedAmount)
+          const boostValue = accountBorrowedAmount
             .div(
               BigNumber(borrowIncentiveAccount.debtAmount)
                 .multipliedBy(poolPoint.baseWeight)

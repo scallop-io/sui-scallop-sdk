@@ -71,9 +71,9 @@ const requireObligationInfo = async (
  * Check veSca bind status
  * @param query
  * @param veScaKey
- * @returns
+ * @returns obligationId
  */
-export const getBindedObligationId = async (
+const getBindedObligationId = async (
   builder: ScallopBuilder,
   veScaKey: string
 ) => {

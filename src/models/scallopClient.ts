@@ -4,13 +4,17 @@ import {
   ADDRESSES_ID,
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
+  SUPPORT_SPOOLS_REWARDS,
 } from '../constants';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopBuilder } from './scallopBuilder';
 import { ScallopQuery } from './scallopQuery';
 import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
-import type { TransactionObjectArgument } from '@mysten/sui.js/transactions';
+import type {
+  TransactionObjectArgument,
+  TransactionResult,
+} from '@mysten/sui.js/transactions';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type {
   ScallopClientFnReturnType,
@@ -195,9 +199,9 @@ export class ScallopClient {
    * @param stakeMarketCoinName - Support stake market coin.
    * @return Reward pool data.
    */
-  async getStakeRewardPool(stakeMarketCoinName: SupportStakeMarketCoins) {
-    return await this.query.getStakeRewardPool(stakeMarketCoinName);
-  }
+  // async getStakeRewardPool(stakeMarketCoinName: SupportStakeMarketCoins) {
+  //   return await this.query.getStakeRewardPool(stakeMarketCoinName);
+  // }
 
   /* ==================== Core Method ==================== */
 
@@ -408,9 +412,13 @@ export class ScallopClient {
         targetStakeAccount
       );
     } else {
-      const account = txBlock.createStakeAccount(stakeMarketCoinName);
-      await txBlock.stakeQuick(marketCoin, stakeMarketCoinName, account);
-      txBlock.transferObjects([account], sender);
+      const accountKey = await txBlock.createStakeAccountQuick(
+        stakeMarketCoinName,
+        async (txb, acc, accKey) => {
+          await txb.stakeQuick(marketCoin, stakeMarketCoinName, acc, accKey);
+        }
+      );
+      txBlock.transferObjects([accountKey], sender);
     }
 
     if (sign) {
@@ -632,8 +640,10 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const stakeAccount = txBlock.createStakeAccount(marketCoinName);
-    txBlock.transferObjects([stakeAccount], sender);
+    const [account, accountKey, hotPotato] =
+      txBlock.createStakeAccount(marketCoinName);
+    txBlock.completeAccountCreation(account, hotPotato, marketCoinName);
+    txBlock.transferObjects([accountKey], sender);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -682,9 +692,82 @@ export class ScallopClient {
     if (targetStakeAccount) {
       await txBlock.stakeQuick(amount, stakeMarketCoinName, targetStakeAccount);
     } else {
-      const account = txBlock.createStakeAccount(stakeMarketCoinName);
-      await txBlock.stakeQuick(amount, stakeMarketCoinName, account);
-      txBlock.transferObjects([account], sender);
+      const accountKey = await txBlock.createStakeAccountQuick(
+        stakeMarketCoinName,
+        async (txb, acc, accKey) => {
+          await txb.stakeQuick(amount, stakeMarketCoinName, acc, accKey);
+        }
+      );
+      txBlock.transferObjects([accountKey], sender);
+    }
+
+    if (sign) {
+      return (await this.suiKit.signAndSendTxn(
+        txBlock
+      )) as ScallopClientFnReturnType<S>;
+    } else {
+      return txBlock.txBlock as ScallopClientFnReturnType<S>;
+    }
+  }
+
+  /**
+   * Stake market coin into the specific spool with veSca boost.
+   *
+   * @param marketCoinName - Types of market coin.
+   * @param amount - The amount of coins would deposit.
+   * @param sign - Decide to directly sign the transaction or return the transaction block.
+   * @param stakeAccountId - The stake account object.
+   * @param walletAddress - The wallet address of the owner.
+   * @param veScaKey - The veSca Key
+   * @return Transaction block response or transaction block.
+   */
+  public async stakeWithVeSca(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    amount: number
+  ): Promise<SuiTransactionBlockResponse>;
+  public async stakeWithVeSca<S extends boolean>(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    amount: number,
+    sign?: S,
+    stakeAccountId?: string,
+    walletAddress?: string,
+    veScaKey?: string
+  ): Promise<ScallopClientFnReturnType<S>>;
+  public async stakeWithVeSca<S extends boolean>(
+    stakeMarketCoinName: SupportStakeMarketCoins,
+    amount: number,
+    sign: S = true as S,
+    stakeAccountId?: string,
+    walletAddress?: string,
+    veScaKey?: string
+  ): Promise<ScallopClientFnReturnType<S>> {
+    const txBlock = this.builder.createTxBlock();
+    const sender = walletAddress || this.walletAddress;
+    txBlock.setSender(sender);
+
+    const stakeAccounts =
+      await this.query.getStakeAccounts(stakeMarketCoinName);
+    const targetStakeAccount = stakeAccountId || stakeAccounts[0].id;
+    if (targetStakeAccount) {
+      await txBlock.stakeWithVeScaQuick(
+        amount,
+        stakeMarketCoinName,
+        targetStakeAccount
+      );
+    } else {
+      const accountKey = await txBlock.createStakeAccountQuick(
+        stakeMarketCoinName,
+        async (txb, acc, accKey) => {
+          await txb.stakeWithVeScaQuick(
+            amount,
+            stakeMarketCoinName,
+            acc,
+            accKey,
+            veScaKey
+          );
+        }
+      );
+      txBlock.transferObjects([accountKey], sender);
     }
 
     if (sign) {
@@ -829,11 +912,19 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const rewardCoins = await txBlock.claimQuick(
-      stakeMarketCoinName,
-      stakeAccountId
-    );
-    txBlock.transferObjects(rewardCoins, sender);
+    const rewardCoins: TransactionResult[] = [];
+    for (const rewardCoinName of SUPPORT_SPOOLS_REWARDS) {
+      const rewardCoin = await txBlock.claimQuick(
+        stakeMarketCoinName,
+        rewardCoinName,
+        stakeAccountId
+      );
+      rewardCoins.push(...rewardCoin);
+    }
+
+    if (rewardCoins.length > 0) {
+      txBlock.transferObjects(rewardCoins, sender);
+    }
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
