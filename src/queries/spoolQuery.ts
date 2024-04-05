@@ -432,7 +432,7 @@ export const getStakeAccountsIds = async (
   query: ScallopQuery,
   stakeMarketCoinName: SupportStakeMarketCoins,
   ownerAddress?: string
-) => {
+): Promise<StakeAccountIds[]> => {
   const owner = ownerAddress || query.suiKit.currentAddress();
   const spoolObjectId = query.address.get('spool.object');
   const stakeAccountKey = `${spoolObjectId}::spool_account::SpoolAccountKey`;

@@ -605,9 +605,6 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       const stakePoolId = builder.address.get(
         `spool.pools.${stakeMarketCoinName}.id`
       );
-      const rewardPoolId = builder.address.get(
-        `spool.pools.${stakeMarketCoinName}.rewardPoolId`
-      );
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
       const rewardCoinNames =
@@ -622,7 +619,6 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
         [
           spoolIds.spoolConfig,
           stakePoolId,
-          rewardPoolId,
           stakeAccount,
           stakeAccountKey,
           SUI_CLOCK_OBJECT_ID,
@@ -895,6 +891,9 @@ const generateSpoolMigrateMethod: GenerateSpoolMigrateMethod = ({
       }
 
       const transferObjects: SuiObjectArg[] = [];
+      const stakeCoins: Partial<Record<SupportStakeMarketCoins, SuiObjectArg>> =
+        {};
+
       const filteredOldStakeAccounts = IS_VE_SCA_TEST
         ? oldStakeAccounts.filter((account) =>
             ['ssui', 'susdc'].includes(account.stakeMarketCoinName)
@@ -932,36 +931,66 @@ const generateSpoolMigrateMethod: GenerateSpoolMigrateMethod = ({
           [stakeType]
         );
 
-        // create new stake accounts for corresponding old stake, get the spoolAccountKey
-        const stakePoolId = builder.address.get(
-          `spool.pools.${stakeMarketCoinName}.id`
-        );
+        if (!stakeCoins[stakeMarketCoinName]) {
+          stakeCoins[stakeMarketCoinName] = stakeCoin;
+        } else {
+          // merge
+          txBlock.mergeCoins(stakeCoins[stakeMarketCoinName], stakeCoin);
+        }
+      }
 
-        const newStakeType =
-          builder.utils.parseMarketCoinType(stakeMarketCoinName);
-
-        const [newStakeAccount, newStakeAccountKey, hotPotato] =
-          txBlock.moveCall(
-            `${spoolIds.spoolPkg}::user::new_spool_account`,
-            [spoolIds.spoolConfig, stakePoolId, SUI_CLOCK_OBJECT_ID],
-            [newStakeType]
+      // create new stake accounts for corresponding old stake, get the spoolAccountKey
+      for (const stakeMarketCoinName of Object.keys(stakeCoins)) {
+        const stakeCoin =
+          stakeCoins[stakeMarketCoinName as SupportStakeMarketCoins];
+        if (stakeCoin) {
+          const stakePoolId = builder.address.get(
+            `spool.pools.${stakeMarketCoinName as SupportStakeMarketCoins}.id`
           );
 
-        // stake marketCoins with veSCA
-        await txBlock.stakeWithVeScaQuick(
-          stakeCoin,
-          stakeMarketCoinName,
-          newStakeAccount,
-          newStakeAccountKey
-        );
+          const newStakeType = builder.utils.parseMarketCoinType(
+            stakeMarketCoinName as SupportStakeMarketCoins
+          );
 
-        txBlock.moveCall(
-          `${spoolIds.spoolPkg}::user::complete_spool_account_creation`,
-          [spoolIds.spoolConfig, newStakeAccount, hotPotato],
-          [newStakeType]
-        );
-        transferObjects.push(newStakeAccountKey);
+          // check for existing stake account
+          const stakeAccountData = await getStakeAccountsIds(
+            builder.query,
+            stakeMarketCoinName as SupportStakeMarketCoins,
+            sender
+          );
+          if (stakeAccountData.length > 0) {
+            await txBlock.stakeWithVeScaQuick(
+              stakeCoin,
+              stakeMarketCoinName as SupportStakeMarketCoins,
+              stakeAccountData[0].id,
+              stakeAccountData[0].keyId
+            );
+          } else {
+            const [newStakeAccount, newStakeAccountKey, hotPotato] =
+              txBlock.moveCall(
+                `${spoolIds.spoolPkg}::user::new_spool_account`,
+                [spoolIds.spoolConfig, stakePoolId, SUI_CLOCK_OBJECT_ID],
+                [newStakeType]
+              );
+
+            // stake marketCoins with veSCA
+            await txBlock.stakeWithVeScaQuick(
+              stakeCoin,
+              stakeMarketCoinName as SupportStakeMarketCoins,
+              newStakeAccount,
+              newStakeAccountKey
+            );
+
+            txBlock.moveCall(
+              `${spoolIds.spoolPkg}::user::complete_spool_account_creation`,
+              [spoolIds.spoolConfig, newStakeAccount, hotPotato],
+              [newStakeType]
+            );
+            transferObjects.push(newStakeAccountKey);
+          }
+        }
       }
+
       if (emptyStakeAccounts.length > 0) {
         // dump empty old stake accounts
         txBlock.transferObjects(emptyStakeAccounts, DAPP_DUMP_ADDRESS);
