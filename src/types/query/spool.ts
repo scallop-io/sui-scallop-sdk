@@ -59,9 +59,26 @@ export type CalculatedSpoolAccountRewardData = {
   boostValue: number;
 };
 
+/**
+ * id: UID,
+  stake_type: TypeName,
+  points: Table<TypeName, SpoolPoint>,
+  points_list: vector<TypeName>,
+  ve_sca_bind: Table<TypedID<VeScaKey>, ID>, // ve_sca_id -> spool_account_id
+  stakes: u64,
+  min_stakes: u64,
+  max_stakes: u64,
+ */
 export type OriginSpoolData = {
   id: string;
   stake_type: { fields: { name: string } };
+  points: {
+    fields: {
+      id: {
+        id: string;
+      };
+    };
+  };
   max_stakes: string;
   stakes: string;
 };
@@ -167,7 +184,7 @@ export interface OriginStakeAccount {
   spool_id: { fields: { id: string } };
   stake_type: { fields: { name: string } };
   stakes: string;
-  rewards: { fields: { id: { id: string } } };
+  points: { fields: { id: { id: string } } };
 }
 
 export interface OriginStakeAccountReward {

@@ -28,6 +28,7 @@ import type {
   SpoolRewardData,
   OriginStakeAccountKey,
   OriginStakeAccount,
+  OriginSpoolData,
 } from '../types';
 
 /**
@@ -159,7 +160,7 @@ export const getSpool = async (
     const spoolObject = spoolObjectResponse.data;
     // const rewardPoolObject = spoolObjectResponse[1].data;
     if (spoolObject.content && 'fields' in spoolObject.content) {
-      const spoolFields = spoolObject.content.fields as any;
+      const spoolFields = spoolObject.content.fields as any as OriginSpoolData;
       const parsedSpoolData = parseOriginSpoolData(spoolFields);
 
       const marketCoinPrice =
@@ -176,9 +177,9 @@ export const getSpool = async (
         marketCoinDecimal
       );
 
-      const spoolRewardTableId = spoolFields.rewards?.fields.id.id;
+      const spoolPointTableId = spoolFields.points?.fields.id.id;
       const originSpoolRewards: OriginSpoolRewardData[] = [];
-      if (spoolRewardTableId) {
+      if (spoolPointTableId) {
         // query spool reward objects
         let cursor;
         let nextPage = true;
@@ -186,7 +187,7 @@ export const getSpool = async (
           const { data, nextCursor, hasNextPage } = await query.suiKit
             .client()
             .getDynamicFields({
-              parentId: spoolRewardTableId,
+              parentId: spoolPointTableId,
               limit: 50,
               cursor: cursor,
             });
@@ -314,7 +315,7 @@ export const getStakeAccount = async (
       const bindedVeScaKey = fields.binded_ve_sca_key
         ? String(fields.binded_ve_sca_key)
         : null;
-      const rewardTableId = fields.rewards.fields.id.id;
+      const rewardTableId = fields.points?.fields.id.id;
 
       // fetch all reward in the rewards table
       let cursor: string | null | undefined = null;
@@ -504,6 +505,7 @@ export const getStakeAccounts = async (
     stakeMarketCoinName,
     owner
   );
+
   const stakeAccounts: StakeAccount[] = [];
   for (const stakeAccountIds of stakeAccountsIds) {
     const { keyId, id } = stakeAccountIds;

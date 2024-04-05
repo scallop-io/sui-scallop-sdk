@@ -136,6 +136,7 @@ export const getLending = async (
     marketCoinAmount ||
     (await query.getMarketCoinAmount(marketCoinName, ownerAddress));
 
+  console.log('coinAmount', coinAmount);
   const assetCoinNames: SupportAssetCoins[] = [
     poolCoinName,
     ...SUPPORT_SPOOLS_REWARDS,
