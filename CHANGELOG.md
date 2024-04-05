@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.1.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.20...v0.1.0) (2024-04-05)
+
+
+### Features
+
+* finish spool v2 ([851b845](https://github.com/scallop-io/sui-scallop-sdk/commit/851b845ed8ea55d419eb5e9d119798db290611f5))
+* spool v2 ([ec8282b](https://github.com/scallop-io/sui-scallop-sdk/commit/ec8282b46e3cba3872b078dce637ba12b0378481))
+* update veSCA builder unit tests ([3d0acf4](https://github.com/scallop-io/sui-scallop-sdk/commit/3d0acf48736a9336f2cdc2cb98df8bdf1a9981e2))
+
+
+### Bug Fixes
+
+* add finite check to boostValue ([97640b5](https://github.com/scallop-io/sui-scallop-sdk/commit/97640b5cfb59f9e615413bc1e755da50c85b4154))
+* minor ([39af1fa](https://github.com/scallop-io/sui-scallop-sdk/commit/39af1fae44eecf1c259ef7942ac5dc05c977571c))
+* use objectId for borrow incentive ([184b03d](https://github.com/scallop-io/sui-scallop-sdk/commit/184b03da0d3f67124335af4d796d3c4802cd239a))
+
 ### [0.44.20](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.19...v0.44.20) (2024-03-26)
 
 ### Bug Fixes
