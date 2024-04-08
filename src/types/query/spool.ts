@@ -1,4 +1,5 @@
 import type {
+  SupportStakeCoins,
   SupportStakeMarketCoins,
   SupportStakeRewardCoins,
 } from '../constant';
@@ -10,6 +11,7 @@ type OptionalKeys<T> = {
 export type Spools = OptionalKeys<Record<SupportStakeMarketCoins, Spool>>;
 
 export type Spool = {
+  coinName: SupportStakeCoins;
   marketCoinName: SupportStakeMarketCoins;
   symbol: string;
   coinType: string;

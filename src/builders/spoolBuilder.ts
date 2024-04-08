@@ -896,7 +896,7 @@ const generateSpoolMigrateMethod: GenerateSpoolMigrateMethod = ({
 
       const filteredOldStakeAccounts = IS_VE_SCA_TEST
         ? oldStakeAccounts.filter((account) =>
-            ['ssui', 'susdc'].includes(account.stakeMarketCoinName)
+            ['ssui', 'susdc', 'susdt'].includes(account.stakeMarketCoinName)
           )
         : oldStakeAccounts;
       for (const stakeAccount of filteredOldStakeAccounts) {

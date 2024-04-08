@@ -254,6 +254,7 @@ export const getSpool = async (
       // calculate boost if available
 
       spool = {
+        coinName: coinName,
         marketCoinName: marketCoinName,
         symbol: query.utils.parseSymbol(marketCoinName),
         coinType: query.utils.parseCoinType(coinName),
