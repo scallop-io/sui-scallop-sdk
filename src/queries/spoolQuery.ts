@@ -1,5 +1,5 @@
 import { normalizeStructTag } from '@mysten/sui.js/utils';
-import { SUPPORT_SPOOLS } from '../constants';
+import { SPOOL_REWARD_BALANCE_OBJECT_TYPE, SUPPORT_SPOOLS } from '../constants';
 import {
   parseOriginSpoolData,
   calculateSpoolData,
@@ -178,11 +178,23 @@ export const getSpool = async (
 
       if (rewardPoolObject.content && 'fields' in rewardPoolObject.content) {
         const rewardPoolFields = rewardPoolObject.content.fields as any;
+        const spoolDynamicFieldBalance = await query.suiKit
+          .client()
+          .getDynamicFieldObject({
+            parentId: rewardPoolFields?.id?.id,
+            name: {
+              type: SPOOL_REWARD_BALANCE_OBJECT_TYPE,
+              value: { dummy_field: false },
+            },
+          });
+        const rewards =
+          (spoolDynamicFieldBalance.data?.content as any)?.fields?.value ?? 0;
+
         const parsedSpoolRewardPoolData = parseOriginSpoolRewardPoolData({
           claimed_rewards: rewardPoolFields.claimed_rewards,
           exchange_rate_numerator: rewardPoolFields.exchange_rate_numerator,
           exchange_rate_denominator: rewardPoolFields.exchange_rate_denominator,
-          rewards: rewardPoolFields.rewards,
+          rewards,
           spool_id: rewardPoolFields.spool_id,
         });
 
