@@ -2,9 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.23](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.22...v0.44.23) (2024-04-15)
+
+### Bug Fixes
+
+- Minor Fix on Spool Remain Reward ([5e585f1a](https://github.com/scallop-io/sui-scallop-sdk/pull/77/commits/5e585f1a0bc7531f91f07ecf5b255ac2b4a2d83f))
+
 ### [0.44.22](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.21...v0.44.22) (2024-04-01)
 
 ### Bug Fixes
+
 - Minor fix on borrow incentive `objectId` ([184b03d](https://github.com/scallop-io/sui-scallop-sdk/pull/76/commits/184b03da0d3f67124335af4d796d3c4802cd239a))
 
 ### [0.44.21](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.20...v0.44.21) (2024-03-29)
