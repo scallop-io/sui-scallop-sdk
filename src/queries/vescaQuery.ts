@@ -91,9 +91,8 @@ export const getVeSca = async (
 
   let vesca: Vesca | undefined = undefined;
 
-  const veScaDynamicFieldObjectResponse = await query.suiKit
-    .client()
-    .getDynamicFieldObject({
+  const veScaDynamicFieldObjectResponse =
+    await query.cache.queryGetDynamicFieldObject({
       parentId: tableId,
       name: {
         type: '0x2::object::ID',

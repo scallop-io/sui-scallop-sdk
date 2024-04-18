@@ -17,9 +17,7 @@ export const getPythPrice = async (
   );
   const priceFeedObjectResponse = await query.cache.queryGetObject(
     pythFeedObjectId,
-    {
-      options: { showContent: true },
-    }
+    { showContent: true }
   );
 
   if (priceFeedObjectResponse.data) {

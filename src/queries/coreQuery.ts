@@ -216,9 +216,7 @@ export const getMarketPools = async (
   poolCoinNames = poolCoinNames || [...SUPPORT_POOLS];
   const marketId = query.address.get('core.market');
   const marketObjectResponse = await query.cache.queryGetObject(marketId, {
-    options: {
-      showContent: true,
-    },
+    showContent: true,
   });
   const coinPrices = await query.utils.getCoinPrices(poolCoinNames ?? []);
 
@@ -278,9 +276,7 @@ export const getMarketPool = async (
     marketObject ||
     (
       await query.cache.queryGetObject(marketId, {
-        options: {
-          showContent: true,
-        },
+        showContent: true,
       })
     ).data;
 
@@ -312,9 +308,8 @@ export const getMarketPool = async (
       // Get balance sheet.
       const balanceSheetParentId =
         fields.vault.fields.balance_sheets.fields.table.fields.id.id;
-      const balanceSheetDynamicFieldObjectResponse = await query.suiKit
-        .client()
-        .getDynamicFieldObject({
+      const balanceSheetDynamicFieldObjectResponse =
+        await query.cache.queryGetDynamicFieldObject({
           parentId: balanceSheetParentId,
           name: {
             type: '0x1::type_name::TypeName',
@@ -338,9 +333,8 @@ export const getMarketPool = async (
       // Get borrow index.
       const borrowIndexParentId =
         fields.borrow_dynamics.fields.table.fields.id.id;
-      const borrowIndexDynamicFieldObjectResponse = await query.suiKit
-        .client()
-        .getDynamicFieldObject({
+      const borrowIndexDynamicFieldObjectResponse =
+        await query.cache.queryGetDynamicFieldObject({
           parentId: borrowIndexParentId,
           name: {
             type: '0x1::type_name::TypeName',
@@ -364,9 +358,8 @@ export const getMarketPool = async (
       // Get interest models.
       const interestModelParentId =
         fields.interest_models.fields.table.fields.id.id;
-      const interestModelDynamicFieldObjectResponse = await query.suiKit
-        .client()
-        .getDynamicFieldObject({
+      const interestModelDynamicFieldObjectResponse =
+        await query.cache.queryGetDynamicFieldObject({
           parentId: interestModelParentId,
           name: {
             type: '0x1::type_name::TypeName',
@@ -388,9 +381,8 @@ export const getMarketPool = async (
       }
 
       // Get borrow fee.
-      const borrowFeeDynamicFieldObjectResponse = await query.suiKit
-        .client()
-        .getDynamicFieldObject({
+      const borrowFeeDynamicFieldObjectResponse =
+        await query.cache.queryGetDynamicFieldObject({
           parentId: marketId,
           name: {
             type: `${BORROW_FEE_PROTOCOL_ID}::market_dynamic_keys::BorrowFeeKey`,
@@ -485,9 +477,7 @@ export const getMarketCollaterals = async (
   collateralCoinNames = collateralCoinNames || [...SUPPORT_COLLATERALS];
   const marketId = query.address.get('core.market');
   const marketObjectResponse = await query.cache.queryGetObject(marketId, {
-    options: {
-      showContent: true,
-    },
+    showContent: true,
   });
   const coinPrices = await query.utils.getCoinPrices(collateralCoinNames ?? []);
 
@@ -546,9 +536,7 @@ export const getMarketCollateral = async (
     marketObject ||
     (
       await query.cache.queryGetObject(marketId, {
-        options: {
-          showContent: true,
-        },
+        showContent: true,
       })
     ).data;
 
@@ -581,9 +569,8 @@ export const getMarketCollateral = async (
 
       // Get risk model.
       const riskModelParentId = fields.risk_models.fields.table.fields.id.id;
-      const riskModelDynamicFieldObjectResponse = await query.suiKit
-        .client()
-        .getDynamicFieldObject({
+      const riskModelDynamicFieldObjectResponse =
+        await query.cache.queryGetDynamicFieldObject({
           parentId: riskModelParentId,
           name: {
             type: '0x1::type_name::TypeName',
@@ -606,9 +593,8 @@ export const getMarketCollateral = async (
       // Get collateral stat.
       const collateralStatParentId =
         fields.collateral_stats.fields.table.fields.id.id;
-      const collateralStatDynamicFieldObjectResponse = await query.suiKit
-        .client()
-        .getDynamicFieldObject({
+      const collateralStatDynamicFieldObjectResponse =
+        await query.cache.queryGetDynamicFieldObject({
           parentId: collateralStatParentId,
           name: {
             type: '0x1::type_name::TypeName',
@@ -738,7 +724,7 @@ export const getObligationLocked = async (
 ) => {
   const obligationObjectResponse = await query.cache.queryGetObject(
     obligationId,
-    { options: { showContent: true } }
+    { showContent: true }
   );
   let obligationLocked = false;
   if (
