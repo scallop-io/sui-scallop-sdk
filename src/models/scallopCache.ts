@@ -8,12 +8,11 @@ import type {
   PaginatedObjectsResponse,
   GetOwnedObjectsParams,
   DevInspectResults,
+  GetDynamicFieldsParams,
+  DynamicFieldPage,
+  GetDynamicFieldObjectParams,
 } from '@mysten/sui.js/client';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-
-type QueryObjectParams = {
-  options?: SuiObjectDataOptions;
-};
 
 type QueryInspectTxnParams = {
   queryTarget: string;
@@ -98,11 +97,7 @@ export class ScallopCache {
     const resolvedArgs = await Promise.all(
       args.map(async (arg) => {
         if (typeof arg === 'string') {
-          return (
-            await this.queryGetObject(arg, {
-              options: { showContent: true },
-            })
-          ).data;
+          return (await this.queryGetObject(arg, { showContent: true })).data;
         }
         return arg;
       })
@@ -140,7 +135,7 @@ export class ScallopCache {
    */
   public async queryGetObject(
     objectId: string,
-    { options }: QueryObjectParams
+    options?: SuiObjectDataOptions
   ): Promise<SuiObjectResponse> {
     const queryKey = ['getObject', objectId, this.suiKit.currentAddress()];
     if (options) {
@@ -162,15 +157,19 @@ export class ScallopCache {
    * @param objectIds
    * @returns Promise<SuiObjectData[]>
    */
-  public async queryGetObjects(objectIds: string[]): Promise<SuiObjectData[]> {
+  public async queryGetObjects(
+    objectIds: string[],
+    options?: SuiObjectDataOptions
+  ): Promise<SuiObjectData[]> {
+    const queryKey = [
+      'getObjects',
+      JSON.stringify(objectIds),
+      this.suiKit.currentAddress(),
+    ];
     return this.queryClient.fetchQuery({
-      queryKey: [
-        'getObjects',
-        JSON.stringify(objectIds),
-        this.suiKit.currentAddress(),
-      ],
+      queryKey,
       queryFn: async () => {
-        return await this.suiKit.getObjects(objectIds);
+        return await this.suiKit.getObjects(objectIds, options);
       },
     });
   }
@@ -201,6 +200,44 @@ export class ScallopCache {
       queryKey,
       queryFn: async () => {
         return await this.suiKit.client().getOwnedObjects(input);
+      },
+    });
+  }
+
+  public async queryGetDynamicFields(
+    input: GetDynamicFieldsParams
+  ): Promise<DynamicFieldPage> {
+    const queryKey = ['getDynamicFields', input.parentId];
+    if (input.cursor) {
+      queryKey.push(JSON.stringify(input.cursor));
+    }
+    if (input.cursor) {
+      queryKey.push(JSON.stringify(input.cursor));
+    }
+    if (input.limit) {
+      queryKey.push(JSON.stringify(input.limit));
+    }
+
+    return this.queryClient.fetchQuery({
+      queryKey,
+      queryFn: async () => {
+        return await this.suiKit.client().getDynamicFields(input);
+      },
+    });
+  }
+
+  public async queryGetDynamicFieldObject(
+    input: GetDynamicFieldObjectParams
+  ): Promise<SuiObjectResponse> {
+    const queryKey = [
+      'getDynamicFieldObject',
+      input.parentId,
+      input.name.value,
+    ];
+    return this.queryClient.fetchQuery({
+      queryKey,
+      queryFn: async () => {
+        return await this.suiKit.client().getDynamicFieldObject(input);
       },
     });
   }

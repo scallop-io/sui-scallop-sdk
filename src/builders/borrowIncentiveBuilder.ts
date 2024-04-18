@@ -1,7 +1,6 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { borrowIncentiveRewardCoins } from '../constants/enum';
 import { getObligations, getObligationLocked } from '../queries';
 import { requireSender } from '../utils';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
@@ -72,9 +71,9 @@ const requireObligationInfo = async (
  * Check veSca bind status
  * @param query
  * @param veScaKey
- * @returns
+ * @returns obligationId
  */
-export const getBindedObligationId = async (
+const getBindedObligationId = async (
   builder: ScallopBuilder,
   veScaKey: string
 ) => {
@@ -86,15 +85,13 @@ export const getBindedObligationId = async (
     ? '0xb220d034bdf335d77ae5bfbf6daf059c2cc7a1f719b12bfed75d1736fac038c8'
     : builder.address.get('vesca.id');
 
-  const client = builder.suiKit.client();
-
   // get incentive pools
-  const incentivePoolsResponse = await client.getObject({
-    id: incentivePoolsId,
-    options: {
+  const incentivePoolsResponse = await builder.cache.queryGetObject(
+    incentivePoolsId,
+    {
       showContent: true,
-    },
-  });
+    }
+  );
 
   if (incentivePoolsResponse.data?.content?.dataType !== 'moveObject')
     return false;
@@ -104,13 +101,15 @@ export const getBindedObligationId = async (
 
   // check if veSca is inside the bind table
   const keyType = `${borrowIncentiveObjectId}::typed_id::TypedID<${veScaPkgId}::ve_sca::VeScaKey>`;
-  const veScaBindTableResponse = await client.getDynamicFieldObject({
-    parentId: veScaBindTableId,
-    name: {
-      type: keyType,
-      value: veScaKey,
-    },
-  });
+  const veScaBindTableResponse = await builder.cache.queryGetDynamicFieldObject(
+    {
+      parentId: veScaBindTableId,
+      name: {
+        type: keyType,
+        value: veScaKey,
+      },
+    }
+  );
 
   if (veScaBindTableResponse.data?.content?.dataType !== 'moveObject')
     return false;
@@ -202,7 +201,8 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
         coinName,
         rewardCoinName
       ) => {
-        const rewardCoinNames = borrowIncentiveRewardCoins[coinName];
+        const rewardCoinNames =
+          builder.utils.getBorrowIncentiveRewardCoinName(coinName);
         if (rewardCoinNames.includes(rewardCoinName) === false) {
           throw new Error(`Invalid reward coin name ${rewardCoinName}`);
         }
