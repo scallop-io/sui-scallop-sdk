@@ -22,6 +22,7 @@ export const SCA_COIN_TYPE = IS_VE_SCA_TEST
 
 export const OLD_BORROW_INCENTIVE_PROTOCOL_ID =
   '0xc63072e7f5f4983a2efaf5bdba1480d5e7d74d57948e1c7cc436f8e22cbeb410' as const;
+
 export const SUPPORT_POOLS = [
   'eth',
   'btc',
@@ -34,6 +35,7 @@ export const SUPPORT_POOLS = [
   'afsui',
   'hasui',
   'vsui',
+  'sca',
 ] as const;
 
 export const SUPPORT_COLLATERALS = [
@@ -48,6 +50,7 @@ export const SUPPORT_COLLATERALS = [
   'afsui',
   'hasui',
   'vsui',
+  'sca',
 ] as const;
 
 export const SUPPORT_SPOOLS = [
@@ -59,6 +62,7 @@ export const SUPPORT_SPOOLS = [
   'safsui',
   'shasui',
   'svsui',
+  // 'ssca',
 ] as const;
 
 export const SUPPORT_SPOOLS_REWARDS = ['sui'] as const;
