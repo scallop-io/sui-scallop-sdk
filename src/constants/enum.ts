@@ -23,6 +23,7 @@ export const coinDecimals: SupportCoinDecimals = {
   afsui: 9,
   hasui: 9,
   vsui: 9,
+  sca: 9,
   seth: 8,
   sbtc: 8,
   susdc: 6,
@@ -34,7 +35,7 @@ export const coinDecimals: SupportCoinDecimals = {
   safsui: 9,
   shasui: 9,
   svsui: 9,
-  sca: 9,
+  ssca: 9,
 };
 
 export const assetCoins: AssetCoins = {
@@ -64,6 +65,7 @@ export const marketCoins: MarketCoins = {
   safsui: 'safsui',
   shasui: 'shasui',
   svsui: 'svsui',
+  ssca: 'ssca',
 };
 
 export const stakeMarketCoins: StakeMarketCoins = {
@@ -75,6 +77,7 @@ export const stakeMarketCoins: StakeMarketCoins = {
   safsui: 'safsui',
   shasui: 'shasui',
   svsui: 'svsui',
+  // ssca: 'ssca',
 };
 
 export const spoolRewardCoins: StakeRewardCoins = {
@@ -86,6 +89,7 @@ export const spoolRewardCoins: StakeRewardCoins = {
   safsui: 'sui',
   shasui: 'sui',
   svsui: 'sui',
+  // ssca: 'sui',
 };
 
 export const borrowIncentiveRewardCoins: BorrowIncentiveRewardCoins = {

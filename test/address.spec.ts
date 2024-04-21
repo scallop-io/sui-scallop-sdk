@@ -153,7 +153,20 @@ describe('Test Scallop Address', () => {
                             "feedObject": "0x168aa44fa92b27358beb17643834078b1320be6adf1b3bb0c7f018ac3591db1a"
                         }
                     }
-                }
+                },
+                "sca": {
+                  "id": "0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6",
+                  "metaData": "0x5d26a1e9a55c88147ac870bfa31b729d7f49f8804b8b3adfdf3582d301cca844",
+                  "treasury": "0x54e81607d636c3520a697b803a99a167fce7ccdf1bad7d210e2941d264515351",
+                  "oracle": {
+                      "supra": "",
+                      "switchboard": "",
+                      "pyth": {
+                          "feed": "7e17f0ac105abe9214deb9944c30264f5986bf292869c6bd8e8da3ccd92d79bc",
+                          "feedObject": "0xf6de1d3279a269a597d813cbaca59aa906543ab9a8c64e84a4722f1a20863985"
+                      }
+                  }
+              }
             },
             "oracles": {
                 "xOracle": "0x93d5bf0936b71eb27255941e532fac33b5a5c7759e377b4923af0a1359ad494f",
