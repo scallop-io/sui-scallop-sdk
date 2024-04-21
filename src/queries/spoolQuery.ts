@@ -277,6 +277,7 @@ export const getStakeAccounts = async (
     safsui: [],
     shasui: [],
     svsui: [],
+    // ssca: [],
   };
 
   const stakeMarketCoinTypes: Record<SupportStakeMarketCoins, string> =
@@ -398,6 +399,18 @@ export const getStakeAccounts = async (
           totalPoints,
         });
       }
+      // else if (normalizeStructTag(type) === stakeMarketCoinTypes.ssca) {
+      //   stakeAccounts.ssca.push({
+      //     id,
+      //     type: normalizeStructTag(type),
+      //     stakePoolId,
+      //     stakeType: normalizeStructTag(stakeType),
+      //     staked,
+      //     index,
+      //     points,
+      //     totalPoints,
+      //   });
+      // }
     }
   }
   return stakeAccounts;
