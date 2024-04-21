@@ -2,9 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.23](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.22...v0.44.23) (2024-04-21)
+
+### Features
+
+- add new sca pool ([ffb8788](https://github.com/scallop-io/sui-scallop-sdk/commit/ffb8788e90247b177f0bcd84110ed6f213ece5ed))
+
 ### [0.44.22](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.21...v0.44.22) (2024-04-01)
 
 ### Bug Fixes
+
 - Minor fix on borrow incentive `objectId` ([184b03d](https://github.com/scallop-io/sui-scallop-sdk/pull/76/commits/184b03da0d3f67124335af4d796d3c4802cd239a))
 
 ### [0.44.21](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.20...v0.44.21) (2024-03-29)
