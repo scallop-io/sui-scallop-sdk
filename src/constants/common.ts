@@ -70,6 +70,10 @@ export const SUPPORT_BORROW_INCENTIVE_POOLS = [
   'sui',
   'usdc',
   'usdt',
+  'afsui',
+  'hasui',
+  'vsui',
+  'eth',
   'sca',
 ] as const;
 

@@ -95,6 +95,10 @@ export const borrowIncentiveRewardCoins: BorrowIncentiveRewardCoins = {
   usdc: ['sui', 'sca'],
   usdt: ['sui', 'sca'],
   sca: ['sui', 'sca'],
+  afsui: ['sui'],
+  hasui: ['sui'],
+  vsui: ['sui'],
+  eth: ['sui'],
 };
 
 export const coinIds: AssetCoinIds = {
