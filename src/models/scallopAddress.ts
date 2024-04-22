@@ -236,10 +236,6 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         rewardPoolId: '',
       },
-      // ssca: {
-      //   id: '',
-      //   rewardPoolId: '',
-      // },
     },
   },
   borrowIncentive: {

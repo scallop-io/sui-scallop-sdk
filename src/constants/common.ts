@@ -62,12 +62,16 @@ export const SUPPORT_SPOOLS = [
   'safsui',
   'shasui',
   'svsui',
-  // 'ssca',
 ] as const;
 
 export const SUPPORT_SPOOLS_REWARDS = ['sui'] as const;
 
-export const SUPPORT_BORROW_INCENTIVE_POOLS = ['sui', 'usdc', 'usdt'] as const;
+export const SUPPORT_BORROW_INCENTIVE_POOLS = [
+  'sui',
+  'usdc',
+  'usdt',
+  'sca',
+] as const;
 
 export const SUPPORT_BORROW_INCENTIVE_REWARDS = ['sui', 'sca'] as const;
 export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
