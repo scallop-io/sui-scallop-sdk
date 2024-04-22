@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.24](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.23...v0.44.24) (2024-04-22)
+
+### Features
+
+- add sca borrow incentive ([8504da3](https://github.com/scallop-io/sui-scallop-sdk/commit/8504da3d303f543d214763dec8cbdc88038280d1))
+
 ### [0.44.23](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.22...v0.44.23) (2024-04-21)
 
 ### Features
