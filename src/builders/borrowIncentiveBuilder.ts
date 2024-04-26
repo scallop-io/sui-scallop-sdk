@@ -61,10 +61,17 @@ const requireObligationInfo = async (
   if (obligations.length === 0) {
     throw new Error(`No obligation found for sender ${sender}`);
   }
+
+  const selectedObligation =
+    obligations.find(
+      (obligation) =>
+        obligation.id === obligationId || obligation.keyId === obligationKey
+    ) ?? obligations[0];
+
   return {
-    obligationId: obligations[0].id,
-    obligationKey: obligations[0].keyId,
-    obligationLocked: obligations[0].locked,
+    obligationId: selectedObligation.id,
+    obligationKey: selectedObligation.keyId,
+    obligationLocked: selectedObligation.locked,
   };
 };
 
