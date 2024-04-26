@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.26](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.25...v0.44.26) (2024-04-26)
+
+### Features
+
+- Add `deactiveBoost` method to borrowIncentive builder module([f469475](https://github.com/scallop-io/sui-scallop-sdk/commit/f469475f548448723232304a63116c3e2fb0fe36))
+
+
 ### [0.44.25](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.24...v0.44.25) (2024-04-22)
 
 ### Features
