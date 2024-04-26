@@ -1,6 +1,5 @@
 import {
   SuiTxBlock as SuiKitTxBlock,
-  SuiAddressArg,
   SuiObjectArg,
   SuiTxArg,
 } from '@scallop-io/sui-kit';
@@ -20,16 +19,16 @@ export type VeScaNormalMethods = {
     unlockAtInSecondTimestamp: SuiTxArg
   ) => TransactionResult;
   extendLockPeriod: (
-    veScaKey: SuiAddressArg,
+    veScaKey: SuiObjectArg,
     newUnlockAtInSecondTimestamp: SuiTxArg
   ) => void;
-  extendLockAmount: (veScaKey: SuiAddressArg, scaCoin: SuiObjectArg) => void;
+  extendLockAmount: (veScaKey: SuiObjectArg, scaCoin: SuiObjectArg) => void;
   renewExpiredVeSca: (
-    veScaKey: SuiAddressArg,
+    veScaKey: SuiObjectArg,
     scaCoin: SuiObjectArg,
     newUnlockAtInSecondTimestamp: SuiTxArg
   ) => void;
-  redeemSca: (veScaKey: SuiAddressArg) => TransactionResult;
+  redeemSca: (veScaKey: SuiObjectArg) => TransactionResult;
 };
 
 export type VeScaQuickMethods = {
@@ -40,21 +39,21 @@ export type VeScaQuickMethods = {
   ): Promise<void>;
   extendLockPeriodQuick: (
     lockPeriodInDays: number,
-    veScaKey?: SuiAddressArg,
+    veScaKey?: SuiObjectArg,
     autoCheck?: boolean
   ) => Promise<void>;
   extendLockAmountQuick: (
     scaAmount: number,
-    veScaKey?: SuiAddressArg,
+    veScaKey?: SuiObjectArg,
     autoCheck?: boolean
   ) => Promise<void>;
   renewExpiredVeScaQuick: (
     scaAmount: number,
     lockPeriodInDays: number,
-    veScaKey?: SuiAddressArg,
+    veScaKey?: SuiObjectArg,
     autoCheck?: boolean
   ) => Promise<void>;
-  redeemScaQuick: (veScaKey?: SuiAddressArg) => Promise<void>;
+  redeemScaQuick: (veScaKey?: SuiObjectArg) => Promise<void>;
 };
 
 export type SuiTxBlockWithVeScaNormalMethods = SuiKitTxBlock &
