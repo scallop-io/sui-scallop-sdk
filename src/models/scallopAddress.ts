@@ -123,6 +123,19 @@ const EMPTY_ADDRESSES: AddressesInterface = {
           },
         },
       },
+      sca: {
+        id: '',
+        metaData: '',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '',
+            feedObject: '',
+          },
+        },
+      },
     },
     oracles: {
       xOracle: '',

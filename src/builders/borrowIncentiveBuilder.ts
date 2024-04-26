@@ -3,7 +3,7 @@ import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { getObligations, getObligationLocked } from '../queries';
 import { requireSender } from '../utils';
-import type { SuiAddressArg } from '@scallop-io/sui-kit';
+import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
 import type {
   BorrowIncentiveIds,
@@ -38,8 +38,8 @@ const requireObligationInfo = async (
   ...params: [
     builder: ScallopBuilder,
     txBlock: SuiKitTxBlock,
-    obligationId?: SuiAddressArg,
-    obligationKey?: SuiAddressArg,
+    obligationId?: SuiObjectArg,
+    obligationKey?: SuiObjectArg,
   ]
 ) => {
   const [builder, txBlock, obligationId, obligationKey] = params;
@@ -218,6 +218,19 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
             SUI_CLOCK_OBJECT_ID,
           ],
           [rewardType]
+        );
+      },
+      deactivateBoost: (obligation, veScaKey) => {
+        return txBlock.moveCall(
+          `${borrowIncentiveIds.borrowIncentivePkg}::user::deactivate_boost`,
+          [
+            borrowIncentiveIds.config,
+            borrowIncentiveIds.incentivePools,
+            borrowIncentiveIds.incentiveAccounts,
+            obligation,
+            veScaKey,
+            SUI_CLOCK_OBJECT_ID,
+          ]
         );
       },
     };
