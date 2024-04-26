@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.25](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.24...v0.44.25) (2024-04-22)
+
+### Features
+
+- add afsui, hasui, vsui, and eth borrow incentive([0190c69](https://github.com/scallop-io/sui-scallop-sdk/commit/0190c69520318d76012ef201593cad915f069757))
+
+### [0.44.24](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.23...v0.44.24) (2024-04-22)
+
+### Features
+
+- add sca borrow incentive ([8504da3](https://github.com/scallop-io/sui-scallop-sdk/commit/8504da3d303f543d214763dec8cbdc88038280d1))
+
+### [0.44.23](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.22...v0.44.23) (2024-04-21)
+
+### Features
+
+- add new sca pool ([ffb8788](https://github.com/scallop-io/sui-scallop-sdk/commit/ffb8788e90247b177f0bcd84110ed6f213ece5ed))
+
+### [0.44.22](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.21...v0.44.22) (2024-04-01)
+
+### Bug Fixes
+
+- Minor fix on borrow incentive `objectId` ([184b03d](https://github.com/scallop-io/sui-scallop-sdk/pull/76/commits/184b03da0d3f67124335af4d796d3c4802cd239a))
+
+### [0.44.21](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.20...v0.44.21) (2024-03-29)
+
+### Bug Fixes
+
+- Minor fix on borrow incentive builder test ([39af1fa](https://github.com/scallop-io/sui-scallop-sdk/pull/74/commits/39af1fae44eecf1c259ef7942ac5dc05c977571c))
+- add `isFinite` check to `boostValue` calculation, add `staked` property to `BorrowIncentivePool` type ([97640b5](https://github.com/scallop-io/sui-scallop-sdk/commit/97640b5cfb59f9e615413bc1e755da50c85b4154))
+
+### Features
+
+- Refactor unit tests for veSCA builder ([3d0acf4](https://github.com/scallop-io/sui-scallop-sdk/pull/74/commits/3d0acf48736a9336f2cdc2cb98df8bdf1a9981e2))
+
 ### [0.44.20](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.19...v0.44.20) (2024-03-26)
 
 ### Bug Fixes
