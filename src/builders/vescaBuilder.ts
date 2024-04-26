@@ -1,6 +1,5 @@
 import {
   SUI_CLOCK_OBJECT_ID,
-  SuiAddressArg,
   SuiTxBlock,
   TransactionBlock,
   SuiTxBlock as SuiKitTxBlock,
@@ -46,7 +45,7 @@ export const requireVeSca = async (
   ...params: [
     builder: ScallopBuilder,
     SuiTxBlock: SuiTxBlock,
-    veScaKey?: SuiAddressArg,
+    veScaKey?: SuiObjectArg,
   ]
 ) => {
   const [builder, txBlock, veScaKey] = params;
@@ -254,7 +253,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
     },
     extendLockPeriodQuick: async (
       lockPeriodInDays: number,
-      veScaKey?: SuiAddressArg,
+      veScaKey?: SuiObjectArg,
       autoCheck = true
     ) => {
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
@@ -269,7 +268,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
     },
     extendLockAmountQuick: async (
       scaAmount: number,
-      veScaKey?: SuiAddressArg,
+      veScaKey?: SuiObjectArg,
       autoCheck = true
     ) => {
       const sender = requireSender(txBlock);
@@ -295,7 +294,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
     renewExpiredVeScaQuick: async (
       scaAmount: number,
       lockPeriodInDays: number,
-      veScaKey?: SuiAddressArg,
+      veScaKey?: SuiObjectArg,
       autoCheck = true
     ) => {
       const sender = requireSender(txBlock);
@@ -329,7 +328,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         txBlock.transferObjects(transferObjects, sender);
       }
     },
-    redeemScaQuick: async (veScaKey?: SuiAddressArg) => {
+    redeemScaQuick: async (veScaKey?: SuiObjectArg) => {
       const sender = requireSender(txBlock);
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
 
