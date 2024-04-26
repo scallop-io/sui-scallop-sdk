@@ -1,7 +1,7 @@
 import type {
   SuiTxBlock as SuiKitTxBlock,
-  SuiAddressArg,
   SuiTxArg,
+  SuiObjectArg,
 } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui.js/transactions';
 import type { ScallopBuilder } from '../../models';
@@ -21,45 +21,46 @@ export type BorrowIncentiveIds = {
 
 export type BorrowIncentiveNormalMethods = {
   stakeObligation: (
-    obligation: SuiAddressArg,
-    obligationKey: SuiAddressArg
+    obligation: SuiObjectArg,
+    obligationKey: SuiObjectArg
   ) => void;
   stakeObligationWithVesca: (
-    obligation: SuiAddressArg,
-    obligationKey: SuiAddressArg,
+    obligation: SuiObjectArg,
+    obligationKey: SuiObjectArg,
     veScaKey: SuiTxArg
   ) => void;
   unstakeObligation: (
-    obligation: SuiAddressArg,
-    obligationKey: SuiAddressArg
+    obligation: SuiObjectArg,
+    obligationKey: SuiObjectArg
   ) => void;
   claimBorrowIncentive: (
-    obligation: SuiAddressArg,
-    obligationKey: SuiAddressArg,
+    obligation: SuiObjectArg,
+    obligationKey: SuiObjectArg,
     coinName: SupportBorrowIncentiveCoins,
     rewardType: SupportBorrowIncentiveRewardCoins
   ) => TransactionResult;
+  deactivateBoost: (obligation: SuiObjectArg, veScaKey: SuiObjectArg) => void;
 };
 
 export type BorrowIncentiveQuickMethods = {
   stakeObligationQuick(
-    obligation?: SuiAddressArg,
-    obligationKey?: SuiAddressArg
+    obligation?: SuiObjectArg,
+    obligationKey?: SuiObjectArg
   ): Promise<void>;
   stakeObligationWithVeScaQuick(
-    obligation?: SuiAddressArg,
-    obligationKey?: SuiAddressArg,
-    veScaKey?: SuiAddressArg
+    obligation?: SuiObjectArg,
+    obligationKey?: SuiObjectArg,
+    veScaKey?: SuiObjectArg
   ): Promise<void>;
   unstakeObligationQuick(
-    obligation?: SuiAddressArg,
-    obligationKey?: SuiAddressArg
+    obligation?: SuiObjectArg,
+    obligationKey?: SuiObjectArg
   ): Promise<void>;
   claimBorrowIncentiveQuick(
     coinName: SupportBorrowIncentiveCoins,
     rewardType: SupportBorrowIncentiveRewardCoins,
-    obligation?: SuiAddressArg,
-    obligationKey?: SuiAddressArg
+    obligation?: SuiObjectArg,
+    obligationKey?: SuiObjectArg
   ): Promise<TransactionResult>;
 };
 
