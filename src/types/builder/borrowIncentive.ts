@@ -1,6 +1,5 @@
 import type {
   SuiTxBlock as SuiKitTxBlock,
-  SuiTxArg,
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui.js/transactions';
@@ -27,7 +26,7 @@ export type BorrowIncentiveNormalMethods = {
   stakeObligationWithVesca: (
     obligation: SuiObjectArg,
     obligationKey: SuiObjectArg,
-    veScaKey: SuiTxArg
+    veScaKey: SuiObjectArg
   ) => void;
   unstakeObligation: (
     obligation: SuiObjectArg,
