@@ -123,6 +123,7 @@ export class ScallopCache {
       queryFn: async () => {
         return await this.suiKit.inspectTxn(txBytes);
       },
+      staleTime: 8000, // make stale time longer for inspectTxn results
     });
     return query;
   }
