@@ -61,7 +61,7 @@ export class ScallopCache {
   public invalidateAndRefetchAllCache(
     refetchType: 'all' | 'active' | 'inactive' | 'none'
   ) {
-    this.queryClient.invalidateQueries({
+    return this.queryClient.invalidateQueries({
       refetchType,
     });
   }
