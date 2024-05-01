@@ -9,7 +9,7 @@ import { QueryClientConfig } from '@tanstack/query-core';
 export const DEFAULT_CACHE_OPTIONS: QueryClientConfig = {
   defaultOptions: {
     queries: {
-      staleTime: 5000,
+      staleTime: 3000,
     },
   },
 };
