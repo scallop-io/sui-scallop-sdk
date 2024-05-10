@@ -157,6 +157,13 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
+    mintEmptyVeScsa: () => {
+      return txBlock.moveCall(
+        `${veScaIds.pkgId}::ve_sca::redeem`,
+        [veScaIds.config, veScaIds.table],
+        []
+      );
+    },
   };
 };
 

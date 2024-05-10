@@ -57,6 +57,13 @@ export type CoreNormalMethods = {
     amount: SuiTxArg,
     poolCoinName: SupportPoolCoins
   ) => TransactionResult;
+  borrowWithReferral: (
+    obligation: SuiAddressArg,
+    obligationKey: SuiAddressArg,
+    borrowReferral: SuiObjectArg,
+    amount: SuiTxArg,
+    poolCoinName: SupportPoolCoins
+  ) => TransactionResult;
   borrowEntry: (
     obligation: SuiAddressArg,
     obligationKey: SuiAddressArg,
@@ -94,6 +101,13 @@ export type CoreQuickMethods = {
   borrowQuick: (
     amount: number,
     poolCoinName: SupportPoolCoins,
+    obligationId?: SuiAddressArg,
+    obligationKey?: SuiAddressArg
+  ) => Promise<TransactionResult>;
+  borrowWithReferralQuick: (
+    amount: number,
+    poolCoinName: SupportPoolCoins,
+    borrowReferral: SuiObjectArg,
     obligationId?: SuiAddressArg,
     obligationKey?: SuiAddressArg
   ) => Promise<TransactionResult>;
