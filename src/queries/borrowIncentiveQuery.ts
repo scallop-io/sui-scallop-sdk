@@ -207,7 +207,7 @@ export const queryBorrowIncentiveAccounts = async (
  */
 export const getBindedObligationId = async (
   query: ScallopQuery,
-  veScaKey: string
+  veScaKeyId: string
 ): Promise<string | null> => {
   const borrowIncentiveObjectId = query.address.get('borrowIncentive.object');
   const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
@@ -237,7 +237,7 @@ export const getBindedObligationId = async (
     parentId: veScaBindTableId,
     name: {
       type: keyType,
-      value: veScaKey,
+      value: veScaKeyId,
     },
   });
 

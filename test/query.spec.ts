@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
 import { Scallop } from '../src';
 import type { NetworkType } from '@scallop-io/sui-kit';
+import { getVescaKeys } from 'src/queries';
 
 dotenv.config();
 
@@ -321,5 +322,49 @@ describe('Test Portfolio Query', async () => {
       console.info('Scallop tvl:', tvl);
     }
     expect(!!tvl).toBe(true);
+  });
+});
+
+describe('Test VeSca Query', async () => {
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const sender = scallopQuery.suiKit.currentAddress();
+  console.info(`Your Wallet: ${sender}`);
+
+  const veScaKeys = await getVescaKeys(scallopQuery, sender);
+  let obligationId;
+  if (veScaKeys.length === 0)
+    throw new Error(`No VeSca keys found in ${sender}`);
+
+  it(`Should get binded obligationId of veScaKey ${veScaKeys[0]}`, async () => {
+    const bindedObligationId = await scallopQuery.getBindedObligationId(
+      veScaKeys[0].objectId
+    );
+
+    if (ENABLE_LOG) {
+      console.info('Binded Obligation Id:', bindedObligationId);
+    }
+
+    obligationId = bindedObligationId;
+    expect(!!bindedObligationId).toBe(true);
+  });
+
+  if (obligationId) {
+    throw new Error('No obligationId found');
+  }
+  it(`Should get veScaKeyId of obligationId ${obligationId}`, async () => {
+    const bindedVeScaKeyId = await scallopQuery.getBindedVeScaKey(
+      obligationId!
+    );
+
+    if (ENABLE_LOG) {
+      console.info('Binded VeSca Key Id:', bindedVeScaKeyId);
+    }
+
+    expect(!!bindedVeScaKeyId).toBe(true);
   });
 });
