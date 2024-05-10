@@ -106,6 +106,7 @@ export interface AddressesInterface {
     referralBindings: string;
     bindingTableId: string;
     referralRevenuePool: string;
+    witnessType: string;
   };
 }
 
