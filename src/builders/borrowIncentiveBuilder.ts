@@ -2,7 +2,11 @@ import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { borrowIncentiveRewardCoins } from '../constants/enum';
-import { getObligations, getObligationLocked } from '../queries';
+import {
+  getObligations,
+  getObligationLocked,
+  getBindedObligationId,
+} from '../queries';
 import { requireSender } from '../utils';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
@@ -75,59 +79,6 @@ const requireObligationInfo = async (
   };
 };
 
-/**
- * Check veSca bind status
- * @param query
- * @param veScaKey
- * @returns
- */
-export const getBindedObligationId = async (
-  builder: ScallopBuilder,
-  veScaKey: string
-) => {
-  const borrowIncentiveObjectId = builder.address.get('borrowIncentive.object');
-  const incentivePoolsId = builder.address.get(
-    'borrowIncentive.incentivePools'
-  );
-  const veScaPkgId = IS_VE_SCA_TEST
-    ? '0xb220d034bdf335d77ae5bfbf6daf059c2cc7a1f719b12bfed75d1736fac038c8'
-    : builder.address.get('vesca.id');
-
-  const client = builder.suiKit.client();
-
-  // get incentive pools
-  const incentivePoolsResponse = await client.getObject({
-    id: incentivePoolsId,
-    options: {
-      showContent: true,
-    },
-  });
-
-  if (incentivePoolsResponse.data?.content?.dataType !== 'moveObject')
-    return false;
-  const incentivePoolFields = incentivePoolsResponse.data.content.fields as any;
-  const veScaBindTableId = incentivePoolFields.ve_sca_bind.fields.id
-    .id as string;
-
-  // check if veSca is inside the bind table
-  const keyType = `${borrowIncentiveObjectId}::typed_id::TypedID<${veScaPkgId}::ve_sca::VeScaKey>`;
-  const veScaBindTableResponse = await client.getDynamicFieldObject({
-    parentId: veScaBindTableId,
-    name: {
-      type: keyType,
-      value: veScaKey,
-    },
-  });
-
-  if (veScaBindTableResponse.data?.content?.dataType !== 'moveObject')
-    return false;
-  const veScaBindTableFields = veScaBindTableResponse.data.content
-    .fields as any;
-  // get obligationId pair
-  const obligationId = veScaBindTableFields.value.fields.id as string;
-
-  return obligationId;
-};
 /**
  * Generate borrow incentive normal methods.
  *
@@ -322,7 +273,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           const veSca = await requireVeSca(builder, txBlock, veScaKey);
           if (veSca) {
             const bindedObligationId = await getBindedObligationId(
-              builder,
+              builder.query,
               veSca.keyId
             );
             // if bindedObligationId is equal to obligationId, then use it again
