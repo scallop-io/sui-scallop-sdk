@@ -29,6 +29,7 @@ export type VeScaNormalMethods = {
     newUnlockAtInSecondTimestamp: SuiTxArg
   ) => void;
   redeemSca: (veScaKey: SuiObjectArg) => TransactionResult;
+  mintEmptyVeScsa: () => TransactionResult;
 };
 
 export type VeScaQuickMethods = {

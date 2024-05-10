@@ -255,6 +255,13 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     treasury: '',
     config: '',
   },
+  referral: {
+    id: '',
+    upgradeCap: '',
+    referralBindings: '',
+    bindingTableId: '',
+    referralRevenuePool: '',
+  },
 };
 
 /**

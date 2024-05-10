@@ -100,6 +100,13 @@ export interface AddressesInterface {
     treasury: string;
     config: string;
   };
+  referral: {
+    id: string;
+    upgradeCap: string;
+    referralBindings: string;
+    bindingTableId: string;
+    referralRevenuePool: string;
+  };
 }
 
 type AddressPathsProps<T> = T extends string
