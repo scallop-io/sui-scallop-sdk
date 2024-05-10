@@ -70,6 +70,8 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
     coinDecimalsRegistry: builder.address.get('core.coinDecimalsRegistry'),
     xOracle: builder.address.get('core.oracles.xOracle'),
   };
+
+  const referralWitnessType = builder.address.get('referral.witnessType');
   return {
     openObligation: () =>
       txBlock.moveCall(
@@ -181,7 +183,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           coreIds.xOracle,
           SUI_CLOCK_OBJECT_ID,
         ],
-        [coinType]
+        [coinType, referralWitnessType]
       );
     },
     borrowEntry: (obligation, obligationKey, amount, poolCoinName) => {

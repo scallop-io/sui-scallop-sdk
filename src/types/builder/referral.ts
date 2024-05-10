@@ -11,6 +11,7 @@ export type ReferralIds = {
   referralPgkId: string;
   referralBindings: string;
   referralRevenuePool: string;
+  witnessType: string;
 };
 
 export type ReferralNormalMethods = {
