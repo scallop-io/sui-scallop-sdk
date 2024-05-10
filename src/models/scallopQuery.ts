@@ -519,7 +519,7 @@ export class ScallopQuery {
    * @param walletAddress
    * @returns veScaKeyId
    */
-  public async queryVeScaKeyIdFromReferralBindings(walletAddress: string) {
+  public async getVeScaKeyIdFromReferralBindings(walletAddress: string) {
     return await queryVeScaKeyIdFromReferralBindings(this, walletAddress);
   }
 }
