@@ -49,6 +49,7 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
     referralPgkId: '',
     referralBindings: '',
     referralRevenuePool: '',
+    witnessType: '',
   };
 
   const veScaIds: VescaIds = {
