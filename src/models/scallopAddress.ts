@@ -261,6 +261,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     referralBindings: '',
     bindingTableId: '',
     referralRevenuePool: '',
+    witnessType: '',
   },
 };
 

@@ -25,6 +25,7 @@ import {
   getObligationAccounts,
   getObligationAccount,
   getTotalValueLocked,
+  queryVeScaKeyIdFromReferralBindings,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -511,5 +512,14 @@ export class ScallopQuery {
    */
   public async getTvl(indexer: boolean = false) {
     return await getTotalValueLocked(this, indexer);
+  }
+
+  /**
+   * Return binded veScaKeyId of walletAddress if exist
+   * @param walletAddress
+   * @returns veScaKeyId
+   */
+  public async queryVeScaKeyIdFromReferralBindings(walletAddress: string) {
+    return await queryVeScaKeyIdFromReferralBindings(this, walletAddress);
   }
 }
