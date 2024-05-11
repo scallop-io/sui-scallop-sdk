@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.44.28](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.27...v0.44.28) (2024-05-11)
+
+### Features
+
+- Export `getBindedObligationId` and `getBindedVeScaKey` functions ([e0a4365](https://github.com/scallop-io/sui-scallop-sdk/commit/e0a436536ea94a03b1937284d49b10a53c3b1f10))
+- `getVeSca` return veSca with highest balance ([95d928f](https://github.com/scallop-io/sui-scallop-sdk/commit/95d928f704808f695e476a91623deeec2eb1256b))
+
 ### [0.44.27](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.26...v0.44.27) (2024-04-26)
 
 ### Features
