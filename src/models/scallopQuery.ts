@@ -25,6 +25,8 @@ import {
   getObligationAccounts,
   getObligationAccount,
   getTotalValueLocked,
+  getBindedObligationId,
+  getBindedVeScaKey,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -520,5 +522,23 @@ export class ScallopQuery {
    */
   public async getTvl(indexer: boolean = false) {
     return await getTotalValueLocked(this, indexer);
+  }
+
+  /**
+   * Get binded obligationId from a veScaKey if it exists.
+   * @param veScaKey
+   * @returns obligationId
+   */
+  public async getBindedObligationId(veScaKey: string) {
+    return await getBindedObligationId(this, veScaKey);
+  }
+
+  /**
+   * Get binded veSCA key from a obligationId if it exists.
+   * @param obligationId
+   * @returns veScaKey
+   */
+  public async getBindedVeScaKey(obligationId: string) {
+    return await getBindedVeScaKey(this, obligationId);
   }
 }
