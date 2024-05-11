@@ -26,30 +26,9 @@ export type ReferralNormalMethods = {
   ) => void;
 };
 
-export type ReferralQuickMethods = {
-  claimAndBurnReferralTicketQuick: (
-    authorizedWitnessList: SuiObjectArg,
-    poolCoinName: SupportPoolCoins,
-    veScaKeyId: string,
-    callback?: (
-      txBlock: SuiTxBlockWithReferralNormalMethod,
-      borrowReferral: SuiObjectArg
-    ) => Promise<void>
-  ) => Promise<void>;
-};
-
-export type SuiTxBlockWithReferralNormalMethod = SuiKitTxBlock &
-  ReferralNormalMethods;
-
-export type ReferralTxBlock = SuiTxBlockWithReferralNormalMethod &
-  ReferralQuickMethods;
+export type ReferralTxBlock = SuiKitTxBlock & ReferralNormalMethods;
 
 export type GenerateReferralNormalMethod = (params: {
   builder: ScallopBuilder;
   txBlock: SuiTxBlock;
 }) => ReferralNormalMethods;
-
-export type GenerateReferralQuickMethod = (params: {
-  builder: ScallopBuilder;
-  txBlock: SuiTxBlockWithReferralNormalMethod;
-}) => ReferralQuickMethods;
