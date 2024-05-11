@@ -336,7 +336,7 @@ describe('Test VeSca Query', async () => {
   console.info(`Your Wallet: ${sender}`);
 
   const veScaKeys = await getVescaKeys(scallopQuery, sender);
-  let obligationId;
+  let obligationId: string | undefined;
   if (veScaKeys.length === 0)
     throw new Error(`No VeSca keys found in ${sender}`);
 
@@ -349,14 +349,18 @@ describe('Test VeSca Query', async () => {
       console.info('Binded Obligation Id:', bindedObligationId);
     }
 
+    if (!bindedObligationId)
+      throw new Error(
+        `No binded obligationId found for veScaKey ${veScaKeys[0]}`
+      );
     obligationId = bindedObligationId;
     expect(!!bindedObligationId).toBe(true);
   });
 
-  if (obligationId) {
-    throw new Error('No obligationId found');
-  }
   it(`Should get veScaKeyId of obligationId ${obligationId}`, async () => {
+    if (!obligationId) {
+      throw new Error('No obligationId found');
+    }
     const bindedVeScaKeyId = await scallopQuery.getBindedVeScaKey(
       obligationId!
     );
