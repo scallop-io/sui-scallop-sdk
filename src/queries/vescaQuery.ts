@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 import { Vesca } from '../types';
 import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui.js/client';
 import type { ScallopQuery } from '../models';
-import { IS_VE_SCA_TEST } from 'src/constants';
+import { IS_VE_SCA_TEST, MAX_LOCK_DURATION } from 'src/constants';
 /**
  * Query all owned veSca key.
  *
@@ -108,13 +108,26 @@ export const getVeSca = async (
   ) {
     const dynamicFields = (veScaDynamicFieldObject.content.fields as any).value
       .fields;
+
+    const remainingLockPeriodInMilliseconds = Math.max(
+      +dynamicFields.unlock_at * 1000 - Date.now(),
+      0
+    );
+    const lockedScaAmount = String(dynamicFields.locked_sca_amount);
+    const lockedScaCoin = BigNumber(dynamicFields.locked_sca_amount)
+      .shiftedBy(-9)
+      .toNumber();
+    const currentVeScaBalance =
+      lockedScaCoin *
+      (Math.floor(remainingLockPeriodInMilliseconds / 1000) /
+        MAX_LOCK_DURATION);
+
     vesca = {
       id: veScaDynamicFieldObject.objectId,
       keyId: veScaKeyId,
-      lockedScaAmount: BigNumber(dynamicFields.locked_sca_amount).toNumber(),
-      lockedScaCoin: BigNumber(dynamicFields.locked_sca_amount)
-        .shiftedBy(-9)
-        .toNumber(),
+      lockedScaAmount,
+      lockedScaCoin,
+      currentVeScaBalance,
       unlockAt: BigNumber(dynamicFields.unlock_at).toNumber(),
     } as Vesca;
   }

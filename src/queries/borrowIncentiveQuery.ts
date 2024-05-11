@@ -1,5 +1,6 @@
 import { normalizeStructTag } from '@mysten/sui.js/utils';
 import {
+  IS_VE_SCA_TEST,
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
 } from '../constants';
@@ -193,4 +194,95 @@ export const queryBorrowIncentiveAccounts = async (
   }, {} as BorrowIncentiveAccounts);
 
   return borrowIncentiveAccounts;
+};
+
+/**
+ * Check veSca bind status
+ * @param query
+ * @param veScaKey
+ * @returns
+ */
+export const getBindedObligationId = async (
+  query: ScallopQuery,
+  veScaKeyId: string
+): Promise<string | null> => {
+  const borrowIncentiveObjectId = query.address.get('borrowIncentive.object');
+  const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
+  const veScaPkgId = IS_VE_SCA_TEST
+    ? '0xb220d034bdf335d77ae5bfbf6daf059c2cc7a1f719b12bfed75d1736fac038c8'
+    : query.address.get('vesca.id');
+
+  // get incentive pools
+  const incentivePoolsResponse = await query.cache.queryGetObject(
+    incentivePoolsId,
+    {
+      showContent: true,
+    }
+  );
+
+  if (incentivePoolsResponse.data?.content?.dataType !== 'moveObject')
+    return null;
+  const incentivePoolFields = incentivePoolsResponse.data.content.fields as any;
+  const veScaBindTableId = incentivePoolFields.ve_sca_bind.fields.id
+    .id as string;
+
+  // check if veSca is inside the bind table
+  const keyType = `${borrowIncentiveObjectId}::typed_id::TypedID<${veScaPkgId}::ve_sca::VeScaKey>`;
+  const veScaBindTableResponse = await query.cache.queryGetDynamicFieldObject({
+    parentId: veScaBindTableId,
+    name: {
+      type: keyType,
+      value: veScaKeyId,
+    },
+  });
+
+  if (veScaBindTableResponse.data?.content?.dataType !== 'moveObject')
+    return null;
+  const veScaBindTableFields = veScaBindTableResponse.data.content
+    .fields as any;
+  // get obligationId pair
+  const obligationId = veScaBindTableFields.value.fields.id as string;
+
+  return obligationId;
+};
+
+export const getBindedVeScaKey = async (
+  query: ScallopQuery,
+  obliationId: string
+): Promise<string | null> => {
+  const borrowIncentiveObjectId = query.address.get('borrowIncentive.object');
+  const incentiveAccountsId = query.address.get(
+    'borrowIncentive.incentiveAccounts'
+  );
+  const corePkg = query.address.get('core.object');
+
+  // get IncentiveAccounts object
+  const incentiveAccountsObject = await query.cache.queryGetObject(
+    incentiveAccountsId,
+    {
+      showContent: true,
+    }
+  );
+  if (incentiveAccountsObject.data?.content?.dataType !== 'moveObject')
+    return null;
+  const incentiveAccountsTableId = (
+    incentiveAccountsObject.data.content.fields as any
+  ).accounts.fields.id.id;
+
+  // Search in the table
+  const bindedIncentiveAcc = await query.cache.queryGetDynamicFieldObject({
+    parentId: incentiveAccountsTableId,
+    name: {
+      type: `${borrowIncentiveObjectId}::typed_id::TypedID<${corePkg}::obligation::Obligation>`,
+      value: obliationId,
+    },
+  });
+
+  if (bindedIncentiveAcc.data?.content?.dataType !== 'moveObject') return null;
+  const bindedIncentiveAccFields = bindedIncentiveAcc.data.content
+    .fields as any;
+
+  return (
+    bindedIncentiveAccFields.value.fields.binded_ve_sca_key?.fields.id ?? null
+  );
 };
