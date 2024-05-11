@@ -157,7 +157,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    mintEmptyVeScsa: () => {
+    mintEmptyVeSca: () => {
       return txBlock.moveCall(
         `${veScaIds.pkgId}::ve_sca::mint_ve_sca_placeholder_key`,
         [veScaIds.config, veScaIds.table],
