@@ -2,7 +2,7 @@ import type { CoreTxBlock } from './core';
 import type { SpoolTxBlock } from './spool';
 import type { BorrowIncentiveTxBlock } from './borrowIncentive';
 import type { VeScaTxBlock } from './vesca';
-import { ReferralTxBlock } from './referral';
+import type { ReferralTxBlock } from './referral';
 
 export type * from './core';
 export type * from './spool';
