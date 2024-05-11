@@ -1,7 +1,8 @@
 export type Vesca = {
   id: string;
   keyId: string;
-  lockedScaAmount: number;
+  lockedScaAmount: string;
   lockedScaCoin: number;
+  currentVeScaBalance: number;
   unlockAt: number;
 };
