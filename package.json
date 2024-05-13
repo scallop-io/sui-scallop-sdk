@@ -68,6 +68,7 @@
     "@pythnetwork/pyth-sui-js": "^1.2.4",
     "@scallop-io/sui-kit": "^0.44.2",
     "@scure/bip39": "^1.2.1",
+    "@tanstack/query-core": "^5.28.0",
     "axios": "^1.6.0",
     "bignumber.js": "^9.1.2",
     "superstruct": "^1.0.3",

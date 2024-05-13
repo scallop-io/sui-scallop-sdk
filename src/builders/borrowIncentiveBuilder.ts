@@ -1,7 +1,6 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { borrowIncentiveRewardCoins } from '../constants/enum';
 import {
   getObligations,
   getObligationLocked,
@@ -160,7 +159,8 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
         coinName,
         rewardCoinName
       ) => {
-        const rewardCoinNames = borrowIncentiveRewardCoins[coinName];
+        const rewardCoinNames =
+          builder.utils.getBorrowIncentiveRewardCoinName(coinName);
         if (rewardCoinNames.includes(rewardCoinName) === false) {
           throw new Error(`Invalid reward coin name ${rewardCoinName}`);
         }

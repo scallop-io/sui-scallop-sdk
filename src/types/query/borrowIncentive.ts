@@ -16,24 +16,6 @@ export type BorrowIncentivePools = OptionalKeys<
   Record<SupportBorrowIncentiveCoins, BorrowIncentivePool>
 >;
 
-// export type BorrowIncentivePool = {
-//   coinName: SupportBorrowIncentiveCoins;
-//   symbol: string;
-//   coinType: string;
-//   rewardCoinType: string;
-//   coinDecimal: number;
-//   rewardCoinDecimal: number;
-//   coinPrice: number;
-//   rewardCoinPrice: number;
-// } & Required<
-//   Pick<
-//     ParsedBorrowIncentivePoolData,
-//     'maxPoints' | 'distributedPoint' | 'maxStake'
-//   >
-// > &
-//   CalculatedBorrowIncentivePoolData &
-//   BorrowIncentiveRewardPool;
-
 export type BorrowIncentivePoolPoints = {
   symbol: string;
   coinName: SupportBorrowIncentiveRewardCoins;
@@ -59,21 +41,6 @@ export type BorrowIncentivePool = {
     Record<SupportBorrowIncentiveRewardCoins, BorrowIncentivePoolPoints>
   >;
 };
-
-// export type OriginBorrowIncentivePoolData = {
-//   created_at: string;
-//   distributed_point: string;
-//   distributed_point_per_period: string;
-//   index: string;
-//   last_update: string;
-//   max_distributed_point: string;
-//   max_stakes: string;
-//   point_distribution_time: string;
-//   pool_type: {
-//     name: string;
-//   };
-//   stakes: string;
-// };
 
 export type OriginBorrowIncentivePoolPointData = {
   point_type: {
@@ -112,18 +79,6 @@ export type ParsedBorrowIncentivePoolPointData = {
   lastUpdate: number;
 };
 
-// export type ParsedBorrowIncentivePoolData = {
-//   poolType: string;
-//   maxPoint: number;
-//   distributedPoint: number;
-//   pointPerPeriod: number;
-//   period: number;
-//   maxStake: number;
-//   staked: number;
-//   index: number;
-//   createdAt: number;
-//   lastUpdate: number;
-// };
 export type ParsedBorrowIncentivePoolData = {
   poolType: string;
   poolPoints: OptionalKeys<
@@ -154,53 +109,9 @@ export type CalculatedBorrowIncentivePoolPointData = {
   rewardPerSec: number;
 };
 
-// export type BorrowIncentiveRewardPool = CalculatedBorrowIncentiveRewardPoolData;
-
-// export type OriginBorrowIncentiveRewardPoolData = {
-//   claimed_rewards: string;
-//   exchange_rate_denominator: string;
-//   exchange_rate_numerator: string;
-//   remaining_reward: string;
-//   reward_type: {
-//     name: string;
-//   };
-// };
-
-// export type ParsedBorrowIncentiveRewardPoolData = {
-//   rewardType: string;
-//   claimedRewards: number;
-//   exchangeRateDenominator: number;
-//   exchangeRateNumerator: number;
-//   remainingRewards: number;
-// };
-
-// export type CalculatedBorrowIncentiveRewardPoolData = {
-//   rewardApr: number;
-//   totalRewardAmount: number;
-//   totalRewardCoin: number;
-//   totalRewardValue: number;
-//   // remaindRewardAmount: number;
-//   // remaindRewardCoin: number;
-//   // remaindRewardValue: number;
-//   // claimedRewardAmount: number;
-//   // claimedRewardCoin: number;
-//   // claimedRewardValue: number;
-//   rewardPerSec: number;
-// };
-
 export type BorrowIncentiveAccounts = OptionalKeys<
   Record<SupportBorrowIncentiveCoins, ParsedBorrowIncentiveAccountData>
 >;
-
-// export type OriginBorrowIncentiveAccountData = {
-//   amount: string;
-//   index: string;
-//   points: string;
-//   pool_type: {
-//     name: string;
-//   };
-//   total_points: string;
-// };
 
 export type OriginBorrowIncentiveAccountPoolData = {
   point_type: {
@@ -219,14 +130,6 @@ export type OriginBorrowIncentiveAccountData = {
   };
   debt_amount: string;
 };
-
-// export type ParsedBorrowIncentiveAccountData = {
-//   poolType: string;
-//   amount: number;
-//   index: number;
-//   points: number;
-//   totalPoints: number;
-// };
 
 export type ParsedBorrowIncentiveAccountPoolData = {
   pointType: string;
@@ -250,11 +153,6 @@ export type ParsedBorrowIncentiveAccountData = {
 /**
  * The query interface for `incentive_pools_query::incentive_pools_data` inspectTxn.
  */
-// export interface BorrowIncentivePoolsQueryInterface {
-//   incentive_pools: OriginBorrowIncentivePoolData[];
-//   reward_pool: OriginBorrowIncentiveRewardPoolData;
-// }
-
 export interface BorrowIncentivePoolsQueryInterface {
   incentive_pools: OriginBorrowIncentivePoolData[];
 }
@@ -262,11 +160,6 @@ export interface BorrowIncentivePoolsQueryInterface {
 /**
  * The query interface for `incentive_account_query::incentive_account_data` inspectTxn.
  */
-// export interface BorrowIncentiveAccountsQueryInterface {
-//   incentive_states: OriginBorrowIncentiveAccountData[];
-//   total_points: string;
-// }
-
 export interface BorrowIncentiveAccountsQueryInterface {
   pool_records: OriginBorrowIncentiveAccountData[];
 }
