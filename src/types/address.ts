@@ -82,6 +82,7 @@ export interface AddressesInterface {
         }
       >
     >;
+    config: string;
   };
   borrowIncentive: {
     id: string;
@@ -102,11 +103,12 @@ export interface AddressesInterface {
   };
   referral: {
     id: string;
-    upgradeCap: string;
+    object: string;
+    adminCap: string;
     referralBindings: string;
     bindingTableId: string;
     referralRevenuePool: string;
-    witnessType: string;
+    authorizedWitnessList: string;
   };
 }
 

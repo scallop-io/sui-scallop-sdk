@@ -11,19 +11,20 @@ export type ReferralIds = {
   referralPgkId: string;
   referralBindings: string;
   referralRevenuePool: string;
-  witnessType: string;
+  authorizedWitnessList: string;
 };
 
 export type ReferralNormalMethods = {
   bindToReferral: (veScaKeyId: string) => void;
-  claimReferralTicket: (
-    authorizedWitnessList: SuiObjectArg,
-    poolCoinName: SupportPoolCoins
-  ) => TransactionResult;
+  claimReferralTicket: (poolCoinName: SupportPoolCoins) => TransactionResult;
   burnReferralTicket: (
     ticket: SuiObjectArg,
     poolCoinName: SupportPoolCoins
   ) => void;
+  claimRevenue: (
+    veScaKey: SuiObjectArg,
+    poolCoinName: SupportPoolCoins
+  ) => TransactionResult;
 };
 
 export type ReferralTxBlock = SuiKitTxBlock & ReferralNormalMethods;

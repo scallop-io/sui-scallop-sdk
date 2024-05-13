@@ -71,7 +71,9 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
     xOracle: builder.address.get('core.oracles.xOracle'),
   };
 
-  const referralWitnessType = builder.address.get('referral.witnessType');
+  const referralPkgId = builder.address.get('referral.id');
+  const referralWitnessType = `${referralPkgId}::scallop_referral_program::REFERRAL_WITNESS`;
+
   return {
     openObligation: () =>
       txBlock.moveCall(
