@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.45.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.28...v0.45.0) (2024-05-12)
+
+### Bug Fixes
+
+- Avoid multiple RPC calls and Move Call on the same object of short period of time
+
 ### [0.44.28](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.44.27...v0.44.28) (2024-05-11)
 
 ### Features
