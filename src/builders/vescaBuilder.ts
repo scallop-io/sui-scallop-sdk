@@ -65,7 +65,11 @@ export const requireVeSca = async (
     return undefined;
   }
 
-  return veScas[0];
+  return veScas.reduce(
+    (prev, acc) =>
+      acc.currentVeScaBalance > prev.currentVeScaBalance ? acc : prev,
+    veScas[0]
+  ); // return veSCA with highest veSCA balance
 };
 
 /**
@@ -235,7 +239,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
             transferObjects.push(veScaKey);
           } else {
             // user must withdraw current unlocked SCA first if any
-            if (veSca.lockedScaAmount !== 0) {
+            if (veSca.lockedScaCoin !== 0) {
               const unlockedSca = txBlock.redeemSca(veSca.keyId);
               transferObjects.push(unlockedSca);
             }
@@ -316,7 +320,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
 
       if (veSca) {
         const transferObjects = [];
-        if (veSca.lockedScaAmount !== 0) {
+        if (veSca.lockedScaCoin !== 0) {
           const unlockedSca = txBlock.redeemSca(veSca.keyId);
           transferObjects.push(unlockedSca);
         }
