@@ -9,11 +9,10 @@ export const queryVeScaKeyIdFromReferralBindings = async (
   query: ScallopQuery,
   senderAddress: string
 ): Promise<string | null> => {
-  const referralBindingTable = query.address.get('referral.bindingTableId');
-  const client = query.suiKit.client();
+  const referralBindingTableId = query.address.get('referral.bindingTableId');
 
-  const referralBindResponse = await client.getDynamicFieldObject({
-    parentId: referralBindingTable,
+  const referralBindResponse = await query.cache.queryGetDynamicFieldObject({
+    parentId: referralBindingTableId,
     name: {
       type: 'address',
       value: senderAddress,
@@ -24,5 +23,5 @@ export const queryVeScaKeyIdFromReferralBindings = async (
     return null;
 
   const fields = referralBindResponse.data.content.fields as any;
-  return fields.value.id.id;
+  return fields.value;
 };

@@ -17,10 +17,12 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
   txBlock,
 }) => {
   const referralIds: ReferralIds = {
-    referralPgkId: '',
-    referralBindings: '',
-    referralRevenuePool: '',
-    witnessType: '',
+    referralPgkId: builder.address.get('referral.id'),
+    referralBindings: builder.address.get('referral.referralBindings'),
+    referralRevenuePool: builder.address.get('referral.referralRevenuePool'),
+    authorizedWitnessList: builder.address.get(
+      'referral.authorizedWitnessList'
+    ),
   };
 
   const veScaIds: VescaIds = {
@@ -36,24 +38,21 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         `${referralIds.referralPgkId}::referral_bindings::bind_ve_sca_referrer`,
         [
           referralIds.referralBindings,
-          veScaKeyId,
+          txBlock.pure(veScaKeyId),
           veScaIds.table,
           SUI_CLOCK_OBJECT_ID,
         ],
         []
       );
     },
-    claimReferralTicket: (
-      authorizedWitnessList: SuiObjectArg,
-      poolCoinName: SupportCoins
-    ) => {
+    claimReferralTicket: (poolCoinName: SupportCoins) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
         `${referralIds.referralPgkId}::scallop_referral_program::claim_ve_sca_referral_ticket`,
         [
           veScaIds.table,
           referralIds.referralBindings,
-          authorizedWitnessList,
+          referralIds.authorizedWitnessList,
           SUI_CLOCK_OBJECT_ID,
         ],
         [coinType]
@@ -64,6 +63,14 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
       return txBlock.moveCall(
         `${referralIds.referralPgkId}::scallop_referral_program::burn_ve_sca_referral_ticket`,
         [ticket, referralIds.referralRevenuePool],
+        [coinType]
+      );
+    },
+    claimRevenue: (veScaKey: SuiObjectArg, poolCoinName: SupportCoins) => {
+      const coinType = builder.utils.parseCoinType(poolCoinName);
+      return txBlock.moveCall(
+        `${referralIds.referralPgkId}::referral_revenue_pool::claim_revenue_with_ve_sca`,
+        [referralIds.referralRevenuePool, veScaKey],
         [coinType]
       );
     },
