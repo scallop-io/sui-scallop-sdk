@@ -108,8 +108,8 @@ export const getLending = async (
   marketPool?: MarketPool,
   spool?: Spool,
   stakeAccounts?: StakeAccount[],
-  coinAmount?: number,
-  marketCoinAmount?: number,
+  coinAmount?: string,
+  marketCoinAmount?: string,
   coinPrice?: number
 ) => {
   const marketCoinName = query.utils.parseMarketCoinName(poolCoinName);

@@ -1,5 +1,4 @@
 import { normalizeStructTag } from '@mysten/sui.js/utils';
-import BigNumber from 'bignumber.js';
 import {
   SUPPORT_POOLS,
   PROTOCOL_OBJECT_ID,
@@ -32,9 +31,8 @@ import {
   BalanceSheet,
   RiskModel,
   CollateralStat,
-  CoinAmounts,
-  MarketCoinAmounts,
   SupportMarketCoins,
+  OptionalKeys,
 } from '../types';
 
 /**
@@ -782,61 +780,20 @@ export const getCoinAmounts = async (
 ) => {
   assetCoinNames = assetCoinNames || [...SUPPORT_POOLS];
   const owner = ownerAddress || query.suiKit.currentAddress();
-  const coinObjectsResponse: SuiObjectResponse[] = [];
-  let hasNextPage = false;
-  let nextCursor: string | null | undefined = null;
-  do {
-    const paginatedCoinObjectsResponse = await query.cache.queryGetOwnedObjects(
-      {
-        owner,
-        filter: {
-          MatchAny: assetCoinNames.map((assetCoinName) => {
-            const coinType = query.utils.parseCoinType(assetCoinName);
-            return { StructType: `0x2::coin::Coin<${coinType}>` };
-          }),
-        },
-        options: {
-          showType: true,
-          showContent: true,
-        },
-        cursor: nextCursor,
-      }
+  const assetCoins = {} as OptionalKeys<Record<SupportAssetCoins, string>>;
+
+  const tasks = [];
+  for (const assetCoinName of assetCoinNames) {
+    tasks.push(
+      (async () => {
+        const marketCoin = await getCoinAmount(query, assetCoinName, owner);
+        assetCoins[assetCoinName] = marketCoin;
+      })()
     );
-
-    coinObjectsResponse.push(...paginatedCoinObjectsResponse.data);
-    if (
-      paginatedCoinObjectsResponse.hasNextPage &&
-      paginatedCoinObjectsResponse.nextCursor
-    ) {
-      hasNextPage = true;
-      nextCursor = paginatedCoinObjectsResponse.nextCursor;
-    } else {
-      hasNextPage = false;
-    }
-  } while (hasNextPage);
-
-  const coinAmounts: CoinAmounts = {};
-  const coinObjects = coinObjectsResponse
-    .map((response) => {
-      return response.data;
-    })
-    .filter(
-      (object: any) => object !== undefined && object !== null
-    ) as SuiObjectData[];
-  for (const coinObject of coinObjects) {
-    const type = coinObject.type as string;
-    if (coinObject.content && 'fields' in coinObject.content) {
-      const fields = coinObject.content.fields as any;
-      const poolCoinName =
-        query.utils.parseCoinNameFromType<SupportPoolCoins>(type);
-      if (poolCoinName) {
-        coinAmounts[poolCoinName] = BigNumber(coinAmounts[poolCoinName] ?? 0)
-          .plus(fields.balance)
-          .toNumber();
-      }
-    }
   }
-  return coinAmounts;
+
+  await Promise.allSettled(tasks);
+  return assetCoins;
 };
 
 /**
@@ -854,48 +811,7 @@ export const getCoinAmount = async (
 ) => {
   const owner = ownerAddress || query.suiKit.currentAddress();
   const coinType = query.utils.parseCoinType(assetCoinName);
-  const coinObjectsResponse: SuiObjectResponse[] = [];
-  let hasNextPage = false;
-  let nextCursor: string | null | undefined = null;
-  do {
-    const paginatedCoinObjectsResponse = await query.cache.queryGetOwnedObjects(
-      {
-        owner,
-        filter: { StructType: `0x2::coin::Coin<${coinType}>` },
-        options: {
-          showContent: true,
-        },
-        cursor: nextCursor,
-      }
-    );
-
-    coinObjectsResponse.push(...paginatedCoinObjectsResponse.data);
-    if (
-      paginatedCoinObjectsResponse.hasNextPage &&
-      paginatedCoinObjectsResponse.nextCursor
-    ) {
-      hasNextPage = true;
-      nextCursor = paginatedCoinObjectsResponse.nextCursor;
-    } else {
-      hasNextPage = false;
-    }
-  } while (hasNextPage);
-
-  let coinAmount: number = 0;
-  const coinObjects = coinObjectsResponse
-    .map((response) => {
-      return response.data;
-    })
-    .filter(
-      (object: any) => object !== undefined && object !== null
-    ) as SuiObjectData[];
-  for (const coinObject of coinObjects) {
-    if (coinObject.content && 'fields' in coinObject.content) {
-      const fields = coinObject.content.fields as any;
-      coinAmount = BigNumber(coinAmount).plus(fields.balance).toNumber();
-    }
-  }
-  return coinAmount;
+  return query.cache.queryGetCoinBalance({ owner, coinType: coinType });
 };
 
 /**
@@ -917,63 +833,24 @@ export const getMarketCoinAmounts = async (
       query.utils.parseMarketCoinName(poolCoinName)
     );
   const owner = ownerAddress || query.suiKit.currentAddress();
-  const marketCoinObjectsResponse: SuiObjectResponse[] = [];
-  let hasNextPage = false;
-  let nextCursor: string | null | undefined = null;
-  do {
-    const paginatedMarketCoinObjectsResponse =
-      await query.cache.queryGetOwnedObjects({
-        owner,
-        filter: {
-          MatchAny: marketCoinNames.map((marketCoinName) => {
-            const marketCoinType =
-              query.utils.parseMarketCoinType(marketCoinName);
-            return { StructType: `0x2::coin::Coin<${marketCoinType}>` };
-          }),
-        },
-        options: {
-          showType: true,
-          showContent: true,
-        },
-        cursor: nextCursor,
-      });
+  const marketCoins = {} as OptionalKeys<Record<SupportMarketCoins, string>>;
 
-    marketCoinObjectsResponse.push(...paginatedMarketCoinObjectsResponse.data);
-    if (
-      paginatedMarketCoinObjectsResponse.hasNextPage &&
-      paginatedMarketCoinObjectsResponse.nextCursor
-    ) {
-      hasNextPage = true;
-      nextCursor = paginatedMarketCoinObjectsResponse.nextCursor;
-    } else {
-      hasNextPage = false;
-    }
-  } while (hasNextPage);
-
-  const marketCoinAmounts: MarketCoinAmounts = {};
-  const marketCoinObjects = marketCoinObjectsResponse
-    .map((response) => {
-      return response.data;
-    })
-    .filter(
-      (object: any) => object !== undefined && object !== null
-    ) as SuiObjectData[];
-  for (const marketCoinObject of marketCoinObjects) {
-    const marketCoinType = marketCoinObject.type as string;
-    if (marketCoinObject.content && 'fields' in marketCoinObject.content) {
-      const fields = marketCoinObject.content.fields as any;
-      const marketCoinName =
-        query.utils.parseCoinNameFromType<SupportMarketCoins>(marketCoinType);
-      if (marketCoinName) {
-        marketCoinAmounts[marketCoinName] = BigNumber(
-          marketCoinAmounts[marketCoinName] ?? 0
-        )
-          .plus(fields.balance)
-          .toNumber();
-      }
-    }
+  const tasks = [];
+  for (const marketCoinName of marketCoinNames) {
+    tasks.push(
+      (async () => {
+        const marketCoin = await getMarketCoinAmount(
+          query,
+          marketCoinName,
+          owner
+        );
+        marketCoins[marketCoinName] = marketCoin;
+      })()
+    );
   }
-  return marketCoinAmounts;
+
+  await Promise.allSettled(tasks);
+  return marketCoins;
 };
 
 /**
@@ -991,47 +868,5 @@ export const getMarketCoinAmount = async (
 ) => {
   const owner = ownerAddress || query.suiKit.currentAddress();
   const marketCoinType = query.utils.parseMarketCoinType(marketCoinName);
-  const marketCoinObjectsResponse: SuiObjectResponse[] = [];
-  let hasNextPage = false;
-  let nextCursor: string | null | undefined = null;
-  do {
-    const paginatedMarketCoinObjectsResponse =
-      await query.cache.queryGetOwnedObjects({
-        owner,
-        filter: { StructType: `0x2::coin::Coin<${marketCoinType}>` },
-        options: {
-          showContent: true,
-        },
-        cursor: nextCursor,
-      });
-
-    marketCoinObjectsResponse.push(...paginatedMarketCoinObjectsResponse.data);
-    if (
-      paginatedMarketCoinObjectsResponse.hasNextPage &&
-      paginatedMarketCoinObjectsResponse.nextCursor
-    ) {
-      hasNextPage = true;
-      nextCursor = paginatedMarketCoinObjectsResponse.nextCursor;
-    } else {
-      hasNextPage = false;
-    }
-  } while (hasNextPage);
-
-  let marketCoinAmount: number = 0;
-  const marketCoinObjects = marketCoinObjectsResponse
-    .map((response) => {
-      return response.data;
-    })
-    .filter(
-      (object: any) => object !== undefined && object !== null
-    ) as SuiObjectData[];
-  for (const marketCoinObject of marketCoinObjects) {
-    if (marketCoinObject.content && 'fields' in marketCoinObject.content) {
-      const fields = marketCoinObject.content.fields as any;
-      marketCoinAmount = BigNumber(marketCoinAmount)
-        .plus(fields.balance)
-        .toNumber();
-    }
-  }
-  return marketCoinAmount;
+  return query.cache.queryGetCoinBalance({ owner, coinType: marketCoinType });
 };

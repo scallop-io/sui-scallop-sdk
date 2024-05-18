@@ -13,9 +13,9 @@ export type MarketPools = OptionalKeys<Record<SupportPoolCoins, MarketPool>>;
 export type MarketCollaterals = OptionalKeys<
   Record<SupportCollateralCoins, MarketCollateral>
 >;
-export type CoinAmounts = OptionalKeys<Record<SupportPoolCoins, number>>;
+export type CoinAmounts = OptionalKeys<Record<SupportPoolCoins, string>>;
 export type MarketCoinAmounts = OptionalKeys<
-  Record<SupportMarketCoins, number>
+  Record<SupportMarketCoins, string>
 >;
 
 export type BalanceSheet = {

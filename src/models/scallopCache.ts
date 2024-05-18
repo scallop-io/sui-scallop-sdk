@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
-import { SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
+import { SuiTxArg, SuiTxBlock, normalizeStructTag } from '@scallop-io/sui-kit';
 import { SuiKit } from '@scallop-io/sui-kit';
 import type {
   SuiObjectResponse,
@@ -11,6 +11,7 @@ import type {
   GetDynamicFieldsParams,
   DynamicFieldPage,
   GetDynamicFieldObjectParams,
+  GetBalanceParams,
 } from '@mysten/sui.js/client';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 
@@ -239,6 +240,45 @@ export class ScallopCache {
       queryKey,
       queryFn: async () => {
         return await this.suiKit.client().getDynamicFieldObject(input);
+      },
+    });
+  }
+
+  public async queryGetAllCoinBalances(
+    owner: string
+  ): Promise<{ [k: string]: string }> {
+    const queryKey = ['getAllCoinBalances', owner];
+    return this.queryClient.fetchQuery({
+      queryKey,
+      queryFn: async () => {
+        const allBalances = await this.suiKit
+          .client()
+          .getAllBalances({ owner });
+        return allBalances.reduce(
+          (acc, coinBalance) => {
+            if (coinBalance.totalBalance !== '0') {
+              acc[normalizeStructTag(coinBalance.coinType)] =
+                coinBalance.totalBalance;
+            }
+            return acc;
+          },
+          {} as { [k: string]: string }
+        );
+      },
+    });
+  }
+
+  public async queryGetCoinBalance(input: GetBalanceParams): Promise<string> {
+    const queryKey = ['getCoinBalance', input.owner, input.coinType];
+    return this.queryClient.fetchQuery({
+      queryKey,
+      queryFn: async () => {
+        if (!input.coinType) return '0';
+        return (
+          (await this.queryGetAllCoinBalances(input.owner))[
+            normalizeStructTag(input.coinType)
+          ] ?? '0'
+        );
       },
     });
   }
