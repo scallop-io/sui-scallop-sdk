@@ -133,25 +133,21 @@ export const getSpool = async (
     return spoolIndexer;
   }
 
-  const spoolObjectResponse = await query.suiKit.client().multiGetObjects({
-    ids: [poolId, rewardPoolId],
-    options: {
+  const spoolObjectResponse = await query.cache.queryGetObjects(
+    [poolId, rewardPoolId],
+    {
       showContent: true,
-    },
-  });
+    }
+  );
 
-  if (
-    marketPool &&
-    spoolObjectResponse[0].data &&
-    spoolObjectResponse[1].data
-  ) {
+  if (marketPool && spoolObjectResponse[0] && spoolObjectResponse[1]) {
     const rewardCoinName = query.utils.getSpoolRewardCoinName(marketCoinName);
     coinPrices =
       coinPrices ||
       (await query.utils.getCoinPrices([coinName, rewardCoinName]));
 
-    const spoolObject = spoolObjectResponse[0].data;
-    const rewardPoolObject = spoolObjectResponse[1].data;
+    const spoolObject = spoolObjectResponse[0];
+    const rewardPoolObject = spoolObjectResponse[1];
     if (spoolObject.content && 'fields' in spoolObject.content) {
       const spoolFields = spoolObject.content.fields as any;
       const parsedSpoolData = parseOriginSpoolData({

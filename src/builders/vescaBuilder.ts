@@ -65,11 +65,7 @@ export const requireVeSca = async (
     return undefined;
   }
 
-  return veScas.reduce(
-    (prev, acc) =>
-      acc.currentVeScaBalance > prev.currentVeScaBalance ? acc : prev,
-    veScas[0]
-  ); // return veSCA with highest veSCA balance
+  return veScas[0]; // return veSCA with highest veSCA balance
 };
 
 /**
@@ -378,7 +374,6 @@ export const newVeScaTxBlock = (
     },
   }) as SuiTxBlockWithVeScaNormalMethods;
 
-  // TODO: Add quickMethod for veSCA
   const quickMethod = generateQuickVeScaMethod({
     builder,
     txBlock: normalTxBlock,
