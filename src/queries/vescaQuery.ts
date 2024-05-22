@@ -135,7 +135,7 @@ export const getVeSca = async (
       lockedScaAmount,
       lockedScaCoin,
       currentVeScaBalance,
-      unlockAt: BigNumber(dynamicFields.unlock_at).toNumber(),
+      unlockAt: BigNumber(dynamicFields.unlock_at * 1000).toNumber(),
     } as Vesca;
   }
 
