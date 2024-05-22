@@ -548,7 +548,7 @@ export class ScallopAddress {
         throw Error('Failed to create addresses.');
       }
     } else {
-      // throw Error('Please provide API addresses id.');
+      throw Error('Please provide API addresses id.');
     }
   }
 
