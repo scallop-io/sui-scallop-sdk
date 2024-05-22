@@ -73,6 +73,7 @@ export interface AddressesInterface {
     id: string;
     adminCap: string;
     object: string;
+    config: string;
     pools: Partial<
       Record<
         SupportStakeMarketCoins,
@@ -94,11 +95,25 @@ export interface AddressesInterface {
   };
   vesca: {
     id: string;
+    object: string;
     adminCap: string;
     tableId: string;
     table: string;
     treasury: string;
     config: string;
+  };
+  referral: {
+    id: string;
+    version: string;
+    object: string;
+    adminCap: string;
+    referralBindings: string;
+    bindingTableId: string;
+    referralRevenuePool: string;
+    revenueTableId: string;
+    referralTiers: string;
+    tiersTableId: string;
+    authorizedWitnessList: string;
   };
 }
 

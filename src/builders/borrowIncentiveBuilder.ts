@@ -8,7 +8,7 @@ import {
 } from '../queries';
 import { requireSender } from '../utils';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
-import type { ScallopBuilder } from '../models';
+import type { ScallopBuilder } from 'src/models';
 import type {
   BorrowIncentiveIds,
   GenerateBorrowIncentiveNormalMethod,
@@ -19,10 +19,7 @@ import type {
   VescaIds,
 } from '../types';
 import { requireVeSca } from './vescaBuilder';
-import {
-  IS_VE_SCA_TEST,
-  OLD_BORROW_INCENTIVE_PROTOCOL_ID,
-} from 'src/constants';
+import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants';
 
 /**
  * Check and get Obligation information from transaction block.
@@ -88,9 +85,7 @@ const requireObligationInfo = async (
 const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
   ({ builder, txBlock }) => {
     const borrowIncentiveIds: BorrowIncentiveIds = {
-      borrowIncentivePkg: IS_VE_SCA_TEST
-        ? '0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'
-        : builder.address.get('borrowIncentive.id'),
+      borrowIncentivePkg: builder.address.get('borrowIncentive.id'),
       query: builder.address.get('borrowIncentive.query'),
       config: builder.address.get('borrowIncentive.config'),
       incentivePools: builder.address.get('borrowIncentive.incentivePools'),
@@ -228,11 +223,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
               (txn.target ===
                 `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
                 txn.target ===
-                  (IS_VE_SCA_TEST
-                    ? `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
-                    : `${builder.address.get(
-                        'borrowIncentive.id'
-                      )}::user::unstake`))
+                  `${builder.address.get('borrowIncentive.id')}::user::unstake`)
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
@@ -262,11 +253,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
               (txn.target ===
                 `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
                 txn.target ===
-                  (IS_VE_SCA_TEST
-                    ? `${'0x4d5a7cefa4147b4ace0ca845b20437d6ac0d32e5f2f855171f745472c2576246'}::user::unstake`
-                    : `${builder.address.get(
-                        'borrowIncentive.id'
-                      )}::user::unstake`))
+                  `${builder.address.get('borrowIncentive.id')}::user::unstake`)
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
@@ -276,8 +263,12 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
               builder.query,
               veSca.keyId
             );
+
             // if bindedObligationId is equal to obligationId, then use it again
-            if (!bindedObligationId || bindedObligationId === obligationArg) {
+            if (
+              (!bindedObligationId || bindedObligationId === obligationArg) &&
+              veSca.currentVeScaBalance > 0
+            ) {
               txBlock.stakeObligationWithVesca(
                 obligationArg,
                 obligationtKeyArg,

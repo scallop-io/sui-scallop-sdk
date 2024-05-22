@@ -419,9 +419,6 @@ export class ScallopUtils {
       );
 
       for (const endpoint of endpoints) {
-        let hasFailRequest = false;
-        const pythConnection = new SuiPriceServiceConnection(endpoint);
-
         const priceIds = Array.from(failedRequests.values()).reduce(
           (acc, coinName) => {
             const priceId = this._address.get(
@@ -433,43 +430,46 @@ export class ScallopUtils {
           {} as Record<SupportAssetCoins, string>
         );
 
-        for (const [coinName, priceId] of Object.entries(priceIds)) {
-          try {
-            const feed = await this._cache.queryClient.fetchQuery({
-              queryKey: [priceId],
-              queryFn: async () => {
-                return await pythConnection.getLatestPriceFeeds([priceId]);
-              },
-              // staleTime: 15000,
-            });
-            if (feed) {
-              const data = parseDataFromPythPriceFeed(feed[0], this._address);
-              this._priceMap.set(coinName as SupportAssetCoins, {
-                price: data.price,
-                publishTime: data.publishTime,
+        await Promise.allSettled(
+          Object.entries(priceIds).map(async ([coinName, priceId]) => {
+            const pythConnection = new SuiPriceServiceConnection(endpoint);
+            try {
+              const feed = await this._cache.queryClient.fetchQuery({
+                queryKey: [priceId],
+                queryFn: async () => {
+                  return await pythConnection.getLatestPriceFeeds([priceId]);
+                },
               });
-              coinPrices[coinName as SupportAssetCoins] = data.price;
+              if (feed) {
+                const data = parseDataFromPythPriceFeed(feed[0], this._address);
+                this._priceMap.set(coinName as SupportAssetCoins, {
+                  price: data.price,
+                  publishTime: data.publishTime,
+                });
+                coinPrices[coinName as SupportAssetCoins] = data.price;
+              }
+              failedRequests.delete(coinName as SupportAssetCoins); // remove success price feed to prevent duplicate request on the next endpoint
+            } catch (e) {
+              console.warn(
+                `Failed to get price ${coinName} feeds with endpoint ${endpoint}: ${e}`
+              );
             }
-            failedRequests.delete(coinName as SupportAssetCoins); // remove success price feed to prevent duplicate request on the next endpoint
-          } catch (e) {
-            console.warn(
-              `Failed to get price ${coinName} feeds with endpoint ${endpoint}: ${e}`
-            );
-            hasFailRequest = true;
-          }
-        }
-        if (!hasFailRequest) break;
+          })
+        );
+        if (failedRequests.size === 0) break;
       }
 
       if (failedRequests.size > 0) {
-        for (const coinName of failedRequests.values()) {
-          const price = await this._query.getPriceFromPyth(coinName);
-          this._priceMap.set(coinName, {
-            price: price,
-            publishTime: Date.now(),
-          });
-          coinPrices[coinName] = price;
-        }
+        await Promise.allSettled(
+          Array.from(failedRequests.values()).map(async (coinName) => {
+            const price = await this._query.getPriceFromPyth(coinName);
+            this._priceMap.set(coinName, {
+              price: price,
+              publishTime: Date.now(),
+            });
+            coinPrices[coinName] = price;
+          })
+        );
       }
     }
 
