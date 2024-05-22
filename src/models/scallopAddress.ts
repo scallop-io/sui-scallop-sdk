@@ -204,6 +204,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
   spool: {
     id: '',
     adminCap: '',
+    config: '',
     object: '',
     pools: {
       seth: {
@@ -251,11 +252,25 @@ const EMPTY_ADDRESSES: AddressesInterface = {
   },
   vesca: {
     id: '',
+    object: '',
     adminCap: '',
     tableId: '',
     table: '',
     treasury: '',
     config: '',
+  },
+  referral: {
+    id: '',
+    version: '',
+    object: '',
+    adminCap: '',
+    referralBindings: '',
+    bindingTableId: '',
+    referralRevenuePool: '',
+    revenueTableId: '',
+    referralTiers: '',
+    tiersTableId: '',
+    authorizedWitnessList: '',
   },
 };
 
