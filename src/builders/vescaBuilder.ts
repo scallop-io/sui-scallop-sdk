@@ -65,11 +65,7 @@ export const requireVeSca = async (
     return undefined;
   }
 
-  return veScas.reduce(
-    (prev, acc) =>
-      acc.currentVeScaBalance > prev.currentVeScaBalance ? acc : prev,
-    veScas[0]
-  ); // return veSCA with highest veSCA balance
+  return veScas[0]; // return veSCA with highest veSCA balance
 };
 
 /**
@@ -158,6 +154,13 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.treasury,
           SUI_CLOCK_OBJECT_ID,
         ],
+        []
+      );
+    },
+    mintEmptyVeSca: () => {
+      return txBlock.moveCall(
+        `${veScaIds.pkgId}::ve_sca::mint_ve_sca_placeholder_key`,
+        [veScaIds.config, veScaIds.table],
         []
       );
     },
@@ -378,7 +381,6 @@ export const newVeScaTxBlock = (
     },
   }) as SuiTxBlockWithVeScaNormalMethods;
 
-  // TODO: Add quickMethod for veSCA
   const quickMethod = generateQuickVeScaMethod({
     builder,
     txBlock: normalTxBlock,

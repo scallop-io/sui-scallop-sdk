@@ -1,6 +1,5 @@
 import { normalizeStructTag } from '@mysten/sui.js/utils';
 import {
-  IS_VE_SCA_TEST,
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
 } from '../constants';
@@ -208,9 +207,7 @@ export const getBindedObligationId = async (
 ): Promise<string | null> => {
   const borrowIncentiveObjectId = query.address.get('borrowIncentive.object');
   const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
-  const veScaPkgId = IS_VE_SCA_TEST
-    ? '0xb220d034bdf335d77ae5bfbf6daf059c2cc7a1f719b12bfed75d1736fac038c8'
-    : query.address.get('vesca.id');
+  const veScaObjId = query.address.get('vesca.object');
 
   const client = query.suiKit.client();
 
@@ -229,7 +226,7 @@ export const getBindedObligationId = async (
     .id as string;
 
   // check if veSca is inside the bind table
-  const keyType = `${borrowIncentiveObjectId}::typed_id::TypedID<${veScaPkgId}::ve_sca::VeScaKey>`;
+  const keyType = `${borrowIncentiveObjectId}::typed_id::TypedID<${veScaObjId}::ve_sca::VeScaKey>`;
   const veScaBindTableResponse = await client.getDynamicFieldObject({
     parentId: veScaBindTableId,
     name: {

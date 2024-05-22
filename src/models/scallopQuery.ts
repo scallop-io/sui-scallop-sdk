@@ -25,8 +25,12 @@ import {
   getObligationAccounts,
   getObligationAccount,
   getTotalValueLocked,
+  queryVeScaKeyIdFromReferralBindings,
   getBindedObligationId,
   getBindedVeScaKey,
+  getVeScas,
+  getPythPrices,
+  getTotalVeScaTreasuryAmount,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -270,6 +274,16 @@ export class ScallopQuery {
    */
   public async getPriceFromPyth(assetCoinName: SupportAssetCoins) {
     return await getPythPrice(this, assetCoinName);
+  }
+
+  /**
+   * Get prices from pyth fee object.
+   *
+   * @param assetCoinNames - Array of supported asset coin names.
+   * @return Array of asset coin prices.
+   */
+  public async getPricesFromPyth(assetCoinNames: SupportAssetCoins[]) {
+    return await getPythPrices(this, assetCoinNames);
   }
 
   /* ==================== Spool Query Methods ==================== */
@@ -522,6 +536,32 @@ export class ScallopQuery {
    */
   public async getTvl(indexer: boolean = false) {
     return await getTotalValueLocked(this, indexer);
+  }
+
+  /**
+   * Get all veSca from walletAdddress
+   * @param walletAddress
+   * @returns array of veSca
+   */
+  public async getVeScas(walletAddress: string) {
+    return await getVeScas(this, walletAddress);
+  }
+
+  /**
+   * Get total vesca treasury with movecall
+   * @returns Promise<string | undefined>
+   */
+  public async getTotalVeScaTreasuryAmount() {
+    return await getTotalVeScaTreasuryAmount(this);
+  }
+
+  /**
+   * Return binded veScaKeyId of walletAddress if exist
+   * @param walletAddress
+   * @returns veScaKeyId
+   */
+  public async getVeScaKeyIdFromReferralBindings(walletAddress: string) {
+    return await queryVeScaKeyIdFromReferralBindings(this, walletAddress);
   }
 
   /**
