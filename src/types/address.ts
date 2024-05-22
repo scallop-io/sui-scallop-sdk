@@ -95,6 +95,7 @@ export interface AddressesInterface {
   };
   vesca: {
     id: string;
+    object: string;
     adminCap: string;
     tableId: string;
     table: string;
@@ -103,11 +104,15 @@ export interface AddressesInterface {
   };
   referral: {
     id: string;
+    version: string;
     object: string;
     adminCap: string;
     referralBindings: string;
     bindingTableId: string;
     referralRevenuePool: string;
+    revenueTableId: string;
+    referralTiers: string;
+    tiersTableId: string;
     authorizedWitnessList: string;
   };
 }

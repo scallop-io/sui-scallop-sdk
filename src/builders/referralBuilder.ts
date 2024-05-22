@@ -1,5 +1,5 @@
 import { ScallopBuilder } from 'src/models';
-import { ScallopTxBlock, SupportCoins, VescaIds } from 'src/types';
+import { ScallopTxBlock, SupportCoins, SupportPoolCoins } from 'src/types';
 import {
   SUI_CLOCK_OBJECT_ID,
   SuiTxBlock as SuiKitTxBlock,
@@ -8,9 +8,13 @@ import {
 } from '@scallop-io/sui-kit';
 import {
   GenerateReferralNormalMethod,
+  GenerateReferralQuickMethod,
   ReferralIds,
   ReferralTxBlock,
+  SuiTxBlockWithReferralNormalMethods,
 } from 'src/types/builder/referral';
+import { SUPPORT_POOLS } from 'src/constants';
+import { requireSender } from 'src/utils';
 
 const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
   builder,
@@ -23,14 +27,11 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
     authorizedWitnessList: builder.address.get(
       'referral.authorizedWitnessList'
     ),
+    referralTiers: builder.address.get('referral.referralTiers'),
+    version: builder.address.get('referral.version'),
   };
 
-  const veScaIds: VescaIds = {
-    pkgId: builder.address.get('vesca.id'),
-    table: builder.address.get('vesca.table'),
-    treasury: builder.address.get('vesca.treasury'),
-    config: builder.address.get('vesca.config'),
-  };
+  const veScaTable = builder.address.get('vesca.table');
 
   return {
     bindToReferral: (veScaKeyId: string) => {
@@ -39,7 +40,7 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         [
           referralIds.referralBindings,
           txBlock.pure(veScaKeyId),
-          veScaIds.table,
+          veScaTable,
           SUI_CLOCK_OBJECT_ID,
         ],
         []
@@ -50,9 +51,11 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
       return txBlock.moveCall(
         `${referralIds.referralPgkId}::scallop_referral_program::claim_ve_sca_referral_ticket`,
         [
-          veScaIds.table,
+          referralIds.version,
+          veScaTable,
           referralIds.referralBindings,
           referralIds.authorizedWitnessList,
+          referralIds.referralTiers,
           SUI_CLOCK_OBJECT_ID,
         ],
         [coinType]
@@ -62,17 +65,67 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
       const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
         `${referralIds.referralPgkId}::scallop_referral_program::burn_ve_sca_referral_ticket`,
-        [ticket, referralIds.referralRevenuePool],
+        [
+          referralIds.version,
+          ticket,
+          referralIds.referralRevenuePool,
+          SUI_CLOCK_OBJECT_ID,
+        ],
         [coinType]
       );
     },
-    claimRevenue: (veScaKey: SuiObjectArg, poolCoinName: SupportCoins) => {
+    claimReferralRevenue: (
+      veScaKey: SuiObjectArg,
+      poolCoinName: SupportCoins
+    ) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
-        `${referralIds.referralPgkId}::referral_revenue_pool::claim_revenue_with_ve_sca`,
-        [referralIds.referralRevenuePool, veScaKey],
+        `${referralIds.referralPgkId}::referral_revenue_pool::claim_revenue_with_ve_sca_key`,
+        [
+          referralIds.version,
+          referralIds.referralRevenuePool,
+          veScaKey,
+          SUI_CLOCK_OBJECT_ID,
+        ],
         [coinType]
       );
+    },
+  };
+};
+
+const generateReferralQuickMethod: GenerateReferralQuickMethod = ({
+  builder,
+  txBlock,
+}) => {
+  return {
+    claimReferralRevenueQuick: async (
+      veScaKey: SuiObjectArg,
+      coinNames: SupportPoolCoins[] = [...SUPPORT_POOLS]
+    ) => {
+      const sender = requireSender(txBlock);
+      const objToTransfer: SuiObjectArg[] = [];
+      for (const coinName of coinNames) {
+        if (coinName === 'sui') {
+          const rewardCoin = txBlock.claimReferralRevenue(veScaKey, coinName);
+          objToTransfer.push(rewardCoin);
+        } else {
+          // get the matching user coin if exists
+          const coins = await builder.suiKit.suiInteractor.selectCoins(
+            sender,
+            Infinity,
+            builder.utils.parseCoinType(coinName)
+          );
+
+          const rewardCoin = txBlock.claimReferralRevenue(veScaKey, coinName);
+          if (coins.length > 0) {
+            txBlock.mergeCoins(rewardCoin, coins);
+          }
+          objToTransfer.push(rewardCoin);
+        }
+      }
+      if (objToTransfer.length > 0) {
+        txBlock.transferObjects(objToTransfer, sender);
+      }
     },
   };
 };
@@ -100,10 +153,24 @@ export const newReferralTxBlock = (
     txBlock,
   });
 
-  return new Proxy(txBlock, {
+  const normalTxBlock = new Proxy(txBlock, {
     get: (target, prop) => {
       if (prop in normalMethod) {
         return Reflect.get(normalMethod, prop);
+      }
+      return Reflect.get(target, prop);
+    },
+  }) as SuiTxBlockWithReferralNormalMethods;
+
+  const quickMethod = generateReferralQuickMethod({
+    builder,
+    txBlock: normalTxBlock,
+  });
+
+  return new Proxy(normalTxBlock, {
+    get: (target, prop) => {
+      if (prop in quickMethod) {
+        return Reflect.get(quickMethod, prop);
       }
       return Reflect.get(target, prop);
     },

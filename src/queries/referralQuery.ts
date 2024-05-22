@@ -7,7 +7,7 @@ import { ScallopQuery } from 'src/models';
  */
 export const queryVeScaKeyIdFromReferralBindings = async (
   query: ScallopQuery,
-  senderAddress: string
+  refereeAddress: string
 ): Promise<string | null> => {
   const referralBindingTableId = query.address.get('referral.bindingTableId');
 
@@ -15,7 +15,7 @@ export const queryVeScaKeyIdFromReferralBindings = async (
     parentId: referralBindingTableId,
     name: {
       type: 'address',
-      value: senderAddress,
+      value: refereeAddress,
     },
   });
 
