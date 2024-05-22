@@ -21,8 +21,8 @@ export const getVescaKeys = async (
   ownerAddress?: string
 ) => {
   const owner = ownerAddress || query.suiKit.currentAddress();
-  const veScaPkgId = query.address.get('vesca.id');
-  const veScaKeyType = `${veScaPkgId}::ve_sca::VeScaKey`;
+  const veScaObjId = query.address.get('vesca.object');
+  const veScaKeyType = `${veScaObjId}::ve_sca::VeScaKey`;
   const keyObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
@@ -205,6 +205,7 @@ export const getTotalVeScaTreasuryAmount = async (
   });
 
   const results = res.results;
+  console.dir(res, { depth: null });
   if (results && results[1].returnValues) {
     const value = Uint8Array.from(results[1].returnValues[0][0]);
     const type = results[1].returnValues[0][1];

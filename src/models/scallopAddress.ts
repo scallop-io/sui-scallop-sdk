@@ -19,6 +19,45 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     coinDecimalsRegistry: '',
     obligationAccessStore: '',
     coins: {
+      cetus: {
+        id: '',
+        metaData: '',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '',
+            feedObject: '',
+          },
+        },
+      },
+      apt: {
+        id: '',
+        metaData: '',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '',
+            feedObject: '',
+          },
+        },
+      },
+      sol: {
+        id: '',
+        metaData: '',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '',
+            feedObject: '',
+          },
+        },
+      },
       btc: {
         id: '',
         metaData: '',
@@ -140,15 +179,8 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     oracles: {
       xOracle: '',
       xOracleCap: '',
-      supra: {
-        registry: '',
-        registryCap: '',
-        holder: '',
-      },
-      switchboard: {
-        registry: '',
-        registryCap: '',
-      },
+      supra: { registry: '', registryCap: '', holder: '' },
+      switchboard: { registry: '', registryCap: '' },
       pyth: {
         registry: '',
         registryCap: '',
@@ -178,33 +210,30 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         upgradeCap: '',
       },
+      protocolWhitelist: {
+        id: '',
+        upgradeCap: '',
+      },
       query: {
         id: '',
         upgradeCap: '',
       },
+      supra: { id: '', upgradeCap: '' },
       pyth: {
         id: '',
         upgradeCap: '',
       },
-      switchboard: {
-        id: '',
-        upgradeCap: '',
-      },
+      switchboard: { id: '', upgradeCap: '' },
       xOracle: {
         id: '',
         upgradeCap: '',
       },
-      // Deploy for faucet on testnet.
-      testCoin: {
-        id: '',
-        upgradeCap: '',
-      },
+      testCoin: { id: '', upgradeCap: '' },
     },
   },
   spool: {
     id: '',
     adminCap: '',
-    config: '',
     object: '',
     pools: {
       seth: {
@@ -240,15 +269,16 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         rewardPoolId: '',
       },
     },
+    config: '',
   },
   borrowIncentive: {
     id: '',
     adminCap: '',
     object: '',
     query: '',
-    config: '',
     incentivePools: '',
     incentiveAccounts: '',
+    config: '',
   },
   vesca: {
     id: '',
@@ -273,7 +303,6 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     authorizedWitnessList: '',
   },
 };
-
 /**
  * @description
  * It provides methods for managing addresses.
@@ -519,7 +548,7 @@ export class ScallopAddress {
         throw Error('Failed to create addresses.');
       }
     } else {
-      throw Error('Please provide API addresses id.');
+      // throw Error('Please provide API addresses id.');
     }
   }
 

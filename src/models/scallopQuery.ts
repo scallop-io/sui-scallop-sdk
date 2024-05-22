@@ -25,6 +25,7 @@ import {
   getObligationAccounts,
   getObligationAccount,
   getTotalValueLocked,
+  queryVeScaKeyIdFromReferralBindings,
   getBindedObligationId,
   getBindedVeScaKey,
   getVeScas,
@@ -48,7 +49,6 @@ import { ScallopUtils } from './scallopUtils';
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-import { queryVeScaKeyIdFromReferralBindings } from 'src/queries/referralQuery';
 
 /**
  * @description
@@ -548,19 +548,20 @@ export class ScallopQuery {
   }
 
   /**
+   * Get total vesca treasury with movecall
+   * @returns Promise<string | undefined>
+   */
+  public async getTotalVeScaTreasuryAmount() {
+    return await getTotalVeScaTreasuryAmount(this);
+  }
+
+  /**
    * Return binded veScaKeyId of walletAddress if exist
    * @param walletAddress
    * @returns veScaKeyId
    */
   public async getVeScaKeyIdFromReferralBindings(walletAddress: string) {
     return await queryVeScaKeyIdFromReferralBindings(this, walletAddress);
-  }
-
-  /**
-   * Return total veSca by package moveCall
-   */
-  public async getTotalVeScaTreasuryAmount() {
-    return await getTotalVeScaTreasuryAmount(this);
   }
 
   /**

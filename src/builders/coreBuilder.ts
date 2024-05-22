@@ -70,6 +70,10 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
     coinDecimalsRegistry: builder.address.get('core.coinDecimalsRegistry'),
     xOracle: builder.address.get('core.oracles.xOracle'),
   };
+
+  const referralPkgId = builder.address.get('referral.id');
+  const referralWitnessType = `${referralPkgId}::scallop_referral_program::REFERRAL_WITNESS`;
+
   return {
     openObligation: () =>
       txBlock.moveCall(
@@ -158,6 +162,30 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           SUI_CLOCK_OBJECT_ID,
         ],
         [coinType]
+      );
+    },
+    borrowWithReferral: (
+      obligation,
+      obligationKey,
+      borrowReferral,
+      amount,
+      poolCoinName
+    ) => {
+      const coinType = builder.utils.parseCoinType(poolCoinName);
+      return txBlock.moveCall(
+        `${coreIds.protocolPkg}::borrow::borrow_with_referral`,
+        [
+          coreIds.version,
+          obligation,
+          obligationKey,
+          coreIds.market,
+          coreIds.coinDecimalsRegistry,
+          borrowReferral,
+          amount,
+          coreIds.xOracle,
+          SUI_CLOCK_OBJECT_ID,
+        ],
+        [coinType, referralWitnessType]
       );
     },
     borrowEntry: (obligation, obligationKey, amount, poolCoinName) => {
@@ -315,6 +343,32 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       return txBlock.borrow(
         obligationInfo.obligationId,
         obligationInfo.obligationKey as SuiAddressArg,
+        amount,
+        poolCoinName
+      );
+    },
+    borrowWithReferralQuick: async (
+      amount,
+      poolCoinName,
+      borrowReferral,
+      obligationId,
+      obligationKey
+    ) => {
+      const obligationInfo = await requireObligationInfo(
+        builder,
+        txBlock,
+        obligationId,
+        obligationKey
+      );
+      const obligationCoinNames = await builder.utils.getObligationCoinNames(
+        obligationInfo.obligationId
+      );
+      const updateCoinNames = [...obligationCoinNames, poolCoinName];
+      await updateOracles(builder, txBlock, updateCoinNames);
+      return txBlock.borrowWithReferral(
+        obligationInfo.obligationId,
+        obligationInfo.obligationKey as SuiAddressArg,
+        borrowReferral,
         amount,
         poolCoinName
       );

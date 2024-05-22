@@ -207,7 +207,7 @@ export const getBindedObligationId = async (
 ): Promise<string | null> => {
   const borrowIncentiveObjectId = query.address.get('borrowIncentive.object');
   const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
-  const veScaPkgId = query.address.get('vesca.id');
+  const veScaObjId = query.address.get('vesca.object');
 
   const client = query.suiKit.client();
 
@@ -226,7 +226,7 @@ export const getBindedObligationId = async (
     .id as string;
 
   // check if veSca is inside the bind table
-  const keyType = `${borrowIncentiveObjectId}::typed_id::TypedID<${veScaPkgId}::ve_sca::VeScaKey>`;
+  const keyType = `${borrowIncentiveObjectId}::typed_id::TypedID<${veScaObjId}::ve_sca::VeScaKey>`;
   const veScaBindTableResponse = await client.getDynamicFieldObject({
     parentId: veScaBindTableId,
     name: {
