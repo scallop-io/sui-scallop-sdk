@@ -2,7 +2,6 @@ import {
   SuiObjectArg,
   TransactionResult,
   SuiTxBlock as SuiKitTxBlock,
-  SuiTxBlock,
 } from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models';
 import { SupportPoolCoins } from '../constant';
@@ -11,7 +10,9 @@ export type ReferralIds = {
   referralPgkId: string;
   referralBindings: string;
   referralRevenuePool: string;
+  referralTiers: string;
   authorizedWitnessList: string;
+  version: string;
 };
 
 export type ReferralNormalMethods = {
@@ -21,15 +22,30 @@ export type ReferralNormalMethods = {
     ticket: SuiObjectArg,
     poolCoinName: SupportPoolCoins
   ) => void;
-  claimRevenue: (
+  claimReferralRevenue: (
     veScaKey: SuiObjectArg,
     poolCoinName: SupportPoolCoins
   ) => TransactionResult;
 };
 
-export type ReferralTxBlock = SuiKitTxBlock & ReferralNormalMethods;
+export type ReferralQuickMethods = {
+  claimReferralRevenueQuick: (
+    veScaKey: SuiObjectArg,
+    coinNames: SupportPoolCoins[]
+  ) => Promise<void>;
+};
+
+export type SuiTxBlockWithReferralNormalMethods = SuiKitTxBlock &
+  ReferralNormalMethods;
+export type ReferralTxBlock = SuiTxBlockWithReferralNormalMethods &
+  ReferralQuickMethods;
 
 export type GenerateReferralNormalMethod = (params: {
   builder: ScallopBuilder;
-  txBlock: SuiTxBlock;
+  txBlock: SuiKitTxBlock;
 }) => ReferralNormalMethods;
+
+export type GenerateReferralQuickMethod = (params: {
+  builder: ScallopBuilder;
+  txBlock: SuiTxBlockWithReferralNormalMethods;
+}) => ReferralQuickMethods;
