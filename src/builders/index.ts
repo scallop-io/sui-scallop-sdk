@@ -6,6 +6,7 @@ import { newBorrowIncentiveTxBlock } from './borrowIncentiveBuilder';
 import { newVeScaTxBlock } from './vescaBuilder';
 import type { ScallopBuilder } from '../models';
 import type { ScallopTxBlock } from '../types';
+import { newReferralTxBlock } from './referralBuilder';
 
 /**
  * Create a new ScallopTxBlock instance.
@@ -23,15 +24,17 @@ export const newScallopTxBlock = (
     builder,
     vescaTxBlock
   );
-  const spoolTxBlock = newSpoolTxBlock(builder, borrowIncentiveTxBlock);
+  const referralTxBlock = newReferralTxBlock(builder, borrowIncentiveTxBlock);
+  const spoolTxBlock = newSpoolTxBlock(builder, referralTxBlock);
   const coreTxBlock = newCoreTxBlock(builder, spoolTxBlock);
-
   return new Proxy(coreTxBlock, {
     get: (target, prop) => {
       if (prop in vescaTxBlock) {
         return Reflect.get(vescaTxBlock, prop);
       } else if (prop in borrowIncentiveTxBlock) {
         return Reflect.get(borrowIncentiveTxBlock, prop);
+      } else if (prop in referralTxBlock) {
+        return Reflect.get(referralTxBlock, prop);
       } else if (prop in spoolTxBlock) {
         return Reflect.get(spoolTxBlock, prop);
       }

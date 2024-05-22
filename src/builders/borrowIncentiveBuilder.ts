@@ -8,7 +8,7 @@ import {
 } from '../queries';
 import { requireSender } from '../utils';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
-import type { ScallopBuilder } from '../models';
+import type { ScallopBuilder } from 'src/models';
 import type {
   BorrowIncentiveIds,
   GenerateBorrowIncentiveNormalMethod,
