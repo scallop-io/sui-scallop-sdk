@@ -205,7 +205,6 @@ export const getTotalVeScaTreasuryAmount = async (
   });
 
   const results = res.results;
-  console.dir(res, { depth: null });
   if (results && results[1].returnValues) {
     const value = Uint8Array.from(results[1].returnValues[0][0]);
     const type = results[1].returnValues[0][1];
