@@ -255,9 +255,11 @@ export const calculateSpoolData = (
   const pointPerSec = BigNumber(parsedSpoolData.pointPerPeriod).dividedBy(
     parsedSpoolData.period
   );
-  const remainingPeriod = BigNumber(parsedSpoolData.maxPoint)
-    .minus(parsedSpoolData.distributedPoint)
-    .dividedBy(pointPerSec);
+  const remainingPeriod = pointPerSec.gt(0)
+    ? BigNumber(parsedSpoolData.maxPoint)
+        .minus(parsedSpoolData.distributedPoint)
+        .dividedBy(pointPerSec)
+    : BigNumber(0);
   const startDate = parsedSpoolData.createdAt;
   const endDate = remainingPeriod
     .plus(parsedSpoolData.lastUpdate)
@@ -368,7 +370,10 @@ export const calculateSpoolRewardPoolData = (
     ? rewardValueForYear.dividedBy(calculatedSpoolData.stakedValue).toNumber()
     : Infinity;
 
-  if (parsedSpoolData.maxPoint === parsedSpoolData.distributedPoint) {
+  if (
+    parsedSpoolData.maxPoint <= parsedSpoolData.distributedPoint ||
+    parsedSpoolData.pointPerPeriod === 0
+  ) {
     rewardRate = Infinity;
   }
 
