@@ -19,6 +19,7 @@ import type {
   BorrowIncentivePoolPoints,
   OptionalKeys,
 } from '../types';
+import BigNumber from 'bignumber.js';
 
 /**
  * Query borrow incentive pools data.
@@ -76,7 +77,7 @@ export const queryBorrowIncentivePools = async (
 
   for (const pool of borrowIncentivePoolsQueryData.incentive_pools) {
     const borrowIncentivePoolPoints: OptionalKeys<
-      Record<'sui' | 'sca', BorrowIncentivePoolPoints>
+      Record<SupportBorrowIncentiveRewardCoins, BorrowIncentivePoolPoints>
     > = {};
     const parsedBorrowIncentivePoolData =
       parseOriginBorrowIncentivePoolData(pool);
@@ -132,14 +133,20 @@ export const queryBorrowIncentivePools = async (
         };
     }
 
+    const stakedAmount = BigNumber(parsedBorrowIncentivePoolData.staked);
+    const stakedCoin = stakedAmount.shiftedBy(-1 * poolCoinDecimal);
+    const stakedValue = stakedCoin.multipliedBy(poolCoinPrice);
+
     borrowIncentivePools[poolCoinName] = {
       coinName: poolCoinName,
       symbol: query.utils.parseSymbol(poolCoinName),
       coinType: poolCoinType,
       coinDecimal: poolCoinDecimal,
       coinPrice: poolCoinPrice,
+      stakedAmount: stakedAmount.toNumber(),
+      stakedCoin: stakedCoin.toNumber(),
+      stakedValue: stakedValue.toNumber(),
       points: borrowIncentivePoolPoints,
-      staked: parsedBorrowIncentivePoolData.staked,
     };
   }
 

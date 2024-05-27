@@ -36,7 +36,9 @@ export type BorrowIncentivePool = {
   coinType: string;
   coinDecimal: number;
   coinPrice: number;
-  staked: number;
+  stakedAmount: number;
+  stakedCoin: number;
+  stakedValue: number;
   points: OptionalKeys<
     Record<SupportBorrowIncentiveRewardCoins, BorrowIncentivePoolPoints>
   >;
@@ -94,9 +96,6 @@ export type ParsedBorrowIncentivePoolData = {
 };
 
 export type CalculatedBorrowIncentivePoolPointData = {
-  stakedAmount: number;
-  stakedCoin: number;
-  stakedValue: number;
   baseWeight: number;
   weightedStakedAmount: number;
   weightedStakedCoin: number;
