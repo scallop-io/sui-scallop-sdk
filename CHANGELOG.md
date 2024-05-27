@@ -2,9 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.32](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.31...v0.46.32) (2024-05-27)
+
+### Bug Fixes
+
+- Fix typo ([35b2055](https://github.com/scallop-io/sui-scallop-sdk/pull/106/commits/35b2055ad4417e5a94d97b460b3ae43224101eb7))
+
+### ⚠ BREAKING CHANGES
+
+- Refactor borrow incentive pools structure ([516afb5](https://github.com/scallop-io/sui-scallop-sdk/pull/106/commits/516afb508891b75e8fc134abfb678a821126ed6f))
+
 ### [0.46.31](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.3...v0.46.31) (2024-05-27)
 
 ### Bug Fixes
+
 - Update lockfile ([1b71119](https://github.com/scallop-io/sui-scallop-sdk/pull/105/commits/1b711192e96df5df84fffa03068fae8ef9f2437c))
 
 ### Features
