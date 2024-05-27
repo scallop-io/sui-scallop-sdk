@@ -47,23 +47,31 @@ export const queryBorrowIncentivePools = async (
 
   const borrowIncentivePools: BorrowIncentivePools = {};
 
+  const coinPrices = await query.utils.getCoinPrices(
+    [
+      ...new Set([
+        ...borrowIncentiveCoinNames,
+        ...SUPPORT_BORROW_INCENTIVE_REWARDS,
+      ]),
+    ] ?? []
+  );
+
   if (indexer) {
-    // TODO: Implement indexer query.
-    // const borrowIncentivePoolsIndexer =
-    //   await query.indexer.getBorrowIncentivePools();
-    // for (const borrowIncentivePool of Object.values(
-    //   borrowIncentivePoolsIndexer
-    // )) {
-    //   if (!borrowIncentiveCoinNames.includes(borrowIncentivePool.coinName))
-    //     continue;
-    //   borrowIncentivePool.coinPrice =
-    //     coinPrices[borrowIncentivePool.coinName] ||
-    //     borrowIncentivePool.coinPrice;
-    //   borrowIncentivePool.rewardCoinPrice =
-    //     coinPrices[rewardCoinName] || borrowIncentivePool.rewardCoinPrice;
-    //   borrowIncentivePools[borrowIncentivePool.coinName] = borrowIncentivePool;
-    // }
-    // return borrowIncentivePools;
+    const borrowIncentivePoolsIndexer =
+      await query.indexer.getBorrowIncentivePools();
+    for (const borrowIncentivePool of Object.values(
+      borrowIncentivePoolsIndexer
+    )) {
+      if (!borrowIncentiveCoinNames.includes(borrowIncentivePool.coinName))
+        continue;
+      borrowIncentivePool.coinPrice =
+        coinPrices[borrowIncentivePool.coinName] ||
+        borrowIncentivePool.coinPrice;
+      // borrowIncentivePool.rewardCoinPrice =
+      //   coinPrices[rewardCoinName] || borrowIncentivePool.rewardCoinPrice;
+      borrowIncentivePools[borrowIncentivePool.coinName] = borrowIncentivePool;
+    }
+    return borrowIncentivePools;
   }
 
   for (const pool of borrowIncentivePoolsQueryData.incentive_pools) {
@@ -72,15 +80,6 @@ export const queryBorrowIncentivePools = async (
     > = {};
     const parsedBorrowIncentivePoolData =
       parseOriginBorrowIncentivePoolData(pool);
-
-    const coinPrices = await query.utils.getCoinPrices(
-      [
-        ...new Set([
-          ...borrowIncentiveCoinNames,
-          ...SUPPORT_BORROW_INCENTIVE_REWARDS,
-        ]),
-      ] ?? []
-    );
 
     const poolCoinType = normalizeStructTag(pool.pool_type.name);
     const poolCoinName =
