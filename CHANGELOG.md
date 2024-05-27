@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.31](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.3...v0.46.31) (2024-05-27)
+
+### Features
+
+- Enable indexer for borrowIncentivePools([737c122](https://github.com/scallop-io/sui-scallop-sdk/commit/737c1228572775dbf63e282407f141416ec0c6d2))
+
 ### [0.46.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.2...v0.46.3) (2024-05-27)
 
 ### Bug Fixes
