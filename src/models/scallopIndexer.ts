@@ -18,6 +18,8 @@ import type {
   ScallopQueryParams,
   ScallopParams,
   ScallopInstanceParams,
+  BorrowIncentivePoolPoints,
+  SupportBorrowIncentiveRewardCoins,
 } from '../types';
 import { ScallopCache } from './scallopCache';
 
@@ -185,6 +187,20 @@ export class ScallopIndexer {
     if (response.status === 200) {
       return response.data.borrowIncentivePools.reduce(
         (borrowIncentivePools, borrowIncentivePool) => {
+          if (Array.isArray(borrowIncentivePool.points)) {
+            borrowIncentivePool.points = (
+              borrowIncentivePool.points as BorrowIncentivePoolPoints[]
+            ).reduce(
+              (prev, curr) => {
+                prev[curr.coinName] = curr;
+                return prev;
+              },
+              {} as Record<
+                SupportBorrowIncentiveRewardCoins,
+                BorrowIncentivePoolPoints
+              >
+            );
+          }
           borrowIncentivePools[borrowIncentivePool.coinName] =
             borrowIncentivePool;
           return borrowIncentivePools;
