@@ -76,7 +76,7 @@ export const getVeScas = async (query: ScallopQuery, ownerAddress?: string) => {
 
   return veScas
     .filter(Boolean)
-    .sort((a, b) => a!.currentVeScaBalance - b!.currentVeScaBalance);
+    .sort((a, b) => b!.currentVeScaBalance - a!.currentVeScaBalance);
 };
 
 /**
