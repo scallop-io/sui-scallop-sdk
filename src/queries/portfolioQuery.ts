@@ -280,17 +280,19 @@ export const getObligationAccounts = async (
   const obligations = await query.getObligations(ownerAddress);
 
   const obligationAccounts: ObligationAccounts = {};
-  for (const obligation of obligations) {
-    obligationAccounts[obligation.keyId] = await getObligationAccount(
-      query,
-      obligation.id,
-      ownerAddress,
-      indexer,
-      market,
-      coinPrices,
-      coinAmounts
-    );
-  }
+  await Promise.allSettled(
+    obligations.map(async (obligation) => {
+      obligationAccounts[obligation.keyId] = await getObligationAccount(
+        query,
+        obligation.id,
+        ownerAddress,
+        indexer,
+        market,
+        coinPrices,
+        coinAmounts
+      );
+    })
+  );
 
   return obligationAccounts;
 };
