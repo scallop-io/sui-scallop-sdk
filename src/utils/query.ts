@@ -447,7 +447,7 @@ export const parseOriginBorrowIncentivePoolData = (
 };
 
 export const calculateBorrowIncentivePoolPointData = (
-  pasredBorrowIncentinvePoolData: ParsedBorrowIncentivePoolData,
+  parsedBorrowIncentivePoolData: ParsedBorrowIncentivePoolData,
   parsedBorrowIncentivePoolPointData: ParsedBorrowIncentivePoolPointData,
   rewardCoinPrice: number,
   rewardCoinDecimal: number,
@@ -489,7 +489,7 @@ export const calculateBorrowIncentivePoolPointData = (
   ).plus(accumulatedPoints);
 
   // pure staked amount
-  const stakedAmount = BigNumber(pasredBorrowIncentinvePoolData.staked);
+  const stakedAmount = BigNumber(parsedBorrowIncentivePoolData.staked);
 
   const stakedCoin = stakedAmount.shiftedBy(-1 * poolCoinDecimal);
   const stakedValue = stakedCoin.multipliedBy(poolCoinPrice);
