@@ -76,7 +76,7 @@ export const queryBorrowIncentivePools = async (
 
   for (const pool of borrowIncentivePoolsQueryData.incentive_pools) {
     const borrowIncentivePoolPoints: OptionalKeys<
-      Record<'sui' | 'sca', BorrowIncentivePoolPoints>
+      Record<SupportBorrowIncentiveRewardCoins, BorrowIncentivePoolPoints>
     > = {};
     const parsedBorrowIncentivePoolData =
       parseOriginBorrowIncentivePoolData(pool);
