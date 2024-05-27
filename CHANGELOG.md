@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [0.46.31](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.3...v0.46.31) (2024-05-27)
 
+### Bug Fixes
+- Update lockfile ([1b71119](https://github.com/scallop-io/sui-scallop-sdk/pull/105/commits/1b711192e96df5df84fffa03068fae8ef9f2437c))
+
 ### Features
 
 - Enable indexer for borrowIncentivePools([737c122](https://github.com/scallop-io/sui-scallop-sdk/commit/737c1228572775dbf63e282407f141416ec0c6d2))
