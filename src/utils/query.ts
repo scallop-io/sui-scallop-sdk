@@ -488,11 +488,6 @@ export const calculateBorrowIncentivePoolPointData = (
     parsedBorrowIncentivePoolPointData.distributedPoint
   ).plus(accumulatedPoints);
 
-  // pure staked amount
-  const stakedAmount = BigNumber(parsedBorrowIncentivePoolData.staked);
-
-  const stakedCoin = stakedAmount.shiftedBy(-1 * poolCoinDecimal);
-  const stakedValue = stakedCoin.multipliedBy(poolCoinPrice);
   const baseWeight = BigNumber(parsedBorrowIncentivePoolPointData.baseWeight);
 
   // staked amount applied with weight
@@ -539,9 +534,6 @@ export const calculateBorrowIncentivePoolPointData = (
     accumulatedPoints: accumulatedPoints.toNumber(),
     currentPointIndex: currentPointIndex.toNumber(),
     currentTotalDistributedPoint: currentTotalDistributedPoint.toNumber(),
-    stakedAmount: stakedAmount.toNumber(),
-    stakedCoin: stakedCoin.toNumber(),
-    stakedValue: stakedValue.toNumber(),
     baseWeight: baseWeight.toNumber(),
     weightedStakedAmount: weightedStakedAmount.toNumber(),
     weightedStakedCoin: weightedStakedCoin.toNumber(),
