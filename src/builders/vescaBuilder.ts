@@ -219,11 +219,6 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           newUnlockAt,
           veSca?.unlockAt
         );
-      console.log(
-        new Date(newUnlockAt * 1000).toLocaleString('en-CA', {
-          hour12: true,
-        })
-      );
 
       const isInitialLock = !veSca?.unlockAt;
       const isLockExpired =
