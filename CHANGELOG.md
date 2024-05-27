@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [0.46.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.0...v0.46.2) (2024-05-23)
+### [0.46.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.2...v0.46.3) (2024-05-27)
+
+### Bug Fixes
+
+- Sort veSCA by balance([b78c7e3](https://github.com/scallop-io/sui-scallop-sdk/pull/102/commits/b78c7e3916552360cefbe4340ec19e06b8dd4e26))
+
+### [0.46.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.1...v0.46.2) (2024-05-23)
 
 ### Bug Fixes
 
