@@ -18,8 +18,8 @@ export const PROTOCOL_OBJECT_ID = IS_VE_SCA_TEST
 //   '0x87ddec2984645dbbe2403a509cc6edf393a43acdba9b77d45da2bcbefcf733c1' as const;
 
 export const BORROW_FEE_PROTOCOL_ID = IS_VE_SCA_TEST
-  ? ('0xc9f859f98ca352a11b97a038c4b4162bee437b8df8caa047990fe9cb03d4f778' as const)
-  : ('0xc38f849e81cfe46d4e4320f508ea7dda42934a329d5a6571bb4c3cb6ea63f5da' as const); // test environment
+  ? ('0xc9f859f98ca352a11b97a038c4b4162bee437b8df8caa047990fe9cb03d4f778' as const) // test environment
+  : ('0xc38f849e81cfe46d4e4320f508ea7dda42934a329d5a6571bb4c3cb6ea63f5da' as const);
 // export const BORROW_FEE_PROTOCOL_ID =
 //   '0x87ddec2984645dbbe2403a509cc6edf393a43acdba9b77d45da2bcbefcf733c1' as const;
 
