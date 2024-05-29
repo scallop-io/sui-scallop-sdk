@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.33](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.32...v0.46.33) (2024-05-29)
+
+### Bug Fixes
+
+- Fix `increasedPointRate` calculation ([18d364a](https://github.com/scallop-io/sui-scallop-sdk/pull/108/commits/18d364a6730c5580112a042646bac65abbc24a07))
+
 ### [0.46.32](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.31...v0.46.32) (2024-05-27)
 
 ### Bug Fixes

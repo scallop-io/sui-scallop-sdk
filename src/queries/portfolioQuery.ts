@@ -486,7 +486,6 @@ export const getObligationAccount = async (
   )) {
     const coinName = poolCoinName as SupportBorrowIncentiveCoins;
     const borrowIncentivePool = borrowIncentivePools[coinName];
-
     if (borrowIncentivePool) {
       const rewards: ObligationBorrowIcentiveReward[] = [];
       for (const rewardCoinName of SUPPORT_BORROW_INCENTIVE_REWARDS) {
@@ -499,9 +498,12 @@ export const getObligationAccount = async (
           const accountBorrowedAmount = BigNumber(accountPoint.weightedAmount);
           const baseIndexRate = 1_000_000_000;
           const increasedPointRate = poolPoint.currentPointIndex
-            ? BigNumber(
-                poolPoint.currentPointIndex - accountPoint.index
-              ).dividedBy(baseIndexRate)
+            ? Math.max(
+                BigNumber(poolPoint.currentPointIndex - accountPoint.index)
+                  .dividedBy(baseIndexRate)
+                  .toNumber(),
+                0
+              )
             : 1;
           availableClaimAmount = availableClaimAmount.plus(
             accountBorrowedAmount
@@ -530,7 +532,7 @@ export const getObligationAccount = async (
                 .toNumber()
             : 1;
 
-          if (availableClaimAmount.isGreaterThan(0)) {
+          if (availableClaimAmount.isGreaterThanOrEqualTo(0)) {
             rewards.push({
               coinName: poolPoint.coinName,
               coinType: poolPoint.coinType,
