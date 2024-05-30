@@ -168,6 +168,9 @@ export class ScallopCache {
       JSON.stringify(objectIds),
       this.suiKit.currentAddress(),
     ];
+    if (options) {
+      queryKey.push(JSON.stringify(options));
+    }
     return this.queryClient.fetchQuery({
       queryKey,
       queryFn: async () => {
@@ -213,9 +216,6 @@ export class ScallopCache {
     if (input.cursor) {
       queryKey.push(JSON.stringify(input.cursor));
     }
-    if (input.cursor) {
-      queryKey.push(JSON.stringify(input.cursor));
-    }
     if (input.limit) {
       queryKey.push(JSON.stringify(input.limit));
     }
@@ -234,6 +234,7 @@ export class ScallopCache {
     const queryKey = [
       'getDynamicFieldObject',
       input.parentId,
+      input.name.type,
       input.name.value,
     ];
     return this.queryClient.fetchQuery({
