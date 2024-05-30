@@ -16,7 +16,7 @@
 
 ## Description
 
-This SDK is used to interact with [sui-lending-protocal](https://github.com/scallop-io/sui-lending-protocol) and is written based on another sui-integrated tool, [sui-kit](https://github.com/scallop-io/sui-kit). It consists of seven main functional models, here's a brief introduction to each of them:
+This SDK is used to interact with [sui-lending-protocol](https://github.com/scallop-io/sui-lending-protocol) and is written based on another sui-integrated tool, [sui-kit](https://github.com/scallop-io/sui-kit). It consists of seven main functional models, here's a brief introduction to each of them:
 
 - **Scallop**: Provide an entry to quickly create an instance (client, address, query, builder, utils) and complete initialization at the same time.
 
