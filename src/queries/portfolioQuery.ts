@@ -433,12 +433,12 @@ export const getObligationAccount = async (
       const increasedRate = debt?.borrowIndex
         ? marketPool.borrowIndex / Number(debt.borrowIndex) - 1
         : 0;
-      const borrowedAmount = BigNumber(debt?.amount ?? 0);
-      const borrowedCoin = borrowedAmount.shiftedBy(-1 * coinDecimal);
-
-      const requiredRepayAmount = borrowedAmount.multipliedBy(
+      const borrowedAmount = BigNumber(debt?.amount ?? 0).multipliedBy(
         increasedRate + 1
       );
+      const borrowedCoin = borrowedAmount.shiftedBy(-1 * coinDecimal);
+
+      const requiredRepayAmount = borrowedAmount;
       const requiredRepayCoin = requiredRepayAmount.shiftedBy(-1 * coinDecimal);
 
       const availableRepayAmount = BigNumber(coinAmount);

@@ -215,15 +215,13 @@ export const getBindedObligationId = async (
   const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
   const veScaObjId = query.address.get('vesca.object');
 
-  const client = query.suiKit.client();
-
   // get incentive pools
-  const incentivePoolsResponse = await client.getObject({
-    id: incentivePoolsId,
-    options: {
+  const incentivePoolsResponse = await query.cache.queryGetObject(
+    incentivePoolsId,
+    {
       showContent: true,
-    },
-  });
+    }
+  );
 
   if (incentivePoolsResponse.data?.content?.dataType !== 'moveObject')
     return null;
@@ -233,7 +231,7 @@ export const getBindedObligationId = async (
 
   // check if veSca is inside the bind table
   const keyType = `${borrowIncentiveObjectId}::typed_id::TypedID<${veScaObjId}::ve_sca::VeScaKey>`;
-  const veScaBindTableResponse = await client.getDynamicFieldObject({
+  const veScaBindTableResponse = await query.cache.queryGetDynamicFieldObject({
     parentId: veScaBindTableId,
     name: {
       type: keyType,
@@ -260,15 +258,14 @@ export const getBindedVeScaKey = async (
     'borrowIncentive.incentiveAccounts'
   );
   const corePkg = query.address.get('core.object');
-  const client = query.suiKit.client();
 
   // get IncentiveAccounts object
-  const incentiveAccountsObject = await client.getObject({
-    id: incentiveAccountsId,
-    options: {
+  const incentiveAccountsObject = await query.cache.queryGetObject(
+    incentiveAccountsId,
+    {
       showContent: true,
-    },
-  });
+    }
+  );
   if (incentiveAccountsObject.data?.content?.dataType !== 'moveObject')
     return null;
   const incentiveAccountsTableId = (
@@ -276,7 +273,7 @@ export const getBindedVeScaKey = async (
   ).accounts.fields.id.id;
 
   // Search in the table
-  const bindedIncentiveAcc = await client.getDynamicFieldObject({
+  const bindedIncentiveAcc = await query.cache.queryGetDynamicFieldObject({
     parentId: incentiveAccountsTableId,
     name: {
       type: `${borrowIncentiveObjectId}::typed_id::TypedID<${corePkg}::obligation::Obligation>`,
