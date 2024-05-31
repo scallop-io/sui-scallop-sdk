@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.33](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.33...v0.46.34) (2024-05-31)
+
+### Bug Fixes
+- Minor refactor ([2396869](https://github.com/scallop-io/sui-scallop-sdk/pull/110/commits/2396869ef341ea919fdf8b1b98ffb8a72512ae59))
+- Fix debt calculation ([7878074](https://github.com/scallop-io/sui-scallop-sdk/pull/110/commits/7878074861b4b379a5cbad7f1e6c780bc9d5ae51))
+
+
 ### [0.46.33](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.32...v0.46.33) (2024-05-29)
 
 ### Bug Fixes
