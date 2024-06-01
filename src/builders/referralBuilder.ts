@@ -109,18 +109,18 @@ const generateReferralQuickMethod: GenerateReferralQuickMethod = ({
           const rewardCoin = txBlock.claimReferralRevenue(veScaKey, coinName);
           objToTransfer.push(rewardCoin);
         } else {
-          // get the matching user coin if exists
-          const coins = await builder.suiKit.suiInteractor.selectCoins(
-            sender,
-            Infinity,
-            builder.utils.parseCoinType(coinName)
-          );
-
           const rewardCoin = txBlock.claimReferralRevenue(veScaKey, coinName);
-          if (coins.length > 0) {
+          try {
+            // get the matching user coin if exists
+            const coins = await builder.suiKit.suiInteractor.selectCoins(
+              sender,
+              Infinity,
+              builder.utils.parseCoinType(coinName)
+            );
             txBlock.mergeCoins(rewardCoin, coins);
+          } finally {
+            objToTransfer.push(rewardCoin);
           }
-          objToTransfer.push(rewardCoin);
         }
       }
       if (objToTransfer.length > 0) {
