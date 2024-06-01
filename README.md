@@ -40,6 +40,8 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
   ```
 - Create an instance:
 
+  > **Note**: Currently, this SDK only supports the mainnet network. When you use the testnet network, it will give errors because there is no address package ID for the testnet.
+
   ```typescript
   // Create an instance quickly through the`Scallop` class to construct other models.
   const scallopSDK = new Scallop({
