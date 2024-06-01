@@ -51,8 +51,7 @@ Methods for interacting with the lending contract.
     'sui',
     10 ** 8,
     true,
-    obligationsData[0],
-    id
+    obligationsData[0].id,
   );
   ```
 
@@ -66,8 +65,8 @@ Methods for interacting with the lending contract.
     'sui',
     10 ** 8,
     true,
-    obligations[0].id,
-    obligations[0].keyId
+    obligationsData[0].id,
+    obligationsData[0].keyId
   );
   ```
 
@@ -109,8 +108,8 @@ Methods for interacting with the lending contract.
     'sui',
     3 * 10 ** 8,
     true,
-    obligations[0].id,
-    obligations[0].keyId
+    obligationsData[0].id,
+    obligationsData[0].keyId
   );
   ```
 
@@ -118,12 +117,12 @@ Methods for interacting with the lending contract.
 
   ```typescript
   // Manually obtain obligation id and specify account to repay asset.
-  const obligations = await client.getObligations();
+  const obligationsData = await client.getObligations();
   const repayResult = await client.repay(
     'sui',
     3 * 10 ** 8,
     true,
-    obligations[0].id
+    obligationsData[0].id
   );
   ```
 
