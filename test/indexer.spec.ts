@@ -4,10 +4,10 @@ import { ScallopIndexer } from '../src';
 
 dotenv.config();
 
-const ENABLE_LOG = true;
+const ENABLE_LOG = false;
 
 describe('Test Scallop Indexer', () => {
-  const scallopIndexer = new ScallopIndexer();
+  const scallopIndexer = new ScallopIndexer({});
 
   it('Should get market', async () => {
     const market = await scallopIndexer.getMarket();

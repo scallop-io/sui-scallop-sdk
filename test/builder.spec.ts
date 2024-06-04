@@ -22,7 +22,7 @@ describe('Test Scallop Core Builder', async () => {
   it('"openObligationEntry" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
     tx.openObligationEntry();
-    const openObligationResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const openObligationResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('OpenObligationResult:', openObligationResult);
     }
@@ -34,8 +34,7 @@ describe('Test Scallop Core Builder', async () => {
     // Sender is required to invoke "addCollateralQuick".
     tx.setSender(sender);
     await tx.addCollateralQuick(10 ** 7, 'sui');
-    const addCollateralQuickResult =
-      await scallopBuilder.signAndSendTxBlock(tx);
+    const addCollateralQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('AddCollateralQuickResult:', addCollateralQuickResult);
     }
@@ -49,7 +48,7 @@ describe('Test Scallop Core Builder', async () => {
     const coin = await tx.takeCollateralQuick(10 ** 7, 'sui');
     tx.transferObjects([coin], sender);
     const takeCollateralQuickResult =
-      await scallopBuilder.signAndSendTxBlock(tx);
+      await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('TakeCollateralQuickResult:', takeCollateralQuickResult);
     }
@@ -62,7 +61,7 @@ describe('Test Scallop Core Builder', async () => {
     tx.setSender(sender);
     const marketCoin = await tx.depositQuick(10 ** 7, 'sui');
     tx.transferObjects([marketCoin], sender);
-    const depositQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const depositQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('DepositQuickResult:', depositQuickResult);
     }
@@ -75,7 +74,7 @@ describe('Test Scallop Core Builder', async () => {
     tx.setSender(sender);
     const coin = await tx.withdrawQuick(10 ** 7, 'sui');
     tx.transferObjects([coin], sender);
-    const withdrawQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const withdrawQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('WithdrawQuickResult:', withdrawQuickResult);
     }
@@ -89,7 +88,7 @@ describe('Test Scallop Core Builder', async () => {
     const borrowedCoin = await tx.borrowQuick(4 * 10 ** 7, 'sui');
     // Transfer borrowed coin to sender.
     tx.transferObjects([borrowedCoin], sender);
-    const borrowQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const borrowQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('BorrowQuickResult:', borrowQuickResult);
     }
@@ -101,7 +100,7 @@ describe('Test Scallop Core Builder', async () => {
     // Sender is required to invoke "repayQuick".
     tx.setSender(sender);
     await tx.repayQuick(4 * 10 ** 7, 'sui');
-    const repayQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const repayQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('RepayQuickResult:', repayQuickResult);
     }
@@ -117,7 +116,7 @@ describe('Test Scallop Core Builder', async () => {
      * such as pass it to a dex to make a profit.
      */
     tx.repayFlashLoan(coin, loan, 'sui');
-    const borrowFlashLoanResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const borrowFlashLoanResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('BorrowFlashLoanResult:', borrowFlashLoanResult);
     }
@@ -140,7 +139,7 @@ describe('Test Scallop Core Builder', async () => {
     ]);
     const marketCoin = tx.deposit(coin, 'sui');
     suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure(sender));
-    const txBlockResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const txBlockResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('TxBlockResult:', txBlockResult);
     }
@@ -152,7 +151,7 @@ describe('Test Scallop Core Builder', async () => {
     // Sender is required to invoke "updateAssetPricesQuick".
     tx.setSender(sender);
     await tx.updateAssetPricesQuick(['sui']);
-    const updateAssetPricesResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const updateAssetPricesResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('UpdateAssetPricesResult:', updateAssetPricesResult);
     }
@@ -174,8 +173,7 @@ describe('Test Scallop Spool Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     const stakeAccount = tx.createStakeAccount('ssui');
     tx.transferObjects([stakeAccount], sender);
-    const createStakeAccountResult =
-      await scallopBuilder.signAndSendTxBlock(tx);
+    const createStakeAccountResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('CreateStakeAccountResult:', createStakeAccountResult);
     }
@@ -187,7 +185,7 @@ describe('Test Scallop Spool Builder', async () => {
     // Sender is required to invoke "stakeQuick".
     tx.setSender(sender);
     await tx.stakeQuick(10 ** 6, 'ssui');
-    const stakeQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const stakeQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('StakeQuickResult:', stakeQuickResult);
     }
@@ -200,7 +198,7 @@ describe('Test Scallop Spool Builder', async () => {
     tx.setSender(sender);
     const marketCoins = await tx.unstakeQuick(10 ** 6, 'ssui');
     tx.transferObjects(marketCoins, sender);
-    const unstakeQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const unstakeQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('UnstakeQuickResult:', unstakeQuickResult);
     }
@@ -213,7 +211,7 @@ describe('Test Scallop Spool Builder', async () => {
     tx.setSender(sender);
     const rewardCoins = await tx.claimQuick('ssui');
     tx.transferObjects(rewardCoins, sender);
-    const claimQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const claimQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('ClaimQuickResult:', claimQuickResult);
     }
@@ -660,5 +658,69 @@ describe('Test Scallop VeSca Builder', async () => {
       console.info('RedeemScaQuickResult:', redeemScaQuickResult);
     }
     expect(redeemScaQuickResult.effects?.status.status).toEqual('failure');
+  });
+});
+
+describe('Test Scallop Referral Builder', async () => {
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const sender = scallopBuilder.walletAddress;
+
+  console.info('Sender:', sender);
+
+  const veScaReferral =
+    '0xad50994e23ae4268fc081f477d0bdc3f1b92c7049c9038dedec5bac725273d18' as const;
+
+  const createRandomWalletAccountBuilder = async () => {
+    const scallopSDK = new Scallop({
+      secretKey: '',
+      networkType: NETWORK,
+    });
+    const scallopBuilder = await scallopSDK.createScallopBuilder();
+    return scallopBuilder;
+  };
+
+  // must use an account that haven't bind to any referral
+  it('"bindToReferral" should succeed', async () => {
+    const randomBuilder = await createRandomWalletAccountBuilder();
+    const tx = randomBuilder.createTxBlock();
+    tx.bindToReferral(veScaReferral);
+
+    const bindReferralResult = await randomBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('BindReferralResult:', bindReferralResult);
+    }
+    expect(bindReferralResult.effects?.status.status).toEqual('success');
+  });
+
+  // use account that already binds to a referral
+  it('"bindToReferral" should fail', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    tx.bindToReferral(veScaReferral);
+
+    const bindReferralResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('BindReferralResult:', bindReferralResult);
+    }
+    expect(bindReferralResult.effects?.status.status).toEqual('failure');
+    const error = bindReferralResult.effects?.status.error as string;
+    expect(error.includes('Some("bind_ve_sca_referrer") }, 405')).toBe(true);
+  });
+
+  it('"claimReferralTicket" and "burnReferralTicket" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+
+    const ticket = tx.claimReferralTicket('sui');
+    tx.burnReferralTicket(ticket, 'sui');
+
+    const claimReferralTicketResult =
+      await scallopBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('ClaimReferralTicketResult:', claimReferralTicketResult);
+    }
+    expect(claimReferralTicketResult.effects?.status.status).toEqual('success');
   });
 });

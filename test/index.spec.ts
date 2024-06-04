@@ -8,7 +8,7 @@ import type { SupportStakeMarketCoins } from '../src';
 
 dotenv.config();
 
-const ENABLE_LOG = true;
+const ENABLE_LOG = false;
 
 // At present, the contract of the testnet is stale and cannot be used normally, please use the mainnet for testing.
 const NETWORK: NetworkType = 'mainnet';
@@ -347,7 +347,7 @@ describe('Test Scallop Client - Other Method', async () => {
     }
     const transactionBlock = txBlock.txBlock;
     const supplyAndStakeResult =
-      await builder.signAndSendTxBlock(transactionBlock);
+      await builder.suiKit.inspectTxn(transactionBlock);
     if (ENABLE_LOG) {
       console.info('Supply And Stake Result:', transactionBlock);
     }
@@ -439,7 +439,7 @@ describe('Test Scallop Client - Other Method', async () => {
         );
       }
       const withdrawAndUnstakeResult =
-        await builder.signAndSendTxBlock(transactionBlock);
+        await builder.suiKit.inspectTxn(transactionBlock);
       if (ENABLE_LOG) {
         console.info('Withdraw And Unstake Result:', withdrawAndUnstakeResult);
       }
