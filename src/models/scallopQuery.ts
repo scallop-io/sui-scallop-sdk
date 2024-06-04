@@ -394,17 +394,18 @@ export class ScallopQuery {
   ) {
     stakeMarketCoinNames = stakeMarketCoinNames ?? [...SUPPORT_SPOOLS];
     const stakeRewardPools: StakeRewardPools = {};
-    for (const stakeMarketCoinName of stakeMarketCoinNames) {
-      const stakeRewardPool = await getStakeRewardPool(
-        this,
-        stakeMarketCoinName
-      );
+    await Promise.allSettled(
+      stakeMarketCoinNames.map(async (stakeMarketCoinName) => {
+        const stakeRewardPool = await getStakeRewardPool(
+          this,
+          stakeMarketCoinName
+        );
 
-      if (stakeRewardPool) {
-        stakeRewardPools[stakeMarketCoinName] = stakeRewardPool;
-      }
-    }
-
+        if (stakeRewardPool) {
+          stakeRewardPools[stakeMarketCoinName] = stakeRewardPool;
+        }
+      })
+    );
     return stakeRewardPools;
   }
 
