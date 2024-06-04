@@ -30,7 +30,7 @@ import {
   getBindedVeScaKey,
   getVeScas,
   getPythPrices,
-  getTotalVeScaTreasuryAmount,
+  getVeScaTreasuryInfo,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -551,12 +551,12 @@ export class ScallopQuery {
    * Get total vesca treasury with movecall
    * @returns Promise<string | undefined>
    */
-  public async getTotalVeScaTreasuryAmount() {
-    return await getTotalVeScaTreasuryAmount(this);
+  public async getVeScaTreasuryInfo() {
+    return await getVeScaTreasuryInfo(this);
   }
 
   /**
-   * Return binded veScaKeyId of walletAddress if exist
+   * Return binded referrer veScaKeyId of referee walletAddress if exist
    * @param walletAddress
    * @returns veScaKeyId
    */
