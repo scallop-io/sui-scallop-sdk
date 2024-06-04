@@ -65,7 +65,7 @@ export const getVeScas = async (query: ScallopQuery, ownerAddress?: string) => {
   const keyObjectDatas = await getVescaKeys(query, ownerAddress);
   const keyObjectId: string[] = keyObjectDatas.map((data) => data.objectId);
 
-  const veScas: (Vesca | undefined)[] = Array(keyObjectId.length).fill(null);
+  const veScas: Vesca[] = Array(keyObjectId.length).fill(null);
   const tasks = keyObjectId.map(async (keyId, idx) => {
     const veSca = await getVeSca(query, keyId);
     if (veSca) {

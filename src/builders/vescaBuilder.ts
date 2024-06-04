@@ -212,6 +212,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         lockPeriodInDays,
         veSca?.unlockAt
       );
+
       if (autoCheck)
         checkLockSca(
           amountOrCoin,
@@ -259,8 +260,11 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       autoCheck = true
     ) => {
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
+      const newUnlockAt = builder.utils.getUnlockAt(
+        lockPeriodInDays,
+        veSca?.unlockAt
+      );
 
-      const newUnlockAt = builder.utils.getUnlockAt(lockPeriodInDays);
       if (autoCheck)
         checkExtendLockPeriod(lockPeriodInDays, newUnlockAt, veSca?.unlockAt);
 
