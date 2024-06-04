@@ -236,19 +236,21 @@ export const getMarketPools = async (
     return marketPools;
   }
 
-  for (const poolCoinName of poolCoinNames) {
-    const marketPool = await getMarketPool(
-      query,
-      poolCoinName,
-      indexer,
-      marketObjectResponse.data,
-      coinPrices?.[poolCoinName]
-    );
+  Promise.allSettled(
+    poolCoinNames.map(async (poolCoinName) => {
+      const marketPool = await getMarketPool(
+        query,
+        poolCoinName,
+        indexer,
+        marketObjectResponse.data,
+        coinPrices?.[poolCoinName]
+      );
 
-    if (marketPool) {
-      marketPools[poolCoinName] = marketPool;
-    }
-  }
+      if (marketPool) {
+        marketPools[poolCoinName] = marketPool;
+      }
+    })
+  );
 
   return marketPools;
 };
@@ -475,11 +477,12 @@ export const getMarketCollaterals = async (
 ) => {
   collateralCoinNames = collateralCoinNames || [...SUPPORT_COLLATERALS];
   const marketId = query.address.get('core.market');
-  const marketObjectResponse = await query.cache.queryGetObject(marketId, {
-    showContent: true,
-  });
-  const coinPrices = await query.utils.getCoinPrices(collateralCoinNames ?? []);
-
+  const [marketObjectResponse, coinPrices] = await Promise.all([
+    query.cache.queryGetObject(marketId, {
+      showContent: true,
+    }),
+    query.utils.getCoinPrices(collateralCoinNames ?? []),
+  ]);
   const marketCollaterals: MarketCollaterals = {};
 
   if (indexer) {
@@ -496,19 +499,21 @@ export const getMarketCollaterals = async (
     return marketCollaterals;
   }
 
-  for (const collateralCoinName of collateralCoinNames) {
-    const marketCollateral = await getMarketCollateral(
-      query,
-      collateralCoinName,
-      indexer,
-      marketObjectResponse.data,
-      coinPrices?.[collateralCoinName]
-    );
+  await Promise.allSettled(
+    collateralCoinNames.map(async (collateralCoinName) => {
+      const marketCollateral = await getMarketCollateral(
+        query,
+        collateralCoinName,
+        indexer,
+        marketObjectResponse.data,
+        coinPrices?.[collateralCoinName]
+      );
 
-    if (marketCollateral) {
-      marketCollaterals[collateralCoinName] = marketCollateral;
-    }
-  }
+      if (marketCollateral) {
+        marketCollaterals[collateralCoinName] = marketCollateral;
+      }
+    })
+  );
 
   return marketCollaterals;
 };
@@ -698,15 +703,18 @@ export const getObligations = async (
   const keyObjects = await query.cache.queryGetObjects(keyObjectIds);
 
   const obligations: Obligation[] = [];
-  for (const keyObject of keyObjects) {
-    const keyId = keyObject.objectId;
-    if (keyObject.content && 'fields' in keyObject.content) {
-      const fields = keyObject.content.fields as any;
-      const obligationId = String(fields.ownership.fields.of);
-      const locked = await getObligationLocked(query, obligationId);
-      obligations.push({ id: obligationId, keyId, locked });
-    }
-  }
+  await Promise.allSettled(
+    keyObjects.map(async (keyObject) => {
+      const keyId = keyObject.objectId;
+      if (keyObject.content && 'fields' in keyObject.content) {
+        const fields = keyObject.content.fields as any;
+        const obligationId = String(fields.ownership.fields.of);
+        const locked = await getObligationLocked(query, obligationId);
+        obligations.push({ id: obligationId, keyId, locked });
+      }
+    })
+  );
+
   return obligations;
 };
 
