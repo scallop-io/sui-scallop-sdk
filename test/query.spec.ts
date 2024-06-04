@@ -6,7 +6,7 @@ import { getVescaKeys } from 'src/queries';
 import { z as zod } from 'zod';
 dotenv.config();
 
-const ENABLE_LOG = true;
+const ENABLE_LOG = false;
 
 const NETWORK: NetworkType = 'mainnet';
 

@@ -6,7 +6,7 @@ import type { NetworkType } from '@scallop-io/sui-kit';
 
 dotenv.config();
 
-const ENABLE_LOG = true;
+const ENABLE_LOG = false;
 
 const NETWORK: NetworkType = 'mainnet';
 
