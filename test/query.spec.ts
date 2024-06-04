@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
 import { Scallop } from '../src';
-import type { NetworkType } from '@scallop-io/sui-kit';
+import { isValidSuiAddress, type NetworkType } from '@scallop-io/sui-kit';
 import { getVescaKeys } from 'src/queries';
 import { z as zod } from 'zod';
 dotenv.config();
@@ -402,5 +402,25 @@ describe('Test VeSca Query', async () => {
     });
     const arrOfVeSca = zod.array(veScaSchema);
     expect(arrOfVeSca.safeParse(veScas).success).toBe(true);
+  });
+});
+
+describe('Test Referral Query', async () => {
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const sender = scallopQuery.suiKit.currentAddress();
+  console.info(`Your Wallet: ${sender}`);
+
+  it(`Should get referrer veSCA key from a referee address`, async () => {
+    const REFEREE_ADDRESS =
+      '0xebd7bba0820d6f8ad036929161d9ccb29b4507ffbeb45787b95655bb60785d76' as const;
+    const referrerVeScaKey =
+      await scallopQuery.getVeScaKeyIdFromReferralBindings(REFEREE_ADDRESS);
+    expect(typeof referrerVeScaKey).toBe('string');
+    expect(isValidSuiAddress(referrerVeScaKey!)).toBe(true);
   });
 });
