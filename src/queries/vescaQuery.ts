@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { Vesca } from '../types';
+import { VeScaTreasuryFields, VeScaTreasuryInfo, Vesca } from '../types';
 import {
   type SuiObjectResponse,
   type SuiObjectData,
@@ -145,12 +145,13 @@ export const getVeSca = async (
 /**
  * Get current total veSca treasury amount.
  */
-export const getTotalVeScaTreasuryAmount = async (
-  query: ScallopQuery
+const getTotalVeScaTreasuryAmount = async (
+  query: ScallopQuery,
+  veScaTreasury: SuiObjectData
 ): Promise<string> => {
   const veScaPkgId = query.address.get('vesca.id');
   const veScaConfig = query.address.get('vesca.config');
-  const veScaTreasury = query.address.get('vesca.treasury');
+  veScaTreasury = veScaTreasury ?? query.address.get('vesca.treasury');
 
   // refresh query
   const refreshQueryTarget = `${veScaPkgId}::treasury::refresh`;
@@ -201,7 +202,6 @@ export const getTotalVeScaTreasuryAmount = async (
     queryFn: async () => {
       return await query.suiKit.inspectTxn(txBytes);
     },
-    staleTime: 8000,
   });
 
   const results = res.results;
@@ -212,4 +212,44 @@ export const getTotalVeScaTreasuryAmount = async (
   }
 
   return '0';
+};
+
+/**
+ * Get veSCA treasury informations
+ * @param query
+ * @returns VeScaTreasuryInfo
+ */
+export const getVeScaTreasuryInfo = async (
+  query: ScallopQuery
+): Promise<VeScaTreasuryInfo | null> => {
+  const veScaTreasuryId = query.address.get('vesca.treasury');
+  const veScaTreasury = await query.cache.queryGetObject(veScaTreasuryId, {
+    showContent: true,
+  });
+
+  if (!veScaTreasury || veScaTreasury.data?.content?.dataType !== 'moveObject')
+    return null;
+
+  const treasuryFields = veScaTreasury.data.content
+    .fields as VeScaTreasuryFields;
+  const totalLockedSca = BigNumber(
+    treasuryFields.unlock_schedule.fields.locked_sca_amount
+  )
+    .shiftedBy(-9)
+    .toNumber();
+  const totalVeSca = BigNumber(
+    (await getTotalVeScaTreasuryAmount(query, veScaTreasury.data)) ?? 0
+  )
+    .shiftedBy(-9)
+    .toNumber();
+  const averageLockingPeriod =
+    totalLockedSca > 0 ? (totalVeSca / totalLockedSca) * 4 : 0; // in years
+
+  const averageLockingPeriodUnit = 'year';
+  return {
+    totalLockedSca,
+    totalVeSca,
+    averageLockingPeriod,
+    averageLockingPeriodUnit,
+  };
 };

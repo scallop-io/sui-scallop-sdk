@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { Scallop } from '../src';
 import type { NetworkType } from '@scallop-io/sui-kit';
 import { getVescaKeys } from 'src/queries';
-
+import { z as zod } from 'zod';
 dotenv.config();
 
 const ENABLE_LOG = true;
@@ -370,5 +370,37 @@ describe('Test VeSca Query', async () => {
     }
 
     expect(!!bindedVeScaKeyId).toBe(true);
+  });
+
+  it(`Should get veSCA treasury info`, async () => {
+    const totalVeScaTreasury = await scallopQuery.getVeScaTreasuryInfo();
+    if (ENABLE_LOG) {
+      console.info('Total VeSca Treasury:', totalVeScaTreasury);
+    }
+    const treasuryInfoSchema = zod.object({
+      totalLockedSca: zod.number(),
+      totalVeSca: zod.number(),
+      averageLockingPeriod: zod.number(),
+      averageLockingPeriodUnit: zod.string(),
+    });
+    expect(treasuryInfoSchema.safeParse(totalVeScaTreasury).success).toBe(true);
+  });
+
+  it(`Should get veSCAs`, async () => {
+    const veScas = await scallopQuery.getVeScas(sender);
+    if (ENABLE_LOG) {
+      console.info('VeSca keys:', veScas);
+    }
+    expect(veScas.length).toBeGreaterThan(0);
+    const veScaSchema = zod.object({
+      id: zod.string(),
+      keyId: zod.string(),
+      lockedScaAmount: zod.string(),
+      lockedScaCoin: zod.number(),
+      currentVeScaBalance: zod.number(),
+      unlockAt: zod.number(),
+    });
+    const arrOfVeSca = zod.array(veScaSchema);
+    expect(arrOfVeSca.safeParse(veScas).success).toBe(true);
   });
 });
