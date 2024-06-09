@@ -214,3 +214,14 @@
   const referrerVeScaKey =
     await scallopSDK.getVeScaKeyIdFromReferralBindings(refereeAddress); // return string or null
   ```
+
+## veSCA Loyalty Program
+
+- Get user veSCA loyalty program informations
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  const loyaltyProgramInfos = await scallopQuery.getLoyaltyProgramInfos();
+  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
+  ```
