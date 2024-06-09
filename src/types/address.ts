@@ -115,6 +115,12 @@ export interface AddressesInterface {
     tiersTableId: string;
     authorizedWitnessList: string;
   };
+  loyaltyProgram: {
+    id: string;
+    object: string;
+    rewardPool: string;
+    userRewardTableId: string;
+  };
 }
 
 type AddressPathsProps<T> = T extends string
