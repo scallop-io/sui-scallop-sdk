@@ -137,7 +137,7 @@ const generateReferralQuickMethod: GenerateReferralQuickMethod = ({
  *
  * @param builder - Scallop builder instance.
  * @param initTxBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
- * @return Scallop borrow incentive txBlock.
+ * @return Scallop referral txBlock.
  */
 export const newReferralTxBlock = (
   builder: ScallopBuilder,

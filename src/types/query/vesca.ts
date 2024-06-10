@@ -1,6 +1,10 @@
+import type { SuiObjectRef } from '@mysten/sui.js/client';
+
 export type Vesca = {
   id: string;
   keyId: string;
+  keyObject?: SuiObjectRef;
+  object?: SuiObjectRef;
   lockedScaAmount: string;
   lockedScaCoin: number;
   currentVeScaBalance: number;

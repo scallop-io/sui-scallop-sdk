@@ -788,3 +788,29 @@ describe('Test Scallop Referral Builder', async () => {
     expect(claimReferralTicketResult.effects?.status.status).toEqual('success');
   });
 });
+
+describe('Test Scallop Loyalty Program Builder', async () => {
+  // Please set IS_VE_SCA_TEST to true in constants/common.ts
+
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const sender = scallopBuilder.walletAddress;
+
+  console.info('Sender:', sender);
+
+  // make sure account has pending reward
+  it('"claimRevenueQuick" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    // Sender is required to invoke "claimRevenueQuick".
+    tx.setSender(sender);
+    await tx.claimLoyaltyRevenueQuick();
+    const claimRevenueQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('ClaimRevenueQuickResult:', claimRevenueQuickResult);
+    }
+    expect(claimRevenueQuickResult.effects?.status.status).toEqual('success');
+  });
+});
