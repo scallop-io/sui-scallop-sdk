@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.37](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.36...v0.46.37) (2024-06-10)
+
+### Features
+
+- Scallop Loyalty Program ([13c660d](https://github.com/scallop-io/sui-scallop-sdk/pull/120/commits/13c660d8a3c4b48a24caecdec008231d29497174))
+- Refactor vesca builder, query, and docs ([f5e1765](https://github.com/scallop-io/sui-scallop-sdk/pull/120/commits/f5e17654481098ec1e6dafb3c3c0173368b4e4e3)) ([cb9d27d](https://github.com/scallop-io/sui-scallop-sdk/pull/120/commits/cb9d27d928b33851ea0c8f0ee47104efabe6b330))
+
 ### [0.46.36](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.35...v0.46.36) (2024-06-01)
 
 ### Bug Fixes
