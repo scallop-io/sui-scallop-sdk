@@ -1,7 +1,7 @@
 export const API_BASE_URL = 'https://sui.api.scallop.io';
 export const SDK_API_BASE_URL = 'https://sdk.api.scallop.io';
 
-export const IS_VE_SCA_TEST = true;
+export const IS_VE_SCA_TEST = false;
 
 // export const ADDRESSES_ID = '';
 export const ADDRESSES_ID = IS_VE_SCA_TEST
