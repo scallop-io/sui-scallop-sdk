@@ -31,6 +31,7 @@ import {
   getVeScas,
   getPythPrices,
   getVeScaTreasuryInfo,
+  getLoyaltyProgramInformations,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -49,6 +50,7 @@ import { ScallopUtils } from './scallopUtils';
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
+import { SuiObjectData } from '@mysten/sui.js/src/client';
 
 /**
  * @description
@@ -543,7 +545,7 @@ export class ScallopQuery {
    * @param walletAddress
    * @returns array of veSca
    */
-  public async getVeScas(walletAddress: string) {
+  public async getVeScas(walletAddress?: string) {
     return await getVeScas(this, walletAddress);
   }
 
@@ -580,5 +582,14 @@ export class ScallopQuery {
    */
   public async getBindedVeScaKey(obligationId: string) {
     return await getBindedVeScaKey(this, obligationId);
+  }
+
+  /**
+   * Get user's veSCA loyalty program informations
+   * @param walletAddress
+   * @returns Loyalty program information
+   */
+  public async getLoyaltyProgramInfos(veScaKey?: string | SuiObjectData) {
+    return await getLoyaltyProgramInformations(this, veScaKey);
   }
 }
