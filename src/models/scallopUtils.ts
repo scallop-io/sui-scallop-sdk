@@ -513,11 +513,11 @@ export class ScallopUtils {
    */
   public getUnlockAt(
     extendLockPeriodInDay?: number,
-    unlockAtInSecondTimestamp?: number
+    unlockAtInMillisTimestamp?: number
   ) {
     const now = Math.floor(new Date().getTime() / 1000);
-    const remainingLockPeriod = unlockAtInSecondTimestamp
-      ? Math.max(unlockAtInSecondTimestamp - now, 0)
+    const remainingLockPeriod = unlockAtInMillisTimestamp
+      ? Math.max(Math.floor(unlockAtInMillisTimestamp / 1000) - now, 0)
       : 0;
 
     let newUnlockAtInSecondTimestamp = 0;
