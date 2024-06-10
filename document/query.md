@@ -65,6 +65,14 @@
   // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
 
+- Get Prices of all Supported Asset Coins
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  const assetCoinsPrices = await scallopQuery.getPricesFromPyth(); // return Record<SupportAssetCoins, number>
+  ```
+
 ## Spool query
 
 - Get spool data.
@@ -110,6 +118,17 @@
   // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
 
+## Borrow Incentive Query
+
+- Get All Borrow Incentive Pools
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  const borrowIncentivePools = await scallopQuery.getBorrowIncentivePools();
+  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
+  ```
+
 ## Portfolio query
 
 - Get user lending information include spool information.
@@ -151,5 +170,58 @@
   // Get tvl that including total supply value and total borrow value.
   const tvl = await scallopQuery.getTvl();
 
+  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
+  ```
+
+## VeSCA query
+
+- Get veSCA treasury information
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  const totalStakeVeSca = await scallopQuery.getVeScaTreasuryInfo(); // return string
+  ```
+
+- Get Binded Obligation ID from a veSCA key if it exists
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  // get binded veScaKey
+  const veScaKey = '0x...';
+  const obligationId = await scallopQuery.getBindedVeScaKey(veScaKey); // return type string or null
+  ```
+
+- Get Binded veSCA Key from an Obligation ID if it exists
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  // get binded veScaKey
+  const obligationId = '0x...';
+  const veScaKey = await scallopQuery.getBindedVeScaKey(obligationId); // return type string or null
+  ```
+
+## Referral Query
+
+- Get Referrer veSCA key from a referee wallet address if exists
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  const refereeAdress = '0x...';
+  const referrerVeScaKey =
+    await scallopSDK.getVeScaKeyIdFromReferralBindings(refereeAddress); // return string or null
+  ```
+
+## veSCA Loyalty Program
+
+- Get user veSCA loyalty program informations
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  const loyaltyProgramInfos = await scallopQuery.getLoyaltyProgramInfos();
   // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```

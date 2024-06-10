@@ -188,3 +188,76 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   scallopTxBlock.transferObjects([rewardCoin], sender);
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
+
+## Organize transactions that interact with veSCA
+
+- Initial lock sca for veSCA (user has no veSCA yet)
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  /*
+    - Minimum lock amount is 10 SCA
+    - Minimum lock period is 1 day
+  */
+  const scaAmount = 10e9; // minimum lock amount is 10 SCA
+  const lockPeriodInDays = 1;
+  await scallopTxBlock.lockScaQuick(scaAmount, lockPeriodInDays);
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+- Lock more and extend lock period to existing veSCA that is not expired (user has veSCA)
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  const scaAmount = 3;
+  const extendPeriodInDays = 2;
+  await scallopTxBlock.lockScaQuick(scaAmount, extendPeriodInDays);
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+- Extend lock period (user has veSCA that is not expired)
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  const extendPeriodInDays = 2;
+  await scallopTxBlock.extendLockPeriodQuick(extendPeriodInDays);
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+- Lock more SCA to existing veSCA that is not expired
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  const scaAmount = 3;
+  await scallopTxBlock.extendLockAmountQuick(scaAmount);
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+- Renew expired veSCA (user has veSCA)
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  const scaAmount = 10; // Minimum renew amount is 10 SCA
+  const extendPeriodInDays = 7; // Minimum extend period is 1 day
+  await scallopTxBlock.renewExpiredVeScaQuick(scaAmount, extendPeriodInDays);
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+- Claim unlocked SCA from expired veSCA
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  await scallopTxBlock.redeemScaQuick();
+  ```

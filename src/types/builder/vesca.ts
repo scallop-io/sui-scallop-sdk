@@ -33,6 +33,22 @@ export type VeScaNormalMethods = {
 };
 
 export type VeScaQuickMethods = {
+  /**
+   * Quick methods to automate
+   * lock initial SCA, extend lock period, lock more SCA, renew expired VeSCA, and redeem SCA
+   *
+   * **Flow:**
+   * - If only `amountOrCoin` is provided, it will lock the amount of existing not expired veSCA
+   * - If only `lockPeriodInDays` is provided, it will extend the lock period of existing not expired veSCA
+   *
+   * **Note:**
+   * - If one or both flow above is used on a expired veSCA, it will claim the unlocked SCA
+   *   and renew the veSCA first, and then flow continues
+   * - If users has no veSCA yet, they need to provide both `amountOrCoin` and `lockPeriodInDays` for initial lock
+   * @param amountOrCoin
+   * @param lockPeriodInDays
+   * @param autoCheck
+   */
   lockScaQuick(
     amountOrCoin?: SuiObjectArg | number,
     lockPeriodInDays?: number,

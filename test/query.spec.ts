@@ -1,12 +1,12 @@
 import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
 import { Scallop } from '../src';
-import type { NetworkType } from '@scallop-io/sui-kit';
+import { isValidSuiAddress, type NetworkType } from '@scallop-io/sui-kit';
 import { getVescaKeys } from 'src/queries';
-
+import { z as zod } from 'zod';
 dotenv.config();
 
-const ENABLE_LOG = true;
+const ENABLE_LOG = false;
 
 const NETWORK: NetworkType = 'mainnet';
 
@@ -340,7 +340,8 @@ describe('Test VeSca Query', async () => {
   if (veScaKeys.length === 0)
     throw new Error(`No VeSca keys found in ${sender}`);
 
-  it(`Should get binded obligationId of veScaKey ${veScaKeys[0]}`, async () => {
+  // make sure you test with an account that has binded obligationId to a veScaKey
+  it(`Should get binded obligationId of veScaKey ${veScaKeys[0].objectId}`, async () => {
     const bindedObligationId = await scallopQuery.getBindedObligationId(
       veScaKeys[0].objectId
     );
@@ -357,18 +358,99 @@ describe('Test VeSca Query', async () => {
     expect(!!bindedObligationId).toBe(true);
   });
 
-  it(`Should get veScaKeyId of obligationId ${obligationId}`, async () => {
-    if (!obligationId) {
-      throw new Error('No obligationId found');
-    }
-    const bindedVeScaKeyId = await scallopQuery.getBindedVeScaKey(
-      obligationId!
-    );
+  if (obligationId) {
+    it(`Should get veScaKeyId of obligationId ${obligationId}`, async () => {
+      if (!obligationId) {
+        throw new Error('No obligationId found');
+      }
+      const bindedVeScaKeyId = await scallopQuery.getBindedVeScaKey(
+        obligationId!
+      );
 
+      if (ENABLE_LOG) {
+        console.info('Binded VeSca Key Id:', bindedVeScaKeyId);
+      }
+
+      expect(!!bindedVeScaKeyId).toBe(true);
+    });
+  }
+
+  it(`Should get veSCA treasury info`, async () => {
+    const totalVeScaTreasury = await scallopQuery.getVeScaTreasuryInfo();
     if (ENABLE_LOG) {
-      console.info('Binded VeSca Key Id:', bindedVeScaKeyId);
+      console.info('Total VeSca Treasury:', totalVeScaTreasury);
     }
+    const treasuryInfoSchema = zod.object({
+      totalLockedSca: zod.number(),
+      totalVeSca: zod.number(),
+      averageLockingPeriod: zod.number(),
+      averageLockingPeriodUnit: zod.string(),
+    });
+    expect(treasuryInfoSchema.safeParse(totalVeScaTreasury).success).toBe(true);
+  });
 
-    expect(!!bindedVeScaKeyId).toBe(true);
+  it(`Should get veSCAs`, async () => {
+    const veScas = await scallopQuery.getVeScas(sender);
+    if (ENABLE_LOG) {
+      console.info('VeSca keys:', veScas);
+    }
+    expect(veScas.length).toBeGreaterThan(0);
+    const veScaSchema = zod.object({
+      id: zod.string(),
+      keyId: zod.string(),
+      lockedScaAmount: zod.string(),
+      lockedScaCoin: zod.number(),
+      currentVeScaBalance: zod.number(),
+      unlockAt: zod.number(),
+    });
+    const arrOfVeSca = zod.array(veScaSchema);
+    expect(arrOfVeSca.safeParse(veScas).success).toBe(true);
+  });
+});
+
+describe('Test Referral Query', async () => {
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const sender = scallopQuery.suiKit.currentAddress();
+  console.info(`Your Wallet: ${sender}`);
+
+  it(`Should get referrer veSCA key from a referee address`, async () => {
+    const REFEREE_ADDRESS =
+      '0xebd7bba0820d6f8ad036929161d9ccb29b4507ffbeb45787b95655bb60785d76' as const;
+    const referrerVeScaKey =
+      await scallopQuery.getVeScaKeyIdFromReferralBindings(REFEREE_ADDRESS);
+    expect(typeof referrerVeScaKey).toBe('string');
+    expect(isValidSuiAddress(referrerVeScaKey!)).toBe(true);
+  });
+});
+
+describe('Test Loyalty Program Query', async () => {
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const sender = scallopQuery.suiKit.currentAddress();
+  console.info(`Your Wallet: ${sender}`);
+
+  it(`Should get loyalty program information from a user address`, async () => {
+    const loyaltyProgramInfoZod = zod.object({
+      pendingReward: zod.optional(zod.number()),
+      totalPoolReward: zod.number(),
+      isClaimEnabled: zod.boolean(),
+    });
+    const loyaltyProgramInfo = await scallopQuery.getLoyaltyProgramInfos();
+    if (ENABLE_LOG) {
+      console.info('Loyalty Program Info:', loyaltyProgramInfo);
+    }
+    expect(!!loyaltyProgramInfo).toBe(true);
+    expect(loyaltyProgramInfoZod.safeParse(loyaltyProgramInfo).success).toBe(
+      true
+    );
   });
 });
