@@ -1,6 +1,11 @@
 import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
-import { MAX_LOCK_ROUNDS, SCA_COIN_TYPE, Scallop } from '../src';
+import {
+  MAX_LOCK_ROUNDS,
+  SCA_COIN_TYPE,
+  Scallop,
+  UNLOCK_ROUND_DURATION,
+} from '../src';
 import { type NetworkType, TransactionBlock } from '@scallop-io/sui-kit';
 
 dotenv.config();
@@ -22,7 +27,7 @@ describe('Test Scallop Core Builder', async () => {
   it('"openObligationEntry" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
     tx.openObligationEntry();
-    const openObligationResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const openObligationResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('OpenObligationResult:', openObligationResult);
     }
@@ -34,8 +39,7 @@ describe('Test Scallop Core Builder', async () => {
     // Sender is required to invoke "addCollateralQuick".
     tx.setSender(sender);
     await tx.addCollateralQuick(10 ** 7, 'sui');
-    const addCollateralQuickResult =
-      await scallopBuilder.signAndSendTxBlock(tx);
+    const addCollateralQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('AddCollateralQuickResult:', addCollateralQuickResult);
     }
@@ -49,7 +53,7 @@ describe('Test Scallop Core Builder', async () => {
     const coin = await tx.takeCollateralQuick(10 ** 7, 'sui');
     tx.transferObjects([coin], sender);
     const takeCollateralQuickResult =
-      await scallopBuilder.signAndSendTxBlock(tx);
+      await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('TakeCollateralQuickResult:', takeCollateralQuickResult);
     }
@@ -62,7 +66,7 @@ describe('Test Scallop Core Builder', async () => {
     tx.setSender(sender);
     const marketCoin = await tx.depositQuick(10 ** 7, 'sui');
     tx.transferObjects([marketCoin], sender);
-    const depositQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const depositQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('DepositQuickResult:', depositQuickResult);
     }
@@ -75,7 +79,7 @@ describe('Test Scallop Core Builder', async () => {
     tx.setSender(sender);
     const coin = await tx.withdrawQuick(10 ** 7, 'sui');
     tx.transferObjects([coin], sender);
-    const withdrawQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const withdrawQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('WithdrawQuickResult:', withdrawQuickResult);
     }
@@ -89,7 +93,7 @@ describe('Test Scallop Core Builder', async () => {
     const borrowedCoin = await tx.borrowQuick(4 * 10 ** 7, 'sui');
     // Transfer borrowed coin to sender.
     tx.transferObjects([borrowedCoin], sender);
-    const borrowQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const borrowQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('BorrowQuickResult:', borrowQuickResult);
     }
@@ -101,7 +105,7 @@ describe('Test Scallop Core Builder', async () => {
     // Sender is required to invoke "repayQuick".
     tx.setSender(sender);
     await tx.repayQuick(4 * 10 ** 7, 'sui');
-    const repayQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const repayQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('RepayQuickResult:', repayQuickResult);
     }
@@ -117,7 +121,7 @@ describe('Test Scallop Core Builder', async () => {
      * such as pass it to a dex to make a profit.
      */
     tx.repayFlashLoan(coin, loan, 'sui');
-    const borrowFlashLoanResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const borrowFlashLoanResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('BorrowFlashLoanResult:', borrowFlashLoanResult);
     }
@@ -140,7 +144,7 @@ describe('Test Scallop Core Builder', async () => {
     ]);
     const marketCoin = tx.deposit(coin, 'sui');
     suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure(sender));
-    const txBlockResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const txBlockResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('TxBlockResult:', txBlockResult);
     }
@@ -152,7 +156,7 @@ describe('Test Scallop Core Builder', async () => {
     // Sender is required to invoke "updateAssetPricesQuick".
     tx.setSender(sender);
     await tx.updateAssetPricesQuick(['sui']);
-    const updateAssetPricesResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const updateAssetPricesResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('UpdateAssetPricesResult:', updateAssetPricesResult);
     }
@@ -174,8 +178,7 @@ describe('Test Scallop Spool Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     const stakeAccount = tx.createStakeAccount('ssui');
     tx.transferObjects([stakeAccount], sender);
-    const createStakeAccountResult =
-      await scallopBuilder.signAndSendTxBlock(tx);
+    const createStakeAccountResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('CreateStakeAccountResult:', createStakeAccountResult);
     }
@@ -187,7 +190,7 @@ describe('Test Scallop Spool Builder', async () => {
     // Sender is required to invoke "stakeQuick".
     tx.setSender(sender);
     await tx.stakeQuick(10 ** 6, 'ssui');
-    const stakeQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const stakeQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('StakeQuickResult:', stakeQuickResult);
     }
@@ -200,7 +203,7 @@ describe('Test Scallop Spool Builder', async () => {
     tx.setSender(sender);
     const marketCoins = await tx.unstakeQuick(10 ** 6, 'ssui');
     tx.transferObjects(marketCoins, sender);
-    const unstakeQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const unstakeQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('UnstakeQuickResult:', unstakeQuickResult);
     }
@@ -213,7 +216,7 @@ describe('Test Scallop Spool Builder', async () => {
     tx.setSender(sender);
     const rewardCoins = await tx.claimQuick('ssui');
     tx.transferObjects(rewardCoins, sender);
-    const claimQuickResult = await scallopBuilder.signAndSendTxBlock(tx);
+    const claimQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('ClaimQuickResult:', claimQuickResult);
     }
@@ -290,20 +293,26 @@ describe('Test Scallop VeSca Builder', async () => {
     networkType: NETWORK,
   });
   const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const scallopQuery = await scallopSDK.createScallopQuery();
   const sender = scallopBuilder.walletAddress;
 
+  const veScas = await scallopQuery.getVeScas(sender);
+  const hasVeSca = veScas.length > 0;
+  const isVeScaExpired =
+    hasVeSca && veScas[0].unlockAt * 1000 <= new Date().getTime();
+
+  console.info('hasVeSca: ', hasVeSca);
   console.info('Sender:', sender);
 
-  // Don't forget to set IS_VE_SCA_TEST to true in constants/common.ts
   const expiredVeScaKey =
-    '0xb7727130c669a66abae882a8d497ccf0fd7c6f8da17754c6ee6b142cbdf7fe99';
+    '0x0515056c4a6ee46007b1e53356c51ca99bf772629a656d4ff24554417713bfcd';
 
-  const createNewVeScaTx = async () => {
+  const createNewVeScaTx = async (initialLockPeriodInDays: number = 1459) => {
     const tx = scallopBuilder.createTxBlock();
     tx.setSender(sender);
 
     const lockAmount = 10 * 10 ** 9;
-    const lockPeriodInDays = 7;
+    const lockPeriodInDays = initialLockPeriodInDays;
     const newUnlockAt = scallopBuilder.utils.getUnlockAt(lockPeriodInDays);
     const coins = await scallopBuilder.utils.selectCoinIds(
       lockAmount,
@@ -349,111 +358,143 @@ describe('Test Scallop VeSca Builder', async () => {
 
   // ----------------------------- No VeSCA ----------------------------------
 
-  it('lockScaQuick" Initial lock with auto check should succeed', async () => {
-    const tx = scallopBuilder.createTxBlock();
-    tx.setSender(sender);
+  if (!hasVeSca) {
+    it('lockScaQuick" Initial lock with auto check should succeed', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
 
-    const lockPeriodInDays = 1; // lock for 1 day
+      const lockPeriodInDays = 1; // lock for 1 day
 
-    await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays);
-    const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
-    if (ENABLE_LOG) {
-      console.info('LockScaQuickResult:', lockScaQuickResult);
-    }
-    expect(lockScaQuickResult.effects?.status.status).toEqual('success');
-  });
+      await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays);
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info(
+          'LockScaQuickResult:',
+          lockScaQuickResult.effects.status.error
+        );
+      }
+      expect(lockScaQuickResult.effects.status.status).toEqual('success');
+    });
 
-  it('"lockScaQuick" Initial lock with auto check (lock more than 1460 days) should throw error', async () => {
-    const tx = scallopBuilder.createTxBlock();
-    tx.setSender(sender);
+    it('"lockScaQuick" Initial lock with auto check (lock more than 1460 days) should throw error', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
 
-    const lockPeriodInDays = MAX_LOCK_ROUNDS + 1; // lock for more than MAX_LOCK_ROUNDS day
+      tx.setSender(sender);
+      const lockPeriodInDays = 1461;
 
-    await expect(
-      tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays)
-    ).rejects.toThrow(
-      Error(`Maximum lock period is ~4 years (${MAX_LOCK_ROUNDS - 1} days)`)
-    );
-  });
+      await expect(
+        tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays)
+      ).rejects.toThrow(
+        Error(`Maximum lock period is ~4 years (${MAX_LOCK_ROUNDS - 1} days)`)
+      );
+    });
 
-  it('"lockScaQuick" Initial lock with auto check (lock less than 10 amount) should throw error', async () => {
-    const tx = scallopBuilder.createTxBlock();
-    tx.setSender(sender);
+    it('"lockScaQuick" Initial lock with auto check (lock less than 10 amount) should throw error', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
 
-    const lockAmount = 1 * 10 ** 9; // lock less than 10 amount
+      const lockAmount = 1 * 10 ** 9; // lock less than 10 amount
 
-    await expect(tx.lockScaQuick(lockAmount, 1)).rejects.toThrow(
-      Error('Minimum lock amount for initial lock is 10 SCA')
-    );
-  });
+      await expect(tx.lockScaQuick(lockAmount, 1)).rejects.toThrow(
+        Error('Minimum lock amount for initial lock is 10 SCA')
+      );
+    });
 
-  it('"lockScaQuick" Initial lock with auto check (lock without lockPeriodInDays) should throw error', async () => {
-    const tx = scallopBuilder.createTxBlock();
-    tx.setSender(sender);
+    it('"lockScaQuick" Initial lock with auto check (lock without lockPeriodInDays) should throw error', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
 
-    const lockAmount = 10 * 10 ** 9;
+      const lockAmount = 10 * 10 ** 9;
 
-    await expect(tx.lockScaQuick(lockAmount)).rejects.toThrow(
-      Error('SCA amount and lock period is required for initial lock')
-    );
-  });
+      await expect(tx.lockScaQuick(lockAmount)).rejects.toThrow(
+        Error('SCA amount and lock period is required for initial lock')
+      );
+    });
 
-  it('"lockScaQuick" Initial lock without auto check (lock more than 1460 days) should success', async () => {
-    const tx = scallopBuilder.createTxBlock();
-    tx.setSender(sender);
+    it('"lockScaQuick" Initial lock without auto check (lock more than 1460 days) should success', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
 
-    const lockPeriodInDays = 1461; // lock for more than 1460 day
+      const lockPeriodInDays = 1461; // lock for more than 1460 day
 
-    await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays, false);
-    const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
-    if (ENABLE_LOG) {
-      console.info('LockScaQuickResult:', lockScaQuickResult);
-    }
-    expect(lockScaQuickResult.effects?.status.status).toEqual('success');
-  });
+      await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays, false);
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('LockScaQuickResult:', lockScaQuickResult);
+      }
+      expect(lockScaQuickResult.effects?.status.status).toEqual('success');
+    });
 
-  it('"lockScaQuick" Initial lock without auto check should success', async () => {
-    const tx = scallopBuilder.createTxBlock();
-    tx.setSender(sender);
+    it('"lockScaQuick" Initial lock without auto check should success', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
 
-    const lockPeriodInDays = 0.4;
+      const lockPeriodInDays = 0.4;
 
-    await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays, false);
-    const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
-    if (ENABLE_LOG) {
-      console.info('LockScaQuickResult:', lockScaQuickResult);
-    }
-    expect(lockScaQuickResult.effects?.status.status).toEqual('success');
-  });
+      await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays, false);
+      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('LockScaQuickResult:', lockScaQuickResult);
+      }
+      expect(lockScaQuickResult.effects?.status.status).toEqual('success');
+    });
+  }
 
   // ------------------------ Has VeSCA ------------------------
-  // // TODO: Simulate txBlock that has VeSCA to test the following functions
-  // it('"lockScaQuick" extend lock with auto check (lock less than 1 amount) should throw error', async () => {
-  //   const tx = scallopBuilder.createTxBlock();
-  //   tx.setSender(sender);
 
-  //   const lockAmount = 0.5 * 10 ** 9; // lock less than 1 amount
+  if (hasVeSca && !isVeScaExpired) {
+    it('"lockScaQuick" extend lock with auto check (lock less than 1 amount) should throw error', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
 
-  //   await expect(tx.lockScaQuick(lockAmount, 1)).rejects.toThrow(
-  //     Error('Minimum top up amount is 1 SCA')
-  //   );
-  // });
+      const lockAmount = 0.5 * 10 ** 9; // lock less than 1 amount
 
-  // // TODO: Simulate txBlock that has VeSCA to test the following functions
-  // it('"lockScaQuick" extend lock without auto check (Only give both amount and period) should success', async () => {
-  //   const tx = scallopBuilder.createTxBlock();
-  //   tx.setSender(sender);
+      await expect(tx.lockScaQuick(lockAmount, 1)).rejects.toThrow(
+        Error('Minimum top up amount is 1 SCA')
+      );
+    });
 
-  //   const lockAmount = 1 * 10 ** 9; // extend 1 amount
-  //   const lockPeriodInDays = MAX_LOCK_ROUNDS; // extend for more than 1459 day
+    it('"lockScaQuick" extend lock period that results in lock period > 1460 days should throw error', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
 
-  //   await tx.lockScaQuick(lockAmount, lockPeriodInDays);
-  //   const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
-  //   if (ENABLE_LOG) {
-  //     console.info('LockScaQuickResult:', lockScaQuickResult);
-  //   }
-  //   expect(lockScaQuickResult.effects?.status.status).toEqual('success');
-  // });
+      const lockAmount = 1 * 10 ** 9; // extend 1 amount
+      const lockPeriodInDays = MAX_LOCK_ROUNDS; // extend for more than 1459 day
+
+      const newUnlockAtInSecondTimestamp = scallopBuilder.utils.getUnlockAt(
+        lockPeriodInDays,
+        veScas[0].unlockAt
+      );
+      const availableLockPeriodInDays = Math.floor(
+        (newUnlockAtInSecondTimestamp - Math.floor(veScas[0].unlockAt / 1000)) /
+          UNLOCK_ROUND_DURATION
+      );
+      await expect(
+        tx.lockScaQuick(lockAmount, lockPeriodInDays)
+      ).rejects.toThrowError(
+        Error(
+          `Cannot extend lock period by ${lockPeriodInDays} days, maximum lock period is ~4 years (${MAX_LOCK_ROUNDS} days), remaining lock period is ${
+            MAX_LOCK_ROUNDS - availableLockPeriodInDays
+          }`
+        )
+      );
+    });
+
+    it('"lockScaQuick" extend lock period less than 1 day should throw error', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      const lockAmount = 1 * 10 ** 9; // extend 1 amount
+      const lockPeriodInDays = 0.5; // extend for more than 1459 day
+
+      await expect(
+        tx.lockScaQuick(lockAmount, lockPeriodInDays)
+      ).rejects.toThrow(Error('Minimum lock period is 1 day'));
+    });
+  }
+
+  // -----------------------------------------------------------
 
   it('"lockScaQuick" extend lock without auto check (Only give amount) should success', async () => {
     const tx = scallopBuilder.createTxBlock();
@@ -490,16 +531,35 @@ describe('Test Scallop VeSca Builder', async () => {
     const lockAmount = 0.5 * 10 ** 9; // lock less than 1 amount
 
     await expect(
-      tx.extendLockAmountQuick(lockAmount, expiredVeScaKey)
+      // tx.extendLockAmountQuick(lockAmount, expiredVeScaKey)
+      tx.extendLockAmountQuick(lockAmount)
     ).rejects.toThrow(Error('Minimum top up amount is 1 SCA'));
   });
 
+  it('"extendLockAmountQuick" extend lock with auto check (lock more or equal to 1 SCA) should success', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    tx.setSender(sender);
+
+    const lockAmount = 1 * 10 ** 9; // lock less than 1 amount
+    tx.extendLockAmountQuick(lockAmount);
+
+    const extendLockPeriodQuickResult =
+      await scallopBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('ExtendLockPeriodQuickResult:', extendLockPeriodQuickResult);
+    }
+    expect(extendLockPeriodQuickResult.effects?.status.status).toEqual(
+      'success'
+    );
+  });
+
   it('"extendLockAmountQuick" extend lock without auto check should success', async () => {
-    const { tx, veScaKey } = await createNewVeScaTx();
+    const tx = scallopBuilder.createTxBlock();
+    tx.setSender(sender);
 
     const lockAmount = 1 * 10 ** 9; // only extend 1 amount
 
-    await tx.extendLockAmountQuick(lockAmount, veScaKey, false);
+    await tx.extendLockAmountQuick(lockAmount, undefined, false);
     const extendLockAmountQuickResult =
       await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
@@ -522,7 +582,7 @@ describe('Test Scallop VeSca Builder', async () => {
     );
   });
 
-  it('"extendLockPeriodQuick" extend lock with auto check (lock period less than 1 day) should throw error', async () => {
+  it('"extendLockPeriodQuick" extend lock on expired veSCA should throw error', async () => {
     const tx = scallopBuilder.createTxBlock();
     tx.setSender(sender);
 
@@ -530,7 +590,9 @@ describe('Test Scallop VeSca Builder', async () => {
 
     await expect(
       tx.extendLockPeriodQuick(lockPeriodInDays, expiredVeScaKey)
-    ).rejects.toThrow(Error('Lock period must be greater than 0'));
+    ).rejects.toThrow(
+      Error('veSca is expired, use renewExpiredVeScaQuick instead')
+    );
   });
 
   it('"extendLockPeriodQuick" extend lock without auto check should success', async () => {
@@ -660,5 +722,95 @@ describe('Test Scallop VeSca Builder', async () => {
       console.info('RedeemScaQuickResult:', redeemScaQuickResult);
     }
     expect(redeemScaQuickResult.effects?.status.status).toEqual('failure');
+  });
+});
+
+describe('Test Scallop Referral Builder', async () => {
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const sender = scallopBuilder.walletAddress;
+
+  console.info('Sender:', sender);
+
+  const veScaReferral =
+    '0xad50994e23ae4268fc081f477d0bdc3f1b92c7049c9038dedec5bac725273d18' as const;
+
+  const createRandomWalletAccountBuilder = async () => {
+    const scallopSDK = new Scallop({
+      secretKey: '',
+      networkType: NETWORK,
+    });
+    const scallopBuilder = await scallopSDK.createScallopBuilder();
+    return scallopBuilder;
+  };
+
+  // must use an account that haven't bind to any referral
+  it('"bindToReferral" should succeed', async () => {
+    const randomBuilder = await createRandomWalletAccountBuilder();
+    const tx = randomBuilder.createTxBlock();
+    tx.bindToReferral(veScaReferral);
+
+    const bindReferralResult = await randomBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('BindReferralResult:', bindReferralResult);
+    }
+    expect(bindReferralResult.effects?.status.status).toEqual('success');
+  });
+
+  // use account that already binds to a referral
+  it('"bindToReferral" should fail', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    tx.bindToReferral(veScaReferral);
+
+    const bindReferralResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('BindReferralResult:', bindReferralResult);
+    }
+    expect(bindReferralResult.effects?.status.status).toEqual('failure');
+    const error = bindReferralResult.effects?.status.error as string;
+    expect(error.includes('Some("bind_ve_sca_referrer") }, 405')).toBe(true);
+  });
+
+  it('"claimReferralTicket" and "burnReferralTicket" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+
+    const ticket = tx.claimReferralTicket('sui');
+    tx.burnReferralTicket(ticket, 'sui');
+
+    const claimReferralTicketResult =
+      await scallopBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('ClaimReferralTicketResult:', claimReferralTicketResult);
+    }
+    expect(claimReferralTicketResult.effects?.status.status).toEqual('success');
+  });
+});
+
+describe('Test Scallop Loyalty Program Builder', async () => {
+  // Please set IS_VE_SCA_TEST to true in constants/common.ts
+
+  const scallopSDK = new Scallop({
+    secretKey: process.env.SECRET_KEY,
+    networkType: NETWORK,
+  });
+  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const sender = scallopBuilder.walletAddress;
+
+  console.info('Sender:', sender);
+
+  // make sure account has pending reward
+  it('"claimRevenueQuick" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    // Sender is required to invoke "claimRevenueQuick".
+    tx.setSender(sender);
+    await tx.claimLoyaltyRevenueQuick();
+    const claimRevenueQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('ClaimRevenueQuickResult:', claimRevenueQuickResult);
+    }
+    expect(claimRevenueQuickResult.effects?.status.status).toEqual('success');
   });
 });

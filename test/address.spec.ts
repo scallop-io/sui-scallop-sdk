@@ -6,7 +6,7 @@ import type { AddressesInterface } from '../src';
 
 dotenv.config();
 
-const ENABLE_LOG = true;
+const ENABLE_LOG = false;
 
 const TEST_ADDRESSES_ID = '';
 const NETWORK: NetworkType = 'mainnet';
