@@ -9,6 +9,7 @@ import type { ScallopQuery } from '../models';
 import { MAX_LOCK_DURATION } from 'src/constants';
 import { SUI_CLOCK_OBJECT_ID, SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui.js/bcs';
+import { z as zod } from 'zod';
 /**
  * Query all owned veSca key.
  *
@@ -63,11 +64,10 @@ export const getVescaKeys = async (
  */
 export const getVeScas = async (query: ScallopQuery, ownerAddress?: string) => {
   const keyObjectDatas = await getVescaKeys(query, ownerAddress);
-  const keyObjectId: string[] = keyObjectDatas.map((data) => data.objectId);
 
-  const veScas: Vesca[] = Array(keyObjectId.length).fill(null);
-  const tasks = keyObjectId.map(async (keyId, idx) => {
-    const veSca = await getVeSca(query, keyId);
+  const veScas: (Vesca | undefined)[] = Array(keyObjectDatas.length).fill(null);
+  const tasks = keyObjectDatas.map(async (veScaKey, idx) => {
+    const veSca = await getVeSca(query, veScaKey);
     if (veSca) {
       veScas[idx] = veSca;
     }
@@ -79,22 +79,33 @@ export const getVeScas = async (query: ScallopQuery, ownerAddress?: string) => {
     .sort((a, b) => b!.currentVeScaBalance - a!.currentVeScaBalance);
 };
 
+const SuiObjectRefZod = zod.object({
+  objectId: zod.string(),
+  digest: zod.string(),
+  version: zod.string(),
+});
+
+type SuiObjectRefType = zod.infer<typeof SuiObjectRefZod>;
 /**
  * Get veSca data.
  *
  * @param query - The Scallop query instance.
- * @param veScaKeyId - The vesca key id.
+ * @param veScaKey - The vesca key id.
  * @param ownerAddress - The owner address.
  * @returns Vesca data.
  */
 export const getVeSca = async (
   query: ScallopQuery,
-  veScaKeyId?: string,
+  veScaKey?: string | SuiObjectData,
   ownerAddress?: string
 ) => {
   const tableId = query.address.get(`vesca.tableId`);
-  veScaKeyId =
-    veScaKeyId || (await getVescaKeys(query, ownerAddress))[0].objectId;
+  veScaKey = veScaKey || (await getVescaKeys(query, ownerAddress))[0];
+
+  if (!veScaKey) return undefined;
+  if (typeof veScaKey === 'object') {
+    veScaKey = SuiObjectRefZod.parse(veScaKey) as SuiObjectRefType;
+  }
 
   let vesca: Vesca | undefined = undefined;
 
@@ -103,7 +114,7 @@ export const getVeSca = async (
       parentId: tableId,
       name: {
         type: '0x2::object::ID',
-        value: veScaKeyId,
+        value: typeof veScaKey === 'string' ? veScaKey : veScaKey.objectId,
       },
     });
   const veScaDynamicFieldObject = veScaDynamicFieldObjectResponse.data;
@@ -131,7 +142,9 @@ export const getVeSca = async (
 
     vesca = {
       id: veScaDynamicFieldObject.objectId,
-      keyId: veScaKeyId,
+      keyId: typeof veScaKey === 'string' ? veScaKey : veScaKey.objectId,
+      keyObject: typeof veScaKey === 'string' ? undefined : veScaKey,
+      object: SuiObjectRefZod.parse(veScaDynamicFieldObjectResponse.data),
       lockedScaAmount,
       lockedScaCoin,
       currentVeScaBalance,
@@ -232,6 +245,8 @@ export const getVeScaTreasuryInfo = async (
 
   const treasuryFields = veScaTreasury.data.content
     .fields as VeScaTreasuryFields;
+
+  console.log(treasuryFields);
   const totalLockedSca = BigNumber(
     treasuryFields.unlock_schedule.fields.locked_sca_amount
   )

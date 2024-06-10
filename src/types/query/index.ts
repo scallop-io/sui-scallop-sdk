@@ -3,3 +3,4 @@ export type * from './spool';
 export type * from './borrowIncentive';
 export type * from './portfolio';
 export type * from './vesca';
+export type * from './loyaltyProgram';
