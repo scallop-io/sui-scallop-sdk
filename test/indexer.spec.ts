@@ -7,7 +7,7 @@ dotenv.config();
 const ENABLE_LOG = true;
 
 describe('Test Scallop Indexer', () => {
-  const scallopIndexer = new ScallopIndexer();
+  const scallopIndexer = new ScallopIndexer({});
 
   it('Should get market', async () => {
     const market = await scallopIndexer.getMarket();
