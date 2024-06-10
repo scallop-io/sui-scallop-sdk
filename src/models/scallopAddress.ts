@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../constants';
+import { API_BASE_URL, IS_VE_SCA_TEST } from '../constants';
 import type { NetworkType } from '@scallop-io/sui-kit';
 import type {
   ScallopAddressParams,
@@ -8,6 +8,7 @@ import type {
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import axios, { AxiosInstance } from 'axios';
+import { TEST_ADDRESSES } from 'src/constants/testAddress';
 
 const EMPTY_ADDRESSES: AddressesInterface = {
   core: {
@@ -302,6 +303,12 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     tiersTableId: '',
     authorizedWitnessList: '',
   },
+  loyaltyProgram: {
+    id: '',
+    object: '',
+    rewardPool: '',
+    userRewardTableId: '',
+  },
 };
 /**
  * @description
@@ -338,7 +345,10 @@ export class ScallopAddress {
     if (auth) this._auth = auth;
     this._id = id;
     this._network = network || 'mainnet';
-    this._addressesMap = new Map();
+    this._addressesMap = IS_VE_SCA_TEST
+      ? new Map([['mainnet', TEST_ADDRESSES]])
+      : new Map();
+    if (IS_VE_SCA_TEST) this._currentAddresses = TEST_ADDRESSES;
   }
 
   /**

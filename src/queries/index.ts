@@ -5,3 +5,4 @@ export * from './priceQuery';
 export * from './portfolioQuery';
 export * from './vescaQuery';
 export * from './referralQuery';
+export * from './loyaltyProgramQuery';
