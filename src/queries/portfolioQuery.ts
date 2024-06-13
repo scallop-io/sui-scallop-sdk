@@ -49,36 +49,44 @@ export const getLendings = async (
     (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName)
   ) as SupportStakeMarketCoins[];
 
-  const marketPools = await query.getMarketPools(poolCoinNames, indexer);
-  const spools = await query.getSpools(stakeMarketCoinNames, indexer);
-  const coinAmounts = await query.getCoinAmounts(poolCoinNames, ownerAddress);
-  const marketCoinAmounts = await query.getMarketCoinAmounts(
-    marketCoinNames,
-    ownerAddress
-  );
-  const allStakeAccounts = await query.getAllStakeAccounts(ownerAddress);
-  const coinPrices = await query.utils.getCoinPrices(poolCoinNames);
+  const [
+    marketPools,
+    spools,
+    coinAmounts,
+    marketCoinAmounts,
+    allStakeAccounts,
+    coinPrices,
+  ] = await Promise.all([
+    query.getMarketPools(poolCoinNames, indexer),
+    query.getSpools(stakeMarketCoinNames, indexer),
+    query.getCoinAmounts(poolCoinNames, ownerAddress),
+    query.getMarketCoinAmounts(marketCoinNames, ownerAddress),
+    query.getAllStakeAccounts(ownerAddress),
+    query.utils.getCoinPrices(poolCoinNames),
+  ]);
 
   const lendings: Lendings = {};
-  for (const poolCoinName of poolCoinNames) {
-    const stakeMarketCoinName = stakeMarketCoinNames.find(
-      (marketCoinName) =>
-        marketCoinName === query.utils.parseMarketCoinName(poolCoinName)
-    );
-    const marketCoinName = query.utils.parseMarketCoinName(poolCoinName);
-    lendings[poolCoinName] = await getLending(
-      query,
-      poolCoinName,
-      ownerAddress,
-      indexer,
-      marketPools?.[poolCoinName],
-      stakeMarketCoinName ? spools[stakeMarketCoinName] : undefined,
-      stakeMarketCoinName ? allStakeAccounts[stakeMarketCoinName] : undefined,
-      coinAmounts?.[poolCoinName],
-      marketCoinAmounts?.[marketCoinName],
-      coinPrices?.[poolCoinName] ?? 0
-    );
-  }
+  await Promise.allSettled(
+    poolCoinNames.map(async (poolCoinName) => {
+      const stakeMarketCoinName = stakeMarketCoinNames.find(
+        (marketCoinName) =>
+          marketCoinName === query.utils.parseMarketCoinName(poolCoinName)
+      );
+      const marketCoinName = query.utils.parseMarketCoinName(poolCoinName);
+      lendings[poolCoinName] = await getLending(
+        query,
+        poolCoinName,
+        ownerAddress,
+        indexer,
+        marketPools?.[poolCoinName],
+        stakeMarketCoinName ? spools[stakeMarketCoinName] : undefined,
+        stakeMarketCoinName ? allStakeAccounts[stakeMarketCoinName] : undefined,
+        coinAmounts?.[poolCoinName],
+        marketCoinAmounts?.[marketCoinName],
+        coinPrices?.[poolCoinName] ?? 0
+      );
+    })
+  );
 
   return lendings;
 };
