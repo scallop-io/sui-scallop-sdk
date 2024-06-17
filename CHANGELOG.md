@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.38](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.37...v0.46.38) (2024-06-17)
+
+### Bug Fixes
+
+- Fix order of execution ([5cfdc24](https://github.com/scallop-io/sui-scallop-sdk/pull/124/commits/5cfdc2416b295c68d13ba0456c0ce7b39164e1f3))
+- Use concurrency on `getStakeRewardPools` ([c59cfdb](https://github.com/scallop-io/sui-scallop-sdk/pull/124/commits/c59cfdb02a1b89085873aaa476a673e984a8b4b3))
+
 ### [0.46.37](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.36...v0.46.37) (2024-06-10)
 
 ### Features
