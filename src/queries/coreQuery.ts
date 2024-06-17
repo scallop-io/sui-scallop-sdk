@@ -50,18 +50,6 @@ export const queryMarket = async (
   query: ScallopQuery,
   indexer: boolean = false
 ) => {
-  const packageId = query.address.get('core.packages.query.id');
-  const marketId = query.address.get('core.market');
-  const queryTarget = `${packageId}::market_query::market_data`;
-  const args = [marketId];
-
-  // const txBlock = new SuiKitTxBlock();
-  // txBlock.moveCall(queryTarget, args);
-  const queryResult = await query.cache.queryInspectTxn(
-    { queryTarget, args }
-    // txBlock
-  );
-  const marketData = queryResult.events[0].parsedJson as MarketQueryInterface;
   const coinPrices = await query.utils.getCoinPrices();
 
   const pools: MarketPools = {};
@@ -85,6 +73,14 @@ export const queryMarket = async (
       collaterals: marketIndexer.collaterals,
     };
   }
+
+  const packageId = query.address.get('core.packages.query.id');
+  const marketId = query.address.get('core.market');
+  const queryTarget = `${packageId}::market_query::market_data`;
+  const args = [marketId];
+
+  const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
+  const marketData = queryResult.events[0].parsedJson as MarketQueryInterface;
 
   for (const pool of marketData.pools) {
     const coinType = normalizeStructTag(pool.type.name);
