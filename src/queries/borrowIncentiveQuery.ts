@@ -37,14 +37,6 @@ export const queryBorrowIncentivePools = async (
   borrowIncentiveCoinNames = borrowIncentiveCoinNames || [
     ...SUPPORT_BORROW_INCENTIVE_POOLS,
   ];
-  const queryPkgId = query.address.get('borrowIncentive.query');
-  const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
-
-  const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
-  const args = [incentivePoolsId];
-  const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
-  const borrowIncentivePoolsQueryData = queryResult.events[0]
-    .parsedJson as BorrowIncentivePoolsQueryInterface;
 
   const borrowIncentivePools: BorrowIncentivePools = {};
 
@@ -74,6 +66,15 @@ export const queryBorrowIncentivePools = async (
     }
     return borrowIncentivePools;
   }
+
+  const queryPkgId = query.address.get('borrowIncentive.query');
+  const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
+
+  const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
+  const args = [incentivePoolsId];
+  const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
+  const borrowIncentivePoolsQueryData = queryResult.events[0]
+    .parsedJson as BorrowIncentivePoolsQueryInterface;
 
   for (const pool of borrowIncentivePoolsQueryData.incentive_pools) {
     const borrowIncentivePoolPoints: OptionalKeys<

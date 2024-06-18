@@ -173,19 +173,20 @@ export const calculateMarketPoolData = (
 export const parseOriginMarketCollateralData = (
   originMarketCollateralData: OriginMarketCollateralData
 ): ParsedMarketCollateralData => {
+  const divisor = 2 ** 32;
   return {
     coinType: normalizeStructTag(originMarketCollateralData.type.name),
     collateralFactor:
-      Number(originMarketCollateralData.collateralFactor.value) / 2 ** 32,
+      Number(originMarketCollateralData.collateralFactor.value) / divisor,
     liquidationFactor:
-      Number(originMarketCollateralData.liquidationFactor.value) / 2 ** 32,
+      Number(originMarketCollateralData.liquidationFactor.value) / divisor,
     liquidationDiscount:
-      Number(originMarketCollateralData.liquidationDiscount.value) / 2 ** 32,
+      Number(originMarketCollateralData.liquidationDiscount.value) / divisor,
     liquidationPanelty:
-      Number(originMarketCollateralData.liquidationPanelty.value) / 2 ** 32,
+      Number(originMarketCollateralData.liquidationPanelty.value) / divisor,
     liquidationReserveFactor:
       Number(originMarketCollateralData.liquidationReserveFactor.value) /
-      2 ** 32,
+      divisor,
     maxCollateralAmount: Number(originMarketCollateralData.maxCollateralAmount),
     totalCollateralAmount: Number(
       originMarketCollateralData.totalCollateralAmount
