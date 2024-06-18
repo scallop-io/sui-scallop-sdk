@@ -50,18 +50,6 @@ export const queryMarket = async (
   query: ScallopQuery,
   indexer: boolean = false
 ) => {
-  const packageId = query.address.get('core.packages.query.id');
-  const marketId = query.address.get('core.market');
-  const queryTarget = `${packageId}::market_query::market_data`;
-  const args = [marketId];
-
-  // const txBlock = new SuiKitTxBlock();
-  // txBlock.moveCall(queryTarget, args);
-  const queryResult = await query.cache.queryInspectTxn(
-    { queryTarget, args }
-    // txBlock
-  );
-  const marketData = queryResult.events[0].parsedJson as MarketQueryInterface;
   const coinPrices = await query.utils.getCoinPrices();
 
   const pools: MarketPools = {};
@@ -85,6 +73,14 @@ export const queryMarket = async (
       collaterals: marketIndexer.collaterals,
     };
   }
+
+  const packageId = query.address.get('core.packages.query.id');
+  const marketId = query.address.get('core.market');
+  const queryTarget = `${packageId}::market_query::market_data`;
+  const args = [marketId];
+
+  const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
+  const marketData = queryResult.events[0].parsedJson as MarketQueryInterface;
 
   for (const pool of marketData.pools) {
     const coinType = normalizeStructTag(pool.type.name);
@@ -236,19 +232,21 @@ export const getMarketPools = async (
     return marketPools;
   }
 
-  for (const poolCoinName of poolCoinNames) {
-    const marketPool = await getMarketPool(
-      query,
-      poolCoinName,
-      indexer,
-      marketObjectResponse.data,
-      coinPrices?.[poolCoinName]
-    );
+  Promise.allSettled(
+    poolCoinNames.map(async (poolCoinName) => {
+      const marketPool = await getMarketPool(
+        query,
+        poolCoinName,
+        indexer,
+        marketObjectResponse.data,
+        coinPrices?.[poolCoinName]
+      );
 
-    if (marketPool) {
-      marketPools[poolCoinName] = marketPool;
-    }
-  }
+      if (marketPool) {
+        marketPools[poolCoinName] = marketPool;
+      }
+    })
+  );
 
   return marketPools;
 };
@@ -475,11 +473,12 @@ export const getMarketCollaterals = async (
 ) => {
   collateralCoinNames = collateralCoinNames || [...SUPPORT_COLLATERALS];
   const marketId = query.address.get('core.market');
-  const marketObjectResponse = await query.cache.queryGetObject(marketId, {
-    showContent: true,
-  });
-  const coinPrices = await query.utils.getCoinPrices(collateralCoinNames ?? []);
-
+  const [marketObjectResponse, coinPrices] = await Promise.all([
+    query.cache.queryGetObject(marketId, {
+      showContent: true,
+    }),
+    query.utils.getCoinPrices(collateralCoinNames ?? []),
+  ]);
   const marketCollaterals: MarketCollaterals = {};
 
   if (indexer) {
@@ -496,19 +495,21 @@ export const getMarketCollaterals = async (
     return marketCollaterals;
   }
 
-  for (const collateralCoinName of collateralCoinNames) {
-    const marketCollateral = await getMarketCollateral(
-      query,
-      collateralCoinName,
-      indexer,
-      marketObjectResponse.data,
-      coinPrices?.[collateralCoinName]
-    );
+  await Promise.allSettled(
+    collateralCoinNames.map(async (collateralCoinName) => {
+      const marketCollateral = await getMarketCollateral(
+        query,
+        collateralCoinName,
+        indexer,
+        marketObjectResponse.data,
+        coinPrices?.[collateralCoinName]
+      );
 
-    if (marketCollateral) {
-      marketCollaterals[collateralCoinName] = marketCollateral;
-    }
-  }
+      if (marketCollateral) {
+        marketCollaterals[collateralCoinName] = marketCollateral;
+      }
+    })
+  );
 
   return marketCollaterals;
 };
@@ -530,6 +531,22 @@ export const getMarketCollateral = async (
   marketObject?: SuiObjectData | null,
   coinPrice?: number
 ) => {
+  if (indexer) {
+    const marketCollateralIndexer =
+      await query.indexer.getMarketCollateral(collateralCoinName);
+    marketCollateralIndexer.coinPrice =
+      coinPrice || marketCollateralIndexer.coinPrice;
+    marketCollateralIndexer.coinWrappedType = query.utils.getCoinWrappedType(
+      marketCollateralIndexer.coinName
+    );
+
+    return marketCollateralIndexer;
+  }
+
+  let marketCollateral: MarketCollateral | undefined;
+  let riskModel: RiskModel | undefined;
+  let collateralStat: CollateralStat | undefined;
+
   const marketId = query.address.get('core.market');
   marketObject =
     marketObject ||
@@ -544,22 +561,6 @@ export const getMarketCollateral = async (
     (await query.utils.getCoinPrices([collateralCoinName]))?.[
       collateralCoinName
     ];
-
-  let marketCollateral: MarketCollateral | undefined;
-  let riskModel: RiskModel | undefined;
-  let collateralStat: CollateralStat | undefined;
-
-  if (indexer) {
-    const marketCollateralIndexer =
-      await query.indexer.getMarketCollateral(collateralCoinName);
-    marketCollateralIndexer.coinPrice =
-      coinPrice || marketCollateralIndexer.coinPrice;
-    marketCollateralIndexer.coinWrappedType = query.utils.getCoinWrappedType(
-      marketCollateralIndexer.coinName
-    );
-
-    return marketCollateralIndexer;
-  }
 
   if (marketObject) {
     if (marketObject.content && 'fields' in marketObject.content) {
@@ -698,15 +699,18 @@ export const getObligations = async (
   const keyObjects = await query.cache.queryGetObjects(keyObjectIds);
 
   const obligations: Obligation[] = [];
-  for (const keyObject of keyObjects) {
-    const keyId = keyObject.objectId;
-    if (keyObject.content && 'fields' in keyObject.content) {
-      const fields = keyObject.content.fields as any;
-      const obligationId = String(fields.ownership.fields.of);
-      const locked = await getObligationLocked(query, obligationId);
-      obligations.push({ id: obligationId, keyId, locked });
-    }
-  }
+  await Promise.allSettled(
+    keyObjects.map(async (keyObject) => {
+      const keyId = keyObject.objectId;
+      if (keyObject.content && 'fields' in keyObject.content) {
+        const fields = keyObject.content.fields as any;
+        const obligationId = String(fields.ownership.fields.of);
+        const locked = await getObligationLocked(query, obligationId);
+        obligations.push({ id: obligationId, keyId, locked });
+      }
+    })
+  );
+
   return obligations;
 };
 
