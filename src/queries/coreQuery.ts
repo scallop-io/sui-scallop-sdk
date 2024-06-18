@@ -531,6 +531,22 @@ export const getMarketCollateral = async (
   marketObject?: SuiObjectData | null,
   coinPrice?: number
 ) => {
+  if (indexer) {
+    const marketCollateralIndexer =
+      await query.indexer.getMarketCollateral(collateralCoinName);
+    marketCollateralIndexer.coinPrice =
+      coinPrice || marketCollateralIndexer.coinPrice;
+    marketCollateralIndexer.coinWrappedType = query.utils.getCoinWrappedType(
+      marketCollateralIndexer.coinName
+    );
+
+    return marketCollateralIndexer;
+  }
+
+  let marketCollateral: MarketCollateral | undefined;
+  let riskModel: RiskModel | undefined;
+  let collateralStat: CollateralStat | undefined;
+
   const marketId = query.address.get('core.market');
   marketObject =
     marketObject ||
@@ -545,22 +561,6 @@ export const getMarketCollateral = async (
     (await query.utils.getCoinPrices([collateralCoinName]))?.[
       collateralCoinName
     ];
-
-  let marketCollateral: MarketCollateral | undefined;
-  let riskModel: RiskModel | undefined;
-  let collateralStat: CollateralStat | undefined;
-
-  if (indexer) {
-    const marketCollateralIndexer =
-      await query.indexer.getMarketCollateral(collateralCoinName);
-    marketCollateralIndexer.coinPrice =
-      coinPrice || marketCollateralIndexer.coinPrice;
-    marketCollateralIndexer.coinWrappedType = query.utils.getCoinWrappedType(
-      marketCollateralIndexer.coinName
-    );
-
-    return marketCollateralIndexer;
-  }
 
   if (marketObject) {
     if (marketObject.content && 'fields' in marketObject.content) {
