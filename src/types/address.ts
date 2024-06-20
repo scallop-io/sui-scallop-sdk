@@ -121,6 +121,9 @@ export interface AddressesInterface {
     rewardPool: string;
     userRewardTableId: string;
   };
+  sCoin: {
+    id: string;
+  };
 }
 
 type AddressPathsProps<T> = T extends string

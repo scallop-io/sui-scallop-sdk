@@ -7,6 +7,7 @@ import type {
 import type { TransactionResult } from '@mysten/sui.js/transactions';
 import type { ScallopBuilder } from '../../models';
 import type { SupportStakeMarketCoins } from '../constant';
+import { BaseScallopTxBlock } from '.';
 
 export type SpoolIds = {
   spoolPkg: string;
@@ -50,6 +51,7 @@ export type SpoolQuickMethods = {
 };
 
 export type SuiTxBlockWithSpoolNormalMethods = SuiKitTxBlock &
+  BaseScallopTxBlock &
   SpoolNormalMethods;
 
 export type SpoolTxBlock = SuiTxBlockWithSpoolNormalMethods & SpoolQuickMethods;

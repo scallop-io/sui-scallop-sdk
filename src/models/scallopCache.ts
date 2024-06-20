@@ -1,5 +1,10 @@
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
-import { SuiTxArg, SuiTxBlock, normalizeStructTag } from '@scallop-io/sui-kit';
+import {
+  SuiTxArg,
+  SuiTxBlock,
+  normalizeStructTag,
+  normalizeSuiAddress,
+} from '@scallop-io/sui-kit';
 import { SuiKit } from '@scallop-io/sui-kit';
 import type {
   SuiObjectResponse,
@@ -162,6 +167,7 @@ export class ScallopCache {
     objectIds: string[],
     options?: SuiObjectDataOptions
   ): Promise<SuiObjectData[]> {
+    if (objectIds.length === 0) throw new Error('objectIds cannot be empty');
     const queryKey = [
       'getObjects',
       JSON.stringify(objectIds),
@@ -171,7 +177,7 @@ export class ScallopCache {
       queryKey.push(JSON.stringify(options));
     }
     return this.queryClient.fetchQuery({
-      queryKey,
+      queryKey: queryKey,
       queryFn: async () => {
         return await this.suiKit.getObjects(objectIds, options);
       },
@@ -254,7 +260,7 @@ export class ScallopCache {
         const allBalances = await this.suiKit
           .client()
           .getAllBalances({ owner });
-        return allBalances.reduce(
+        const balances = allBalances.reduce(
           (acc, coinBalance) => {
             if (coinBalance.totalBalance !== '0') {
               acc[normalizeStructTag(coinBalance.coinType)] =
@@ -264,12 +270,34 @@ export class ScallopCache {
           },
           {} as { [k: string]: string }
         );
+
+        // Set query data for each coin balance
+        for (const coinType in balances) {
+          const coinBalanceQueryKey = [
+            'getCoinBalance',
+            normalizeSuiAddress(owner),
+            normalizeStructTag(coinType),
+          ];
+          this.queryClient.setQueryData(
+            coinBalanceQueryKey,
+            balances[coinType]
+          );
+        }
+
+        return balances;
       },
+      staleTime: 5000,
     });
   }
 
   public async queryGetCoinBalance(input: GetBalanceParams): Promise<string> {
-    const queryKey = ['getCoinBalance', input.owner, input.coinType];
+    if (!input.coinType) return '0';
+
+    const queryKey = [
+      'getCoinBalance',
+      normalizeSuiAddress(input.owner),
+      normalizeStructTag(input.coinType),
+    ];
     return this.queryClient.fetchQuery({
       queryKey,
       queryFn: async () => {

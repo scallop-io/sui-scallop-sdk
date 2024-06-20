@@ -2,20 +2,28 @@ import { AddressesInterface } from 'src/types';
 
 export const TEST_ADDRESSES: AddressesInterface = {
   core: {
+    // version:
+    //   '0x07871c4b3c847a0f674510d4978d5cf6f960452795e8ff6f189fd2088a3f6ac7',
     version:
-      '0x07871c4b3c847a0f674510d4978d5cf6f960452795e8ff6f189fd2088a3f6ac7',
+      '0x6156d5cd1538bec8a167a40fe1209a4ec9cf8137921fe0a697f191ac561f0b09',
     versionCap:
       '0x590a4011cb649b3878f3ea14b3a78674642a9548d79b7e091ef679574b158a07',
+    // object:
+    //   '0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf',
     object:
-      '0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf',
+      '0x87ddec2984645dbbe2403a509cc6edf393a43acdba9b77d45da2bcbefcf733c1',
+    // market:
+    //   '0xa757975255146dc9686aa823b7838b507f315d704f428cbadad2f4ea061939d9',
     market:
-      '0xa757975255146dc9686aa823b7838b507f315d704f428cbadad2f4ea061939d9',
+      '0x8606ed145cc887985b8ed793f7753ff5dc762a42c379dac035f568e1bac58490',
     adminCap:
       '0x09689d018e71c337d9db6d67cbca06b74ed92196103624028ccc3ecea411777c',
     coinDecimalsRegistry:
       '0x200abe9bf19751cc566ae35aa58e2b7e4ff688fc1130f8d8909ea09bc137d668',
+    // obligationAccessStore:
+    //   '0x733e30b7c94d619d78cb8f5bc4bfbb759ced9a531239028caabb2474e5be59c9',
     obligationAccessStore:
-      '0x733e30b7c94d619d78cb8f5bc4bfbb759ced9a531239028caabb2474e5be59c9',
+      '0x48b472d68ca910c45f7f3b6c26836b6aa6d2569810d94b1b939023da05ae0a23',
     coins: {
       cetus: {
         id: '0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b',
@@ -241,17 +249,27 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0x3f203f6fff6a69d151e4f1cd931f22b68c489ef2759765662fc7baf673943c9e',
       },
       protocol: {
-        id: '0x6e641f0dca8aedab3101d047e96439178f16301bf0b57fe8745086ff1195eb3e',
+        id: '0x87ddec2984645dbbe2403a509cc6edf393a43acdba9b77d45da2bcbefcf733c1',
         upgradeCap:
           '0x38527d154618d1fd5a644b90717fe07cf0e9f26b46b63e9568e611a3f86d5c1a',
       },
+      // protocol: {
+      //   id: '0x6e641f0dca8aedab3101d047e96439178f16301bf0b57fe8745086ff1195eb3e',
+      //   upgradeCap:
+      //     '0x38527d154618d1fd5a644b90717fe07cf0e9f26b46b63e9568e611a3f86d5c1a',
+      // },
       protocolWhitelist: {
         id: '0x4c262d9343dac53ecb28f482a2a3f62c73d0ebac5b5f03d57383d56ff219acdf',
         upgradeCap:
           '0x4a5e88a75039b00988f633f811f58117f31b8627a46bf822aa114d9010049449',
       },
+      // query: {
+      //   id: '0xb8d603a39114a5efef3dd0bf84df0bed1be1fbd39b78b7dd6e8a61ccc5e6006f',
+      //   upgradeCap:
+      //     '0x0d535c35f608b9b01b7ccce11acf43b1dd80c1b72bf8b541744a6e28e8d2745f',
+      // },
       query: {
-        id: '0xb8d603a39114a5efef3dd0bf84df0bed1be1fbd39b78b7dd6e8a61ccc5e6006f',
+        id: '0xe4f9d62d17746d5b9dbf0d5557747430021a71575780b515161210cdba0a4c1c',
         upgradeCap:
           '0x0d535c35f608b9b01b7ccce11acf43b1dd80c1b72bf8b541744a6e28e8d2745f',
       },
@@ -352,8 +370,10 @@ export const TEST_ADDRESSES: AddressesInterface = {
       '0x962cb903d8d7346190c5204785ccbb91b61086aa764f674c8145df82335cf83e',
     tiersTableId:
       '0xeac755a7a8b7798530905ac79e8c114f19d0f130f6eab012954f08faac29c75d',
+    // authorizedWitnessList:
+    //   '0xf21b0ed043c9bb70842c0129159f4943dbcc3c9ef2f2f808af65f8be25cfd20e',
     authorizedWitnessList:
-      '0xf21b0ed043c9bb70842c0129159f4943dbcc3c9ef2f2f808af65f8be25cfd20e',
+      '0x9d6223dc52015b8a3986a573590ef2af8f1b8f3e4685513888c052f001b87e7f',
     version:
       '0x1bd4b7285f72e11c316b828c7c47b3f4da18dcec9f9b3dba6d8629cbb6f93e5e',
   },
@@ -379,5 +399,8 @@ export const TEST_ADDRESSES: AddressesInterface = {
       '0xf9c090492ef476bd542109d0913ffe871cbfa28578b7114eca2a8c0e5671786f',
     userRewardTableId:
       '0x748a80395849ed37db1b0e14f2ab5d1d96458d2359ab3a84eb079d0f4ac7cf2e',
+  },
+  sCoin: {
+    id: '0xad2ca2aa5089df94bb2d444d5eb3520378c2f2dfb3a0bd2a2c994145ac4b0a53',
   },
 };

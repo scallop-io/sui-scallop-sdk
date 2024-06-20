@@ -1,4 +1,4 @@
-import { API_BASE_URL, IS_VE_SCA_TEST } from '../constants';
+import { API_BASE_URL, USE_TEST_ADDRESS } from '../constants';
 import type { NetworkType } from '@scallop-io/sui-kit';
 import type {
   ScallopAddressParams,
@@ -309,6 +309,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     rewardPool: '',
     userRewardTableId: '',
   },
+  sCoin: {
+    id: '',
+  },
 };
 /**
  * @description
@@ -345,10 +348,10 @@ export class ScallopAddress {
     if (auth) this._auth = auth;
     this._id = id;
     this._network = network || 'mainnet';
-    this._addressesMap = IS_VE_SCA_TEST
+    this._addressesMap = USE_TEST_ADDRESS
       ? new Map([['mainnet', TEST_ADDRESSES]])
       : new Map();
-    if (IS_VE_SCA_TEST) this._currentAddresses = TEST_ADDRESSES;
+    if (USE_TEST_ADDRESS) this._currentAddresses = TEST_ADDRESSES;
   }
 
   /**
