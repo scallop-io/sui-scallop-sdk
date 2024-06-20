@@ -232,7 +232,7 @@ export const getMarketPools = async (
     return marketPools;
   }
 
-  Promise.allSettled(
+  await Promise.allSettled(
     poolCoinNames.map(async (poolCoinName) => {
       const marketPool = await getMarketPool(
         query,
@@ -268,19 +268,6 @@ export const getMarketPool = async (
   marketObject?: SuiObjectData | null,
   coinPrice?: number
 ) => {
-  const marketId = query.address.get('core.market');
-  marketObject =
-    marketObject ||
-    (
-      await query.cache.queryGetObject(marketId, {
-        showContent: true,
-      })
-    ).data;
-
-  coinPrice =
-    coinPrice ||
-    (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName];
-
   let marketPool: MarketPool | undefined;
   let balanceSheet: BalanceSheet | undefined;
   let borrowIndex: BorrowIndex | undefined;
@@ -296,6 +283,19 @@ export const getMarketPool = async (
 
     return marketPoolIndexer;
   }
+
+  const marketId = query.address.get('core.market');
+  marketObject =
+    marketObject ||
+    (
+      await query.cache.queryGetObject(marketId, {
+        showContent: true,
+      })
+    ).data;
+
+  coinPrice =
+    coinPrice ||
+    (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName];
 
   if (marketObject) {
     if (marketObject.content && 'fields' in marketObject.content) {
@@ -840,7 +840,7 @@ export const getMarketCoinAmounts = async (
   const owner = ownerAddress || query.suiKit.currentAddress();
   const marketCoins = {} as OptionalKeys<Record<SupportMarketCoins, number>>;
 
-  Promise.allSettled(
+  await Promise.allSettled(
     marketCoinNames.map(async (marketCoinName) => {
       const marketCoin = await getMarketCoinAmount(
         query,
