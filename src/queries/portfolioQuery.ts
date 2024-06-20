@@ -57,12 +57,12 @@ export const getLendings = async (
     allStakeAccounts,
     coinPrices,
   ] = await Promise.all([
-    query.getMarketPools(poolCoinNames, indexer),
-    query.getSpools(stakeMarketCoinNames, indexer),
-    query.getCoinAmounts(poolCoinNames, ownerAddress),
-    query.getMarketCoinAmounts(marketCoinNames, ownerAddress),
-    query.getAllStakeAccounts(ownerAddress),
-    query.utils.getCoinPrices(poolCoinNames),
+    await query.getMarketPools(poolCoinNames, indexer),
+    await query.getSpools(stakeMarketCoinNames, indexer),
+    await query.getCoinAmounts(poolCoinNames, ownerAddress),
+    await query.getMarketCoinAmounts(marketCoinNames, ownerAddress),
+    await query.getAllStakeAccounts(ownerAddress),
+    await query.utils.getCoinPrices(poolCoinNames),
   ]);
 
   const lendings: Lendings = {};
