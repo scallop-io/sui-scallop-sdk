@@ -44,6 +44,7 @@ import {
   StakePools,
   StakeRewardPools,
   SupportBorrowIncentiveCoins,
+  SupportSCoin,
 } from '../types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -51,6 +52,11 @@ import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { SuiObjectData } from '@mysten/sui.js/src/client';
+import {
+  getSCoinAmount,
+  getSCoinAmounts,
+  getSCoinTotalSupply,
+} from 'src/queries/sCoinQuery';
 
 /**
  * @description
@@ -592,5 +598,45 @@ export class ScallopQuery {
    */
   public async getLoyaltyProgramInfos(veScaKey?: string | SuiObjectData) {
     return await getLoyaltyProgramInformations(this, veScaKey);
+  }
+
+  /**
+   * Get total supply of sCoin
+   * @param sCoinName - Supported sCoin name
+   * @returns Total Supply
+   */
+  public async getSCoinTotalSupply(sCoinName: SupportSCoin) {
+    return await getSCoinTotalSupply(this, sCoinName);
+  }
+
+  /**
+   * Get all sCoin amounts.
+   *
+   * @param sCoinNames - Specific an array of support sCoin name.
+   * @param ownerAddress - The owner address.
+   * @return All market sCoin amounts.
+   */
+  public async getSCoinAmounts(
+    sCoinNames?: SupportSCoin[],
+    ownerAddress?: string
+  ) {
+    return await getSCoinAmounts(this, sCoinNames, ownerAddress);
+  }
+
+  /**
+   * Get sCoin amount.
+   *
+   * @param coinNames - Specific support sCoin name.
+   * @param ownerAddress - The owner address.
+   * @return sCoin amount.
+   */
+  public async getSCoinAmount(
+    sCoinName: SupportSCoin | SupportMarketCoins,
+    ownerAddress?: string
+  ) {
+    const parsedSCoinName = this.utils.parseSCoinName(sCoinName);
+    return parsedSCoinName
+      ? await getSCoinAmount(this, parsedSCoinName, ownerAddress)
+      : 0;
   }
 }

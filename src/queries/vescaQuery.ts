@@ -246,7 +246,6 @@ export const getVeScaTreasuryInfo = async (
   const treasuryFields = veScaTreasury.data.content
     .fields as VeScaTreasuryFields;
 
-  console.log(treasuryFields);
   const totalLockedSca = BigNumber(
     treasuryFields.unlock_schedule.fields.locked_sca_amount
   )

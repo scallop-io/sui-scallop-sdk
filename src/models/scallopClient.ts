@@ -4,6 +4,8 @@ import {
   ADDRESSES_ID,
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
+  SUPPORT_SPOOLS,
+  sCoinIds,
 } from '../constants';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -23,6 +25,7 @@ import type {
   SupportStakeMarketCoins,
   SupportBorrowIncentiveCoins,
   ScallopTxBlock,
+  SupportSCoin,
 } from '../types';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
@@ -949,6 +952,137 @@ export class ScallopClient {
       rewardCoins.push(rewardCoin);
     }
     txBlock.transferObjects(rewardCoins, sender);
+
+    if (sign) {
+      return (await this.suiKit.signAndSendTxn(
+        txBlock
+      )) as ScallopClientFnReturnType<S>;
+    } else {
+      return txBlock.txBlock as ScallopClientFnReturnType<S>;
+    }
+  }
+
+  /* ==================== Migrate market coin to sCoin method ==================== */
+  /**
+   * Function to migrate all market coin in user wallet into sCoin
+   * @returns Transaction response
+   */
+  public async migrateAllMarketCoin<S extends boolean>(
+    sign: S = true as S
+  ): Promise<ScallopClientFnReturnType<S>> {
+    const txBlock = this.builder.createTxBlock();
+    txBlock.setSender(this.walletAddress);
+
+    const toTransfer: TransactionObjectArgument[] = [];
+    await Promise.all(
+      Object.keys(sCoinIds).map(async (sCoinName) => {
+        /**
+         * First check marketCoin inside mini wallet
+         * Then check stakedMarketCoin inside spool
+         */
+        let toDestroyMarketCoin: TransactionObjectArgument | undefined;
+
+        // check market coin in mini wallet
+        try {
+          const marketCoins = await this.utils.selectCoins(
+            Number.MAX_SAFE_INTEGER,
+            this.utils.parseMarketCoinType(sCoinName as SupportSCoin),
+            this.walletAddress
+          ); // throw error no coins found
+
+          const marketCoinAmount = marketCoins.reduce(
+            (prev, curr) => prev + parseInt(curr.balance),
+            0
+          );
+          const [takeMarketCoin, leftMarketCoin] = txBlock.takeAmountFromCoins(
+            marketCoins,
+            marketCoinAmount
+          );
+          txBlock.mergeCoins(takeMarketCoin, [leftMarketCoin]);
+
+          toDestroyMarketCoin = takeMarketCoin;
+        } catch (e: any) {
+          // Ignore
+          const errMsg = e.toString() as String;
+          if (!errMsg.includes('No valid coins found for the transaction'))
+            throw e;
+        }
+
+        // check for staked market coin in spool
+        if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
+          try {
+            const spoolData = await this.query.getSpool(
+              sCoinName as SupportStakeMarketCoins
+            );
+            if (spoolData && spoolData?.stakedAmount > 0) {
+              const stakedMarketCoins = await txBlock.unstakeQuick(
+                spoolData.stakedAmount,
+                sCoinName as SupportStakeMarketCoins
+              );
+
+              const mergedStakedMarketCoin = stakedMarketCoins[0];
+              if (stakedMarketCoins.length > 1) {
+                txBlock.mergeCoins(
+                  mergedStakedMarketCoin,
+                  stakedMarketCoins.slice(1)
+                );
+              }
+              // merge with takeMarketCoin
+              if (toDestroyMarketCoin) {
+                txBlock.mergeCoins(toDestroyMarketCoin, [
+                  mergedStakedMarketCoin,
+                ]);
+              } else {
+                toDestroyMarketCoin = mergedStakedMarketCoin;
+              }
+            }
+          } catch (e: any) {
+            // ignore
+            const errMsg = e.toString();
+            if (!errMsg.includes('No stake account found')) throw e;
+          }
+        }
+
+        // if market coin found, mint sCoin
+        if (toDestroyMarketCoin) {
+          // mint new sCoin
+          const sCoin = txBlock.mintSCoin(
+            sCoinName as SupportSCoin,
+            toDestroyMarketCoin
+          );
+
+          // check if current sCoin exist
+          try {
+            const existSCoins = await this.utils.selectCoins(
+              Number.MAX_SAFE_INTEGER,
+              this.utils.parseSCoinType(sCoinName as SupportSCoin),
+              this.walletAddress
+            ); // throw error on no coins found
+            const sCoinAmount = existSCoins.reduce(
+              (prev, curr) => prev + parseInt(curr.balance),
+              0
+            );
+            const [takeSCoin, leftSCoin] = txBlock.takeAmountFromCoins(
+              existSCoins,
+              sCoinAmount
+            );
+
+            // merge existing sCoin to new sCoin
+            txBlock.mergeCoins(sCoin, [takeSCoin, leftSCoin]);
+          } catch (e: any) {
+            // ignore
+            const errMsg = e.toString() as String;
+            if (!errMsg.includes('No valid coins found for the transaction'))
+              throw e;
+          }
+          toTransfer.push(sCoin);
+        }
+      })
+    );
+
+    if (toTransfer.length > 0) {
+      txBlock.transferObjects(toTransfer, this.walletAddress);
+    }
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
