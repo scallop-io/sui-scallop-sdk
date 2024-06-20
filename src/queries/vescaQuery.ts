@@ -28,15 +28,13 @@ export const getVescaKeys = async (
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
   do {
-    const paginatedKeyObjectsResponse = await query.suiKit
-      .client()
-      .getOwnedObjects({
-        owner,
-        filter: {
-          StructType: veScaKeyType,
-        },
-        cursor: nextCursor,
-      });
+    const paginatedKeyObjectsResponse = await query.cache.queryGetOwnedObjects({
+      owner,
+      filter: {
+        StructType: veScaKeyType,
+      },
+      cursor: nextCursor,
+    });
     keyObjectsResponse.push(...paginatedKeyObjectsResponse.data);
     if (
       paginatedKeyObjectsResponse.hasNextPage &&

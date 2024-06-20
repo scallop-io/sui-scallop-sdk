@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.39](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.38...v0.46.39) (2024-06-20)
+
+### Bug Fixes
+
+- Fix await `Promise` ([4548c7f](https://github.com/scallop-io/sui-scallop-sdk/pull/125/commits/4548c7f2946447cf2892f26343ffcb64a5ac8ec6))
+
 ### [0.46.38](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.37...v0.46.38) (2024-06-17)
 
 ### Bug Fixes
