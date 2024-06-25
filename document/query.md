@@ -225,3 +225,20 @@
   const loyaltyProgramInfos = await scallopQuery.getLoyaltyProgramInfos();
   // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
+
+## New SCoin Query
+
+- Get sCoin total supply
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const sCoinName = 'ssui';
+  const sCoinTotalSupply = await scallopQuery.getSCoinTotalSupply(sCoinName);
+  ```
+
+- Get sCoins amount in wallet
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const sCoinNames = ['ssui', 'susdc']
+  const sCoinAmounts = await scallopQuery.getSCoinAmounts(sCoinNames, sender);
