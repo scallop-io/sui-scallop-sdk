@@ -167,7 +167,7 @@ export class ScallopCache {
     objectIds: string[],
     options?: SuiObjectDataOptions
   ): Promise<SuiObjectData[]> {
-    if (objectIds.length === 0) throw new Error('objectIds cannot be empty');
+    if (objectIds.length === 0) return [];
     const queryKey = [
       'getObjects',
       JSON.stringify(objectIds),
