@@ -3,6 +3,7 @@ import type {
   SupportCollateralCoins,
   SupportMarketCoins,
   CoinWrappedType,
+  SupportSCoin,
 } from '../constant';
 
 type OptionalKeys<T> = {
@@ -17,6 +18,8 @@ export type CoinAmounts = OptionalKeys<Record<SupportPoolCoins, number>>;
 export type MarketCoinAmounts = OptionalKeys<
   Record<SupportMarketCoins, number>
 >;
+
+export type SCoinAmounts = OptionalKeys<Record<SupportSCoin, number>>;
 
 export type BalanceSheet = {
   cash: string;

@@ -4,13 +4,17 @@ import type {
   SuiObjectArg,
   SuiTxArg,
 } from '@scallop-io/sui-kit';
-import type { TransactionResult } from '@mysten/sui.js/transactions';
+import type {
+  TransactionArgument,
+  TransactionResult,
+} from '@mysten/sui.js/transactions';
 import type { ScallopBuilder } from '../../models';
 import type {
   SupportCollateralCoins,
   SupportPoolCoins,
   SupportAssetCoins,
 } from '../constant';
+import { ScallopTxBlockWithoutCoreTxBlock } from '.';
 
 export type CoreIds = {
   protocolPkg: string;
@@ -20,8 +24,16 @@ export type CoreIds = {
   xOracle: string;
 };
 
+export type NestedResult = Extract<
+  TransactionArgument,
+  { kind: 'NestedResult' }
+>;
+type Obligation = NestedResult;
+type ObligationKey = NestedResult;
+type ObligationHotPotato = NestedResult;
+
 export type CoreNormalMethods = {
-  openObligation: () => TransactionResult;
+  openObligation: () => [Obligation, ObligationKey, ObligationHotPotato];
   returnObligation: (
     obligation: SuiAddressArg,
     obligationHotPotato: SuiObjectArg
@@ -113,7 +125,8 @@ export type CoreQuickMethods = {
   ) => Promise<TransactionResult>;
   depositQuick: (
     amount: number,
-    poolCoinName: SupportPoolCoins
+    poolCoinName: SupportPoolCoins,
+    returnSCoin?: boolean
   ) => Promise<TransactionResult>;
   withdrawQuick: (
     amount: number,
@@ -129,7 +142,9 @@ export type CoreQuickMethods = {
   ) => Promise<void>;
 };
 
-export type SuiTxBlockWithCoreNormalMethods = SuiKitTxBlock & CoreNormalMethods;
+export type SuiTxBlockWithCoreNormalMethods = SuiKitTxBlock &
+  ScallopTxBlockWithoutCoreTxBlock &
+  CoreNormalMethods;
 
 export type CoreTxBlock = SuiTxBlockWithCoreNormalMethods & CoreQuickMethods;
 

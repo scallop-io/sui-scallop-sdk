@@ -189,7 +189,7 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
       if (typeof amountOrMarketCoin === 'number') {
-        const coins = await builder.utils.selectCoinIds(
+        const coins = await builder.utils.selectCoins(
           amountOrMarketCoin,
           marketCoinType,
           sender

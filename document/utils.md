@@ -91,11 +91,11 @@
   const suiMarketCoinType = await scallopUtils.parseMarketCoinType('ssui');
 
   // Supports conversion from coin and market coin types.
-  const suiCoinObjectIds = await scallopUtils.selectCoinIds(
+  const suiCoinObjectIds = await scallopUtils.selectCoins(
     1000000000,
     suiCoinType
   );
-  const suiMarketCoinObjectIds = await scallopUtils.selectCoinIds(
+  const suiMarketCoinObjectIds = await scallopUtils.selectCoins(
     1,
     suiMarketCoinType
   );

@@ -1,20 +1,10 @@
-import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
 import { PROTOCOL_OBJECT_ID } from '../src/constants';
-import { Scallop } from '../src';
-import type { NetworkType } from '@scallop-io/sui-kit';
-
-dotenv.config();
+import { scallopSDK } from './scallopSdk';
 
 const ENABLE_LOG = false;
 
-const NETWORK: NetworkType = 'mainnet';
-
 describe('Test Scallop Utils', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const scallopUtils = await scallopSDK.createScallopUtils();
   const address = await scallopSDK.getScallopAddress();
   const client = await scallopSDK.createScallopClient();
@@ -206,11 +196,11 @@ describe('Test Scallop Utils', async () => {
   it('Should get coin object ids within the selected coin amount range', async () => {
     const suiCoinType = await scallopUtils.parseCoinType('sui');
     const suiMarketCoinType = await scallopUtils.parseMarketCoinType('ssui');
-    const suiCoinObjectIds = await scallopUtils.selectCoinIds(
+    const suiCoinObjectIds = await scallopUtils.selectCoins(
       1000000000,
       suiCoinType
     );
-    const suiMarketCoinObjectIds = await scallopUtils.selectCoinIds(
+    const suiMarketCoinObjectIds = await scallopUtils.selectCoins(
       1,
       suiMarketCoinType
     );

@@ -68,7 +68,7 @@ const generateLoyaltyProgramQuickMethod: GenerateLoyaltyProgramQuickMethod = ({
 };
 
 /**
- * Create an enhanced transaction block instance for interaction with borrow incentive modules of the Scallop contract.
+ * Create an enhanced transaction block instance for interaction with loyalty program modules of the Scallop contract.
  *
  * @param builder - Scallop builder instance.
  * @param initTxBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.

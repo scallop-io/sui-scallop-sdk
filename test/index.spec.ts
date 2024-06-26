@@ -1,23 +1,13 @@
-import * as dotenv from 'dotenv';
 import { BigNumber } from 'bignumber.js';
 import { describe, it, expect } from 'vitest';
-import { NetworkType } from '@scallop-io/sui-kit';
-import { Scallop, assetCoins } from '../src';
+import { assetCoins } from '../src';
 import type { TransactionBlock } from '@scallop-io/sui-kit';
 import type { SupportStakeMarketCoins } from '../src';
-
-dotenv.config();
+import { scallopSDK } from './scallopSdk';
 
 const ENABLE_LOG = false;
 
-// At present, the contract of the testnet is stale and cannot be used normally, please use the mainnet for testing.
-const NETWORK: NetworkType = 'mainnet';
-
 describe('Test Scallop Client - Query Method', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const client = await scallopSDK.createScallopClient();
   console.info('Your wallet:', client.walletAddress);
 
@@ -81,10 +71,6 @@ describe('Test Scallop Client - Query Method', async () => {
 });
 
 describe('Test Scallop Client - Spool Method', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const client = await scallopSDK.createScallopClient();
   console.info('Your wallet:', client.walletAddress);
 
@@ -133,10 +119,6 @@ describe('Test Scallop Client - Spool Method', async () => {
 });
 
 describe('Test Scallop Client - Borrow incentive Method', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const client = await scallopSDK.createScallopClient();
   console.info('Your wallet:', client.walletAddress);
 
@@ -185,10 +167,6 @@ describe('Test Scallop Client - Borrow incentive Method', async () => {
 });
 
 describe('Test Scallop Client - Core Method', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const client = await scallopSDK.createScallopClient();
   console.info('Your wallet:', client.walletAddress);
 
@@ -302,10 +280,6 @@ describe('Test Scallop Client - Core Method', async () => {
 });
 
 describe('Test Scallop Client - Other Method', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const client = await scallopSDK.createScallopClient();
   const builder = await scallopSDK.createScallopBuilder();
   const query = await scallopSDK.createScallopQuery();
@@ -456,5 +430,20 @@ describe('Test Scallop Client - Other Method', async () => {
       console.info('MintTestCoinResult:', mintTestCoinResult);
     }
     expect(mintTestCoinResult.effects?.status.status).toEqual('success');
+  });
+});
+
+describe('Test Scallop Client - Migrate sCoin method', async () => {
+  const client = await scallopSDK.createScallopClient();
+  console.info('Your wallet:', client.walletAddress);
+
+  it('Should migrate all market coin into sCoin successfully', async () => {
+    const txb = await client.migrateAllMarketCoin(false);
+    const migrateResult = await client.suiKit.inspectTxn(txb);
+    if (ENABLE_LOG) {
+      console.info('Migrate result:', migrateResult);
+    }
+
+    expect(migrateResult.effects.status.status).toBe('success');
   });
 });

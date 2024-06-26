@@ -1,4 +1,3 @@
-import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
 import {
   MAX_LOCK_ROUNDS,
@@ -6,23 +5,20 @@ import {
   Scallop,
   UNLOCK_ROUND_DURATION,
 } from '../src';
-import { type NetworkType, TransactionBlock } from '@scallop-io/sui-kit';
-
-dotenv.config();
+import { TransactionBlock } from '@scallop-io/sui-kit';
+import { scallopSDK } from './scallopSdk';
 
 const ENABLE_LOG = false;
 
-const NETWORK: NetworkType = 'mainnet';
-
 describe('Test Scallop Core Builder', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const scallopBuilder = await scallopSDK.createScallopBuilder();
   const sender = scallopBuilder.walletAddress;
 
   console.info('Sender:', sender);
+
+  const SUPPLY_COIN_NAME = 'sui';
+  const COLLATERAL_COIN_NAME = 'sui';
+  const BORROW_COIN_NAME = 'sui';
 
   it('"openObligationEntry" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
@@ -38,7 +34,7 @@ describe('Test Scallop Core Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "addCollateralQuick".
     tx.setSender(sender);
-    await tx.addCollateralQuick(10 ** 7, 'sui');
+    await tx.addCollateralQuick(10 ** 7, COLLATERAL_COIN_NAME);
     const addCollateralQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('AddCollateralQuickResult:', addCollateralQuickResult);
@@ -50,7 +46,7 @@ describe('Test Scallop Core Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "takeCollateralQuick".
     tx.setSender(sender);
-    const coin = await tx.takeCollateralQuick(10 ** 7, 'sui');
+    const coin = await tx.takeCollateralQuick(10 ** 7, COLLATERAL_COIN_NAME);
     tx.transferObjects([coin], sender);
     const takeCollateralQuickResult =
       await scallopBuilder.suiKit.inspectTxn(tx);
@@ -64,10 +60,11 @@ describe('Test Scallop Core Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "depositQuick".
     tx.setSender(sender);
-    const marketCoin = await tx.depositQuick(10 ** 7, 'sui');
+    const marketCoin = await tx.depositQuick(10 ** 7, SUPPLY_COIN_NAME);
     tx.transferObjects([marketCoin], sender);
     const depositQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
+      console.info('txb:', JSON.stringify(tx.blockData));
       console.info('DepositQuickResult:', depositQuickResult);
     }
     expect(depositQuickResult.effects?.status.status).toEqual('success');
@@ -77,7 +74,7 @@ describe('Test Scallop Core Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "withdrawQuick".
     tx.setSender(sender);
-    const coin = await tx.withdrawQuick(10 ** 7, 'sui');
+    const coin = await tx.withdrawQuick(10 ** 7, SUPPLY_COIN_NAME);
     tx.transferObjects([coin], sender);
     const withdrawQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
@@ -90,7 +87,7 @@ describe('Test Scallop Core Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "borrowQuick".
     tx.setSender(sender);
-    const borrowedCoin = await tx.borrowQuick(4 * 10 ** 7, 'sui');
+    const borrowedCoin = await tx.borrowQuick(4 * 10 ** 7, BORROW_COIN_NAME);
     // Transfer borrowed coin to sender.
     tx.transferObjects([borrowedCoin], sender);
     const borrowQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
@@ -104,7 +101,7 @@ describe('Test Scallop Core Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "repayQuick".
     tx.setSender(sender);
-    await tx.repayQuick(4 * 10 ** 7, 'sui');
+    await tx.repayQuick(4 * 10 ** 7, BORROW_COIN_NAME);
     const repayQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('RepayQuickResult:', repayQuickResult);
@@ -115,12 +112,12 @@ describe('Test Scallop Core Builder', async () => {
   it('"borrowFlashLoan" & "repayFlashLoan" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
     tx.setSender(sender);
-    const [coin, loan] = tx.borrowFlashLoan(10 ** 8, 'sui');
+    const [coin, loan] = tx.borrowFlashLoan(10 ** 8, SUPPLY_COIN_NAME);
     /**
      * Do something with the borrowed coin here
      * such as pass it to a dex to make a profit.
      */
-    tx.repayFlashLoan(coin, loan, 'sui');
+    tx.repayFlashLoan(coin, loan, SUPPLY_COIN_NAME);
     const borrowFlashLoanResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('BorrowFlashLoanResult:', borrowFlashLoanResult);
@@ -142,7 +139,7 @@ describe('Test Scallop Core Builder', async () => {
     const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [
       suiTxBlock.pure(10 ** 6),
     ]);
-    const marketCoin = tx.deposit(coin, 'sui');
+    const marketCoin = tx.deposit(coin, SUPPLY_COIN_NAME);
     suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure(sender));
     const txBlockResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
@@ -155,7 +152,7 @@ describe('Test Scallop Core Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "updateAssetPricesQuick".
     tx.setSender(sender);
-    await tx.updateAssetPricesQuick(['sui']);
+    await tx.updateAssetPricesQuick([SUPPLY_COIN_NAME]);
     const updateAssetPricesResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('UpdateAssetPricesResult:', updateAssetPricesResult);
@@ -165,10 +162,6 @@ describe('Test Scallop Core Builder', async () => {
 });
 
 describe('Test Scallop Spool Builder', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const scallopBuilder = await scallopSDK.createScallopBuilder();
   const sender = scallopBuilder.walletAddress;
 
@@ -225,10 +218,6 @@ describe('Test Scallop Spool Builder', async () => {
 });
 
 describe('Test Scallop Borrow Incentive Builder', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const scallopBuilder = await scallopSDK.createScallopBuilder();
   const sender = scallopBuilder.walletAddress;
 
@@ -288,10 +277,6 @@ describe('Test Scallop Borrow Incentive Builder', async () => {
 });
 
 describe('Test Scallop VeSca Builder', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const scallopBuilder = await scallopSDK.createScallopBuilder();
   const scallopQuery = await scallopSDK.createScallopQuery();
   const sender = scallopBuilder.walletAddress;
@@ -314,7 +299,7 @@ describe('Test Scallop VeSca Builder', async () => {
     const lockAmount = 10 * 10 ** 9;
     const lockPeriodInDays = initialLockPeriodInDays;
     const newUnlockAt = scallopBuilder.utils.getUnlockAt(lockPeriodInDays);
-    const coins = await scallopBuilder.utils.selectCoinIds(
+    const coins = await scallopBuilder.utils.selectCoins(
       lockAmount,
       SCA_COIN_TYPE,
       sender
@@ -726,10 +711,6 @@ describe('Test Scallop VeSca Builder', async () => {
 });
 
 describe('Test Scallop Referral Builder', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const scallopBuilder = await scallopSDK.createScallopBuilder();
   const sender = scallopBuilder.walletAddress;
 
@@ -741,7 +722,7 @@ describe('Test Scallop Referral Builder', async () => {
   const createRandomWalletAccountBuilder = async () => {
     const scallopSDK = new Scallop({
       secretKey: '',
-      networkType: NETWORK,
+      networkType: 'mainnet',
     });
     const scallopBuilder = await scallopSDK.createScallopBuilder();
     return scallopBuilder;
@@ -791,11 +772,6 @@ describe('Test Scallop Referral Builder', async () => {
 
 describe('Test Scallop Loyalty Program Builder', async () => {
   // Please set IS_VE_SCA_TEST to true in constants/common.ts
-
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const scallopBuilder = await scallopSDK.createScallopBuilder();
   const sender = scallopBuilder.walletAddress;
 
@@ -813,4 +789,97 @@ describe('Test Scallop Loyalty Program Builder', async () => {
     }
     expect(claimRevenueQuickResult.effects?.status.status).toEqual('success');
   });
+});
+
+describe('Test sCoin Builder', async () => {
+  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const sender = scallopBuilder.walletAddress;
+  const COIN_NAME = 'sui';
+  const COIN_AMOUNT = 1e5;
+
+  // check for sCoin
+  let hasSCoinInWallet = false;
+  try {
+    const sCoinName = scallopBuilder.utils.parseSCoinName(COIN_NAME);
+    if (!sCoinName) throw new Error(`No sCoin for ${COIN_NAME}`);
+    const sCoins = await scallopBuilder.suiKit.selectCoinsWithAmount(
+      COIN_AMOUNT,
+      sCoinName,
+      sender
+    );
+    hasSCoinInWallet = sCoins.length > 0;
+  } catch (e) {
+    // no sCoin, just ignore
+  }
+
+  console.info('Sender:', sender);
+  it('"mintSCoin" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    tx.setSender(sender);
+
+    // depositQuick and mint sCoin
+    const marketCoin = await tx.depositQuick(COIN_AMOUNT, COIN_NAME, false);
+    const sCoin = tx.mintSCoin('ssui', marketCoin);
+    tx.transferObjects([sCoin], sender);
+
+    const mintSCoinResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('ClaimRevenueQuickResult:', mintSCoinResult);
+    }
+    expect(mintSCoinResult.effects?.status.status).toEqual('success');
+  });
+
+  it('"burnSCoin" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    tx.setSender(sender);
+
+    // depositQuick and mint sCoin
+    const sCoin = await tx.depositQuick(COIN_AMOUNT, COIN_NAME);
+
+    // burn minted sCoin
+    const marketCoin = tx.burnSCoin('ssui', sCoin);
+    tx.transferObjects([marketCoin], sender);
+
+    const burnSCoinResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('ClaimRevenueQuickResult:', burnSCoinResult);
+    }
+    expect(burnSCoinResult.effects?.status.status).toEqual('success');
+  });
+
+  it('"mintSCoinQuick" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    tx.setSender(sender);
+
+    const sCoin = await tx.mintSCoinQuick(
+      scallopBuilder.utils.parseMarketCoinName(COIN_NAME),
+      COIN_AMOUNT
+    );
+    tx.transferObjects([sCoin], sender);
+
+    const mintSCoinQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('ClaimRevenueQuickResult:', mintSCoinQuickResult);
+    }
+    expect(mintSCoinQuickResult.effects?.status.status).toEqual('success');
+  });
+
+  // need to have sCoin in the wallet first
+  if (hasSCoinInWallet) {
+    it('"burnSCoinQuick" should succeed', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+
+      const sCoinName = scallopBuilder.utils.parseSCoinName(COIN_NAME);
+      if (!sCoinName) throw new Error(`No sCoin for ${COIN_NAME}`);
+      const marketCoin = await tx.burnSCoinQuick(sCoinName, 1e4);
+      tx.transferObjects([marketCoin], sender);
+
+      const burnSCoinQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('ClaimRevenueQuickResult:', burnSCoinQuickResult);
+      }
+      expect(burnSCoinQuickResult.effects?.status.status).toEqual('success');
+    });
+  }
 });
