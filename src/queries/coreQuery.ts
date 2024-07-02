@@ -913,13 +913,9 @@ export const getFlashLoanFees = async (
     })
     .filter((t) => !!t) as string[];
 
-  const flashloanFeeObjects = await query.cache.queryGetObjects(
-    objIds,
-    {
-      showContent: true,
-    },
-    Infinity
-  ); // flashloan fee rarely updates, should be safe to set staleTime to Infinity
+  const flashloanFeeObjects = await query.cache.queryGetObjects(objIds, {
+    showContent: true,
+  });
 
   if (missingAssets.length > 0) {
     // get market object
@@ -952,13 +948,9 @@ export const getFlashLoanFees = async (
       .map((field) => field.objectId);
 
     flashloanFeeObjects.push(
-      ...(await query.cache.queryGetObjects(
-        dynamicFieldObjectIds,
-        {
-          showContent: true,
-        },
-        Infinity
-      )) // flashloan fee rarely updates, should be safe to set staleTime to Infinity
+      ...(await query.cache.queryGetObjects(dynamicFieldObjectIds, {
+        showContent: true,
+      }))
     );
   }
 
