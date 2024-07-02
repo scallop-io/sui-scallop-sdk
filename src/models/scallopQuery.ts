@@ -1,5 +1,5 @@
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ADDRESSES_ID, SUPPORT_SPOOLS } from '../constants';
+import { ADDRESSES_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
 import {
   queryMarket,
   getObligations,
@@ -32,6 +32,7 @@ import {
   getPythPrices,
   getVeScaTreasuryInfo,
   getLoyaltyProgramInformations,
+  getFlashLoanFees,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -592,5 +593,14 @@ export class ScallopQuery {
    */
   public async getLoyaltyProgramInfos(veScaKey?: string | SuiObjectData) {
     return await getLoyaltyProgramInformations(this, veScaKey);
+  }
+
+  /**
+   * Get flashloan fee for specified assets
+   */
+  public async getFlashLoanFees(
+    assetCoinNames: SupportAssetCoins[] = [...SUPPORT_POOLS]
+  ) {
+    return await getFlashLoanFees(this, assetCoinNames);
   }
 }
