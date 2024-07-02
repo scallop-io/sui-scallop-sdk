@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.40](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.39...v0.46.40) (2024-07-02)
+
+### Features
+
+- Add `getFlashLoanFees` function in `scallopQuery` ([1a5ee01](https://github.com/scallop-io/sui-scallop-sdk/pull/129/commits/1a5ee01ee777ae8aad35c47b9fa03dace94864f4))
+
 ### [0.46.39](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.38...v0.46.39) (2024-06-20)
 
 ### Bug Fixes
