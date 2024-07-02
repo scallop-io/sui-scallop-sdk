@@ -160,7 +160,9 @@ export class ScallopCache {
    */
   public async queryGetObjects(
     objectIds: string[],
-    options?: SuiObjectDataOptions
+    options?: SuiObjectDataOptions,
+    staleTime: number = DEFAULT_CACHE_OPTIONS.defaultOptions!.queries!
+      .staleTime!
   ): Promise<SuiObjectData[]> {
     const queryKey = [
       'getObjects',
@@ -172,6 +174,7 @@ export class ScallopCache {
     }
     return this.queryClient.fetchQuery({
       queryKey,
+      staleTime,
       queryFn: async () => {
         return await this.suiKit.getObjects(objectIds, options);
       },
