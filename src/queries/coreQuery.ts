@@ -4,6 +4,7 @@ import {
   PROTOCOL_OBJECT_ID,
   SUPPORT_COLLATERALS,
   BORROW_FEE_PROTOCOL_ID,
+  FlashLoanFeeObjectMap,
 } from '../constants';
 import {
   parseOriginMarketPoolData,
@@ -874,4 +875,95 @@ export const getMarketCoinAmount = async (
     coinType: marketCoinType,
   });
   return BigNumber(amount).toNumber();
+};
+
+/**
+ * Get flashloan fee for specific asset
+ * @param query - The Scallop query instance.
+ * @param assetNames - Specific an array of support pool coin name.
+ * @returns Record of asset name to flashloan fee in decimal
+ */
+
+export const getFlashLoanFees = async (
+  query: ScallopQuery,
+  assetNames: SupportPoolCoins[]
+): Promise<Record<SupportPoolCoins, number>> => {
+  const FEE_RATE = 1e4;
+  const missingAssets: SupportPoolCoins[] = [];
+
+  // create mapping from asset type to asset name
+  const assetTypeMap = assetNames.reduce(
+    (prev, curr) => {
+      const assetType = query.utils.parseCoinType(curr).slice(2);
+      prev[assetType] = curr;
+      return prev;
+    },
+    {} as Record<string, SupportPoolCoins>
+  );
+
+  // use the mapped object first
+  const objIds = assetNames
+    .map((assetName) => {
+      if (!FlashLoanFeeObjectMap[assetName]) {
+        missingAssets.push(assetName);
+        return null;
+      } else {
+        return FlashLoanFeeObjectMap[assetName];
+      }
+    })
+    .filter((t) => !!t) as string[];
+
+  const flashloanFeeObjects = await query.cache.queryGetObjects(objIds, {
+    showContent: true,
+  });
+
+  if (missingAssets.length > 0) {
+    // get market object
+    const marketObjectId = query.address.get('core.market');
+    const marketObjectRes = await query.cache.queryGetObject(marketObjectId, {
+      showContent: true,
+    });
+    if (marketObjectRes.data?.content?.dataType !== 'moveObject')
+      throw new Error('Failed to get market object');
+
+    // get vault
+    const vault = (marketObjectRes.data.content.fields as any).vault;
+
+    // get vault balance sheet object id
+    const flashloanFeesTableId = vault.fields.flash_loan_fees.fields.table
+      .fields.id.id as string;
+
+    // the balance sheet is a VecSet<0x1::type_name::TypeName
+    const balanceSheetDynamicFields = await query.cache.queryGetDynamicFields({
+      parentId: flashloanFeesTableId,
+      limit: 50,
+    });
+
+    // get the dynamic object ids
+    const dynamicFieldObjectIds = balanceSheetDynamicFields.data
+      .filter((field) => {
+        const assetType = (field.name.value as any).name as string;
+        return !!assetTypeMap[assetType];
+      })
+      .map((field) => field.objectId);
+
+    flashloanFeeObjects.push(
+      ...(await query.cache.queryGetObjects(dynamicFieldObjectIds, {
+        showContent: true,
+      }))
+    );
+  }
+
+  return flashloanFeeObjects.reduce(
+    (prev, curr) => {
+      if (curr.content?.dataType === 'moveObject') {
+        const objectFields = curr.content.fields as any;
+        const assetType = (curr.content.fields as any).name.fields.name;
+        const feeNumerator = +objectFields.value;
+        prev[assetTypeMap[assetType]] = feeNumerator / FEE_RATE;
+      }
+      return prev;
+    },
+    {} as Record<SupportPoolCoins, number>
+  );
 };
