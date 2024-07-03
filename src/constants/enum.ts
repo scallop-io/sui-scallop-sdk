@@ -135,21 +135,21 @@ export const voloCoinIds: types.VoloCoinIds = {
 
 // PROD VERSION
 export const sCoinIds: types.SCoinIds = {
-  ssui: '0x8dee141fcba7a27a2042cd566487e3656572e9e21c891782d233a0303e922a41::scallop_sui::SCALLOP_SUI',
+  ssui: '0xf02f926c4c7e0561c81e0dd9b9f6443f113dedb1a049b78999623f7fb1b34750::scallop_sui::SCALLOP_SUI',
   scetus:
-    '0xe862499b65238b975c33874aab2b0ba791d37927048db93e1ab5b7d73e4aeae9::scallop_cetus::SCALLOP_CETUS',
-  ssca: '0x9d1ac3fe3d9d8dc29fa686dd19ee4084dfbcee4cd45c6569aa172933149b7044::scallop_sca::SCALLOP_SCA',
+    '0xbd813cd053d8e0aee2b5dac4c269bab6675103850e12592016b3d3f8e0c76f7b::scallop_cetus::SCALLOP_CETUS',
+  ssca: '0x504564397089a5d7d3c508469b81a5abef5131b417d12827efa3cf21bd0c13bc::scallop_sca::SCALLOP_SCA',
   susdc:
-    '0x4fae557b37991c58549233ce155cb4763fa209c3281158b854527520104ae615::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
+    '0x6ca6447aa1ce53cbfcc6f3f3ddad795076188eb79b143ac19f048b8a06ac84d4::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
   susdt:
-    '0x77a5624fa9f36ddd9649ce34d6b3bca658a4fa28f26bab94a1e595ed81857504::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
-  seth: '0x0822e1df6ddfbda0a17f8e80e33282445f9642c0d23b7fa954ef8fcb72882ee3::scallop_wormhole_eth::SCALLOP_WORMHOLE_ETH',
+    '0xcfdeefc72e2678f71ed87c7ea1b7234c2f838acd9102780f6cbba2498386f2f1::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
+  seth: '0xf8a04f4cb38b857e853e7ac3e0b0dc83319682ff808a49c3eca664be96e59f4a::scallop_wormhole_eth::SCALLOP_WORMHOLE_ETH',
   safsui:
-    '0x3063582b7ac6f2052d1c6eac84f6778ffdfa99243b9d4bcbe0f92c57df73239a::scallop_af_sui::SCALLOP_AF_SUI',
+    '0xe768a35b575b3023dcb91e65c51f4a405efd47cf7289ac1a61a01c7b0e780d7d::scallop_af_sui::SCALLOP_AF_SUI',
   shasui:
-    '0xdef45a7708380f0ed9001f39ca6a2eb57b5293e1680e1126f9d284749868cd57::scallop_ha_sui::SCALLOP_HA_SUI',
+    '0xfe54157baa0f00df5a75e9659aff33e85a40858e40c46a378fe18b7d23297c30::scallop_ha_sui::SCALLOP_HA_SUI',
   svsui:
-    '0x3d5177ccd239635921e1e2bad988ade8956928f24739d254a97d03bf02a8b959::scallop_v_sui::SCALLOP_V_SUI',
+    '0x699ec5208b3363bd972f206596b514776009b415b16154367ba895896253fe7b::scallop_v_sui::SCALLOP_V_SUI',
 } as const;
 
 // TEST VERSION
