@@ -309,8 +309,46 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     rewardPool: '',
     userRewardTableId: '',
   },
-  sCoin: {
+  scoin: {
     id: '',
+    coins: {
+      ssui: {
+        coinType: '',
+        treasury: '',
+      },
+      scetus: {
+        coinType: '',
+        treasury: '',
+      },
+      ssca: {
+        coinType: '',
+        treasury: '',
+      },
+      susdc: {
+        coinType: '',
+        treasury: '',
+      },
+      susdt: {
+        coinType: '',
+        treasury: '',
+      },
+      seth: {
+        coinType: '',
+        treasury: '',
+      },
+      safsui: {
+        coinType: '',
+        treasury: '',
+      },
+      shasui: {
+        coinType: '',
+        treasury: '',
+      },
+      svsui: {
+        coinType: '',
+        treasury: '',
+      },
+    },
   },
 };
 /**

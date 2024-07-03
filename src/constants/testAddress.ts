@@ -415,7 +415,63 @@ export const TEST_ADDRESSES: AddressesInterface = {
     userRewardTableId:
       '0x748a80395849ed37db1b0e14f2ab5d1d96458d2359ab3a84eb079d0f4ac7cf2e',
   },
-  sCoin: {
+  scoin: {
     id: '0xad2ca2aa5089df94bb2d444d5eb3520378c2f2dfb3a0bd2a2c994145ac4b0a53',
+    coins: {
+      ssui: {
+        coinType:
+          '0xfac769100bccc0caebcf4f4e2d00ac2f8883f07f724be28940df90605f5e7e9a::scallop_sui::SCALLOP_SUI',
+        treasury:
+          '0x9cb4551b36c17d37e19d700147fa819ea1c487ff8bcf18374de2cceb2e9d4845',
+      },
+      scetus: {
+        coinType:
+          '0x8b71e6d323ed78515af2bead13bf3d0da1562ba4a99234eb7c4f14fd39ef0427::scallop_cetus::SCALLOP_CETUS',
+        treasury:
+          '0xd786f4b2d26278cc7911a3445b1b085eab60f269ef9dbb6b87e803d52f155003',
+      },
+      ssca: {
+        coinType:
+          '0x0a9d3c6c9af9f6e8def82921541bcbd17f73ed31bed3adcb684f2a4c267e42f0::scallop_sca::SCALLOP_SCA',
+        treasury:
+          '0xe818636d1d6c46d6ea1a2dce9d94696d7cbc18ce27451b603eeaa47aba8d75e0',
+      },
+      susdc: {
+        coinType:
+          '0xaedc3ab75db8680b81a755015fa90124d217be93457b893c05bac033817defaf::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
+        treasury:
+          '0xfc6971648f867f7fd6928d1b873af71577e2eaf2c7543ef8bc82c431d833ae78',
+      },
+      susdt: {
+        coinType:
+          '0xbf02fc87ddc104b342ad8414c85ceadf5b0c823c055a06fb0ed776272c01a52a::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
+        treasury:
+          '0xb9593e2c3a0ba796ee815012b75ae46468ea78cda0188b9ac6816efe65503521',
+      },
+      seth: {
+        coinType:
+          '0x27d54f43e3eda701be56b82e5756e41c84467cd202f5cf713d5f9e45a9f1b6bc::scallop_wormhole_eth::SCALLOP_WORMHOLE_ETH',
+        treasury:
+          '0x032b4c8fac94c038dbe986f7587e9b1e4ef580b5ee06d2ef249d85459b7ef05d',
+      },
+      safsui: {
+        coinType:
+          '0xb75b46d975d8d80670b53a6bee90baaa8ce2e0b7d397f079447d641eef6b44ad::scallop_af_sui::SCALLOP_AF_SUI',
+        treasury:
+          '0x21450ef0570ef3d224ffa3b873ab802e439ece7b93cc7efad10ae0c1e3b3fcfe',
+      },
+      shasui: {
+        coinType:
+          '0xd973a723874e2c7cde196602a79155a1343a933f8cf87d9b1bb7408bc1acbc58::scallop_ha_sui::SCALLOP_HA_SUI',
+        treasury:
+          '0xf822fc1402207e47d2e3ba8ff6e1e594bf1de777dc5ebd2744619cd2726e3b0d',
+      },
+      svsui: {
+        coinType:
+          '0x97023a317320c4498cc4cd239dd02fd30c28246e5e8f81325d63f2bd8d70f6b3::scallop_v_sui::SCALLOP_V_SUI',
+        treasury:
+          '0x327114f0bf3559d7e2de10282147ed76a236c7c6775029165c4db09a6062ead6ƒ',
+      },
+    },
   },
 };
