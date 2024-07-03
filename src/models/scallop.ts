@@ -10,6 +10,7 @@ import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
 import { QueryClientConfig } from '@tanstack/query-core';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
+import { TokenBucket } from 'src/utils';
 
 /**
  * @argument params - The parameters for the Scallop instance.
@@ -32,15 +33,21 @@ export class Scallop {
   public params: ScallopParams;
   public suiKit: SuiKit;
   public cache: ScallopCache;
+  private tokenBucket: TokenBucket;
 
   private _address: ScallopAddress;
 
-  public constructor(params: ScallopParams, cacheOptions?: QueryClientConfig) {
+  public constructor(
+    params: ScallopParams,
+    cacheOptions?: QueryClientConfig,
+    tokenBucket?: TokenBucket
+  ) {
     this.params = params;
     this.suiKit = new SuiKit(params);
     this.cache = new ScallopCache(
       cacheOptions ?? DEFAULT_CACHE_OPTIONS,
-      this.suiKit
+      this.suiKit,
+      tokenBucket
     );
     this._address = new ScallopAddress(
       {
@@ -49,6 +56,7 @@ export class Scallop {
       },
       this.cache
     );
+    this.tokenBucket = tokenBucket ?? new TokenBucket(10, 1000);
   }
 
   /**
