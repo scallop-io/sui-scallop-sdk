@@ -35,8 +35,11 @@ export const getVescaKeys = async (
       },
       cursor: nextCursor,
     });
+    if (!paginatedKeyObjectsResponse) continue;
+
     keyObjectsResponse.push(...paginatedKeyObjectsResponse.data);
     if (
+      paginatedKeyObjectsResponse &&
       paginatedKeyObjectsResponse.hasNextPage &&
       paginatedKeyObjectsResponse.nextCursor
     ) {
@@ -115,6 +118,8 @@ export const getVeSca = async (
         value: typeof veScaKey === 'string' ? veScaKey : veScaKey.objectId,
       },
     });
+  if (!veScaDynamicFieldObjectResponse) return undefined;
+
   const veScaDynamicFieldObject = veScaDynamicFieldObjectResponse.data;
   if (
     veScaDynamicFieldObject &&
@@ -177,7 +182,7 @@ const getTotalVeScaTreasuryAmount = async (
     refreshArgs.map(async (arg) => {
       if (typeof arg === 'string') {
         return (await query.cache.queryGetObject(arg, { showContent: true }))
-          .data;
+          ?.data;
       }
       return arg;
     })
@@ -187,7 +192,7 @@ const getTotalVeScaTreasuryAmount = async (
     veScaAmountArgs.map(async (arg) => {
       if (typeof arg === 'string') {
         return (await query.cache.queryGetObject(arg, { showContent: true }))
-          .data;
+          ?.data;
       }
       return arg;
     })
@@ -201,7 +206,7 @@ const getTotalVeScaTreasuryAmount = async (
   const txBytes = await txb.txBlock.build({
     client: query.suiKit.client(),
     onlyTransactionKind: true,
-    protocolConfig: await query.cache.getProtocolConfig(),
+    protocolConfig: (await query.cache.getProtocolConfig()) ?? undefined,
   });
 
   // return result

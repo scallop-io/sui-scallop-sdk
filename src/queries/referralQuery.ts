@@ -19,7 +19,7 @@ export const queryVeScaKeyIdFromReferralBindings = async (
     },
   });
 
-  if (referralBindResponse.data?.content?.dataType !== 'moveObject')
+  if (referralBindResponse?.data?.content?.dataType !== 'moveObject')
     return null;
 
   const fields = referralBindResponse.data.content.fields as any;
