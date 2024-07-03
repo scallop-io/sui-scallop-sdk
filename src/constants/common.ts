@@ -1,4 +1,5 @@
-export const API_BASE_URL = 'https://sui.api.scallop.io';
+// export const API_BASE_URL = 'https://sui.api.scallop.io';
+export const API_BASE_URL = 'https://sui.apis.scallop.io';
 export const SDK_API_BASE_URL = 'https://sdk.api.scallop.io';
 
 export const IS_VE_SCA_TEST = false;
