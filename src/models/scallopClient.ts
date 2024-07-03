@@ -4,8 +4,8 @@ import {
   ADDRESSES_ID,
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
+  SUPPORT_SCOIN,
   SUPPORT_SPOOLS,
-  sCoinIds,
 } from '../constants';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -975,7 +975,7 @@ export class ScallopClient {
 
     const toTransfer: TransactionObjectArgument[] = [];
     await Promise.all(
-      Object.keys(sCoinIds).map(async (sCoinName) => {
+      SUPPORT_SCOIN.map(async (sCoinName) => {
         /**
          * First check marketCoin inside mini wallet
          * Then check stakedMarketCoin inside spool
@@ -998,7 +998,8 @@ export class ScallopClient {
             marketCoins,
             marketCoinAmount
           );
-          txBlock.mergeCoins(takeMarketCoin, [leftMarketCoin]);
+
+          toTransfer.push(leftMarketCoin);
 
           toDestroyMarketCoin = takeMarketCoin;
         } catch (e: any) {
@@ -1011,15 +1012,11 @@ export class ScallopClient {
         // check for staked market coin in spool
         if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
           try {
-            const spoolData = await this.query.getSpool(
+            const stakedMarketCoins = await txBlock.unstakeQuick(
+              Number.MAX_SAFE_INTEGER,
               sCoinName as SupportStakeMarketCoins
             );
-            if (spoolData && spoolData?.stakedAmount > 0) {
-              const stakedMarketCoins = await txBlock.unstakeQuick(
-                spoolData.stakedAmount,
-                sCoinName as SupportStakeMarketCoins
-              );
-
+            if (stakedMarketCoins.length > 0) {
               const mergedStakedMarketCoin = stakedMarketCoins[0];
               if (stakedMarketCoins.length > 1) {
                 txBlock.mergeCoins(
@@ -1068,7 +1065,8 @@ export class ScallopClient {
             );
 
             // merge existing sCoin to new sCoin
-            txBlock.mergeCoins(sCoin, [takeSCoin, leftSCoin]);
+            txBlock.mergeCoins(sCoin, [takeSCoin]);
+            toTransfer.push(leftSCoin);
           } catch (e: any) {
             // ignore
             const errMsg = e.toString() as String;

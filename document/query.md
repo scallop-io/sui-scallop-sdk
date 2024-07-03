@@ -240,9 +240,10 @@
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
-  const sCoinNames = ['ssui', 'susdc']
+  const sCoinNames = ['ssui', 'susdc'];
   const sCoinAmounts = await scallopQuery.getSCoinAmounts(sCoinNames, sender);
-  
+  ```
+
 ## Flashloan Fee
 
 - Get flashloan fee

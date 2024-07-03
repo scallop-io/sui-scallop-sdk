@@ -15,7 +15,7 @@ export const getSCoinTotalSupply = async (
   query: ScallopQuery,
   sCoinName: SupportSCoin
 ): Promise<sCoinBalance> => {
-  const sCoinPkgId = query.address.get('sCoin.id');
+  const sCoinPkgId = query.address.get('scoin.id');
   // get treasury
   const args = [query.utils.getSCoinTreasury(sCoinName)];
   const typeArgs = [

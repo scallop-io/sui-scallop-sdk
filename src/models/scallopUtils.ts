@@ -16,9 +16,8 @@ import {
   coinIds,
   UNLOCK_ROUND_DURATION,
   MAX_LOCK_DURATION,
-  sCoinIds,
-  sCoinConverterTreasury,
   SUPPORT_SCOIN,
+  sCoinIds,
 } from '../constants';
 import { queryObligation } from '../queries';
 import {
@@ -222,7 +221,7 @@ export class ScallopUtils {
    * @returns sCoin treasury id
    */
   public getSCoinTreasury(sCoinName: SupportSCoin) {
-    return sCoinConverterTreasury[sCoinName];
+    return this._address.get(`scoin.coins.${sCoinName}.treasury`);
   }
 
   /**
