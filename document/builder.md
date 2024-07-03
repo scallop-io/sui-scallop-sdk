@@ -269,14 +269,15 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   scallopTxBlock.setSender(sender);
   const marketCoinName = 'ssui';
 
-  await scallopTxBlock.mintSCoinQuick(marketCoinName, 10**9);
+  await scallopTxBlock.mintSCoinQuick(marketCoinName, 10 ** 9);
   ```
 
 - Burn sCoin and get market coin
+
   ```typescript
   const scallopTxBlock = scallopBuilder.createTxBlock();
   scallopTxBlock.setSender(sender);
   const sCoinName = 'ssui';
 
-  await scallopTxBlock.burnSCoinQuick(sCoinName, 10**9);
+  await scallopTxBlock.burnSCoinQuick(sCoinName, 10 ** 9);
   ```
