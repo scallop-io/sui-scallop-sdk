@@ -242,3 +242,14 @@
   const scallopQuery = await scallopSDK.createScallopQuery();
   const sCoinNames = ['ssui', 'susdc']
   const sCoinAmounts = await scallopQuery.getSCoinAmounts(sCoinNames, sender);
+  
+## Flashloan Fee
+
+- Get flashloan fee
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  const flashloanFees = await scallopQuery.getFlashLoanFees();
+  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
+  ```
