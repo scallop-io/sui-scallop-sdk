@@ -24,6 +24,7 @@ import type {
   TotalValueLocked,
   SupportBorrowIncentiveCoins,
   ObligationBorrowIcentiveReward,
+  SupportBorrowIncentiveRewardCoins,
 } from '../types';
 
 /**
@@ -354,6 +355,7 @@ export const getObligationAccount = async (
   let totalBorrowCapacityValue = BigNumber(0);
   let totalRequiredCollateralValue = BigNumber(0);
   let totalBorrowedPools = 0;
+  let totalRewardedPools = 0;
   let totalBorrowedValue = BigNumber(0);
   let totalBorrowedValueWithWeight = BigNumber(0);
 
@@ -558,6 +560,22 @@ export const getObligationAccount = async (
         }
       }
 
+      if (
+        Object.keys(borrowIncentivePool.points).some((coinName: any) => {
+          const rewardApr =
+            borrowIncentivePool.points[
+              coinName as SupportBorrowIncentiveRewardCoins
+            ]?.rewardApr;
+          return (
+            rewardApr !== Infinity &&
+            typeof rewardApr == 'number' &&
+            rewardApr > 0
+          );
+        }) &&
+        borrowIncentiveAccount.debtAmount > 0
+      ) {
+        totalRewardedPools++;
+      }
       borrowIncentives[coinName] = {
         coinName: borrowIncentivePool.coinName,
         coinType: borrowIncentivePool.coinType,
@@ -615,6 +633,7 @@ export const getObligationAccount = async (
     totalRiskLevel: riskLevel.toNumber(),
     totalDepositedPools,
     totalBorrowedPools,
+    totalRewardedPools,
     collaterals,
     debts,
     borrowIncentives,
