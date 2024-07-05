@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. See [standa
 - Add query, builder, and client method for new sCoin ([291eca0](https://github.com/scallop-io/sui-scallop-sdk/pull/133/commits/291eca006ab840e9cbc8ae2a9e2c704c7d583fc1#diff-e57c6bce272cb177bd51299d195f4345717e217061346ed71b690943bd189758))
 - Update docs ([61a53b3](https://github.com/scallop-io/sui-scallop-sdk/pull/133/commits/61a53b3f78a15d70469624729c5300b95402e839))
 - Update `API_BASE_URL` ([50ec3a8](https://github.com/scallop-io/sui-scallop-sdk/pull/133/commits/50ec3a8fd2e4adbe6c9655e8ea80435247081062))
+- Add `totalRewardedPools` ([d38f654](https://github.com/scallop-io/sui-scallop-sdk/pull/132/commits/d38f65467bce51eb3b2937c59d446f7d29b054c4))
 
 ### [0.46.40](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.39...v0.46.40) (2024-07-02)
 
