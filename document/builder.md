@@ -37,7 +37,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   // Sender is required to invoke "addCollateralQuick".
   scallopTxBlock.setSender(sender);
   await scallopTxBlock.addCollateralQuick(10 ** 9, 'usdc');
-  await txBuilder.signAndSendTxBloc(scallopTxBlock);
+  await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
 - Withdraw collateral from collateral pool.
