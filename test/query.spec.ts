@@ -1,20 +1,12 @@
-import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
-import { Scallop } from '../src';
-import { isValidSuiAddress, type NetworkType } from '@scallop-io/sui-kit';
+import { isValidSuiAddress } from '@scallop-io/sui-kit';
 import { getVescaKeys } from 'src/queries';
 import { z as zod } from 'zod';
-dotenv.config();
+import { scallopSDK } from './scallopSdk';
 
 const ENABLE_LOG = false;
 
-const NETWORK: NetworkType = 'mainnet';
-
 describe('Test Query Scallop Contract On Chain Data', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const scallopQuery = await scallopSDK.createScallopQuery();
   console.info('Your wallet:', scallopQuery.suiKit.currentAddress());
 
@@ -139,10 +131,6 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
 });
 
 describe('Test Query Spool Contract On Chain Data', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const scallopQuery = await scallopSDK.createScallopQuery();
 
   it('Should get spools data', async () => {
@@ -227,10 +215,6 @@ describe('Test Query Spool Contract On Chain Data', async () => {
 });
 
 describe('Test Query Borrow Incentive Contract On Chain Data', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const scallopQuery = await scallopSDK.createScallopQuery();
 
   it('Should get borrow incentive pools data', async () => {
@@ -263,10 +247,6 @@ describe('Test Query Borrow Incentive Contract On Chain Data', async () => {
 });
 
 describe('Test Portfolio Query', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
   const scallopQuery = await scallopSDK.createScallopQuery();
   console.info('Your wallet:', scallopQuery.suiKit.currentAddress());
 
@@ -326,11 +306,6 @@ describe('Test Portfolio Query', async () => {
 });
 
 describe('Test VeSca Query', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
-
   const scallopQuery = await scallopSDK.createScallopQuery();
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
@@ -409,11 +384,6 @@ describe('Test VeSca Query', async () => {
 });
 
 describe('Test Referral Query', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
-
   const scallopQuery = await scallopSDK.createScallopQuery();
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
@@ -429,11 +399,6 @@ describe('Test Referral Query', async () => {
 });
 
 describe('Test Loyalty Program Query', async () => {
-  const scallopSDK = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: NETWORK,
-  });
-
   const scallopQuery = await scallopSDK.createScallopQuery();
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
@@ -452,5 +417,22 @@ describe('Test Loyalty Program Query', async () => {
     expect(loyaltyProgramInfoZod.safeParse(loyaltyProgramInfo).success).toBe(
       true
     );
+  });
+});
+
+describe('Test sCoin Query', async () => {
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const sender = scallopQuery.suiKit.currentAddress();
+  console.info(`Your Wallet: ${sender}`);
+
+  it('Should get total supply of sCoin', async () => {
+    const sCoinName = 'ssui';
+    const totalSupply = await scallopQuery.getSCoinTotalSupply(sCoinName);
+    if (ENABLE_LOG) {
+      console.info(`${sCoinName} total supply: ${totalSupply}`);
+    }
+
+    expect(typeof totalSupply).toBe('number');
+    expect(totalSupply >= 0).toBe(true);
   });
 });

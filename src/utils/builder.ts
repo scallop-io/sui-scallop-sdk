@@ -52,7 +52,7 @@ export const checkExtendLockPeriod = (
     (newUnlockAtInSecondTimestamp - prevUnlockAtInSecondTimestamp) /
       UNLOCK_ROUND_DURATION
   );
-  console.log('availableLockPeriodInDays', availableLockPeriodInDays);
+
   if (lockPeriodInDays > availableLockPeriodInDays) {
     throw new Error(
       `Cannot extend lock period by ${lockPeriodInDays} days, maximum lock period is ~4 years (${MAX_LOCK_ROUNDS} days), remaining lock period is ${
