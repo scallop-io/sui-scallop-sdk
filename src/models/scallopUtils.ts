@@ -16,6 +16,8 @@ import {
   coinIds,
   UNLOCK_ROUND_DURATION,
   MAX_LOCK_DURATION,
+  SUPPORT_SCOIN,
+  sCoinIds,
 } from '../constants';
 import { queryObligation } from '../queries';
 import {
@@ -35,6 +37,7 @@ import type {
   CoinPrices,
   PriceMap,
   CoinWrappedType,
+  SupportSCoin,
 } from '../types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
 import { ScallopCache } from './scallopCache';
@@ -168,6 +171,57 @@ export class ScallopUtils {
     } else {
       return `${coinPackageId}::${coinName}::${coinName.toUpperCase()}`;
     }
+  }
+
+  /**
+   * Convert coin name to sCoin name.
+   *
+   * @param coinName - Specific support coin name.
+   * @return sCoin name.
+   */
+  public parseSCoinName<T extends SupportSCoin>(
+    coinName: SupportCoins | SupportMarketCoins
+  ) {
+    // need more check because sbtc, ssol and sapt has no sCoin type
+    if (
+      isMarketCoin(coinName) &&
+      SUPPORT_SCOIN.includes(coinName as SupportSCoin)
+    ) {
+      return coinName as T;
+    } else {
+      const marketCoinName = `s${coinName}`;
+      if (SUPPORT_SCOIN.includes(marketCoinName as SupportSCoin)) {
+        return marketCoinName as T;
+      }
+      return undefined;
+    }
+  }
+  /**
+   * Convert sCoin name into sCoin type
+   * @param sCoinName
+   * @returns sCoin type
+   */
+  public parseSCoinType(sCoinName: SupportSCoin) {
+    return sCoinIds[sCoinName];
+  }
+
+  /**
+   * Convert sCoin name into its underlying coin type
+   * @param sCoinName
+   * @returns coin type
+   */
+  public parseUnderlyingSCoinType(sCoinName: SupportSCoin) {
+    const coinName = this.parseCoinName(sCoinName);
+    return this.parseCoinType(coinName);
+  }
+
+  /**
+   * Get sCoin treasury id from sCoin name
+   * @param sCoinName
+   * @returns sCoin treasury id
+   */
+  public getSCoinTreasury(sCoinName: SupportSCoin) {
+    return this._address.get(`scoin.coins.${sCoinName}.treasury`);
   }
 
   /**
@@ -328,7 +382,7 @@ export class ScallopUtils {
    * @param coinType - The coin type, default is 0x2::SUI::SUI.
    * @return The selected transaction coin arguments.
    */
-  public async selectCoinIds(
+  public async selectCoins(
     amount: number,
     coinType: string = SUI_TYPE_ARG,
     ownerAddress?: string
@@ -339,7 +393,7 @@ export class ScallopUtils {
       amount,
       coinType
     );
-    return coins.map((c) => c.objectId);
+    return coins;
   }
 
   /**

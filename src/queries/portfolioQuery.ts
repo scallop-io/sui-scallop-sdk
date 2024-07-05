@@ -118,6 +118,7 @@ export const getLending = async (
   stakeAccounts?: StakeAccount[],
   coinAmount?: number,
   marketCoinAmount?: number,
+  sCoinAmount?: number,
   coinPrice?: number
 ) => {
   const marketCoinName = query.utils.parseMarketCoinName(poolCoinName);
@@ -140,6 +141,8 @@ export const getLending = async (
   marketCoinAmount =
     marketCoinAmount ||
     (await query.getMarketCoinAmount(marketCoinName, ownerAddress));
+  sCoinAmount =
+    sCoinAmount || (await query.getSCoinAmount(marketCoinName, ownerAddress));
   coinPrice =
     coinPrice ||
     (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName];
@@ -206,9 +209,9 @@ export const getLending = async (
   }
 
   // Handle supplied coin
-  const suppliedAmount = BigNumber(marketCoinAmount).multipliedBy(
-    marketPool?.conversionRate ?? 1
-  );
+  const suppliedAmount = BigNumber(marketCoinAmount)
+    .plus(BigNumber(sCoinAmount))
+    .multipliedBy(marketPool?.conversionRate ?? 1);
   const suppliedCoin = suppliedAmount.shiftedBy(-1 * coinDecimal);
   const suppliedValue = suppliedCoin.multipliedBy(coinPrice ?? 0);
 

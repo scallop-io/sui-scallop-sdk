@@ -8,6 +8,7 @@ import type { ScallopBuilder } from '../models';
 import type { ScallopTxBlock } from '../types';
 import { newReferralTxBlock } from './referralBuilder';
 import { newLoyaltyProgramTxBlock } from './loyaltyProgramBuilder';
+import { newSCoinTxBlock } from './sCoinBuilder';
 
 /**
  * Create a new ScallopTxBlock instance.
@@ -28,7 +29,8 @@ export const newScallopTxBlock = (
   );
   const referralTxBlock = newReferralTxBlock(builder, borrowIncentiveTxBlock);
   const spoolTxBlock = newSpoolTxBlock(builder, referralTxBlock);
-  const coreTxBlock = newCoreTxBlock(builder, spoolTxBlock);
+  const sCoinTxBlock = newSCoinTxBlock(builder, spoolTxBlock);
+  const coreTxBlock = newCoreTxBlock(builder, sCoinTxBlock);
 
   return new Proxy(coreTxBlock, {
     get: (target, prop) => {
@@ -42,6 +44,8 @@ export const newScallopTxBlock = (
         return Reflect.get(spoolTxBlock, prop);
       } else if (prop in loyaltyTxBlock) {
         return Reflect.get(loyaltyTxBlock, prop);
+      } else if (prop in sCoinTxBlock) {
+        return Reflect.get(sCoinTxBlock, prop);
       }
       return Reflect.get(target, prop);
     },

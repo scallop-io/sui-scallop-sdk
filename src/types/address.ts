@@ -3,6 +3,7 @@ import type {
   SupportAssetCoins,
   SupportOracleType,
   SupportPackageType,
+  SupportSCoin,
   SupportStakeMarketCoins,
 } from './constant';
 
@@ -120,6 +121,18 @@ export interface AddressesInterface {
     object: string;
     rewardPool: string;
     userRewardTableId: string;
+  };
+  scoin: {
+    id: string;
+    coins: Partial<
+      Record<
+        SupportSCoin,
+        {
+          coinType: string;
+          treasury: string;
+        }
+      >
+    >;
   };
 }
 

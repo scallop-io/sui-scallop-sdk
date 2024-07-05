@@ -6,6 +6,7 @@ import {
   SupportStakeRewardCoins,
   SupportBorrowIncentiveCoins,
   SupportBorrowIncentiveRewardCoins,
+  SupportSCoin,
 } from './common';
 
 export type Coins = {
@@ -18,6 +19,10 @@ export type AssetCoins = {
 
 export type MarketCoins = {
   [K in SupportMarketCoins]: K;
+};
+
+export type SCoins = {
+  [K in SupportSCoin]: K;
 };
 
 export type StakeMarketCoins = {
@@ -34,6 +39,18 @@ export type BorrowIncentiveRewardCoins = {
 
 export type AssetCoinIds = {
   [key in SupportAssetCoins]: string;
+};
+
+export type SCoinIds = {
+  [key in SupportSCoin]: string;
+};
+
+export type SCoinTreasuryCaps = {
+  [key in SupportSCoin]: string;
+};
+
+export type SCoinConverterTreasury = {
+  [key in SupportSCoin]: string;
 };
 
 type PickFromUnion<T, K extends string> = K extends T ? K : never;
