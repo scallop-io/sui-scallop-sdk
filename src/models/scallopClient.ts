@@ -973,14 +973,14 @@ export class ScallopClient {
     const txBlock = this.builder.createTxBlock();
     txBlock.setSender(this.walletAddress);
 
-    const toTransfer: TransactionObjectArgument[] = [];
+    const toTransfer: SuiObjectArg[] = [];
     await Promise.all(
       SUPPORT_SCOIN.map(async (sCoinName) => {
         /**
          * First check marketCoin inside mini wallet
          * Then check stakedMarketCoin inside spool
          */
-        let toDestroyMarketCoin: TransactionObjectArgument | undefined;
+        let toDestroyMarketCoin: SuiObjectArg | undefined;
 
         // check market coin in mini wallet
         try {
@@ -990,18 +990,12 @@ export class ScallopClient {
             this.walletAddress
           ); // throw error no coins found
 
-          const marketCoinAmount = marketCoins.reduce(
-            (prev, curr) => prev + parseInt(curr.balance),
-            0
-          );
-          const [takeMarketCoin, leftMarketCoin] = txBlock.takeAmountFromCoins(
-            marketCoins,
-            marketCoinAmount
-          );
+          const mergedMarketCoin = marketCoins[0];
+          if (marketCoins.length > 1) {
+            txBlock.mergeCoins(mergedMarketCoin, marketCoins.slice(1));
+          }
 
-          toTransfer.push(leftMarketCoin);
-
-          toDestroyMarketCoin = takeMarketCoin;
+          toDestroyMarketCoin = mergedMarketCoin;
         } catch (e: any) {
           // Ignore
           const errMsg = e.toString() as String;
@@ -1055,18 +1049,13 @@ export class ScallopClient {
               this.utils.parseSCoinType(sCoinName as SupportSCoin),
               this.walletAddress
             ); // throw error on no coins found
-            const sCoinAmount = existSCoins.reduce(
-              (prev, curr) => prev + parseInt(curr.balance),
-              0
-            );
-            const [takeSCoin, leftSCoin] = txBlock.takeAmountFromCoins(
-              existSCoins,
-              sCoinAmount
-            );
+            const mergedSCoin = existSCoins[0];
+            if (existSCoins.length > 1) {
+              txBlock.mergeCoins(mergedSCoin, existSCoins.slice(1));
+            }
 
             // merge existing sCoin to new sCoin
-            txBlock.mergeCoins(sCoin, [takeSCoin]);
-            toTransfer.push(leftSCoin);
+            txBlock.mergeCoins(sCoin, [mergedSCoin]);
           } catch (e: any) {
             // ignore
             const errMsg = e.toString() as String;
