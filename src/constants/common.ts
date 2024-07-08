@@ -3,12 +3,13 @@ export const API_BASE_URL = 'https://sui.apis.scallop.io';
 export const SDK_API_BASE_URL = 'https://sdk.api.scallop.io';
 
 export const IS_VE_SCA_TEST = false;
+export const USE_TEST_ADDRESS = false;
 
 // export const ADDRESSES_ID = '';
-export const ADDRESSES_ID = IS_VE_SCA_TEST
-  ? // ? ('65fb07c39c845425d71d7b18' as const)
-    ('65fb07c39c845425d71d7b18' as const)
-  : ('664dfe22898c36c159e28bc8' as const);
+export const ADDRESSES_ID =
+  IS_VE_SCA_TEST || USE_TEST_ADDRESS
+    ? ('65fb07c39c845425d71d7b18' as const)
+    : ('664dfe22898c36c159e28bc8' as const);
 // : ('6601955b8b0024600a917079' as const);
 // : ('6462a088a7ace142bb6d7e9b' as const);
 
@@ -70,6 +71,18 @@ export const SUPPORT_SPOOLS = [
   'safsui',
   'shasui',
   'svsui',
+] as const;
+
+export const SUPPORT_SCOIN = [
+  'ssui',
+  'susdc',
+  'susdt',
+  'safsui',
+  'shasui',
+  'svsui',
+  'seth',
+  'ssca',
+  'scetus',
 ] as const;
 
 export const SUPPORT_SPOOLS_REWARDS = ['sui'] as const;
