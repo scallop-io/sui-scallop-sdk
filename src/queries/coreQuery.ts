@@ -4,6 +4,7 @@ import {
   PROTOCOL_OBJECT_ID,
   SUPPORT_COLLATERALS,
   BORROW_FEE_PROTOCOL_ID,
+  USE_TEST_ADDRESS,
   FlashLoanFeeObjectMap,
 } from '../constants';
 import {
@@ -405,7 +406,12 @@ export const getMarketPool = async (
     }
   }
 
-  if (balanceSheet && borrowIndex && interestModel && borrowFeeRate) {
+  if (
+    balanceSheet &&
+    borrowIndex &&
+    interestModel &&
+    (USE_TEST_ADDRESS || borrowFeeRate)
+  ) {
     const parsedMarketPoolData = parseOriginMarketPoolData({
       type: interestModel.type.fields,
       maxBorrowRate: interestModel.max_borrow_rate.fields,
@@ -419,7 +425,7 @@ export const getMarketPool = async (
       reserve: balanceSheet.revenue,
       reserveFactor: interestModel.revenue_factor.fields,
       borrowWeight: interestModel.borrow_weight.fields,
-      borrowFeeRate: borrowFeeRate,
+      borrowFeeRate: borrowFeeRate || { value: '0' },
       baseBorrowRatePerSec: interestModel.base_borrow_rate_per_sec.fields,
       borrowRateOnHighKink: interestModel.borrow_rate_on_high_kink.fields,
       borrowRateOnMidKink: interestModel.borrow_rate_on_mid_kink.fields,
@@ -475,10 +481,10 @@ export const getMarketCollaterals = async (
   collateralCoinNames = collateralCoinNames || [...SUPPORT_COLLATERALS];
   const marketId = query.address.get('core.market');
   const [marketObjectResponse, coinPrices] = await Promise.all([
-    query.cache.queryGetObject(marketId, {
+    await query.cache.queryGetObject(marketId, {
       showContent: true,
     }),
-    query.utils.getCoinPrices(collateralCoinNames ?? []),
+    await query.utils.getCoinPrices(collateralCoinNames ?? []),
   ]);
   const marketCollaterals: MarketCollaterals = {};
 

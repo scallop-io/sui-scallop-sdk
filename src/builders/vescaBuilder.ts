@@ -192,7 +192,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         undefined;
       const transferObjects = [];
       if (amountOrCoin !== undefined && typeof amountOrCoin === 'number') {
-        const coins = await builder.utils.selectCoinIds(
+        const coins = await builder.utils.selectCoins(
           amountOrCoin,
           SCA_COIN_TYPE,
           sender
@@ -283,7 +283,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       if (autoCheck) checkExtendLockAmount(scaAmount, veSca?.unlockAt);
 
       if (veSca) {
-        const scaCoins = await builder.utils.selectCoinIds(
+        const scaCoins = await builder.utils.selectCoins(
           scaAmount,
           SCA_COIN_TYPE,
           sender
@@ -319,7 +319,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           const unlockedSca = txBlock.redeemSca(veSca.keyId);
           transferObjects.push(unlockedSca);
         }
-        const scaCoins = await builder.utils.selectCoinIds(
+        const scaCoins = await builder.utils.selectCoins(
           scaAmount,
           SCA_COIN_TYPE,
           sender

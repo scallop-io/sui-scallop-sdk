@@ -169,3 +169,14 @@ Methods for interacting with the spool contract.
   // Claim from the corresponding reward pool of specific spool.
   const claimResult = await client.claim('ssui');
   ```
+
+## New sCoin Package Migration Method
+
+Methods for migrating to the new sCoin package
+
+- Migrate all old market coin (including stakes inside spool and mini wallet)
+
+```typescript
+// Migrate all old market coin into new sCoin. Pass `false` as parameter to return the txBlock
+const txBlock = await client.migrateAllMarketCoin(false);
+```

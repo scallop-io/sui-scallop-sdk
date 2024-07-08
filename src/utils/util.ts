@@ -5,6 +5,7 @@ import {
   SUPPORT_SPOOLS_REWARDS,
   MAX_LOCK_DURATION,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
+  SUPPORT_SCOIN,
 } from '../constants';
 import type { ScallopAddress } from '../models';
 import type {
@@ -13,20 +14,22 @@ import type {
   SupportMarketCoins,
 } from '../types';
 
+const COIN_SET = Array.from(
+  new Set([
+    ...SUPPORT_POOLS,
+    ...SUPPORT_COLLATERALS,
+    ...SUPPORT_SPOOLS_REWARDS,
+    ...SUPPORT_BORROW_INCENTIVE_REWARDS,
+    ...SUPPORT_SCOIN,
+  ])
+);
+
 export const isMarketCoin = (
   coinName: SupportCoins
 ): coinName is SupportMarketCoins => {
   const assetCoinName = coinName.slice(1).toLowerCase() as SupportAssetCoins;
   return (
-    coinName.charAt(0).toLowerCase() === 's' &&
-    [
-      ...new Set([
-        ...SUPPORT_POOLS,
-        ...SUPPORT_COLLATERALS,
-        ...SUPPORT_SPOOLS_REWARDS,
-        ...SUPPORT_BORROW_INCENTIVE_REWARDS,
-      ]),
-    ].includes(assetCoinName)
+    coinName.charAt(0).toLowerCase() === 's' && COIN_SET.includes(assetCoinName)
   );
 };
 
@@ -54,14 +57,7 @@ export const parseDataFromPythPriceFeed = (
   feed: PriceFeed,
   address: ScallopAddress
 ) => {
-  const assetCoinNames = [
-    ...new Set([
-      ...SUPPORT_POOLS,
-      ...SUPPORT_COLLATERALS,
-      ...SUPPORT_SPOOLS_REWARDS,
-      ...SUPPORT_BORROW_INCENTIVE_REWARDS,
-    ]),
-  ] as SupportAssetCoins[];
+  const assetCoinNames = COIN_SET as SupportAssetCoins[];
   const assetCoinName = assetCoinNames.find((assetCoinName) => {
     return (
       address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`) === feed.id
