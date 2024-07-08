@@ -51,8 +51,7 @@ Methods for interacting with the lending contract.
     'sui',
     10 ** 8,
     true,
-    obligationsData[0],
-    id
+    obligationsData[0].id,
   );
   ```
 
@@ -66,8 +65,8 @@ Methods for interacting with the lending contract.
     'sui',
     10 ** 8,
     true,
-    obligations[0].id,
-    obligations[0].keyId
+    obligationsData[0].id,
+    obligationsData[0].keyId
   );
   ```
 
@@ -109,8 +108,8 @@ Methods for interacting with the lending contract.
     'sui',
     3 * 10 ** 8,
     true,
-    obligations[0].id,
-    obligations[0].keyId
+    obligationsData[0].id,
+    obligationsData[0].keyId
   );
   ```
 
@@ -118,12 +117,12 @@ Methods for interacting with the lending contract.
 
   ```typescript
   // Manually obtain obligation id and specify account to repay asset.
-  const obligations = await client.getObligations();
+  const obligationsData = await client.getObligations();
   const repayResult = await client.repay(
     'sui',
     3 * 10 ** 8,
     true,
-    obligations[0].id
+    obligationsData[0].id
   );
   ```
 
@@ -170,3 +169,14 @@ Methods for interacting with the spool contract.
   // Claim from the corresponding reward pool of specific spool.
   const claimResult = await client.claim('ssui');
   ```
+
+## New sCoin Package Migration Method
+
+Methods for migrating to the new sCoin package
+
+- Migrate all old market coin (including stakes inside spool and mini wallet)
+
+```typescript
+// Migrate all old market coin into new sCoin. Pass `false` as parameter to return the txBlock
+const txBlock = await client.migrateAllMarketCoin(false);
+```

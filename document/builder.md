@@ -37,7 +37,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   // Sender is required to invoke "addCollateralQuick".
   scallopTxBlock.setSender(sender);
   await scallopTxBlock.addCollateralQuick(10 ** 9, 'usdc');
-  await txBuilder.signAndSendTxBloc(scallopTxBlock);
+  await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
 - Withdraw collateral from collateral pool.
@@ -260,4 +260,24 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   scallopTxBlock.setSender(sender);
 
   await scallopTxBlock.redeemScaQuick();
+  ```
+
+- Convert market coin to new sCoin
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+  const marketCoinName = 'ssui';
+
+  await scallopTxBlock.mintSCoinQuick(marketCoinName, 10 ** 9);
+  ```
+
+- Burn sCoin and get market coin
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+  const sCoinName = 'ssui';
+
+  await scallopTxBlock.burnSCoinQuick(sCoinName, 10 ** 9);
   ```
