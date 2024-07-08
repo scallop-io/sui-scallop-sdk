@@ -4,7 +4,7 @@ import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { getObligations } from '../queries';
 import { updateOracles } from './oracle';
 import { requireSender } from '../utils';
-import type { SuiAddressArg } from '@scallop-io/sui-kit';
+import type { SuiAddressArg, TransactionResult } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
 import type {
   CoreIds,
@@ -13,14 +13,15 @@ import type {
   SuiTxBlockWithCoreNormalMethods,
   CoreTxBlock,
   ScallopTxBlock,
+  NestedResult,
 } from '../types';
 
 /**
  * Check and get Obligation information from transaction block.
  *
  * @description
- * If the obligation id is provided, direactly return it.
- * If both obligation id and key is provided, direactly return them.
+ * If the obligation id is provided, directly return it.
+ * If both obligation id and key is provided, directly return them.
  * Otherwise, automatically get obligation id and key from the sender.
  *
  * @param builder - Scallop builder instance.
@@ -75,11 +76,17 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
   const referralWitnessType = `${referralPkgId}::scallop_referral_program::REFERRAL_WITNESS`;
 
   return {
-    openObligation: () =>
-      txBlock.moveCall(
+    openObligation: () => {
+      const [obligation, obligationKey, obligationHotPotato] = txBlock.moveCall(
         `${coreIds.protocolPkg}::open_obligation::open_obligation`,
         [coreIds.version]
-      ),
+      );
+      return [obligation, obligationKey, obligationHotPotato] as [
+        NestedResult,
+        NestedResult,
+        NestedResult,
+      ];
+    },
     returnObligation: (obligation, obligationHotPotato) =>
       txBlock.moveCall(
         `${coreIds.protocolPkg}::open_obligation::return_obligation`,
@@ -300,11 +307,12 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         collateralCoinName
       );
     },
-    depositQuick: async (amount, poolCoinName) => {
+    depositQuick: async (amount, poolCoinName, returnSCoin = true) => {
       const sender = requireSender(txBlock);
+      let marketCoinDeposit: TransactionResult | undefined;
       if (poolCoinName === 'sui') {
         const [suiCoin] = txBlock.splitSUIFromGas([amount]);
-        return txBlock.deposit(suiCoin, poolCoinName);
+        marketCoinDeposit = txBlock.deposit(suiCoin, poolCoinName);
       } else {
         const { leftCoin, takeCoin } = await builder.selectCoin(
           txBlock,
@@ -313,20 +321,67 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
           sender
         );
         txBlock.transferObjects([leftCoin], sender);
-        return txBlock.deposit(takeCoin, poolCoinName);
+        marketCoinDeposit = txBlock.deposit(takeCoin, poolCoinName);
       }
+
+      // convert to sCoin
+      return returnSCoin
+        ? txBlock.mintSCoin(
+            builder.utils.parseMarketCoinName(poolCoinName),
+            marketCoinDeposit
+          )
+        : marketCoinDeposit;
     },
     withdrawQuick: async (amount, poolCoinName) => {
       const sender = requireSender(txBlock);
       const marketCoinName = builder.utils.parseMarketCoinName(poolCoinName);
-      const { leftCoin, takeCoin } = await builder.selectMarketCoin(
-        txBlock,
-        marketCoinName,
-        amount,
-        sender
-      );
-      txBlock.transferObjects([leftCoin], sender);
-      return txBlock.withdraw(takeCoin, poolCoinName);
+
+      // check if user has sCoin instead of marketCoin
+      try {
+        const sCoinName = builder.utils.parseSCoinName(poolCoinName);
+        if (!sCoinName) throw new Error(`No sCoin for ${poolCoinName}`);
+        const { leftCoin, takeCoin, totalAmount } = await builder.selectSCoin(
+          txBlock,
+          sCoinName,
+          amount,
+          sender
+        );
+        txBlock.transferObjects([leftCoin], sender);
+        const marketCoin = txBlock.burnSCoin(sCoinName, takeCoin);
+
+        const txResult = txBlock.withdraw(marketCoin, poolCoinName);
+
+        // check amount
+        amount -= totalAmount;
+        try {
+          if (amount > 0) {
+            // sCoin is not enough, try market coin
+            const { leftCoin, takeCoin } = await builder.selectMarketCoin(
+              txBlock,
+              marketCoinName,
+              amount,
+              sender
+            );
+            txBlock.transferObjects([leftCoin], sender);
+            txBlock.mergeCoins(txResult, [
+              txBlock.withdraw(takeCoin, poolCoinName),
+            ]);
+          }
+        } catch (e) {
+          // ignore
+        }
+        return txResult;
+      } catch (e) {
+        // no sCoin found
+        const { leftCoin, takeCoin } = await builder.selectMarketCoin(
+          txBlock,
+          marketCoinName,
+          amount,
+          sender
+        );
+        txBlock.transferObjects([leftCoin], sender);
+        return txBlock.withdraw(takeCoin, poolCoinName);
+      }
     },
     borrowQuick: async (amount, poolCoinName, obligationId, obligationKey) => {
       const obligationInfo = await requireObligationInfo(

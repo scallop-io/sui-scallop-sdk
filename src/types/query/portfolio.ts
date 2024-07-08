@@ -69,6 +69,7 @@ export type ObligationAccount = {
   totalRiskLevel: number;
   totalDepositedPools: number;
   totalBorrowedPools: number;
+  totalRewardedPools: number;
   collaterals: OptionalKeys<
     Record<SupportCollateralCoins, ObligationCollateral>
   >;

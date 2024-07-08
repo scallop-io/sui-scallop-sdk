@@ -14,6 +14,7 @@ import type {
   ScallopTxBlock,
   SupportMarketCoins,
   SupportAssetCoins,
+  SupportSCoin,
 } from '../types';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
@@ -124,7 +125,7 @@ export class ScallopBuilder {
     sender: string
   ) {
     const coinType = this.utils.parseCoinType(assetCoinName);
-    const coins = await this.utils.selectCoinIds(amount, coinType, sender);
+    const coins = await this.utils.selectCoins(amount, coinType, sender);
     const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
     return { takeCoin, leftCoin };
   }
@@ -145,13 +146,48 @@ export class ScallopBuilder {
     sender: string
   ) {
     const marketCoinType = this.utils.parseMarketCoinType(marketCoinName);
-    const coins = await this.utils.selectCoinIds(
-      amount,
-      marketCoinType,
-      sender
+    const coins = await this.utils.selectCoins(amount, marketCoinType, sender);
+    const totalAmount = coins.reduce((prev, coin) => {
+      prev += Number(coin.balance);
+      return prev;
+    }, 0);
+    const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
+      coins,
+      Math.min(amount, totalAmount)
     );
-    const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
-    return { takeCoin, leftCoin };
+    return { takeCoin, leftCoin, totalAmount };
+  }
+
+  /**
+   * Specifying the sender's amount of sCoins to get coins args from transaction result.
+   *
+   * @param txBlock - Scallop txBlock or txBlock created by SuiKit .
+   * @param marketCoinName - Specific support sCoin name.
+   * @param amount - Amount of coins to be selected.
+   * @param sender - Sender address.
+   * @return Take coin and left coin.
+   */
+  public async selectSCoin(
+    txBlock: ScallopTxBlock | SuiKitTxBlock,
+    sCoinName: SupportSCoin,
+    amount: number,
+    sender: string
+  ) {
+    const sCoinType = this.utils.parseSCoinType(sCoinName);
+    const coins = await this.utils.selectCoins(amount, sCoinType, sender);
+    const totalAmount = coins.reduce((prev, coin) => {
+      prev += Number(coin.balance);
+      return prev;
+    }, 0);
+    const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
+      coins,
+      Math.min(totalAmount, amount)
+    );
+    return {
+      takeCoin,
+      leftCoin,
+      totalAmount,
+    };
   }
 
   /**
