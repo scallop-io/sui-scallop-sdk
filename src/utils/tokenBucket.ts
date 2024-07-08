@@ -1,3 +1,5 @@
+import { DEFAULT_INTERVAL_IN_MS } from 'src/constants/tokenBucket';
+
 class TokenBucket {
   private tokensPerInterval: number;
   private interval: number;
@@ -35,7 +37,7 @@ class TokenBucket {
 const callWithRateLimit = async <T>(
   tokenBucket: TokenBucket,
   fn: () => Promise<T>,
-  retryDelayInMs = 200,
+  retryDelayInMs = DEFAULT_INTERVAL_IN_MS,
   maxRetries = 5 // Adding a maximum retries limit,
 ): Promise<T | null> => {
   let retries = 0;

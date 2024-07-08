@@ -11,6 +11,10 @@ import { ScallopCache } from './scallopCache';
 import { QueryClientConfig } from '@tanstack/query-core';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { TokenBucket } from 'src/utils';
+import {
+  DEFAULT_INTERVAL_IN_MS,
+  DEFAULT_TOKENS_PER_INTERVAL,
+} from 'src/constants/tokenBucket';
 
 /**
  * @argument params - The parameters for the Scallop instance.
@@ -56,7 +60,9 @@ export class Scallop {
       },
       this.cache
     );
-    this.tokenBucket = tokenBucket ?? new TokenBucket(10, 1000);
+    this.tokenBucket =
+      tokenBucket ??
+      new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS);
   }
 
   /**

@@ -20,6 +20,10 @@ import type {
 } from '@mysten/sui.js/client';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { callWithRateLimit, TokenBucket } from 'src/utils';
+import {
+  DEFAULT_INTERVAL_IN_MS,
+  DEFAULT_TOKENS_PER_INTERVAL,
+} from 'src/constants/tokenBucket';
 
 type QueryInspectTxnParams = {
   queryTarget: string;
@@ -52,7 +56,9 @@ export class ScallopCache {
   ) {
     this.queryClient = new QueryClient(cacheOptions ?? DEFAULT_CACHE_OPTIONS);
     this._suiKit = suiKit;
-    this.tokenBucket = tokenBucket ?? new TokenBucket(10, 1000);
+    this.tokenBucket =
+      tokenBucket ??
+      new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS);
   }
 
   private get suiKit(): SuiKit {
