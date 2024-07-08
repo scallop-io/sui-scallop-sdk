@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.42](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.41...v0.46.42) (2024-07-08)
+
+### Bugfixes
+
+- Fix `getLending` parameters order ([f71217b](https://github.com/scallop-io/sui-scallop-sdk/pull/135/commits/f71217b77199fc13187183fb21a8afa231226a2d))
+
 ### [0.46.41](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.40...v0.46.41) (2024-07-05)
 
 ### Features
