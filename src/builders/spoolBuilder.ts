@@ -328,7 +328,7 @@ export const newSpoolTxBlock = (
   initTxBlock?:
     | ScallopTxBlock
     | SuiKitTxBlock
-    | TransactionBlock
+    | Transaction
     | SuiTxBlockWithSCoin
 ) => {
   const txBlock =

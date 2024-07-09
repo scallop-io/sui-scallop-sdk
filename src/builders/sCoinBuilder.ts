@@ -80,7 +80,7 @@ export const newSCoinTxBlock = (
   initTxBlock?:
     | ScallopTxBlock
     | SuiKitTxBlock
-    | TransactionBlock
+    | Transaction
     | BaseScallopTxBlock
 ) => {
   const txBlock =
