@@ -18,10 +18,6 @@ export type BaseScallopTxBlock = ReferralTxBlock &
   BorrowIncentiveTxBlock &
   VeScaTxBlock;
 
-export type ScallopTxBlockWithoutSCoinTxBlock = SpoolTxBlock &
-  BaseScallopTxBlock;
-
-export type ScallopTxBlockWithoutCoreTxBlock = SCoinTxBlock &
-  ScallopTxBlockWithoutSCoinTxBlock;
-
-export type ScallopTxBlock = CoreTxBlock & ScallopTxBlockWithoutCoreTxBlock;
+export type SuiTxBlockWithSCoin = BaseScallopTxBlock & SCoinTxBlock;
+export type SuiTxBlockWithSpool = SuiTxBlockWithSCoin & SpoolTxBlock;
+export type ScallopTxBlock = SuiTxBlockWithSpool & CoreTxBlock;
