@@ -375,9 +375,11 @@ describe('Test Scallop Client - Other Method', async () => {
               stakeAccount.id
             );
 
-            const wdScoin = txBlock.withdraw(marketCoin, coinName);
-            txObjects.push(wdScoin);
-            needUnstakeMarketAmount -= stakeAccount.staked;
+            if (marketCoin) {
+              const wdScoin = txBlock.withdraw(marketCoin, coinName);
+              txObjects.push(wdScoin);
+              needUnstakeMarketAmount -= stakeAccount.staked;
+            }
           } else {
             // A single account has enough to unstake them all.
             const marketCoin = await txBlock.unstakeQuick(
@@ -386,8 +388,10 @@ describe('Test Scallop Client - Other Method', async () => {
               stakeAccount.id
             );
 
-            const wdScoin = txBlock.withdraw(marketCoin, coinName);
-            txObjects.push(wdScoin);
+            if (marketCoin) {
+              const wdScoin = txBlock.withdraw(marketCoin, coinName);
+              txObjects.push(wdScoin);
+            }
             break;
           }
         }

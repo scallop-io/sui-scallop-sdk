@@ -43,7 +43,7 @@ export type SpoolQuickMethods = {
     amount: number,
     stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiAddressArg
-  ): Promise<TransactionResult>;
+  ): Promise<TransactionResult | undefined>;
   claimQuick(
     stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiAddressArg
