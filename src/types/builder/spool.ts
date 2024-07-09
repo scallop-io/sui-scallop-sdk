@@ -6,7 +6,7 @@ import type {
 import type { TransactionResult } from '@mysten/sui/transactions';
 import type { ScallopBuilder } from '../../models';
 import type { SupportStakeMarketCoins } from '../constant';
-import { BaseScallopTxBlock } from '.';
+import { SuiTxBlockWithSCoin } from '.';
 
 export type SpoolIds = {
   spoolPkg: string;
@@ -42,7 +42,7 @@ export type SpoolQuickMethods = {
     amount: number,
     stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiAddressArg
-  ): Promise<TransactionResult[]>;
+  ): Promise<TransactionResult>;
   claimQuick(
     stakeMarketCoinName: SupportStakeMarketCoins,
     stakeAccountId?: SuiAddressArg
@@ -50,7 +50,7 @@ export type SpoolQuickMethods = {
 };
 
 export type SuiTxBlockWithSpoolNormalMethods = SuiKitTxBlock &
-  BaseScallopTxBlock &
+  SuiTxBlockWithSCoin &
   SpoolNormalMethods;
 
 export type SpoolTxBlock = SuiTxBlockWithSpoolNormalMethods & SpoolQuickMethods;
