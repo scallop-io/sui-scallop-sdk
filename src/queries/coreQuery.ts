@@ -1,4 +1,4 @@
-import { normalizeStructTag } from '@mysten/sui.js/utils';
+import { normalizeStructTag } from '@mysten/sui/utils';
 import {
   SUPPORT_POOLS,
   PROTOCOL_OBJECT_ID,
@@ -13,7 +13,7 @@ import {
   parseOriginMarketCollateralData,
   calculateMarketCollateralData,
 } from '../utils';
-import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui.js/client';
+import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui/client';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
 import type { ScallopQuery } from '../models';
 import {

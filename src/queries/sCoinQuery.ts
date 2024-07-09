@@ -1,4 +1,4 @@
-import { bcs } from '@mysten/sui.js/bcs';
+import { bcs } from '@mysten/sui/bcs';
 import assert from 'assert';
 import BigNumber from 'bignumber.js';
 import { SUPPORT_SCOIN } from 'src/constants';

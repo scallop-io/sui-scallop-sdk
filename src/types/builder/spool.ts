@@ -4,7 +4,7 @@ import type {
   SuiObjectArg,
   SuiTxArg,
 } from '@scallop-io/sui-kit';
-import type { TransactionResult } from '@mysten/sui.js/transactions';
+import type { TransactionResult } from '@mysten/sui/transactions';
 import type { ScallopBuilder } from '../../models';
 import type { SupportStakeMarketCoins } from '../constant';
 import { BaseScallopTxBlock } from '.';

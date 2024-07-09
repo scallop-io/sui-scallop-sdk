@@ -1,4 +1,4 @@
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { TransactionBlock } from '@mysten/sui/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { newCoreTxBlock } from './coreBuilder';
 import { newSpoolTxBlock } from './spoolBuilder';

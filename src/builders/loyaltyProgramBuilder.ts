@@ -1,4 +1,4 @@
-import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { TransactionBlock } from '@mysten/sui/transactions';
 import { SuiObjectArg, SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { coinIds } from 'src/constants';
 import { ScallopBuilder } from 'src/models';

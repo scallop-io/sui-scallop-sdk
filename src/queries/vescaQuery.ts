@@ -4,11 +4,11 @@ import {
   type SuiObjectResponse,
   type SuiObjectData,
   DevInspectResults,
-} from '@mysten/sui.js/client';
+} from '@mysten/sui/client';
 import type { ScallopQuery } from '../models';
 import { MAX_LOCK_DURATION } from 'src/constants';
 import { SUI_CLOCK_OBJECT_ID, SuiTxBlock } from '@scallop-io/sui-kit';
-import { bcs } from '@mysten/sui.js/bcs';
+import { bcs } from '@mysten/sui/bcs';
 import { z as zod } from 'zod';
 /**
  * Query all owned veSca key.
