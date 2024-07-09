@@ -4,6 +4,7 @@ import {
 } from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models';
 import {
+  BaseScallopTxBlock,
   GenerateSCoinNormalMethod,
   GenerateSCoinQuickMethod,
   SCoinTxBlock,
@@ -79,7 +80,11 @@ const generateSCoinQuickMethod: GenerateSCoinQuickMethod = ({
 
 export const newSCoinTxBlock = (
   builder: ScallopBuilder,
-  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | TransactionBlock
+  initTxBlock?:
+    | ScallopTxBlock
+    | SuiKitTxBlock
+    | TransactionBlock
+    | BaseScallopTxBlock
 ) => {
   const txBlock =
     initTxBlock instanceof TransactionBlock

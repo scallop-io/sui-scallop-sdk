@@ -5,7 +5,7 @@ import {
 } from '@scallop-io/sui-kit';
 import { SupportSCoin } from '../constant';
 import { ScallopBuilder } from 'src/models';
-import { ScallopTxBlockWithoutSCoinTxBlock } from '.';
+import { BaseScallopTxBlock } from '.';
 
 export type sCoinPkgIds = {
   pkgId: string;
@@ -46,7 +46,7 @@ export type sCoinQuickMethods = {
 };
 
 export type SuiTxBlockWithSCoinNormalMethods = SuiKitTxBlock &
-  ScallopTxBlockWithoutSCoinTxBlock &
+  BaseScallopTxBlock &
   sCoinNormalMethods;
 export type SCoinTxBlock = SuiTxBlockWithSCoinNormalMethods & sCoinQuickMethods;
 

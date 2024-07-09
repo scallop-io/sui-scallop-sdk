@@ -15,6 +15,7 @@ import type {
   SpoolTxBlock,
   SupportStakeMarketCoins,
   ScallopTxBlock,
+  SuiTxBlockWithSCoin,
 } from '../types';
 
 /**
@@ -83,6 +84,32 @@ const requireStakeAccounts = async (
     : stakeAccounts[stakeMarketCoinName];
 
   return specificStakeAccounts;
+};
+
+const stakeHelper = async (
+  builder: ScallopBuilder,
+  txBlock: SuiTxBlockWithSpoolNormalMethods,
+  stakeAccount: SuiAddressArg,
+  coinType: string,
+  coinName: SupportStakeMarketCoins,
+  amount: number,
+  sender: string,
+  isSCoin: boolean = false
+) => {
+  try {
+    const coins = await builder.utils.selectCoins(amount, coinType, sender);
+    const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
+    if (isSCoin) {
+      const marketCoin = txBlock.burnSCoin(coinName, takeCoin);
+      txBlock.stake(stakeAccount, marketCoin, coinName);
+    } else {
+      txBlock.stake(stakeAccount, takeCoin, coinName);
+    }
+    txBlock.transferObjects([leftCoin], sender);
+    return true;
+  } catch (e) {
+    return false;
+  }
 };
 
 /**
@@ -188,18 +215,32 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
 
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
+      const sCoinType = builder.utils.parseSCoinType(stakeMarketCoinName);
       if (typeof amountOrMarketCoin === 'number') {
-        const coins = await builder.utils.selectCoins(
-          amountOrMarketCoin,
+        // try stake market coin
+        const stakeMarketCoinRes = await stakeHelper(
+          builder,
+          txBlock,
+          stakeAccountIds[0],
           marketCoinType,
+          stakeMarketCoinName,
+          amountOrMarketCoin,
           sender
         );
-        const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-          coins,
-          amountOrMarketCoin
-        );
-        txBlock.stake(stakeAccountIds[0], takeCoin, stakeMarketCoinName);
-        txBlock.transferObjects([leftCoin], sender);
+
+        // no market coin, try sCoin
+        if (!stakeMarketCoinRes) {
+          await stakeHelper(
+            builder,
+            txBlock,
+            stakeAccountIds[0],
+            sCoinType,
+            stakeMarketCoinName,
+            amountOrMarketCoin,
+            sender,
+            true
+          );
+        }
       } else {
         txBlock.stake(
           stakeAccountIds[0],
@@ -215,7 +256,7 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
         stakeMarketCoinName,
         stakeAccountId
       );
-      const stakeMarketCoins: TransactionResult[] = [];
+      const sCoins: TransactionResult[] = [];
       for (const account of stakeAccounts) {
         if (account.staked === 0) continue;
         const amountToUnstake = Math.min(amount, account.staked);
@@ -224,11 +265,34 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
           amountToUnstake,
           stakeMarketCoinName
         );
-        stakeMarketCoins.push(marketCoin);
+
+        // convert to new sCoin
+        const sCoin = txBlock.mintSCoin(stakeMarketCoinName, marketCoin);
+        sCoins.push(sCoin);
         amount -= amountToUnstake;
         if (amount === 0) break;
       }
-      return stakeMarketCoins;
+
+      const mergedSCoin = sCoins[0];
+      if (sCoins.length > 1) {
+        txBlock.mergeCoins(mergedSCoin, sCoins.slice(1));
+      }
+
+      // check for existing sCoins
+      try {
+        const existingCoins = await builder.utils.selectCoins(
+          Number.MAX_SAFE_INTEGER,
+          builder.utils.parseSCoinType(stakeMarketCoinName),
+          requireSender(txBlock)
+        );
+
+        if (existingCoins.length > 0) {
+          txBlock.mergeCoins(mergedSCoin, existingCoins);
+        }
+      } catch (e) {
+        // ignore
+      }
+      return mergedSCoin;
     },
     claimQuick: async (stakeMarketCoinName, stakeAccountId) => {
       const stakeAccountIds = await requireStakeAccountIds(
@@ -256,7 +320,11 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
  */
 export const newSpoolTxBlock = (
   builder: ScallopBuilder,
-  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | TransactionBlock
+  initTxBlock?:
+    | ScallopTxBlock
+    | SuiKitTxBlock
+    | TransactionBlock
+    | SuiTxBlockWithSCoin
 ) => {
   const txBlock =
     initTxBlock instanceof TransactionBlock
