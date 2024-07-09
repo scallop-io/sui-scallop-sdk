@@ -9,7 +9,7 @@ import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
 import type { SupportAssetCoins, SupportOracleType } from '../types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
-import { TransactionBlock } from '@mysten/sui.js/dist/cjs/transactions';
+import { TransactionBlock } from '@mysten/sui.js/transactions';
 
 /**
  * Update the price of the oracle for multiple coin.
