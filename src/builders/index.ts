@@ -28,9 +28,9 @@ export const newScallopTxBlock = (
     loyaltyTxBlock
   );
   const referralTxBlock = newReferralTxBlock(builder, borrowIncentiveTxBlock);
-  const spoolTxBlock = newSpoolTxBlock(builder, referralTxBlock);
-  const sCoinTxBlock = newSCoinTxBlock(builder, spoolTxBlock);
-  const coreTxBlock = newCoreTxBlock(builder, sCoinTxBlock);
+  const sCoinTxBlock = newSCoinTxBlock(builder, referralTxBlock);
+  const spoolTxBlock = newSpoolTxBlock(builder, sCoinTxBlock);
+  const coreTxBlock = newCoreTxBlock(builder, spoolTxBlock);
 
   return new Proxy(coreTxBlock, {
     get: (target, prop) => {
