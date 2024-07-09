@@ -2,7 +2,6 @@ import type {
   SuiTxBlock as SuiKitTxBlock,
   SuiAddressArg,
   SuiObjectArg,
-  SuiTxArg,
 } from '@scallop-io/sui-kit';
 import type {
   TransactionArgument,
@@ -47,7 +46,7 @@ export type CoreNormalMethods = {
   takeCollateral: (
     obligation: SuiAddressArg,
     obligationKey: SuiAddressArg,
-    amount: SuiTxArg,
+    amount: number,
     collateralCoinName: SupportCollateralCoins
   ) => TransactionResult;
   deposit: (
@@ -66,20 +65,20 @@ export type CoreNormalMethods = {
   borrow: (
     obligation: SuiAddressArg,
     obligationKey: SuiAddressArg,
-    amount: SuiTxArg,
+    amount: number,
     poolCoinName: SupportPoolCoins
   ) => TransactionResult;
   borrowWithReferral: (
     obligation: SuiAddressArg,
     obligationKey: SuiAddressArg,
     borrowReferral: SuiObjectArg,
-    amount: SuiTxArg,
+    amount: number,
     poolCoinName: SupportPoolCoins
   ) => TransactionResult;
   borrowEntry: (
     obligation: SuiAddressArg,
     obligationKey: SuiAddressArg,
-    amount: SuiTxArg,
+    amount: number,
     poolCoinName: SupportPoolCoins
   ) => void;
   repay: (
@@ -88,7 +87,7 @@ export type CoreNormalMethods = {
     poolCoinName: SupportPoolCoins
   ) => void;
   borrowFlashLoan: (
-    amount: SuiTxArg,
+    amount: number,
     poolCoinName: SupportPoolCoins
   ) => TransactionResult;
   repayFlashLoan: (

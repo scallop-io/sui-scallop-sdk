@@ -1,8 +1,4 @@
-import {
-  SuiTxBlock as SuiKitTxBlock,
-  SuiObjectArg,
-  SuiTxArg,
-} from '@scallop-io/sui-kit';
+import { SuiTxBlock as SuiKitTxBlock, SuiObjectArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
 import { ScallopBuilder } from 'src/models';
 
@@ -16,17 +12,17 @@ export type VescaIds = {
 export type VeScaNormalMethods = {
   lockSca: (
     scaCoin: SuiObjectArg,
-    unlockAtInSecondTimestamp: SuiTxArg
+    unlockAtInSecondTimestamp: number
   ) => TransactionResult;
   extendLockPeriod: (
     veScaKey: SuiObjectArg,
-    newUnlockAtInSecondTimestamp: SuiTxArg
+    newUnlockAtInSecondTimestamp: number
   ) => void;
   extendLockAmount: (veScaKey: SuiObjectArg, scaCoin: SuiObjectArg) => void;
   renewExpiredVeSca: (
     veScaKey: SuiObjectArg,
     scaCoin: SuiObjectArg,
-    newUnlockAtInSecondTimestamp: SuiTxArg
+    newUnlockAtInSecondTimestamp: number
   ) => void;
   redeemSca: (veScaKey: SuiObjectArg) => TransactionResult;
   mintEmptyVeSca: () => TransactionResult;
