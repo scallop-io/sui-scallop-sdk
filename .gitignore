@@ -30,3 +30,6 @@ yarn-error.log*
 .pnpm-debug.log*
 logs/
 *.log*
+
+# vscode settings
+settings.json
