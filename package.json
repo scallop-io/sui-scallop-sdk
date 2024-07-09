@@ -61,12 +61,12 @@
   },
   "dependencies": {
     "@mysten/bcs": "^0.8.1",
-    "@mysten/sui.js": "^0.52.0",
+    "@mysten/sui": "^1.2.1",
     "@noble/curves": "^1.2.0",
     "@noble/hashes": "^1.3.2",
     "@pythnetwork/price-service-client": "^1.8.2",
     "@pythnetwork/pyth-sui-js": "2.0.0",
-    "@scallop-io/sui-kit": "0.52.0",
+    "@scallop-io/sui-kit": "1.0.0",
     "@scure/bip39": "^1.2.1",
     "@tanstack/query-core": "^5.28.0",
     "axios": "^1.6.0",
@@ -98,7 +98,7 @@
     "vitest": "^0.34.6"
   },
   "peerDependencies": {
-    "@mysten/sui.js": "0.52.0",
+    "@mysten/sui": "0.52.0",
     "@scallop-io/sui-kit": "0.52.0",
     "bn.js": "^5.2.1"
   },
