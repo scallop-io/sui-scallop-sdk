@@ -1006,26 +1006,15 @@ export class ScallopClient {
         // check for staked market coin in spool
         if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
           try {
-            const stakedMarketCoins = await txBlock.unstakeQuick(
+            const stakedMarketCoin = await txBlock.unstakeQuick(
               Number.MAX_SAFE_INTEGER,
               sCoinName as SupportStakeMarketCoins
             );
-            if (stakedMarketCoins.length > 0) {
-              const mergedStakedMarketCoin = stakedMarketCoins[0];
-              if (stakedMarketCoins.length > 1) {
-                txBlock.mergeCoins(
-                  mergedStakedMarketCoin,
-                  stakedMarketCoins.slice(1)
-                );
-              }
-              // merge with takeMarketCoin
-              if (toDestroyMarketCoin) {
-                txBlock.mergeCoins(toDestroyMarketCoin, [
-                  mergedStakedMarketCoin,
-                ]);
-              } else {
-                toDestroyMarketCoin = mergedStakedMarketCoin;
-              }
+            // merge with takeMarketCoin
+            if (toDestroyMarketCoin) {
+              txBlock.mergeCoins(toDestroyMarketCoin, [stakedMarketCoin]);
+            } else {
+              toDestroyMarketCoin = stakedMarketCoin;
             }
           } catch (e: any) {
             // ignore
