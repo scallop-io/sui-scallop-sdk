@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.43](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.42...v0.46.43) (2024-07-09)
+
+### Bugfixes
+
+- Minor fix on `unstakedMarketAmount` ([faa647d](https://github.com/scallop-io/sui-scallop-sdk/pull/136/commits/faa647d7eac2518a71fb12eb4060bdf42c9d2ceb))
+
 ### [0.46.42](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.41...v0.46.42) (2024-07-08)
 
 ### Bugfixes
