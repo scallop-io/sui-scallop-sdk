@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
 import {
+  SuiAddressArg,
   SuiTxArg,
   SuiTxBlock,
   normalizeStructTag,
@@ -22,7 +23,7 @@ import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 
 type QueryInspectTxnParams = {
   queryTarget: string;
-  args: SuiTxArg[];
+  args: (SuiTxArg | SuiAddressArg)[];
   typeArgs?: any[];
 };
 
@@ -73,20 +74,6 @@ export class ScallopCache {
   }
 
   /**
-   * @description Cache protocol config call for 60 seconds.
-   * @returns Promise<ProtocolConfig>
-   */
-  public async getProtocolConfig() {
-    return await this.queryClient.fetchQuery({
-      queryKey: ['getProtocolConfig'],
-      queryFn: async () => {
-        return await this.suiKit.client().getProtocolConfig();
-      },
-      staleTime: 30000,
-    });
-  }
-
-  /**
    * @description Provides cache for inspectTxn of the SuiKit.
    * @param QueryInspectTxnParams
    * @param txBlock
@@ -114,7 +101,6 @@ export class ScallopCache {
     const txBytes = await txBlock.txBlock.build({
       client: this.suiKit.client(),
       onlyTransactionKind: true,
-      protocolConfig: await this.getProtocolConfig(),
     });
 
     const query = await this.queryClient.fetchQuery({

@@ -2,7 +2,6 @@ import type {
   SuiTxBlock as SuiKitTxBlock,
   SuiAddressArg,
   SuiObjectArg,
-  SuiTxArg,
 } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
 import type { ScallopBuilder } from '../../models';
@@ -24,7 +23,7 @@ export type SpoolNormalMethods = {
   ) => void;
   unstake: (
     stakeAccount: SuiAddressArg,
-    amount: SuiTxArg,
+    amount: number,
     stakeMarketCoinName: SupportStakeMarketCoins
   ) => TransactionResult;
   claim: (

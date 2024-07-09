@@ -10,6 +10,7 @@ import { MAX_LOCK_DURATION } from 'src/constants';
 import { SUI_CLOCK_OBJECT_ID, SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui/bcs';
 import { z as zod } from 'zod';
+import assert from 'assert';
 /**
  * Query all owned veSca key.
  *
@@ -201,7 +202,6 @@ const getTotalVeScaTreasuryAmount = async (
   const txBytes = await txb.txBlock.build({
     client: query.suiKit.client(),
     onlyTransactionKind: true,
-    protocolConfig: await query.cache.getProtocolConfig(),
   });
 
   // return result
@@ -219,7 +219,8 @@ const getTotalVeScaTreasuryAmount = async (
   if (results && results[1].returnValues) {
     const value = Uint8Array.from(results[1].returnValues[0][0]);
     const type = results[1].returnValues[0][1];
-    return bcs.de(type, value);
+    assert(type === 'u64', 'Result type is not u64');
+    return bcs.u64().parse(value);
   }
 
   return '0';

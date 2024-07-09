@@ -39,7 +39,7 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         `${referralIds.referralPgkId}::referral_bindings::bind_ve_sca_referrer`,
         [
           referralIds.referralBindings,
-          txBlock.pure.string(veScaKeyId),
+          txBlock.pure.id(veScaKeyId),
           veScaTable,
           SUI_CLOCK_OBJECT_ID,
         ],

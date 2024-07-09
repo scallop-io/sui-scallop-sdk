@@ -132,7 +132,12 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       );
       return txBlock.moveCall(
         `${spoolIds.spoolPkg}::user::unstake`,
-        [stakePoolId, stakeAccount, amount, SUI_CLOCK_OBJECT_ID],
+        [
+          stakePoolId,
+          stakeAccount,
+          txBlock.pure.u64(amount),
+          SUI_CLOCK_OBJECT_ID,
+        ],
         [marketCoinType]
       );
     },

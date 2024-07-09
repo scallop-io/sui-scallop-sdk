@@ -601,7 +601,7 @@ export class ScallopClient {
     callback: (
       txBlock: ScallopTxBlock,
       coin: TransactionObjectArgument | string
-    ) => SuiObjectArg,
+    ) => SuiObjectArg | Promise<SuiObjectArg>,
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {

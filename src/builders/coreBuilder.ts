@@ -115,7 +115,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           obligationKey,
           coreIds.market,
           coreIds.coinDecimalsRegistry,
-          amount,
+          txBlock.pure.u64(amount),
           coreIds.xOracle,
           SUI_CLOCK_OBJECT_ID,
         ],
@@ -164,7 +164,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           obligationKey,
           coreIds.market,
           coreIds.coinDecimalsRegistry,
-          amount,
+          txBlock.pure.u64(amount),
           coreIds.xOracle,
           SUI_CLOCK_OBJECT_ID,
         ],
@@ -188,7 +188,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           coreIds.market,
           coreIds.coinDecimalsRegistry,
           borrowReferral,
-          amount,
+          txBlock.pure.u64(amount),
           coreIds.xOracle,
           SUI_CLOCK_OBJECT_ID,
         ],
@@ -205,7 +205,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           obligationKey,
           coreIds.market,
           coreIds.coinDecimalsRegistry,
-          amount,
+          txBlock.pure.u64(amount),
           coreIds.xOracle,
           SUI_CLOCK_OBJECT_ID,
         ],
@@ -230,7 +230,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       const coinType = builder.utils.parseCoinType(poolCoinName);
       return txBlock.moveCall(
         `${coreIds.protocolPkg}::flash_loan::borrow_flash_loan`,
-        [coreIds.version, coreIds.market, amount],
+        [coreIds.version, coreIds.market, txBlock.pure.u64(amount)],
         [coinType]
       );
     },
