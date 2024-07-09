@@ -477,7 +477,7 @@ export const newCoreTxBlock = (
   initTxBlock?:
     | ScallopTxBlock
     | SuiKitTxBlock
-    | TransactionBlock
+    | Transaction
     | SuiTxBlockWithSpool
 ) => {
   const txBlock =
