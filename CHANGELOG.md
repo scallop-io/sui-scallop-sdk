@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.44](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.43...v0.46.44) (2024-07-09)
+
+### Features
+
+- Adjust staking spool methods with new sCoin ([607f53f](https://github.com/scallop-io/sui-scallop-sdk/pull/137/commits/607f53ff4997e4f010a274e6f5d0cb62fba06b27))
+
 ### [0.46.43](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.42...v0.46.43) (2024-07-09)
 
 ### Bugfixes
