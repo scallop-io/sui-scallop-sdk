@@ -3,7 +3,7 @@ import {
   SuiObjectArg,
   SuiTxArg,
 } from '@scallop-io/sui-kit';
-import type { TransactionResult } from '@mysten/sui.js/transactions';
+import type { TransactionResult } from '@mysten/sui/transactions';
 import { ScallopBuilder } from 'src/models';
 
 export type VescaIds = {

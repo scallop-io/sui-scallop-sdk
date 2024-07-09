@@ -1,4 +1,4 @@
-import { SUI_TYPE_ARG, normalizeStructTag } from '@mysten/sui.js/utils';
+import { SUI_TYPE_ARG, normalizeStructTag } from '@mysten/sui/utils';
 import { SuiAddressArg, SuiKit } from '@scallop-io/sui-kit';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress } from './scallopAddress';

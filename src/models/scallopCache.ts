@@ -17,7 +17,7 @@ import type {
   DynamicFieldPage,
   GetDynamicFieldObjectParams,
   GetBalanceParams,
-} from '@mysten/sui.js/client';
+} from '@mysten/sui/client';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 
 type QueryInspectTxnParams = {

@@ -1,5 +1,5 @@
-import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
-import type { TransactionBlock } from '@mysten/sui.js/transactions';
+import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
+import type { TransactionBlock } from '@mysten/sui/transactions';
 import type { SuiKit, SuiKitParams, NetworkType } from '@scallop-io/sui-kit';
 import type {
   ScallopAddress,

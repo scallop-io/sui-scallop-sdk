@@ -7,7 +7,7 @@ import type {
 import type {
   TransactionArgument,
   TransactionResult,
-} from '@mysten/sui.js/transactions';
+} from '@mysten/sui/transactions';
 import type { ScallopBuilder } from '../../models';
 import type {
   SupportCollateralCoins,
