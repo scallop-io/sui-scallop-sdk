@@ -273,26 +273,28 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
         if (amount === 0) break;
       }
 
-      const mergedSCoin = sCoins[0];
-      if (sCoins.length > 1) {
-        txBlock.mergeCoins(mergedSCoin, sCoins.slice(1));
-      }
+      if (sCoins.length > 0) {
+        const mergedSCoin = sCoins[0];
 
-      // check for existing sCoins
-      try {
-        const existingCoins = await builder.utils.selectCoins(
-          Number.MAX_SAFE_INTEGER,
-          builder.utils.parseSCoinType(stakeMarketCoinName),
-          requireSender(txBlock)
-        );
-
-        if (existingCoins.length > 0) {
-          txBlock.mergeCoins(mergedSCoin, existingCoins);
+        if (sCoins.length > 1) {
+          txBlock.mergeCoins(mergedSCoin, sCoins.slice(1));
         }
-      } catch (e) {
-        // ignore
+        // check for existing sCoins
+        try {
+          const existingCoins = await builder.utils.selectCoins(
+            Number.MAX_SAFE_INTEGER,
+            builder.utils.parseSCoinType(stakeMarketCoinName),
+            requireSender(txBlock)
+          );
+
+          if (existingCoins.length > 0) {
+            txBlock.mergeCoins(mergedSCoin, existingCoins);
+          }
+        } catch (e) {
+          // ignore
+        }
+        return mergedSCoin;
       }
-      return mergedSCoin;
     },
     claimQuick: async (stakeMarketCoinName, stakeAccountId) => {
       const stakeAccountIds = await requireStakeAccountIds(

@@ -797,9 +797,10 @@ export class ScallopClient {
     );
     const stakeCoinName =
       this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
-    const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
-
-    txBlock.transferObjects([coin], sender);
+    if (stakeMarketCoin) {
+      const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
+      txBlock.transferObjects([coin], sender);
+    }
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -976,6 +977,7 @@ export class ScallopClient {
          * First check marketCoin inside mini wallet
          * Then check stakedMarketCoin inside spool
          */
+        const sCoins: SuiObjectArg[] = [];
         let toDestroyMarketCoin: SuiObjectArg | undefined;
 
         // check market coin in mini wallet
@@ -997,26 +999,6 @@ export class ScallopClient {
           const errMsg = e.toString() as String;
           if (!errMsg.includes('No valid coins found for the transaction'))
             throw e;
-        }
-
-        // check for staked market coin in spool
-        if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
-          try {
-            const stakedMarketCoin = await txBlock.unstakeQuick(
-              Number.MAX_SAFE_INTEGER,
-              sCoinName as SupportStakeMarketCoins
-            );
-            // merge with takeMarketCoin
-            if (toDestroyMarketCoin) {
-              txBlock.mergeCoins(toDestroyMarketCoin, [stakedMarketCoin]);
-            } else {
-              toDestroyMarketCoin = stakedMarketCoin;
-            }
-          } catch (e: any) {
-            // ignore
-            const errMsg = e.toString();
-            if (!errMsg.includes('No stake account found')) throw e;
-          }
         }
 
         // if market coin found, mint sCoin
@@ -1047,7 +1029,33 @@ export class ScallopClient {
             if (!errMsg.includes('No valid coins found for the transaction'))
               throw e;
           }
-          toTransfer.push(sCoin);
+          sCoins.push(sCoin);
+        }
+
+        // check for staked market coin in spool
+        if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
+          try {
+            const sCoin = await txBlock.unstakeQuick(
+              Number.MAX_SAFE_INTEGER,
+              sCoinName as SupportStakeMarketCoins
+            );
+            if (sCoin) {
+              sCoins.push(sCoin);
+            }
+          } catch (e: any) {
+            // ignore
+            const errMsg = e.toString();
+            if (!errMsg.includes('No stake account found')) throw e;
+          }
+        }
+
+        if (sCoins.length > 0) {
+          const mergedSCoin = sCoins[0];
+          if (sCoins.length > 1) {
+            txBlock.mergeCoins(mergedSCoin, sCoins.slice(1));
+          }
+
+          toTransfer.push(mergedSCoin);
         }
       })
     );
