@@ -1,4 +1,4 @@
-import { TransactionBlock } from '@mysten/sui/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 import { SuiObjectArg, SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { coinIds } from 'src/constants';
 import { ScallopBuilder } from 'src/models';
@@ -76,10 +76,10 @@ const generateLoyaltyProgramQuickMethod: GenerateLoyaltyProgramQuickMethod = ({
  */
 export const newLoyaltyProgramTxBlock = (
   builder: ScallopBuilder,
-  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | TransactionBlock
+  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ) => {
   const txBlock =
-    initTxBlock instanceof TransactionBlock
+    initTxBlock instanceof Transaction
       ? new SuiKitTxBlock(initTxBlock)
       : initTxBlock
       ? initTxBlock

@@ -4,7 +4,7 @@ import {
   SUI_CLOCK_OBJECT_ID,
   SuiTxBlock as SuiKitTxBlock,
   SuiObjectArg,
-  TransactionBlock,
+  Transaction,
 } from '@scallop-io/sui-kit';
 import {
   GenerateReferralNormalMethod,
@@ -39,7 +39,7 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         `${referralIds.referralPgkId}::referral_bindings::bind_ve_sca_referrer`,
         [
           referralIds.referralBindings,
-          txBlock.pure(veScaKeyId),
+          txBlock.pure.string(veScaKeyId),
           veScaTable,
           SUI_CLOCK_OBJECT_ID,
         ],
@@ -141,10 +141,10 @@ const generateReferralQuickMethod: GenerateReferralQuickMethod = ({
  */
 export const newReferralTxBlock = (
   builder: ScallopBuilder,
-  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | TransactionBlock
+  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ) => {
   const txBlock =
-    initTxBlock instanceof TransactionBlock
+    initTxBlock instanceof Transaction
       ? new SuiKitTxBlock(initTxBlock)
       : initTxBlock
       ? initTxBlock

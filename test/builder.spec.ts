@@ -5,7 +5,7 @@ import {
   Scallop,
   UNLOCK_ROUND_DURATION,
 } from '../src';
-import { TransactionBlock } from '@scallop-io/sui-kit';
+import { Transaction } from '@scallop-io/sui-kit';
 import { scallopSDK } from './scallopSdk';
 
 const ENABLE_LOG = false;
@@ -125,10 +125,10 @@ describe('Test Scallop Core Builder', async () => {
     expect(borrowFlashLoanResult.effects?.status.status).toEqual('success');
   });
 
-  it('"ScallopTxBlock" should be an instance of "TransactionBlock"', async () => {
+  it('"ScallopTxBlock" should be an instance of "Transaction"', async () => {
     const tx = scallopBuilder.createTxBlock();
     tx.setSender(sender);
-    expect(tx.txBlock).toBeInstanceOf(TransactionBlock);
+    expect(tx.txBlock).toBeInstanceOf(Transaction);
     /**
      * For example, you can do the following:
      * 1. split SUI from gas.
@@ -137,10 +137,10 @@ describe('Test Scallop Core Builder', async () => {
      */
     const suiTxBlock = tx.txBlock;
     const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [
-      suiTxBlock.pure(10 ** 6),
+      suiTxBlock.pure.u64(10 ** 6),
     ]);
     const marketCoin = tx.deposit(coin, SUPPLY_COIN_NAME);
-    suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure(sender));
+    suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure.address(sender));
     const txBlockResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('TxBlockResult:', txBlockResult);
