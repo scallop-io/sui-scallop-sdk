@@ -82,9 +82,6 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@graphql-codegen/typed-document-node": "^5.0.4",
-    "@graphql-codegen/typescript": "4.0.4",
-    "@graphql-codegen/typescript-operations": "^4.1.2",
     "@commitlint/cli": "^18.2.0",
     "@commitlint/config-conventional": "^18.1.0",
     "@commitlint/prompt-cli": "^18.2.0",
