@@ -364,8 +364,8 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const marketCoin = await txBlock.depositQuick(amount, poolCoinName);
-    txBlock.transferObjects([marketCoin], sender);
+    const sCoin = await txBlock.depositQuick(amount, poolCoinName);
+    txBlock.transferObjects([sCoin], sender);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -414,7 +414,7 @@ export class ScallopClient {
       await this.query.getStakeAccounts(stakeMarketCoinName);
     const targetStakeAccount = stakeAccountId || stakeAccounts[0].id;
 
-    const marketCoin = await txBlock.depositQuick(amount, stakeCoinName);
+    const marketCoin = await txBlock.depositQuick(amount, stakeCoinName, false);
     if (targetStakeAccount) {
       await txBlock.stakeQuick(
         marketCoin,
