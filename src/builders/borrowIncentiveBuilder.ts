@@ -1,4 +1,4 @@
-import { TransactionBlock } from '@mysten/sui/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import {
@@ -333,10 +333,10 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
  */
 export const newBorrowIncentiveTxBlock = (
   builder: ScallopBuilder,
-  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | TransactionBlock
+  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ) => {
   const txBlock =
-    initTxBlock instanceof TransactionBlock
+    initTxBlock instanceof Transaction
       ? new SuiKitTxBlock(initTxBlock)
       : initTxBlock
       ? initTxBlock

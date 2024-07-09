@@ -1,7 +1,7 @@
 import { BigNumber } from 'bignumber.js';
 import { describe, it, expect } from 'vitest';
 import { assetCoins } from '../src';
-import type { TransactionBlock } from '@scallop-io/sui-kit';
+import type { Transaction } from '@scallop-io/sui-kit';
 import type { SupportStakeMarketCoins } from '../src';
 import { scallopSDK } from './scallopSdk';
 
@@ -338,7 +338,7 @@ describe('Test Scallop Client - Other Method', async () => {
     const stakeAccounts = await query.getStakeAccounts(stakeMarketCoinName);
     const lendingInfo = await query.getLending(coinName);
 
-    let transactionBlock: TransactionBlock;
+    let transactionBlock: Transaction;
     if (marketPool) {
       // Lending Withdraw with Spool Unstaking.
       const withdrawAmountWithDecimals = 1_000_000_000; // Withdraw target amount.
