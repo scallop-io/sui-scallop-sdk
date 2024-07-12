@@ -742,12 +742,12 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const marketCoins = await txBlock.unstakeQuick(
+    const marketCoin = await txBlock.unstakeQuick(
       amount,
       stakeMarketCoinName,
       stakeAccountId
     );
-    txBlock.transferObjects(marketCoins, sender);
+    txBlock.transferObjects([marketCoin], sender);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -790,20 +790,17 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const stakeMarketCoins = await txBlock.unstakeQuick(
+    const stakeMarketCoin = await txBlock.unstakeQuick(
       amount,
       stakeMarketCoinName,
       stakeAccountId
     );
-
-    const coins = [];
-    for (const stakeMarketCoin of stakeMarketCoins) {
-      const stakeCoinName =
-        this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
+    const stakeCoinName =
+      this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
+    if (stakeMarketCoin) {
       const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
-      coins.push(coin);
+      txBlock.transferObjects([coin], sender);
     }
-    txBlock.transferObjects(coins, sender);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -980,6 +977,7 @@ export class ScallopClient {
          * First check marketCoin inside mini wallet
          * Then check stakedMarketCoin inside spool
          */
+        const sCoins: SuiObjectArg[] = [];
         let toDestroyMarketCoin: SuiObjectArg | undefined;
 
         // check market coin in mini wallet
@@ -1001,37 +999,6 @@ export class ScallopClient {
           const errMsg = e.toString() as String;
           if (!errMsg.includes('No valid coins found for the transaction'))
             throw e;
-        }
-
-        // check for staked market coin in spool
-        if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
-          try {
-            const stakedMarketCoins = await txBlock.unstakeQuick(
-              Number.MAX_SAFE_INTEGER,
-              sCoinName as SupportStakeMarketCoins
-            );
-            if (stakedMarketCoins.length > 0) {
-              const mergedStakedMarketCoin = stakedMarketCoins[0];
-              if (stakedMarketCoins.length > 1) {
-                txBlock.mergeCoins(
-                  mergedStakedMarketCoin,
-                  stakedMarketCoins.slice(1)
-                );
-              }
-              // merge with takeMarketCoin
-              if (toDestroyMarketCoin) {
-                txBlock.mergeCoins(toDestroyMarketCoin, [
-                  mergedStakedMarketCoin,
-                ]);
-              } else {
-                toDestroyMarketCoin = mergedStakedMarketCoin;
-              }
-            }
-          } catch (e: any) {
-            // ignore
-            const errMsg = e.toString();
-            if (!errMsg.includes('No stake account found')) throw e;
-          }
         }
 
         // if market coin found, mint sCoin
@@ -1062,7 +1029,33 @@ export class ScallopClient {
             if (!errMsg.includes('No valid coins found for the transaction'))
               throw e;
           }
-          toTransfer.push(sCoin);
+          sCoins.push(sCoin);
+        }
+
+        // check for staked market coin in spool
+        if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
+          try {
+            const sCoin = await txBlock.unstakeQuick(
+              Number.MAX_SAFE_INTEGER,
+              sCoinName as SupportStakeMarketCoins
+            );
+            if (sCoin) {
+              sCoins.push(sCoin);
+            }
+          } catch (e: any) {
+            // ignore
+            const errMsg = e.toString();
+            if (!errMsg.includes('No stake account found')) throw e;
+          }
+        }
+
+        if (sCoins.length > 0) {
+          const mergedSCoin = sCoins[0];
+          if (sCoins.length > 1) {
+            txBlock.mergeCoins(mergedSCoin, sCoins.slice(1));
+          }
+
+          toTransfer.push(mergedSCoin);
         }
       })
     );
