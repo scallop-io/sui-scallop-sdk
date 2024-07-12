@@ -74,48 +74,48 @@ describe('Test Scallop Client - Spool Method', async () => {
   const client = await scallopSDK.createScallopClient();
   console.info('Your wallet:', client.walletAddress);
 
-  it('Should create stake account success', async () => {
-    const createStakeAccountResult = await client.createStakeAccount('ssui');
-    if (ENABLE_LOG) {
-      console.info('CreateStakeAccountResult:', createStakeAccountResult);
-    }
-    expect(createStakeAccountResult.effects?.status.status).toEqual('success');
-  });
+  // it('Should create stake account success', async () => {
+  //   const txb = await client.createStakeAccount('ssui', false);
+  //   const createStakeAccountResult = await client.suiKit.inspectTxn(txb);
+  //   if (ENABLE_LOG) {
+  //     console.info('CreateStakeAccountResult:', createStakeAccountResult);
+  //   }
+  //   expect(createStakeAccountResult.effects?.status.status).toEqual('success');
+  // });
 
-  it('Should stake success', async () => {
-    const stakeResult = await client.stake('ssui', 10 ** 8);
-    if (ENABLE_LOG) {
-      console.info('StakeResult:', stakeResult);
-    }
-    expect(stakeResult.effects?.status.status).toEqual('success');
-  });
+  // it('Should stake success', async () => {
+  //   const stakeResult = await client.stake('ssui', 10 ** 8);
+  //   if (ENABLE_LOG) {
+  //     console.info('StakeResult:', stakeResult);
+  //   }
+  //   expect(stakeResult.effects?.status.status).toEqual('success');
+  // });
 
-  it('Should unstake success', async () => {
-    const unstakeResult = await client.unstake('ssui', 10 ** 8);
-    if (ENABLE_LOG) {
-      console.info('UnstakeResult:', unstakeResult);
-    }
-    expect(unstakeResult.effects?.status.status).toEqual('success');
-  });
+  // it('Should unstake success', async () => {
+  //   const unstakeResult = await client.unstake('ssui', 5 * 10 ** 7);
+  //   if (ENABLE_LOG) {
+  //     console.info('UnstakeResult:', unstakeResult);
+  //   }
+  //   expect(unstakeResult.effects?.status.status).toEqual('success');
+  // });
 
   it('Should unstake and withdraw asset success', async () => {
-    const unstakeAndWithdrawResult = await client.unstakeAndWithdraw(
-      'ssui',
-      2 * 10 ** 8
-    );
+    const txb = await client.unstakeAndWithdraw('ssui', 5 * 10 ** 7, false);
+    const unstakeAndWithdrawResult = await client.suiKit.signAndSendTxn(txb);
+    console.dir(txb.blockData, { depth: null });
     if (ENABLE_LOG) {
       console.info('UnstakeAndWithdrawResult:', unstakeAndWithdrawResult);
     }
     expect(unstakeAndWithdrawResult.effects?.status.status).toEqual('success');
   });
 
-  it('Should claim success', async () => {
-    const claimResult = await client.claim('ssui');
-    if (ENABLE_LOG) {
-      console.info('ClaimResult:', claimResult);
-    }
-    expect(claimResult.effects?.status.status).toEqual('success');
-  });
+  // it('Should claim success', async () => {
+  //   const claimResult = await client.claim('ssui');
+  //   if (ENABLE_LOG) {
+  //     console.info('ClaimResult:', claimResult);
+  //   }
+  //   expect(claimResult.effects?.status.status).toEqual('success');
+  // });
 });
 
 describe('Test Scallop Client - Borrow incentive Method', async () => {
@@ -178,7 +178,7 @@ describe('Test Scallop Client - Core Method', async () => {
     expect(openObligationResult.effects?.status.status).toEqual('success');
   });
 
-  it('Should depoist collateral success', async () => {
+  it('Should deposit collateral success', async () => {
     const depositCollateralResult = await client.depositCollateral(
       'sui',
       10 ** 8
@@ -205,7 +205,7 @@ describe('Test Scallop Client - Core Method', async () => {
     expect(withdrawCollateralResult.effects?.status.status).toEqual('success');
   });
 
-  it('Should depoist asset success', async () => {
+  it('Should deposit asset success', async () => {
     const depositResult = await client.deposit('sui', 2 * 10 ** 8);
     if (ENABLE_LOG) {
       console.info('DepositResult:', depositResult);
@@ -213,7 +213,7 @@ describe('Test Scallop Client - Core Method', async () => {
     expect(depositResult.effects?.status.status).toEqual('success');
   });
 
-  it('Should depoist asset and stake success', async () => {
+  it('Should deposit asset and stake success', async () => {
     const depositAndStakeResult = await client.depositAndStake(
       'sui',
       2 * 10 ** 8

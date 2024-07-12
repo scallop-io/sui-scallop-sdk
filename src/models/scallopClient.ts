@@ -798,6 +798,8 @@ export class ScallopClient {
     );
     const stakeCoinName =
       this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
+
+    console.log(stakeMarketCoin, stakeCoinName);
     if (stakeMarketCoin) {
       const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
       txBlock.transferObjects([coin], sender);

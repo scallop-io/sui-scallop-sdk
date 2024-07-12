@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
 import {
-  SuiAddressArg,
-  SuiTxArg,
+  SuiObjectArg,
   SuiTxBlock,
   normalizeStructTag,
   normalizeSuiAddress,
@@ -23,7 +22,7 @@ import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 
 type QueryInspectTxnParams = {
   queryTarget: string;
-  args: (SuiTxArg | SuiAddressArg)[];
+  args: SuiObjectArg[];
   typeArgs?: any[];
 };
 
@@ -73,6 +72,45 @@ export class ScallopCache {
     });
   }
 
+  public async resolveArgs(
+    txb: SuiTxBlock,
+    args: SuiObjectArg[]
+  ): Promise<SuiObjectArg[]> {
+    return await Promise.all(
+      args.map(async (arg) => {
+        if (typeof arg === 'string') {
+          const objData = (await this.queryGetObject(arg, { showOwner: true }))
+            .data;
+          if (!objData) return arg;
+          const owner = objData?.owner as any;
+          if (!owner) return arg;
+
+          if ('Shared' in owner) {
+            return txb.sharedObjectRef({
+              objectId: objData.objectId,
+              initialSharedVersion: owner.Shared.initial_shared_version,
+              mutable: true,
+            });
+          } else {
+            return txb.objectRef({
+              objectId: objData.objectId,
+              version: objData.version,
+              digest: objData.digest,
+            });
+          }
+        } else if ('objectId' in arg && 'version' in arg && 'digest' in arg) {
+          return txb.objectRef({
+            objectId: arg.objectId,
+            version: arg.version as string,
+            digest: arg.digest,
+          });
+        } else {
+          return arg;
+        }
+      })
+    );
+  }
+
   /**
    * @description Provides cache for inspectTxn of the SuiKit.
    * @param QueryInspectTxnParams
@@ -86,22 +124,9 @@ export class ScallopCache {
   }: QueryInspectTxnParams): Promise<DevInspectResults> {
     const txBlock = new SuiTxBlock();
 
-    // resolve all the object args to prevent duplicate getNormalizedMoveFunction calls
-    const resolvedArgs = await Promise.all(
-      args.map(async (arg) => {
-        if (typeof arg === 'string') {
-          return (await this.queryGetObject(arg, { showContent: true })).data;
-        }
-        return arg;
-      })
-    );
-    txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
+    const resolvedArgs = await this.resolveArgs(txBlock, args);
 
-    // build the txBlock to prevent duplicate getProtocolConfig calls
-    const txBytes = await txBlock.txBlock.build({
-      client: this.suiKit.client(),
-      onlyTransactionKind: true,
-    });
+    txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
 
     const query = await this.queryClient.fetchQuery({
       queryKey: typeArgs
@@ -113,7 +138,7 @@ export class ScallopCache {
             JSON.stringify(typeArgs),
           ],
       queryFn: async () => {
-        return await this.suiKit.inspectTxn(txBytes);
+        return await this.suiKit.inspectTxn(txBlock);
       },
     });
     return query;

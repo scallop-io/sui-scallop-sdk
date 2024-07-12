@@ -124,9 +124,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
    * 3. transfer SUI Market Coin to sender
    */
   const suiTxBlock = scallopTxBlock.txBlock;
-  const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [
-    suiTxBlock.pure.u64(10 ** 6),
-  ]);
+  const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [10 ** 6]);
   const marketCoin = scallopTxBlock.deposit(coin, 'sui');
   suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure.address(sender));
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
