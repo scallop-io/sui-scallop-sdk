@@ -95,7 +95,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.table,
           veScaIds.treasury,
           scaCoin,
-          txBlock.pure.u64(unlockAtInSecondTimestamp),
+          unlockAtInSecondTimestamp,
           SUI_CLOCK_OBJECT_ID,
         ],
         []
@@ -109,7 +109,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaKey,
           veScaIds.table,
           veScaIds.treasury,
-          txBlock.pure.u64(newUnlockAtInSecondTimestamp),
+          newUnlockAtInSecondTimestamp,
           SUI_CLOCK_OBJECT_ID,
         ],
         []

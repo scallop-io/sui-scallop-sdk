@@ -14,7 +14,7 @@ import {
   calculateMarketCollateralData,
 } from '../utils';
 import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui/client';
-import type { SuiAddressArg } from '@scallop-io/sui-kit';
+import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopQuery } from '../models';
 import {
   Market,
@@ -762,18 +762,13 @@ export const getObligationLocked = async (
  */
 export const queryObligation = async (
   query: ScallopQuery,
-  obligationId: SuiAddressArg
+  obligationId: SuiObjectArg
 ) => {
   const packageId = query.address.get('core.packages.query.id');
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
   const args = [obligationId];
 
-  // const txBlock = new SuiKitTxBlock();
-  // txBlock.moveCall(queryTarget, args);
-  const queryResult = await query.cache.queryInspectTxn(
-    { queryTarget, args }
-    // txBlock
-  );
+  const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
   return queryResult.events[0].parsedJson as ObligationQueryInterface;
 };
 

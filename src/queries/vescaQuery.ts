@@ -161,8 +161,8 @@ const getTotalVeScaTreasuryAmount = async (
   query: ScallopQuery,
   veScaTreasury: SuiObjectData
 ): Promise<string> => {
-  const veScaPkgId = query.address.get('vesca.id');
-  const veScaConfig = query.address.get('vesca.config');
+  const veScaPkgId = query.address.get('vesca.id') as string;
+  const veScaConfig = query.address.get('vesca.config') as string;
   veScaTreasury = veScaTreasury ?? query.address.get('vesca.treasury');
 
   // refresh query
@@ -173,37 +173,17 @@ const getTotalVeScaTreasuryAmount = async (
   const veScaAmountQueryTarget = `${veScaPkgId}::treasury::total_ve_sca_amount`;
   const veScaAmountArgs = [veScaTreasury, SUI_CLOCK_OBJECT_ID];
 
-  // resolve each args
-  const resolvedRefreshArgs = await Promise.all(
-    refreshArgs.map(async (arg) => {
-      if (typeof arg === 'string') {
-        return (await query.cache.queryGetObject(arg, { showContent: true }))
-          .data;
-      }
-      return arg;
-    })
-  );
-
-  const resolvedVeScaAmountArgs = await Promise.all(
-    veScaAmountArgs.map(async (arg) => {
-      if (typeof arg === 'string') {
-        return (await query.cache.queryGetObject(arg, { showContent: true }))
-          .data;
-      }
-      return arg;
-    })
-  );
-
   const txb = new SuiTxBlock();
+
   // refresh first
-  txb.moveCall(refreshQueryTarget, resolvedRefreshArgs);
-  txb.moveCall(veScaAmountQueryTarget, resolvedVeScaAmountArgs);
-
-  const txBytes = await txb.txBlock.build({
-    client: query.suiKit.client(),
-    onlyTransactionKind: true,
-  });
-
+  txb.moveCall(
+    refreshQueryTarget,
+    await query.cache.resolveArgs(txb, refreshArgs)
+  );
+  txb.moveCall(
+    veScaAmountQueryTarget,
+    await query.cache.resolveArgs(txb, veScaAmountArgs)
+  );
   // return result
   const res = await query.cache.queryClient.fetchQuery<DevInspectResults>({
     queryKey: [
@@ -211,7 +191,7 @@ const getTotalVeScaTreasuryAmount = async (
       JSON.stringify([...refreshArgs, ...veScaAmountArgs]),
     ],
     queryFn: async () => {
-      return await query.suiKit.inspectTxn(txBytes);
+      return await query.suiKit.inspectTxn(txb);
     },
   });
 

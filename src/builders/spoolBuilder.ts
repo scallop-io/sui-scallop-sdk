@@ -159,22 +159,17 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       );
       return txBlock.moveCall(
         `${spoolIds.spoolPkg}::user::unstake`,
-        [
-          stakePoolId,
-          stakeAccount,
-          txBlock.pure.u64(amount),
-          SUI_CLOCK_OBJECT_ID,
-        ],
+        [stakePoolId, stakeAccount, amount, SUI_CLOCK_OBJECT_ID],
         [marketCoinType]
       );
     },
     claim: (stakeAccount, stakeMarketCoinName) => {
       const stakePoolId = builder.address.get(
         `spool.pools.${stakeMarketCoinName}.id`
-      );
+      ) as string;
       const rewardPoolId = builder.address.get(
         `spool.pools.${stakeMarketCoinName}.rewardPoolId`
-      );
+      ) as string;
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
       const rewardCoinName = spoolRewardCoins[stakeMarketCoinName];
