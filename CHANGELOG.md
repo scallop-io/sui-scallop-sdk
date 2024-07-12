@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. See [standa
 ### [0.46.48](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.47...v0.46.48) (2024-07-09)
 
 ### Features
+
 - Add `returnSCoin` parameter to `unstakeQuick` ([a3ad485](https://github.com/scallop-io/sui-scallop-sdk/pull/143/commits/a3ad48598040f33572521b62a976f4ad01246f2e))
 
 ### [0.46.47](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.46...v0.46.47) (2024-07-09)

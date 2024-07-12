@@ -51,7 +51,7 @@ Methods for interacting with the lending contract.
     'sui',
     10 ** 8,
     true,
-    obligationsData[0].id,
+    obligationsData[0].id
   );
   ```
 
