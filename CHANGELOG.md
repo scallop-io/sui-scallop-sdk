@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.48](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.47...v0.46.48) (2024-07-09)
+
+### Features
+- Add `returnSCoin` parameter to `unstakeQuick` ([a3ad485](https://github.com/scallop-io/sui-scallop-sdk/pull/143/commits/a3ad48598040f33572521b62a976f4ad01246f2e))
+
+### [0.46.47](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.46...v0.46.47) (2024-07-09)
+
+### Bugfixes
+
+- update `unstakeQuick` return type ([8fe0660](https://github.com/scallop-io/sui-scallop-sdk/commit/8fe06602c8a63e66c90a198bb3ebf6b0e319c187))
+
+### [0.46.46](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.45...v0.46.46) (2024-07-09)
+
+### Bugfixes
+
+- Adjust unit tests that uses `unstakeQuick` ([fcace2b](https://github.com/scallop-io/sui-scallop-sdk/pull/140/commits/fcace2b67afcd1268a0a113573e0adc35a5d23d0))
+
+### [0.46.45](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.44...v0.46.45) (2024-07-09)
+
+### Bugfixes
+
+- Minor bugfix ([43206bb](https://github.com/scallop-io/sui-scallop-sdk/commit/43206bb628be08677bbdd38645b17ec87febb4dc))
+
 ### [0.46.44](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.43...v0.46.44) (2024-07-09)
 
 ### Features

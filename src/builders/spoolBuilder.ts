@@ -254,14 +254,19 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
         );
       }
     },
-    unstakeQuick: async (amount, stakeMarketCoinName, stakeAccountId) => {
+    unstakeQuick: async (
+      amount,
+      stakeMarketCoinName,
+      stakeAccountId,
+      returnSCoin = true
+    ) => {
       const stakeAccounts = await requireStakeAccounts(
         builder,
         txBlock,
         stakeMarketCoinName,
         stakeAccountId
       );
-      const sCoins: TransactionResult[] = [];
+      const toTransfer: TransactionResult[] = [];
       for (const account of stakeAccounts) {
         if (account.staked === 0) continue;
         const amountToUnstake = Math.min(amount, account.staked);
@@ -272,32 +277,57 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
         );
 
         // convert to new sCoin
-        const sCoin = txBlock.mintSCoin(stakeMarketCoinName, marketCoin);
-        sCoins.push(sCoin);
+        if (returnSCoin) {
+          const sCoin = txBlock.mintSCoin(stakeMarketCoinName, marketCoin);
+          toTransfer.push(sCoin);
+        } else {
+          toTransfer.push(marketCoin);
+        }
+
         amount -= amountToUnstake;
         if (amount === 0) break;
       }
 
-      const mergedSCoin = sCoins[0];
-      if (sCoins.length > 1) {
-        txBlock.mergeCoins(mergedSCoin, sCoins.slice(1));
-      }
+      if (toTransfer.length > 0) {
+        const mergedCoin = toTransfer[0];
 
-      // check for existing sCoins
-      try {
-        const existingCoins = await builder.utils.selectCoins(
-          Number.MAX_SAFE_INTEGER,
-          builder.utils.parseSCoinType(stakeMarketCoinName),
-          requireSender(txBlock)
-        );
-
-        if (existingCoins.length > 0) {
-          txBlock.mergeCoins(mergedSCoin, existingCoins);
+        if (toTransfer.length > 1) {
+          txBlock.mergeCoins(mergedCoin, toTransfer.slice(1));
         }
-      } catch (e) {
-        // ignore
+
+        if (returnSCoin) {
+          // check for existing sCoins
+          try {
+            const existingCoins = await builder.utils.selectCoins(
+              Number.MAX_SAFE_INTEGER,
+              builder.utils.parseSCoinType(stakeMarketCoinName),
+              requireSender(txBlock)
+            );
+
+            if (existingCoins.length > 0) {
+              txBlock.mergeCoins(mergedCoin, existingCoins);
+            }
+          } catch (e) {
+            // ignore
+          }
+        } else {
+          // check for existing market coins
+          try {
+            const existingCoins = await builder.utils.selectCoins(
+              Number.MAX_SAFE_INTEGER,
+              builder.utils.parseMarketCoinType(stakeMarketCoinName),
+              requireSender(txBlock)
+            );
+
+            if (existingCoins.length > 0) {
+              txBlock.mergeCoins(mergedCoin, existingCoins);
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+        return mergedCoin;
       }
-      return mergedSCoin;
     },
     claimQuick: async (stakeMarketCoinName, stakeAccountId) => {
       const stakeAccountIds = await requireStakeAccountIds(

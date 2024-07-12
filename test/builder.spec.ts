@@ -194,8 +194,8 @@ describe('Test Scallop Spool Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "unstakeQuick".
     tx.setSender(sender);
-    const marketCoins = await tx.unstakeQuick(10 ** 6, 'ssui');
-    tx.transferObjects(marketCoins, sender);
+    const marketCoin = await tx.unstakeQuick(10 ** 6, 'ssui');
+    tx.transferObjects([marketCoin], sender);
     const unstakeQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('UnstakeQuickResult:', unstakeQuickResult);
