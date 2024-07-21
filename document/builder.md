@@ -173,8 +173,8 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   const scallopTxBlock = scallopBuilder.createTxBlock();
   // Sender is required to invoke "unstakeQuick".
   scallopTxBlock.setSender(sender);
-  const marketCoin = await scallopTxBlock.unstakeQuick(10 ** 8, 'ssui');
-  scallopTxBlock.transferObjects([marketCoin], sender);
+  const sCoin = await scallopTxBlock.unstakeQuick(10 ** 8, 'ssui');
+  scallopTxBlock.transferObjects([sCoin], sender);
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
