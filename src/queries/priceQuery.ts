@@ -61,30 +61,11 @@ export const getPythPrices = async (
   query: ScallopQuery,
   assetCoinNames: SupportAssetCoins[]
 ) => {
-  const seen: Record<string, boolean> = {};
-  const pythFeedObjectIds = assetCoinNames
-    .map((assetCoinName) => {
-      const pythFeedObjectId = query.address.get(
-        `core.coins.${assetCoinName}.oracle.pyth.feedObject`
-      );
-      if (seen[pythFeedObjectId]) return null;
-
-      seen[pythFeedObjectId] = true;
-      return pythFeedObjectId;
-    })
-    .filter((item) => !!item) as string[];
-  const priceFeedObjects = await query.cache.queryGetObjects(
-    pythFeedObjectIds,
-    {
-      showContent: true,
-    }
-  );
-
   return (
     await Promise.all(
-      priceFeedObjects.map(async (priceFeedObject, idx) => ({
-        coinName: assetCoinNames[idx],
-        price: await getPythPrice(query, assetCoinNames[idx], priceFeedObject),
+      assetCoinNames.map(async (assetCoinName) => ({
+        coinName: assetCoinName,
+        price: await getPythPrice(query, assetCoinName),
       }))
     )
   ).reduce(

@@ -742,12 +742,12 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const marketCoin = await txBlock.unstakeQuick(
+    const sCoin = await txBlock.unstakeQuick(
       amount,
       stakeMarketCoinName,
       stakeAccountId
     );
-    txBlock.transferObjects([marketCoin], sender);
+    txBlock.transferObjects([sCoin], sender);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -793,13 +793,16 @@ export class ScallopClient {
     const stakeMarketCoin = await txBlock.unstakeQuick(
       amount,
       stakeMarketCoinName,
-      stakeAccountId
+      stakeAccountId,
+      false
     );
     const stakeCoinName =
       this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
     if (stakeMarketCoin) {
       const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
       txBlock.transferObjects([coin], sender);
+    } else {
+      throw new Error(`No stake found for ${stakeMarketCoinName}`);
     }
 
     if (sign) {
