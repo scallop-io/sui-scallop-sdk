@@ -76,7 +76,7 @@ export const getPythPrices = async (
     {} as Record<string, SupportAssetCoins[]>
   );
 
-  // Fecth multiple objects at once to save rpc calls
+  // Fetch multiple objects at once to save rpc calls
   const priceFeedObjects = await query.cache.queryGetObjects(
     Object.keys(pythPriceFeedIds),
     { showContent: true }
