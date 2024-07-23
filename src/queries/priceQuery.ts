@@ -1,4 +1,4 @@
-import { SuiObjectData } from '@mysten/sui.js/src/client';
+import { SuiObjectData } from '@mysten/sui.js/client';
 import type { ScallopQuery } from '../models';
 import type { SupportAssetCoins } from '../types';
 

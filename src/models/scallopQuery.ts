@@ -52,12 +52,13 @@ import { ScallopUtils } from './scallopUtils';
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-import { SuiObjectData } from '@mysten/sui.js/src/client';
+import { SuiObjectData } from '@mysten/sui.js/client';
 import {
   getSCoinAmount,
   getSCoinAmounts,
   getSCoinTotalSupply,
 } from 'src/queries/sCoinQuery';
+import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 
 /**
  * @description
@@ -79,6 +80,7 @@ export class ScallopQuery {
   public utils: ScallopUtils;
   public indexer: ScallopIndexer;
   public cache: ScallopCache;
+  public walletAddress: string;
 
   public constructor(
     params: ScallopQueryParams,
@@ -106,6 +108,9 @@ export class ScallopQuery {
         query: this,
       });
     this.indexer = new ScallopIndexer(this.params, { cache: this.cache });
+    this.walletAddress = normalizeSuiAddress(
+      params?.walletAddress || this.suiKit.currentAddress()
+    );
   }
 
   /**
@@ -205,7 +210,7 @@ export class ScallopQuery {
    * @param ownerAddress - The owner address.
    * @return Obligations data.
    */
-  public async getObligations(ownerAddress?: string) {
+  public async getObligations(ownerAddress: string = this.walletAddress) {
     return await getObligations(this, ownerAddress);
   }
 
@@ -228,7 +233,7 @@ export class ScallopQuery {
    */
   public async getCoinAmounts(
     assetCoinNames?: SupportAssetCoins[],
-    ownerAddress?: string
+    ownerAddress: string = this.walletAddress
   ) {
     return await getCoinAmounts(this, assetCoinNames, ownerAddress);
   }
@@ -242,7 +247,7 @@ export class ScallopQuery {
    */
   public async getCoinAmount(
     assetCoinName: SupportAssetCoins,
-    ownerAddress?: string
+    ownerAddress: string = this.walletAddress
   ) {
     return await getCoinAmount(this, assetCoinName, ownerAddress);
   }
@@ -256,7 +261,7 @@ export class ScallopQuery {
    */
   public async getMarketCoinAmounts(
     marketCoinNames?: SupportMarketCoins[],
-    ownerAddress?: string
+    ownerAddress: string = this.walletAddress
   ) {
     return await getMarketCoinAmounts(this, marketCoinNames, ownerAddress);
   }
@@ -270,7 +275,7 @@ export class ScallopQuery {
    */
   public async getMarketCoinAmount(
     marketCoinName: SupportMarketCoins,
-    ownerAddress?: string
+    ownerAddress: string = this.walletAddress
   ) {
     return await getMarketCoinAmount(this, marketCoinName, ownerAddress);
   }
@@ -331,7 +336,7 @@ export class ScallopQuery {
    * @param ownerAddress - The owner address.
    * @return All Stake accounts data.
    */
-  public async getAllStakeAccounts(ownerAddress?: string) {
+  public async getAllStakeAccounts(ownerAddress: string = this.walletAddress) {
     return await getStakeAccounts(this, ownerAddress);
   }
 
@@ -344,7 +349,7 @@ export class ScallopQuery {
    */
   public async getStakeAccounts(
     stakeMarketCoinName: SupportStakeMarketCoins,
-    ownerAddress?: string
+    ownerAddress: string = this.walletAddress
   ) {
     const allStakeAccount = await this.getAllStakeAccounts(ownerAddress);
     return allStakeAccount[stakeMarketCoinName] ?? [];
@@ -472,7 +477,7 @@ export class ScallopQuery {
    */
   public async getLendings(
     poolCoinNames?: SupportPoolCoins[],
-    ownerAddress?: string,
+    ownerAddress: string = this.walletAddress,
     indexer: boolean = false
   ) {
     return await getLendings(this, poolCoinNames, ownerAddress, indexer);
@@ -488,7 +493,7 @@ export class ScallopQuery {
    */
   public async getLending(
     poolCoinName: SupportPoolCoins,
-    ownerAddress?: string,
+    ownerAddress: string = this.walletAddress,
     indexer: boolean = false
   ) {
     return await getLending(this, poolCoinName, ownerAddress, indexer);
@@ -505,7 +510,7 @@ export class ScallopQuery {
    * @return All obligation accounts information.
    */
   public async getObligationAccounts(
-    ownerAddress?: string,
+    ownerAddress: string = this.walletAddress,
     indexer: boolean = false
   ) {
     return await getObligationAccounts(this, ownerAddress, indexer);
@@ -524,7 +529,7 @@ export class ScallopQuery {
    */
   public async getObligationAccount(
     obligationId: string,
-    ownerAddress?: string,
+    ownerAddress: string = this.walletAddress,
     indexer: boolean = false
   ) {
     return await getObligationAccount(
@@ -619,7 +624,7 @@ export class ScallopQuery {
    */
   public async getSCoinAmounts(
     sCoinNames?: SupportSCoin[],
-    ownerAddress?: string
+    ownerAddress: string = this.walletAddress
   ) {
     return await getSCoinAmounts(this, sCoinNames, ownerAddress);
   }
@@ -633,7 +638,7 @@ export class ScallopQuery {
    */
   public async getSCoinAmount(
     sCoinName: SupportSCoin | SupportMarketCoins,
-    ownerAddress?: string
+    ownerAddress: string = this.walletAddress
   ) {
     const parsedSCoinName = this.utils.parseSCoinName(sCoinName);
     return parsedSCoinName
