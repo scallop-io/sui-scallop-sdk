@@ -129,7 +129,7 @@ export class ScallopBuilder {
     txBlock: ScallopTxBlock | SuiKitTxBlock,
     assetCoinName: SupportAssetCoins,
     amount: number,
-    sender: string
+    sender: string = this.walletAddress
   ) {
     const coinType = this.utils.parseCoinType(assetCoinName);
     const coins = await this.utils.selectCoins(amount, coinType, sender);
@@ -150,7 +150,7 @@ export class ScallopBuilder {
     txBlock: ScallopTxBlock | SuiKitTxBlock,
     marketCoinName: SupportMarketCoins,
     amount: number,
-    sender: string
+    sender: string = this.walletAddress
   ) {
     const marketCoinType = this.utils.parseMarketCoinType(marketCoinName);
     const coins = await this.utils.selectCoins(amount, marketCoinType, sender);
@@ -178,7 +178,7 @@ export class ScallopBuilder {
     txBlock: ScallopTxBlock | SuiKitTxBlock,
     sCoinName: SupportSCoin,
     amount: number,
-    sender: string
+    sender: string = this.walletAddress
   ) {
     const sCoinType = this.utils.parseSCoinType(sCoinName);
     const coins = await this.utils.selectCoins(amount, sCoinType, sender);
