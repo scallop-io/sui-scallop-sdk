@@ -61,8 +61,8 @@
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "3.2.0",
-    "@mysten/bcs": "^1.0.2",
-    "@mysten/sui": "^1.2.1",
+    "@mysten/bcs": "^1.0.3",
+    "@mysten/sui": "^1.3.0",
     "@mysten/sui.js": "0.52.0",
     "@noble/curves": "^1.2.0",
     "@noble/hashes": "^1.3.2",
@@ -74,11 +74,11 @@
     "axios": "^1.6.0",
     "bech32": "^2.0.0",
     "bignumber.js": "^9.1.2",
-    "gql.tada": "1.7.0",
-    "graphql": "^16.8.1",
+    "gql.tada": "1.8.2",
+    "graphql": "^16.9.0",
     "superstruct": "^1.0.3",
     "tweetnacl": "^1.0.3",
-    "valibot": "^0.25.0",
+    "valibot": "^0.36.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -168,6 +168,11 @@
           "caughtErrorsIgnorePattern": "^_"
         }
       ]
+    }
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@mysten/sui@1.3.0": "patches/@mysten__sui@1.3.0.patch"
     }
   }
 }
