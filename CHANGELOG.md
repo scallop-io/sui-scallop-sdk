@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. See [standa
 ### Bugfixes
 
 - Minor fix ([74fa9f5](https://github.com/scallop-io/sui-scallop-sdk/pull/144/commits/74fa9f5ffe184c01be3b2c87203a411f27c9f73e))
+- Fix `getPythPrices` function ([768a865](https://github.com/scallop-io/sui-scallop-sdk/pull/144/commits/768a865ecd41c81884ddc57b3b0ec7c3456cbfd3))
 
 ### [0.46.48](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.47...v0.46.48) (2024-07-09)
 
