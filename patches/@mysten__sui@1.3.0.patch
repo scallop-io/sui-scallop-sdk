@@ -1,0 +1,34 @@
+diff --git a/src/graphql/client.ts b/src/graphql/client.ts
+index d76fb8511b0676290fafd3e7ab578610f26ed511..d3d1da53bd82a7bfc84eb0ddf0f196ef0704b319 100644
+--- a/src/graphql/client.ts
++++ b/src/graphql/client.ts
+@@ -65,6 +65,7 @@ export class SuiGraphQLClient<Queries extends Record<string, GraphQLDocument> =
+ 		this.#url = url;
+ 		this.#queries = queries;
+ 		this.#headers = headers;
++		// @ts-ignore
+ 		this.#fetch = (...args) => fetchFn(...args);
+ 	}
+ 
+@@ -78,6 +79,7 @@ export class SuiGraphQLClient<Queries extends Record<string, GraphQLDocument> =
+ 				...this.#headers,
+ 			},
+ 			body: JSON.stringify({
++				// @ts-ignore
+ 				query: typeof options.query === 'string' ? String(options.query) : print(options.query),
+ 				variables: options.variables,
+ 				extensions: options.extensions,
+diff --git a/src/zklogin/publickey.ts b/src/zklogin/publickey.ts
+index 2e6bf8b3e6a34f41e2e269b69e5b49a41aa93dc4..f60bf46a91f91ede677459ce6c8471455d9e733b 100644
+--- a/src/zklogin/publickey.ts
++++ b/src/zklogin/publickey.ts
+@@ -157,7 +157,9 @@ async function graphqlVerifyZkLoginSignature({
+ 	});
+ 
+ 	return (
++		// @ts-ignore
+ 		resp.data?.verifyZkloginSignature.success === true &&
++		// @ts-ignore
+ 		resp.data?.verifyZkloginSignature.errors.length === 0
+ 	);
+ }
