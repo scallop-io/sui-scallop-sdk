@@ -360,8 +360,8 @@ export const newSpoolTxBlock = (
     initTxBlock instanceof Transaction
       ? new SuiKitTxBlock(initTxBlock)
       : initTxBlock
-      ? initTxBlock
-      : new SuiKitTxBlock();
+        ? initTxBlock
+        : new SuiKitTxBlock();
 
   const normalMethod = generateSpoolNormalMethod({
     builder,

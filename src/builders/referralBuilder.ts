@@ -147,8 +147,8 @@ export const newReferralTxBlock = (
     initTxBlock instanceof Transaction
       ? new SuiKitTxBlock(initTxBlock)
       : initTxBlock
-      ? initTxBlock
-      : new SuiKitTxBlock();
+        ? initTxBlock
+        : new SuiKitTxBlock();
 
   const normalMethod = generateReferralNormalMethod({
     builder,

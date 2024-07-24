@@ -363,8 +363,8 @@ export const newVeScaTxBlock = (
     initTxBlock instanceof Transaction
       ? new SuiKitTxBlock(initTxBlock)
       : initTxBlock
-      ? initTxBlock
-      : new SuiKitTxBlock();
+        ? initTxBlock
+        : new SuiKitTxBlock();
 
   const normalMethod = generateNormalVeScaMethod({
     builder,

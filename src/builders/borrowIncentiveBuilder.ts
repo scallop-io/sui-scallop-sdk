@@ -339,8 +339,8 @@ export const newBorrowIncentiveTxBlock = (
     initTxBlock instanceof Transaction
       ? new SuiKitTxBlock(initTxBlock)
       : initTxBlock
-      ? initTxBlock
-      : new SuiKitTxBlock();
+        ? initTxBlock
+        : new SuiKitTxBlock();
 
   const normalMethod = generateBorrowIncentiveNormalMethod({
     builder,
