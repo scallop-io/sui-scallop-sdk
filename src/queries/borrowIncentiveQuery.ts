@@ -40,14 +40,12 @@ export const queryBorrowIncentivePools = async (
 
   const borrowIncentivePools: BorrowIncentivePools = {};
 
-  const coinPrices = await query.utils.getCoinPrices(
-    [
-      ...new Set([
-        ...borrowIncentiveCoinNames,
-        ...SUPPORT_BORROW_INCENTIVE_REWARDS,
-      ]),
-    ] ?? []
-  );
+  const coinPrices = await query.utils.getCoinPrices([
+    ...new Set([
+      ...borrowIncentiveCoinNames,
+      ...SUPPORT_BORROW_INCENTIVE_REWARDS,
+    ]),
+  ]);
 
   if (indexer) {
     const borrowIncentivePoolsIndexer =

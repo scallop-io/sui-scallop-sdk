@@ -43,9 +43,9 @@ export const getSpools = async (
       query.utils.getSpoolRewardCoinName(stakeMarketCoinName);
     return rewardCoinName;
   });
-  const coinPrices = await query.utils.getCoinPrices(
-    [...new Set([...stakeCoinNames, ...rewardCoinNames])] ?? []
-  );
+  const coinPrices = await query.utils.getCoinPrices([
+    ...new Set([...stakeCoinNames, ...rewardCoinNames]),
+  ]);
 
   const marketPools = await query.getMarketPools(stakeCoinNames, indexer);
   const spools: Spools = {};
@@ -282,9 +282,8 @@ export const getStakeAccounts = async (
           query.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
         const marketCoinType = query.utils.parseMarketCoinType(stakeCoinName);
 
-        types[
-          stakeMarketCoinName as SupportStakeMarketCoins
-        ] = `${spoolObjectId}::spool_account::SpoolAccount<${marketCoinType}>`;
+        types[stakeMarketCoinName as SupportStakeMarketCoins] =
+          `${spoolObjectId}::spool_account::SpoolAccount<${marketCoinType}>`;
         return types;
       },
       {} as Record<SupportStakeMarketCoins, string>
