@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.50](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.49...v0.46.50) (2024-07-30)
+
+### Bugfixes
+
+- Fix reward apr for borrow incentive when point is 0 ([64c924f](https://github.com/scallop-io/sui-scallop-sdk/pull/146/commits/64c924fa38f603efc15739436e52d0e700fa1c32))
+
+### Features
+
+- Add `walletAddress` property to `ScallopQuery` instance ([94d8396](https://github.com/scallop-io/sui-scallop-sdk/pull/146/commits/94d839684f865d5dfc3fd7dac9abfde634825d1b))
+- Optimize `getPythPrices` function ([d75234b](https://github.com/scallop-io/sui-scallop-sdk/pull/146/commits/d75234b190afdd89c9d749d861d2fdf3aad9a38f))
+
+
 ### [0.46.49](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.48...v0.46.49) (2024-07-12)
 
 ### Bugfixes
