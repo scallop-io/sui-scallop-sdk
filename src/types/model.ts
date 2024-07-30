@@ -41,7 +41,9 @@ export type ScallopBuilderParams = ScallopParams & {
   pythEndpoints?: string[];
 };
 
-export type ScallopQueryParams = ScallopParams;
+export type ScallopQueryParams = ScallopParams & {
+  walletAddress?: string;
+};
 
 export type ScallopUtilsParams = ScallopParams & {
   pythEndpoints?: string[];
