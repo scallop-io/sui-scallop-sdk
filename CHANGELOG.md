@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.52](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.51...v0.46.52) (2024-07-31)
+
+### Bugfixes
+
+- Different staleTime value in `queryGetAllCoinBalances` ([b84fdc8])(https://github.com/scallop-io/sui-scallop-sdk/pull/149/commits/b84fdc817104eec1b762536c879b72f2e786ef02)
+
 ### [0.46.51](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.50...v0.46.51) (2024-07-31)
 
 ### Features
