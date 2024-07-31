@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.51](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.50...v0.46.51) (2024-07-31)
+
+### Features
+
+- Reduce the cache time ([41cf8e0](https://github.com/scallop-io/sui-scallop-sdk/pull/148/commits/41cf8e0bb8f837922b123321527a676020379abb))
+
 ### [0.46.50](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.49...v0.46.50) (2024-07-30)
 
 ### Bugfixes
@@ -12,7 +18,6 @@ All notable changes to this project will be documented in this file. See [standa
 
 - Add `walletAddress` property to `ScallopQuery` instance ([94d8396](https://github.com/scallop-io/sui-scallop-sdk/pull/146/commits/94d839684f865d5dfc3fd7dac9abfde634825d1b))
 - Optimize `getPythPrices` function ([d75234b](https://github.com/scallop-io/sui-scallop-sdk/pull/146/commits/d75234b190afdd89c9d749d861d2fdf3aad9a38f))
-
 
 ### [0.46.49](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.48...v0.46.49) (2024-07-12)
 
