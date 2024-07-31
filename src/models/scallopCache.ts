@@ -286,7 +286,6 @@ export class ScallopCache {
 
         return balances;
       },
-      staleTime: 5000,
     });
   }
 
