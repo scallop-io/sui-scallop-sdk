@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.53](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.52...v0.46.53) (2024-08-01)
+
+### Bugfixes
+
+- `stakeHelper` function, handle stake spool when user has old marketCoin and new sCoin ([5911caf](https://github.com/scallop-io/sui-scallop-sdk/pull/150/commits/5911caf00373e085a7dead3d1f557f8ec4390bf9))
+
+- minor fix on `migrateAllMarketCoin` ([49da8b8](https://github.com/scallop-io/sui-scallop-sdk/pull/150/commits/49da8b860d5f12d32ff2cf03cec14082206f04b8)) ([04e777f](https://github.com/scallop-io/sui-scallop-sdk/pull/150/commits/04e777f492355d76002ffa66f3a4c6c5da340037))
+
 ### [0.46.52](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.51...v0.46.52) (2024-07-31)
 
 ### Bugfixes
