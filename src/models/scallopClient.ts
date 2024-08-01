@@ -991,7 +991,7 @@ export class ScallopClient {
             this.walletAddress
           ); // throw error no coins found
 
-          const toDestroyMarketCoin = marketCoins[0];
+          toDestroyMarketCoin = marketCoins[0];
           if (marketCoins.length > 1) {
             txBlock.mergeCoins(toDestroyMarketCoin, marketCoins.slice(1));
           }
