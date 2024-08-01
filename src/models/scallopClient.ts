@@ -991,12 +991,10 @@ export class ScallopClient {
             this.walletAddress
           ); // throw error no coins found
 
-          const mergedMarketCoin = marketCoins[0];
+          const toDestroyMarketCoin = marketCoins[0];
           if (marketCoins.length > 1) {
-            txBlock.mergeCoins(mergedMarketCoin, marketCoins.slice(1));
+            txBlock.mergeCoins(toDestroyMarketCoin, marketCoins.slice(1));
           }
-
-          toDestroyMarketCoin = mergedMarketCoin;
         } catch (e: any) {
           // Ignore
           const errMsg = e.toString() as String;
@@ -1018,23 +1016,13 @@ export class ScallopClient {
               Number.MAX_SAFE_INTEGER,
               this.utils.parseSCoinType(sCoinName as SupportSCoin),
               this.walletAddress
-            ); // throw error on no coins found
-            const mergedSCoin = existSCoins[0];
-            if (existSCoins.length > 1) {
-              txBlock.mergeCoins(mergedSCoin, existSCoins.slice(1));
-            }
-
-            // merge existing sCoin to new sCoin
-            txBlock.mergeCoins(sCoin, [mergedSCoin]);
+            );
+            txBlock.mergeCoins(sCoin, existSCoins);
           } catch (e: any) {
             // ignore
-            const errMsg = e.toString() as String;
-            if (!errMsg.includes('No valid coins found for the transaction'))
-              throw e;
           }
           sCoins.push(sCoin);
         }
-
         // check for staked market coin in spool
         if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
           try {
@@ -1047,8 +1035,6 @@ export class ScallopClient {
             }
           } catch (e: any) {
             // ignore
-            const errMsg = e.toString();
-            if (!errMsg.includes('No stake account found')) throw e;
           }
         }
 
