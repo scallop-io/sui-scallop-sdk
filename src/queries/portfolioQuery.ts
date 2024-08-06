@@ -119,8 +119,8 @@ export const getLending = async (
   stakeAccounts?: StakeAccount[],
   coinAmount?: number,
   marketCoinAmount?: number,
-  sCoinAmount?: number,
-  coinPrice?: number
+  coinPrice?: number,
+  sCoinAmount?: number
 ) => {
   const marketCoinName = query.utils.parseMarketCoinName(poolCoinName);
   marketPool = marketPool || (await query.getMarketPool(poolCoinName, indexer));
@@ -219,7 +219,9 @@ export const getLending = async (
   const marketCoinPrice = BigNumber(coinPrice ?? 0).multipliedBy(
     marketPool?.conversionRate ?? 1
   );
-  const unstakedMarketAmount = BigNumber(marketCoinAmount);
+  const unstakedMarketAmount = BigNumber(marketCoinAmount).plus(
+    BigNumber(sCoinAmount)
+  );
   const unstakedMarketCoin = unstakedMarketAmount.shiftedBy(-1 * coinDecimal);
 
   const availableSupplyAmount = BigNumber(coinAmount);

@@ -369,25 +369,29 @@ describe('Test Scallop Client - Other Method', async () => {
         for (const stakeAccount of stakeAccounts) {
           if (stakeAccount.staked <= needUnstakeMarketAmount) {
             // Unstake sequentially from all stake accounts
-            const [marketCoin] = await txBlock.unstakeQuick(
+            const marketCoin = await txBlock.unstakeQuick(
               stakeAccount.staked,
               stakeMarketCoinName,
               stakeAccount.id
             );
 
-            const wdScoin = txBlock.withdraw(marketCoin, coinName);
-            txObjects.push(wdScoin);
-            needUnstakeMarketAmount -= stakeAccount.staked;
+            if (marketCoin) {
+              const wdScoin = txBlock.withdraw(marketCoin, coinName);
+              txObjects.push(wdScoin);
+              needUnstakeMarketAmount -= stakeAccount.staked;
+            }
           } else {
             // A single account has enough to unstake them all.
-            const [marketCoin] = await txBlock.unstakeQuick(
+            const marketCoin = await txBlock.unstakeQuick(
               needUnstakeMarketAmount,
               stakeMarketCoinName,
               stakeAccount.id
             );
 
-            const wdScoin = txBlock.withdraw(marketCoin, coinName);
-            txObjects.push(wdScoin);
+            if (marketCoin) {
+              const wdScoin = txBlock.withdraw(marketCoin, coinName);
+              txObjects.push(wdScoin);
+            }
             break;
           }
         }

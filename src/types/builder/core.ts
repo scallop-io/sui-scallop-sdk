@@ -14,7 +14,7 @@ import type {
   SupportPoolCoins,
   SupportAssetCoins,
 } from '../constant';
-import { ScallopTxBlockWithoutCoreTxBlock } from '.';
+import { SuiTxBlockWithSpool } from '.';
 
 export type CoreIds = {
   protocolPkg: string;
@@ -143,7 +143,7 @@ export type CoreQuickMethods = {
 };
 
 export type SuiTxBlockWithCoreNormalMethods = SuiKitTxBlock &
-  ScallopTxBlockWithoutCoreTxBlock &
+  SuiTxBlockWithSpool &
   CoreNormalMethods;
 
 export type CoreTxBlock = SuiTxBlockWithCoreNormalMethods & CoreQuickMethods;
