@@ -408,12 +408,14 @@ export class ScallopUtils {
    */
   public async getObligationCoinNames(obligationId: SuiAddressArg) {
     const obligation = await queryObligation(this._query, obligationId);
-    const collateralCoinTypes = obligation.collaterals.map((collateral) => {
-      return `0x${collateral.type.name}`;
-    });
-    const debtCoinTypes = obligation.debts.map((debt) => {
-      return `0x${debt.type.name}`;
-    });
+    const collateralCoinTypes =
+      obligation?.collaterals.map((collateral) => {
+        return `0x${collateral.type.name}`;
+      }) ?? [];
+    const debtCoinTypes =
+      obligation?.debts.map((debt) => {
+        return `0x${debt.type.name}`;
+      }) ?? [];
     const obligationCoinTypes = [
       ...new Set([...collateralCoinTypes, ...debtCoinTypes]),
     ];
