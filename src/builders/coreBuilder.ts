@@ -14,6 +14,7 @@ import type {
   CoreTxBlock,
   ScallopTxBlock,
   NestedResult,
+  SuiTxBlockWithSpool,
 } from '../types';
 
 /**
@@ -473,7 +474,11 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
  */
 export const newCoreTxBlock = (
   builder: ScallopBuilder,
-  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | TransactionBlock
+  initTxBlock?:
+    | ScallopTxBlock
+    | SuiKitTxBlock
+    | TransactionBlock
+    | SuiTxBlockWithSpool
 ) => {
   const txBlock =
     initTxBlock instanceof TransactionBlock

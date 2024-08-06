@@ -364,8 +364,8 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const marketCoin = await txBlock.depositQuick(amount, poolCoinName);
-    txBlock.transferObjects([marketCoin], sender);
+    const sCoin = await txBlock.depositQuick(amount, poolCoinName);
+    txBlock.transferObjects([sCoin], sender);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -414,7 +414,7 @@ export class ScallopClient {
       await this.query.getStakeAccounts(stakeMarketCoinName);
     const targetStakeAccount = stakeAccountId || stakeAccounts[0].id;
 
-    const marketCoin = await txBlock.depositQuick(amount, stakeCoinName);
+    const marketCoin = await txBlock.depositQuick(amount, stakeCoinName, false);
     if (targetStakeAccount) {
       await txBlock.stakeQuick(
         marketCoin,
@@ -742,12 +742,12 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const marketCoins = await txBlock.unstakeQuick(
+    const sCoin = await txBlock.unstakeQuick(
       amount,
       stakeMarketCoinName,
       stakeAccountId
     );
-    txBlock.transferObjects(marketCoins, sender);
+    txBlock.transferObjects([sCoin], sender);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -790,20 +790,20 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    const stakeMarketCoins = await txBlock.unstakeQuick(
+    const stakeMarketCoin = await txBlock.unstakeQuick(
       amount,
       stakeMarketCoinName,
-      stakeAccountId
+      stakeAccountId,
+      false
     );
-
-    const coins = [];
-    for (const stakeMarketCoin of stakeMarketCoins) {
-      const stakeCoinName =
-        this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
+    const stakeCoinName =
+      this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
+    if (stakeMarketCoin) {
       const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
-      coins.push(coin);
+      txBlock.transferObjects([coin], sender);
+    } else {
+      throw new Error(`No stake found for ${stakeMarketCoinName}`);
     }
-    txBlock.transferObjects(coins, sender);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -980,6 +980,7 @@ export class ScallopClient {
          * First check marketCoin inside mini wallet
          * Then check stakedMarketCoin inside spool
          */
+        const sCoins: SuiObjectArg[] = [];
         let toDestroyMarketCoin: SuiObjectArg | undefined;
 
         // check market coin in mini wallet
@@ -990,48 +991,15 @@ export class ScallopClient {
             this.walletAddress
           ); // throw error no coins found
 
-          const mergedMarketCoin = marketCoins[0];
+          toDestroyMarketCoin = marketCoins[0];
           if (marketCoins.length > 1) {
-            txBlock.mergeCoins(mergedMarketCoin, marketCoins.slice(1));
+            txBlock.mergeCoins(toDestroyMarketCoin, marketCoins.slice(1));
           }
-
-          toDestroyMarketCoin = mergedMarketCoin;
         } catch (e: any) {
           // Ignore
           const errMsg = e.toString() as String;
           if (!errMsg.includes('No valid coins found for the transaction'))
             throw e;
-        }
-
-        // check for staked market coin in spool
-        if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
-          try {
-            const stakedMarketCoins = await txBlock.unstakeQuick(
-              Number.MAX_SAFE_INTEGER,
-              sCoinName as SupportStakeMarketCoins
-            );
-            if (stakedMarketCoins.length > 0) {
-              const mergedStakedMarketCoin = stakedMarketCoins[0];
-              if (stakedMarketCoins.length > 1) {
-                txBlock.mergeCoins(
-                  mergedStakedMarketCoin,
-                  stakedMarketCoins.slice(1)
-                );
-              }
-              // merge with takeMarketCoin
-              if (toDestroyMarketCoin) {
-                txBlock.mergeCoins(toDestroyMarketCoin, [
-                  mergedStakedMarketCoin,
-                ]);
-              } else {
-                toDestroyMarketCoin = mergedStakedMarketCoin;
-              }
-            }
-          } catch (e: any) {
-            // ignore
-            const errMsg = e.toString();
-            if (!errMsg.includes('No stake account found')) throw e;
-          }
         }
 
         // if market coin found, mint sCoin
@@ -1048,21 +1016,35 @@ export class ScallopClient {
               Number.MAX_SAFE_INTEGER,
               this.utils.parseSCoinType(sCoinName as SupportSCoin),
               this.walletAddress
-            ); // throw error on no coins found
-            const mergedSCoin = existSCoins[0];
-            if (existSCoins.length > 1) {
-              txBlock.mergeCoins(mergedSCoin, existSCoins.slice(1));
-            }
-
-            // merge existing sCoin to new sCoin
-            txBlock.mergeCoins(sCoin, [mergedSCoin]);
+            );
+            txBlock.mergeCoins(sCoin, existSCoins);
           } catch (e: any) {
             // ignore
-            const errMsg = e.toString() as String;
-            if (!errMsg.includes('No valid coins found for the transaction'))
-              throw e;
           }
-          toTransfer.push(sCoin);
+          sCoins.push(sCoin);
+        }
+        // check for staked market coin in spool
+        if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
+          try {
+            const sCoin = await txBlock.unstakeQuick(
+              Number.MAX_SAFE_INTEGER,
+              sCoinName as SupportStakeMarketCoins
+            );
+            if (sCoin) {
+              sCoins.push(sCoin);
+            }
+          } catch (e: any) {
+            // ignore
+          }
+        }
+
+        if (sCoins.length > 0) {
+          const mergedSCoin = sCoins[0];
+          if (sCoins.length > 1) {
+            txBlock.mergeCoins(mergedSCoin, sCoins.slice(1));
+          }
+
+          toTransfer.push(mergedSCoin);
         }
       })
     );

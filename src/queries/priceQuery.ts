@@ -1,4 +1,4 @@
-import { SuiObjectData } from '@mysten/sui.js/src/client';
+import { SuiObjectData } from '@mysten/sui.js/client';
 import type { ScallopQuery } from '../models';
 import type { SupportAssetCoins } from '../types';
 
@@ -61,35 +61,53 @@ export const getPythPrices = async (
   query: ScallopQuery,
   assetCoinNames: SupportAssetCoins[]
 ) => {
-  const seen: Record<string, boolean> = {};
-  const pythFeedObjectIds = assetCoinNames
-    .map((assetCoinName) => {
-      const pythFeedObjectId = query.address.get(
+  const pythPriceFeedIds = assetCoinNames.reduce(
+    (prev, assetCoinName) => {
+      const pythPriceFeed = query.address.get(
         `core.coins.${assetCoinName}.oracle.pyth.feedObject`
       );
-      if (seen[pythFeedObjectId]) return null;
+      if (!prev[pythPriceFeed]) {
+        prev[pythPriceFeed] = [assetCoinName];
+      } else {
+        prev[pythPriceFeed].push(assetCoinName);
+      }
+      return prev;
+    },
+    {} as Record<string, SupportAssetCoins[]>
+  );
 
-      seen[pythFeedObjectId] = true;
-      return pythFeedObjectId;
-    })
-    .filter((item) => !!item) as string[];
+  // Fetch multiple objects at once to save rpc calls
   const priceFeedObjects = await query.cache.queryGetObjects(
-    pythFeedObjectIds,
-    {
-      showContent: true,
-    }
+    Object.keys(pythPriceFeedIds),
+    { showContent: true }
+  );
+
+  const assetToPriceFeedMapping = priceFeedObjects.reduce(
+    (prev, priceFeedObject) => {
+      pythPriceFeedIds[priceFeedObject.objectId].forEach((assetCoinName) => {
+        prev[assetCoinName] = priceFeedObject;
+      });
+      return prev;
+    },
+    {} as Record<SupportAssetCoins, SuiObjectData>
   );
 
   return (
     await Promise.all(
-      priceFeedObjects.map(async (priceFeedObject, idx) => ({
-        coinName: assetCoinNames[idx],
-        price: await getPythPrice(query, assetCoinNames[idx], priceFeedObject),
-      }))
+      Object.entries(assetToPriceFeedMapping).map(
+        async ([assetCoinName, priceFeedObject]) => ({
+          coinName: assetCoinName,
+          price: await getPythPrice(
+            query,
+            assetCoinName as SupportAssetCoins,
+            priceFeedObject
+          ),
+        })
+      )
     )
   ).reduce(
     (prev, curr) => {
-      prev[curr.coinName] = curr.price;
+      prev[curr.coinName as SupportAssetCoins] = curr.price;
       return prev;
     },
     {} as Record<SupportAssetCoins, number>

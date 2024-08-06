@@ -2,6 +2,86 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.53](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.52...v0.46.53) (2024-08-01)
+
+### Bugfixes
+
+- `stakeHelper` function, handle stake spool when user has old marketCoin and new sCoin ([5911caf](https://github.com/scallop-io/sui-scallop-sdk/pull/150/commits/5911caf00373e085a7dead3d1f557f8ec4390bf9))
+
+- minor fix on `migrateAllMarketCoin` ([49da8b8](https://github.com/scallop-io/sui-scallop-sdk/pull/150/commits/49da8b860d5f12d32ff2cf03cec14082206f04b8)) ([04e777f](https://github.com/scallop-io/sui-scallop-sdk/pull/150/commits/04e777f492355d76002ffa66f3a4c6c5da340037))
+
+### [0.46.52](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.51...v0.46.52) (2024-07-31)
+
+### Bugfixes
+
+- Different staleTime value in `queryGetAllCoinBalances` ([b84fdc8])(https://github.com/scallop-io/sui-scallop-sdk/pull/149/commits/b84fdc817104eec1b762536c879b72f2e786ef02)
+
+### [0.46.51](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.50...v0.46.51) (2024-07-31)
+
+### Features
+
+- Reduce the cache time ([41cf8e0](https://github.com/scallop-io/sui-scallop-sdk/pull/148/commits/41cf8e0bb8f837922b123321527a676020379abb))
+
+### [0.46.50](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.49...v0.46.50) (2024-07-30)
+
+### Bugfixes
+
+- Fix reward apr for borrow incentive when point is 0 ([64c924f](https://github.com/scallop-io/sui-scallop-sdk/pull/146/commits/64c924fa38f603efc15739436e52d0e700fa1c32))
+
+### Features
+
+- Add `walletAddress` property to `ScallopQuery` instance ([94d8396](https://github.com/scallop-io/sui-scallop-sdk/pull/146/commits/94d839684f865d5dfc3fd7dac9abfde634825d1b))
+- Optimize `getPythPrices` function ([d75234b](https://github.com/scallop-io/sui-scallop-sdk/pull/146/commits/d75234b190afdd89c9d749d861d2fdf3aad9a38f))
+
+### [0.46.49](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.48...v0.46.49) (2024-07-12)
+
+### Bugfixes
+
+- Minor fix ([74fa9f5](https://github.com/scallop-io/sui-scallop-sdk/pull/144/commits/74fa9f5ffe184c01be3b2c87203a411f27c9f73e))
+- Fix `getPythPrices` function ([768a865](https://github.com/scallop-io/sui-scallop-sdk/pull/144/commits/768a865ecd41c81884ddc57b3b0ec7c3456cbfd3))
+
+### [0.46.48](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.47...v0.46.48) (2024-07-09)
+
+### Features
+
+- Add `returnSCoin` parameter to `unstakeQuick` ([a3ad485](https://github.com/scallop-io/sui-scallop-sdk/pull/143/commits/a3ad48598040f33572521b62a976f4ad01246f2e))
+
+### [0.46.47](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.46...v0.46.47) (2024-07-09)
+
+### Bugfixes
+
+- update `unstakeQuick` return type ([8fe0660](https://github.com/scallop-io/sui-scallop-sdk/commit/8fe06602c8a63e66c90a198bb3ebf6b0e319c187))
+
+### [0.46.46](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.45...v0.46.46) (2024-07-09)
+
+### Bugfixes
+
+- Adjust unit tests that uses `unstakeQuick` ([fcace2b](https://github.com/scallop-io/sui-scallop-sdk/pull/140/commits/fcace2b67afcd1268a0a113573e0adc35a5d23d0))
+
+### [0.46.45](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.44...v0.46.45) (2024-07-09)
+
+### Bugfixes
+
+- Minor bugfix ([43206bb](https://github.com/scallop-io/sui-scallop-sdk/commit/43206bb628be08677bbdd38645b17ec87febb4dc))
+
+### [0.46.44](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.43...v0.46.44) (2024-07-09)
+
+### Features
+
+- Adjust staking spool methods with new sCoin ([607f53f](https://github.com/scallop-io/sui-scallop-sdk/pull/137/commits/607f53ff4997e4f010a274e6f5d0cb62fba06b27))
+
+### [0.46.43](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.42...v0.46.43) (2024-07-09)
+
+### Bugfixes
+
+- Minor fix on `unstakedMarketAmount` ([faa647d](https://github.com/scallop-io/sui-scallop-sdk/pull/136/commits/faa647d7eac2518a71fb12eb4060bdf42c9d2ceb))
+
+### [0.46.42](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.41...v0.46.42) (2024-07-08)
+
+### Bugfixes
+
+- Fix `getLending` parameters order ([f71217b](https://github.com/scallop-io/sui-scallop-sdk/pull/135/commits/f71217b77199fc13187183fb21a8afa231226a2d))
+
 ### [0.46.41](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.40...v0.46.41) (2024-07-05)
 
 ### Features
