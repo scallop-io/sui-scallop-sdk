@@ -20,7 +20,7 @@ export const getPythPrice = async (
   priceFeedObject =
     priceFeedObject ||
     (await query.cache.queryGetObject(pythFeedObjectId, { showContent: true }))
-      .data;
+      ?.data;
 
   if (priceFeedObject) {
     const priceFeedPoolObject = priceFeedObject;

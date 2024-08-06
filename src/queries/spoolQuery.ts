@@ -251,6 +251,8 @@ export const getStakeAccounts = async (
         },
         cursor: nextCursor,
       });
+    if (!paginatedStakeObjectsResponse) continue;
+
     stakeObjectsResponse.push(...paginatedStakeObjectsResponse.data);
     if (
       paginatedStakeObjectsResponse.hasNextPage &&
@@ -420,7 +422,7 @@ export const getStakePool = async (
     showContent: true,
     showType: true,
   });
-  if (stakePoolObjectResponse.data) {
+  if (stakePoolObjectResponse?.data) {
     const stakePoolObject = stakePoolObjectResponse.data;
     const id = stakePoolObject.objectId;
     const type = stakePoolObject.type!;
@@ -482,7 +484,7 @@ export const getStakeRewardPool = async (
     }
   );
 
-  if (stakeRewardPoolObjectResponse.data) {
+  if (stakeRewardPoolObjectResponse?.data) {
     const stakeRewardPoolObject = stakeRewardPoolObjectResponse.data;
     const id = stakeRewardPoolObject.objectId;
     const type = stakeRewardPoolObject.type!;

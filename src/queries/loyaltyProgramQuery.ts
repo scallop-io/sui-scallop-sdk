@@ -40,7 +40,7 @@ export const getLoyaltyProgramInformations = async (
     showContent: true,
   });
 
-  if (rewardPoolObject.data?.content?.dataType !== 'moveObject') return null;
+  if (rewardPoolObject?.data?.content?.dataType !== 'moveObject') return null;
   const rewardPoolFields = rewardPoolObject.data.content.fields;
   const { isClaimEnabled, totalPoolReward } = rewardPoolFieldsZod.parse(
     rewardPoolFields
@@ -68,7 +68,7 @@ export const getLoyaltyProgramInformations = async (
     },
   });
 
-  if (userRewardObject.data?.content?.dataType !== 'moveObject') return result;
+  if (userRewardObject?.data?.content?.dataType !== 'moveObject') return result;
   const userRewardFields = userRewardObject.data.content.fields;
   result.pendingReward = userRewardFieldsZod.parse(
     userRewardFields

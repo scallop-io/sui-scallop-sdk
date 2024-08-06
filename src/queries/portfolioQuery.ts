@@ -362,7 +362,7 @@ export const getObligationAccount = async (
   let totalBorrowedValueWithWeight = BigNumber(0);
 
   for (const assetCoinName of collateralAssetCoinNames) {
-    const collateral = obligationQuery.collaterals.find((collateral) => {
+    const collateral = obligationQuery?.collaterals.find((collateral) => {
       const collateralCoinName =
         query.utils.parseCoinNameFromType<SupportCollateralCoins>(
           collateral.type.name
@@ -432,7 +432,7 @@ export const getObligationAccount = async (
   ];
 
   for (const assetCoinName of borrowAssetCoinNames) {
-    const debt = obligationQuery.debts.find((debt) => {
+    const debt = obligationQuery?.debts.find((debt) => {
       const poolCoinName = query.utils.parseCoinNameFromType<SupportPoolCoins>(
         debt.type.name
       );
