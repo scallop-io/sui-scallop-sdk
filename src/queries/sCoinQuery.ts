@@ -28,7 +28,7 @@ export const getSCoinTotalSupply = async (
     args,
     typeArgs,
   });
-  const results = queryResults.results;
+  const results = queryResults?.results;
   if (results && results[0].returnValues) {
     const value = Uint8Array.from(results[0].returnValues[0][0]);
     const type = results[0].returnValues[0][1]; // should be u64
