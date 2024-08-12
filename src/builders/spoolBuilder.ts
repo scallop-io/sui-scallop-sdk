@@ -276,7 +276,7 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
         }
 
         amount -= amountToUnstake;
-        if (amount === 0) break;
+        if (amount <= 0) break;
       }
 
       if (toTransfer.length > 0) {
@@ -284,38 +284,6 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
 
         if (toTransfer.length > 1) {
           txBlock.mergeCoins(mergedCoin, toTransfer.slice(1));
-        }
-
-        if (returnSCoin) {
-          // check for existing sCoins
-          try {
-            const existingCoins = await builder.utils.selectCoins(
-              Number.MAX_SAFE_INTEGER,
-              builder.utils.parseSCoinType(stakeMarketCoinName),
-              requireSender(txBlock)
-            );
-
-            if (existingCoins.length > 0) {
-              txBlock.mergeCoins(mergedCoin, existingCoins);
-            }
-          } catch (e) {
-            // ignore
-          }
-        } else {
-          // check for existing market coins
-          try {
-            const existingCoins = await builder.utils.selectCoins(
-              Number.MAX_SAFE_INTEGER,
-              builder.utils.parseMarketCoinType(stakeMarketCoinName),
-              requireSender(txBlock)
-            );
-
-            if (existingCoins.length > 0) {
-              txBlock.mergeCoins(mergedCoin, existingCoins);
-            }
-          } catch (e) {
-            // ignore
-          }
         }
         return mergedCoin;
       }
