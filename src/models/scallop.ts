@@ -37,7 +37,6 @@ export class Scallop {
   public params: ScallopParams;
   public suiKit: SuiKit;
   public cache: ScallopCache;
-  private tokenBucket: TokenBucket;
 
   private _address: ScallopAddress;
 
@@ -51,7 +50,8 @@ export class Scallop {
     this.cache = new ScallopCache(
       cacheOptions ?? DEFAULT_CACHE_OPTIONS,
       this.suiKit,
-      tokenBucket
+      tokenBucket ??
+        new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS)
     );
     this._address = new ScallopAddress(
       {
@@ -60,9 +60,6 @@ export class Scallop {
       },
       this.cache
     );
-    this.tokenBucket =
-      tokenBucket ??
-      new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS);
   }
 
   /**
