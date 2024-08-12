@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.54](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.53...v0.46.54) (2024-08-06)
+
+### Features
+
+- Add token bucket algorithm for rate limit rpc requests ([d4369ef](https://github.com/scallop-io/sui-scallop-sdk/pull/151/commits/d4369efefc8eb0eb47604706dcf8f2e21651e1e5))
+
+- Remove logic from `unstakeQuick` to prevent ambiguity of the method responsibility ([5633a35](https://github.com/scallop-io/sui-scallop-sdk/pull/151/commits/5633a352f9a200e43d2f08006d5540e4fcefced8))
+
 ### [0.46.53](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.52...v0.46.53) (2024-08-01)
 
 ### Bugfixes
