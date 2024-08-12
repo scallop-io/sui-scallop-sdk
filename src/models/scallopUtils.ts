@@ -1,5 +1,10 @@
 import { SUI_TYPE_ARG, normalizeStructTag } from '@mysten/sui.js/utils';
-import { SuiAddressArg, SuiKit, SuiTxArg } from '@scallop-io/sui-kit';
+import {
+  SuiAddressArg,
+  SuiKit,
+  SuiTxArg,
+  SuiTxBlock,
+} from '@scallop-io/sui-kit';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
@@ -38,7 +43,6 @@ import type {
   PriceMap,
   CoinWrappedType,
   SupportSCoin,
-  ScallopTxBlock,
 } from '../types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
 import { ScallopCache } from './scallopCache';
@@ -405,7 +409,7 @@ export class ScallopUtils {
    * @param sender
    */
   public async mergeSimilarCoins(
-    txBlock: ScallopTxBlock,
+    txBlock: SuiTxBlock,
     dest: SuiTxArg,
     coinType: string,
     sender: string
