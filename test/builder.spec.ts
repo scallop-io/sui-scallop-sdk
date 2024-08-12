@@ -112,11 +112,20 @@ describe('Test Scallop Core Builder', async () => {
   it('"borrowFlashLoan" & "repayFlashLoan" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
     tx.setSender(sender);
-    const [coin, loan] = tx.borrowFlashLoan(10 ** 8, SUPPLY_COIN_NAME);
-    /**
-     * Do something with the borrowed coin here
-     * such as pass it to a dex to make a profit.
-     */
+
+    const SUPPLY_COIN_NAME = 'usdc';
+    const FLASHLOAN_AMOUNT = 10 ** 5;
+    const [coin, loan] = tx.borrowFlashLoan(FLASHLOAN_AMOUNT, SUPPLY_COIN_NAME);
+
+    const FLASHLOAN_FEE = Math.ceil(0.07 * FLASHLOAN_AMOUNT);
+    const { takeCoin, leftCoin } = await scallopBuilder.selectCoin(
+      tx,
+      SUPPLY_COIN_NAME,
+      FLASHLOAN_FEE
+    );
+
+    tx.mergeCoins(coin, [takeCoin]);
+    tx.transferObjects([leftCoin], sender);
     tx.repayFlashLoan(coin, loan, SUPPLY_COIN_NAME);
     const borrowFlashLoanResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
