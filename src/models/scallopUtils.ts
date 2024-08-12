@@ -1,5 +1,5 @@
 import { SUI_TYPE_ARG, normalizeStructTag } from '@mysten/sui.js/utils';
-import { SuiAddressArg, SuiKit } from '@scallop-io/sui-kit';
+import { SuiAddressArg, SuiKit, SuiTxArg } from '@scallop-io/sui-kit';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
@@ -38,6 +38,7 @@ import type {
   PriceMap,
   CoinWrappedType,
   SupportSCoin,
+  ScallopTxBlock,
 } from '../types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
 import { ScallopCache } from './scallopCache';
@@ -394,6 +395,35 @@ export class ScallopUtils {
       coinType
     );
     return coins;
+  }
+
+  /**
+   * Merge coins with type `coinType` to dest
+   * @param txBlock
+   * @param dest
+   * @param coinType
+   * @param sender
+   */
+  public async mergeSimilarCoins(
+    txBlock: ScallopTxBlock,
+    dest: SuiTxArg,
+    coinType: string,
+    sender: string
+  ): Promise<void> {
+    // merge to existing coins if exist
+    try {
+      const existingSCoin = await this.selectCoins(
+        Number.MAX_SAFE_INTEGER,
+        coinType,
+        sender
+      );
+
+      if (existingSCoin.length > 0) {
+        txBlock.mergeCoins(dest, existingSCoin);
+      }
+    } catch (e) {
+      // ignore
+    }
   }
 
   /**
