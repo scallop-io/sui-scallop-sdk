@@ -29,6 +29,7 @@ import type {
 } from '../types';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
+import { requireSender } from 'src/utils';
 
 /**
  * @description
@@ -747,6 +748,17 @@ export class ScallopClient {
       stakeMarketCoinName,
       stakeAccountId
     );
+
+    if (sCoin) {
+      // merge to existing sCoins if exist
+      await this.utils.mergeSimilarCoins(
+        txBlock,
+        sCoin,
+        this.utils.parseSCoinType(stakeMarketCoinName),
+        requireSender(txBlock)
+      );
+    }
+
     txBlock.transferObjects([sCoin], sender);
 
     if (sign) {
@@ -800,6 +812,13 @@ export class ScallopClient {
       this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
     if (stakeMarketCoin) {
       const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
+      await this.utils.mergeSimilarCoins(
+        txBlock,
+        coin,
+        this.utils.parseCoinType(this.utils.parseCoinName(stakeCoinName)),
+        requireSender(txBlock)
+      );
+
       txBlock.transferObjects([coin], sender);
     } else {
       throw new Error(`No stake found for ${stakeMarketCoinName}`);
@@ -1010,17 +1029,13 @@ export class ScallopClient {
             toDestroyMarketCoin
           );
 
-          // check if current sCoin exist
-          try {
-            const existSCoins = await this.utils.selectCoins(
-              Number.MAX_SAFE_INTEGER,
-              this.utils.parseSCoinType(sCoinName as SupportSCoin),
-              this.walletAddress
-            );
-            txBlock.mergeCoins(sCoin, existSCoins);
-          } catch (e: any) {
-            // ignore
-          }
+          // check if current sCoin
+          await this.utils.mergeSimilarCoins(
+            txBlock,
+            sCoin,
+            this.utils.parseSCoinType(sCoinName as SupportSCoin),
+            requireSender(txBlock)
+          );
           sCoins.push(sCoin);
         }
         // check for staked market coin in spool
