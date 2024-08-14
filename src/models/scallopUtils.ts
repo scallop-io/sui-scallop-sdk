@@ -1,10 +1,5 @@
 import { SUI_TYPE_ARG, normalizeStructTag } from '@mysten/sui.js/utils';
-import {
-  SuiAddressArg,
-  SuiKit,
-  SuiTxArg,
-  SuiTxBlock,
-} from '@scallop-io/sui-kit';
+import { SuiKit } from '@scallop-io/sui-kit';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
@@ -31,6 +26,9 @@ import {
   parseAssetSymbol,
   findClosestUnlockRound,
 } from '../utils';
+import { PYTH_ENDPOINTS } from 'src/constants/pyth';
+import { ScallopCache } from './scallopCache';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import type {
   ScallopUtilsParams,
   ScallopInstanceParams,
@@ -44,9 +42,7 @@ import type {
   CoinWrappedType,
   SupportSCoin,
 } from '../types';
-import { PYTH_ENDPOINTS } from 'src/constants/pyth';
-import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
+import type { SuiAddressArg, SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
 
 /**
  * @description
