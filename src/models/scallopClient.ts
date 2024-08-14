@@ -1,5 +1,6 @@
 import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import {
   ADDRESSES_ID,
   SUPPORT_BORROW_INCENTIVE_POOLS,
@@ -11,6 +12,8 @@ import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopBuilder } from './scallopBuilder';
 import { ScallopQuery } from './scallopQuery';
+import { ScallopCache } from './scallopCache';
+import { requireSender } from 'src/utils';
 import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
 import type { TransactionObjectArgument } from '@mysten/sui.js/transactions';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
@@ -27,9 +30,6 @@ import type {
   ScallopTxBlock,
   SupportSCoin,
 } from '../types';
-import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-import { requireSender } from 'src/utils';
 
 /**
  * @description
