@@ -1,5 +1,5 @@
 import { SUI_TYPE_ARG, normalizeStructTag } from '@mysten/sui.js/utils';
-import { SuiAddressArg, SuiKit } from '@scallop-io/sui-kit';
+import { SuiKit } from '@scallop-io/sui-kit';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
@@ -26,6 +26,9 @@ import {
   parseAssetSymbol,
   findClosestUnlockRound,
 } from '../utils';
+import { PYTH_ENDPOINTS } from 'src/constants/pyth';
+import { ScallopCache } from './scallopCache';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import type {
   ScallopUtilsParams,
   ScallopInstanceParams,
@@ -39,9 +42,7 @@ import type {
   CoinWrappedType,
   SupportSCoin,
 } from '../types';
-import { PYTH_ENDPOINTS } from 'src/constants/pyth';
-import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
+import type { SuiAddressArg, SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
 
 /**
  * @description
@@ -397,6 +398,35 @@ export class ScallopUtils {
   }
 
   /**
+   * Merge coins with type `coinType` to dest
+   * @param txBlock
+   * @param dest
+   * @param coinType
+   * @param sender
+   */
+  public async mergeSimilarCoins(
+    txBlock: SuiTxBlock,
+    dest: SuiTxArg,
+    coinType: string,
+    sender: string
+  ): Promise<void> {
+    // merge to existing coins if exist
+    try {
+      const existingSCoin = await this.selectCoins(
+        Number.MAX_SAFE_INTEGER,
+        coinType,
+        sender
+      );
+
+      if (existingSCoin.length > 0) {
+        txBlock.mergeCoins(dest, existingSCoin);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  /**
    * Get all asset coin names in the obligation record by obligation id.
    *
    * @description
@@ -408,12 +438,14 @@ export class ScallopUtils {
    */
   public async getObligationCoinNames(obligationId: SuiAddressArg) {
     const obligation = await queryObligation(this._query, obligationId);
-    const collateralCoinTypes = obligation.collaterals.map((collateral) => {
-      return `0x${collateral.type.name}`;
-    });
-    const debtCoinTypes = obligation.debts.map((debt) => {
-      return `0x${debt.type.name}`;
-    });
+    const collateralCoinTypes =
+      obligation?.collaterals.map((collateral) => {
+        return `0x${collateral.type.name}`;
+      }) ?? [];
+    const debtCoinTypes =
+      obligation?.debts.map((debt) => {
+        return `0x${debt.type.name}`;
+      }) ?? [];
     const obligationCoinTypes = [
       ...new Set([...collateralCoinTypes, ...debtCoinTypes]),
     ];

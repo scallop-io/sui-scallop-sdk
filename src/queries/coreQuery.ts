@@ -82,9 +82,11 @@ export const queryMarket = async (
   const args = [marketId];
 
   const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
-  const marketData = queryResult.events[0].parsedJson as MarketQueryInterface;
+  const marketData = queryResult?.events[0].parsedJson as
+    | MarketQueryInterface
+    | undefined;
 
-  for (const pool of marketData.pools) {
+  for (const pool of marketData?.pools ?? []) {
     const coinType = normalizeStructTag(pool.type.name);
     const poolCoinName =
       query.utils.parseCoinNameFromType<SupportPoolCoins>(coinType);
@@ -141,7 +143,7 @@ export const queryMarket = async (
     };
   }
 
-  for (const collateral of marketData.collaterals) {
+  for (const collateral of marketData?.collaterals ?? []) {
     const coinType = normalizeStructTag(collateral.type.name);
     const collateralCoinName =
       query.utils.parseCoinNameFromType<SupportCollateralCoins>(coinType);
@@ -240,7 +242,7 @@ export const getMarketPools = async (
         query,
         poolCoinName,
         indexer,
-        marketObjectResponse.data,
+        marketObjectResponse?.data,
         coinPrices?.[poolCoinName]
       );
 
@@ -293,7 +295,7 @@ export const getMarketPool = async (
       await query.cache.queryGetObject(marketId, {
         showContent: true,
       })
-    ).data;
+    )?.data;
 
   coinPrice =
     coinPrice ||
@@ -317,6 +319,8 @@ export const getMarketPool = async (
             },
           },
         });
+      if (!balanceSheetDynamicFieldObjectResponse) return undefined;
+
       const balanceSheetDynamicFieldObject =
         balanceSheetDynamicFieldObjectResponse.data;
       if (
@@ -342,6 +346,8 @@ export const getMarketPool = async (
             },
           },
         });
+      if (!borrowIndexDynamicFieldObjectResponse) return undefined;
+
       const borrowIndexDynamicFieldObject =
         borrowIndexDynamicFieldObjectResponse.data;
       if (
@@ -367,6 +373,8 @@ export const getMarketPool = async (
             },
           },
         });
+
+      if (!interestModelDynamicFieldObjectResponse) return undefined;
       const interestModelDynamicFieldObject =
         interestModelDynamicFieldObjectResponse.data;
       if (
@@ -393,6 +401,7 @@ export const getMarketPool = async (
           },
         });
 
+      if (!borrowFeeDynamicFieldObjectResponse) return undefined;
       const borrowFeeDynamicFieldObject =
         borrowFeeDynamicFieldObjectResponse.data;
       if (
@@ -508,7 +517,7 @@ export const getMarketCollaterals = async (
         query,
         collateralCoinName,
         indexer,
-        marketObjectResponse.data,
+        marketObjectResponse?.data,
         coinPrices?.[collateralCoinName]
       );
 
@@ -561,7 +570,7 @@ export const getMarketCollateral = async (
       await query.cache.queryGetObject(marketId, {
         showContent: true,
       })
-    ).data;
+    )?.data;
 
   coinPrice =
     coinPrice ||
@@ -586,6 +595,8 @@ export const getMarketCollateral = async (
             },
           },
         });
+
+      if (!riskModelDynamicFieldObjectResponse) return undefined;
       const riskModelDynamicFieldObject =
         riskModelDynamicFieldObjectResponse.data;
       if (
@@ -610,6 +621,8 @@ export const getMarketCollateral = async (
             },
           },
         });
+
+      if (!collateralStatDynamicFieldObjectResponse) return undefined;
       const collateralStatDynamicFieldObject =
         collateralStatDynamicFieldObjectResponse.data;
       if (
@@ -687,6 +700,7 @@ export const getObligations = async (
       },
       cursor: nextCursor,
     });
+    if (!paginatedKeyObjectsResponse) continue;
 
     keyObjectsResponse.push(...paginatedKeyObjectsResponse.data);
     if (
@@ -738,7 +752,7 @@ export const getObligationLocked = async (
   );
   let obligationLocked = false;
   if (
-    obligationObjectResponse.data &&
+    obligationObjectResponse?.data &&
     obligationObjectResponse?.data?.content?.dataType === 'moveObject' &&
     'lock_key' in obligationObjectResponse.data.content.fields
   ) {
@@ -774,7 +788,9 @@ export const queryObligation = async (
     { queryTarget, args }
     // txBlock
   );
-  return queryResult.events[0].parsedJson as ObligationQueryInterface;
+  return queryResult?.events[0].parsedJson as
+    | ObligationQueryInterface
+    | undefined;
 };
 
 /**
@@ -929,7 +945,7 @@ export const getFlashLoanFees = async (
     const marketObjectRes = await query.cache.queryGetObject(marketObjectId, {
       showContent: true,
     });
-    if (marketObjectRes.data?.content?.dataType !== 'moveObject')
+    if (marketObjectRes?.data?.content?.dataType !== 'moveObject')
       throw new Error('Failed to get market object');
 
     // get vault
@@ -946,12 +962,13 @@ export const getFlashLoanFees = async (
     });
 
     // get the dynamic object ids
-    const dynamicFieldObjectIds = balanceSheetDynamicFields.data
-      .filter((field) => {
-        const assetType = (field.name.value as any).name as string;
-        return !!assetTypeMap[assetType];
-      })
-      .map((field) => field.objectId);
+    const dynamicFieldObjectIds =
+      balanceSheetDynamicFields?.data
+        .filter((field) => {
+          const assetType = (field.name.value as any).name as string;
+          return !!assetTypeMap[assetType];
+        })
+        .map((field) => field.objectId) ?? [];
 
     flashloanFeeObjects.push(
       ...(await query.cache.queryGetObjects(dynamicFieldObjectIds, {

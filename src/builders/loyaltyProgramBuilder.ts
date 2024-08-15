@@ -47,18 +47,12 @@ const generateLoyaltyProgramQuickMethod: GenerateLoyaltyProgramQuickMethod = ({
       const rewardCoin = txBlock.claimLoyaltyRevenue(veScaKey);
 
       // get existing sca coin to merge with
-      try {
-        const existingScaCoin = await builder.suiKit.suiInteractor.selectCoins(
-          sender,
-          Infinity,
-          coinIds.sca
-        );
-        txBlock.mergeCoins(rewardCoin, existingScaCoin);
-      } catch (e) {
-        // ignore
-      } finally {
-        toTransferObject.push(rewardCoin);
-      }
+      await builder.utils.mergeSimilarCoins(
+        txBlock,
+        rewardCoin,
+        coinIds.sca,
+        requireSender(txBlock)
+      );
 
       if (toTransferObject.length > 0) {
         txBlock.transferObjects(toTransferObject, sender);

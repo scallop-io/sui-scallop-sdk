@@ -10,15 +10,20 @@ import type {
   SuiObjectResponse,
   SuiObjectDataOptions,
   SuiObjectData,
-  PaginatedObjectsResponse,
   GetOwnedObjectsParams,
   DevInspectResults,
   GetDynamicFieldsParams,
   DynamicFieldPage,
   GetDynamicFieldObjectParams,
   GetBalanceParams,
+  SuiClient,
 } from '@mysten/sui.js/client';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
+import { callWithRateLimit, TokenBucket } from 'src/utils';
+import {
+  DEFAULT_INTERVAL_IN_MS,
+  DEFAULT_TOKENS_PER_INTERVAL,
+} from 'src/constants/tokenBucket';
 
 type QueryInspectTxnParams = {
   queryTarget: string;
@@ -42,10 +47,18 @@ type QueryInspectTxnParams = {
 export class ScallopCache {
   public readonly queryClient: QueryClient;
   public readonly _suiKit?: SuiKit;
+  private tokenBucket: TokenBucket;
 
-  public constructor(cacheOptions?: QueryClientConfig, suiKit?: SuiKit) {
+  public constructor(
+    cacheOptions?: QueryClientConfig,
+    suiKit?: SuiKit,
+    tokenBucket?: TokenBucket
+  ) {
     this.queryClient = new QueryClient(cacheOptions ?? DEFAULT_CACHE_OPTIONS);
     this._suiKit = suiKit;
+    this.tokenBucket =
+      tokenBucket ??
+      new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS);
   }
 
   private get suiKit(): SuiKit {
@@ -53,6 +66,10 @@ export class ScallopCache {
       throw new Error('SuiKit instance is not initialized');
     }
     return this._suiKit;
+  }
+
+  private get client(): SuiClient {
+    return this.suiKit.client();
   }
 
   /**
@@ -80,7 +97,9 @@ export class ScallopCache {
     return await this.queryClient.fetchQuery({
       queryKey: ['getProtocolConfig'],
       queryFn: async () => {
-        return await this.suiKit.client().getProtocolConfig();
+        return await callWithRateLimit(this.tokenBucket, () =>
+          this.client.getProtocolConfig()
+        );
       },
       staleTime: 30000,
     });
@@ -96,14 +115,14 @@ export class ScallopCache {
     queryTarget,
     args,
     typeArgs,
-  }: QueryInspectTxnParams): Promise<DevInspectResults> {
+  }: QueryInspectTxnParams): Promise<DevInspectResults | null> {
     const txBlock = new SuiTxBlock();
 
     // resolve all the object args to prevent duplicate getNormalizedMoveFunction calls
     const resolvedArgs = await Promise.all(
       args.map(async (arg) => {
         if (typeof arg === 'string') {
-          return (await this.queryGetObject(arg, { showContent: true })).data;
+          return (await this.queryGetObject(arg, { showContent: true }))?.data;
         }
         return arg;
       })
@@ -112,9 +131,9 @@ export class ScallopCache {
 
     // build the txBlock to prevent duplicate getProtocolConfig calls
     const txBytes = await txBlock.txBlock.build({
-      client: this.suiKit.client(),
+      client: this.client,
       onlyTransactionKind: true,
-      protocolConfig: await this.getProtocolConfig(),
+      protocolConfig: (await this.getProtocolConfig()) ?? undefined,
     });
 
     const query = await this.queryClient.fetchQuery({
@@ -127,7 +146,9 @@ export class ScallopCache {
             JSON.stringify(typeArgs),
           ],
       queryFn: async () => {
-        return await this.suiKit.inspectTxn(txBytes);
+        return await callWithRateLimit(this.tokenBucket, () =>
+          this.suiKit.inspectTxn(txBytes)
+        );
       },
     });
     return query;
@@ -142,7 +163,7 @@ export class ScallopCache {
   public async queryGetObject(
     objectId: string,
     options?: SuiObjectDataOptions
-  ): Promise<SuiObjectResponse> {
+  ): Promise<SuiObjectResponse | null> {
     const queryKey = ['getObject', objectId, this.suiKit.currentAddress()];
     if (options) {
       queryKey.push(JSON.stringify(options));
@@ -150,10 +171,12 @@ export class ScallopCache {
     return this.queryClient.fetchQuery({
       queryKey,
       queryFn: async () => {
-        return await this.suiKit.client().getObject({
-          id: objectId,
-          options,
-        });
+        return await callWithRateLimit(this.tokenBucket, () =>
+          this.client.getObject({
+            id: objectId,
+            options,
+          })
+        );
       },
     });
   }
@@ -179,7 +202,9 @@ export class ScallopCache {
     return this.queryClient.fetchQuery({
       queryKey: queryKey,
       queryFn: async () => {
-        return await this.suiKit.getObjects(objectIds, options);
+        return await callWithRateLimit(this.tokenBucket, () =>
+          this.suiKit.getObjects(objectIds, options)
+        );
       },
     });
   }
@@ -189,9 +214,7 @@ export class ScallopCache {
    * @param input
    * @returns Promise<PaginatedObjectsResponse>
    */
-  public async queryGetOwnedObjects(
-    input: GetOwnedObjectsParams
-  ): Promise<PaginatedObjectsResponse> {
+  public async queryGetOwnedObjects(input: GetOwnedObjectsParams) {
     const queryKey = ['getOwnedObjects', input.owner];
     if (input.cursor) {
       queryKey.push(JSON.stringify(input.cursor));
@@ -209,14 +232,16 @@ export class ScallopCache {
     return this.queryClient.fetchQuery({
       queryKey,
       queryFn: async () => {
-        return await this.suiKit.client().getOwnedObjects(input);
+        return await callWithRateLimit(this.tokenBucket, () =>
+          this.client.getOwnedObjects(input)
+        );
       },
     });
   }
 
   public async queryGetDynamicFields(
     input: GetDynamicFieldsParams
-  ): Promise<DynamicFieldPage> {
+  ): Promise<DynamicFieldPage | null> {
     const queryKey = ['getDynamicFields', input.parentId];
     if (input.cursor) {
       queryKey.push(JSON.stringify(input.cursor));
@@ -228,14 +253,16 @@ export class ScallopCache {
     return this.queryClient.fetchQuery({
       queryKey,
       queryFn: async () => {
-        return await this.suiKit.client().getDynamicFields(input);
+        return await callWithRateLimit(this.tokenBucket, () =>
+          this.client.getDynamicFields(input)
+        );
       },
     });
   }
 
   public async queryGetDynamicFieldObject(
     input: GetDynamicFieldObjectParams
-  ): Promise<SuiObjectResponse> {
+  ): Promise<SuiObjectResponse | null> {
     const queryKey = [
       'getDynamicFieldObject',
       input.parentId,
@@ -245,7 +272,9 @@ export class ScallopCache {
     return this.queryClient.fetchQuery({
       queryKey,
       queryFn: async () => {
-        return await this.suiKit.client().getDynamicFieldObject(input);
+        return await callWithRateLimit(this.tokenBucket, () =>
+          this.client.getDynamicFieldObject(input)
+        );
       },
     });
   }
@@ -257,9 +286,10 @@ export class ScallopCache {
     return this.queryClient.fetchQuery({
       queryKey,
       queryFn: async () => {
-        const allBalances = await this.suiKit
-          .client()
-          .getAllBalances({ owner });
+        const allBalances = await callWithRateLimit(this.tokenBucket, () =>
+          this.client.getAllBalances({ owner })
+        );
+        if (!allBalances) return {};
         const balances = allBalances.reduce(
           (acc, coinBalance) => {
             if (coinBalance.totalBalance !== '0') {
