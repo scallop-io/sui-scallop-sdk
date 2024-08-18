@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.55](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.53...v0.46.54) (2024-08-18)
+
+### Bugfixes
+
+- Fix the issue where the loyalty program is not transferring rewards to the user’s address after claiming ([82a411d](https://github.com/scallop-io/sui-scallop-sdk/pull/154/commits/82a411d0c19998dc0ddf398edbac7c57c1b2bea7))
+
 ### [0.46.54](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.53...v0.46.54) (2024-08-06)
 
 ### Features
