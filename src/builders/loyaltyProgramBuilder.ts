@@ -43,7 +43,6 @@ const generateLoyaltyProgramQuickMethod: GenerateLoyaltyProgramQuickMethod = ({
       if (!veScaKey) throw new Error(`No veScaKey found for user ${sender}`);
 
       // claim the pending reward
-      // const toTransferObject: SuiObjectArg[] = [];
       const rewardCoin = txBlock.claimLoyaltyRevenue(veScaKey);
 
       // get existing sca coin to merge with
