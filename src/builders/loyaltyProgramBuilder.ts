@@ -53,7 +53,7 @@ const generateLoyaltyProgramQuickMethod: GenerateLoyaltyProgramQuickMethod = ({
         coinIds.sca,
         requireSender(txBlock)
       );
-
+      toTransferObject.push(rewardCoin);
       if (toTransferObject.length > 0) {
         txBlock.transferObjects(toTransferObject, sender);
       }
