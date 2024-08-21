@@ -22,7 +22,7 @@ describe('Test XOracle V2', async () => {
   console.info('\x1b[32mAddresses Id: \x1b[33m', TEST_ADDRESSES_ID);
 
   it('Should updates oracles success', async () => {
-    const coins = ['eth', 'usdt', 'usdc', 'sui'] as SupportAssetCoins[];
+    const coins = ['weth', 'wusdt', 'wusdc', 'sui'] as SupportAssetCoins[];
     const txb = new SuiTxBlock();
 
     await updateOracles(scallopBuilder, txb, coins);

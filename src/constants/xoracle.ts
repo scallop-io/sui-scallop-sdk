@@ -5,15 +5,15 @@ export const xOracleList: xOracleListType = {
     primary: ['pyth'],
     secondary: ['supra'],
   },
-  eth: {
+  weth: {
     primary: ['supra'],
     secondary: ['pyth'],
   },
-  usdc: {
+  wusdc: {
     primary: ['supra'],
     secondary: [],
   },
-  usdt: {
+  wusdt: {
     primary: ['pyth'],
     secondary: ['supra'],
   }, // fill in
@@ -21,11 +21,11 @@ export const xOracleList: xOracleListType = {
     primary: ['pyth'],
     secondary: ['supra'],
   },
-  apt: {
+  wapt: {
     primary: ['supra'],
     secondary: ['pyth'],
   },
-  btc: {
+  wbtc: {
     primary: ['pyth'],
     secondary: ['supra'],
   },
@@ -41,7 +41,7 @@ export const xOracleList: xOracleListType = {
     primary: ['pyth'],
     secondary: ['supra'],
   },
-  sol: {
+  wsol: {
     primary: ['pyth'],
     secondary: ['supra'],
   },

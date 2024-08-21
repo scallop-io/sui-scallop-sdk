@@ -33,7 +33,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      apt: {
+      wapt: {
         id: '',
         metaData: '',
         treasury: '',
@@ -46,7 +46,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      sol: {
+      wsol: {
         id: '',
         metaData: '',
         treasury: '',
@@ -59,7 +59,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      btc: {
+      wbtc: {
         id: '',
         metaData: '',
         treasury: '',
@@ -72,7 +72,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      eth: {
+      weth: {
         id: '',
         metaData: '',
         treasury: '',
@@ -85,7 +85,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      usdc: {
+      wusdc: {
         id: '',
         metaData: '',
         treasury: '',
@@ -98,7 +98,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      usdt: {
+      wusdt: {
         id: '',
         metaData: '',
         treasury: '',
@@ -237,7 +237,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     adminCap: '',
     object: '',
     pools: {
-      seth: {
+      sweth: {
         id: '',
         rewardPoolId: '',
       },
@@ -245,11 +245,11 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         rewardPoolId: '',
       },
-      susdc: {
+      swusdc: {
         id: '',
         rewardPoolId: '',
       },
-      susdt: {
+      swusdt: {
         id: '',
         rewardPoolId: '',
       },
@@ -324,15 +324,15 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         coinType: '',
         treasury: '',
       },
-      susdc: {
+      swusdc: {
         coinType: '',
         treasury: '',
       },
-      susdt: {
+      swusdt: {
         coinType: '',
         treasury: '',
       },
-      seth: {
+      sweth: {
         coinType: '',
         treasury: '',
       },
