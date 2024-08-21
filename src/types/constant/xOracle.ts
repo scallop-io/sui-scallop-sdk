@@ -4,7 +4,7 @@ export type xOracleType = {
   primary: SupportOracleType[];
   secondary: SupportOracleType[];
 };
-export type xOracleTypeType = keyof xOracleType;
+export type xOracleCategoryType = keyof xOracleType;
 
 export type xOracleListType = {
   [key in SupportAssetCoins]: xOracleType;

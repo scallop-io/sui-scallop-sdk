@@ -11,7 +11,7 @@ import type {
   SupportAssetCoins,
   SupportOracleType,
   xOracleType,
-  xOracleTypeType,
+  xOracleCategoryType,
 } from '../types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
 import { xOracleList } from 'src/constants';
@@ -32,16 +32,14 @@ export const updateOracles = async (
     ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
   ];
   // const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
-  const flattenedRules: SupportOracleType[] = [
-    ...new Set(
-      Object.values(xOracleList).flatMap(({ primary, secondary }) => [
-        ...primary,
-        ...secondary,
-      ])
-    ),
-  ];
+  const flattenedRules: Set<SupportOracleType> = new Set(
+    Object.values(xOracleList).flatMap(({ primary, secondary }) => [
+      ...primary,
+      ...secondary,
+    ])
+  );
 
-  if (flattenedRules.includes('pyth')) {
+  if (flattenedRules.has('pyth')) {
     const pythClient = new SuiPythClient(
       builder.suiKit.client(),
       builder.address.get('core.oracles.pyth.state'),
@@ -267,7 +265,7 @@ const confirmPriceUpdateRequest = (
  * @return TxBlock created by SuiKit.
  */
 const updateSupraPrice = (
-  type: xOracleTypeType,
+  type: xOracleCategoryType,
   txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
@@ -295,7 +293,7 @@ const updateSupraPrice = (
  * @return TxBlock created by SuiKit.
  */
 const updateSwitchboardPrice = (
-  type: xOracleTypeType,
+  type: xOracleCategoryType,
   txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
@@ -326,7 +324,7 @@ const updateSwitchboardPrice = (
  * @return TxBlock created by SuiKit.
  */
 const updatePythPrice = (
-  type: xOracleTypeType,
+  type: xOracleCategoryType,
   txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
