@@ -429,7 +429,7 @@ describe('Test Scallop Client - Other Method', async () => {
 
   // Only for testnet.
   it.skip('Should get test coin', async () => {
-    const mintTestCoinResult = await client.mintTestCoin('usdc', 10 ** 11);
+    const mintTestCoinResult = await client.mintTestCoin('wusdc', 10 ** 11);
     if (ENABLE_LOG) {
       console.info('MintTestCoinResult:', mintTestCoinResult);
     }

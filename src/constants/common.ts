@@ -33,13 +33,13 @@ export const OLD_BORROW_INCENTIVE_PROTOCOL_ID =
   '0xc63072e7f5f4983a2efaf5bdba1480d5e7d74d57948e1c7cc436f8e22cbeb410' as const;
 
 export const SUPPORT_POOLS = [
-  'eth',
-  'btc',
-  'usdc',
-  'usdt',
+  'weth',
+  'wbtc',
+  'wusdc',
+  'wusdt',
   'sui',
-  'apt',
-  'sol',
+  'wapt',
+  'wsol',
   'cetus',
   'afsui',
   'hasui',
@@ -48,13 +48,13 @@ export const SUPPORT_POOLS = [
 ] as const;
 
 export const SUPPORT_COLLATERALS = [
-  'eth',
-  'btc',
-  'usdc',
-  'usdt',
+  'weth',
+  'wbtc',
+  'wusdc',
+  'wusdt',
   'sui',
-  'apt',
-  'sol',
+  'wapt',
+  'wsol',
   'cetus',
   'afsui',
   'hasui',
@@ -63,10 +63,10 @@ export const SUPPORT_COLLATERALS = [
 ] as const;
 
 export const SUPPORT_SPOOLS = [
-  'seth',
+  'sweth',
   'ssui',
-  'susdc',
-  'susdt',
+  'swusdc',
+  'swusdt',
   'scetus',
   'safsui',
   'shasui',
@@ -75,12 +75,12 @@ export const SUPPORT_SPOOLS = [
 
 export const SUPPORT_SCOIN = [
   'ssui',
-  'susdc',
-  'susdt',
+  'swusdc',
+  'swusdt',
   'safsui',
   'shasui',
   'svsui',
-  'seth',
+  'sweth',
   'ssca',
   'scetus',
 ] as const;
@@ -89,12 +89,12 @@ export const SUPPORT_SPOOLS_REWARDS = ['sui'] as const;
 
 export const SUPPORT_BORROW_INCENTIVE_POOLS = [
   'sui',
-  'usdc',
-  'usdt',
+  'wusdc',
+  'wusdt',
   'afsui',
   'hasui',
   'vsui',
-  'eth',
+  'weth',
   'sca',
 ] as const;
 

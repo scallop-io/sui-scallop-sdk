@@ -20,7 +20,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
   });
 
   it('Should get market pools data', async () => {
-    const marketPools = await scallopQuery.getMarketPools(['sui', 'usdc']);
+    const marketPools = await scallopQuery.getMarketPools(['sui', 'wusdc']);
 
     if (ENABLE_LOG) {
       console.info('Market pool:');
@@ -42,7 +42,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
   it('Should get market collaterals data', async () => {
     const marketCollaterals = await scallopQuery.getMarketCollaterals([
       'sui',
-      'usdc',
+      'wusdc',
     ]);
 
     if (ENABLE_LOG) {
@@ -121,7 +121,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
   });
 
   it('Should get pyth price data', async () => {
-    const usdcPrice = await scallopQuery.getPriceFromPyth('usdc');
+    const usdcPrice = await scallopQuery.getPriceFromPyth('wusdc');
 
     if (ENABLE_LOG) {
       console.info('Usdc price:', usdcPrice);
@@ -251,7 +251,7 @@ describe('Test Portfolio Query', async () => {
   console.info('Your wallet:', scallopQuery.suiKit.currentAddress());
 
   it('Should get user lendings data', async () => {
-    const lendings = await scallopQuery.getLendings(['sui', 'usdc']);
+    const lendings = await scallopQuery.getLendings(['sui', 'wusdc']);
 
     if (ENABLE_LOG) {
       console.info('User lendings:', lendings);
