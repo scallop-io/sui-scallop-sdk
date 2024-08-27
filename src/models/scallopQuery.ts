@@ -36,7 +36,6 @@ import {
 } from '../queries';
 import {
   ScallopQueryParams,
-  ScallopInstanceParams,
   SupportStakeMarketCoins,
   SupportAssetCoins,
   SupportPoolCoins,
@@ -46,6 +45,7 @@ import {
   StakeRewardPools,
   SupportBorrowIncentiveCoins,
   SupportSCoin,
+  ScallopQueryInstanceParams,
 } from '../types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -84,32 +84,36 @@ export class ScallopQuery {
 
   public constructor(
     params: ScallopQueryParams,
-    instance?: ScallopInstanceParams
+    instance?: ScallopQueryInstanceParams
   ) {
     this.params = params;
-    this.suiKit = instance?.suiKit ?? new SuiKit(params);
-    this.cache =
-      instance?.cache ?? new ScallopCache(DEFAULT_CACHE_OPTIONS, this.suiKit);
-    this.address =
-      instance?.address ??
-      new ScallopAddress(
+    this.suiKit =
+      instance?.suiKit ?? instance?.utils?.suiKit ?? new SuiKit(params);
+    if (instance?.utils) {
+      this.utils = instance.utils;
+      this.address = instance.utils.address;
+      this.cache = this.address.cache;
+    } else {
+      this.cache = new ScallopCache(this.suiKit, DEFAULT_CACHE_OPTIONS);
+      this.address = new ScallopAddress(
         {
           id: params?.addressesId || ADDRESSES_ID,
           network: params?.networkType,
         },
-        this.cache
+        {
+          cache: this.cache,
+        }
       );
-    this.utils =
-      instance?.utils ??
-      new ScallopUtils(this.params, {
-        suiKit: this.suiKit,
+      this.utils = new ScallopUtils(this.params, {
         address: this.address,
-        cache: this.cache,
-        query: this,
       });
-    this.indexer = new ScallopIndexer(this.params, { cache: this.cache });
+    }
+    this.indexer =
+      instance?.indexer ??
+      new ScallopIndexer(this.params, { cache: this.cache });
+
     this.walletAddress = normalizeSuiAddress(
-      params?.walletAddress || this.suiKit.currentAddress()
+      params.walletAddress || this.suiKit.currentAddress()
     );
   }
 
@@ -365,8 +369,9 @@ export class ScallopQuery {
    * @param stakeMarketCoinNames - Specific an array of support stake market coin name.
    * @return Stake pools data.
    */
-  public async getStakePools(stakeMarketCoinNames?: SupportStakeMarketCoins[]) {
-    stakeMarketCoinNames = stakeMarketCoinNames ?? [...SUPPORT_SPOOLS];
+  public async getStakePools(
+    stakeMarketCoinNames: SupportStakeMarketCoins[] = [...SUPPORT_SPOOLS]
+  ) {
     const stakePools: StakePools = {};
     for (const stakeMarketCoinName of stakeMarketCoinNames) {
       const stakePool = await getStakePool(this, stakeMarketCoinName);
@@ -404,9 +409,8 @@ export class ScallopQuery {
    * @return Stake reward pools data.
    */
   public async getStakeRewardPools(
-    stakeMarketCoinNames?: SupportStakeMarketCoins[]
+    stakeMarketCoinNames: SupportStakeMarketCoins[] = [...SUPPORT_SPOOLS]
   ) {
-    stakeMarketCoinNames = stakeMarketCoinNames ?? [...SUPPORT_SPOOLS];
     const stakeRewardPools: StakeRewardPools = {};
     await Promise.allSettled(
       stakeMarketCoinNames.map(async (stakeMarketCoinName) => {
@@ -558,7 +562,7 @@ export class ScallopQuery {
    * @param walletAddress
    * @returns array of veSca
    */
-  public async getVeScas(walletAddress?: string) {
+  public async getVeScas(walletAddress: string = this.walletAddress) {
     return await getVeScas(this, walletAddress);
   }
 
@@ -567,7 +571,7 @@ export class ScallopQuery {
    * @returns Promise<string | undefined>
    */
   public async getVeScaTreasuryInfo() {
-    return await getVeScaTreasuryInfo(this);
+    return await getVeScaTreasuryInfo(this.utils);
   }
 
   /**
@@ -575,8 +579,13 @@ export class ScallopQuery {
    * @param walletAddress
    * @returns veScaKeyId
    */
-  public async getVeScaKeyIdFromReferralBindings(walletAddress: string) {
-    return await queryVeScaKeyIdFromReferralBindings(this, walletAddress);
+  public async getVeScaKeyIdFromReferralBindings(
+    walletAddress: string = this.walletAddress
+  ) {
+    return await queryVeScaKeyIdFromReferralBindings(
+      this.address,
+      walletAddress
+    );
   }
 
   /**

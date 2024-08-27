@@ -51,7 +51,7 @@ export const requireVeSca = async (
 ) => {
   const [builder, txBlock, veScaKey] = params;
   if (params.length === 3 && veScaKey && typeof veScaKey === 'string') {
-    const veSca = await getVeSca(builder.query, veScaKey);
+    const veSca = await getVeSca(builder.utils, veScaKey);
 
     if (!veSca) {
       return undefined;
@@ -61,7 +61,7 @@ export const requireVeSca = async (
   }
 
   const sender = requireSender(txBlock);
-  const veScas = await getVeScas(builder.query, sender);
+  const veScas = await getVeScas(builder, sender);
   if (veScas.length === 0) {
     return undefined;
   }

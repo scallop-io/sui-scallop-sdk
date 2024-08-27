@@ -44,7 +44,7 @@ const requireObligationInfo = async (
   if (params.length === 4 && obligationId && obligationKey)
     return { obligationId, obligationKey };
   const sender = requireSender(txBlock);
-  const obligations = await getObligations(builder.query, sender);
+  const obligations = await getObligations(builder, sender);
   if (obligations.length === 0) {
     throw new Error(`No obligation found for sender ${sender}`);
   }

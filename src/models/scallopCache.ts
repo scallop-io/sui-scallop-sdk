@@ -46,12 +46,12 @@ type QueryInspectTxnParams = {
 
 export class ScallopCache {
   public readonly queryClient: QueryClient;
-  public readonly _suiKit?: SuiKit;
+  public readonly _suiKit: SuiKit;
   private tokenBucket: TokenBucket;
 
   public constructor(
+    suiKit: SuiKit,
     cacheOptions?: QueryClientConfig,
-    suiKit?: SuiKit,
     tokenBucket?: TokenBucket
   ) {
     this.queryClient = new QueryClient(cacheOptions ?? DEFAULT_CACHE_OPTIONS);
