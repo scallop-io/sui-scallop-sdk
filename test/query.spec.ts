@@ -310,7 +310,7 @@ describe('Test VeSca Query', async () => {
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
 
-  const veScaKeys = await getVescaKeys(scallopQuery, sender);
+  const veScaKeys = await getVescaKeys(scallopQuery.utils, sender);
   let obligationId: string | undefined;
   if (veScaKeys.length === 0)
     throw new Error(`No VeSca keys found in ${sender}`);

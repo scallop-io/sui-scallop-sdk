@@ -1,9 +1,10 @@
 import { API_BASE_URL, USE_TEST_ADDRESS } from '../constants';
-import type { NetworkType } from '@scallop-io/sui-kit';
+import { SuiKit, type NetworkType } from '@scallop-io/sui-kit';
 import type {
   ScallopAddressParams,
   AddressesInterface,
   AddressStringPath,
+  ScallopAddressInstanceParams,
 } from '../types';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
@@ -370,11 +371,20 @@ export class ScallopAddress {
   private _network: NetworkType;
   private _currentAddresses?: AddressesInterface;
   private _addressesMap: Map<NetworkType, AddressesInterface>;
-  private _cache: ScallopCache;
+  public cache: ScallopCache;
 
-  public constructor(params: ScallopAddressParams, cache?: ScallopCache) {
+  public constructor(
+    params: ScallopAddressParams,
+    instance?: ScallopAddressInstanceParams
+  ) {
     const { id, auth, network } = params;
-    this._cache = cache ?? new ScallopCache(DEFAULT_CACHE_OPTIONS);
+    this.cache =
+      instance?.cache ??
+      new ScallopCache(
+        instance?.suiKit ?? new SuiKit({}),
+        DEFAULT_CACHE_OPTIONS
+      );
+
     this._requestClient = axios.create({
       baseURL: API_BASE_URL,
       headers: {
@@ -573,7 +583,7 @@ export class ScallopAddress {
   public async read(id?: string) {
     const addressesId = id || this._id || undefined;
     if (addressesId !== undefined) {
-      const response = await this._cache.queryClient.fetchQuery({
+      const response = await this.cache.queryClient.fetchQuery({
         queryKey: ['api-getAddresses', addressesId],
         queryFn: async () => {
           return await this._requestClient.get(`/addresses/${addressesId}`, {
