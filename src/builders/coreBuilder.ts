@@ -391,10 +391,11 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationId,
         obligationKey
       );
-      const obligationCoinNames = await builder.utils.getObligationCoinNames(
-        obligationInfo.obligationId
-      );
-      const updateCoinNames = [...obligationCoinNames, poolCoinName];
+      const obligationCoinNames =
+        (await builder.utils.getObligationCoinNames(
+          obligationInfo.obligationId
+        )) ?? [];
+      const updateCoinNames = [...(obligationCoinNames ?? []), poolCoinName];
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.borrow(
         obligationInfo.obligationId,
@@ -416,9 +417,10 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationId,
         obligationKey
       );
-      const obligationCoinNames = await builder.utils.getObligationCoinNames(
-        obligationInfo.obligationId
-      );
+      const obligationCoinNames =
+        (await builder.utils.getObligationCoinNames(
+          obligationInfo.obligationId
+        )) ?? [];
       const updateCoinNames = [...obligationCoinNames, poolCoinName];
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.borrowWithReferral(
