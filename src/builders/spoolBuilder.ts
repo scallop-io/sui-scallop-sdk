@@ -42,7 +42,7 @@ const requireStakeAccountIds = async (
   const [builder, txBlock, stakeMarketCoinName, stakeAccountId] = params;
   if (params.length === 4 && stakeAccountId) return [stakeAccountId];
   const sender = requireSender(txBlock);
-  const stakeAccounts = await getStakeAccounts(builder.query, sender);
+  const stakeAccounts = await getStakeAccounts(builder, sender);
   if (stakeAccounts[stakeMarketCoinName].length === 0) {
     throw new Error(`No stake account id found for sender ${sender}`);
   }
@@ -72,7 +72,7 @@ const requireStakeAccounts = async (
 ) => {
   const [builder, txBlock, stakeMarketCoinName, stakeAccountId] = params;
   const sender = requireSender(txBlock);
-  const stakeAccounts = await getStakeAccounts(builder.query, sender);
+  const stakeAccounts = await getStakeAccounts(builder, sender);
   if (stakeAccounts[stakeMarketCoinName].length === 0) {
     throw new Error(`No stake account found for sender ${sender}`);
   }

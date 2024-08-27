@@ -38,7 +38,7 @@ export class Scallop {
   public suiKit: SuiKit;
   public cache: ScallopCache;
 
-  private _address: ScallopAddress;
+  private address: ScallopAddress;
 
   public constructor(
     params: ScallopParams,
@@ -48,17 +48,17 @@ export class Scallop {
     this.params = params;
     this.suiKit = new SuiKit(params);
     this.cache = new ScallopCache(
-      cacheOptions ?? DEFAULT_CACHE_OPTIONS,
       this.suiKit,
+      cacheOptions ?? DEFAULT_CACHE_OPTIONS,
       tokenBucket ??
         new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS)
     );
-    this._address = new ScallopAddress(
+    this.address = new ScallopAddress(
       {
         id: params?.addressesId || ADDRESSES_ID,
         network: params?.networkType,
       },
-      this.cache
+      { cache: this.cache }
     );
   }
 
@@ -69,9 +69,9 @@ export class Scallop {
    * @return Scallop Address.
    */
   public async getScallopAddress(id?: string) {
-    await this._address.read(id);
+    await this.address.read(id);
 
-    return this._address;
+    return this.address;
   }
 
   /**
@@ -80,11 +80,9 @@ export class Scallop {
    * @return Scallop Builder.
    */
   public async createScallopBuilder() {
-    if (!this._address.getAddresses()) await this._address.read();
+    if (!this.address.getAddresses()) await this.address.read();
     const scallopBuilder = new ScallopBuilder(this.params, {
-      suiKit: this.suiKit,
-      address: this._address,
-      cache: this.cache,
+      query: await this.createScallopQuery(),
     });
 
     return scallopBuilder;
@@ -97,10 +95,10 @@ export class Scallop {
    * @return Scallop Client.
    */
   public async createScallopClient(walletAddress?: string) {
-    if (!this._address.getAddresses()) await this._address.read();
+    if (!this.address.getAddresses()) await this.address.read();
     const scallopClient = new ScallopClient(
       { ...this.params, walletAddress },
-      { suiKit: this.suiKit, address: this._address, cache: this.cache }
+      { builder: await this.createScallopBuilder() }
     );
 
     return scallopClient;
@@ -112,11 +110,9 @@ export class Scallop {
    * @return Scallop Query.
    */
   public async createScallopQuery() {
-    if (!this._address.getAddresses()) await this._address.read();
+    if (!this.address.getAddresses()) await this.address.read();
     const scallopQuery = new ScallopQuery(this.params, {
-      suiKit: this.suiKit,
-      address: this._address,
-      cache: this.cache,
+      utils: await this.createScallopUtils(),
     });
 
     return scallopQuery;
@@ -141,11 +137,9 @@ export class Scallop {
    * @return Scallop Utils.
    */
   public async createScallopUtils() {
-    if (!this._address.getAddresses()) await this._address.read();
+    if (!this.address.getAddresses()) await this.address.read();
     const scallopUtils = new ScallopUtils(this.params, {
-      suiKit: this.suiKit,
-      address: this._address,
-      cache: this.cache,
+      address: this.address,
     });
 
     return scallopUtils;
