@@ -5,7 +5,7 @@ import {
   type SuiObjectData,
   DevInspectResults,
 } from '@mysten/sui.js/client';
-import type { ScallopQuery } from '../models';
+import type { ScallopUtils } from '../models';
 import { MAX_LOCK_DURATION } from 'src/constants';
 import { SUI_CLOCK_OBJECT_ID, SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui.js/bcs';
@@ -18,17 +18,17 @@ import { z as zod } from 'zod';
  * @return Owned veSca key.
  */
 export const getVescaKeys = async (
-  query: ScallopQuery,
+  utils: ScallopUtils,
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || query.suiKit.currentAddress();
-  const veScaObjId = query.address.get('vesca.object');
+  const owner = ownerAddress || utils.suiKit.currentAddress();
+  const veScaObjId = utils.address.get('vesca.object');
   const veScaKeyType = `${veScaObjId}::ve_sca::VeScaKey`;
   const keyObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
   do {
-    const paginatedKeyObjectsResponse = await query.cache.queryGetOwnedObjects({
+    const paginatedKeyObjectsResponse = await utils.cache.queryGetOwnedObjects({
       owner,
       filter: {
         StructType: veScaKeyType,
@@ -63,12 +63,19 @@ export const getVescaKeys = async (
  * @param ownerAddress - The owner address.
  * @return Owned veScas.
  */
-export const getVeScas = async (query: ScallopQuery, ownerAddress?: string) => {
-  const keyObjectDatas = await getVescaKeys(query, ownerAddress);
+export const getVeScas = async (
+  {
+    utils,
+  }: {
+    utils: ScallopUtils;
+  },
+  ownerAddress?: string
+) => {
+  const keyObjectDatas = await getVescaKeys(utils, ownerAddress);
 
   const veScas: Vesca[] = Array(keyObjectDatas.length).fill(null);
   const tasks = keyObjectDatas.map(async (veScaKey, idx) => {
-    const veSca = await getVeSca(query, veScaKey);
+    const veSca = await getVeSca(utils, veScaKey);
     if (veSca) {
       veScas[idx] = veSca;
     }
@@ -96,12 +103,12 @@ type SuiObjectRefType = zod.infer<typeof SuiObjectRefZod>;
  * @returns Vesca data.
  */
 export const getVeSca = async (
-  query: ScallopQuery,
+  utils: ScallopUtils,
   veScaKey?: string | SuiObjectData,
   ownerAddress?: string
 ) => {
-  const tableId = query.address.get(`vesca.tableId`);
-  veScaKey = veScaKey || (await getVescaKeys(query, ownerAddress))[0];
+  const tableId = utils.address.get(`vesca.tableId`);
+  veScaKey = veScaKey || (await getVescaKeys(utils, ownerAddress))[0];
 
   if (!veScaKey) return undefined;
   if (typeof veScaKey === 'object') {
@@ -111,7 +118,7 @@ export const getVeSca = async (
   let vesca: Vesca | undefined = undefined;
 
   const veScaDynamicFieldObjectResponse =
-    await query.cache.queryGetDynamicFieldObject({
+    await utils.cache.queryGetDynamicFieldObject({
       parentId: tableId,
       name: {
         type: '0x2::object::ID',
@@ -162,12 +169,12 @@ export const getVeSca = async (
  * Get current total veSca treasury amount.
  */
 const getTotalVeScaTreasuryAmount = async (
-  query: ScallopQuery,
+  utils: ScallopUtils,
   veScaTreasury: SuiObjectData
 ): Promise<string> => {
-  const veScaPkgId = query.address.get('vesca.id');
-  const veScaConfig = query.address.get('vesca.config');
-  veScaTreasury = veScaTreasury ?? query.address.get('vesca.treasury');
+  const veScaPkgId = utils.address.get('vesca.id');
+  const veScaConfig = utils.address.get('vesca.config');
+  veScaTreasury = veScaTreasury ?? utils.address.get('vesca.treasury');
 
   // refresh query
   const refreshQueryTarget = `${veScaPkgId}::treasury::refresh`;
@@ -181,7 +188,7 @@ const getTotalVeScaTreasuryAmount = async (
   const resolvedRefreshArgs = await Promise.all(
     refreshArgs.map(async (arg) => {
       if (typeof arg === 'string') {
-        return (await query.cache.queryGetObject(arg, { showContent: true }))
+        return (await utils.cache.queryGetObject(arg, { showContent: true }))
           ?.data;
       }
       return arg;
@@ -191,7 +198,7 @@ const getTotalVeScaTreasuryAmount = async (
   const resolvedVeScaAmountArgs = await Promise.all(
     veScaAmountArgs.map(async (arg) => {
       if (typeof arg === 'string') {
-        return (await query.cache.queryGetObject(arg, { showContent: true }))
+        return (await utils.cache.queryGetObject(arg, { showContent: true }))
           ?.data;
       }
       return arg;
@@ -204,19 +211,18 @@ const getTotalVeScaTreasuryAmount = async (
   txb.moveCall(veScaAmountQueryTarget, resolvedVeScaAmountArgs);
 
   const txBytes = await txb.txBlock.build({
-    client: query.suiKit.client(),
+    client: utils.suiKit.client(),
     onlyTransactionKind: true,
-    protocolConfig: (await query.cache.getProtocolConfig()) ?? undefined,
   });
 
   // return result
-  const res = await query.cache.queryClient.fetchQuery<DevInspectResults>({
+  const res = await utils.cache.queryClient.fetchQuery<DevInspectResults>({
     queryKey: [
       'getTotalVeScaTreasuryAmount',
       JSON.stringify([...refreshArgs, ...veScaAmountArgs]),
     ],
     queryFn: async () => {
-      return await query.suiKit.inspectTxn(txBytes);
+      return await utils.suiKit.inspectTxn(txBytes);
     },
   });
 
@@ -236,10 +242,10 @@ const getTotalVeScaTreasuryAmount = async (
  * @returns VeScaTreasuryInfo
  */
 export const getVeScaTreasuryInfo = async (
-  query: ScallopQuery
+  utils: ScallopUtils
 ): Promise<VeScaTreasuryInfo | null> => {
-  const veScaTreasuryId = query.address.get('vesca.treasury');
-  const veScaTreasury = await query.cache.queryGetObject(veScaTreasuryId, {
+  const veScaTreasuryId = utils.address.get('vesca.treasury');
+  const veScaTreasury = await utils.cache.queryGetObject(veScaTreasuryId, {
     showContent: true,
   });
 
@@ -255,7 +261,7 @@ export const getVeScaTreasuryInfo = async (
     .shiftedBy(-9)
     .toNumber();
   const totalVeSca = BigNumber(
-    (await getTotalVeScaTreasuryAmount(query, veScaTreasury.data)) ?? 0
+    (await getTotalVeScaTreasuryAmount(utils, veScaTreasury.data)) ?? 0
   )
     .shiftedBy(-9)
     .toNumber();

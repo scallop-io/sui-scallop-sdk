@@ -51,13 +51,13 @@ const requireObligationInfo = async (
     typeof obligationId === 'string'
   ) {
     const obligationLocked = await getObligationLocked(
-      builder.query,
+      builder.cache,
       obligationId
     );
     return { obligationId, obligationKey, obligationLocked };
   }
   const sender = requireSender(txBlock);
-  const obligations = await getObligations(builder.query, sender);
+  const obligations = await getObligations(builder, sender);
   if (obligations.length === 0) {
     throw new Error(`No obligation found for sender ${sender}`);
   }
@@ -260,7 +260,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           const veSca = await requireVeSca(builder, txBlock, veScaKey);
           if (veSca) {
             const bindedObligationId = await getBindedObligationId(
-              builder.query,
+              builder,
               veSca.keyId
             );
 
