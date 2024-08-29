@@ -90,15 +90,15 @@ const stakeHelper = async (
   builder: ScallopBuilder,
   txBlock: SuiTxBlockWithSpoolNormalMethods,
   stakeAccount: SuiAddressArg,
-  coinType: string,
   coinName: SupportStakeMarketCoins,
   amount: number,
   sender: string,
   isSCoin: boolean = false
 ) => {
   try {
-    const coins = await builder.utils.selectCoins(amount, coinType, sender);
-    const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
+    const { takeCoin, leftCoin, totalAmount } = isSCoin
+      ? await builder.selectSCoin(txBlock, coinName, amount, sender)
+      : await builder.selectMarketCoin(txBlock, coinName, amount, sender);
     if (isSCoin) {
       const marketCoin = txBlock.burnSCoin(coinName, takeCoin);
       txBlock.stake(stakeAccount, marketCoin, coinName);
@@ -106,9 +106,9 @@ const stakeHelper = async (
       txBlock.stake(stakeAccount, takeCoin, coinName);
     }
     txBlock.transferObjects([leftCoin], sender);
-    return true;
+    return totalAmount;
   } catch (e) {
-    return false;
+    return 0;
   }
 };
 
@@ -213,28 +213,24 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
         stakeAccountId
       );
 
-      const marketCoinType =
-        builder.utils.parseMarketCoinType(stakeMarketCoinName);
-      const sCoinType = builder.utils.parseSCoinType(stakeMarketCoinName);
       if (typeof amountOrMarketCoin === 'number') {
         // try stake market coin
-        const stakeMarketCoinRes = await stakeHelper(
+        const stakedMarketCoinAmount = await stakeHelper(
           builder,
           txBlock,
           stakeAccountIds[0],
-          marketCoinType,
           stakeMarketCoinName,
           amountOrMarketCoin,
           sender
         );
 
+        amountOrMarketCoin -= stakedMarketCoinAmount;
         // no market coin, try sCoin
-        if (!stakeMarketCoinRes) {
+        if (amountOrMarketCoin > 0) {
           await stakeHelper(
             builder,
             txBlock,
             stakeAccountIds[0],
-            sCoinType,
             stakeMarketCoinName,
             amountOrMarketCoin,
             sender,
@@ -280,7 +276,7 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
         }
 
         amount -= amountToUnstake;
-        if (amount === 0) break;
+        if (amount <= 0) break;
       }
 
       if (toTransfer.length > 0) {
@@ -288,38 +284,6 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
 
         if (toTransfer.length > 1) {
           txBlock.mergeCoins(mergedCoin, toTransfer.slice(1));
-        }
-
-        if (returnSCoin) {
-          // check for existing sCoins
-          try {
-            const existingCoins = await builder.utils.selectCoins(
-              Number.MAX_SAFE_INTEGER,
-              builder.utils.parseSCoinType(stakeMarketCoinName),
-              requireSender(txBlock)
-            );
-
-            if (existingCoins.length > 0) {
-              txBlock.mergeCoins(mergedCoin, existingCoins);
-            }
-          } catch (e) {
-            // ignore
-          }
-        } else {
-          // check for existing market coins
-          try {
-            const existingCoins = await builder.utils.selectCoins(
-              Number.MAX_SAFE_INTEGER,
-              builder.utils.parseMarketCoinType(stakeMarketCoinName),
-              requireSender(txBlock)
-            );
-
-            if (existingCoins.length > 0) {
-              txBlock.mergeCoins(mergedCoin, existingCoins);
-            }
-          } catch (e) {
-            // ignore
-          }
         }
         return mergedCoin;
       }

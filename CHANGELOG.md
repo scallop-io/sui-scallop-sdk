@@ -2,6 +2,51 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.55](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.53...v0.46.54) (2024-08-18)
+
+### Bugfixes
+
+- Fix the issue where the loyalty program is not transferring rewards to the user’s address after claiming ([82a411d](https://github.com/scallop-io/sui-scallop-sdk/pull/154/commits/82a411d0c19998dc0ddf398edbac7c57c1b2bea7))
+
+### [0.46.54](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.53...v0.46.54) (2024-08-06)
+
+### Features
+
+- Add token bucket algorithm for rate limit rpc requests ([d4369ef](https://github.com/scallop-io/sui-scallop-sdk/pull/151/commits/d4369efefc8eb0eb47604706dcf8f2e21651e1e5))
+
+- Remove logic from `unstakeQuick` to prevent ambiguity of the method responsibility ([5633a35](https://github.com/scallop-io/sui-scallop-sdk/pull/151/commits/5633a352f9a200e43d2f08006d5540e4fcefced8))
+
+### [0.46.53](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.52...v0.46.53) (2024-08-01)
+
+### Bugfixes
+
+- `stakeHelper` function, handle stake spool when user has old marketCoin and new sCoin ([5911caf](https://github.com/scallop-io/sui-scallop-sdk/pull/150/commits/5911caf00373e085a7dead3d1f557f8ec4390bf9))
+
+- minor fix on `migrateAllMarketCoin` ([49da8b8](https://github.com/scallop-io/sui-scallop-sdk/pull/150/commits/49da8b860d5f12d32ff2cf03cec14082206f04b8)) ([04e777f](https://github.com/scallop-io/sui-scallop-sdk/pull/150/commits/04e777f492355d76002ffa66f3a4c6c5da340037))
+
+### [0.46.52](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.51...v0.46.52) (2024-07-31)
+
+### Bugfixes
+
+- Different staleTime value in `queryGetAllCoinBalances` ([b84fdc8])(https://github.com/scallop-io/sui-scallop-sdk/pull/149/commits/b84fdc817104eec1b762536c879b72f2e786ef02)
+
+### [0.46.51](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.50...v0.46.51) (2024-07-31)
+
+### Features
+
+- Reduce the cache time ([41cf8e0](https://github.com/scallop-io/sui-scallop-sdk/pull/148/commits/41cf8e0bb8f837922b123321527a676020379abb))
+
+### [0.46.50](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.49...v0.46.50) (2024-07-30)
+
+### Bugfixes
+
+- Fix reward apr for borrow incentive when point is 0 ([64c924f](https://github.com/scallop-io/sui-scallop-sdk/pull/146/commits/64c924fa38f603efc15739436e52d0e700fa1c32))
+
+### Features
+
+- Add `walletAddress` property to `ScallopQuery` instance ([94d8396](https://github.com/scallop-io/sui-scallop-sdk/pull/146/commits/94d839684f865d5dfc3fd7dac9abfde634825d1b))
+- Optimize `getPythPrices` function ([d75234b](https://github.com/scallop-io/sui-scallop-sdk/pull/146/commits/d75234b190afdd89c9d749d861d2fdf3aad9a38f))
+
 ### [0.46.49](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.48...v0.46.49) (2024-07-12)
 
 ### Bugfixes
