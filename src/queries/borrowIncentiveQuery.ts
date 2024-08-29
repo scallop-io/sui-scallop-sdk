@@ -71,10 +71,11 @@ export const queryBorrowIncentivePools = async (
   const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
   const args = [incentivePoolsId];
   const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
-  const borrowIncentivePoolsQueryData = queryResult.events[0]
-    .parsedJson as BorrowIncentivePoolsQueryInterface;
+  const borrowIncentivePoolsQueryData = queryResult?.events[0].parsedJson as
+    | BorrowIncentivePoolsQueryInterface
+    | undefined;
 
-  for (const pool of borrowIncentivePoolsQueryData.incentive_pools) {
+  for (const pool of borrowIncentivePoolsQueryData?.incentive_pools ?? []) {
     const borrowIncentivePoolPoints: OptionalKeys<
       Record<SupportBorrowIncentiveRewardCoins, BorrowIncentivePoolPoints>
     > = {};
@@ -175,11 +176,12 @@ export const queryBorrowIncentiveAccounts = async (
   const args = [incentiveAccountsId, obligationId];
 
   const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
-  const borrowIncentiveAccountsQueryData = queryResult.events[0]
-    .parsedJson as BorrowIncentiveAccountsQueryInterface;
+  const borrowIncentiveAccountsQueryData = queryResult?.events[0].parsedJson as
+    | BorrowIncentiveAccountsQueryInterface
+    | undefined;
 
   const borrowIncentiveAccounts: BorrowIncentiveAccounts = Object.values(
-    borrowIncentiveAccountsQueryData.pool_records
+    borrowIncentiveAccountsQueryData?.pool_records ?? []
   ).reduce((accounts, accountData) => {
     const parsedBorrowIncentiveAccount =
       parseOriginBorrowIncentiveAccountData(accountData);
@@ -222,7 +224,7 @@ export const getBindedObligationId = async (
     }
   );
 
-  if (incentivePoolsResponse.data?.content?.dataType !== 'moveObject')
+  if (incentivePoolsResponse?.data?.content?.dataType !== 'moveObject')
     return null;
   const incentivePoolFields = incentivePoolsResponse.data.content.fields as any;
   const veScaBindTableId = incentivePoolFields.ve_sca_bind.fields.id
@@ -238,7 +240,7 @@ export const getBindedObligationId = async (
     },
   });
 
-  if (veScaBindTableResponse.data?.content?.dataType !== 'moveObject')
+  if (veScaBindTableResponse?.data?.content?.dataType !== 'moveObject')
     return null;
   const veScaBindTableFields = veScaBindTableResponse.data.content
     .fields as any;
@@ -265,7 +267,7 @@ export const getBindedVeScaKey = async (
       showContent: true,
     }
   );
-  if (incentiveAccountsObject.data?.content?.dataType !== 'moveObject')
+  if (incentiveAccountsObject?.data?.content?.dataType !== 'moveObject')
     return null;
   const incentiveAccountsTableId = (
     incentiveAccountsObject.data.content.fields as any
@@ -280,7 +282,7 @@ export const getBindedVeScaKey = async (
     },
   });
 
-  if (bindedIncentiveAcc.data?.content?.dataType !== 'moveObject') return null;
+  if (bindedIncentiveAcc?.data?.content?.dataType !== 'moveObject') return null;
   const bindedIncentiveAccFields = bindedIncentiveAcc.data.content
     .fields as any;
 

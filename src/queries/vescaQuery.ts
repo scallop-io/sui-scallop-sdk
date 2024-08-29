@@ -36,8 +36,11 @@ export const getVescaKeys = async (
       },
       cursor: nextCursor,
     });
+    if (!paginatedKeyObjectsResponse) continue;
+
     keyObjectsResponse.push(...paginatedKeyObjectsResponse.data);
     if (
+      paginatedKeyObjectsResponse &&
       paginatedKeyObjectsResponse.hasNextPage &&
       paginatedKeyObjectsResponse.nextCursor
     ) {
@@ -116,6 +119,8 @@ export const getVeSca = async (
         value: typeof veScaKey === 'string' ? veScaKey : veScaKey.objectId,
       },
     });
+  if (!veScaDynamicFieldObjectResponse) return undefined;
+
   const veScaDynamicFieldObject = veScaDynamicFieldObjectResponse.data;
   if (
     veScaDynamicFieldObject &&
