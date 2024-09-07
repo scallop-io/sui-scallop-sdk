@@ -44,7 +44,7 @@ const requireObligationInfo = async (
   if (params.length === 4 && obligationId && obligationKey)
     return { obligationId, obligationKey };
   const sender = requireSender(txBlock);
-  const obligations = await getObligations(builder.query, sender);
+  const obligations = await getObligations(builder, sender);
   if (obligations.length === 0) {
     throw new Error(`No obligation found for sender ${sender}`);
   }
@@ -391,10 +391,11 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationId,
         obligationKey
       );
-      const obligationCoinNames = await builder.utils.getObligationCoinNames(
-        obligationInfo.obligationId
-      );
-      const updateCoinNames = [...obligationCoinNames, poolCoinName];
+      const obligationCoinNames =
+        (await builder.utils.getObligationCoinNames(
+          obligationInfo.obligationId
+        )) ?? [];
+      const updateCoinNames = [...(obligationCoinNames ?? []), poolCoinName];
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.borrow(
         obligationInfo.obligationId,
@@ -416,9 +417,10 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationId,
         obligationKey
       );
-      const obligationCoinNames = await builder.utils.getObligationCoinNames(
-        obligationInfo.obligationId
-      );
+      const obligationCoinNames =
+        (await builder.utils.getObligationCoinNames(
+          obligationInfo.obligationId
+        )) ?? [];
       const updateCoinNames = [...obligationCoinNames, poolCoinName];
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.borrowWithReferral(
