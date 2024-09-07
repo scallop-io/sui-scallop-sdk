@@ -1,5 +1,5 @@
 import { SuiObjectData } from '@mysten/sui.js/client';
-import type { ScallopQuery } from '../models';
+import type { ScallopAddress } from '../models';
 import type { SupportAssetCoins } from '../types';
 
 /**
@@ -10,17 +10,24 @@ import type { SupportAssetCoins } from '../types';
  * @return Asset coin price.
  */
 export const getPythPrice = async (
-  query: ScallopQuery,
+  {
+    address,
+  }: {
+    address: ScallopAddress;
+  },
   assetCoinName: SupportAssetCoins,
   priceFeedObject?: SuiObjectData | null
 ) => {
-  const pythFeedObjectId = query.address.get(
+  const pythFeedObjectId = address.get(
     `core.coins.${assetCoinName}.oracle.pyth.feedObject`
   );
   priceFeedObject =
     priceFeedObject ||
-    (await query.cache.queryGetObject(pythFeedObjectId, { showContent: true }))
-      ?.data;
+    (
+      await address.cache.queryGetObject(pythFeedObjectId, {
+        showContent: true,
+      })
+    )?.data;
 
   if (priceFeedObject) {
     const priceFeedPoolObject = priceFeedObject;
@@ -58,12 +65,16 @@ export const getPythPrice = async (
 };
 
 export const getPythPrices = async (
-  query: ScallopQuery,
+  {
+    address,
+  }: {
+    address: ScallopAddress;
+  },
   assetCoinNames: SupportAssetCoins[]
 ) => {
   const pythPriceFeedIds = assetCoinNames.reduce(
     (prev, assetCoinName) => {
-      const pythPriceFeed = query.address.get(
+      const pythPriceFeed = address.get(
         `core.coins.${assetCoinName}.oracle.pyth.feedObject`
       );
       if (!prev[pythPriceFeed]) {
@@ -77,7 +88,7 @@ export const getPythPrices = async (
   );
 
   // Fetch multiple objects at once to save rpc calls
-  const priceFeedObjects = await query.cache.queryGetObjects(
+  const priceFeedObjects = await address.cache.queryGetObjects(
     Object.keys(pythPriceFeedIds),
     { showContent: true }
   );
@@ -98,7 +109,7 @@ export const getPythPrices = async (
         async ([assetCoinName, priceFeedObject]) => ({
           coinName: assetCoinName,
           price: await getPythPrice(
-            query,
+            { address },
             assetCoinName as SupportAssetCoins,
             priceFeedObject
           ),

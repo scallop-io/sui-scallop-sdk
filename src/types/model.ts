@@ -9,6 +9,7 @@ import type {
   ScallopQuery,
   ScallopUtils,
   ScallopBuilder,
+  ScallopIndexer,
 } from '../models';
 import { ScallopCache } from 'src/models/scallopCache';
 
@@ -23,13 +24,35 @@ export type ScallopClientVeScaReturnType<T extends boolean> = T extends true
       scaCoin: TransactionResult;
     };
 
-export type ScallopInstanceParams = {
+export type ScallopBaseInstanceParams = {
   suiKit?: SuiKit;
+};
+
+export type ScallopCacheInstanceParams = ScallopBaseInstanceParams;
+
+export type ScallopAddressInstanceParams = ScallopBaseInstanceParams & {
+  cache?: ScallopCache;
+};
+
+export type ScallopIndexerInstanceParams = {
+  cache?: ScallopCache;
+};
+
+export type ScallopUtilsInstanceParams = ScallopBaseInstanceParams & {
   address?: ScallopAddress;
-  query?: ScallopQuery;
+};
+
+export type ScallopQueryInstanceParams = ScallopBaseInstanceParams & {
   utils?: ScallopUtils;
+  indexer?: ScallopIndexer;
+};
+
+export type ScallopBuilderInstanceParams = ScallopBaseInstanceParams & {
+  query?: ScallopQuery;
+};
+
+export type ScallopClientInstanceParams = ScallopBaseInstanceParams & {
   builder?: ScallopBuilder;
-  cache: ScallopCache;
 };
 
 export type ScallopAddressParams = {
@@ -40,20 +63,16 @@ export type ScallopAddressParams = {
 
 export type ScallopParams = {
   addressesId?: string;
+  walletAddress?: string;
 } & SuiKitParams;
 
-export type ScallopClientParams = ScallopParams & {
-  walletAddress?: string;
-};
+export type ScallopClientParams = ScallopParams;
 
 export type ScallopBuilderParams = ScallopParams & {
-  walletAddress?: string;
   pythEndpoints?: string[];
 };
 
-export type ScallopQueryParams = ScallopParams & {
-  walletAddress?: string;
-};
+export type ScallopQueryParams = ScallopParams;
 
 export type ScallopUtilsParams = ScallopParams & {
   pythEndpoints?: string[];
