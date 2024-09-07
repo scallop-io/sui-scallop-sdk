@@ -2,7 +2,7 @@ import { bcs } from '@mysten/sui.js/bcs';
 import assert from 'assert';
 import BigNumber from 'bignumber.js';
 import { SUPPORT_SCOIN } from 'src/constants';
-import { ScallopQuery } from 'src/models';
+import { ScallopUtils } from 'src/models';
 import { OptionalKeys, SupportSCoin, sCoinBalance } from 'src/types';
 
 /**
@@ -12,18 +12,22 @@ import { OptionalKeys, SupportSCoin, sCoinBalance } from 'src/types';
  * @returns `number`
  */
 export const getSCoinTotalSupply = async (
-  query: ScallopQuery,
+  {
+    utils,
+  }: {
+    utils: ScallopUtils;
+  },
   sCoinName: SupportSCoin
 ): Promise<sCoinBalance> => {
-  const sCoinPkgId = query.address.get('scoin.id');
+  const sCoinPkgId = utils.address.get('scoin.id');
   // get treasury
-  const args = [query.utils.getSCoinTreasury(sCoinName)];
+  const args = [utils.getSCoinTreasury(sCoinName)];
   const typeArgs = [
-    query.utils.parseSCoinType(sCoinName),
-    query.utils.parseUnderlyingSCoinType(sCoinName),
+    utils.parseSCoinType(sCoinName),
+    utils.parseUnderlyingSCoinType(sCoinName),
   ];
   const queryTarget = `${sCoinPkgId}::s_coin_converter::total_supply`;
-  const queryResults = await query.cache.queryInspectTxn({
+  const queryResults = await utils.cache.queryInspectTxn({
     queryTarget,
     args,
     typeArgs,
@@ -35,9 +39,7 @@ export const getSCoinTotalSupply = async (
     assert(type === 'u64', 'Result type is not u64');
 
     return BigNumber(bcs.de(type, value))
-      .shiftedBy(
-        query.utils.getCoinDecimal(query.utils.parseCoinName(sCoinName))
-      )
+      .shiftedBy(utils.getCoinDecimal(utils.parseCoinName(sCoinName)))
       .toNumber();
   }
 
@@ -53,17 +55,21 @@ export const getSCoinTotalSupply = async (
  * @return All owned sCoins amount.
  */
 export const getSCoinAmounts = async (
-  query: ScallopQuery,
+  {
+    utils,
+  }: {
+    utils: ScallopUtils;
+  },
   sCoinNames?: SupportSCoin[],
   ownerAddress?: string
 ) => {
   sCoinNames = sCoinNames || [...SUPPORT_SCOIN];
-  const owner = ownerAddress || query.suiKit.currentAddress();
+  const owner = ownerAddress || utils.suiKit.currentAddress();
   const sCoins = {} as OptionalKeys<Record<SupportSCoin, number>>;
 
   await Promise.allSettled(
     sCoinNames.map(async (sCoinName) => {
-      const sCoin = await getSCoinAmount(query, sCoinName, owner);
+      const sCoin = await getSCoinAmount({ utils }, sCoinName, owner);
       sCoins[sCoinName] = sCoin;
     })
   );
@@ -80,13 +86,17 @@ export const getSCoinAmounts = async (
  * @return Owned sCoin amount.
  */
 export const getSCoinAmount = async (
-  query: ScallopQuery,
+  {
+    utils,
+  }: {
+    utils: ScallopUtils;
+  },
   sCoinName: SupportSCoin,
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || query.suiKit.currentAddress();
-  const sCoinType = query.utils.parseSCoinType(sCoinName);
-  const amount = await query.cache.queryGetCoinBalance({
+  const owner = ownerAddress || utils.suiKit.currentAddress();
+  const sCoinType = utils.parseSCoinType(sCoinName);
+  const amount = await utils.cache.queryGetCoinBalance({
     owner,
     coinType: sCoinType,
   });
