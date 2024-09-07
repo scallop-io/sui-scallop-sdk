@@ -38,11 +38,10 @@ import type {
  */
 export const getLendings = async (
   query: ScallopQuery,
-  poolCoinNames?: SupportPoolCoins[],
+  poolCoinNames: SupportPoolCoins[] = [...SUPPORT_POOLS],
   ownerAddress?: string,
   indexer: boolean = false
 ) => {
-  poolCoinNames = poolCoinNames || [...SUPPORT_POOLS];
   const marketCoinNames = poolCoinNames.map((poolCoinName) =>
     query.utils.parseMarketCoinName(poolCoinName)
   );
