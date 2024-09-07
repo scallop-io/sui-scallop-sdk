@@ -22,6 +22,7 @@ import type {
 import type {
   GenerateVeScaNormalMethod,
   GenerateVeScaQuickMethod,
+  RedeemScaQuickReturnType,
   ScallopTxBlock,
   SuiTxBlockWithVeScaNormalMethods,
   VeScaTxBlock,
@@ -334,7 +335,10 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         txBlock.transferObjects(transferObjects, sender);
       }
     },
-    redeemScaQuick: async (veScaKey?: SuiObjectArg) => {
+    redeemScaQuick: async <S extends boolean>(
+      veScaKey?: SuiObjectArg,
+      transferSca: S = true as S
+    ) => {
       const sender = requireSender(txBlock);
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
 
@@ -342,7 +346,11 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
 
       if (veSca) {
         const sca = txBlock.redeemSca(veSca.keyId);
-        txBlock.transferObjects([sca], sender);
+        if (transferSca) {
+          txBlock.transferObjects([sca], sender);
+          return;
+        }
+        return sca as RedeemScaQuickReturnType<S>;
       }
     },
   };
