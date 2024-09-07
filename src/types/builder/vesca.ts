@@ -32,6 +32,10 @@ export type VeScaNormalMethods = {
   mintEmptyVeSca: () => TransactionResult;
 };
 
+export type RedeemScaQuickReturnType<T extends boolean> = T extends true
+  ? void
+  : TransactionResult | undefined;
+
 export type VeScaQuickMethods = {
   /**
    * Quick methods to automate
@@ -70,7 +74,10 @@ export type VeScaQuickMethods = {
     veScaKey?: SuiObjectArg,
     autoCheck?: boolean
   ) => Promise<void>;
-  redeemScaQuick: (veScaKey?: SuiObjectArg) => Promise<void>;
+  redeemScaQuick: <T extends boolean>(
+    veSCaKey?: SuiObjectArg,
+    transferSca?: T
+  ) => Promise<RedeemScaQuickReturnType<T>>;
 };
 
 export type SuiTxBlockWithVeScaNormalMethods = SuiKitTxBlock &
