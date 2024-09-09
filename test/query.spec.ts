@@ -435,4 +435,17 @@ describe('Test sCoin Query', async () => {
     expect(typeof totalSupply).toBe('number');
     expect(totalSupply >= 0).toBe(true);
   });
+
+  it('Should get swap rate between sCoin assets', async () => {
+    const fromSCoin = 'susdc';
+    const toSCoin = 'ssui';
+
+    const getSCoinSwapRate = await scallopQuery.getSCoinSwapRate(
+      fromSCoin,
+      toSCoin
+    );
+    console.log('getSCoinSwapRate', getSCoinSwapRate);
+    expect(typeof getSCoinSwapRate).toBe('number');
+    expect(getSCoinSwapRate > 0).toBe(true);
+  });
 });
