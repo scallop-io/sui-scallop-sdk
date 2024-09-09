@@ -129,6 +129,9 @@ export const queryMarket = async (
       symbol: query.utils.parseSymbol(poolCoinName),
       coinType: coinType,
       marketCoinType: query.utils.parseMarketCoinType(poolCoinName),
+      sCoinType: query.utils.parseSCoinType(
+        query.utils.parseMarketCoinName(poolCoinName)
+      ),
       coinWrappedType: query.utils.getCoinWrappedType(poolCoinName),
       coinDecimal: query.utils.getCoinDecimal(poolCoinName),
       coinPrice: coinPrice,
@@ -453,6 +456,9 @@ export const getMarketPool = async (
       symbol: query.utils.parseSymbol(poolCoinName),
       coinType: query.utils.parseCoinType(poolCoinName),
       marketCoinType: query.utils.parseMarketCoinType(poolCoinName),
+      sCoinType: query.utils.parseSCoinType(
+        query.utils.parseMarketCoinName(poolCoinName)
+      ),
       coinWrappedType: query.utils.getCoinWrappedType(poolCoinName),
       coinDecimal: query.utils.getCoinDecimal(poolCoinName),
       coinPrice: coinPrice ?? 0,
