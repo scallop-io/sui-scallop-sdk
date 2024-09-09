@@ -56,6 +56,7 @@ import { SuiObjectData } from '@mysten/sui.js/client';
 import {
   getSCoinAmount,
   getSCoinAmounts,
+  getSCoinSwapRate,
   getSCoinTotalSupply,
 } from 'src/queries/sCoinQuery';
 import { normalizeSuiAddress } from '@mysten/sui.js/utils';
@@ -653,6 +654,18 @@ export class ScallopQuery {
     return parsedSCoinName
       ? await getSCoinAmount(this, parsedSCoinName, ownerAddress)
       : 0;
+  }
+
+  /**
+   * Get swap rate from sCoin A to sCoin B
+   * @param assetCoinNames
+   * @returns
+   */
+  public async getSCoinSwapRate(
+    fromSCoin: SupportSCoin,
+    toSCoin: SupportSCoin
+  ) {
+    return await getSCoinSwapRate(this, fromSCoin, toSCoin);
   }
 
   /*
