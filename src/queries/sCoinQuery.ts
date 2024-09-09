@@ -2,7 +2,7 @@ import { bcs } from '@mysten/sui.js/bcs';
 import assert from 'assert';
 import BigNumber from 'bignumber.js';
 import { SUPPORT_SCOIN } from 'src/constants';
-import { ScallopUtils } from 'src/models';
+import { ScallopQuery, ScallopUtils } from 'src/models';
 import { OptionalKeys, SupportSCoin, sCoinBalance } from 'src/types';
 
 /**
@@ -101,4 +101,71 @@ export const getSCoinAmount = async (
     coinType: sCoinType,
   });
   return BigNumber(amount).toNumber();
+};
+
+/* ==================== Get Swap Rate ==================== */
+const isSupportStakeCoins = (value: string): value is SupportSCoin => {
+  return SUPPORT_SCOIN.includes(value as SupportSCoin);
+};
+
+const checkAssetParams = (fromSCoin: SupportSCoin, toSCoin: SupportSCoin) => {
+  if (fromSCoin === toSCoin)
+    throw new Error('fromAsset and toAsset must be different');
+
+  if (!isSupportStakeCoins(fromSCoin))
+    throw new Error('fromAsset is not supported');
+
+  if (!isSupportStakeCoins(toSCoin)) {
+    throw new Error('toAsset is not supported');
+  }
+};
+
+/**
+ * Get swap rate from sCoin A to sCoin B.
+ * @param fromSCoin
+ * @param toSCoin
+ * @param underlyingCoinPrice - The price of the underlying coin. For example, if fromSCoin is sSUI and toSCoin is sUSDC, then underlyingCoinPrice represents the price of 1 SUI in USDC.
+ * @returns number
+ */
+export const getSCoinSwapRate = async (
+  query: ScallopQuery,
+  fromSCoin: SupportSCoin,
+  toSCoin: SupportSCoin,
+  underlyingCoinPrice?: number
+) => {
+  checkAssetParams(fromSCoin, toSCoin);
+  const fromCoinName = query.utils.parseCoinName(fromSCoin);
+  const toCoinName = query.utils.parseCoinName(toSCoin);
+
+  // Get lending data for both sCoin A and sCoin B
+  const marketPools = await Promise.all([
+    query.getMarketPool(fromCoinName, false),
+    query.getMarketPool(toCoinName, false),
+  ]);
+  if (marketPools.some((pool) => !pool))
+    throw new Error('Failed to fetch the lendings data');
+
+  if (marketPools.some((pool) => pool?.conversionRate === 0)) {
+    throw new Error('Conversion rate cannot be zero');
+  }
+
+  const ScoinAToARate = marketPools[0]!.conversionRate;
+  const BtoSCoinBRate = 1 / marketPools[1]!.conversionRate;
+
+  const calcAtoBRate = async () => {
+    const prices = await query.utils.getCoinPrices([fromCoinName, toCoinName]);
+    if (!prices[fromCoinName] || !prices[toCoinName]) {
+      throw new Error('Failed to fetch the coin prices');
+    }
+    if (prices[toCoinName] === 0) {
+      throw new Error('Price of toCoin cannot be zero');
+    }
+    return prices[fromCoinName]! / prices[toCoinName]!;
+  };
+
+  const AtoBRate = underlyingCoinPrice ?? (await calcAtoBRate());
+  return BigNumber(ScoinAToARate)
+    .multipliedBy(AtoBRate)
+    .multipliedBy(BtoSCoinBRate)
+    .toNumber();
 };
