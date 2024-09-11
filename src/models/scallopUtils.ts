@@ -413,14 +413,14 @@ export class ScallopUtils {
   ): Promise<void> {
     // merge to existing coins if exist
     try {
-      const existingSCoin = await this.selectCoins(
+      const existingCoins = await this.selectCoins(
         Number.MAX_SAFE_INTEGER,
         coinType,
         sender
       );
 
-      if (existingSCoin.length > 0) {
-        txBlock.mergeCoins(dest, existingSCoin);
+      if (existingCoins.length > 0) {
+        txBlock.mergeCoins(dest, existingCoins.slice(0, 500));
       }
     } catch (e) {
       // ignore
