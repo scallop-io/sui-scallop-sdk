@@ -15,7 +15,7 @@ import {
 } from '../utils';
 import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui.js/client';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
-import type { ScallopQuery } from '../models';
+import type { ScallopAddress, ScallopCache, ScallopQuery } from '../models';
 import {
   Market,
   MarketPools,
@@ -129,6 +129,9 @@ export const queryMarket = async (
       symbol: query.utils.parseSymbol(poolCoinName),
       coinType: coinType,
       marketCoinType: query.utils.parseMarketCoinType(poolCoinName),
+      sCoinType: query.utils.parseSCoinType(
+        query.utils.parseMarketCoinName(poolCoinName)
+      ),
       coinWrappedType: query.utils.getCoinWrappedType(poolCoinName),
       coinDecimal: query.utils.getCoinDecimal(poolCoinName),
       coinPrice: coinPrice,
@@ -453,6 +456,9 @@ export const getMarketPool = async (
       symbol: query.utils.parseSymbol(poolCoinName),
       coinType: query.utils.parseCoinType(poolCoinName),
       marketCoinType: query.utils.parseMarketCoinType(poolCoinName),
+      sCoinType: query.utils.parseSCoinType(
+        query.utils.parseMarketCoinName(poolCoinName)
+      ),
       coinWrappedType: query.utils.getCoinWrappedType(poolCoinName),
       coinDecimal: query.utils.getCoinDecimal(poolCoinName),
       coinPrice: coinPrice ?? 0,
@@ -683,24 +689,29 @@ export const getMarketCollateral = async (
  * @return Owned obligations.
  */
 export const getObligations = async (
-  query: ScallopQuery,
-  ownerAddress?: string
+  {
+    address,
+  }: {
+    address: ScallopAddress;
+  },
+  ownerAddress: string
 ) => {
-  const owner = ownerAddress || query.suiKit.currentAddress();
-  const protocolObjectId =
-    query.address.get('core.object') || PROTOCOL_OBJECT_ID;
+  const owner = ownerAddress;
+  const protocolObjectId = address.get('core.object') || PROTOCOL_OBJECT_ID;
   const keyObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
   do {
-    const paginatedKeyObjectsResponse = await query.cache.queryGetOwnedObjects({
-      owner,
-      filter: {
-        StructType: `${protocolObjectId}::obligation::ObligationKey`,
-      },
-      cursor: nextCursor,
-    });
-    if (!paginatedKeyObjectsResponse) continue;
+    const paginatedKeyObjectsResponse =
+      await address.cache.queryGetOwnedObjects({
+        owner,
+        filter: {
+          StructType: `${protocolObjectId}::obligation::ObligationKey`,
+        },
+        cursor: nextCursor,
+      });
+
+    if (!paginatedKeyObjectsResponse) break;
 
     keyObjectsResponse.push(...paginatedKeyObjectsResponse.data);
     if (
@@ -717,7 +728,7 @@ export const getObligations = async (
   const keyObjectIds: string[] = keyObjectsResponse
     .map((ref: any) => ref?.data?.objectId)
     .filter((id: any) => id !== undefined);
-  const keyObjects = await query.cache.queryGetObjects(keyObjectIds);
+  const keyObjects = await address.cache.queryGetObjects(keyObjectIds);
 
   const obligations: Obligation[] = [];
   await Promise.allSettled(
@@ -726,7 +737,7 @@ export const getObligations = async (
       if (keyObject.content && 'fields' in keyObject.content) {
         const fields = keyObject.content.fields as any;
         const obligationId = String(fields.ownership.fields.of);
-        const locked = await getObligationLocked(query, obligationId);
+        const locked = await getObligationLocked(address.cache, obligationId);
         obligations.push({ id: obligationId, keyId, locked });
       }
     })
@@ -743,13 +754,12 @@ export const getObligations = async (
  * @return Obligation locked status.
  */
 export const getObligationLocked = async (
-  query: ScallopQuery,
+  cache: ScallopCache,
   obligationId: string
 ) => {
-  const obligationObjectResponse = await query.cache.queryGetObject(
-    obligationId,
-    { showContent: true }
-  );
+  const obligationObjectResponse = await cache.queryGetObject(obligationId, {
+    showContent: true,
+  });
   let obligationLocked = false;
   if (
     obligationObjectResponse?.data &&
@@ -775,16 +785,20 @@ export const getObligationLocked = async (
  * @return Obligation data.
  */
 export const queryObligation = async (
-  query: ScallopQuery,
+  {
+    address,
+  }: {
+    address: ScallopAddress;
+  },
   obligationId: SuiAddressArg
 ) => {
-  const packageId = query.address.get('core.packages.query.id');
+  const packageId = address.get('core.packages.query.id');
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
   const args = [obligationId];
 
   // const txBlock = new SuiKitTxBlock();
   // txBlock.moveCall(queryTarget, args);
-  const queryResult = await query.cache.queryInspectTxn(
+  const queryResult = await address.cache.queryInspectTxn(
     { queryTarget, args }
     // txBlock
   );

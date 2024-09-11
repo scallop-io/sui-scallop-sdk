@@ -310,7 +310,7 @@ describe('Test VeSca Query', async () => {
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
 
-  const veScaKeys = await getVescaKeys(scallopQuery, sender);
+  const veScaKeys = await getVescaKeys(scallopQuery.utils, sender);
   let obligationId: string | undefined;
   if (veScaKeys.length === 0)
     throw new Error(`No VeSca keys found in ${sender}`);
@@ -434,5 +434,18 @@ describe('Test sCoin Query', async () => {
 
     expect(typeof totalSupply).toBe('number');
     expect(totalSupply >= 0).toBe(true);
+  });
+
+  it('Should get swap rate between sCoin assets', async () => {
+    const fromSCoin = 'susdc';
+    const toSCoin = 'ssui';
+
+    const getSCoinSwapRate = await scallopQuery.getSCoinSwapRate(
+      fromSCoin,
+      toSCoin
+    );
+    console.log('getSCoinSwapRate', getSCoinSwapRate);
+    expect(typeof getSCoinSwapRate).toBe('number');
+    expect(getSCoinSwapRate > 0).toBe(true);
   });
 });

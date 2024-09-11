@@ -451,3 +451,19 @@ describe('Test Scallop Client - Migrate sCoin method', async () => {
     expect(migrateResult.effects.status.status).toBe('success');
   });
 });
+
+describe('Test Scallop Client - VeSCA Method', async () => {
+  const client = await scallopSDK.createScallopClient();
+  console.info('Your wallet:', client.walletAddress);
+
+  it('Should claim unlocked SCA from all owned veSCA successfully', async () => {
+    // assuming you have veSCA with unlocked SCA.
+    const { tx, scaCoin } = await client.claimAllUnlockedSca(false);
+    tx.transferObjects([scaCoin], client.walletAddress);
+    const { effects } = await client.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('Claim unlocked SCA result:', effects.status.error);
+    }
+    expect(effects.status.status).toBe('success');
+  });
+});

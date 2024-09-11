@@ -15,11 +15,13 @@ import { ScallopQuery } from './scallopQuery';
 import { ScallopCache } from './scallopCache';
 import { requireSender } from 'src/utils';
 import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
-import type { TransactionObjectArgument } from '@mysten/sui.js/transactions';
+import type {
+  TransactionObjectArgument,
+  TransactionResult,
+} from '@mysten/sui.js/transactions';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type {
   ScallopClientFnReturnType,
-  ScallopInstanceParams,
   ScallopClientParams,
   SupportPoolCoins,
   SupportCollateralCoins,
@@ -29,6 +31,8 @@ import type {
   SupportBorrowIncentiveCoins,
   ScallopTxBlock,
   SupportSCoin,
+  ScallopClientVeScaReturnType,
+  ScallopClientInstanceParams,
 } from '../types';
 
 /**
@@ -56,48 +60,42 @@ export class ScallopClient {
 
   public constructor(
     params: ScallopClientParams,
-    instance?: ScallopInstanceParams
+    instance?: ScallopClientInstanceParams
   ) {
     this.params = params;
-    this.suiKit = instance?.suiKit ?? new SuiKit(params);
-    this.cache =
-      instance?.cache ?? new ScallopCache(DEFAULT_CACHE_OPTIONS, this.suiKit);
-    this.address =
-      instance?.address ??
-      new ScallopAddress(
+    this.suiKit =
+      instance?.suiKit ?? instance?.builder?.suiKit ?? new SuiKit(params);
+    this.walletAddress = normalizeSuiAddress(
+      params?.walletAddress || this.suiKit.currentAddress()
+    );
+
+    if (instance?.builder) {
+      this.builder = instance.builder;
+      this.query = this.builder.query;
+      this.utils = this.query.utils;
+      this.address = this.utils.address;
+      this.cache = this.address.cache;
+    } else {
+      this.cache = new ScallopCache(this.suiKit, DEFAULT_CACHE_OPTIONS);
+      this.address = new ScallopAddress(
         {
           id: params?.addressesId || ADDRESSES_ID,
           network: params?.networkType,
         },
-        this.cache
+        {
+          cache: this.cache,
+        }
       );
-    this.query =
-      instance?.query ??
-      new ScallopQuery(params, {
-        suiKit: this.suiKit,
+      this.utils = new ScallopUtils(this.params, {
         address: this.address,
-        cache: this.cache,
       });
-    this.utils =
-      instance?.utils ??
-      new ScallopUtils(params, {
-        suiKit: this.suiKit,
-        address: this.address,
-        query: this.query,
-        cache: this.cache,
-      });
-    this.builder =
-      instance?.builder ??
-      new ScallopBuilder(params, {
-        suiKit: this.suiKit,
-        address: this.address,
-        query: this.query,
+      this.query = new ScallopQuery(this.params, {
         utils: this.utils,
-        cache: this.cache,
       });
-    this.walletAddress = normalizeSuiAddress(
-      params?.walletAddress || this.suiKit.currentAddress()
-    );
+      this.builder = new ScallopBuilder(this.params, {
+        query: this.query,
+      });
+    }
   }
 
   /**
@@ -1074,6 +1072,67 @@ export class ScallopClient {
       )) as ScallopClientFnReturnType<S>;
     } else {
       return txBlock.txBlock as ScallopClientFnReturnType<S>;
+    }
+  }
+
+  /* ==================== VeSCA ==================== */
+  /**
+   * Claim unlocked SCA from all veSCA accounts.
+   */
+  public async claimAllUnlockedSca(): Promise<SuiTransactionBlockResponse>;
+  public async claimAllUnlockedSca<S extends boolean>(
+    sign?: S
+  ): Promise<ScallopClientVeScaReturnType<S>>;
+  public async claimAllUnlockedSca<S extends boolean>(
+    sign: S = true as S
+  ): Promise<ScallopClientVeScaReturnType<S>> {
+    // get all veSca keys
+    const veScaKeys = (
+      (await this.query.getVeScas(this.walletAddress)) ?? []
+    ).map(({ keyObject }) => keyObject);
+    if (veScaKeys.length === 0) {
+      throw new Error('No veSCA found in the wallet');
+    }
+
+    const scaCoins: TransactionResult[] = [];
+    const tx = this.builder.createTxBlock();
+    tx.setSender(this.walletAddress);
+
+    await Promise.all(
+      veScaKeys.map(async (key) => {
+        try {
+          const scaCoin = await tx.redeemScaQuick(key, false);
+          if (!scaCoin) return;
+          scaCoins.push(scaCoin);
+        } catch (e) {
+          // ignore
+        }
+      })
+    );
+
+    if (scaCoins.length === 0) {
+      throw new Error('No unlocked SCA found in the veSCA accounts');
+    }
+
+    if (scaCoins.length > 1) {
+      tx.mergeCoins(scaCoins[0], scaCoins.slice(1));
+    }
+    await this.utils.mergeSimilarCoins(
+      tx,
+      scaCoins[0],
+      'sca',
+      this.walletAddress
+    );
+
+    if (sign) {
+      return (await this.suiKit.signAndSendTxn(
+        tx
+      )) as ScallopClientVeScaReturnType<S>;
+    } else {
+      return {
+        tx: tx.txBlock,
+        scaCoin: scaCoins[0],
+      } as ScallopClientVeScaReturnType<S>;
     }
   }
 
