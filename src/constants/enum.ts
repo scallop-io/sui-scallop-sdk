@@ -68,6 +68,8 @@ export const sCoins: types.SCoins = {
   shasui: 'shasui',
   svsui: 'svsui',
   ssca: 'ssca',
+  ssol: 'ssol',
+  sbtc: 'sbtc',
 };
 
 export const stakeMarketCoins: types.StakeMarketCoins = {
@@ -150,6 +152,8 @@ export const sCoinIds: types.SCoinIds = {
     '0x9a2376943f7d22f88087c259c5889925f332ca4347e669dc37d54c2bf651af3c::scallop_ha_sui::SCALLOP_HA_SUI',
   svsui:
     '0xe1a1cc6bcf0001a015eab84bcc6713393ce20535f55b8b6f35c142e057a25fbe::scallop_v_sui::SCALLOP_V_SUI',
+  ssol: '0x1392650f2eca9e3f6ffae3ff89e42a3590d7102b80e2b430f674730bc30d3259::scallop_wormhole_sol::SCALLOP_WORMHOLE_SOL',
+  sbtc: '0x2cf76a9cf5d3337961d1154283234f94da2dcff18544dfe5cbdef65f319591b5::scallop_wormhole_btc::SCALLOP_WORMHOLE_BTC',
 } as const;
 
 // TEST VERSION

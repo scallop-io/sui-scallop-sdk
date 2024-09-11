@@ -83,6 +83,8 @@ export const SUPPORT_SCOIN = [
   'seth',
   'ssca',
   'scetus',
+  'ssol',
+  'sbtc',
 ] as const;
 
 export const SUPPORT_SPOOLS_REWARDS = ['sui'] as const;
