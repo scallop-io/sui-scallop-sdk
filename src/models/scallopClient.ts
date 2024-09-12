@@ -1114,17 +1114,15 @@ export class ScallopClient {
       throw new Error('No unlocked SCA found in the veSCA accounts');
     }
 
-    if (scaCoins.length > 0) {
-      if (scaCoins.length > 1) {
-        tx.mergeCoins(scaCoins[0], [scaCoins[1]]);
-      }
-      await this.utils.mergeSimilarCoins(
-        tx,
-        scaCoins[0],
-        'sca',
-        this.walletAddress
-      );
+    if (scaCoins.length > 1) {
+      tx.mergeCoins(scaCoins[0], scaCoins.slice(1));
     }
+    await this.utils.mergeSimilarCoins(
+      tx,
+      scaCoins[0],
+      'sca',
+      this.walletAddress
+    );
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
