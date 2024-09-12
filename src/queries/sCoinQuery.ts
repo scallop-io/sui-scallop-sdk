@@ -103,7 +103,6 @@ export const getSCoinAmount = async (
   return BigNumber(amount).toNumber();
 };
 
-/* ==================== Get Swap Rate ==================== */
 const isSupportStakeCoins = (value: string): value is SupportSCoin => {
   return SUPPORT_SCOIN.includes(value as SupportSCoin);
 };
@@ -119,6 +118,8 @@ const checkAssetParams = (fromSCoin: SupportSCoin, toSCoin: SupportSCoin) => {
     throw new Error('toAsset is not supported');
   }
 };
+
+/* ==================== Get Swap Rate ==================== */
 
 /**
  * Get swap rate from sCoin A to sCoin B.
