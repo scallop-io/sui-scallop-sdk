@@ -802,7 +802,7 @@ export const queryObligation = async (
     { queryTarget, args }
     // txBlock
   );
-  return queryResult?.events[0].parsedJson as
+  return queryResult?.events[0]?.parsedJson as
     | ObligationQueryInterface
     | undefined;
 };

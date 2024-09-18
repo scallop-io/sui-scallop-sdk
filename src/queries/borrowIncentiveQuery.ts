@@ -183,7 +183,7 @@ export const queryBorrowIncentiveAccounts = async (
 
   const queryResult = await utils.cache.queryInspectTxn({ queryTarget, args });
   const borrowIncentiveAccountsQueryData = queryResult?.events[0]
-    .parsedJson as BorrowIncentiveAccountsQueryInterface;
+    ?.parsedJson as BorrowIncentiveAccountsQueryInterface | undefined;
 
   const borrowIncentiveAccounts: BorrowIncentiveAccounts = Object.values(
     borrowIncentiveAccountsQueryData?.pool_records ?? []
