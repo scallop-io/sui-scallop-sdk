@@ -15,6 +15,7 @@ import type {
   SupportAssetCoins,
   SupportSCoin,
   ScallopBuilderInstanceParams,
+  SelectCoinReturnType,
 } from '../types';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
@@ -122,16 +123,21 @@ export class ScallopBuilder {
    * @param sender - Sender address.
    * @return Take coin and left coin.
    */
-  public async selectCoin(
+  public async selectCoin<T extends SupportAssetCoins>(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
-    assetCoinName: SupportAssetCoins,
+    assetCoinName: T,
     amount: number,
     sender: string = this.walletAddress
-  ) {
-    const coinType = this.utils.parseCoinType(assetCoinName);
-    const coins = await this.utils.selectCoins(amount, coinType, sender);
-    const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
-    return { takeCoin, leftCoin };
+  ): Promise<SelectCoinReturnType<T>> {
+    if (assetCoinName === 'sui') {
+      const [takeCoin] = txBlock.splitSUIFromGas([amount]);
+      return { takeCoin } as SelectCoinReturnType<T>;
+    } else {
+      const coinType = this.utils.parseCoinType(assetCoinName);
+      const coins = await this.utils.selectCoins(amount, coinType, sender);
+      const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
+      return { takeCoin, leftCoin } as SelectCoinReturnType<T>;
+    }
   }
 
   /**
