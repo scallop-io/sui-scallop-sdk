@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.57](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.56...v0.46.57) (2024-09-13)
+
+### Bugfixes
+
+- Reduce query object limit from 50 to 10 ([877667d](https://github.com/scallop-io/sui-scallop-sdk/pull/160/commits/877667d747ef8b397c910d421e71d11ed7ff7f60))
+- Fix undefined value ([9e4e653](https://github.com/scallop-io/sui-scallop-sdk/pull/160/commits/9e4e653762857a901dd82de5bafbbd09b17fa1e8))
+- Fix selecting SUI coin type ([38b2885](https://github.com/scallop-io/sui-scallop-sdk/pull/160/commits/38b2885110c3038435615e98b824512415d33640))
+
 ### [0.46.56](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.55...v0.46.56) (2024-09-11)
 
 ### Features
