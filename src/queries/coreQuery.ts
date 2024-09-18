@@ -802,7 +802,7 @@ export const queryObligation = async (
     { queryTarget, args }
     // txBlock
   );
-  return queryResult?.events[0].parsedJson as
+  return queryResult?.events[0]?.parsedJson as
     | ObligationQueryInterface
     | undefined;
 };
@@ -972,7 +972,7 @@ export const getFlashLoanFees = async (
     // the balance sheet is a VecSet<0x1::type_name::TypeName
     const balanceSheetDynamicFields = await query.cache.queryGetDynamicFields({
       parentId: flashloanFeesTableId,
-      limit: 50,
+      limit: 10,
     });
 
     // get the dynamic object ids
