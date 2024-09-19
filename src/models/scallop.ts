@@ -49,6 +49,7 @@ export class Scallop {
     this.suiKit = new SuiKit(params);
     this.cache = new ScallopCache(
       this.suiKit,
+      params.walletAddress,
       cacheOptions ?? DEFAULT_CACHE_OPTIONS,
       tokenBucket ??
         new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS)

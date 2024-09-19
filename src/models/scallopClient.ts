@@ -76,7 +76,11 @@ export class ScallopClient {
       this.address = this.utils.address;
       this.cache = this.address.cache;
     } else {
-      this.cache = new ScallopCache(this.suiKit, DEFAULT_CACHE_OPTIONS);
+      this.cache = new ScallopCache(
+        this.suiKit,
+        this.walletAddress,
+        DEFAULT_CACHE_OPTIONS
+      );
       this.address = new ScallopAddress(
         {
           id: params?.addressesId || ADDRESSES_ID,
