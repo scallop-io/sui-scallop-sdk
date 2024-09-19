@@ -72,7 +72,7 @@ const callWithRateLimit = async <T>(
     } else if (retries < maxRetries) {
       retries++;
       const delay = retryDelayInMs * Math.pow(backoffFactor, retries);
-      console.warn(`Rate limit exceeded, retrying in ${delay} ms`);
+      // console.warn(`Rate limit exceeded, retrying in ${delay} ms`);
       await new Promise((resolve) => setTimeout(resolve, delay));
       return tryRequest();
     } else {

@@ -62,6 +62,7 @@ export class ScallopUtils {
   public suiKit: SuiKit;
   public address: ScallopAddress;
   public cache: ScallopCache;
+  public walletAddress: string;
   private _priceMap: PriceMap = new Map();
 
   public constructor(
@@ -77,12 +78,18 @@ export class ScallopUtils {
       instance?.address?.cache._suiKit ??
       new SuiKit(params);
 
+    this.walletAddress = params.walletAddress ?? this.suiKit.currentAddress();
+
     if (instance?.address) {
       this.address = instance.address;
       this.cache = this.address.cache;
       this.suiKit = this.address.cache._suiKit;
     } else {
-      this.cache = new ScallopCache(this.suiKit, DEFAULT_CACHE_OPTIONS);
+      this.cache = new ScallopCache(
+        this.suiKit,
+        this.walletAddress,
+        DEFAULT_CACHE_OPTIONS
+      );
       this.address =
         instance?.address ??
         new ScallopAddress(
@@ -409,7 +416,7 @@ export class ScallopUtils {
     txBlock: SuiTxBlock,
     dest: SuiTxArg,
     coinType: string,
-    sender: string
+    sender: string = this.walletAddress
   ): Promise<void> {
     // merge to existing coins if exist
     try {
