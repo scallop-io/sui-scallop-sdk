@@ -49,7 +49,7 @@ export class ScallopIndexer {
     this.params = params;
     this.cache =
       instance?.cache ??
-      new ScallopCache(new SuiKit({}), DEFAULT_CACHE_OPTIONS);
+      new ScallopCache(new SuiKit({}), undefined, DEFAULT_CACHE_OPTIONS);
     this._requestClient = axios.create({
       baseURL: SDK_API_BASE_URL,
       headers: {

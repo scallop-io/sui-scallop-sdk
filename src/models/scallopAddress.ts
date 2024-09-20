@@ -382,6 +382,7 @@ export class ScallopAddress {
       instance?.cache ??
       new ScallopCache(
         instance?.suiKit ?? new SuiKit({}),
+        undefined,
         DEFAULT_CACHE_OPTIONS
       );
 
