@@ -709,6 +709,7 @@ export const getObligations = async (
           StructType: `${protocolObjectId}::obligation::ObligationKey`,
         },
         cursor: nextCursor,
+        limit: 10,
       });
 
     if (!paginatedKeyObjectsResponse) break;

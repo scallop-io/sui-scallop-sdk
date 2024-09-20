@@ -90,12 +90,21 @@ export class ScallopQuery {
     this.params = params;
     this.suiKit =
       instance?.suiKit ?? instance?.utils?.suiKit ?? new SuiKit(params);
+
+    this.walletAddress = normalizeSuiAddress(
+      params.walletAddress || this.suiKit.currentAddress()
+    );
+
     if (instance?.utils) {
       this.utils = instance.utils;
       this.address = instance.utils.address;
       this.cache = this.address.cache;
     } else {
-      this.cache = new ScallopCache(this.suiKit, DEFAULT_CACHE_OPTIONS);
+      this.cache = new ScallopCache(
+        this.suiKit,
+        this.walletAddress,
+        DEFAULT_CACHE_OPTIONS
+      );
       this.address = new ScallopAddress(
         {
           id: params?.addressesId || ADDRESSES_ID,
@@ -112,10 +121,6 @@ export class ScallopQuery {
     this.indexer =
       instance?.indexer ??
       new ScallopIndexer(this.params, { cache: this.cache });
-
-    this.walletAddress = normalizeSuiAddress(
-      params.walletAddress || this.suiKit.currentAddress()
-    );
   }
 
   /**

@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.58-alpha.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.57...v0.46.58-alpha.1) (2024-09-19)
+
+### Adjustments
+
+- Increase `staleTime` to 2s ([608489c](https://github.com/scallop-io/sui-scallop-sdk/pull/161/commits/608489c60304e5c79b2377aebf8680ebfbbf91b1))
+- Limit 10 for owned objects query ([6d96fd6](https://github.com/scallop-io/sui-scallop-sdk/pull/161/commits/6d96fd6301e70448055526e98cd03e722bb4f005))
+- Increase token per interval to `50` and apply incremental delay time ([d04e04d](https://github.com/scallop-io/sui-scallop-sdk/pull/161/commits/d04e04dda690b21f01d63910a4cd6dda3c61a9fe))
+- Add `walletAddress` params to `ScallopCache` ([4e7f940](https://github.com/scallop-io/sui-scallop-sdk/pull/161/commits/4e7f94046cbfcfdc6b67921aeaeff94b5d457669))
+
 ### [0.46.57](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.56...v0.46.57) (2024-09-13)
 
 ### Bugfixes
