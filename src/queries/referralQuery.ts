@@ -1,4 +1,4 @@
-import { ScallopQuery } from 'src/models';
+import { ScallopAddress } from 'src/models';
 
 /**
  * Query the veScaKeyId from the referral bindings table using the borrower address
@@ -6,12 +6,12 @@ import { ScallopQuery } from 'src/models';
  * @returns
  */
 export const queryVeScaKeyIdFromReferralBindings = async (
-  query: ScallopQuery,
+  address: ScallopAddress,
   refereeAddress: string
 ): Promise<string | null> => {
-  const referralBindingTableId = query.address.get('referral.bindingTableId');
+  const referralBindingTableId = address.get('referral.bindingTableId');
 
-  const referralBindResponse = await query.cache.queryGetDynamicFieldObject({
+  const referralBindResponse = await address.cache.queryGetDynamicFieldObject({
     parentId: referralBindingTableId,
     name: {
       type: 'address',

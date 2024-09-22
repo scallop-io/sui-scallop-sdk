@@ -194,13 +194,10 @@ describe('Test Scallop Utils', async () => {
   });
 
   it('Should get coin object ids within the selected coin amount range', async () => {
-    const suiCoinType = await scallopUtils.parseCoinType('sui');
-    const suiMarketCoinType = await scallopUtils.parseMarketCoinType('ssui');
-    const suiCoinObjectIds = await scallopUtils.selectCoins(
-      1000000000,
-      suiCoinType
-    );
-    const suiMarketCoinObjectIds = await scallopUtils.selectCoins(
+    const suiCoinType = scallopUtils.parseCoinType('sui');
+    const suiMarketCoinType = scallopUtils.parseSCoinType('ssui');
+    const suiCoinObjectIds = scallopUtils.selectCoins(1e7, suiCoinType);
+    const suiMarketCoinObjectIds = scallopUtils.selectCoins(
       1,
       suiMarketCoinType
     );

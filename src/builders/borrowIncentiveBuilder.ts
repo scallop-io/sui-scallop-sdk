@@ -51,13 +51,13 @@ const requireObligationInfo = async (
     typeof obligationId === 'string'
   ) {
     const obligationLocked = await getObligationLocked(
-      builder.query,
+      builder.cache,
       obligationId
     );
     return { obligationId, obligationKey, obligationLocked };
   }
   const sender = requireSender(txBlock);
-  const obligations = await getObligations(builder.query, sender);
+  const obligations = await getObligations(builder, sender);
   if (obligations.length === 0) {
     throw new Error(`No obligation found for sender ${sender}`);
   }
@@ -207,7 +207,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
       stakeObligationQuick: async (obligation, obligationKey) => {
         const {
           obligationId: obligationArg,
-          obligationKey: obligationtKeyArg,
+          obligationKey: obligationKeyArg,
           obligationLocked: obligationLocked,
         } = await requireObligationInfo(
           builder,
@@ -227,7 +227,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
-          txBlock.stakeObligation(obligationArg, obligationtKeyArg);
+          txBlock.stakeObligation(obligationArg, obligationKeyArg);
         }
       },
       stakeObligationWithVeScaQuick: async (
@@ -237,7 +237,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
       ) => {
         const {
           obligationId: obligationArg,
-          obligationKey: obligationtKeyArg,
+          obligationKey: obligationKeyArg,
           obligationLocked: obligationLocked,
         } = await requireObligationInfo(
           builder,
@@ -260,7 +260,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           const veSca = await requireVeSca(builder, txBlock, veScaKey);
           if (veSca) {
             const bindedObligationId = await getBindedObligationId(
-              builder.query,
+              builder,
               veSca.keyId
             );
 
@@ -271,21 +271,21 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
             ) {
               txBlock.stakeObligationWithVesca(
                 obligationArg,
-                obligationtKeyArg,
+                obligationKeyArg,
                 veSca.keyId
               );
             } else {
-              txBlock.stakeObligation(obligationArg, obligationtKeyArg);
+              txBlock.stakeObligation(obligationArg, obligationKeyArg);
             }
           } else {
-            txBlock.stakeObligation(obligationArg, obligationtKeyArg);
+            txBlock.stakeObligation(obligationArg, obligationKeyArg);
           }
         }
       },
       unstakeObligationQuick: async (obligation, obligationKey) => {
         const {
           obligationId: obligationArg,
-          obligationKey: obligationtKeyArg,
+          obligationKey: obligationKeyArg,
           obligationLocked: obligationLocked,
         } = await requireObligationInfo(
           builder,
@@ -295,7 +295,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
         );
 
         if (obligationLocked) {
-          txBlock.unstakeObligation(obligationArg, obligationtKeyArg);
+          txBlock.unstakeObligation(obligationArg, obligationKeyArg);
         }
       },
       claimBorrowIncentiveQuick: async (
@@ -304,19 +304,17 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
         obligation,
         obligationKey
       ) => {
-        const {
-          obligationId: obligationArg,
-          obligationKey: obligationtKeyArg,
-        } = await requireObligationInfo(
-          builder,
-          txBlock,
-          obligation,
-          obligationKey
-        );
+        const { obligationId: obligationArg, obligationKey: obligationKeyArg } =
+          await requireObligationInfo(
+            builder,
+            txBlock,
+            obligation,
+            obligationKey
+          );
 
         return txBlock.claimBorrowIncentive(
           obligationArg,
-          obligationtKeyArg,
+          obligationKeyArg,
           coinName,
           rewardCoinName
         );

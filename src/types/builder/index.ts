@@ -1,10 +1,11 @@
-import type { CoreTxBlock } from './core';
+import type { CoreTxBlock, NestedResult } from './core';
 import type { SpoolTxBlock } from './spool';
 import type { BorrowIncentiveTxBlock } from './borrowIncentive';
 import type { VeScaTxBlock } from './vesca';
 import type { ReferralTxBlock } from './referral';
 import { LoyaltyProgramTxBlock } from './loyaltyProgram';
 import { SCoinTxBlock } from './sCoin';
+import { SupportAssetCoins } from '../constant';
 
 export type * from './core';
 export type * from './spool';
@@ -21,3 +22,12 @@ export type BaseScallopTxBlock = ReferralTxBlock &
 export type SuiTxBlockWithSCoin = BaseScallopTxBlock & SCoinTxBlock;
 export type SuiTxBlockWithSpool = SuiTxBlockWithSCoin & SpoolTxBlock;
 export type ScallopTxBlock = SuiTxBlockWithSpool & CoreTxBlock;
+
+export type SelectCoinReturnType<T extends SupportAssetCoins> = T extends 'sui'
+  ? {
+      takeCoin: NestedResult;
+    }
+  : {
+      takeCoin: NestedResult;
+      leftCoin: NestedResult;
+    };

@@ -8,7 +8,7 @@ import {
   isMarketCoin,
 } from '../utils';
 import type { SuiObjectResponse } from '@mysten/sui.js/client';
-import type { ScallopQuery } from '../models';
+import type { ScallopQuery, ScallopUtils } from '../models';
 import type {
   MarketPool,
   Spools,
@@ -231,25 +231,29 @@ export const getSpool = async (
  * @return Stake accounts.
  */
 export const getStakeAccounts = async (
-  query: ScallopQuery,
+  {
+    utils,
+  }: {
+    utils: ScallopUtils;
+  },
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || query.suiKit.currentAddress();
-  const spoolObjectId = query.address.get('spool.object');
+  const owner = ownerAddress || utils.suiKit.currentAddress();
+  const spoolObjectId = utils.address.get('spool.object');
   const stakeAccountType = `${spoolObjectId}::spool_account::SpoolAccount`;
   const stakeObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
   do {
     const paginatedStakeObjectsResponse =
-      await query.cache.queryGetOwnedObjects({
+      await utils.cache.queryGetOwnedObjects({
         owner,
         filter: { StructType: stakeAccountType },
         options: {
           showContent: true,
-          showType: true,
         },
         cursor: nextCursor,
+        limit: 10,
       });
     if (!paginatedStakeObjectsResponse) continue;
 
@@ -281,8 +285,8 @@ export const getStakeAccounts = async (
     Object.keys(stakeAccounts).reduce(
       (types, stakeMarketCoinName) => {
         const stakeCoinName =
-          query.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
-        const marketCoinType = query.utils.parseMarketCoinType(stakeCoinName);
+          utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
+        const marketCoinType = utils.parseMarketCoinType(stakeCoinName);
 
         types[
           stakeMarketCoinName as SupportStakeMarketCoins
@@ -295,7 +299,10 @@ export const getStakeAccounts = async (
   const stakeObjectIds: string[] = stakeObjectsResponse
     .map((ref: any) => ref?.data?.objectId)
     .filter((id: any) => id !== undefined);
-  const stakeObjects = await query.cache.queryGetObjects(stakeObjectIds);
+  const stakeObjects = await utils.cache.queryGetObjects(stakeObjectIds, {
+    showContent: true,
+    showType: true,
+  });
   for (const stakeObject of stakeObjects) {
     const id = stakeObject.objectId;
     const type = stakeObject.type!;
@@ -413,12 +420,16 @@ export const getStakeAccounts = async (
  * @return Stake pool data.
  */
 export const getStakePool = async (
-  query: ScallopQuery,
+  {
+    utils,
+  }: {
+    utils: ScallopUtils;
+  },
   marketCoinName: SupportStakeMarketCoins
 ) => {
-  const poolId = query.address.get(`spool.pools.${marketCoinName}.id`);
+  const poolId = utils.address.get(`spool.pools.${marketCoinName}.id`);
   let stakePool: StakePool | undefined = undefined;
-  const stakePoolObjectResponse = await query.cache.queryGetObject(poolId, {
+  const stakePoolObjectResponse = await utils.cache.queryGetObject(poolId, {
     showContent: true,
     showType: true,
   });
@@ -469,14 +480,18 @@ export const getStakePool = async (
  * @return Stake reward pool.
  */
 export const getStakeRewardPool = async (
-  query: ScallopQuery,
+  {
+    utils,
+  }: {
+    utils: ScallopUtils;
+  },
   marketCoinName: SupportStakeMarketCoins
 ) => {
-  const poolId = query.address.get(
+  const poolId = utils.address.get(
     `spool.pools.${marketCoinName}.rewardPoolId`
   );
   let stakeRewardPool: StakeRewardPool | undefined = undefined;
-  const stakeRewardPoolObjectResponse = await query.cache.queryGetObject(
+  const stakeRewardPoolObjectResponse = await utils.cache.queryGetObject(
     poolId,
     {
       showContent: true,

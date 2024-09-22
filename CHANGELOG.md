@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.58-alpha.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.57...v0.46.58-alpha.1) (2024-09-19)
+
+### Adjustments
+
+- Increase `staleTime` to 2s ([608489c](https://github.com/scallop-io/sui-scallop-sdk/pull/161/commits/608489c60304e5c79b2377aebf8680ebfbbf91b1))
+- Limit 10 for owned objects query ([6d96fd6](https://github.com/scallop-io/sui-scallop-sdk/pull/161/commits/6d96fd6301e70448055526e98cd03e722bb4f005))
+- Increase token per interval to `50` and apply incremental delay time ([d04e04d](https://github.com/scallop-io/sui-scallop-sdk/pull/161/commits/d04e04dda690b21f01d63910a4cd6dda3c61a9fe))
+- Add `walletAddress` params to `ScallopCache` ([4e7f940](https://github.com/scallop-io/sui-scallop-sdk/pull/161/commits/4e7f94046cbfcfdc6b67921aeaeff94b5d457669))
+
+### [0.46.57](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.56...v0.46.57) (2024-09-13)
+
+### Bugfixes
+
+- Reduce query object limit from 50 to 10 ([877667d](https://github.com/scallop-io/sui-scallop-sdk/pull/160/commits/877667d747ef8b397c910d421e71d11ed7ff7f60))
+- Fix undefined value ([9e4e653](https://github.com/scallop-io/sui-scallop-sdk/pull/160/commits/9e4e653762857a901dd82de5bafbbd09b17fa1e8))
+- Fix selecting SUI coin type ([38b2885](https://github.com/scallop-io/sui-scallop-sdk/pull/160/commits/38b2885110c3038435615e98b824512415d33640))
+
+### [0.46.56](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.55...v0.46.56) (2024-09-11)
+
+### Features
+
+- Add sCoin support for BTC and SOL ([b191459](https://github.com/scallop-io/sui-scallop-sdk/pull/159/commits/b1914597985f4c7d0bc5c3aca34dfc25fbc90738))
+
+- Add `getSCoinSwapRate` method into `scallopQuery` ([f7e1ac0](https://github.com/scallop-io/sui-scallop-sdk/pull/159/commits/f7e1ac0f7b277e600065f98b2353c5e86e9f6079))
+
+- Add `sCoinType` property to `marketPool` return type ([9a2bd5c](https://github.com/scallop-io/sui-scallop-sdk/pull/159/commits/9a2bd5cb87dac13e75fd4a8a0925b0a962e5ef75))
+
+- Add `claimAllUnlockedSca` method into `scallopClient` ([d4dbdc8](https://github.com/scallop-io/sui-scallop-sdk/pull/159/commits/d4dbdc86f4554f141c4c6ee13176ba67fddaf139))
+
 ### [0.46.55](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.53...v0.46.54) (2024-08-18)
 
 ### Bugfixes
