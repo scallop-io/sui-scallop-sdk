@@ -9,12 +9,13 @@ import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
 import type { TransactionBlock } from '@mysten/sui.js/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type {
-  ScallopInstanceParams,
   ScallopBuilderParams,
   ScallopTxBlock,
   SupportMarketCoins,
   SupportAssetCoins,
   SupportSCoin,
+  ScallopBuilderInstanceParams,
+  SelectCoinReturnType,
 } from '../types';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
@@ -43,39 +44,47 @@ export class ScallopBuilder {
 
   public constructor(
     params: ScallopBuilderParams,
-    instance?: ScallopInstanceParams
+    instance?: ScallopBuilderInstanceParams
   ) {
-    this.params = params;
     this.suiKit = instance?.suiKit ?? new SuiKit(params);
-    this.cache =
-      instance?.cache ?? new ScallopCache(DEFAULT_CACHE_OPTIONS, this.suiKit);
-    this.address =
-      instance?.address ??
-      new ScallopAddress(
+
+    this.params = params;
+    this.walletAddress = normalizeSuiAddress(
+      params?.walletAddress || this.suiKit.currentAddress()
+    );
+
+    if (instance?.query) {
+      this.query = instance.query;
+      this.utils = this.query.utils;
+      this.address = this.utils.address;
+      this.cache = this.address.cache;
+    } else {
+      this.cache = new ScallopCache(
+        this.suiKit,
+        this.walletAddress,
+        DEFAULT_CACHE_OPTIONS
+      );
+      this.address = new ScallopAddress(
         {
           id: params?.addressesId || ADDRESSES_ID,
           network: params?.networkType,
         },
-        this.cache
+        {
+          cache: this.cache,
+        }
       );
-    this.query =
-      instance?.query ??
-      new ScallopQuery(params, {
-        suiKit: this.suiKit,
+      this.utils = new ScallopUtils(this.params, {
         address: this.address,
-        cache: this.cache,
       });
-    this.utils =
-      instance?.utils ??
-      new ScallopUtils(this.params, {
-        suiKit: this.suiKit,
-        address: this.address,
-        query: this.query,
-        cache: this.cache,
-      });
-    this.walletAddress = normalizeSuiAddress(
-      params?.walletAddress || this.suiKit.currentAddress()
-    );
+      this.query = new ScallopQuery(
+        {
+          walletAddress: this.walletAddress,
+        },
+        {
+          utils: this.utils,
+        }
+      );
+    }
     this.isTestnet = params.networkType
       ? params.networkType === 'testnet'
       : false;
@@ -118,16 +127,21 @@ export class ScallopBuilder {
    * @param sender - Sender address.
    * @return Take coin and left coin.
    */
-  public async selectCoin(
+  public async selectCoin<T extends SupportAssetCoins>(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
-    assetCoinName: SupportAssetCoins,
+    assetCoinName: T,
     amount: number,
     sender: string = this.walletAddress
-  ) {
-    const coinType = this.utils.parseCoinType(assetCoinName);
-    const coins = await this.utils.selectCoins(amount, coinType, sender);
-    const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
-    return { takeCoin, leftCoin };
+  ): Promise<SelectCoinReturnType<T>> {
+    if (assetCoinName === 'sui') {
+      const [takeCoin] = txBlock.splitSUIFromGas([amount]);
+      return { takeCoin } as SelectCoinReturnType<T>;
+    } else {
+      const coinType = this.utils.parseCoinType(assetCoinName);
+      const coins = await this.utils.selectCoins(amount, coinType, sender);
+      const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
+      return { takeCoin, leftCoin } as SelectCoinReturnType<T>;
+    }
   }
 
   /**

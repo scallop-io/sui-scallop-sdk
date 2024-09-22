@@ -38,20 +38,44 @@ const callWithRateLimit = async <T>(
   tokenBucket: TokenBucket,
   fn: () => Promise<T>,
   retryDelayInMs = DEFAULT_INTERVAL_IN_MS,
-  maxRetries = 5 // Adding a maximum retries limit,
+  maxRetries = 15,
+  backoffFactor = 1.25 // The factor by which to increase the delay
 ): Promise<T | null> => {
   let retries = 0;
 
   const tryRequest = async (): Promise<T | null> => {
     if (tokenBucket.removeTokens(1)) {
-      return await fn();
+      try {
+        const result = await fn();
+
+        // Check if the result is an object with status code (assuming the response has a status property)
+        if (result && (result as any).status === 429) {
+          throw new Error('Unexpected status code: 429');
+        }
+
+        return result;
+      } catch (error: any) {
+        if (
+          error.message === 'Unexpected status code: 429' &&
+          retries < maxRetries
+        ) {
+          retries++;
+          const delay = retryDelayInMs * Math.pow(backoffFactor, retries);
+          // console.warn(`429 encountered, retrying in ${delay} ms`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          return tryRequest();
+        } else {
+          console.error('An error occurred:', error);
+          return null;
+        }
+      }
     } else if (retries < maxRetries) {
       retries++;
-      // Use a Promise to correctly handle the async operation with setTimeout
-      await new Promise((resolve) => setTimeout(resolve, retryDelayInMs));
+      const delay = retryDelayInMs * Math.pow(backoffFactor, retries);
+      // console.warn(`Rate limit exceeded, retrying in ${delay} ms`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
       return tryRequest();
     } else {
-      // Optionally, handle the case where the maximum number of retries is reached
       console.error('Maximum retries reached');
       return null;
     }

@@ -8,7 +8,7 @@ import {
   parseOriginBorrowIncentiveAccountData,
   calculateBorrowIncentivePoolPointData,
 } from '../utils';
-import type { ScallopQuery } from '../models';
+import type { ScallopAddress, ScallopQuery, ScallopUtils } from '../models';
 import type {
   BorrowIncentivePoolsQueryInterface,
   BorrowIncentivePools,
@@ -163,24 +163,27 @@ export const queryBorrowIncentivePools = async (
  * @return Borrow incentive accounts data.
  */
 export const queryBorrowIncentiveAccounts = async (
-  query: ScallopQuery,
+  {
+    utils,
+  }: {
+    utils: ScallopUtils;
+  },
   obligationId: string,
   borrowIncentiveCoinNames?: SupportBorrowIncentiveCoins[]
 ) => {
   borrowIncentiveCoinNames = borrowIncentiveCoinNames || [
     ...SUPPORT_BORROW_INCENTIVE_POOLS,
   ];
-  const queryPkgId = query.address.get('borrowIncentive.query');
-  const incentiveAccountsId = query.address.get(
+  const queryPkgId = utils.address.get('borrowIncentive.query');
+  const incentiveAccountsId = utils.address.get(
     'borrowIncentive.incentiveAccounts'
   );
   const queryTarget = `${queryPkgId}::incentive_account_query::incentive_account_data`;
   const args = [incentiveAccountsId, obligationId];
 
-  const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
-  const borrowIncentiveAccountsQueryData = queryResult?.events[0].parsedJson as
-    | BorrowIncentiveAccountsQueryInterface
-    | undefined;
+  const queryResult = await utils.cache.queryInspectTxn({ queryTarget, args });
+  const borrowIncentiveAccountsQueryData = queryResult?.events[0]
+    ?.parsedJson as BorrowIncentiveAccountsQueryInterface | undefined;
 
   const borrowIncentiveAccounts: BorrowIncentiveAccounts = Object.values(
     borrowIncentiveAccountsQueryData?.pool_records ?? []
@@ -189,7 +192,7 @@ export const queryBorrowIncentiveAccounts = async (
       parseOriginBorrowIncentiveAccountData(accountData);
     const poolType = parsedBorrowIncentiveAccount.poolType;
     const coinName =
-      query.utils.parseCoinNameFromType<SupportBorrowIncentiveCoins>(poolType);
+      utils.parseCoinNameFromType<SupportBorrowIncentiveCoins>(poolType);
 
     if (
       borrowIncentiveCoinNames &&
@@ -211,15 +214,19 @@ export const queryBorrowIncentiveAccounts = async (
  * @returns
  */
 export const getBindedObligationId = async (
-  query: ScallopQuery,
+  {
+    address,
+  }: {
+    address: ScallopAddress;
+  },
   veScaKeyId: string
 ): Promise<string | null> => {
-  const borrowIncentiveObjectId = query.address.get('borrowIncentive.object');
-  const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
-  const veScaObjId = query.address.get('vesca.object');
+  const borrowIncentiveObjectId = address.get('borrowIncentive.object');
+  const incentivePoolsId = address.get('borrowIncentive.incentivePools');
+  const veScaObjId = address.get('vesca.object');
 
   // get incentive pools
-  const incentivePoolsResponse = await query.cache.queryGetObject(
+  const incentivePoolsResponse = await address.cache.queryGetObject(
     incentivePoolsId,
     {
       showContent: true,
@@ -234,13 +241,15 @@ export const getBindedObligationId = async (
 
   // check if veSca is inside the bind table
   const keyType = `${borrowIncentiveObjectId}::typed_id::TypedID<${veScaObjId}::ve_sca::VeScaKey>`;
-  const veScaBindTableResponse = await query.cache.queryGetDynamicFieldObject({
-    parentId: veScaBindTableId,
-    name: {
-      type: keyType,
-      value: veScaKeyId,
-    },
-  });
+  const veScaBindTableResponse = await address.cache.queryGetDynamicFieldObject(
+    {
+      parentId: veScaBindTableId,
+      name: {
+        type: keyType,
+        value: veScaKeyId,
+      },
+    }
+  );
 
   if (veScaBindTableResponse?.data?.content?.dataType !== 'moveObject')
     return null;
@@ -253,17 +262,19 @@ export const getBindedObligationId = async (
 };
 
 export const getBindedVeScaKey = async (
-  query: ScallopQuery,
+  {
+    address,
+  }: {
+    address: ScallopAddress;
+  },
   obliationId: string
 ): Promise<string | null> => {
-  const borrowIncentiveObjectId = query.address.get('borrowIncentive.object');
-  const incentiveAccountsId = query.address.get(
-    'borrowIncentive.incentiveAccounts'
-  );
-  const corePkg = query.address.get('core.object');
+  const borrowIncentiveObjectId = address.get('borrowIncentive.object');
+  const incentiveAccountsId = address.get('borrowIncentive.incentiveAccounts');
+  const corePkg = address.get('core.object');
 
   // get IncentiveAccounts object
-  const incentiveAccountsObject = await query.cache.queryGetObject(
+  const incentiveAccountsObject = await address.cache.queryGetObject(
     incentiveAccountsId,
     {
       showContent: true,
@@ -276,7 +287,7 @@ export const getBindedVeScaKey = async (
   ).accounts.fields.id.id;
 
   // Search in the table
-  const bindedIncentiveAcc = await query.cache.queryGetDynamicFieldObject({
+  const bindedIncentiveAcc = await address.cache.queryGetDynamicFieldObject({
     parentId: incentiveAccountsTableId,
     name: {
       type: `${borrowIncentiveObjectId}::typed_id::TypedID<${corePkg}::obligation::Obligation>`,

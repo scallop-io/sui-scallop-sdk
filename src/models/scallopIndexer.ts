@@ -17,11 +17,13 @@ import type {
   TotalValueLocked,
   ScallopQueryParams,
   ScallopParams,
-  ScallopInstanceParams,
   BorrowIncentivePoolPoints,
   SupportBorrowIncentiveRewardCoins,
+  ScallopIndexerInstanceParams,
 } from '../types';
 import { ScallopCache } from './scallopCache';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
+import { SuiKit } from '@scallop-io/sui-kit';
 
 /**
  * @description
@@ -36,13 +38,18 @@ import { ScallopCache } from './scallopCache';
  * ```
  */
 export class ScallopIndexer {
-  private readonly _cache: ScallopCache;
+  private readonly cache: ScallopCache;
   public readonly params: ScallopQueryParams;
   private readonly _requestClient: AxiosInstance;
 
-  public constructor(params: ScallopParams, instance?: ScallopInstanceParams) {
+  public constructor(
+    params: ScallopParams,
+    instance?: ScallopIndexerInstanceParams
+  ) {
     this.params = params;
-    this._cache = instance?.cache ?? new ScallopCache();
+    this.cache =
+      instance?.cache ??
+      new ScallopCache(new SuiKit({}), undefined, DEFAULT_CACHE_OPTIONS);
     this._requestClient = axios.create({
       baseURL: SDK_API_BASE_URL,
       headers: {
@@ -59,7 +66,7 @@ export class ScallopIndexer {
    * @return Market data.
    */
   public async getMarket(): Promise<Pick<Market, 'pools' | 'collaterals'>> {
-    const response = await this._cache.queryClient.fetchQuery({
+    const response = await this.cache.queryClient.fetchQuery({
       queryKey: ['market'],
       queryFn: async () => {
         return await this._requestClient.get<{
@@ -137,7 +144,7 @@ export class ScallopIndexer {
    * @return Spools data.
    */
   public async getSpools(): Promise<Required<Spools>> {
-    const response = await this._cache.queryClient.fetchQuery({
+    const response = await this.cache.queryClient.fetchQuery({
       queryKey: ['spools'],
       queryFn: async () => {
         return await this._requestClient.get<{
@@ -175,7 +182,7 @@ export class ScallopIndexer {
   public async getBorrowIncentivePools(): Promise<
     Required<BorrowIncentivePools>
   > {
-    const response = await this._cache.queryClient.fetchQuery({
+    const response = await this.cache.queryClient.fetchQuery({
       queryKey: ['borrowIncentivePools'],
       queryFn: async () => {
         return await this._requestClient.get<{
@@ -237,7 +244,7 @@ export class ScallopIndexer {
       supplyValueChangeRatio: number;
     }
   > {
-    const response = await this._cache.queryClient.fetchQuery({
+    const response = await this.cache.queryClient.fetchQuery({
       queryKey: ['totalValueLocked'],
       queryFn: async () => {
         return await this._requestClient.get<
