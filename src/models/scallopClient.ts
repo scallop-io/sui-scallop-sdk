@@ -989,6 +989,7 @@ export class ScallopClient {
    * @returns Transaction response
    */
   public async migrateAllMarketCoin<S extends boolean>(
+    includeStakePool: boolean = true,
     sign: S = true as S
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
@@ -1040,18 +1041,20 @@ export class ScallopClient {
           );
           sCoins.push(sCoin);
         }
-        // check for staked market coin in spool
-        if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
-          try {
-            const sCoin = await txBlock.unstakeQuick(
-              Number.MAX_SAFE_INTEGER,
-              sCoinName as SupportStakeMarketCoins
-            );
-            if (sCoin) {
-              sCoins.push(sCoin);
+        if (includeStakePool) {
+          // check for staked market coin in spool
+          if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
+            try {
+              const sCoin = await txBlock.unstakeQuick(
+                Number.MAX_SAFE_INTEGER,
+                sCoinName as SupportStakeMarketCoins
+              );
+              if (sCoin) {
+                sCoins.push(sCoin);
+              }
+            } catch (e: any) {
+              // ignore
             }
-          } catch (e: any) {
-            // ignore
           }
         }
 
