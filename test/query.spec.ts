@@ -449,3 +449,16 @@ describe('Test sCoin Query', async () => {
     expect(getSCoinSwapRate > 0).toBe(true);
   });
 });
+
+describe('Test Supply Limit Query', async () => {
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const sender = scallopQuery.suiKit.currentAddress();
+  console.info(`Your Wallet: ${sender}`);
+
+  it('Should get supply limit of a pool', async () => {
+    const poolName = 'sui';
+    const supplyLimit = await scallopQuery.getPoolSupplyLimit(poolName);
+    expect(typeof supplyLimit).toBe('string');
+    expect(+supplyLimit! > 0).toBe(true);
+  });
+});

@@ -37,6 +37,7 @@ import {
   OptionalKeys,
 } from '../types';
 import BigNumber from 'bignumber.js';
+import { getSupplyLimit } from './supplyLimit';
 
 /**
  * Query market data.
@@ -124,6 +125,8 @@ export const queryMarket = async (
       parsedMarketPoolData
     );
 
+    const supplyLimit =
+      (await getSupplyLimit(query.utils, poolCoinName)) ?? '0';
     pools[poolCoinName] = {
       coinName: poolCoinName,
       symbol: query.utils.parseSymbol(poolCoinName),
@@ -142,6 +145,7 @@ export const queryMarket = async (
       borrowFee: parsedMarketPoolData.borrowFee,
       marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
+      supplyLimit,
       ...calculatedMarketPoolData,
     };
   }
@@ -451,6 +455,9 @@ export const getMarketPool = async (
       parsedMarketPoolData
     );
 
+    const supplyLimit =
+      (await getSupplyLimit(query.utils, poolCoinName)) ?? '0';
+
     marketPool = {
       coinName: poolCoinName,
       symbol: query.utils.parseSymbol(poolCoinName),
@@ -469,6 +476,7 @@ export const getMarketPool = async (
       borrowFee: parsedMarketPoolData.borrowFee,
       marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
+      supplyLimit,
       ...calculatedMarketPoolData,
     };
   }
