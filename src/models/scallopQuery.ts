@@ -60,6 +60,7 @@ import {
   getSCoinTotalSupply,
 } from 'src/queries/sCoinQuery';
 import { normalizeSuiAddress } from '@mysten/sui.js/utils';
+import { getSupplyLimit } from 'src/queries/supplyLimit';
 
 /**
  * @description
@@ -680,5 +681,12 @@ export class ScallopQuery {
     assetCoinNames: SupportAssetCoins[] = [...SUPPORT_POOLS]
   ) {
     return await getFlashLoanFees(this, assetCoinNames);
+  }
+
+  /**
+   * Get supply limit of supply pool
+   */
+  public async getPoolSupplyLimit(poolName: SupportPoolCoins) {
+    return await getSupplyLimit(this.utils, poolName);
   }
 }
