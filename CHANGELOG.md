@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.61](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.60...v0.46.61) (2024-09-24)
+
+### Features
+
+- Add supply limit information ([8e52981](https://github.com/scallop-io/sui-scallop-sdk/pull/165/commits/8e5298133e828bd34a05853855a238d9a228b71e))
+
 ### [0.46.60](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.59...v0.46.60) (2024-09-24)
 
 ### Features
