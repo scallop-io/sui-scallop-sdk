@@ -442,7 +442,7 @@ describe('Test Scallop Client - Migrate sCoin method', async () => {
   console.info('Your wallet:', client.walletAddress);
 
   it('Should migrate all market coin into sCoin successfully', async () => {
-    const txb = await client.migrateAllMarketCoin(false);
+    const txb = await client.migrateAllMarketCoin(false, false);
     const migrateResult = await client.suiKit.inspectTxn(txb);
     if (ENABLE_LOG) {
       console.info('Migrate result:', migrateResult);

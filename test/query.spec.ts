@@ -364,6 +364,24 @@ describe('Test VeSca Query', async () => {
     expect(treasuryInfoSchema.safeParse(totalVeScaTreasury).success).toBe(true);
   });
 
+  it(`Should get veSCA`, async () => {
+    const veSca = await scallopQuery.getVeSca(veScaKeys[0]);
+    if (ENABLE_LOG) {
+      console.info('VeSca:', veSca);
+    }
+    expect(!!veSca).toBe(true);
+
+    const veScaSchema = zod.object({
+      id: zod.string(),
+      keyId: zod.string(),
+      lockedScaAmount: zod.string(),
+      lockedScaCoin: zod.number(),
+      currentVeScaBalance: zod.number(),
+      unlockAt: zod.number(),
+    });
+    expect(veScaSchema.safeParse(veSca).success).toBe(true);
+  });
+
   it(`Should get veSCAs`, async () => {
     const veScas = await scallopQuery.getVeScas(sender);
     if (ENABLE_LOG) {
