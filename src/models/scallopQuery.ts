@@ -33,6 +33,7 @@ import {
   getVeScaTreasuryInfo,
   getLoyaltyProgramInformations,
   getFlashLoanFees,
+  getVeSca,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -562,6 +563,15 @@ export class ScallopQuery {
    */
   public async getTvl(indexer: boolean = false) {
     return await getTotalValueLocked(this, indexer);
+  }
+
+  /**
+   * Get veSca data.
+   * @param veScaKey
+   * @returns veSca
+   */
+  public async getVeSca(veScaKey: string | SuiObjectData) {
+    return await getVeSca(this.utils, veScaKey);
   }
 
   /**
