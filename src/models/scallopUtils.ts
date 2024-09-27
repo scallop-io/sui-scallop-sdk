@@ -582,7 +582,7 @@ export class ScallopUtils {
   }
 
   /**
-   * Convert apr to apy.
+   * Convert apy to apr.
    *
    * @param apr The equivalent annual percentage yield (APY).
    * @param compoundFrequency How often interest is compounded per year. Default is daily (365 times a year).
