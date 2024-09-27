@@ -125,8 +125,13 @@ export const queryMarket = async (
       parsedMarketPoolData
     );
 
-    const supplyLimit =
-      (await getSupplyLimit(query.utils, poolCoinName)) ?? '0';
+    const coinDecimal = query.utils.getCoinDecimal(poolCoinName);
+    const maxSupplyCoin = BigNumber(
+      (await getSupplyLimit(query.utils, poolCoinName)) ?? '0'
+    )
+      .shiftedBy(-coinDecimal)
+      .toNumber();
+
     pools[poolCoinName] = {
       coinName: poolCoinName,
       symbol: query.utils.parseSymbol(poolCoinName),
@@ -136,7 +141,7 @@ export const queryMarket = async (
         query.utils.parseMarketCoinName(poolCoinName)
       ),
       coinWrappedType: query.utils.getCoinWrappedType(poolCoinName),
-      coinDecimal: query.utils.getCoinDecimal(poolCoinName),
+      coinDecimal,
       coinPrice: coinPrice,
       highKink: parsedMarketPoolData.highKink,
       midKink: parsedMarketPoolData.midKink,
@@ -145,7 +150,7 @@ export const queryMarket = async (
       borrowFee: parsedMarketPoolData.borrowFee,
       marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
-      supplyLimit,
+      maxSupplyCoin,
       ...calculatedMarketPoolData,
     };
   }
@@ -455,8 +460,12 @@ export const getMarketPool = async (
       parsedMarketPoolData
     );
 
-    const supplyLimit =
-      (await getSupplyLimit(query.utils, poolCoinName)) ?? '0';
+    const coinDecimal = query.utils.getCoinDecimal(poolCoinName);
+    const maxSupplyCoin = BigNumber(
+      (await getSupplyLimit(query.utils, poolCoinName)) ?? '0'
+    )
+      .shiftedBy(-coinDecimal)
+      .toNumber();
 
     marketPool = {
       coinName: poolCoinName,
@@ -467,7 +476,7 @@ export const getMarketPool = async (
         query.utils.parseMarketCoinName(poolCoinName)
       ),
       coinWrappedType: query.utils.getCoinWrappedType(poolCoinName),
-      coinDecimal: query.utils.getCoinDecimal(poolCoinName),
+      coinDecimal,
       coinPrice: coinPrice ?? 0,
       highKink: parsedMarketPoolData.highKink,
       midKink: parsedMarketPoolData.midKink,
@@ -476,7 +485,7 @@ export const getMarketPool = async (
       borrowFee: parsedMarketPoolData.borrowFee,
       marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
-      supplyLimit,
+      maxSupplyCoin,
       ...calculatedMarketPoolData,
     };
   }
