@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.62](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.61...v0.46.62) (2024-09-27)
+
+### Features
+
+- Fix typo ([4e9efd5](https://github.com/scallop-io/sui-scallop-sdk/pull/166/commits/4e9efd50e7a1178ae84cd6346fa633ebc413ce93))
+
+- Add `supplyLimit` to Lending ([f067f0f](https://github.com/scallop-io/sui-scallop-sdk/pull/166/commits/f067f0f6f55c57ed9d2334741a963aff443e3299))
+
 ### [0.46.61](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.60...v0.46.61) (2024-09-26)
 
 ### Features
