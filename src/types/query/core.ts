@@ -129,7 +129,7 @@ export type MarketPool = {
   coinWrappedType: CoinWrappedType;
   coinDecimal: number;
   coinPrice: number;
-  supplyLimit: string;
+  maxSupplyCoin: number;
 } & Required<
   Pick<
     ParsedMarketPoolData,

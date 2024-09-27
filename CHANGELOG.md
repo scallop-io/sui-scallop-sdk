@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.62](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.61...v0.46.62) (2024-09-27)
+
+### Features
+
+- Fix typo ([4e9efd5](https://github.com/scallop-io/sui-scallop-sdk/pull/167/commits/4e9efd50e7a1178ae84cd6346fa633ebc413ce93))
+
+- Change `supplyLimit` to `maxSupplyCoin` ([a074b56](https://github.com/scallop-io/sui-scallop-sdk/pull/167/commits/a074b56e436d1b0b55b31b244c3968f18628e80c))
+
 ### [0.46.61](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.60...v0.46.61) (2024-09-26)
 
 ### Features
