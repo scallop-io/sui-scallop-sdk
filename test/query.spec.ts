@@ -364,6 +364,24 @@ describe('Test VeSca Query', async () => {
     expect(treasuryInfoSchema.safeParse(totalVeScaTreasury).success).toBe(true);
   });
 
+  it(`Should get veSCA`, async () => {
+    const veSca = await scallopQuery.getVeSca(veScaKeys[0]);
+    if (ENABLE_LOG) {
+      console.info('VeSca:', veSca);
+    }
+    expect(!!veSca).toBe(true);
+
+    const veScaSchema = zod.object({
+      id: zod.string(),
+      keyId: zod.string(),
+      lockedScaAmount: zod.string(),
+      lockedScaCoin: zod.number(),
+      currentVeScaBalance: zod.number(),
+      unlockAt: zod.number(),
+    });
+    expect(veScaSchema.safeParse(veSca).success).toBe(true);
+  });
+
   it(`Should get veSCAs`, async () => {
     const veScas = await scallopQuery.getVeScas(sender);
     if (ENABLE_LOG) {
@@ -447,5 +465,18 @@ describe('Test sCoin Query', async () => {
     console.log('getSCoinSwapRate', getSCoinSwapRate);
     expect(typeof getSCoinSwapRate).toBe('number');
     expect(getSCoinSwapRate > 0).toBe(true);
+  });
+});
+
+describe('Test Supply Limit Query', async () => {
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const sender = scallopQuery.suiKit.currentAddress();
+  console.info(`Your Wallet: ${sender}`);
+
+  it('Should get supply limit of a pool', async () => {
+    const poolName = 'sui';
+    const supplyLimit = await scallopQuery.getPoolSupplyLimit(poolName);
+    expect(typeof supplyLimit).toBe('string');
+    expect(+supplyLimit! > 0).toBe(true);
   });
 });

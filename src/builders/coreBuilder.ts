@@ -341,47 +341,44 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       try {
         const sCoinName = builder.utils.parseSCoinName(poolCoinName);
         if (!sCoinName) throw new Error(`No sCoin for ${poolCoinName}`);
-        const { leftCoin, takeCoin, totalAmount } = await builder.selectSCoin(
-          txBlock,
-          sCoinName,
-          amount,
-          sender
-        );
+        const {
+          leftCoin,
+          takeCoin: sCoins,
+          totalAmount,
+        } = await builder.selectSCoin(txBlock, sCoinName, amount, sender);
         txBlock.transferObjects([leftCoin], sender);
-        const marketCoin = txBlock.burnSCoin(sCoinName, takeCoin);
-
-        const txResult = txBlock.withdraw(marketCoin, poolCoinName);
+        const marketCoins = txBlock.burnSCoin(sCoinName, sCoins);
 
         // check amount
         amount -= totalAmount;
         try {
           if (amount > 0) {
             // sCoin is not enough, try market coin
-            const { leftCoin, takeCoin } = await builder.selectMarketCoin(
-              txBlock,
-              marketCoinName,
-              amount,
-              sender
-            );
+            const { leftCoin, takeCoin: walletMarketCoins } =
+              await builder.selectMarketCoin(
+                txBlock,
+                marketCoinName,
+                amount,
+                sender
+              );
             txBlock.transferObjects([leftCoin], sender);
-            txBlock.mergeCoins(txResult, [
-              txBlock.withdraw(takeCoin, poolCoinName),
-            ]);
+            txBlock.mergeCoins(marketCoins, [walletMarketCoins]);
           }
         } catch (e) {
           // ignore
         }
-        return txResult;
+        return txBlock.withdraw(marketCoins, poolCoinName);
       } catch (e) {
         // no sCoin found
-        const { leftCoin, takeCoin } = await builder.selectMarketCoin(
-          txBlock,
-          marketCoinName,
-          amount,
-          sender
-        );
+        const { leftCoin, takeCoin: walletMarketCoins } =
+          await builder.selectMarketCoin(
+            txBlock,
+            marketCoinName,
+            amount,
+            sender
+          );
         txBlock.transferObjects([leftCoin], sender);
-        return txBlock.withdraw(takeCoin, poolCoinName);
+        return txBlock.withdraw(walletMarketCoins, poolCoinName);
       }
     },
     borrowQuick: async (amount, poolCoinName, obligationId, obligationKey) => {
