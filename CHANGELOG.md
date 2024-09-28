@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.46.62](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.61...v0.46.62) (2024-09-27)
+
+### Features
+
+- Fix typo ([4e9efd5](https://github.com/scallop-io/sui-scallop-sdk/pull/167/commits/4e9efd50e7a1178ae84cd6346fa633ebc413ce93))
+
+- Change `supplyLimit` to `maxSupplyCoin` ([a074b56](https://github.com/scallop-io/sui-scallop-sdk/pull/167/commits/a074b56e436d1b0b55b31b244c3968f18628e80c))
+
+### [0.46.61](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.60...v0.46.61) (2024-09-26)
+
+### Features
+
+- Add `getVeSca` query ([9280e3d](https://github.com/scallop-io/sui-scallop-sdk/pull/165/commits/9280e3d902c81a08bbace89d2edc3c055520c766))
+
+- Add supply limit information ([8e52981](https://github.com/scallop-io/sui-scallop-sdk/pull/165/commits/8e5298133e828bd34a05853855a238d9a228b71e))
+
+### [0.46.60](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.59...v0.46.60) (2024-09-24)
+
+### Features
+
+- Bump version
+
+### [0.46.59](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.58...v0.46.59) (2024-09-24)
+
+### Bugfix
+
+- Fix error `redeem market coin too small` ([36f905c](https://github.com/scallop-io/sui-scallop-sdk/pull/163/commits/36f905c9213280df1e9582f8e77c21b94670293e))
+
+### [0.46.58](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.58-alpha.1...v0.46.58) (2024-09-24)
+
+### Features
+
+- Allow excluding staked coin in `migrateAllMarketCoin` method ([4e1725e](https://github.com/scallop-io/sui-scallop-sdk/pull/162/commits/4e1725e17069a235957561a1a6bf899a4569d074))
+
 ### [0.46.58-alpha.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.57...v0.46.58-alpha.1) (2024-09-19)
 
 ### Adjustments
