@@ -175,6 +175,7 @@ const updatePrice = (
       coinType
     );
   }
+
   confirmPriceUpdateRequest(
     txBlock,
     xOraclePackageId,
@@ -231,6 +232,7 @@ const confirmPriceUpdateRequest = (
 /**
  * Construct a transaction block for update supra price.
  *
+ * @param type - The type of price rule.
  * @param txBlock - The transaction block.
  * @param packageId - The supra package id.
  * @param request - The result of the request.
@@ -257,6 +259,7 @@ const updateSupraPrice = (
 /**
  * Construct a transaction block for update switchboard price.
  *
+ * @param type - The type of price rule.
  * @param txBlock - The transaction block.
  * @param packageId - The switchboard package id.
  * @param request - The result of the request.
@@ -283,6 +286,7 @@ const updateSwitchboardPrice = (
 /**
  * Construct a transaction block for update pyth price.
  *
+ * @param type - The type of price rule.
  * @param txBlock - The transaction block.
  * @param packageId - The pyth package id.
  * @param request - The result of the request.

@@ -40,7 +40,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      apt: {
+      wapt: {
         id: '0x3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37',
         metaData:
           '0xc969c5251f372c0f34c32759f1d315cf1ea0ee5e4454b52aea08778eacfdd0a8',
@@ -55,7 +55,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      sol: {
+      wsol: {
         id: '0xb7844e289a8410e50fb3ca48d69eb9cf29e27d223ef90353fe1bd8e27ff8f3f8',
         metaData:
           '0x4d2c39082b4477e3e79dc4562d939147ab90c42fc5f3e4acf03b94383cd69b6e',
@@ -70,7 +70,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      btc: {
+      wbtc: {
         id: '0x027792d9fed7f9844eb4839566001bb6f6cb4804f66aa2da6fe1ee242d896881',
         metaData:
           '0x5d3c6e60eeff8a05b693b481539e7847dfe33013e7070cdcb387f5c0cac05dfd',
@@ -85,7 +85,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      eth: {
+      weth: {
         id: '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5',
         metaData:
           '0x8900e4ceede3363bef086d6b50ca89d816d0e90bf6bc46efefe1f8455e08f50f',
@@ -100,7 +100,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      usdc: {
+      wusdc: {
         id: '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf',
         metaData:
           '0x4fbf84f3029bd0c0b77164b587963be957f853eccf834a67bb9ecba6ec80f189',
@@ -115,7 +115,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      usdt: {
+      wusdt: {
         id: '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c',
         metaData:
           '0xfb0e3eb97dd158a5ae979dddfa24348063843c5b20eb8381dd5fa7c93699e45c',
@@ -298,7 +298,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
     object:
       '0x1742655fe5872dfa6456673f9e38612a4965e6979e6cd7696a7f1225f28bae21',
     pools: {
-      seth: {
+      sweth: {
         id: '0xeec40beccb07c575bebd842eeaabb835f77cd3dab73add433477e57f583a6787',
         rewardPoolId:
           '0x957de68a18d87817de8309b30c1ec269a4d87ae513abbeed86b5619cb9ce1077',
@@ -310,14 +310,14 @@ export const TEST_ADDRESSES: AddressesInterface = {
           // '0x162250ef72393a4ad3d46294c4e1bdfcb03f04c869d390e7efbfc995353a7ee9',
           '0xc3206071a8d43212efb6e3b5504f2321f8df97ab122b466c0bc7cfdf398dc13a',
       },
-      susdc: {
+      swusdc: {
         // id: '0x4ace6648ddc64e646ba47a957c562c32c9599b3bba8f5ac1aadb2ae23a2f8ca0',
         id: '0xf1b383b9cf2e9f515fc69567df1053098f273849d09cd84b0278a773429bd2b2',
         rewardPoolId:
           // '0xf4268cc9b9413b9bfe09e8966b8de650494c9e5784bf0930759cfef4904daff8',
           '0xc71c53ee6505d928ba15bea4fe4f45d98c9c31eced94b72d00a7827d4b7ba3ff',
       },
-      susdt: {
+      swusdt: {
         // id: '0xcb328f7ffa7f9342ed85af3fdb2f22919e1a06dfb2f713c04c73543870d7548f',
         id: '0xb5567dfa5c7fc17a249e959732664c50713dd8c23db1a11376b27df800c17418',
         rewardPoolId:
@@ -436,19 +436,19 @@ export const TEST_ADDRESSES: AddressesInterface = {
         treasury:
           '0xe818636d1d6c46d6ea1a2dce9d94696d7cbc18ce27451b603eeaa47aba8d75e0',
       },
-      susdc: {
+      swusdc: {
         coinType:
           '0xaedc3ab75db8680b81a755015fa90124d217be93457b893c05bac033817defaf::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
         treasury:
           '0xfc6971648f867f7fd6928d1b873af71577e2eaf2c7543ef8bc82c431d833ae78',
       },
-      susdt: {
+      swusdt: {
         coinType:
           '0xbf02fc87ddc104b342ad8414c85ceadf5b0c823c055a06fb0ed776272c01a52a::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
         treasury:
           '0xb9593e2c3a0ba796ee815012b75ae46468ea78cda0188b9ac6816efe65503521',
       },
-      seth: {
+      sweth: {
         coinType:
           '0x27d54f43e3eda701be56b82e5756e41c84467cd202f5cf713d5f9e45a9f1b6bc::scallop_wormhole_eth::SCALLOP_WORMHOLE_ETH',
         treasury:
