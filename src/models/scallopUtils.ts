@@ -191,7 +191,7 @@ export class ScallopUtils {
   public parseSCoinName<T extends SupportSCoin>(
     coinName: SupportCoins | SupportMarketCoins
   ) {
-    // need more check because swbtc, swsol and swapt has no sCoin type
+    // need more check because swapt has no sCoin type
     if (
       isMarketCoin(coinName) &&
       SUPPORT_SCOIN.includes(coinName as SupportSCoin)

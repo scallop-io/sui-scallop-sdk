@@ -448,7 +448,7 @@ export const parseOriginBorrowIncentivePoolData = (
 };
 
 export const calculateBorrowIncentivePoolPointData = (
-  parsedBorrowIncentivePoolData: ParsedBorrowIncentivePoolData,
+  // parsedBorrowIncentivePoolData: ParsedBorrowIncentivePoolData,
   parsedBorrowIncentivePoolPointData: ParsedBorrowIncentivePoolPointData,
   rewardCoinPrice: number,
   rewardCoinDecimal: number,

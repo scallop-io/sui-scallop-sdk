@@ -70,6 +70,7 @@ export const getSpools = async (
       spools[spool.marketCoinName] = spool;
     }
 
+    // console.log(spools);
     return spools;
   }
 

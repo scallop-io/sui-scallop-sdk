@@ -9,7 +9,8 @@ export const USE_TEST_ADDRESS = false;
 export const ADDRESSES_ID =
   IS_VE_SCA_TEST || USE_TEST_ADDRESS
     ? ('65fb07c39c845425d71d7b18' as const)
-    : ('664dfe22898c36c159e28bc8' as const);
+    : ('66f8e7ed9bb9e07fdfb86bbb' as const);
+// : ('664dfe22898c36c159e28bc8' as const);
 // : ('6601955b8b0024600a917079' as const);
 // : ('6462a088a7ace142bb6d7e9b' as const);
 
