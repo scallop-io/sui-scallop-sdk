@@ -163,12 +163,12 @@ export class ScallopUtils {
     if (coinName === 'sui')
       return normalizeStructTag(`${coinPackageId}::sui::SUI`);
     const wormHolePackageIds = [
-      this.address.get('core.coins.usdc.id') ?? wormholeCoinIds.usdc,
-      this.address.get('core.coins.usdt.id') ?? wormholeCoinIds.usdt,
-      this.address.get('core.coins.eth.id') ?? wormholeCoinIds.eth,
-      this.address.get('core.coins.btc.id') ?? wormholeCoinIds.btc,
-      this.address.get('core.coins.sol.id') ?? wormholeCoinIds.sol,
-      this.address.get('core.coins.apt.id') ?? wormholeCoinIds.apt,
+      this.address.get('core.coins.wusdc.id') ?? wormholeCoinIds.wusdc,
+      this.address.get('core.coins.wusdt.id') ?? wormholeCoinIds.wusdt,
+      this.address.get('core.coins.weth.id') ?? wormholeCoinIds.weth,
+      this.address.get('core.coins.wbtc.id') ?? wormholeCoinIds.wbtc,
+      this.address.get('core.coins.wsol.id') ?? wormholeCoinIds.wsol,
+      this.address.get('core.coins.wapt.id') ?? wormholeCoinIds.wapt,
     ];
     const voloPackageIds = [
       this.address.get('core.coins.vsui.id') ?? voloCoinIds.vsui,
@@ -191,7 +191,7 @@ export class ScallopUtils {
   public parseSCoinName<T extends SupportSCoin>(
     coinName: SupportCoins | SupportMarketCoins
   ) {
-    // need more check because sbtc, ssol and sapt has no sCoin type
+    // need more check because swapt has no sCoin type
     if (
       isMarketCoin(coinName) &&
       SUPPORT_SCOIN.includes(coinName as SupportSCoin)
@@ -275,23 +275,23 @@ export class ScallopUtils {
 
     const wormHoleCoinTypeMap: Record<string, SupportAssetCoins> = {
       [`${
-        this.address.get('core.coins.usdc.id') ?? wormholeCoinIds.usdc
-      }::coin::COIN`]: 'usdc',
+        this.address.get('core.coins.wusdc.id') ?? wormholeCoinIds.wusdc
+      }::coin::COIN`]: 'wusdc',
       [`${
-        this.address.get('core.coins.usdt.id') ?? wormholeCoinIds.usdt
-      }::coin::COIN`]: 'usdt',
+        this.address.get('core.coins.wusdt.id') ?? wormholeCoinIds.wusdt
+      }::coin::COIN`]: 'wusdt',
       [`${
-        this.address.get('core.coins.eth.id') ?? wormholeCoinIds.eth
-      }::coin::COIN`]: 'eth',
+        this.address.get('core.coins.weth.id') ?? wormholeCoinIds.weth
+      }::coin::COIN`]: 'weth',
       [`${
-        this.address.get('core.coins.btc.id') ?? wormholeCoinIds.btc
-      }::coin::COIN`]: 'btc',
+        this.address.get('core.coins.wbtc.id') ?? wormholeCoinIds.wbtc
+      }::coin::COIN`]: 'wbtc',
       [`${
-        this.address.get('core.coins.sol.id') ?? wormholeCoinIds.sol
-      }::coin::COIN`]: 'sol',
+        this.address.get('core.coins.wsol.id') ?? wormholeCoinIds.wsol
+      }::coin::COIN`]: 'wsol',
       [`${
-        this.address.get('core.coins.apt.id') ?? wormholeCoinIds.apt
-      }::coin::COIN`]: 'apt',
+        this.address.get('core.coins.wapt.id') ?? wormholeCoinIds.wapt
+      }::coin::COIN`]: 'wapt',
     };
     const voloCoinTypeMap: Record<string, SupportAssetCoins> = {
       [`${
@@ -370,12 +370,12 @@ export class ScallopUtils {
    * return Coin wrapped type.
    */
   public getCoinWrappedType(assetCoinName: SupportAssetCoins): CoinWrappedType {
-    return assetCoinName === 'usdc' ||
-      assetCoinName === 'usdt' ||
-      assetCoinName === 'eth' ||
-      assetCoinName === 'btc' ||
-      assetCoinName === 'apt' ||
-      assetCoinName === 'sol'
+    return assetCoinName === 'wusdc' ||
+      assetCoinName === 'wusdt' ||
+      assetCoinName === 'weth' ||
+      assetCoinName === 'wbtc' ||
+      assetCoinName === 'wapt' ||
+      assetCoinName === 'wsol'
       ? {
           from: 'Wormhole',
           type: 'Portal from Ethereum',

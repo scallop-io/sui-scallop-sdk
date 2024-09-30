@@ -113,7 +113,7 @@ export const queryBorrowIncentivePools = async (
       const coinDecimal = query.utils.getCoinDecimal(rewardCoinName);
 
       const calculatedPoolPoint = calculateBorrowIncentivePoolPointData(
-        parsedBorrowIncentivePoolData,
+        // parsedBorrowIncentivePoolData,
         poolPoint,
         rewardCoinPrice,
         rewardCoinDecimal,

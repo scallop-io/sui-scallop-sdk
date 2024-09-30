@@ -152,14 +152,14 @@ Methods for interacting with the spool contract.
 - Stake Market Coin.
 
   ```typescript
-  // Stake to specific spool, currently support ssui, susdc, and susdt
+  // Stake to specific spool, currently support ssui, swusdc, and swusdt
   const stakeResult = await client.stake('ssui', 10 ** 8);
   ```
 
 - Unstake Market Coin.
 
   ```typescript
-  // Untake to specific spool, currently support ssui, susdc, and susdt
+  // Untake to specific spool, currently support ssui, swusdc, and swusdt
   const unstakeResult = await client.unstake('ssui', 10 ** 8);
   ```
 

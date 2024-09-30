@@ -70,6 +70,7 @@ export const getSpools = async (
       spools[spool.marketCoinName] = spool;
     }
 
+    // console.log(spools);
     return spools;
   }
 
@@ -270,10 +271,10 @@ export const getStakeAccounts = async (
   } while (hasNextPage);
 
   const stakeAccounts: StakeAccounts = {
-    seth: [],
+    sweth: [],
     ssui: [],
-    susdc: [],
-    susdt: [],
+    swusdc: [],
+    swusdt: [],
     scetus: [],
     safsui: [],
     shasui: [],
@@ -314,8 +315,8 @@ export const getStakeAccounts = async (
       const index = Number(fields.index);
       const points = Number(fields.points);
       const totalPoints = Number(fields.total_points);
-      if (normalizeStructTag(type) === stakeMarketCoinTypes.seth) {
-        stakeAccounts.seth.push({
+      if (normalizeStructTag(type) === stakeMarketCoinTypes.sweth) {
+        stakeAccounts.sweth.push({
           id,
           type: normalizeStructTag(type),
           stakePoolId,
@@ -336,8 +337,8 @@ export const getStakeAccounts = async (
           points,
           totalPoints,
         });
-      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.susdc) {
-        stakeAccounts.susdc.push({
+      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.swusdc) {
+        stakeAccounts.swusdc.push({
           id,
           type: normalizeStructTag(type),
           stakePoolId,
@@ -347,8 +348,8 @@ export const getStakeAccounts = async (
           points,
           totalPoints,
         });
-      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.susdt) {
-        stakeAccounts.susdt.push({
+      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.swusdt) {
+        stakeAccounts.swusdt.push({
           id,
           type: normalizeStructTag(type),
           stakePoolId,

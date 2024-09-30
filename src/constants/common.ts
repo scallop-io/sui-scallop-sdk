@@ -9,7 +9,8 @@ export const USE_TEST_ADDRESS = false;
 export const ADDRESSES_ID =
   IS_VE_SCA_TEST || USE_TEST_ADDRESS
     ? ('65fb07c39c845425d71d7b18' as const)
-    : ('664dfe22898c36c159e28bc8' as const);
+    : ('66f8e7ed9bb9e07fdfb86bbb' as const);
+// : ('664dfe22898c36c159e28bc8' as const);
 // : ('6601955b8b0024600a917079' as const);
 // : ('6462a088a7ace142bb6d7e9b' as const);
 
@@ -33,13 +34,13 @@ export const OLD_BORROW_INCENTIVE_PROTOCOL_ID =
   '0xc63072e7f5f4983a2efaf5bdba1480d5e7d74d57948e1c7cc436f8e22cbeb410' as const;
 
 export const SUPPORT_POOLS = [
-  'eth',
-  'btc',
-  'usdc',
-  'usdt',
+  'weth',
+  'wbtc',
+  'wusdc',
+  'wusdt',
   'sui',
-  'apt',
-  'sol',
+  'wapt',
+  'wsol',
   'cetus',
   'afsui',
   'hasui',
@@ -48,13 +49,13 @@ export const SUPPORT_POOLS = [
 ] as const;
 
 export const SUPPORT_COLLATERALS = [
-  'eth',
-  'btc',
-  'usdc',
-  'usdt',
+  'weth',
+  'wbtc',
+  'wusdc',
+  'wusdt',
   'sui',
-  'apt',
-  'sol',
+  'wapt',
+  'wsol',
   'cetus',
   'afsui',
   'hasui',
@@ -63,10 +64,10 @@ export const SUPPORT_COLLATERALS = [
 ] as const;
 
 export const SUPPORT_SPOOLS = [
-  'seth',
+  'sweth',
   'ssui',
-  'susdc',
-  'susdt',
+  'swusdc',
+  'swusdt',
   'scetus',
   'safsui',
   'shasui',
@@ -75,28 +76,28 @@ export const SUPPORT_SPOOLS = [
 
 export const SUPPORT_SCOIN = [
   'ssui',
-  'susdc',
-  'susdt',
+  'swusdc',
+  'swusdt',
   'safsui',
   'shasui',
   'svsui',
-  'seth',
+  'sweth',
   'ssca',
   'scetus',
-  'ssol',
-  'sbtc',
+  'swsol',
+  'swbtc',
 ] as const;
 
 export const SUPPORT_SPOOLS_REWARDS = ['sui'] as const;
 
 export const SUPPORT_BORROW_INCENTIVE_POOLS = [
   'sui',
-  'usdc',
-  'usdt',
+  'wusdc',
+  'wusdt',
   'afsui',
   'hasui',
   'vsui',
-  'eth',
+  'weth',
   'sca',
 ] as const;
 
