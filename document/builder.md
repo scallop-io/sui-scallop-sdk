@@ -36,7 +36,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   const scallopTxBlock = txBuilder.createTxBlock();
   // Sender is required to invoke "addCollateralQuick".
   scallopTxBlock.setSender(sender);
-  await scallopTxBlock.addCollateralQuick(10 ** 9, 'usdc');
+  await scallopTxBlock.addCollateralQuick(10 ** 9, 'wusdc');
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
@@ -46,7 +46,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   const scallopTxBlock = txBuilder.createTxBlock();
   // Sender is required to invoke "removeCollateralQuick".
   scallopTxBlock.setSender(sender);
-  const coin = await scallopTxBlock.takeCollateralQuick(10 ** 9, 'usdc');
+  const coin = await scallopTxBlock.takeCollateralQuick(10 ** 9, 'wusdc');
   scallopTxBlock.transferObjects([coin], sender);
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
@@ -57,7 +57,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   const scallopTxBlock = txBuilder.createTxBlock();
   // Sender is required to invoke "depositQuick".
   scallopTxBlock.setSender(sender);
-  const marketCoin = await scallopTxBlock.depositQuick(10 ** 9, 'usdc');
+  const marketCoin = await scallopTxBlock.depositQuick(10 ** 9, 'wusdc');
   scallopTxBlock.transferObjects([marketCoin], sender);
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
@@ -68,7 +68,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   const scallopTxBlock = txBuilder.createTxBlock();
   // Sender is required to invoke "withdrawQuick".
   scallopTxBlock.setSender(sender);
-  const coin = await scallopTxBlock.withdrawQuick(10 ** 9, 'usdc');
+  const coin = await scallopTxBlock.withdrawQuick(10 ** 9, 'wusdc');
   scallopTxBlock.transferObjects([coin], sender);
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
@@ -79,7 +79,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   const scallopTxBlock = txBuilder.createTxBlock();
   // Sender is required to invoke "borrowQuick".
   scallopTxBlock.setSender(sender);
-  const borrowedCoin = await scallopTxBlock.borrowQuick(10 ** 9, 'usdc');
+  const borrowedCoin = await scallopTxBlock.borrowQuick(10 ** 9, 'wusdc');
   // Transfer borrowed coin to sender.
   scallopTxBlock.transferObjects([borrowedCoin], sender);
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
@@ -91,7 +91,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   const scallopTxBlock = txBuilder.createTxBlock();
   // Sender is required to invoke "repayQuick".
   scallopTxBlock.setSender(sender);
-  await scallopTxBlock.repayQuick(10 ** 9, 'usdc');
+  await scallopTxBlock.repayQuick(10 ** 9, 'wusdc');
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
@@ -99,14 +99,14 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
 
   ```typescript
   const scallopTxBlock = txBuilder.createTxBlock();
-  const [coin, loan] = scallopTxBlock.borrowFlashLoan(10 ** 9, 'usdc');
+  const [coin, loan] = scallopTxBlock.borrowFlashLoan(10 ** 9, 'wusdc');
   /**
    * Do something with the borrowed coin
    * such as pass it to a dex to make a profit.
    * scallopTxBlock.moveCall('xx::dex::swap', [coin]);
    */
   // In the end, repay the loan.
-  scallopTxBlock.repayFlashLoan(coin, loan, 'usdc');
+  scallopTxBlock.repayFlashLoan(coin, loan, 'wusdc');
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
@@ -142,7 +142,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   const scallopTxBlock = txBuilder.createTxBlock();
   // Sender is required to invoke "updateAssetPricesQuick".
   tx.setSender(sender);
-  await tx.updateAssetPricesQuick(['sui', 'usdc']);
+  await tx.updateAssetPricesQuick(['sui', 'wusdc']);
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
