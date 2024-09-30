@@ -240,7 +240,7 @@ describe('Test Scallop Address', () => {
             "adminCap": "0xdd8a047cbbf802bfcde5288b8ef1910965d789cc614da11d39af05fca0bd020a",
             "object": "0xe87f1b2d498106a2c61421cec75b7b5c5e348512b0dc263949a0e7a3c256571a",
             "pools": {
-              "seth": {
+              "sweth": {
                 "id": "0xeec40beccb07c575bebd842eeaabb835f77cd3dab73add433477e57f583a6787",
                 "rewardPoolId": "0x957de68a18d87817de8309b30c1ec269a4d87ae513abbeed86b5619cb9ce1077"
               },
@@ -248,11 +248,11 @@ describe('Test Scallop Address', () => {
                 "id": "0x4f0ba970d3c11db05c8f40c64a15b6a33322db3702d634ced6536960ab6f3ee4",
                 "rewardPoolId": "0x162250ef72393a4ad3d46294c4e1bdfcb03f04c869d390e7efbfc995353a7ee9"
               },
-              "susdc": {
+              "swusdc": {
                 "id": "0x4ace6648ddc64e646ba47a957c562c32c9599b3bba8f5ac1aadb2ae23a2f8ca0",
                 "rewardPoolId": "0xf4268cc9b9413b9bfe09e8966b8de650494c9e5784bf0930759cfef4904daff8"
               },
-              "susdt" : {
+              "swusdt" : {
                 "id": "0xcb328f7ffa7f9342ed85af3fdb2f22919e1a06dfb2f713c04c73543870d7548f",
                 "rewardPoolId": "0x2c9f934d67a5baa586ceec2cc24163a2f049a6af3d5ba36b84d8ac40f25c4080"
               },
@@ -318,12 +318,12 @@ describe('Test Scallop Address', () => {
     }
 
     const addresses = scallopAddress.getAddresses();
-    const usdcCoinId = scallopAddress.get('core.coins.usdc.id');
+    const usdcCoinId = scallopAddress.get('core.coins.wusdc.id');
     if (ENABLE_LOG) {
       console.info('Id:', addressesId);
       console.info('UsdcCoinId', usdcCoinId);
     }
-    expect(usdcCoinId).toEqual(addresses?.core.coins.usdc?.id || undefined);
+    expect(usdcCoinId).toEqual(addresses?.core.coins.wusdc?.id || undefined);
     await scallopAddress.delete();
   });
 
@@ -333,9 +333,9 @@ describe('Test Scallop Address', () => {
       await scallopAddress.create({ memo: 'Scallop sdk addresses unit test' });
       addressesId = scallopAddress.getId();
     }
-    const oldUsdcCoinId = scallopAddress.get('core.coins.usdc.id');
-    scallopAddress.set('core.coins.usdc.id', '0x00');
-    const newAddresses = scallopAddress.get('core.coins.usdc.id');
+    const oldUsdcCoinId = scallopAddress.get('core.coins.wusdc.id');
+    scallopAddress.set('core.coins.wusdc.id', '0x00');
+    const newAddresses = scallopAddress.get('core.coins.wusdc.id');
     if (ENABLE_LOG) {
       console.info('Id:', addressesId);
       console.info('Old usdcCoinId', oldUsdcCoinId);

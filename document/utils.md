@@ -8,7 +8,7 @@
   const scallopUtils = await scallopSDK.createScallopUtils();
 
   // Supports conversion from coin and market coin names
-  const usdcSymbol = scallopUtils.parseSymbol('usdc');
+  const usdcSymbol = scallopUtils.parseSymbol('wusdc');
   const ssuiSymbol = scallopUtils.parseSymbol('ssui');
   ```
 
@@ -20,8 +20,8 @@
 
   // Supports conversion from coin and market coin names
   const suiCoinType = scallopUtils.parseCoinType('sui');
-  const usdcCoinType = scallopUtils.parseCoinType('usdc');
-  const usdtCoinType = scallopUtils.parseCoinType('susdt');
+  const usdcCoinType = scallopUtils.parseCoinType('wusdc');
+  const usdtCoinType = scallopUtils.parseCoinType('swusdt');
   ```
 
 - It can parse to market coin type from coin or market coin name. These methods deal with
@@ -32,8 +32,8 @@
 
   // Supports conversion from coin and market coin names
   const suiMarketCoinType = scallopUtils.parseMarketCoinType('sui');
-  const usdcMarketCoinType = scallopUtils.parseMarketCoinType('usdc');
-  const usdtMarketCoinType = scallopUtils.parseMarketCoinType('susdt');
+  const usdcMarketCoinType = scallopUtils.parseMarketCoinType('wusdc');
+  const usdtMarketCoinType = scallopUtils.parseMarketCoinType('swusdt');
   ```
 
 - It can parse to coin or market coin name from coin, coin object, market or market object type. This method deals with wormhole's coins so that it can correctly find the corresponding name.
@@ -61,8 +61,8 @@
   ```typescript
   const scallopUtils = await scallopSDK.createScallopUtils();
 
-  const usdcCoinName = scallopUtils.parseCoinName('susdc');
-  const usdcMarketCoinName = scallopUtils.parseMarketCoinName('usdc');
+  const usdcCoinName = scallopUtils.parseCoinName('swusdc');
+  const usdcMarketCoinName = scallopUtils.parseMarketCoinName('wusdc');
   ```
 
 ## Some other useful methods supported by Scallop
@@ -71,7 +71,7 @@
 
   ```typescript
   const scallopUtils = await scallopSDK.createScallopUtils();
-  const rewardCoinName = scallopUtils.getRewardCoinName('susdc');
+  const rewardCoinName = scallopUtils.getRewardCoinName('swusdc');
   ```
 
 - It can using asset coin name to get wrapped coin type.
@@ -80,7 +80,7 @@
   const scallopUtils = await scallopSDK.createScallopUtils();
 
   const suiCoinWrapType = scallopUtils.getCoinWrappedType('sui');
-  const usdcCoinWrapType = scallopUtils.getCoinWrappedType('usdc');
+  const usdcCoinWrapType = scallopUtils.getCoinWrappedType('wusdc');
   ```
 
 - It can getting coin object ids within the selected coin amount range.
@@ -118,5 +118,5 @@
   const scallopUtils = await scallopSDK.createScallopUtils();
 
   const coinPrices = await scallopUtils.getCoinPrices();
-  const usdcCoinPrice = (await scallopUtils.getCoinPrices(['usdc']))['usdc'];
+  const usdcCoinPrice = (await scallopUtils.getCoinPrices(['wusdc']))['wusdc'];
   ```

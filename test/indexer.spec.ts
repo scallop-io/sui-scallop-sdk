@@ -11,7 +11,6 @@ describe('Test Scallop Indexer', () => {
 
   it('Should get market', async () => {
     const market = await scallopIndexer.getMarket();
-    console.log(market.pools.sui?.coinWrappedType);
     if (ENABLE_LOG) console.info('market:', market);
     expect(market).not.toEqual(undefined);
   });

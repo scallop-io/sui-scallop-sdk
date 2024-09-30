@@ -11,7 +11,7 @@
   const marketData = await scallopQuery.queryMarket();
 
   // Get multiple asset pools data. To obtain all market pools at once, it is recommended to use the `queryMarket` method to reduce time consumption.
-  const marketPools = await scallopQuery.getMarketPools(['sui', 'usdc']);
+  const marketPools = await scallopQuery.getMarketPools(['sui', 'wusdc']);
 
   // Get asset pool data separately.
   const suiMarketPool = await scallopQuery.getMarketPool('sui');
@@ -19,7 +19,7 @@
   // Get multiple collateral pools data. To obtain all market pools at once, it is recommended to use the `queryMarket` method to reduce time consumption.
   const marketCollaterals = await scallopQuery.getMarketCollaterals([
     'sui',
-    'usdc',
+    'wusdc',
   ]);
 
   // Get collateral pool data separately.
@@ -60,7 +60,7 @@
   const marketCoinAmount = await scallopQuery.getMarketCoinAmount('ssui');
 
   // Get specific asset coin price.
-  const usdcPrice = await scallopQuery.getPriceFromPyth('usdc');
+  const usdcPrice = await scallopQuery.getPriceFromPyth('wusdc');
 
   // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
@@ -84,7 +84,7 @@
   const spools = await scallopQuery.getSpools();
 
   // Get multiple spools data.
-  const spools = await scallopQuery.getSpools(['ssui', 'susdc']);
+  const spools = await scallopQuery.getSpools(['ssui', 'swusdc']);
 
   // Get spool data separately.
   const ssuiSpool = await scallopQuery.getSpool('ssui');
@@ -104,13 +104,16 @@
   const stakeAccounts = await scallopQuery.getStakeAccounts('ssui');
 
   // Get multiple stake pools data.
-  const stakePools = await scallopQuery.getStakePools(['ssui', 'susdc']);
+  const stakePools = await scallopQuery.getStakePools(['ssui', 'swusdc']);
 
   // Get stake pool data separately.
   const suiStakePool = await scallopQuery.getStakePool('ssui');
 
   // Get multiple reward pools data.
-  const rewardPools = await scallopQuery.getStakeRewardPools(['ssui', 'susdc']);
+  const rewardPools = await scallopQuery.getStakeRewardPools([
+    'ssui',
+    'swusdc',
+  ]);
 
   // Get reward pool data separately.
   const rewardPool = await scallopQuery.getStakeRewardPool('ssui');
@@ -137,7 +140,7 @@
   const scallopQuery = await scallopSDK.createScallopQuery();
 
   // Get multiple lending information from owner.
-  const lendings = await scallopQuery.getLendings(['sui', 'usdc']);
+  const lendings = await scallopQuery.getLendings(['sui', 'wusdc']);
 
   // Get lending information separately.
   const lending = await scallopQuery.getLending('sui');
@@ -240,7 +243,7 @@
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
-  const sCoinNames = ['ssui', 'susdc'];
+  const sCoinNames = ['ssui', 'swusdc'];
   const sCoinAmounts = await scallopQuery.getSCoinAmounts(sCoinNames, sender);
   ```
 
