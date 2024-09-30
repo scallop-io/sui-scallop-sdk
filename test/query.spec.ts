@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { isValidSuiAddress } from '@scallop-io/sui-kit';
-import { getVescaKeys } from 'src/queries';
 import { z as zod } from 'zod';
 import { scallopSDK } from './scallopSdk';
 
@@ -310,16 +309,14 @@ describe('Test VeSca Query', async () => {
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
 
-  const veScaKeys = await getVescaKeys(scallopQuery.utils, sender);
   let obligationId: string | undefined;
-  if (veScaKeys.length === 0)
-    throw new Error(`No VeSca keys found in ${sender}`);
 
+  const VE_SCA_KEY =
+    '0xad50994e23ae4268fc081f477d0bdc3f1b92c7049c9038dedec5bac725273d18' as const;
   // make sure you test with an account that has binded obligationId to a veScaKey
-  it(`Should get binded obligationId of veScaKey ${veScaKeys[0].objectId}`, async () => {
-    const bindedObligationId = await scallopQuery.getBindedObligationId(
-      veScaKeys[0].objectId
-    );
+  it(`Should get binded obligationId of veScaKey ${VE_SCA_KEY}`, async () => {
+    const bindedObligationId =
+      await scallopQuery.getBindedObligationId(VE_SCA_KEY);
 
     if (ENABLE_LOG) {
       console.info('Binded Obligation Id:', bindedObligationId);
@@ -327,7 +324,7 @@ describe('Test VeSca Query', async () => {
 
     if (!bindedObligationId)
       throw new Error(
-        `No binded obligationId found for veScaKey ${veScaKeys[0]}`
+        `No binded obligationId found for veScaKey ${VE_SCA_KEY}`
       );
     obligationId = bindedObligationId;
     expect(!!bindedObligationId).toBe(true);
@@ -365,7 +362,7 @@ describe('Test VeSca Query', async () => {
   });
 
   it(`Should get veSCA`, async () => {
-    const veSca = await scallopQuery.getVeSca(veScaKeys[0]);
+    const veSca = await scallopQuery.getVeSca(VE_SCA_KEY);
     if (ENABLE_LOG) {
       console.info('VeSca:', veSca);
     }
@@ -455,7 +452,7 @@ describe('Test sCoin Query', async () => {
   });
 
   it('Should get swap rate between sCoin assets', async () => {
-    const fromSCoin = 'susdc';
+    const fromSCoin = 'swusdc';
     const toSCoin = 'ssui';
 
     const getSCoinSwapRate = await scallopQuery.getSCoinSwapRate(

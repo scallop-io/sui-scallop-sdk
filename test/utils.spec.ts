@@ -14,11 +14,11 @@ describe('Test Scallop Utils', async () => {
     const ssuiSymbol = scallopUtils.parseSymbol('ssui');
     const vsuiSymbol = scallopUtils.parseSymbol('vsui');
 
-    const usdcAssertSymbol = 'USDC';
+    const usdcAssertSymbol = 'wUSDC';
     const ssuiAssertSymbol = 'sSUI';
     const vsuiAssertSymbol = 'vSUI';
     if (ENABLE_LOG) {
-      console.info('Usdc Symbol:', usdcSymbol);
+      console.info('wUsdc Symbol:', usdcSymbol);
       console.info('sSui Symbol:', ssuiSymbol);
       console.info('vSUI Symbol:', vsuiSymbol);
     }
