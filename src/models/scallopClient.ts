@@ -817,7 +817,7 @@ export class ScallopClient {
       await this.utils.mergeSimilarCoins(
         txBlock,
         coin,
-        this.utils.parseCoinType(this.utils.parseCoinName(stakeCoinName)),
+        this.utils.parseCoinType(stakeCoinName),
         requireSender(txBlock)
       );
 
