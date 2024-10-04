@@ -768,24 +768,29 @@ export const getObligations = async (
  * Query obligation locked status.
  *
  * @param query - The Scallop query instance.
- * @param obligationId - The obligation id.
+ * @param obligation - The obligation id or the obligation object.
  * @return Obligation locked status.
  */
 export const getObligationLocked = async (
   cache: ScallopCache,
-  obligationId: string
+  obligation: string | SuiObjectData
 ) => {
-  const obligationObjectResponse = await cache.queryGetObject(obligationId, {
-    showContent: true,
-  });
+  const obligationObjectResponse =
+    typeof obligation === 'string'
+      ? (
+          await cache.queryGetObject(obligation, {
+            showContent: true,
+          })
+        )?.data
+      : obligation;
   let obligationLocked = false;
   if (
-    obligationObjectResponse?.data &&
-    obligationObjectResponse?.data?.content?.dataType === 'moveObject' &&
-    'lock_key' in obligationObjectResponse.data.content.fields
+    obligationObjectResponse &&
+    obligationObjectResponse?.content?.dataType === 'moveObject' &&
+    'lock_key' in obligationObjectResponse.content.fields
   ) {
     obligationLocked = Boolean(
-      obligationObjectResponse.data.content.fields.lock_key
+      obligationObjectResponse.content.fields.lock_key
     );
   }
 
