@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.47.0-alpha.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.1...v0.47.0-alpha.2) (2024-10-04)
+
+### Features
+
+- Use `migrate` API ([d5da789](https://github.com/scallop-io/sui-scallop-sdk/pull/171/commits/d5da789ba59a1d148273eaacb617bc45a9a0a5a3))
+
+### [0.46.63](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.62...v0.46.63) (2024-10-03)
+
+### Features
+
+- Fix minor ([5886ea2](https://github.com/scallop-io/sui-scallop-sdk/commit/5886ea23cc3e2d91b0ee12bc45845729b2a68a35))
+
 ### [0.47.0-alpha.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.62...v0.47.0-alpha.1) (2024-09-30)
 
 ### ⚠ BREAKING CHANGES
