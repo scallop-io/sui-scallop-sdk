@@ -72,7 +72,7 @@ export class ScallopIndexer {
         return await this._requestClient.get<{
           pools: MarketPool[];
           collaterals: MarketCollateral[];
-        }>(`/api/market`);
+        }>(`/api/market/migrate`);
       },
     });
 
@@ -149,7 +149,7 @@ export class ScallopIndexer {
       queryFn: async () => {
         return await this._requestClient.get<{
           spools: Spool[];
-        }>(`/api/spools`);
+        }>(`/api/spools/migrate`);
       },
     });
 
@@ -187,7 +187,7 @@ export class ScallopIndexer {
       queryFn: async () => {
         return await this._requestClient.get<{
           borrowIncentivePools: BorrowIncentivePool[];
-        }>(`/api/borrowIncentivePools`);
+        }>(`/api/borrowIncentivePools/migrate`);
       },
     });
 
