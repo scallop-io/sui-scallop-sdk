@@ -1,16 +1,8 @@
 diff --git a/src/graphql/client.ts b/src/graphql/client.ts
-index d76fb8511b0676290fafd3e7ab578610f26ed511..d3d1da53bd82a7bfc84eb0ddf0f196ef0704b319 100644
+index d76fb8511b0676290fafd3e7ab578610f26ed511..a1a14b15c2cd0cb47f7bf06023703dad0181628d 100644
 --- a/src/graphql/client.ts
 +++ b/src/graphql/client.ts
-@@ -65,6 +65,7 @@ export class SuiGraphQLClient<Queries extends Record<string, GraphQLDocument> =
- 		this.#url = url;
- 		this.#queries = queries;
- 		this.#headers = headers;
-+		// @ts-ignore
- 		this.#fetch = (...args) => fetchFn(...args);
- 	}
- 
-@@ -78,6 +79,7 @@ export class SuiGraphQLClient<Queries extends Record<string, GraphQLDocument> =
+@@ -78,6 +78,7 @@ export class SuiGraphQLClient<Queries extends Record<string, GraphQLDocument> =
  				...this.#headers,
  			},
  			body: JSON.stringify({
