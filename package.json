@@ -104,8 +104,8 @@
     "vitest": "^0.34.6"
   },
   "peerDependencies": {
-    "@mysten/sui": "1.2.1",
-    "@mysten/sui.js": "0.52.0",
+    "@mysten/sui": "1.3.0",
+    "@mysten/sui.js": "0.54.1",
     "@scallop-io/sui-kit": "1.3.0",
     "bn.js": "^5.2.1"
   },
@@ -168,6 +168,11 @@
           "caughtErrorsIgnorePattern": "^_"
         }
       ]
+    }
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@mysten/sui@1.3.0": "patches/@mysten__sui@1.3.0.patch"
     }
   }
 }
