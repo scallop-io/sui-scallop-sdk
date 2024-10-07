@@ -31,10 +31,9 @@ import type {
  */
 export const getSpools = async (
   query: ScallopQuery,
-  stakeMarketCoinNames?: SupportStakeMarketCoins[],
+  stakeMarketCoinNames: SupportStakeMarketCoins[] = [...SUPPORT_SPOOLS],
   indexer: boolean = false
 ) => {
-  stakeMarketCoinNames = stakeMarketCoinNames || [...SUPPORT_SPOOLS];
   const stakeCoinNames = stakeMarketCoinNames.map((stakeMarketCoinName) =>
     query.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName)
   );
@@ -52,8 +51,8 @@ export const getSpools = async (
 
   if (indexer) {
     const spoolsIndexer = await query.indexer.getSpools();
-    for (const spool of Object.values(spoolsIndexer)) {
-      if (!stakeMarketCoinNames.includes(spool.marketCoinName)) continue;
+    const updateSpools = (spool: Spool) => {
+      if (!stakeMarketCoinNames.includes(spool.marketCoinName)) return;
       const coinName = query.utils.parseCoinName<SupportStakeCoins>(
         spool.marketCoinName
       );
@@ -68,7 +67,8 @@ export const getSpools = async (
       spool.rewardCoinPrice =
         coinPrices[rewardCoinName] || spool.rewardCoinPrice;
       spools[spool.marketCoinName] = spool;
-    }
+    };
+    Object.values(spoolsIndexer).forEach(updateSpools);
 
     return spools;
   }
@@ -116,6 +116,7 @@ export const getSpool = async (
     `spool.pools.${marketCoinName}.rewardPoolId`
   );
   let spool: Spool | undefined = undefined;
+  coinPrices = coinPrices || (await query.utils.getCoinPrices([coinName]));
 
   if (indexer) {
     const spoolIndexer = await query.indexer.getSpool(marketCoinName);

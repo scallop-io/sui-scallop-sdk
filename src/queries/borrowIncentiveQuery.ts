@@ -18,6 +18,7 @@ import type {
   SupportBorrowIncentiveRewardCoins,
   BorrowIncentivePoolPoints,
   OptionalKeys,
+  BorrowIncentivePool,
 } from '../types';
 import BigNumber from 'bignumber.js';
 
@@ -31,13 +32,11 @@ import BigNumber from 'bignumber.js';
  */
 export const queryBorrowIncentivePools = async (
   query: ScallopQuery,
-  borrowIncentiveCoinNames?: SupportBorrowIncentiveCoins[],
+  borrowIncentiveCoinNames: SupportBorrowIncentiveCoins[] = [
+    ...SUPPORT_BORROW_INCENTIVE_POOLS,
+  ],
   indexer: boolean = false
 ) => {
-  borrowIncentiveCoinNames = borrowIncentiveCoinNames || [
-    ...SUPPORT_BORROW_INCENTIVE_POOLS,
-  ];
-
   const borrowIncentivePools: BorrowIncentivePools = {};
 
   const coinPrices = await query.utils.getCoinPrices(
@@ -52,18 +51,17 @@ export const queryBorrowIncentivePools = async (
   if (indexer) {
     const borrowIncentivePoolsIndexer =
       await query.indexer.getBorrowIncentivePools();
-    for (const borrowIncentivePool of Object.values(
-      borrowIncentivePoolsIndexer
-    )) {
-      if (!borrowIncentiveCoinNames.includes(borrowIncentivePool.coinName))
-        continue;
-      borrowIncentivePool.coinPrice =
-        coinPrices[borrowIncentivePool.coinName] ||
-        borrowIncentivePool.coinPrice;
-      // borrowIncentivePool.rewardCoinPrice =
-      //   coinPrices[rewardCoinName] || borrowIncentivePool.rewardCoinPrice;
-      borrowIncentivePools[borrowIncentivePool.coinName] = borrowIncentivePool;
-    }
+
+    const updateBorrowIncentivePool = (pool: BorrowIncentivePool) => {
+      if (!borrowIncentiveCoinNames.includes(pool.coinName)) return;
+      pool.coinPrice = coinPrices[pool.coinName] || pool.coinPrice;
+      borrowIncentivePools[pool.coinName] = pool;
+    };
+
+    Object.values(borrowIncentivePoolsIndexer).forEach(
+      updateBorrowIncentivePool
+    );
+
     return borrowIncentivePools;
   }
 
