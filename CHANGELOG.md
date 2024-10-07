@@ -2,11 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [0.47.0-alpha.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.2...v0.47.0-alpha.3) (2024-10-04)
+### [0.47.0-alpha.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.3...v0.47.0-alpha.4) (2024-10-07)
+
+### Features
+
+- Pull updates from `v0.46.65`
+
+### [0.47.0-alpha.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.2...v0.47.0-alpha.3) (2024-10-07)
 
 ### Features
 
 - Add usdc native name, symbol, and type support ([b276009](https://github.com/scallop-io/sui-scallop-sdk/pull/172/commits/b276009e2fb00453c3d4f36acd17a49334a80d5b))
+
+### [0.46.65](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.64...v0.46.65) (2024-10-07)
+
+### Features
+
+- Optimize query ([f0fb4cc](https://github.com/scallop-io/sui-scallop-sdk/commit/f0fb4cc64e1b891b79baf6625b3cf5a8cd034e1e))
+
+### [0.46.64](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.63...v0.46.64) (2024-10-06)
+
+### Features
+
+- Upgrade packages ([9b25eca](https://github.com/scallop-io/sui-scallop-sdk/commit/9b25eca01909e099f1d35990f31c206d1b9e72aa))
 
 ### [0.47.0-alpha.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.1...v0.47.0-alpha.2) (2024-10-04)
 
