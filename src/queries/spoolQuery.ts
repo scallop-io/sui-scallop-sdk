@@ -271,6 +271,7 @@ export const getStakeAccounts = async (
   } while (hasNextPage);
 
   const stakeAccounts: StakeAccounts = {
+    susdc: [],
     sweth: [],
     ssui: [],
     swusdc: [],
