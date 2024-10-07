@@ -845,10 +845,9 @@ export const queryObligation = async (
  */
 export const getCoinAmounts = async (
   query: ScallopQuery,
-  assetCoinNames?: SupportAssetCoins[],
+  assetCoinNames: SupportAssetCoins[] = [...SUPPORT_POOLS],
   ownerAddress?: string
 ) => {
-  assetCoinNames = assetCoinNames || [...SUPPORT_POOLS];
   const owner = ownerAddress || query.suiKit.currentAddress();
   const assetCoins = {} as OptionalKeys<Record<SupportAssetCoins, number>>;
 

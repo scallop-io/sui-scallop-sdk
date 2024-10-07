@@ -167,11 +167,10 @@ export const queryBorrowIncentiveAccounts = async (
     utils: ScallopUtils;
   },
   obligationId: string,
-  borrowIncentiveCoinNames?: SupportBorrowIncentiveCoins[]
-) => {
-  borrowIncentiveCoinNames = borrowIncentiveCoinNames || [
+  borrowIncentiveCoinNames: SupportBorrowIncentiveCoins[] = [
     ...SUPPORT_BORROW_INCENTIVE_POOLS,
-  ];
+  ]
+) => {
   const queryPkgId = utils.address.get('borrowIncentive.query');
   const incentiveAccountsId = utils.address.get(
     'borrowIncentive.incentiveAccounts'
