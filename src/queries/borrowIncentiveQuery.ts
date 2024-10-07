@@ -23,14 +23,35 @@ import type {
 import BigNumber from 'bignumber.js';
 
 /**
- * Query borrow incentive pools data.
+ * Query borrow incentive pools data using moveCall
+ * @param address
+ * @returns
+ */
+export const queryBorrowIncentivePools = async (address: ScallopAddress) => {
+  const queryPkgId = address.get('borrowIncentive.query');
+  const incentivePoolsId = address.get('borrowIncentive.incentivePools');
+
+  const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
+  const args = [incentivePoolsId];
+  const queryResult = await address.cache.queryInspectTxn({
+    queryTarget,
+    args,
+  });
+  const borrowIncentivePoolsQueryData = queryResult?.events[0].parsedJson as
+    | BorrowIncentivePoolsQueryInterface
+    | undefined;
+  return borrowIncentivePoolsQueryData;
+};
+
+/**
+ * Get borrow incentive pools data.
  *
  * @param query - The Scallop query instance.
  * @param borrowIncentiveCoinNames - Specific an array of support borrow incentive coin name.
  * @param indexer - Whether to use indexer.
  * @return Borrow incentive pools data.
  */
-export const queryBorrowIncentivePools = async (
+export const getBorrowIncentivePools = async (
   query: ScallopQuery,
   borrowIncentiveCoinNames: SupportBorrowIncentiveCoins[] = [
     ...SUPPORT_BORROW_INCENTIVE_POOLS,
@@ -65,15 +86,9 @@ export const queryBorrowIncentivePools = async (
     return borrowIncentivePools;
   }
 
-  const queryPkgId = query.address.get('borrowIncentive.query');
-  const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
-
-  const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
-  const args = [incentivePoolsId];
-  const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
-  const borrowIncentivePoolsQueryData = queryResult?.events[0].parsedJson as
-    | BorrowIncentivePoolsQueryInterface
-    | undefined;
+  const borrowIncentivePoolsQueryData = await queryBorrowIncentivePools(
+    query.address
+  );
 
   for (const pool of borrowIncentivePoolsQueryData?.incentive_pools ?? []) {
     const borrowIncentivePoolPoints: OptionalKeys<

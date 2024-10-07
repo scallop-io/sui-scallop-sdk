@@ -5,14 +5,11 @@ export const SDK_API_BASE_URL = 'https://sdk.api.scallop.io';
 export const IS_VE_SCA_TEST = false;
 export const USE_TEST_ADDRESS = false;
 
-// export const ADDRESSES_ID = '';
 export const ADDRESSES_ID =
   IS_VE_SCA_TEST || USE_TEST_ADDRESS
     ? ('65fb07c39c845425d71d7b18' as const)
     : ('66f8e7ed9bb9e07fdfb86bbb' as const);
 // : ('664dfe22898c36c159e28bc8' as const);
-// : ('6601955b8b0024600a917079' as const);
-// : ('6462a088a7ace142bb6d7e9b' as const);
 
 export const PROTOCOL_OBJECT_ID = IS_VE_SCA_TEST
   ? ('0xc9f859f98ca352a11b97a038c4b4162bee437b8df8caa047990fe9cb03d4f778' as const)
@@ -103,6 +100,7 @@ export const SUPPORT_BORROW_INCENTIVE_POOLS = [
   'vsui',
   'weth',
   'sca',
+  'usdc',
 ] as const;
 
 export const SUPPORT_BORROW_INCENTIVE_REWARDS = ['sui', 'sca'] as const;

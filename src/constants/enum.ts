@@ -102,6 +102,7 @@ export const spoolRewardCoins: types.StakeRewardCoins = {
 };
 
 export const borrowIncentiveRewardCoins: types.BorrowIncentiveRewardCoins = {
+  usdc: ['sui', 'sca'],
   sui: ['sui', 'sca'],
   wusdc: ['sui', 'sca'],
   wusdt: ['sui', 'sca'],
