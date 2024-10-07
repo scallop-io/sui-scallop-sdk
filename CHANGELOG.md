@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.47.0-alpha.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.4...v0.47.0-alpha.5) (2024-10-08)
+
+### Features
+
+- Refactor fallback values ([06f0a47](https://github.com/scallop-io/sui-scallop-sdk/commit/06f0a47e4be7ca19b060c27882bd8cab390fc174))
+
 ### [0.47.0-alpha.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.3...v0.47.0-alpha.4) (2024-10-07)
 
 ### Features
