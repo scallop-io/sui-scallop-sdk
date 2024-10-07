@@ -34,6 +34,7 @@ export const OLD_BORROW_INCENTIVE_PROTOCOL_ID =
   '0xc63072e7f5f4983a2efaf5bdba1480d5e7d74d57948e1c7cc436f8e22cbeb410' as const;
 
 export const SUPPORT_POOLS = [
+  'usdc', // native USDC
   'weth',
   'wbtc',
   'wusdc',
@@ -49,6 +50,7 @@ export const SUPPORT_POOLS = [
 ] as const;
 
 export const SUPPORT_COLLATERALS = [
+  'usdc',
   'weth',
   'wbtc',
   'wusdc',
@@ -64,6 +66,7 @@ export const SUPPORT_COLLATERALS = [
 ] as const;
 
 export const SUPPORT_SPOOLS = [
+  'susdc',
   'sweth',
   'ssui',
   'swusdc',
@@ -75,6 +78,7 @@ export const SUPPORT_SPOOLS = [
 ] as const;
 
 export const SUPPORT_SCOIN = [
+  'susdc',
   'ssui',
   'swusdc',
   'swusdt',

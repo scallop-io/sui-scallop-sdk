@@ -2,6 +2,7 @@ import type * as types from '../types';
 import { IS_VE_SCA_TEST } from './common';
 
 export const coinDecimals: types.SupportCoinDecimals = {
+  usdc: 6,
   weth: 8,
   wbtc: 8,
   wusdc: 6,
@@ -14,6 +15,7 @@ export const coinDecimals: types.SupportCoinDecimals = {
   hasui: 9,
   vsui: 9,
   sca: 9,
+  susdc: 6,
   sweth: 8,
   swbtc: 8,
   swusdc: 6,
@@ -29,6 +31,7 @@ export const coinDecimals: types.SupportCoinDecimals = {
 };
 
 export const assetCoins: types.AssetCoins = {
+  usdc: 'usdc',
   weth: 'weth',
   wbtc: 'wbtc',
   wusdc: 'wusdc',
@@ -44,6 +47,7 @@ export const assetCoins: types.AssetCoins = {
 };
 
 export const marketCoins: types.MarketCoins = {
+  susdc: 'susdc',
   sweth: 'sweth',
   swbtc: 'swbtc',
   swusdc: 'swusdc',
@@ -59,6 +63,7 @@ export const marketCoins: types.MarketCoins = {
 };
 
 export const sCoins: types.SCoins = {
+  susdc: 'susdc',
   sweth: 'sweth',
   swusdc: 'swusdc',
   swusdt: 'swusdt',
@@ -73,6 +78,7 @@ export const sCoins: types.SCoins = {
 };
 
 export const stakeMarketCoins: types.StakeMarketCoins = {
+  susdc: 'susdc',
   sweth: 'sweth',
   ssui: 'ssui',
   swusdc: 'swusdc',
@@ -92,6 +98,7 @@ export const spoolRewardCoins: types.StakeRewardCoins = {
   safsui: 'sui',
   shasui: 'sui',
   svsui: 'sui',
+  susdc: 'sui',
 };
 
 export const borrowIncentiveRewardCoins: types.BorrowIncentiveRewardCoins = {
@@ -106,6 +113,7 @@ export const borrowIncentiveRewardCoins: types.BorrowIncentiveRewardCoins = {
 };
 
 export const coinIds: types.AssetCoinIds = {
+  usdc: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7',
   sui: '0x0000000000000000000000000000000000000000000000000000000000000002',
   weth: '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5',
   wbtc: '0x027792d9fed7f9844eb4839566001bb6f6cb4804f66aa2da6fe1ee242d896881',
@@ -137,6 +145,7 @@ export const voloCoinIds: types.VoloCoinIds = {
 
 // PROD VERSION
 export const sCoinIds: types.SCoinIds = {
+  susdc: '', // TODO: sCoin contract
   ssui: '0xaafc4f740de0dd0dde642a31148fb94517087052f19afb0f7bed1dc41a50c77b::scallop_sui::SCALLOP_SUI',
   scetus:
     '0xea346ce428f91ab007210443efcea5f5cdbbb3aae7e9affc0ca93f9203c31f0c::scallop_cetus::SCALLOP_CETUS',
