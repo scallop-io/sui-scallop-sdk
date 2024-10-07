@@ -42,9 +42,10 @@ export const getSpools = async (
       query.utils.getSpoolRewardCoinName(stakeMarketCoinName);
     return rewardCoinName;
   });
-  const coinPrices = await query.utils.getCoinPrices(
-    [...new Set([...stakeCoinNames, ...rewardCoinNames])] ?? []
-  );
+  const coinPrices =
+    (await query.utils.getCoinPrices([
+      ...new Set([...stakeCoinNames, ...rewardCoinNames]),
+    ])) ?? {};
 
   const marketPools = await query.getMarketPools(stakeCoinNames, indexer);
   const spools: Spools = {};

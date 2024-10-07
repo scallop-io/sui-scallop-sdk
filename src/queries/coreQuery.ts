@@ -235,7 +235,7 @@ export const getMarketPools = async (
   const marketObjectResponse = await query.cache.queryGetObject(marketId, {
     showContent: true,
   });
-  const coinPrices = await query.utils.getCoinPrices(poolCoinNames ?? []);
+  const coinPrices = (await query.utils.getCoinPrices(poolCoinNames)) ?? {};
 
   const marketPools: MarketPools = {};
 
@@ -520,7 +520,8 @@ export const getMarketCollaterals = async (
   indexer: boolean = false
 ) => {
   const marketId = query.address.get('core.market');
-  const coinPrices = await query.utils.getCoinPrices(collateralCoinNames ?? []);
+  const coinPrices =
+    (await query.utils.getCoinPrices(collateralCoinNames)) ?? {};
   const marketCollaterals: MarketCollaterals = {};
 
   if (indexer) {
