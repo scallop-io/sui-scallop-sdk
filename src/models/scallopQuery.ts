@@ -14,7 +14,6 @@ import {
   getMarketCollateral,
   getSpools,
   getSpool,
-  queryBorrowIncentivePools,
   queryBorrowIncentiveAccounts,
   getCoinAmounts,
   getCoinAmount,
@@ -34,6 +33,7 @@ import {
   getLoyaltyProgramInformations,
   getFlashLoanFees,
   getVeSca,
+  getBorrowIncentivePools,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -462,7 +462,7 @@ export class ScallopQuery {
     coinNames?: SupportBorrowIncentiveCoins[],
     indexer: boolean = false
   ) {
-    return await queryBorrowIncentivePools(this, coinNames, indexer);
+    return await getBorrowIncentivePools(this, coinNames, indexer);
   }
 
   /**
