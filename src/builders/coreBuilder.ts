@@ -392,7 +392,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         (await builder.utils.getObligationCoinNames(
           obligationInfo.obligationId
         )) ?? [];
-      const updateCoinNames = [...(obligationCoinNames ?? []), poolCoinName];
+      const updateCoinNames = [...obligationCoinNames, poolCoinName];
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.borrow(
         obligationInfo.obligationId,
