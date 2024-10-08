@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [0.46.65](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.63...v0.46.65) (2024-10-07)
+### [0.46.66](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.65...v0.46.66) (2024-10-07)
+
+### Features
+
+- Fix `queryMarket` ([010fff4](https://github.com/scallop-io/sui-scallop-sdk/commit/010fff416c2ca148612bdb3445189fbba4861898))
+
+### [0.46.65](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.64...v0.46.65) (2024-10-07)
 
 ### Features
 
