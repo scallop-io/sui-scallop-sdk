@@ -60,10 +60,9 @@ export const getSCoinAmounts = async (
   }: {
     utils: ScallopUtils;
   },
-  sCoinNames?: SupportSCoin[],
+  sCoinNames: SupportSCoin[] = [...SUPPORT_SCOIN],
   ownerAddress?: string
 ) => {
-  sCoinNames = sCoinNames || [...SUPPORT_SCOIN];
   const owner = ownerAddress || utils.suiKit.currentAddress();
   const sCoins = {} as OptionalKeys<Record<SupportSCoin, number>>;
 

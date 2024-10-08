@@ -2,11 +2,54 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [0.47.0-alpha.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.2...v0.47.0-alpha.3) (2024-10-04)
+### [0.47.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.6...v0.47.0) (2024-10-08)
+
+### ⚠ BREAKING CHANGES
+
+- Refactor the entire naming for wormhole wrapped coin. For example:
+  - sol -> wsol; ssol -> swsol
+  - apt -> wapt; sapt -> swapt
+  - btc -> wbtc; sbtc -> swbtc
+  - eth -> weth; seth -> sweth
+  - usdc -> wusdc; susdc -> swusdc
+  - usdt -> wusdt; susdt -> swusdt
+- 'usdc' and 'susdc' naming will be reserved for native USDC
+
+### [0.47.0-alpha.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.5...v0.47.0-alpha.6) (2024-10-08)
+
+### Features
+
+- Update borrow incentive pools ([525f90c](https://github.com/scallop-io/sui-scallop-sdk/commit/525f90c2ae6ab632cb66cc71cdc2d1b46af93d9e))
+
+### [0.47.0-alpha.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.4...v0.47.0-alpha.5) (2024-10-08)
+
+### Features
+
+- Refactor fallback values ([06f0a47](https://github.com/scallop-io/sui-scallop-sdk/commit/06f0a47e4be7ca19b060c27882bd8cab390fc174))
+
+### [0.47.0-alpha.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.3...v0.47.0-alpha.4) (2024-10-07)
+
+### Features
+
+- Pull updates from `v0.46.65`
+
+### [0.47.0-alpha.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.2...v0.47.0-alpha.3) (2024-10-07)
 
 ### Features
 
 - Add usdc native name, symbol, and type support ([b276009](https://github.com/scallop-io/sui-scallop-sdk/pull/172/commits/b276009e2fb00453c3d4f36acd17a49334a80d5b))
+
+### [0.46.65](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.64...v0.46.65) (2024-10-07)
+
+### Features
+
+- Optimize query ([f0fb4cc](https://github.com/scallop-io/sui-scallop-sdk/commit/f0fb4cc64e1b891b79baf6625b3cf5a8cd034e1e))
+
+### [0.46.64](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.63...v0.46.64) (2024-10-06)
+
+### Features
+
+- Upgrade packages ([9b25eca](https://github.com/scallop-io/sui-scallop-sdk/commit/9b25eca01909e099f1d35990f31c206d1b9e72aa))
 
 ### [0.47.0-alpha.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.1...v0.47.0-alpha.2) (2024-10-04)
 

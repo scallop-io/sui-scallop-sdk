@@ -56,6 +56,7 @@ export type OriginBorrowIncentivePoolPointData = {
   base_weight: string;
   weighted_amount: string;
   last_update: string;
+  created_at: string;
 };
 
 export type OriginBorrowIncentivePoolData = {
@@ -79,6 +80,7 @@ export type ParsedBorrowIncentivePoolPointData = {
   baseWeight: number;
   weightedAmount: number;
   lastUpdate: number;
+  createdAt: number;
 };
 
 export type ParsedBorrowIncentivePoolData = {
@@ -92,7 +94,6 @@ export type ParsedBorrowIncentivePoolData = {
   minStakes: number;
   maxStakes: number;
   staked: number;
-  createdAt: number;
 };
 
 export type CalculatedBorrowIncentivePoolPointData = {
