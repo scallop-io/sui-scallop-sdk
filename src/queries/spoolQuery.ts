@@ -406,6 +406,17 @@ export const getStakeAccounts = async (
           points,
           totalPoints,
         });
+      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.susdc) {
+        stakeAccounts.susdc.push({
+          id,
+          type: normalizeStructTag(type),
+          stakePoolId,
+          stakeType: normalizeStructTag(stakeType),
+          staked,
+          index,
+          points,
+          totalPoints,
+        });
       }
     }
   }
