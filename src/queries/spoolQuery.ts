@@ -1,5 +1,5 @@
-import { normalizeStructTag } from '@mysten/sui.js/utils';
-import { SUPPORT_SPOOLS } from '../constants';
+import { normalizeStructTag, parseStructTag } from '@mysten/sui.js/utils';
+import { NATIVE_USDC, SUPPORT_SPOOLS } from '../constants';
 import {
   parseOriginSpoolData,
   calculateSpoolData,
@@ -164,6 +164,10 @@ export const getSpool = async (
         createdAt: spoolFields.created_at,
         lastUpdate: spoolFields.last_update,
       });
+
+      const underlyingCoinType = parseStructTag(parsedSpoolData.stakeType)
+        .typeParams as any as string;
+      if (underlyingCoinType === NATIVE_USDC) return undefined;
 
       const marketCoinPrice =
         (coinPrices?.[coinName] ?? 0) * marketPool.conversionRate;
