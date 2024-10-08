@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.47.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.6...v0.47.0) (2024-10-08)
+
+### ⚠ BREAKING CHANGES
+
+- Refactor the entire naming for wormhole wrapped coin. For example:
+  - sol -> wsol; ssol -> swsol
+  - apt -> wapt; sapt -> swapt
+  - btc -> wbtc; sbtc -> swbtc
+  - eth -> weth; seth -> sweth
+  - usdc -> wusdc; susdc -> swusdc
+  - usdt -> wusdt; susdt -> swusdt
+- 'usdc' and 'susdc' naming will be reserved for native USDC
+
 ### [0.47.0-alpha.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.5...v0.47.0-alpha.6) (2024-10-08)
 
 ### Features
