@@ -475,13 +475,11 @@ export class ScallopUtils {
    * @param assetCoinNames - Specific an array of support asset coin name.
    * @return  Asset coin price.
    */
-  public async getCoinPrices(assetCoinNames?: SupportAssetCoins[]) {
-    assetCoinNames =
-      assetCoinNames ||
-      ([
-        ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
-      ] as SupportAssetCoins[]);
-
+  public async getCoinPrices(
+    assetCoinNames: SupportAssetCoins[] = [
+      ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
+    ] as SupportAssetCoins[]
+  ) {
     const coinPrices: CoinPrices = {};
     const existPricesCoinNames: SupportAssetCoins[] = [];
     const lackPricesCoinNames: SupportAssetCoins[] = [];
