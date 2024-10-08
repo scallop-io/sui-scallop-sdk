@@ -208,7 +208,7 @@ export const queryMarket = async (
   return {
     pools,
     collaterals,
-    data: marketData,
+    // data: marketData,
   } as Market;
 };
 
