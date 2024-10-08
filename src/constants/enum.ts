@@ -146,7 +146,8 @@ export const voloCoinIds: types.VoloCoinIds = {
 
 // PROD VERSION
 export const sCoinIds: types.SCoinIds = {
-  susdc: '', // TODO: sCoin contract
+  susdc:
+    '0x854950aa624b1df59fe64e630b2ba7c550642e9342267a33061d59fb31582da5::scallop_usdc::SCALLOP_USDC',
   ssui: '0xaafc4f740de0dd0dde642a31148fb94517087052f19afb0f7bed1dc41a50c77b::scallop_sui::SCALLOP_SUI',
   scetus:
     '0xea346ce428f91ab007210443efcea5f5cdbbb3aae7e9affc0ca93f9203c31f0c::scallop_cetus::SCALLOP_CETUS',
