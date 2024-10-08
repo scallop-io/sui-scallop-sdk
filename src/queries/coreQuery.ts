@@ -164,6 +164,7 @@ export const queryMarket = async (
 
   for (const collateral of marketData?.collaterals ?? []) {
     const coinType = normalizeStructTag(collateral.type.name);
+    if (coinType === NATIVE_USDC) continue;
     const collateralCoinName =
       query.utils.parseCoinNameFromType<SupportCollateralCoins>(coinType);
     const coinPrice = coinPrices[collateralCoinName] ?? 0;
