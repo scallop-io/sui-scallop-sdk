@@ -32,6 +32,8 @@ export const SCA_COIN_TYPE = IS_VE_SCA_TEST
 export const OLD_BORROW_INCENTIVE_PROTOCOL_ID =
   '0xc63072e7f5f4983a2efaf5bdba1480d5e7d74d57948e1c7cc436f8e22cbeb410' as const;
 
+export const NATIVE_USDC =
+  '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC' as const;
 export const SUPPORT_POOLS = [
   'eth',
   'btc',

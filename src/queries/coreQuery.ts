@@ -6,6 +6,7 @@ import {
   BORROW_FEE_PROTOCOL_ID,
   USE_TEST_ADDRESS,
   FlashLoanFeeObjectMap,
+  NATIVE_USDC,
 } from '../constants';
 import {
   parseOriginMarketPoolData,
@@ -94,6 +95,7 @@ export const queryMarket = async (
 
   for (const pool of marketData?.pools ?? []) {
     const coinType = normalizeStructTag(pool.type.name);
+    if (coinType === NATIVE_USDC) continue;
     const poolCoinName =
       query.utils.parseCoinNameFromType<SupportPoolCoins>(coinType);
     const coinPrice = coinPrices[poolCoinName] ?? 0;
