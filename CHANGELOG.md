@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [0.46.66](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.67...v0.46.68) (2024-10-08)
+### [0.46.69](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.68...v0.46.69) (2024-10-08)
+
+### Features
+
+- Fix spool query ([c4d405b](https://github.com/scallop-io/sui-scallop-sdk/commit/c4d405b2e969a158da99aa459718f013331a5033))
+
+### [0.46.68](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.67...v0.46.68) (2024-10-08)
 
 ### Features
 
