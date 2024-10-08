@@ -1,5 +1,6 @@
 import { normalizeStructTag } from '@mysten/sui.js/utils';
 import {
+  NATIVE_USDC,
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
 } from '../constants';
@@ -82,6 +83,7 @@ export const queryBorrowIncentivePools = async (
       parseOriginBorrowIncentivePoolData(pool);
 
     const poolCoinType = normalizeStructTag(pool.pool_type.name);
+    if (poolCoinType === NATIVE_USDC) continue;
     const poolCoinName =
       query.utils.parseCoinNameFromType<SupportBorrowIncentiveCoins>(
         poolCoinType
