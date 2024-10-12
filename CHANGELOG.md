@@ -2,11 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.47.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.1...v0.47.2) (2024-10-12)
+
+### Bugfix
+
+- Fix error on veScaKey selection logic in `stakeObligationWithVeScaQuick` method ([5f3324b](https://github.com/scallop-io/sui-scallop-sdk/pull/176/commits/5f3324b70e48f488522aaa44ca1474fe9735f501))
+
 ### [0.47.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0...v0.47.1) (2024-10-08)
 
 ### Bugfix
 
-- Minor fix ([ec5a83](https://github.com/scallop-io/sui-scallop-sdk/pull/175/commits/ec5a838934a5f05bd61c7ed9b3a77659b6d60719)) 
+- Minor fix ([ec5a83](https://github.com/scallop-io/sui-scallop-sdk/pull/175/commits/ec5a838934a5f05bd61c7ed9b3a77659b6d60719))
 
 ### [0.47.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.6...v0.47.0) (2024-10-08)
 
