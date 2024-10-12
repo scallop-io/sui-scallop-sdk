@@ -278,7 +278,7 @@ export const getBindedVeScaKey = async (
   }: {
     address: ScallopAddress;
   },
-  obliationId: string
+  obligationId: string
 ): Promise<string | null> => {
   const borrowIncentiveObjectId = address.get('borrowIncentive.object');
   const incentiveAccountsId = address.get('borrowIncentive.incentiveAccounts');
@@ -302,7 +302,7 @@ export const getBindedVeScaKey = async (
     parentId: incentiveAccountsTableId,
     name: {
       type: `${borrowIncentiveObjectId}::typed_id::TypedID<${corePkg}::obligation::Obligation>`,
-      value: obliationId,
+      value: obligationId,
     },
   });
 
