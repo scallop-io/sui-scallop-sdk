@@ -66,7 +66,8 @@ export const requireVeSca = async (
     return undefined;
   }
 
-  return veScas[0]; // return veSCA with highest veSCA balance
+  // return veSCA with the same veScaKey or the highest veSCA balance
+  return veScaKey ? veScas.find(({ keyId }) => veScaKey === keyId) : veScas[0];
 };
 
 /**
