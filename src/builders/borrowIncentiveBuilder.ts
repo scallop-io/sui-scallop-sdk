@@ -1,11 +1,7 @@
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import {
-  getObligations,
-  getObligationLocked,
-  getBindedObligationId,
-} from '../queries';
+import { getObligations, getObligationLocked } from '../queries';
 import { requireSender } from '../utils';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
@@ -18,7 +14,6 @@ import type {
   ScallopTxBlock,
   VescaIds,
 } from '../types';
-import { requireVeSca } from './vescaBuilder';
 import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants';
 
 /**
@@ -257,26 +252,20 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
-          const veSca = await requireVeSca(builder, txBlock, veScaKey);
-          if (veSca) {
-            const bindedObligationId = await getBindedObligationId(
-              builder,
-              veSca.keyId
-            );
+          const bindedVeScaKey =
+            await builder.query.getBindedVeScaKey(obligationArg);
 
-            // if bindedObligationId is equal to obligationId, then use it again
-            if (
-              (!bindedObligationId || bindedObligationId === obligationArg) &&
-              veSca.currentVeScaBalance > 0
-            ) {
-              txBlock.stakeObligationWithVesca(
-                obligationArg,
-                obligationKeyArg,
-                veSca.keyId
-              );
-            } else {
-              txBlock.stakeObligation(obligationArg, obligationKeyArg);
-            }
+          if (veScaKey && veScaKey !== bindedVeScaKey) {
+            throw new Error(
+              'Binded veScaKey is not equal to the provided veScaKey'
+            );
+          }
+          if (bindedVeScaKey) {
+            txBlock.stakeObligationWithVesca(
+              obligationArg,
+              obligationKeyArg,
+              bindedVeScaKey
+            );
           } else {
             txBlock.stakeObligation(obligationArg, obligationKeyArg);
           }
