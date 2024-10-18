@@ -70,6 +70,7 @@ export type ScallopClientParams = ScallopParams;
 
 export type ScallopBuilderParams = ScallopParams & {
   pythEndpoints?: string[];
+  pythPullMode?: boolean;
 };
 
 export type ScallopQueryParams = ScallopParams;

@@ -26,11 +26,13 @@ export const updateOracles = async (
     usePythPullModel: boolean;
   } = { usePythPullModel: true }
 ) => {
+  const usePythPullModel =
+    builder.params.pythPullMode ?? options.usePythPullModel;
   assetCoinNames = assetCoinNames ?? [
     ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
   ];
   const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
-  if (options.usePythPullModel && rules.includes('pyth')) {
+  if (usePythPullModel && rules.includes('pyth')) {
     const pythClient = new SuiPythClient(
       builder.suiKit.client(),
       builder.address.get('core.oracles.pyth.state'),
