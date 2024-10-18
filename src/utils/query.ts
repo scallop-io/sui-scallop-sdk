@@ -412,6 +412,7 @@ export const parseOriginBorrowIncentivesPoolPointData = (
     baseWeight: Number(originBorrowIncentivePoolPointData.base_weight),
     weightedAmount: Number(originBorrowIncentivePoolPointData.weighted_amount),
     lastUpdate: Number(originBorrowIncentivePoolPointData.last_update),
+    createdAt: Number(originBorrowIncentivePoolPointData.created_at),
   };
 };
 
@@ -429,7 +430,6 @@ export const parseOriginBorrowIncentivePoolData = (
     minStakes: Number(originBorrowIncentivePoolData.min_stakes),
     maxStakes: Number(originBorrowIncentivePoolData.max_stakes),
     staked: Number(originBorrowIncentivePoolData.stakes),
-    createdAt: Number(originBorrowIncentivePoolData.created_at),
     poolPoints: originBorrowIncentivePoolData.points.reduce(
       (acc, point) => {
         const parsed = parseOriginBorrowIncentivesPoolPointData(point);
@@ -448,7 +448,7 @@ export const parseOriginBorrowIncentivePoolData = (
 };
 
 export const calculateBorrowIncentivePoolPointData = (
-  parsedBorrowIncentivePoolData: ParsedBorrowIncentivePoolData,
+  // parsedBorrowIncentivePoolData: ParsedBorrowIncentivePoolData,
   parsedBorrowIncentivePoolPointData: ParsedBorrowIncentivePoolPointData,
   rewardCoinPrice: number,
   rewardCoinDecimal: number,
@@ -697,7 +697,7 @@ export const maxBigNumber = (...args: BigNumber.Value[]) => {
 };
 
 /**
- * Dynamically adjust the decrease or increase ratio according to the amout
+ * Dynamically adjust the decrease or increase ratio according to the amount
  * @param amount - The amount required to calculate factor.
  * @param scaleStep - The scale step required to determine the factor..
  * @param type - The type of the calculation.

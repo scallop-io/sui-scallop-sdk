@@ -1,8 +1,7 @@
 import { SUI_TYPE_ARG, normalizeStructTag } from '@mysten/sui/utils';
-import { SuiKit, SuiObjectArg } from '@scallop-io/sui-kit';
+import { SuiKit } from '@scallop-io/sui-kit';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress } from './scallopAddress';
-import { ScallopQuery } from './scallopQuery';
 import {
   ADDRESSES_ID,
   PROTOCOL_OBJECT_ID,
@@ -19,7 +18,7 @@ import {
   SUPPORT_SCOIN,
   sCoinIds,
 } from '../constants';
-import { queryObligation } from '../queries';
+import { getPythPrice, queryObligation } from '../queries';
 import {
   parseDataFromPythPriceFeed,
   isMarketCoin,
@@ -31,7 +30,6 @@ import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import type {
   ScallopUtilsParams,
-  ScallopInstanceParams,
   SupportCoins,
   SupportAssetCoins,
   SupportMarketCoins,
@@ -41,8 +39,9 @@ import type {
   PriceMap,
   CoinWrappedType,
   SupportSCoin,
+  ScallopUtilsInstanceParams,
 } from '../types';
-import type { SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
+import type { SuiObjectArg, SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
 
 /**
  * @description
@@ -60,36 +59,49 @@ export class ScallopUtils {
   public readonly params: ScallopUtilsParams;
   public readonly isTestnet: boolean;
 
-  private _suiKit: SuiKit;
-  private _address: ScallopAddress;
-  private _query: ScallopQuery;
+  public suiKit: SuiKit;
+  public address: ScallopAddress;
+  public cache: ScallopCache;
+  public walletAddress: string;
   private _priceMap: PriceMap = new Map();
-  private _cache: ScallopCache;
 
   public constructor(
     params: ScallopUtilsParams,
-    instance?: ScallopInstanceParams
+    instance?: ScallopUtilsInstanceParams
   ) {
-    this.params = params;
-    this._suiKit = instance?.suiKit ?? new SuiKit(params);
-    this._cache =
-      instance?.cache ?? new ScallopCache(DEFAULT_CACHE_OPTIONS, this._suiKit);
-    this._address =
-      instance?.address ??
-      new ScallopAddress(
-        {
-          id: params?.addressesId || ADDRESSES_ID,
-          network: params?.networkType,
-        },
-        this._cache
+    this.params = {
+      pythEndpoints: params.pythEndpoints ?? PYTH_ENDPOINTS['mainnet'],
+      ...params,
+    };
+    this.suiKit =
+      instance?.suiKit ??
+      instance?.address?.cache._suiKit ??
+      new SuiKit(params);
+
+    this.walletAddress = params.walletAddress ?? this.suiKit.currentAddress();
+
+    if (instance?.address) {
+      this.address = instance.address;
+      this.cache = this.address.cache;
+      this.suiKit = this.address.cache._suiKit;
+    } else {
+      this.cache = new ScallopCache(
+        this.suiKit,
+        this.walletAddress,
+        DEFAULT_CACHE_OPTIONS
       );
-    this._query =
-      instance?.query ??
-      new ScallopQuery(params, {
-        suiKit: this._suiKit,
-        address: this._address,
-        cache: this._cache,
-      });
+      this.address =
+        instance?.address ??
+        new ScallopAddress(
+          {
+            id: params?.addressesId || ADDRESSES_ID,
+            network: params?.networkType,
+          },
+          {
+            cache: this.cache,
+          }
+        );
+    }
     this.isTestnet = params.networkType
       ? params.networkType === 'testnet'
       : false;
@@ -102,14 +114,10 @@ export class ScallopUtils {
    * @param address - ScallopAddress instance.
    */
   public async init(force: boolean = false, address?: ScallopAddress) {
-    if (force || !this._address.getAddresses() || !address?.getAddresses()) {
-      await this._address.read();
+    if (force || !this.address.getAddresses() || !address?.getAddresses()) {
+      await this.address.read();
     } else {
-      this._address = address;
-    }
-
-    if (!this._query.address.getAddresses()) {
-      await this._query.init(force, this._address);
+      this.address = address;
     }
   }
 
@@ -146,7 +154,7 @@ export class ScallopUtils {
   public parseCoinType(coinName: SupportCoins) {
     coinName = isMarketCoin(coinName) ? this.parseCoinName(coinName) : coinName;
     const coinPackageId =
-      this._address.get(`core.coins.${coinName}.id`) ||
+      this.address.get(`core.coins.${coinName}.id`) ||
       coinIds[coinName] ||
       undefined;
     if (!coinPackageId) {
@@ -154,20 +162,20 @@ export class ScallopUtils {
     }
     if (coinName === 'sui')
       return normalizeStructTag(`${coinPackageId}::sui::SUI`);
-    const wormHolePckageIds = [
-      this._address.get('core.coins.usdc.id') ?? wormholeCoinIds.usdc,
-      this._address.get('core.coins.usdt.id') ?? wormholeCoinIds.usdt,
-      this._address.get('core.coins.eth.id') ?? wormholeCoinIds.eth,
-      this._address.get('core.coins.btc.id') ?? wormholeCoinIds.btc,
-      this._address.get('core.coins.sol.id') ?? wormholeCoinIds.sol,
-      this._address.get('core.coins.apt.id') ?? wormholeCoinIds.apt,
+    const wormHolePackageIds = [
+      this.address.get('core.coins.wusdc.id') ?? wormholeCoinIds.wusdc,
+      this.address.get('core.coins.wusdt.id') ?? wormholeCoinIds.wusdt,
+      this.address.get('core.coins.weth.id') ?? wormholeCoinIds.weth,
+      this.address.get('core.coins.wbtc.id') ?? wormholeCoinIds.wbtc,
+      this.address.get('core.coins.wsol.id') ?? wormholeCoinIds.wsol,
+      this.address.get('core.coins.wapt.id') ?? wormholeCoinIds.wapt,
     ];
-    const voloPckageIds = [
-      this._address.get('core.coins.vsui.id') ?? voloCoinIds.vsui,
+    const voloPackageIds = [
+      this.address.get('core.coins.vsui.id') ?? voloCoinIds.vsui,
     ];
-    if (wormHolePckageIds.includes(coinPackageId)) {
+    if (wormHolePackageIds.includes(coinPackageId)) {
       return `${coinPackageId}::coin::COIN`;
-    } else if (voloPckageIds.includes(coinPackageId)) {
+    } else if (voloPackageIds.includes(coinPackageId)) {
       return `${coinPackageId}::cert::CERT`;
     } else {
       return `${coinPackageId}::${coinName}::${coinName.toUpperCase()}`;
@@ -183,7 +191,7 @@ export class ScallopUtils {
   public parseSCoinName<T extends SupportSCoin>(
     coinName: SupportCoins | SupportMarketCoins
   ) {
-    // need more check because sbtc, ssol and sapt has no sCoin type
+    // need more check because swapt has no sCoin type
     if (
       isMarketCoin(coinName) &&
       SUPPORT_SCOIN.includes(coinName as SupportSCoin)
@@ -222,7 +230,7 @@ export class ScallopUtils {
    * @returns sCoin treasury id
    */
   public getSCoinTreasury(sCoinName: SupportSCoin) {
-    return this._address.get(`scoin.coins.${sCoinName}.treasury`);
+    return this.address.get(`scoin.coins.${sCoinName}.treasury`);
   }
 
   /**
@@ -234,7 +242,7 @@ export class ScallopUtils {
    */
   public parseMarketCoinType(coinName: SupportCoins) {
     const protocolObjectId =
-      this._address.get('core.object') || PROTOCOL_OBJECT_ID;
+      this.address.get('core.object') || PROTOCOL_OBJECT_ID;
     const coinType = this.parseCoinType(coinName);
     return `${protocolObjectId}::reserve::MarketCoin<${coinType}>`;
   }
@@ -267,27 +275,27 @@ export class ScallopUtils {
 
     const wormHoleCoinTypeMap: Record<string, SupportAssetCoins> = {
       [`${
-        this._address.get('core.coins.usdc.id') ?? wormholeCoinIds.usdc
-      }::coin::COIN`]: 'usdc',
+        this.address.get('core.coins.wusdc.id') ?? wormholeCoinIds.wusdc
+      }::coin::COIN`]: 'wusdc',
       [`${
-        this._address.get('core.coins.usdt.id') ?? wormholeCoinIds.usdt
-      }::coin::COIN`]: 'usdt',
+        this.address.get('core.coins.wusdt.id') ?? wormholeCoinIds.wusdt
+      }::coin::COIN`]: 'wusdt',
       [`${
-        this._address.get('core.coins.eth.id') ?? wormholeCoinIds.eth
-      }::coin::COIN`]: 'eth',
+        this.address.get('core.coins.weth.id') ?? wormholeCoinIds.weth
+      }::coin::COIN`]: 'weth',
       [`${
-        this._address.get('core.coins.btc.id') ?? wormholeCoinIds.btc
-      }::coin::COIN`]: 'btc',
+        this.address.get('core.coins.wbtc.id') ?? wormholeCoinIds.wbtc
+      }::coin::COIN`]: 'wbtc',
       [`${
-        this._address.get('core.coins.sol.id') ?? wormholeCoinIds.sol
-      }::coin::COIN`]: 'sol',
+        this.address.get('core.coins.wsol.id') ?? wormholeCoinIds.wsol
+      }::coin::COIN`]: 'wsol',
       [`${
-        this._address.get('core.coins.apt.id') ?? wormholeCoinIds.apt
-      }::coin::COIN`]: 'apt',
+        this.address.get('core.coins.wapt.id') ?? wormholeCoinIds.wapt
+      }::coin::COIN`]: 'wapt',
     };
     const voloCoinTypeMap: Record<string, SupportAssetCoins> = {
       [`${
-        this._address.get('core.coins.vsui.id') ?? voloCoinIds.vsui
+        this.address.get('core.coins.vsui.id') ?? voloCoinIds.vsui
       }::cert::CERT`]: 'vsui',
     };
 
@@ -362,12 +370,12 @@ export class ScallopUtils {
    * return Coin wrapped type.
    */
   public getCoinWrappedType(assetCoinName: SupportAssetCoins): CoinWrappedType {
-    return assetCoinName === 'usdc' ||
-      assetCoinName === 'usdt' ||
-      assetCoinName === 'eth' ||
-      assetCoinName === 'btc' ||
-      assetCoinName === 'apt' ||
-      assetCoinName === 'sol'
+    return assetCoinName === 'wusdc' ||
+      assetCoinName === 'wusdt' ||
+      assetCoinName === 'weth' ||
+      assetCoinName === 'wbtc' ||
+      assetCoinName === 'wapt' ||
+      assetCoinName === 'wsol'
       ? {
           from: 'Wormhole',
           type: 'Portal from Ethereum',
@@ -388,8 +396,8 @@ export class ScallopUtils {
     coinType: string = SUI_TYPE_ARG,
     ownerAddress?: string
   ) {
-    ownerAddress = ownerAddress || this._suiKit.currentAddress();
-    const coins = await this._suiKit.suiInteractor.selectCoins(
+    ownerAddress = ownerAddress || this.suiKit.currentAddress();
+    const coins = await this.suiKit.suiInteractor.selectCoins(
       ownerAddress,
       amount,
       coinType
@@ -408,18 +416,18 @@ export class ScallopUtils {
     txBlock: SuiTxBlock,
     dest: SuiTxArg,
     coinType: string,
-    sender: string
+    sender: string = this.walletAddress
   ): Promise<void> {
     // merge to existing coins if exist
     try {
-      const existingSCoin = await this.selectCoins(
+      const existingCoins = await this.selectCoins(
         Number.MAX_SAFE_INTEGER,
         coinType,
         sender
       );
 
-      if (existingSCoin.length > 0) {
-        txBlock.mergeCoins(dest, existingSCoin);
+      if (existingCoins.length > 0) {
+        txBlock.mergeCoins(dest, existingCoins.slice(0, 500));
       }
     } catch (e) {
       // ignore
@@ -437,15 +445,15 @@ export class ScallopUtils {
    * @return Asset coin Names.
    */
   public async getObligationCoinNames(obligationId: SuiObjectArg) {
-    const obligation = await queryObligation(this._query, obligationId);
-    const collateralCoinTypes =
-      obligation?.collaterals.map((collateral) => {
-        return `0x${collateral.type.name}`;
-      }) ?? [];
-    const debtCoinTypes =
-      obligation?.debts.map((debt) => {
-        return `0x${debt.type.name}`;
-      }) ?? [];
+    const obligation = await queryObligation(this, obligationId);
+    if (!obligation) return undefined;
+
+    const collateralCoinTypes = obligation.collaterals.map((collateral) => {
+      return `0x${collateral.type.name}`;
+    });
+    const debtCoinTypes = obligation.debts.map((debt) => {
+      return `0x${debt.type.name}`;
+    });
     const obligationCoinTypes = [
       ...new Set([...collateralCoinTypes, ...debtCoinTypes]),
     ];
@@ -467,13 +475,11 @@ export class ScallopUtils {
    * @param assetCoinNames - Specific an array of support asset coin name.
    * @return  Asset coin price.
    */
-  public async getCoinPrices(assetCoinNames?: SupportAssetCoins[]) {
-    assetCoinNames =
-      assetCoinNames ||
-      ([
-        ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
-      ] as SupportAssetCoins[]);
-
+  public async getCoinPrices(
+    assetCoinNames: SupportAssetCoins[] = [
+      ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
+    ] as SupportAssetCoins[]
+  ) {
     const coinPrices: CoinPrices = {};
     const existPricesCoinNames: SupportAssetCoins[] = [];
     const lackPricesCoinNames: SupportAssetCoins[] = [];
@@ -507,7 +513,7 @@ export class ScallopUtils {
       for (const endpoint of endpoints) {
         const priceIds = Array.from(failedRequests.values()).reduce(
           (acc, coinName) => {
-            const priceId = this._address.get(
+            const priceId = this.address.get(
               `core.coins.${coinName}.oracle.pyth.feed`
             );
             acc[coinName] = priceId;
@@ -520,14 +526,14 @@ export class ScallopUtils {
           Object.entries(priceIds).map(async ([coinName, priceId]) => {
             const pythConnection = new SuiPriceServiceConnection(endpoint);
             try {
-              const feed = await this._cache.queryClient.fetchQuery({
+              const feed = await this.address.cache.queryClient.fetchQuery({
                 queryKey: [priceId],
                 queryFn: async () => {
                   return await pythConnection.getLatestPriceFeeds([priceId]);
                 },
               });
               if (feed) {
-                const data = parseDataFromPythPriceFeed(feed[0], this._address);
+                const data = parseDataFromPythPriceFeed(feed[0], this.address);
                 this._priceMap.set(coinName as SupportAssetCoins, {
                   price: data.price,
                   publishTime: data.publishTime,
@@ -548,7 +554,7 @@ export class ScallopUtils {
       if (failedRequests.size > 0) {
         await Promise.allSettled(
           Array.from(failedRequests.values()).map(async (coinName) => {
-            const price = await this._query.getPriceFromPyth(coinName);
+            const price = await getPythPrice(this, coinName);
             this._priceMap.set(coinName, {
               price: price,
               publishTime: Date.now(),
@@ -574,7 +580,7 @@ export class ScallopUtils {
   }
 
   /**
-   * Convert apr to apy.
+   * Convert apy to apr.
    *
    * @param apr The equivalent annual percentage yield (APY).
    * @param compoundFrequency How often interest is compounded per year. Default is daily (365 times a year).

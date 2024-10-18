@@ -46,12 +46,14 @@ type QueryInspectTxnParams = {
 
 export class ScallopCache {
   public readonly queryClient: QueryClient;
-  public readonly _suiKit?: SuiKit;
+  public readonly _suiKit: SuiKit;
   private tokenBucket: TokenBucket;
+  public walletAddress: string;
 
   public constructor(
+    suiKit: SuiKit,
+    walletAddress?: string,
     cacheOptions?: QueryClientConfig,
-    suiKit?: SuiKit,
     tokenBucket?: TokenBucket
   ) {
     this.queryClient = new QueryClient(cacheOptions ?? DEFAULT_CACHE_OPTIONS);
@@ -59,6 +61,7 @@ export class ScallopCache {
     this.tokenBucket =
       tokenBucket ??
       new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS);
+    this.walletAddress = walletAddress ?? suiKit.currentAddress();
   }
 
   private get suiKit(): SuiKit {
@@ -173,7 +176,7 @@ export class ScallopCache {
     objectId: string,
     options?: SuiObjectDataOptions
   ): Promise<SuiObjectResponse | null> {
-    const queryKey = ['getObject', objectId, this.suiKit.currentAddress()];
+    const queryKey = ['getObject', objectId, this.walletAddress];
     if (options) {
       queryKey.push(JSON.stringify(options));
     }
@@ -197,13 +200,15 @@ export class ScallopCache {
    */
   public async queryGetObjects(
     objectIds: string[],
-    options?: SuiObjectDataOptions
+    options: SuiObjectDataOptions = {
+      showContent: true,
+    }
   ): Promise<SuiObjectData[]> {
     if (objectIds.length === 0) return [];
     const queryKey = [
       'getObjects',
       JSON.stringify(objectIds),
-      this.suiKit.currentAddress(),
+      this.walletAddress,
     ];
     if (options) {
       queryKey.push(JSON.stringify(options));

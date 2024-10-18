@@ -8,7 +8,7 @@ import {
   parseOriginBorrowIncentiveAccountData,
   calculateBorrowIncentivePoolPointData,
 } from '../utils';
-import type { ScallopQuery } from '../models';
+import type { ScallopAddress, ScallopQuery, ScallopUtils } from '../models';
 import type {
   BorrowIncentivePoolsQueryInterface,
   BorrowIncentivePools,
@@ -18,62 +18,76 @@ import type {
   SupportBorrowIncentiveRewardCoins,
   BorrowIncentivePoolPoints,
   OptionalKeys,
+  BorrowIncentivePool,
 } from '../types';
 import BigNumber from 'bignumber.js';
 
 /**
- * Query borrow incentive pools data.
+ * Query borrow incentive pools data using moveCall
+ * @param address
+ * @returns
+ */
+export const queryBorrowIncentivePools = async (address: ScallopAddress) => {
+  const queryPkgId = address.get('borrowIncentive.query');
+  const incentivePoolsId = address.get('borrowIncentive.incentivePools');
+
+  const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
+  const args = [incentivePoolsId];
+  const queryResult = await address.cache.queryInspectTxn({
+    queryTarget,
+    args,
+  });
+  const borrowIncentivePoolsQueryData = queryResult?.events[0].parsedJson as
+    | BorrowIncentivePoolsQueryInterface
+    | undefined;
+  return borrowIncentivePoolsQueryData;
+};
+
+/**
+ * Get borrow incentive pools data.
  *
  * @param query - The Scallop query instance.
  * @param borrowIncentiveCoinNames - Specific an array of support borrow incentive coin name.
  * @param indexer - Whether to use indexer.
  * @return Borrow incentive pools data.
  */
-export const queryBorrowIncentivePools = async (
+export const getBorrowIncentivePools = async (
   query: ScallopQuery,
-  borrowIncentiveCoinNames?: SupportBorrowIncentiveCoins[],
+  borrowIncentiveCoinNames: SupportBorrowIncentiveCoins[] = [
+    ...SUPPORT_BORROW_INCENTIVE_POOLS,
+  ],
   indexer: boolean = false
 ) => {
-  borrowIncentiveCoinNames = borrowIncentiveCoinNames || [
-    ...SUPPORT_BORROW_INCENTIVE_POOLS,
-  ];
-
   const borrowIncentivePools: BorrowIncentivePools = {};
 
-  const coinPrices = await query.utils.getCoinPrices([
-    ...new Set([
-      ...borrowIncentiveCoinNames,
-      ...SUPPORT_BORROW_INCENTIVE_REWARDS,
-    ]),
-  ]);
+  const coinPrices =
+    (await query.utils.getCoinPrices([
+      ...new Set([
+        ...borrowIncentiveCoinNames,
+        ...SUPPORT_BORROW_INCENTIVE_REWARDS,
+      ]),
+    ])) ?? {};
 
   if (indexer) {
     const borrowIncentivePoolsIndexer =
       await query.indexer.getBorrowIncentivePools();
-    for (const borrowIncentivePool of Object.values(
-      borrowIncentivePoolsIndexer
-    )) {
-      if (!borrowIncentiveCoinNames.includes(borrowIncentivePool.coinName))
-        continue;
-      borrowIncentivePool.coinPrice =
-        coinPrices[borrowIncentivePool.coinName] ||
-        borrowIncentivePool.coinPrice;
-      // borrowIncentivePool.rewardCoinPrice =
-      //   coinPrices[rewardCoinName] || borrowIncentivePool.rewardCoinPrice;
-      borrowIncentivePools[borrowIncentivePool.coinName] = borrowIncentivePool;
-    }
+
+    const updateBorrowIncentivePool = (pool: BorrowIncentivePool) => {
+      if (!borrowIncentiveCoinNames.includes(pool.coinName)) return;
+      pool.coinPrice = coinPrices[pool.coinName] || pool.coinPrice;
+      borrowIncentivePools[pool.coinName] = pool;
+    };
+
+    Object.values(borrowIncentivePoolsIndexer).forEach(
+      updateBorrowIncentivePool
+    );
+
     return borrowIncentivePools;
   }
 
-  const queryPkgId = query.address.get('borrowIncentive.query');
-  const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
-
-  const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
-  const args = [incentivePoolsId];
-  const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
-  const borrowIncentivePoolsQueryData = queryResult?.events[0].parsedJson as
-    | BorrowIncentivePoolsQueryInterface
-    | undefined;
+  const borrowIncentivePoolsQueryData = await queryBorrowIncentivePools(
+    query.address
+  );
 
   for (const pool of borrowIncentivePoolsQueryData?.incentive_pools ?? []) {
     const borrowIncentivePoolPoints: OptionalKeys<
@@ -111,7 +125,7 @@ export const queryBorrowIncentivePools = async (
       const coinDecimal = query.utils.getCoinDecimal(rewardCoinName);
 
       const calculatedPoolPoint = calculateBorrowIncentivePoolPointData(
-        parsedBorrowIncentivePoolData,
+        // parsedBorrowIncentivePoolData,
         poolPoint,
         rewardCoinPrice,
         rewardCoinDecimal,
@@ -161,24 +175,26 @@ export const queryBorrowIncentivePools = async (
  * @return Borrow incentive accounts data.
  */
 export const queryBorrowIncentiveAccounts = async (
-  query: ScallopQuery,
+  {
+    utils,
+  }: {
+    utils: ScallopUtils;
+  },
   obligationId: string,
-  borrowIncentiveCoinNames?: SupportBorrowIncentiveCoins[]
-) => {
-  borrowIncentiveCoinNames = borrowIncentiveCoinNames || [
+  borrowIncentiveCoinNames: SupportBorrowIncentiveCoins[] = [
     ...SUPPORT_BORROW_INCENTIVE_POOLS,
-  ];
-  const queryPkgId = query.address.get('borrowIncentive.query');
-  const incentiveAccountsId = query.address.get(
+  ]
+) => {
+  const queryPkgId = utils.address.get('borrowIncentive.query');
+  const incentiveAccountsId = utils.address.get(
     'borrowIncentive.incentiveAccounts'
   );
   const queryTarget = `${queryPkgId}::incentive_account_query::incentive_account_data`;
   const args = [incentiveAccountsId, obligationId];
 
-  const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
-  const borrowIncentiveAccountsQueryData = queryResult?.events[0].parsedJson as
-    | BorrowIncentiveAccountsQueryInterface
-    | undefined;
+  const queryResult = await utils.cache.queryInspectTxn({ queryTarget, args });
+  const borrowIncentiveAccountsQueryData = queryResult?.events[0]
+    ?.parsedJson as BorrowIncentiveAccountsQueryInterface | undefined;
 
   const borrowIncentiveAccounts: BorrowIncentiveAccounts = Object.values(
     borrowIncentiveAccountsQueryData?.pool_records ?? []
@@ -187,7 +203,7 @@ export const queryBorrowIncentiveAccounts = async (
       parseOriginBorrowIncentiveAccountData(accountData);
     const poolType = parsedBorrowIncentiveAccount.poolType;
     const coinName =
-      query.utils.parseCoinNameFromType<SupportBorrowIncentiveCoins>(poolType);
+      utils.parseCoinNameFromType<SupportBorrowIncentiveCoins>(poolType);
 
     if (
       borrowIncentiveCoinNames &&
@@ -209,15 +225,19 @@ export const queryBorrowIncentiveAccounts = async (
  * @returns
  */
 export const getBindedObligationId = async (
-  query: ScallopQuery,
+  {
+    address,
+  }: {
+    address: ScallopAddress;
+  },
   veScaKeyId: string
 ): Promise<string | null> => {
-  const borrowIncentiveObjectId = query.address.get('borrowIncentive.object');
-  const incentivePoolsId = query.address.get('borrowIncentive.incentivePools');
-  const veScaObjId = query.address.get('vesca.object');
+  const borrowIncentiveObjectId = address.get('borrowIncentive.object');
+  const incentivePoolsId = address.get('borrowIncentive.incentivePools');
+  const veScaObjId = address.get('vesca.object');
 
   // get incentive pools
-  const incentivePoolsResponse = await query.cache.queryGetObject(
+  const incentivePoolsResponse = await address.cache.queryGetObject(
     incentivePoolsId,
     {
       showContent: true,
@@ -232,13 +252,15 @@ export const getBindedObligationId = async (
 
   // check if veSca is inside the bind table
   const keyType = `${borrowIncentiveObjectId}::typed_id::TypedID<${veScaObjId}::ve_sca::VeScaKey>`;
-  const veScaBindTableResponse = await query.cache.queryGetDynamicFieldObject({
-    parentId: veScaBindTableId,
-    name: {
-      type: keyType,
-      value: veScaKeyId,
-    },
-  });
+  const veScaBindTableResponse = await address.cache.queryGetDynamicFieldObject(
+    {
+      parentId: veScaBindTableId,
+      name: {
+        type: keyType,
+        value: veScaKeyId,
+      },
+    }
+  );
 
   if (veScaBindTableResponse?.data?.content?.dataType !== 'moveObject')
     return null;
@@ -251,17 +273,19 @@ export const getBindedObligationId = async (
 };
 
 export const getBindedVeScaKey = async (
-  query: ScallopQuery,
-  obliationId: string
+  {
+    address,
+  }: {
+    address: ScallopAddress;
+  },
+  obligationId: string
 ): Promise<string | null> => {
-  const borrowIncentiveObjectId = query.address.get('borrowIncentive.object');
-  const incentiveAccountsId = query.address.get(
-    'borrowIncentive.incentiveAccounts'
-  );
-  const corePkg = query.address.get('core.object');
+  const borrowIncentiveObjectId = address.get('borrowIncentive.object');
+  const incentiveAccountsId = address.get('borrowIncentive.incentiveAccounts');
+  const corePkg = address.get('core.object');
 
   // get IncentiveAccounts object
-  const incentiveAccountsObject = await query.cache.queryGetObject(
+  const incentiveAccountsObject = await address.cache.queryGetObject(
     incentiveAccountsId,
     {
       showContent: true,
@@ -274,11 +298,11 @@ export const getBindedVeScaKey = async (
   ).accounts.fields.id.id;
 
   // Search in the table
-  const bindedIncentiveAcc = await query.cache.queryGetDynamicFieldObject({
+  const bindedIncentiveAcc = await address.cache.queryGetDynamicFieldObject({
     parentId: incentiveAccountsTableId,
     name: {
       type: `${borrowIncentiveObjectId}::typed_id::TypedID<${corePkg}::obligation::Obligation>`,
-      value: obliationId,
+      value: obligationId,
     },
   });
 

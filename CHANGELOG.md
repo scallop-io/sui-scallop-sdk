@@ -2,6 +2,154 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.47.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.1...v0.47.2) (2024-10-12)
+
+### Bugfix
+
+- Fix error on veScaKey selection logic in `stakeObligationWithVeScaQuick` method ([5f3324b](https://github.com/scallop-io/sui-scallop-sdk/pull/176/commits/5f3324b70e48f488522aaa44ca1474fe9735f501))
+
+### [0.47.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0...v0.47.1) (2024-10-08)
+
+### Bugfix
+
+- Minor fix ([ec5a83](https://github.com/scallop-io/sui-scallop-sdk/pull/175/commits/ec5a838934a5f05bd61c7ed9b3a77659b6d60719))
+
+### [0.47.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.6...v0.47.0) (2024-10-08)
+
+### ⚠ BREAKING CHANGES
+
+- Refactor the entire naming for wormhole wrapped coin. For example:
+  - sol -> wsol; ssol -> swsol
+  - apt -> wapt; sapt -> swapt
+  - btc -> wbtc; sbtc -> swbtc
+  - eth -> weth; seth -> sweth
+  - usdc -> wusdc; susdc -> swusdc
+  - usdt -> wusdt; susdt -> swusdt
+- 'usdc' and 'susdc' naming will be reserved for native USDC
+
+### [0.47.0-alpha.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.5...v0.47.0-alpha.6) (2024-10-08)
+
+### Features
+
+- Update borrow incentive pools ([525f90c](https://github.com/scallop-io/sui-scallop-sdk/commit/525f90c2ae6ab632cb66cc71cdc2d1b46af93d9e))
+
+### [0.47.0-alpha.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.4...v0.47.0-alpha.5) (2024-10-08)
+
+### Features
+
+- Refactor fallback values ([06f0a47](https://github.com/scallop-io/sui-scallop-sdk/commit/06f0a47e4be7ca19b060c27882bd8cab390fc174))
+
+### [0.47.0-alpha.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.3...v0.47.0-alpha.4) (2024-10-07)
+
+### Features
+
+- Pull updates from `v0.46.65`
+
+### [0.47.0-alpha.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.2...v0.47.0-alpha.3) (2024-10-07)
+
+### Features
+
+- Add usdc native name, symbol, and type support ([b276009](https://github.com/scallop-io/sui-scallop-sdk/pull/172/commits/b276009e2fb00453c3d4f36acd17a49334a80d5b))
+
+### [0.46.65](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.64...v0.46.65) (2024-10-07)
+
+### Features
+
+- Optimize query ([f0fb4cc](https://github.com/scallop-io/sui-scallop-sdk/commit/f0fb4cc64e1b891b79baf6625b3cf5a8cd034e1e))
+
+### [0.46.64](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.63...v0.46.64) (2024-10-06)
+
+### Features
+
+- Upgrade packages ([9b25eca](https://github.com/scallop-io/sui-scallop-sdk/commit/9b25eca01909e099f1d35990f31c206d1b9e72aa))
+
+### [0.47.0-alpha.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.0-alpha.1...v0.47.0-alpha.2) (2024-10-04)
+
+### Features
+
+- Use `migrate` API ([d5da789](https://github.com/scallop-io/sui-scallop-sdk/pull/171/commits/d5da789ba59a1d148273eaacb617bc45a9a0a5a3))
+
+### [0.46.63](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.62...v0.46.63) (2024-10-03)
+
+### Features
+
+- Fix minor ([5886ea2](https://github.com/scallop-io/sui-scallop-sdk/commit/5886ea23cc3e2d91b0ee12bc45845729b2a68a35))
+
+### [0.47.0-alpha.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.62...v0.47.0-alpha.1) (2024-09-30)
+
+### ⚠ BREAKING CHANGES
+
+- Refactor the entire naming for wormhole wrapped coin. For example:
+  - sol -> wsol; ssol -> swsol
+  - apt -> wapt; sapt -> swapt
+  - btc -> wbtc; sbtc -> swbtc
+  - eth -> weth; seth -> sweth
+  - usdc -> wusdc; susdc -> swusdc
+  - usdt -> wusdt; susdt -> swusdt
+
+### [0.46.62](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.61...v0.46.62) (2024-09-27)
+
+### Features
+
+- Fix typo ([4e9efd5](https://github.com/scallop-io/sui-scallop-sdk/pull/167/commits/4e9efd50e7a1178ae84cd6346fa633ebc413ce93))
+
+- Change `supplyLimit` to `maxSupplyCoin` ([a074b56](https://github.com/scallop-io/sui-scallop-sdk/pull/167/commits/a074b56e436d1b0b55b31b244c3968f18628e80c))
+
+### [0.46.61](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.60...v0.46.61) (2024-09-26)
+
+### Features
+
+- Add `getVeSca` query ([9280e3d](https://github.com/scallop-io/sui-scallop-sdk/pull/165/commits/9280e3d902c81a08bbace89d2edc3c055520c766))
+
+- Add supply limit information ([8e52981](https://github.com/scallop-io/sui-scallop-sdk/pull/165/commits/8e5298133e828bd34a05853855a238d9a228b71e))
+
+### [0.46.60](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.59...v0.46.60) (2024-09-24)
+
+### Features
+
+- Bump version
+
+### [0.46.59](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.58...v0.46.59) (2024-09-24)
+
+### Bugfix
+
+- Fix error `redeem market coin too small` ([36f905c](https://github.com/scallop-io/sui-scallop-sdk/pull/163/commits/36f905c9213280df1e9582f8e77c21b94670293e))
+
+### [0.46.58](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.58-alpha.1...v0.46.58) (2024-09-24)
+
+### Features
+
+- Allow excluding staked coin in `migrateAllMarketCoin` method ([4e1725e](https://github.com/scallop-io/sui-scallop-sdk/pull/162/commits/4e1725e17069a235957561a1a6bf899a4569d074))
+
+### [0.46.58-alpha.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.57...v0.46.58-alpha.1) (2024-09-19)
+
+### Adjustments
+
+- Increase `staleTime` to 2s ([608489c](https://github.com/scallop-io/sui-scallop-sdk/pull/161/commits/608489c60304e5c79b2377aebf8680ebfbbf91b1))
+- Limit 10 for owned objects query ([6d96fd6](https://github.com/scallop-io/sui-scallop-sdk/pull/161/commits/6d96fd6301e70448055526e98cd03e722bb4f005))
+- Increase token per interval to `50` and apply incremental delay time ([d04e04d](https://github.com/scallop-io/sui-scallop-sdk/pull/161/commits/d04e04dda690b21f01d63910a4cd6dda3c61a9fe))
+- Add `walletAddress` params to `ScallopCache` ([4e7f940](https://github.com/scallop-io/sui-scallop-sdk/pull/161/commits/4e7f94046cbfcfdc6b67921aeaeff94b5d457669))
+
+### [0.46.57](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.56...v0.46.57) (2024-09-13)
+
+### Bugfixes
+
+- Reduce query object limit from 50 to 10 ([877667d](https://github.com/scallop-io/sui-scallop-sdk/pull/160/commits/877667d747ef8b397c910d421e71d11ed7ff7f60))
+- Fix undefined value ([9e4e653](https://github.com/scallop-io/sui-scallop-sdk/pull/160/commits/9e4e653762857a901dd82de5bafbbd09b17fa1e8))
+- Fix selecting SUI coin type ([38b2885](https://github.com/scallop-io/sui-scallop-sdk/pull/160/commits/38b2885110c3038435615e98b824512415d33640))
+
+### [0.46.56](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.55...v0.46.56) (2024-09-11)
+
+### Features
+
+- Add sCoin support for BTC and SOL ([b191459](https://github.com/scallop-io/sui-scallop-sdk/pull/159/commits/b1914597985f4c7d0bc5c3aca34dfc25fbc90738))
+
+- Add `getSCoinSwapRate` method into `scallopQuery` ([f7e1ac0](https://github.com/scallop-io/sui-scallop-sdk/pull/159/commits/f7e1ac0f7b277e600065f98b2353c5e86e9f6079))
+
+- Add `sCoinType` property to `marketPool` return type ([9a2bd5c](https://github.com/scallop-io/sui-scallop-sdk/pull/159/commits/9a2bd5cb87dac13e75fd4a8a0925b0a962e5ef75))
+
+- Add `claimAllUnlockedSca` method into `scallopClient` ([d4dbdc8](https://github.com/scallop-io/sui-scallop-sdk/pull/159/commits/d4dbdc86f4554f141c4c6ee13176ba67fddaf139))
+
 ### [0.46.55](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.46.53...v0.46.54) (2024-08-18)
 
 ### Bugfixes

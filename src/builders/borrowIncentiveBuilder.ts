@@ -1,11 +1,7 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import {
-  getObligations,
-  getObligationLocked,
-  getBindedObligationId,
-} from '../queries';
+import { getObligations, getObligationLocked } from '../queries';
 import { requireSender } from '../utils';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
@@ -18,7 +14,6 @@ import type {
   ScallopTxBlock,
   VescaIds,
 } from '../types';
-import { requireVeSca } from './vescaBuilder';
 import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants';
 
 /**
@@ -51,13 +46,13 @@ const requireObligationInfo = async (
     typeof obligationId === 'string'
   ) {
     const obligationLocked = await getObligationLocked(
-      builder.query,
+      builder.cache,
       obligationId
     );
     return { obligationId, obligationKey, obligationLocked };
   }
   const sender = requireSender(txBlock);
-  const obligations = await getObligations(builder.query, sender);
+  const obligations = await getObligations(builder, sender);
   if (obligations.length === 0) {
     throw new Error(`No obligation found for sender ${sender}`);
   }
@@ -207,7 +202,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
       stakeObligationQuick: async (obligation, obligationKey) => {
         const {
           obligationId: obligationArg,
-          obligationKey: obligationtKeyArg,
+          obligationKey: obligationKeyArg,
           obligationLocked: obligationLocked,
         } = await requireObligationInfo(
           builder,
@@ -227,7 +222,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
-          txBlock.stakeObligation(obligationArg, obligationtKeyArg);
+          txBlock.stakeObligation(obligationArg, obligationKeyArg);
         }
       },
       stakeObligationWithVeScaQuick: async (
@@ -237,7 +232,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
       ) => {
         const {
           obligationId: obligationArg,
-          obligationKey: obligationtKeyArg,
+          obligationKey: obligationKeyArg,
           obligationLocked: obligationLocked,
         } = await requireObligationInfo(
           builder,
@@ -257,35 +252,29 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
-          const veSca = await requireVeSca(builder, txBlock, veScaKey);
-          if (veSca) {
-            const bindedObligationId = await getBindedObligationId(
-              builder.query,
-              veSca.keyId
-            );
+          const bindedVeScaKey =
+            await builder.query.getBindedVeScaKey(obligationArg);
 
-            // if bindedObligationId is equal to obligationId, then use it again
-            if (
-              (!bindedObligationId || bindedObligationId === obligationArg) &&
-              veSca.currentVeScaBalance > 0
-            ) {
-              txBlock.stakeObligationWithVesca(
-                obligationArg,
-                obligationtKeyArg,
-                veSca.keyId
-              );
-            } else {
-              txBlock.stakeObligation(obligationArg, obligationtKeyArg);
-            }
+          if (veScaKey && veScaKey !== bindedVeScaKey) {
+            throw new Error(
+              'Binded veScaKey is not equal to the provided veScaKey'
+            );
+          }
+          if (bindedVeScaKey) {
+            txBlock.stakeObligationWithVesca(
+              obligationArg,
+              obligationKeyArg,
+              bindedVeScaKey
+            );
           } else {
-            txBlock.stakeObligation(obligationArg, obligationtKeyArg);
+            txBlock.stakeObligation(obligationArg, obligationKeyArg);
           }
         }
       },
       unstakeObligationQuick: async (obligation, obligationKey) => {
         const {
           obligationId: obligationArg,
-          obligationKey: obligationtKeyArg,
+          obligationKey: obligationKeyArg,
           obligationLocked: obligationLocked,
         } = await requireObligationInfo(
           builder,
@@ -295,7 +284,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
         );
 
         if (obligationLocked) {
-          txBlock.unstakeObligation(obligationArg, obligationtKeyArg);
+          txBlock.unstakeObligation(obligationArg, obligationKeyArg);
         }
       },
       claimBorrowIncentiveQuick: async (
@@ -304,19 +293,17 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
         obligation,
         obligationKey
       ) => {
-        const {
-          obligationId: obligationArg,
-          obligationKey: obligationtKeyArg,
-        } = await requireObligationInfo(
-          builder,
-          txBlock,
-          obligation,
-          obligationKey
-        );
+        const { obligationId: obligationArg, obligationKey: obligationKeyArg } =
+          await requireObligationInfo(
+            builder,
+            txBlock,
+            obligation,
+            obligationKey
+          );
 
         return txBlock.claimBorrowIncentive(
           obligationArg,
-          obligationtKeyArg,
+          obligationKeyArg,
           coinName,
           rewardCoinName
         );
