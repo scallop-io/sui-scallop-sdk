@@ -255,19 +255,14 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           const bindedVeScaKey =
             await builder.query.getBindedVeScaKey(obligationArg);
 
-          if (veScaKey && veScaKey !== bindedVeScaKey) {
-            throw new Error(
-              'Binded veScaKey is not equal to the provided veScaKey'
-            );
-          }
-          if (bindedVeScaKey) {
+          if ((veScaKey && veScaKey !== bindedVeScaKey) || !bindedVeScaKey) {
+            txBlock.stakeObligation(obligationArg, obligationKeyArg);
+          } else {
             txBlock.stakeObligationWithVesca(
               obligationArg,
               obligationKeyArg,
               bindedVeScaKey
             );
-          } else {
-            txBlock.stakeObligation(obligationArg, obligationKeyArg);
           }
         }
       },
