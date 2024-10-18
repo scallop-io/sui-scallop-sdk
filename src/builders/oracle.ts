@@ -27,7 +27,7 @@ export const updateOracles = async (
   } = { usePythPullModel: true }
 ) => {
   const usePythPullModel =
-    builder.params.pythPullMode ?? options.usePythPullModel;
+    builder.params.usePythPullModel ?? options.usePythPullModel;
   assetCoinNames = assetCoinNames ?? [
     ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
   ];
