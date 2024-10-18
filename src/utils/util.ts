@@ -34,6 +34,10 @@ export const isMarketCoin = (
 };
 
 export const parseAssetSymbol = (coinName: SupportAssetCoins): string => {
+  const isWormhole = coinName.charAt(0) === 'w';
+  if (isWormhole) {
+    return `w${coinName.slice(1).toUpperCase()}`;
+  }
   switch (coinName) {
     case 'afsui':
       return 'afSUI';

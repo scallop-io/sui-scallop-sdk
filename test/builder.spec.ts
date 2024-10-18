@@ -130,7 +130,7 @@ describe('Test Scallop Core Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     tx.setSender(sender);
 
-    const SUPPLY_COIN_NAME = 'usdc';
+    const SUPPLY_COIN_NAME = 'wusdc';
     const FLASHLOAN_AMOUNT = 10 ** 5;
     const [coin, loan] = tx.borrowFlashLoan(FLASHLOAN_AMOUNT, SUPPLY_COIN_NAME);
 

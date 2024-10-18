@@ -58,7 +58,7 @@ type PickFromUnion<T, K extends string> = K extends T ? K : never;
 export type WormholeCoinIds = {
   [key in PickFromUnion<
     SupportAssetCoins,
-    'eth' | 'btc' | 'usdc' | 'usdt' | 'apt' | 'sol'
+    'weth' | 'wbtc' | 'wusdc' | 'wusdt' | 'wapt' | 'wsol'
   >]: string;
 };
 

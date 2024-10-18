@@ -5,13 +5,11 @@ export const SDK_API_BASE_URL = 'https://sdk.api.scallop.io' as const;
 export const IS_VE_SCA_TEST: boolean = false;
 export const USE_TEST_ADDRESS: boolean = false;
 
-// export const ADDRESSES_ID = '';
 export const ADDRESSES_ID =
   IS_VE_SCA_TEST || USE_TEST_ADDRESS
     ? ('65fb07c39c845425d71d7b18' as const)
-    : ('664dfe22898c36c159e28bc8' as const);
-// : ('6601955b8b0024600a917079' as const);
-// : ('6462a088a7ace142bb6d7e9b' as const);
+    : ('66f8e7ed9bb9e07fdfb86bbb' as const);
+// : ('664dfe22898c36c159e28bc8' as const);
 
 export const PROTOCOL_OBJECT_ID = IS_VE_SCA_TEST
   ? ('0xc9f859f98ca352a11b97a038c4b4162bee437b8df8caa047990fe9cb03d4f778' as const)
@@ -33,13 +31,14 @@ export const OLD_BORROW_INCENTIVE_PROTOCOL_ID =
   '0xc63072e7f5f4983a2efaf5bdba1480d5e7d74d57948e1c7cc436f8e22cbeb410' as const;
 
 export const SUPPORT_POOLS = [
-  'eth',
-  'btc',
-  'usdc',
-  'usdt',
+  'usdc', // native USDC
+  'weth',
+  'wbtc',
+  'wusdc',
+  'wusdt',
   'sui',
-  'apt',
-  'sol',
+  'wapt',
+  'wsol',
   'cetus',
   'afsui',
   'hasui',
@@ -48,13 +47,14 @@ export const SUPPORT_POOLS = [
 ] as const;
 
 export const SUPPORT_COLLATERALS = [
-  'eth',
-  'btc',
   'usdc',
-  'usdt',
+  'weth',
+  'wbtc',
+  'wusdc',
+  'wusdt',
   'sui',
-  'apt',
-  'sol',
+  'wapt',
+  'wsol',
   'cetus',
   'afsui',
   'hasui',
@@ -63,10 +63,11 @@ export const SUPPORT_COLLATERALS = [
 ] as const;
 
 export const SUPPORT_SPOOLS = [
-  'seth',
-  'ssui',
   'susdc',
-  'susdt',
+  'sweth',
+  'ssui',
+  'swusdc',
+  'swusdt',
   'scetus',
   'safsui',
   'shasui',
@@ -74,28 +75,32 @@ export const SUPPORT_SPOOLS = [
 ] as const;
 
 export const SUPPORT_SCOIN = [
-  'ssui',
   'susdc',
-  'susdt',
+  'ssui',
+  'swusdc',
+  'swusdt',
   'safsui',
   'shasui',
   'svsui',
-  'seth',
+  'sweth',
   'ssca',
   'scetus',
+  'swsol',
+  'swbtc',
 ] as const;
 
 export const SUPPORT_SPOOLS_REWARDS = ['sui'] as const;
 
 export const SUPPORT_BORROW_INCENTIVE_POOLS = [
   'sui',
-  'usdc',
-  'usdt',
+  'wusdc',
+  'wusdt',
   'afsui',
   'hasui',
   'vsui',
-  'eth',
+  'weth',
   'sca',
+  'usdc',
 ] as const;
 
 export const SUPPORT_BORROW_INCENTIVE_REWARDS = ['sui', 'sca'] as const;

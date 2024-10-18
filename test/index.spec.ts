@@ -429,7 +429,7 @@ describe('Test Scallop Client - Other Method', async () => {
 
   // Only for testnet.
   it.skip('Should get test coin', async () => {
-    const mintTestCoinResult = await client.mintTestCoin('usdc', 10 ** 11);
+    const mintTestCoinResult = await client.mintTestCoin('wusdc', 10 ** 11);
     if (ENABLE_LOG) {
       console.info('MintTestCoinResult:', mintTestCoinResult);
     }
@@ -442,12 +442,28 @@ describe('Test Scallop Client - Migrate sCoin method', async () => {
   console.info('Your wallet:', client.walletAddress);
 
   it('Should migrate all market coin into sCoin successfully', async () => {
-    const txb = await client.migrateAllMarketCoin(false);
+    const txb = await client.migrateAllMarketCoin(false, false);
     const migrateResult = await client.suiKit.inspectTxn(txb);
     if (ENABLE_LOG) {
       console.info('Migrate result:', migrateResult);
     }
 
     expect(migrateResult.effects.status.status).toBe('success');
+  });
+});
+
+describe('Test Scallop Client - VeSCA Method', async () => {
+  const client = await scallopSDK.createScallopClient();
+  console.info('Your wallet:', client.walletAddress);
+
+  it('Should claim unlocked SCA from all owned veSCA successfully', async () => {
+    // assuming you have veSCA with unlocked SCA.
+    const { tx, scaCoin } = await client.claimAllUnlockedSca(false);
+    tx.transferObjects([scaCoin], client.walletAddress);
+    const { effects } = await client.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('Claim unlocked SCA result:', effects.status.error);
+    }
+    expect(effects.status.status).toBe('success');
   });
 });
