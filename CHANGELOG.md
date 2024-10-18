@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.47.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.2...v0.47.3) (2024-10-18)
+
+### Features
+
+- Add `usePythPullModel` to scallop params
+
 ### [0.47.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.1...v0.47.2) (2024-10-12)
 
 ### Bugfix
