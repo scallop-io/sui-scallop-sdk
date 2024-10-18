@@ -5,7 +5,13 @@ import { ScallopBuilder } from './scallopBuilder';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
 import { ADDRESSES_ID } from '../constants';
-import type { ScallopParams } from '../types/';
+import type {
+  ScallopBuilderParams,
+  ScallopClientParams,
+  ScallopParams,
+  ScallopQueryParams,
+  ScallopUtilsParams,
+} from '../types/';
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
 import { QueryClientConfig } from '@tanstack/query-core';
@@ -80,10 +86,14 @@ export class Scallop {
    *
    * @return Scallop Builder.
    */
-  public async createScallopBuilder() {
+  public async createScallopBuilder(params?: ScallopBuilderParams) {
     if (!this.address.getAddresses()) await this.address.read();
-    const scallopBuilder = new ScallopBuilder(this.params, {
-      query: await this.createScallopQuery(),
+    const builderParams = {
+      ...this.params,
+      ...params,
+    };
+    const scallopBuilder = new ScallopBuilder(builderParams, {
+      query: await this.createScallopQuery(builderParams),
     });
 
     return scallopBuilder;
@@ -95,12 +105,15 @@ export class Scallop {
    * @param walletAddress - When user cannot provide a secret key or mnemonic, the scallop client cannot directly derive the address of the transaction the user wants to sign. This argument specifies the wallet address for signing the transaction.
    * @return Scallop Client.
    */
-  public async createScallopClient(walletAddress?: string) {
+  public async createScallopClient(params?: ScallopClientParams) {
     if (!this.address.getAddresses()) await this.address.read();
-    const scallopClient = new ScallopClient(
-      { ...this.params, walletAddress },
-      { builder: await this.createScallopBuilder() }
-    );
+    const clientParams = {
+      ...this.params,
+      ...params,
+    };
+    const scallopClient = new ScallopClient(clientParams, {
+      builder: await this.createScallopBuilder(clientParams),
+    });
 
     return scallopClient;
   }
@@ -110,10 +123,14 @@ export class Scallop {
    *
    * @return Scallop Query.
    */
-  public async createScallopQuery() {
+  public async createScallopQuery(params?: ScallopQueryParams) {
     if (!this.address.getAddresses()) await this.address.read();
-    const scallopQuery = new ScallopQuery(this.params, {
-      utils: await this.createScallopUtils(),
+    const queryParams = {
+      ...this.params,
+      ...params,
+    };
+    const scallopQuery = new ScallopQuery(queryParams, {
+      utils: await this.createScallopUtils(queryParams),
     });
 
     return scallopQuery;
@@ -137,11 +154,17 @@ export class Scallop {
    *
    * @return Scallop Utils.
    */
-  public async createScallopUtils() {
+  public async createScallopUtils(params?: ScallopUtilsParams) {
     if (!this.address.getAddresses()) await this.address.read();
-    const scallopUtils = new ScallopUtils(this.params, {
-      address: this.address,
-    });
+    const scallopUtils = new ScallopUtils(
+      {
+        ...this.params,
+        ...params,
+      },
+      {
+        address: this.address,
+      }
+    );
 
     return scallopUtils;
   }
