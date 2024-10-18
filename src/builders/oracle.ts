@@ -16,6 +16,7 @@ import { PYTH_ENDPOINTS } from 'src/constants/pyth';
  * @param builder - The scallop builder.
  * @param txBlock - TxBlock created by SuiKit.
  * @param assetCoinNames - Specific an array of support asset coin name.
+ * @param options - The options for update oracles.
  */
 export const updateOracles = async (
   builder: ScallopBuilder,
