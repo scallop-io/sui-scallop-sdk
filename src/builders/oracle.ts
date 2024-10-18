@@ -17,17 +17,23 @@ import { TransactionBlock } from '@mysten/sui.js/transactions';
  * @param builder - The scallop builder.
  * @param txBlock - TxBlock created by SuiKit.
  * @param assetCoinNames - Specific an array of support asset coin name.
+ * @param options - The options for update oracles.
  */
 export const updateOracles = async (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
-  assetCoinNames?: SupportAssetCoins[]
+  assetCoinNames?: SupportAssetCoins[],
+  options: {
+    usePythPullModel: boolean;
+  } = { usePythPullModel: true }
 ) => {
+  const usePythPullModel =
+    builder.params.usePythPullModel ?? options.usePythPullModel;
   assetCoinNames = assetCoinNames ?? [
     ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
   ];
   const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
-  if (rules.includes('pyth')) {
+  if (usePythPullModel && rules.includes('pyth')) {
     const pythClient = new SuiPythClient(
       builder.oldSuiClient,
       builder.address.get('core.oracles.pyth.state'),
