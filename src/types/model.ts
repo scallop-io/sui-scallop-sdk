@@ -66,14 +66,17 @@ export type ScallopParams = {
   walletAddress?: string;
 } & SuiKitParams;
 
-export type ScallopClientParams = ScallopParams;
+export type ScallopClientParams = ScallopParams &
+  ScallopBuilderParams &
+  ScallopQueryParams &
+  ScallopUtilsParams;
 
 export type ScallopBuilderParams = ScallopParams & {
   pythEndpoints?: string[];
   pythPullMode?: boolean;
-};
+} & ScallopQueryParams;
 
-export type ScallopQueryParams = ScallopParams;
+export type ScallopQueryParams = ScallopParams & ScallopUtilsParams;
 
 export type ScallopUtilsParams = ScallopParams & {
   pythEndpoints?: string[];
