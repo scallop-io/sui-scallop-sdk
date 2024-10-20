@@ -53,7 +53,7 @@ export const updateOracles = async (
         const priceUpdateData =
           await pythConnection.getPriceFeedsUpdateData(priceIds);
         await pythClient.updatePriceFeeds(
-          TransactionBlock.from(JSON.stringify(txBlock.blockData)), // convert txBlock to TransactionBlock because pyth sdk not support new @mysten/sui yet
+          TransactionBlock.from(txBlock.serialize()), // convert txBlock to TransactionBlock because pyth sdk not support new @mysten/sui yet
           priceUpdateData,
           priceIds
         );

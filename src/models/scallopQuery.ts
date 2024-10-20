@@ -60,7 +60,7 @@ import {
   getSCoinSwapRate,
   getSCoinTotalSupply,
 } from 'src/queries/sCoinQuery';
-import { normalizeSuiAddress } from '@mysten/sui.js/utils';
+import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { getSupplyLimit } from 'src/queries/supplyLimit';
 
 /**

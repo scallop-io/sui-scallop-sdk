@@ -13,7 +13,7 @@ import {
   parseOriginMarketCollateralData,
   calculateMarketCollateralData,
 } from '../utils';
-import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui.js/client';
+import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui/client';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopAddress, ScallopCache, ScallopQuery } from '../models';
 import {

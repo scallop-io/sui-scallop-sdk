@@ -19,7 +19,7 @@ import type {
 } from '../types';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-import { SuiClient } from '@mysten/sui.js/client';
+import { SuiClient as SuiClientV0 } from '@mysten/sui.js/client';
 
 /**
  * @description
@@ -44,7 +44,7 @@ export class ScallopBuilder {
   public cache: ScallopCache;
 
   // For compatibility with pyth sdk
-  public oldSuiClient: SuiClient;
+  public oldSuiClient: SuiClientV0;
 
   public constructor(
     params: ScallopBuilderParams,
@@ -94,7 +94,7 @@ export class ScallopBuilder {
       : false;
 
     // intitialize old Sui Client version
-    this.oldSuiClient = new SuiClient({
+    this.oldSuiClient = new SuiClientV0({
       url: this.suiKit.suiInteractor.currentFullNode,
     });
   }
