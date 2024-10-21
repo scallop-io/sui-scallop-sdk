@@ -1095,7 +1095,9 @@ export class ScallopClient {
   ): Promise<ScallopClientVeScaReturnType<S>> {
     // get all veSca keys
     const veScaKeys = (
-      (await this.query.getVeScas(this.walletAddress)) ?? []
+      (await this.query.getVeScas({
+        walletAddress: this.walletAddress,
+      })) ?? []
     ).map(({ keyObject }) => keyObject);
     if (veScaKeys.length === 0) {
       throw new Error('No veSCA found in the wallet');
