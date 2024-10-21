@@ -274,6 +274,7 @@ export const getStakeAccounts = async (
 
   const stakeAccounts: StakeAccounts = {
     susdc: [],
+    seth: [],
     sweth: [],
     ssui: [],
     swusdc: [],
@@ -300,6 +301,16 @@ export const getStakeAccounts = async (
       {} as Record<SupportStakeMarketCoins, string>
     );
 
+  // Reverse the mapping
+  const reversedStakeMarketCoinTypes: Record<string, SupportStakeMarketCoins> =
+    Object.entries(stakeMarketCoinTypes).reduce(
+      (reversedTypes, [key, value]) => {
+        reversedTypes[value] = key as SupportStakeMarketCoins;
+        return reversedTypes;
+      },
+      {} as Record<string, SupportStakeMarketCoins>
+    );
+
   const stakeObjectIds: string[] = stakeObjectsResponse
     .map((ref: any) => ref?.data?.objectId)
     .filter((id: any) => id !== undefined);
@@ -318,98 +329,31 @@ export const getStakeAccounts = async (
       const index = Number(fields.index);
       const points = Number(fields.points);
       const totalPoints = Number(fields.total_points);
-      if (normalizeStructTag(type) === stakeMarketCoinTypes.sweth) {
-        stakeAccounts.sweth.push({
+
+      const stakeMarketCoinTypeMap: Record<
+        SupportStakeMarketCoins,
+        StakeAccounts[SupportStakeMarketCoins]
+      > = {
+        seth: stakeAccounts.seth,
+        sweth: stakeAccounts.sweth,
+        ssui: stakeAccounts.ssui,
+        swusdc: stakeAccounts.swusdc,
+        swusdt: stakeAccounts.swusdt,
+        scetus: stakeAccounts.scetus,
+        safsui: stakeAccounts.safsui,
+        shasui: stakeAccounts.shasui,
+        svsui: stakeAccounts.svsui,
+        susdc: stakeAccounts.susdc,
+      };
+
+      const normalizedType = normalizeStructTag(type);
+      const stakeAccountArray =
+        stakeMarketCoinTypeMap[reversedStakeMarketCoinTypes[normalizedType]];
+
+      if (stakeAccountArray) {
+        stakeAccountArray.push({
           id,
-          type: normalizeStructTag(type),
-          stakePoolId,
-          stakeType: normalizeStructTag(stakeType),
-          staked,
-          index,
-          points,
-          totalPoints,
-        });
-      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.ssui) {
-        stakeAccounts.ssui.push({
-          id,
-          type: normalizeStructTag(type),
-          stakePoolId,
-          stakeType: normalizeStructTag(stakeType),
-          staked,
-          index,
-          points,
-          totalPoints,
-        });
-      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.swusdc) {
-        stakeAccounts.swusdc.push({
-          id,
-          type: normalizeStructTag(type),
-          stakePoolId,
-          stakeType: normalizeStructTag(stakeType),
-          staked,
-          index,
-          points,
-          totalPoints,
-        });
-      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.swusdt) {
-        stakeAccounts.swusdt.push({
-          id,
-          type: normalizeStructTag(type),
-          stakePoolId,
-          stakeType: normalizeStructTag(stakeType),
-          staked,
-          index,
-          points,
-          totalPoints,
-        });
-      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.scetus) {
-        stakeAccounts.scetus.push({
-          id,
-          type: normalizeStructTag(type),
-          stakePoolId,
-          stakeType: normalizeStructTag(stakeType),
-          staked,
-          index,
-          points,
-          totalPoints,
-        });
-      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.safsui) {
-        stakeAccounts.safsui.push({
-          id,
-          type: normalizeStructTag(type),
-          stakePoolId,
-          stakeType: normalizeStructTag(stakeType),
-          staked,
-          index,
-          points,
-          totalPoints,
-        });
-      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.shasui) {
-        stakeAccounts.shasui.push({
-          id,
-          type: normalizeStructTag(type),
-          stakePoolId,
-          stakeType: normalizeStructTag(stakeType),
-          staked,
-          index,
-          points,
-          totalPoints,
-        });
-      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.svsui) {
-        stakeAccounts.svsui.push({
-          id,
-          type: normalizeStructTag(type),
-          stakePoolId,
-          stakeType: normalizeStructTag(stakeType),
-          staked,
-          index,
-          points,
-          totalPoints,
-        });
-      } else if (normalizeStructTag(type) === stakeMarketCoinTypes.susdc) {
-        stakeAccounts.susdc.push({
-          id,
-          type: normalizeStructTag(type),
+          type: normalizedType,
           stakePoolId,
           stakeType: normalizeStructTag(stakeType),
           staked,
