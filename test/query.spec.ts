@@ -380,7 +380,7 @@ describe('Test VeSca Query', async () => {
   });
 
   it(`Should get veSCAs`, async () => {
-    const veScas = await scallopQuery.getVeScas(sender);
+    const veScas = await scallopQuery.getVeScas({ walletAddress: sender });
     if (ENABLE_LOG) {
       console.info('VeSca keys:', veScas);
     }

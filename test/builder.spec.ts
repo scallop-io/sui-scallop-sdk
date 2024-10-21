@@ -290,7 +290,7 @@ describe('Test Scallop VeSca Builder', async () => {
   const scallopQuery = await scallopSDK.createScallopQuery();
   const sender = scallopBuilder.walletAddress;
 
-  const veScas = await scallopQuery.getVeScas(sender);
+  const veScas = await scallopQuery.getVeScas({ walletAddress: sender });
   const hasVeSca = veScas.length > 0;
   const isVeScaExpired =
     hasVeSca && veScas[0].unlockAt * 1000 <= new Date().getTime();

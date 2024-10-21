@@ -579,8 +579,14 @@ export class ScallopQuery {
    * @param walletAddress
    * @returns array of veSca
    */
-  public async getVeScas(walletAddress: string = this.walletAddress) {
-    return await getVeScas(this, walletAddress);
+  public async getVeScas({
+    walletAddress = this.walletAddress,
+    excludeEmpty = false,
+  }: {
+    walletAddress?: string;
+    excludeEmpty?: boolean;
+  } = {}) {
+    return await getVeScas(this, walletAddress, excludeEmpty);
   }
 
   /**
