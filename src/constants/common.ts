@@ -32,7 +32,7 @@ export const OLD_BORROW_INCENTIVE_PROTOCOL_ID =
 
 export const SUPPORT_POOLS = [
   'usdc', // native USDC
-  'eth', // native ETH
+  'sbeth', // native ETH
   'weth',
   'wbtc',
   'wusdc',
@@ -49,7 +49,7 @@ export const SUPPORT_POOLS = [
 
 export const SUPPORT_COLLATERALS = [
   'usdc', // native USDC
-  'eth', // native ETH
+  'sbeth', // native ETH
   'weth',
   'wbtc',
   'wusdc',
@@ -66,7 +66,6 @@ export const SUPPORT_COLLATERALS = [
 
 export const SUPPORT_SPOOLS = [
   'susdc',
-  'seth',
   'sweth',
   'ssui',
   'swusdc',
@@ -79,7 +78,7 @@ export const SUPPORT_SPOOLS = [
 
 export const SUPPORT_SCOIN = [
   'susdc',
-  'seth',
+  'ssbeth',
   'ssui',
   'swusdc',
   'swusdt',
@@ -93,6 +92,16 @@ export const SUPPORT_SCOIN = [
   'swbtc',
 ] as const;
 
+export const SUPPORT_SUI_BRIDGE = ['sbeth'] as const;
+export const SUPPORT_WORMHOLE = [
+  'wusdc',
+  'wusdt',
+  'weth',
+  'wbtc',
+  'wapt',
+  'wsol',
+] as const;
+
 export const SUPPORT_SPOOLS_REWARDS = ['sui'] as const;
 
 export const SUPPORT_BORROW_INCENTIVE_POOLS = [
@@ -103,7 +112,7 @@ export const SUPPORT_BORROW_INCENTIVE_POOLS = [
   'hasui',
   'vsui',
   'weth',
-  'eth',
+  'sbeth',
   'sca',
   'usdc',
 ] as const;
