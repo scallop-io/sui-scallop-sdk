@@ -585,7 +585,7 @@ export class ScallopQuery {
   }: {
     walletAddress?: string;
     excludeEmpty?: boolean;
-  }) {
+  } = {}) {
     return await getVeScas(this, walletAddress, excludeEmpty);
   }
 
