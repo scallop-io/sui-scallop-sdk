@@ -3,7 +3,7 @@ import { IS_VE_SCA_TEST } from './common';
 
 export const coinDecimals: types.SupportCoinDecimals = {
   usdc: 6,
-  eth: 8,
+  sbeth: 8,
   weth: 8,
   wbtc: 8,
   wusdc: 6,
@@ -17,8 +17,8 @@ export const coinDecimals: types.SupportCoinDecimals = {
   vsui: 9,
   sca: 9,
   susdc: 6,
-  seth: 8,
   sweth: 8,
+  ssbeth: 8,
   swbtc: 8,
   swusdc: 6,
   swusdt: 6,
@@ -34,7 +34,7 @@ export const coinDecimals: types.SupportCoinDecimals = {
 
 export const assetCoins: types.AssetCoins = {
   usdc: 'usdc',
-  eth: 'eth',
+  sbeth: 'sbeth',
   weth: 'weth',
   wbtc: 'wbtc',
   wusdc: 'wusdc',
@@ -51,7 +51,7 @@ export const assetCoins: types.AssetCoins = {
 
 export const marketCoins: types.MarketCoins = {
   susdc: 'susdc',
-  seth: 'seth',
+  ssbeth: 'ssbeth',
   sweth: 'sweth',
   swbtc: 'swbtc',
   swusdc: 'swusdc',
@@ -68,7 +68,7 @@ export const marketCoins: types.MarketCoins = {
 
 export const sCoins: types.SCoins = {
   susdc: 'susdc',
-  seth: 'seth',
+  ssbeth: 'ssbeth',
   sweth: 'sweth',
   swusdc: 'swusdc',
   swusdt: 'swusdt',
@@ -84,7 +84,6 @@ export const sCoins: types.SCoins = {
 
 export const stakeMarketCoins: types.StakeMarketCoins = {
   susdc: 'susdc',
-  seth: 'seth',
   sweth: 'sweth',
   ssui: 'ssui',
   swusdc: 'swusdc',
@@ -97,7 +96,6 @@ export const stakeMarketCoins: types.StakeMarketCoins = {
 
 export const spoolRewardCoins: types.StakeRewardCoins = {
   sweth: 'sui',
-  seth: 'sui',
   ssui: 'sui',
   swusdc: 'sui',
   swusdt: 'sui',
@@ -106,6 +104,10 @@ export const spoolRewardCoins: types.StakeRewardCoins = {
   shasui: 'sui',
   svsui: 'sui',
   susdc: 'sui',
+};
+
+export const suiBridgeCoins: types.SuiBridgeCoins = {
+  sbeth: 'sbeth',
 };
 
 export const borrowIncentiveRewardCoins: types.BorrowIncentiveRewardCoins = {
@@ -118,13 +120,13 @@ export const borrowIncentiveRewardCoins: types.BorrowIncentiveRewardCoins = {
   hasui: ['sui'],
   vsui: ['sui'],
   weth: ['sui'],
-  eth: ['sui'],
+  sbeth: ['sui'],
 };
 
 export const coinIds: types.AssetCoinIds = {
   usdc: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7',
   sui: '0x0000000000000000000000000000000000000000000000000000000000000002',
-  eth: '0xd0e89b2af5e4910726fbcd8b8dd37bb79b29e5f83f7491bca830e94f7f226d29',
+  sbeth: '0xd0e89b2af5e4910726fbcd8b8dd37bb79b29e5f83f7491bca830e94f7f226d29',
   weth: '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5',
   wbtc: '0x027792d9fed7f9844eb4839566001bb6f6cb4804f66aa2da6fe1ee242d896881',
   wusdc: '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf',
@@ -157,7 +159,8 @@ export const voloCoinIds: types.VoloCoinIds = {
 export const sCoinIds: types.SCoinIds = {
   susdc:
     '0x854950aa624b1df59fe64e630b2ba7c550642e9342267a33061d59fb31582da5::scallop_usdc::SCALLOP_USDC',
-  seth: '', // TODO
+  ssbeth:
+    '0xb14f82d8506d139eacef109688d1b71e7236bcce9b2c0ad526abcd6aa5be7de0::scallop_sb_eth::SCALLOP_SB_ETH',
   ssui: '0xaafc4f740de0dd0dde642a31148fb94517087052f19afb0f7bed1dc41a50c77b::scallop_sui::SCALLOP_SUI',
   scetus:
     '0xea346ce428f91ab007210443efcea5f5cdbbb3aae7e9affc0ca93f9203c31f0c::scallop_cetus::SCALLOP_CETUS',

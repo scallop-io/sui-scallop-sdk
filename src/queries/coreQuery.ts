@@ -324,7 +324,6 @@ export const getMarketPool = async (
     if (marketObject.content && 'fields' in marketObject.content) {
       const fields = marketObject.content.fields as any;
       const coinType = query.utils.parseCoinType(poolCoinName);
-
       // Get balance sheet.
       const balanceSheetParentId =
         fields.vault.fields.balance_sheets.fields.table.fields.id.id;

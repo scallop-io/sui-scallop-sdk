@@ -272,19 +272,13 @@ export const getStakeAccounts = async (
     }
   } while (hasNextPage);
 
-  const stakeAccounts: StakeAccounts = {
-    susdc: [],
-    seth: [],
-    sweth: [],
-    ssui: [],
-    swusdc: [],
-    swusdt: [],
-    scetus: [],
-    safsui: [],
-    shasui: [],
-    svsui: [],
-    // ssca: [],
-  };
+  const stakeAccounts: StakeAccounts = SUPPORT_SPOOLS.reduce(
+    (acc, stakeName) => {
+      acc[stakeName] = [];
+      return acc;
+    },
+    {} as StakeAccounts
+  );
 
   const stakeMarketCoinTypes: Record<SupportStakeMarketCoins, string> =
     Object.keys(stakeAccounts).reduce(
@@ -334,7 +328,6 @@ export const getStakeAccounts = async (
         SupportStakeMarketCoins,
         StakeAccounts[SupportStakeMarketCoins]
       > = {
-        seth: stakeAccounts.seth,
         sweth: stakeAccounts.sweth,
         ssui: stakeAccounts.ssui,
         swusdc: stakeAccounts.swusdc,

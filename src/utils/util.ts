@@ -6,12 +6,16 @@ import {
   MAX_LOCK_DURATION,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
   SUPPORT_SCOIN,
+  SUPPORT_SUI_BRIDGE,
+  SUPPORT_WORMHOLE,
 } from '../constants';
 import type { ScallopAddress } from '../models';
 import type {
   SupportAssetCoins,
   SupportCoins,
   SupportMarketCoins,
+  SupportSuiBridgeCoins,
+  SupportWormholeCoins,
 } from '../types';
 
 const COIN_SET = Array.from(
@@ -33,10 +37,28 @@ export const isMarketCoin = (
   );
 };
 
-export const parseAssetSymbol = (coinName: SupportAssetCoins): string => {
-  const isWormhole = coinName.charAt(0) === 'w';
-  if (isWormhole) {
+export const isSuiBridgeAsset = (
+  coinName: any
+): coinName is SupportSuiBridgeCoins => {
+  return SUPPORT_SUI_BRIDGE.includes(coinName);
+};
+
+export const isWormholeAsset = (
+  coinName: any
+): coinName is SupportWormholeCoins => {
+  return SUPPORT_WORMHOLE.includes(coinName);
+};
+
+export const parseAssetSymbol = (coinName: SupportCoins): string => {
+  if (isWormholeAsset(coinName)) {
     return `w${coinName.slice(1).toUpperCase()}`;
+  }
+  if (isSuiBridgeAsset(coinName)) {
+    return `sb${coinName.slice(2).toUpperCase()}`;
+  }
+  if (isMarketCoin(coinName)) {
+    const assetCoinName = coinName.slice(1).toLowerCase() as SupportAssetCoins;
+    return coinName.slice(0, 1).toLowerCase() + parseAssetSymbol(assetCoinName);
   }
   switch (coinName) {
     case 'afsui':
