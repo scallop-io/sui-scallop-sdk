@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.47.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.4...v0.47.5) (2024-10-21)
+
+### Features
+
+- Add `sbeth` (Sui Bridged ETH) ([0e2f2cf](https://github.com/scallop-io/sui-scallop-sdk/pull/180/commits/0e2f2cf5710c737af1d615f66bd175eb929c455c))
+
 ### [0.47.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.3...v0.47.4) (2024-10-21)
 
 ### Features
