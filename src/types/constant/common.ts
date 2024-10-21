@@ -8,6 +8,8 @@ import {
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
   SUPPORT_SCOIN,
+  SUPPORT_SUI_BRIDGE,
+  SUPPORT_WORMHOLE,
 } from '../../constants';
 
 type ParseMarketCoins<T extends string> = `s${T}`;
@@ -29,6 +31,8 @@ export type SupportMarketCoins =
   | ParseMarketCoins<SupportPoolCoins>
   | SupportStakeMarketCoins;
 export type SupportStakeMarketCoins = (typeof SUPPORT_SPOOLS)[number];
+export type SupportSuiBridgeCoins = (typeof SUPPORT_SUI_BRIDGE)[number];
+export type SupportWormholeCoins = (typeof SUPPORT_WORMHOLE)[number];
 export type SupportStakeCoins = Extract<
   SupportPoolCoins,
   ParseCoins<SupportStakeMarketCoins>
