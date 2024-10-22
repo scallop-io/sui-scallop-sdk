@@ -110,10 +110,10 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
-- Compatability with @mysten/sui.js TransactionBlock.
+- Compatability with @mysten/sui Transaction.
 
-  Scallop Transaction Builder contains a `TransactionBlock` instance from `@mysten/sui.js`.
-  So you can use both `TransactionBlock` and `ScallopTransactionBlock` at the same time to build your transaction.
+  Scallop Transaction Builder contains a `Transaction` instance from `@mysten/sui`.
+  So you can use both `Transaction` and `ScallopTransactionBlock` at the same time to build your transaction.
 
   ```typescript
   const scallopTxBlock = txBuilder.createTxBlock();
@@ -124,11 +124,9 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
    * 3. transfer SUI Market Coin to sender
    */
   const suiTxBlock = scallopTxBlock.txBlock;
-  const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [
-    suiTxBlock.pure(10 ** 6),
-  ]);
+  const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [10 ** 6]);
   const marketCoin = scallopTxBlock.deposit(coin, 'sui');
-  suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure(sender));
+  suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure.address(sender));
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 

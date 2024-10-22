@@ -1,11 +1,11 @@
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
+import { Transaction } from '@mysten/sui/transactions';
+import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { spoolRewardCoins } from '../constants/enum';
 import { getStakeAccounts } from '../queries/spoolQuery';
 import { requireSender } from '../utils';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
-import type { TransactionResult } from '@mysten/sui.js/transactions';
+import type { TransactionResult } from '@mysten/sui/transactions';
 import type { ScallopBuilder } from '../models';
 import type {
   SpoolIds,
@@ -166,10 +166,10 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
     claim: (stakeAccount, stakeMarketCoinName) => {
       const stakePoolId = builder.address.get(
         `spool.pools.${stakeMarketCoinName}.id`
-      );
+      ) as string;
       const rewardPoolId = builder.address.get(
         `spool.pools.${stakeMarketCoinName}.rewardPoolId`
-      );
+      ) as string;
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
       const rewardCoinName = spoolRewardCoins[stakeMarketCoinName];
@@ -317,15 +317,15 @@ export const newSpoolTxBlock = (
   initTxBlock?:
     | ScallopTxBlock
     | SuiKitTxBlock
-    | TransactionBlock
+    | Transaction
     | SuiTxBlockWithSCoin
 ) => {
   const txBlock =
-    initTxBlock instanceof TransactionBlock
+    initTxBlock instanceof Transaction
       ? new SuiKitTxBlock(initTxBlock)
       : initTxBlock
-      ? initTxBlock
-      : new SuiKitTxBlock();
+        ? initTxBlock
+        : new SuiKitTxBlock();
 
   const normalMethod = generateSpoolNormalMethod({
     builder,

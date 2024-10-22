@@ -1,10 +1,10 @@
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
+import { Transaction } from '@mysten/sui/transactions';
+import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { getObligations } from '../queries';
 import { updateOracles } from './oracle';
 import { requireSender } from '../utils';
-import type { SuiAddressArg, TransactionResult } from '@scallop-io/sui-kit';
+import type { SuiObjectArg, TransactionResult } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
 import type {
   CoreIds,
@@ -35,8 +35,8 @@ const requireObligationInfo = async (
   ...params: [
     builder: ScallopBuilder,
     txBlock: SuiKitTxBlock,
-    obligationId?: SuiAddressArg,
-    obligationKey?: SuiAddressArg,
+    obligationId?: SuiObjectArg,
+    obligationKey?: SuiObjectArg,
   ]
 ) => {
   const [builder, txBlock, obligationId, obligationKey] = params;
@@ -116,7 +116,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           obligationKey,
           coreIds.market,
           coreIds.coinDecimalsRegistry,
-          amount,
+          txBlock.pure.u64(amount),
           coreIds.xOracle,
           SUI_CLOCK_OBJECT_ID,
         ],
@@ -189,7 +189,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           coreIds.market,
           coreIds.coinDecimalsRegistry,
           borrowReferral,
-          amount,
+          txBlock.pure.u64(amount),
           coreIds.xOracle,
           SUI_CLOCK_OBJECT_ID,
         ],
@@ -206,7 +206,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           obligationKey,
           coreIds.market,
           coreIds.coinDecimalsRegistry,
-          amount,
+          txBlock.pure.u64(amount),
           coreIds.xOracle,
           SUI_CLOCK_OBJECT_ID,
         ],
@@ -303,7 +303,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.takeCollateral(
         obligationInfo.obligationId,
-        obligationInfo.obligationKey as SuiAddressArg,
+        obligationInfo.obligationKey as SuiObjectArg,
         amount,
         collateralCoinName
       );
@@ -396,7 +396,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.borrow(
         obligationInfo.obligationId,
-        obligationInfo.obligationKey as SuiAddressArg,
+        obligationInfo.obligationKey as SuiObjectArg,
         amount,
         poolCoinName
       );
@@ -422,7 +422,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.borrowWithReferral(
         obligationInfo.obligationId,
-        obligationInfo.obligationKey as SuiAddressArg,
+        obligationInfo.obligationKey as SuiObjectArg,
         borrowReferral,
         amount,
         poolCoinName
@@ -476,15 +476,15 @@ export const newCoreTxBlock = (
   initTxBlock?:
     | ScallopTxBlock
     | SuiKitTxBlock
-    | TransactionBlock
+    | Transaction
     | SuiTxBlockWithSpool
 ) => {
   const txBlock =
-    initTxBlock instanceof TransactionBlock
+    initTxBlock instanceof Transaction
       ? new SuiKitTxBlock(initTxBlock)
       : initTxBlock
-      ? initTxBlock
-      : new SuiKitTxBlock();
+        ? initTxBlock
+        : new SuiKitTxBlock();
 
   const normalMethod = generateCoreNormalMethod({
     builder,

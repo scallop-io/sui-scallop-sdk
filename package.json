@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-scallop-sdk",
-  "version": "0.47.4",
+  "version": "1.3.0-alpha.1",
   "description": "Typescript sdk for interacting with Scallop contract on SUI",
   "keywords": [
     "sui",
@@ -60,14 +60,15 @@
     "doc": "typedoc --out docs src/index.ts"
   },
   "dependencies": {
-    "@graphql-typed-document-node/core": "^3.2.0",
-    "@mysten/bcs": "^0.8.1",
-    "@mysten/sui.js": "^0.54.1",
+    "@graphql-typed-document-node/core": "3.2.0",
+    "@mysten/bcs": "^1.0.3",
+    "@mysten/sui": "^1.3.0",
+    "@mysten/sui.js": "0.54.1",
     "@noble/curves": "^1.2.0",
     "@noble/hashes": "^1.3.2",
     "@pythnetwork/price-service-client": "^1.8.2",
     "@pythnetwork/pyth-sui-js": "2.0.0",
-    "@scallop-io/sui-kit": "0.52.0",
+    "@scallop-io/sui-kit": "1.3.0",
     "@scure/bip39": "^1.2.1",
     "@tanstack/query-core": "^5.28.0",
     "axios": "^1.6.0",
@@ -77,32 +78,35 @@
     "graphql": "^16.9.0",
     "superstruct": "^1.0.3",
     "tweetnacl": "^1.0.3",
+    "valibot": "^0.36.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.2.0",
     "@commitlint/config-conventional": "^18.1.0",
     "@commitlint/prompt-cli": "^18.2.0",
-    "@types/node": "^20.8.10",
+    "@types/node": "^20.4.2",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "dotenv": "^16.3.1",
     "eslint": "^8.53.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
+    "graphql-config": "^5.0.3",
     "husky": "^8.0.3",
     "lint-staged": "^15.0.2",
     "prettier": "^3.0.3",
     "standard-version": "^9.5.0",
     "tsconfig-paths": "^4.2.0",
     "tsup": "^7.2.0",
-    "typedoc": "^0.25.3",
-    "typescript": "^5.2.2",
+    "typedoc": "^0.26.3",
+    "typescript": "^5.3.3",
     "vitest": "^0.34.6"
   },
   "peerDependencies": {
+    "@mysten/sui": "1.3.0",
     "@mysten/sui.js": "0.54.1",
-    "@scallop-io/sui-kit": "0.52.0",
+    "@scallop-io/sui-kit": "1.3.0",
     "bn.js": "^5.2.1"
   },
   "lint-staged": {
@@ -168,6 +172,7 @@
   },
   "pnpm": {
     "patchedDependencies": {
+      "@mysten/sui@1.3.0": "patches/@mysten__sui@1.3.0.patch",
       "@mysten/sui.js@0.54.1": "patches/@mysten__sui.js@0.54.1.patch"
     }
   }
