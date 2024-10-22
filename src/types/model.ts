@@ -12,6 +12,7 @@ import type {
   ScallopIndexer,
 } from '../models';
 import { ScallopCache } from 'src/models/scallopCache';
+import { AddressesInterface } from './address';
 
 export type ScallopClientFnReturnType<T extends boolean> = T extends true
   ? SuiTransactionBlockResponse
@@ -59,10 +60,12 @@ export type ScallopAddressParams = {
   id: string;
   auth?: string;
   network?: NetworkType;
+  forceInterface?: Record<NetworkType, AddressesInterface>;
 };
 
 export type ScallopParams = {
   addressesId?: string;
+  forceAddressesInterface?: Record<NetworkType, AddressesInterface>;
   walletAddress?: string;
 } & SuiKitParams;
 

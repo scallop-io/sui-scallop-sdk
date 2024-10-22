@@ -377,7 +377,7 @@ export class ScallopAddress {
     params: ScallopAddressParams,
     instance?: ScallopAddressInstanceParams
   ) {
-    const { id, auth, network } = params;
+    const { id, auth, network, forceInterface } = params;
     this.cache =
       instance?.cache ??
       new ScallopCache(
@@ -401,6 +401,18 @@ export class ScallopAddress {
       ? new Map([['mainnet', TEST_ADDRESSES]])
       : new Map();
     if (USE_TEST_ADDRESS) this._currentAddresses = TEST_ADDRESSES;
+
+    // Set the addresses from the forceInterface if it is provided.
+    if (forceInterface) {
+      for (const [network, addresses] of Object.entries<AddressesInterface>(
+        forceInterface
+      )) {
+        if (['localnet', 'devnet', 'testnet', 'mainnet'].includes(network)) {
+          if (network === this._network) this._currentAddresses = addresses;
+          this._addressesMap.set(network as NetworkType, addresses);
+        }
+      }
+    }
   }
 
   /**
