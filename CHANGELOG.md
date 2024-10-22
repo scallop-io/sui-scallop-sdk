@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.47.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.5...v0.47.6) (2024-10-22)
+
+### Features
+
+- Add option `forceAddressesInterface` ([c66a64b](https://github.com/scallop-io/sui-scallop-sdk/commit/c66a64b93a85cc1ff9e3e479c61b0fe4fcbe07e7))
+
 ### [0.47.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.4...v0.47.5) (2024-10-21)
 
 ### Features
