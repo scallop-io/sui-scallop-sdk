@@ -1054,7 +1054,7 @@ export class ScallopClient {
               if (sCoin) {
                 sCoins.push(sCoin);
               }
-            } catch (e: any) {
+            } catch (_e: any) {
               // ignore
             }
           }
@@ -1115,7 +1115,7 @@ export class ScallopClient {
           const scaCoin = await tx.redeemScaQuick(key, false);
           if (!scaCoin) return;
           scaCoins.push(scaCoin);
-        } catch (e) {
+        } catch (_e) {
           // ignore
         }
       })

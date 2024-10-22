@@ -107,7 +107,7 @@ const stakeHelper = async (
     }
     txBlock.transferObjects([leftCoin], sender);
     return totalAmount;
-  } catch (e) {
+  } catch (_e) {
     return 0;
   }
 };

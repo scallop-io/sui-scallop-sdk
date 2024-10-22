@@ -364,11 +364,11 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
             txBlock.transferObjects([leftCoin], sender);
             txBlock.mergeCoins(marketCoins, [walletMarketCoins]);
           }
-        } catch (e) {
+        } catch (_e) {
           // ignore
         }
         return txBlock.withdraw(marketCoins, poolCoinName);
-      } catch (e) {
+      } catch (_e) {
         // no sCoin found
         const { leftCoin, takeCoin: walletMarketCoins } =
           await builder.selectMarketCoin(
