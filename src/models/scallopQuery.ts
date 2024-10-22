@@ -125,7 +125,7 @@ export class ScallopQuery {
       instance?.indexer ??
       new ScallopIndexer(this.params, { cache: this.cache });
 
-    // Automatically wrap any method that has an indexer parameter)
+    // Wrap any method that has an indexer parameter as the last parameter
     this.queryMarket = withIndexerFallback.call(this, this.queryMarket);
     this.getMarketPools = withIndexerFallback.call(this, this.getMarketPools);
     this.getMarketPool = withIndexerFallback.call(this, this.getMarketPool);
@@ -155,8 +155,6 @@ export class ScallopQuery {
     );
     this.getTvl = withIndexerFallback.call(this, this.getTvl);
   }
-
-  /* ========================================================== */
 
   /* ========================================================== */
 
