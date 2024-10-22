@@ -1,14 +1,15 @@
-import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
+import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import {
   SuiPythClient,
   SuiPriceServiceConnection,
 } from '@pythnetwork/pyth-sui-js';
 import { SUPPORT_COLLATERALS, SUPPORT_POOLS } from '../constants';
-import type { TransactionArgument } from '@mysten/sui.js/transactions';
+import type { TransactionArgument } from '@mysten/sui/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
 import type { SupportAssetCoins, SupportOracleType } from '../types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
+import { TransactionBlock } from '@mysten/sui.js/transactions';
 
 /**
  * Update the price of the oracle for multiple coin.
@@ -34,7 +35,7 @@ export const updateOracles = async (
   const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
   if (usePythPullModel && rules.includes('pyth')) {
     const pythClient = new SuiPythClient(
-      builder.suiKit.client(),
+      builder.oldSuiClient,
       builder.address.get('core.oracles.pyth.state'),
       builder.address.get('core.oracles.pyth.wormholeState')
     );
@@ -52,7 +53,7 @@ export const updateOracles = async (
         const priceUpdateData =
           await pythConnection.getPriceFeedsUpdateData(priceIds);
         await pythClient.updatePriceFeeds(
-          txBlock.txBlock,
+          TransactionBlock.from(txBlock.serialize()), // convert txBlock to TransactionBlock because pyth sdk not support new @mysten/sui yet
           priceUpdateData,
           priceIds
         );

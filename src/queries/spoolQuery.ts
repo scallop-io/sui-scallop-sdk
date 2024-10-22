@@ -1,4 +1,4 @@
-import { normalizeStructTag } from '@mysten/sui.js/utils';
+import { normalizeStructTag } from '@mysten/sui/utils';
 import { SUPPORT_SPOOLS } from '../constants';
 import {
   parseOriginSpoolData,
@@ -7,7 +7,7 @@ import {
   calculateSpoolRewardPoolData,
   isMarketCoin,
 } from '../utils';
-import type { SuiObjectResponse } from '@mysten/sui.js/client';
+import type { SuiObjectResponse } from '@mysten/sui/client';
 import type { ScallopQuery, ScallopUtils } from '../models';
 import type {
   MarketPool,
@@ -287,9 +287,8 @@ export const getStakeAccounts = async (
           utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
         const marketCoinType = utils.parseMarketCoinType(stakeCoinName);
 
-        types[
-          stakeMarketCoinName as SupportStakeMarketCoins
-        ] = `${spoolObjectId}::spool_account::SpoolAccount<${marketCoinType}>`;
+        types[stakeMarketCoinName as SupportStakeMarketCoins] =
+          `${spoolObjectId}::spool_account::SpoolAccount<${marketCoinType}>`;
         return types;
       },
       {} as Record<SupportStakeMarketCoins, string>

@@ -1,9 +1,9 @@
 // export const API_BASE_URL = 'https://sui.api.scallop.io';
-export const API_BASE_URL = 'https://sui.apis.scallop.io';
-export const SDK_API_BASE_URL = 'https://sdk.api.scallop.io';
+export const API_BASE_URL = 'https://sui.apis.scallop.io' as const;
+export const SDK_API_BASE_URL = 'https://sdk.api.scallop.io' as const;
 
-export const IS_VE_SCA_TEST = false;
-export const USE_TEST_ADDRESS = false;
+export const IS_VE_SCA_TEST: boolean = false;
+export const USE_TEST_ADDRESS: boolean = false;
 
 export const ADDRESSES_ID =
   IS_VE_SCA_TEST || USE_TEST_ADDRESS
