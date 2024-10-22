@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.47.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.3...v0.47.4) (2024-10-21)
+
+### Features
+
+- Allow exclude empty veSca in `getVeScas` method ([d636ff1](https://github.com/scallop-io/sui-scallop-sdk/commit/d636ff1549988776cd9ac5eaa21ac067175ba15b))
+
 ### [0.47.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.2...v0.47.3) (2024-10-18)
 
 ### Features

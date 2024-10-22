@@ -71,7 +71,8 @@ export const getVeScas = async (
   }: {
     utils: ScallopUtils;
   },
-  ownerAddress?: string
+  ownerAddress?: string,
+  excludeEmpty?: boolean
 ) => {
   const keyObjectDatas = await getVescaKeys(utils, ownerAddress);
 
@@ -84,9 +85,14 @@ export const getVeScas = async (
   });
   await Promise.allSettled(tasks);
 
-  return veScas
+  const result = veScas
     .filter(Boolean)
     .sort((a, b) => b!.currentVeScaBalance - a!.currentVeScaBalance);
+
+  if (excludeEmpty) {
+    return result.filter((v) => v.lockedScaAmount !== '0');
+  }
+  return result;
 };
 
 const SuiObjectRefZod = zod.object({

@@ -17,6 +17,7 @@ import {
   MAX_LOCK_DURATION,
   SUPPORT_SCOIN,
   sCoinIds,
+  suiBridgeCoins,
 } from '../constants';
 import { getPythPrice, queryObligation } from '../queries';
 import {
@@ -24,6 +25,8 @@ import {
   isMarketCoin,
   parseAssetSymbol,
   findClosestUnlockRound,
+  isSuiBridgeAsset,
+  isWormholeAsset,
 } from '../utils';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
 import { ScallopCache } from './scallopCache';
@@ -40,6 +43,8 @@ import type {
   CoinWrappedType,
   SupportSCoin,
   ScallopUtilsInstanceParams,
+  SupportSuiBridgeCoins,
+  SupportWormholeCoins,
 } from '../types';
 import type { SuiObjectArg, SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
 
@@ -106,6 +111,14 @@ export class ScallopUtils {
       ? params.networkType === 'testnet'
       : false;
   }
+  // -------------- TYPE GUARDS --------------
+  public isSuiBridgeAsset(coinName: any): coinName is SupportSuiBridgeCoins {
+    return isSuiBridgeAsset(coinName);
+  }
+
+  public isWormholeAsset(coinName: any): coinName is SupportWormholeCoins {
+    return isWormholeAsset(coinName);
+  }
 
   /**
    * Request the scallop API to initialize data.
@@ -128,16 +141,7 @@ export class ScallopUtils {
    * @return Symbol string.
    */
   public parseSymbol(coinName: SupportCoins) {
-    if (isMarketCoin(coinName)) {
-      const assetCoinName = coinName
-        .slice(1)
-        .toLowerCase() as SupportAssetCoins;
-      return (
-        coinName.slice(0, 1).toLowerCase() + parseAssetSymbol(assetCoinName)
-      );
-    } else {
-      return parseAssetSymbol(coinName);
-    }
+    return parseAssetSymbol(coinName);
   }
 
   /**
@@ -173,10 +177,23 @@ export class ScallopUtils {
     const voloPackageIds = [
       this.address.get('core.coins.vsui.id') ?? voloCoinIds.vsui,
     ];
+
+    const suiBridgePackageIds = Object.values<SupportSuiBridgeCoins>(
+      suiBridgeCoins
+    ).reduce((curr, coinName) => {
+      curr.push(
+        this.address.get(`core.coins.${coinName}.id`) ?? coinIds[coinName]
+      );
+      return curr;
+    }, [] as string[]);
     if (wormHolePackageIds.includes(coinPackageId)) {
       return `${coinPackageId}::coin::COIN`;
     } else if (voloPackageIds.includes(coinPackageId)) {
       return `${coinPackageId}::cert::CERT`;
+    } else if (suiBridgePackageIds.includes(coinPackageId)) {
+      // handle sui bridge assets
+      const typeCoinName = coinName.slice(2);
+      return `${coinPackageId}::${typeCoinName}::${typeCoinName.toUpperCase()}`;
     } else {
       return `${coinPackageId}::${coinName}::${coinName.toUpperCase()}`;
     }
@@ -299,9 +316,20 @@ export class ScallopUtils {
       }::cert::CERT`]: 'vsui',
     };
 
+    const suiBridgeTypeMap = Object.values<SupportSuiBridgeCoins>(
+      suiBridgeCoins
+    ).reduce(
+      (curr, coinName) => {
+        curr[this.parseCoinType(coinName)] = coinName;
+        return curr;
+      },
+      {} as Record<string, SupportSuiBridgeCoins>
+    );
+
     const assetCoinName =
       wormHoleCoinTypeMap[coinType] ||
       voloCoinTypeMap[coinType] ||
+      suiBridgeTypeMap[coinType] ||
       (coinType.split('::')[2].toLowerCase() as SupportAssetCoins);
 
     return isMarketCoinType
@@ -310,7 +338,7 @@ export class ScallopUtils {
   }
 
   /**
-   * Convert marke coin name to coin name.
+   * Convert market coin name to coin name.
    *
    * @param marketCoinName - Specific support market coin name.
    * @return Coin Name.
@@ -370,17 +398,19 @@ export class ScallopUtils {
    * return Coin wrapped type.
    */
   public getCoinWrappedType(assetCoinName: SupportAssetCoins): CoinWrappedType {
-    return assetCoinName === 'wusdc' ||
-      assetCoinName === 'wusdt' ||
-      assetCoinName === 'weth' ||
-      assetCoinName === 'wbtc' ||
-      assetCoinName === 'wapt' ||
-      assetCoinName === 'wsol'
-      ? {
-          from: 'Wormhole',
-          type: 'Portal from Ethereum',
-        }
-      : undefined;
+    if (this.isSuiBridgeAsset(assetCoinName)) {
+      return {
+        from: 'Sui Bridge',
+        type: 'Asset from Sui Bridge',
+      };
+    } else if (this.isWormholeAsset(assetCoinName)) {
+      return {
+        from: 'Wormhole',
+        type: 'Portal from Ethereum',
+      };
+    }
+
+    return undefined;
   }
 
   /**
