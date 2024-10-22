@@ -118,7 +118,7 @@ const generateReferralQuickMethod: GenerateReferralQuickMethod = ({
               builder.utils.parseCoinType(coinName)
             );
             txBlock.mergeCoins(rewardCoin, coins.slice(0, 500));
-          } catch (e) {
+          } catch (_e) {
             // ignore
           } finally {
             objToTransfer.push(rewardCoin);

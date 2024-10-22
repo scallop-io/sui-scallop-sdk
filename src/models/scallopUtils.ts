@@ -459,7 +459,7 @@ export class ScallopUtils {
       if (existingCoins.length > 0) {
         txBlock.mergeCoins(dest, existingCoins.slice(0, 500));
       }
-    } catch (e) {
+    } catch (_e) {
       // ignore
     }
   }

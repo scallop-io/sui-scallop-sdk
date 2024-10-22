@@ -887,7 +887,7 @@ describe('Test sCoin Builder', async () => {
       sender
     );
     hasSCoinInWallet = sCoins.length > 0;
-  } catch (e) {
+  } catch (_e) {
     // no sCoin, just ignore
   }
 
