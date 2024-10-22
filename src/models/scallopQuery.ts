@@ -62,6 +62,7 @@ import {
 } from 'src/queries/sCoinQuery';
 import { normalizeSuiAddress } from '@mysten/sui.js/utils';
 import { getSupplyLimit } from 'src/queries/supplyLimit';
+import { withIndexerFallback } from 'src/utils/indexer';
 
 /**
  * @description
@@ -123,7 +124,39 @@ export class ScallopQuery {
     this.indexer =
       instance?.indexer ??
       new ScallopIndexer(this.params, { cache: this.cache });
+
+    // Wrap any method that has an indexer parameter as the last parameter
+    this.queryMarket = withIndexerFallback.call(this, this.queryMarket);
+    this.getMarketPools = withIndexerFallback.call(this, this.getMarketPools);
+    this.getMarketPool = withIndexerFallback.call(this, this.getMarketPool);
+    this.getMarketCollaterals = withIndexerFallback.call(
+      this,
+      this.getMarketCollaterals
+    );
+    this.getMarketCollateral = withIndexerFallback.call(
+      this,
+      this.getMarketCollateral
+    );
+    this.getSpools = withIndexerFallback.call(this, this.getSpools);
+    this.getSpool = withIndexerFallback.call(this, this.getSpool);
+    this.getBorrowIncentivePools = withIndexerFallback.call(
+      this,
+      this.getBorrowIncentivePools
+    );
+    this.getLendings = withIndexerFallback.call(this, this.getLendings);
+    this.getLending = withIndexerFallback.call(this, this.getLending);
+    this.getObligationAccounts = withIndexerFallback.call(
+      this,
+      this.getObligationAccounts
+    );
+    this.getObligationAccount = withIndexerFallback.call(
+      this,
+      this.getObligationAccount
+    );
+    this.getTvl = withIndexerFallback.call(this, this.getTvl);
   }
+
+  /* ========================================================== */
 
   /**
    * Request the scallop API to initialize data.
