@@ -85,6 +85,7 @@ export class ScallopClient {
         {
           id: params?.addressesId || ADDRESSES_ID,
           network: params?.networkType,
+          forceInterface: params?.forceAddressesInterface,
         },
         {
           cache: this.cache,
@@ -813,7 +814,6 @@ export class ScallopClient {
     const stakeCoinName =
       this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
 
-    console.log(stakeMarketCoin, stakeCoinName);
     if (stakeMarketCoin) {
       const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
       await this.utils.mergeSimilarCoins(
