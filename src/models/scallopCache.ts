@@ -54,9 +54,18 @@ export class ScallopCache {
     suiKit: SuiKit,
     walletAddress?: string,
     cacheOptions?: QueryClientConfig,
-    tokenBucket?: TokenBucket
+    tokenBucket?: TokenBucket,
+    queryClient?: QueryClient
   ) {
-    this.queryClient = new QueryClient(cacheOptions ?? DEFAULT_CACHE_OPTIONS);
+    this.queryClient =
+      queryClient ?? new QueryClient(cacheOptions ?? DEFAULT_CACHE_OPTIONS);
+
+    // if(queryClient && cacheOptions){
+    //   if(cacheOptions.defaultOptions)this.queryClient.setDefaultOptions(cacheOptions.defaultOptions);
+    //   if (cacheOptions.queryCache)
+    //     this.queryClient.defaultQueryOptions(cacheOptions.queryCache);
+    //   if(cacheOptions.mutations)this.queryClient.setMutationDefaults(cacheOptions.mutations);
+    // }
     this._suiKit = suiKit;
     this.tokenBucket =
       tokenBucket ??
