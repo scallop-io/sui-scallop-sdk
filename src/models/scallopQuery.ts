@@ -112,6 +112,7 @@ export class ScallopQuery {
         {
           id: params?.addressesId || ADDRESSES_ID,
           network: params?.networkType,
+          forceInterface: params?.forceAddressesInterface,
         },
         {
           cache: this.cache,
