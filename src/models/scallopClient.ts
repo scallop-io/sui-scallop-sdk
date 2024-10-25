@@ -84,8 +84,8 @@ export class ScallopClient {
       this.address = new ScallopAddress(
         {
           id: params?.addressesId || ADDRESSES_ID,
-          forceInterface: params?.forceAddressesInterface,
           network: params?.networkType,
+          forceInterface: params?.forceAddressesInterface,
         },
         {
           cache: this.cache,
