@@ -559,7 +559,7 @@ export class ScallopUtils {
             const pythConnection = new SuiPriceServiceConnection(endpoint);
             try {
               const feed = await this.address.cache.queryClient.fetchQuery({
-                queryKey: queryKeys.getPythLatestPriceFeed(priceId),
+                queryKey: queryKeys.pyth.getPythLatestPriceFeed(priceId),
                 queryFn: async () => {
                   return await pythConnection.getLatestPriceFeeds([priceId]);
                 },

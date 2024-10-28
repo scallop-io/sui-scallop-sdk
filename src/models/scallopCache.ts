@@ -108,7 +108,7 @@ export class ScallopCache {
    */
   public async getProtocolConfig() {
     return await this.queryClient.fetchQuery({
-      queryKey: queryKeys.getProtocolConfig(),
+      queryKey: queryKeys.rpc.getProtocolConfig(),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
           this.client.getProtocolConfig()
@@ -150,7 +150,7 @@ export class ScallopCache {
     });
 
     const query = await this.queryClient.fetchQuery({
-      queryKey: queryKeys.getInspectTxn(queryTarget, args, typeArgs),
+      queryKey: queryKeys.rpc.getInspectTxn(queryTarget, args, typeArgs),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
           this.suiKit.inspectTxn(txBytes)
@@ -202,7 +202,11 @@ export class ScallopCache {
     objectIds.sort();
 
     return this.queryClient.fetchQuery({
-      queryKey: queryKeys.getObjects(objectIds, this.walletAddress, options),
+      queryKey: queryKeys.rpc.getObjects(
+        objectIds,
+        this.walletAddress,
+        options
+      ),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
           this.suiKit.getObjects(objectIds, options)
