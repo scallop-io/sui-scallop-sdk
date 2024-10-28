@@ -24,7 +24,7 @@ import type {
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { SuiKit } from '@scallop-io/sui-kit';
-import queryKeys from 'src/constants/queryKeys';
+import { queryKeys } from 'src/constants';
 
 /**
  * @description

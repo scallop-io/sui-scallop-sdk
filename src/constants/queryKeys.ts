@@ -4,7 +4,7 @@ import type {
 } from '@mysten/sui.js/src/client';
 import type { SuiTxArg } from '@scallop-io/sui-kit';
 
-const queryKeys = {
+export const queryKeys = {
   getAddresses: (addressesId: string) => ['api', 'getAddresses', addressesId],
   getProtocolConfig: () => ['rpc', 'getProtocolConfig'],
   getInspectTxn: (
@@ -47,5 +47,3 @@ const queryKeys = {
     pythPriceId,
   ],
 };
-
-export default queryKeys;

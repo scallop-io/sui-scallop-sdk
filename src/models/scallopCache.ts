@@ -24,7 +24,7 @@ import {
   DEFAULT_INTERVAL_IN_MS,
   DEFAULT_TOKENS_PER_INTERVAL,
 } from 'src/constants/tokenBucket';
-import queryKeys from 'src/constants/queryKeys';
+import { queryKeys } from 'src/constants';
 
 type QueryInspectTxnParams = {
   queryTarget: string;

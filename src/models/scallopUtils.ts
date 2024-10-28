@@ -47,7 +47,7 @@ import type {
   SupportWormholeCoins,
 } from '../types';
 import type { SuiAddressArg, SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
-import queryKeys from 'src/constants/queryKeys';
+import { queryKeys } from 'src/constants';
 
 /**
  * @description

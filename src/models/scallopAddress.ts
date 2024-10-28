@@ -10,7 +10,7 @@ import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import axios, { AxiosInstance } from 'axios';
 import { TEST_ADDRESSES } from 'src/constants/testAddress';
-import queryKeys from 'src/constants/queryKeys';
+import { queryKeys } from 'src/constants';
 
 const EMPTY_ADDRESSES: AddressesInterface = {
   core: {
