@@ -17,7 +17,7 @@ const supplyLimitZod = zod.object({
   }),
 });
 
-const SUPPLY_LIMIT_TYPE =
+const SUPPLY_LIMIT_KEY =
   '0x6e641f0dca8aedab3101d047e96439178f16301bf0b57fe8745086ff1195eb3e::market_dynamic_keys::SupplyLimitKey';
 
 /**
@@ -37,7 +37,7 @@ export const getSupplyLimit = async (
   const object = await utils.cache.queryGetDynamicFieldObject({
     parentId: marketObject,
     name: {
-      type: SUPPLY_LIMIT_TYPE,
+      type: SUPPLY_LIMIT_KEY,
       value: poolCoinType,
     },
   });

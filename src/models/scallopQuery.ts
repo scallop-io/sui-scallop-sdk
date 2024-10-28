@@ -63,6 +63,7 @@ import {
 import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { getSupplyLimit } from 'src/queries/supplyLimit';
 import { withIndexerFallback } from 'src/utils/indexer';
+import { getIsolatedAssets, isIsolatedAsset } from 'src/queries/isolatedAsset';
 
 /**
  * @description
@@ -738,5 +739,19 @@ export class ScallopQuery {
    */
   public async getPoolSupplyLimit(poolName: SupportPoolCoins) {
     return await getSupplyLimit(this.utils, poolName);
+  }
+
+  /**
+   * Get list of isolated assets
+   */
+  public async getIsolatedAssets() {
+    return await getIsolatedAssets(this.address);
+  }
+
+  /**
+   * Check if asset is an isolated asset
+   */
+  public async isIsolatedAsset(assetCoinName: SupportAssetCoins) {
+    return isIsolatedAsset(this.utils, assetCoinName);
   }
 }
