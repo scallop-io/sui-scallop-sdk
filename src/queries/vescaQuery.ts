@@ -10,7 +10,7 @@ import { MAX_LOCK_DURATION } from 'src/constants';
 import { SUI_CLOCK_OBJECT_ID, SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui.js/bcs';
 import { z as zod } from 'zod';
-import queryKeys from 'src/constants/queryKeys';
+import { queryKeys } from 'src/constants';
 /**
  * Query all owned veSca key.
  *
