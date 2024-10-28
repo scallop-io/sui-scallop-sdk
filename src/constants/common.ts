@@ -32,7 +32,7 @@ export const OLD_BORROW_INCENTIVE_PROTOCOL_ID =
 
 export const SUPPORT_POOLS = [
   'usdc', // native USDC
-  'sbeth', // native ETH
+  'sbeth', // sui bridge ETH
   'weth',
   'wbtc',
   'wusdc',
@@ -49,7 +49,7 @@ export const SUPPORT_POOLS = [
 
 export const SUPPORT_COLLATERALS = [
   'usdc', // native USDC
-  'sbeth', // native ETH
+  'sbeth', // sui bridge ETH
   'weth',
   'wbtc',
   'wusdc',
