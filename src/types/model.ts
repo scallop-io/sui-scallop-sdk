@@ -60,12 +60,12 @@ export type ScallopAddressParams = {
   id: string;
   auth?: string;
   network?: NetworkType;
-  forceInterface?: Record<NetworkType, AddressesInterface>;
+  forceInterface?: Partial<Record<NetworkType, AddressesInterface>>;
 };
 
 export type ScallopParams = {
   addressesId?: string;
-  forceAddressesInterface?: Record<NetworkType, AddressesInterface>;
+  forceAddressesInterface?: Partial<Record<NetworkType, AddressesInterface>>;
   walletAddress?: string;
 } & SuiKitParams;
 
