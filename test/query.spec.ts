@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { isValidSuiAddress } from '@scallop-io/sui-kit';
 import { z as zod } from 'zod';
 import { scallopSDK } from './scallopSdk';
+import { SupportPoolCoins } from 'src';
 
 const ENABLE_LOG = false;
 
@@ -475,5 +476,25 @@ describe('Test Supply Limit Query', async () => {
     const supplyLimit = await scallopQuery.getPoolSupplyLimit(poolName);
     expect(typeof supplyLimit).toBe('string');
     expect(+supplyLimit! > 0).toBe(true);
+  });
+});
+
+describe('Test Isolated Assets', async () => {
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const sender = scallopQuery.suiKit.currentAddress();
+  console.info(`Your Wallet: ${sender}`);
+
+  it('Should return isolated assets', async () => {
+    const isolatedAssets = await scallopQuery.getIsolatedAssets();
+    expect(typeof isolatedAssets).toBe('object');
+    expect(isolatedAssets.length > 0).toBe(true);
+    expect(typeof isolatedAssets[0]).toBe('string');
+  });
+
+  it('Should check if an asset is isolated', async () => {
+    const isolatedAssetName = '' as SupportPoolCoins; // TODO: fill in an isolated asset name
+    const isIsolated = await scallopQuery.isIsolatedAsset(isolatedAssetName);
+    expect(typeof isIsolated).toBe('boolean');
+    expect(isIsolated).toBe(true);
   });
 });
