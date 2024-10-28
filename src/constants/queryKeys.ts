@@ -101,12 +101,6 @@ export const queryKeys = {
       'getAllCoinBalances',
       { owner },
     ],
-
-    getCoinBalance: (owner?: string, coinType?: string) => [
-      'rpc',
-      'getCoinBalance',
-      { owner, coinType },
-    ],
   },
   pyth: {
     getPythLatestPriceFeed: (pythPriceId?: string) => [

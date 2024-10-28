@@ -1,10 +1,5 @@
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
-import {
-  SuiTxArg,
-  SuiTxBlock,
-  normalizeStructTag,
-  normalizeSuiAddress,
-} from '@scallop-io/sui-kit';
+import { SuiTxArg, SuiTxBlock, normalizeStructTag } from '@scallop-io/sui-kit';
 import { SuiKit } from '@scallop-io/sui-kit';
 import type {
   SuiObjectResponse,
@@ -274,17 +269,6 @@ export class ScallopCache {
           {} as { [k: string]: string }
         );
 
-        // Set query data for each coin balance
-        for (const coinType in balances) {
-          this.queryClient.setQueryData(
-            queryKeys.rpc.getCoinBalance(
-              normalizeSuiAddress(owner),
-              normalizeStructTag(coinType)
-            ),
-            balances[coinType]
-          );
-        }
-
         return balances;
       },
     });
@@ -293,19 +277,10 @@ export class ScallopCache {
   public async queryGetCoinBalance(input: GetBalanceParams): Promise<string> {
     if (!input.coinType) return '0';
 
-    return this.queryClient.fetchQuery({
-      queryKey: queryKeys.rpc.getCoinBalance(
-        normalizeSuiAddress(input.owner),
+    return (
+      (await this.queryGetAllCoinBalances(input.owner))[
         normalizeStructTag(input.coinType)
-      ),
-      queryFn: async () => {
-        if (!input.coinType) return '0';
-        return (
-          (await this.queryGetAllCoinBalances(input.owner))[
-            normalizeStructTag(input.coinType)
-          ] ?? '0'
-        );
-      },
-    });
+      ] ?? '0'
+    );
   }
 }
