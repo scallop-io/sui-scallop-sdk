@@ -10,6 +10,7 @@ import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import axios, { AxiosInstance } from 'axios';
 import { TEST_ADDRESSES } from 'src/constants/testAddress';
+import queryKeys from 'src/constants/queryKeys';
 
 const EMPTY_ADDRESSES: AddressesInterface = {
   core: {
@@ -597,7 +598,7 @@ export class ScallopAddress {
     const addressesId = id || this._id || undefined;
     if (addressesId !== undefined) {
       const response = await this.cache.queryClient.fetchQuery({
-        queryKey: ['api-getAddresses', addressesId],
+        queryKey: queryKeys.getAddresses(addressesId),
         queryFn: async () => {
           return await this._requestClient.get(`/addresses/${addressesId}`, {
             headers: {
