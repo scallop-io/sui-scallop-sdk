@@ -278,7 +278,7 @@ export class ScallopCache {
     if (!input.coinType) return '0';
 
     return (
-      (await this.queryGetAllCoinBalances(input.owner))[
+      ((await this.queryGetAllCoinBalances(input.owner)) || {})[
         normalizeStructTag(input.coinType)
       ] ?? '0'
     );
