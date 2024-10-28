@@ -1,8 +1,5 @@
-import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
-import type {
-  TransactionBlock,
-  TransactionResult,
-} from '@mysten/sui.js/transactions';
+import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
+import type { Transaction, TransactionResult } from '@mysten/sui/transactions';
 import type { SuiKit, SuiKitParams, NetworkType } from '@scallop-io/sui-kit';
 import type {
   ScallopAddress,
@@ -16,12 +13,12 @@ import { AddressesInterface } from './address';
 
 export type ScallopClientFnReturnType<T extends boolean> = T extends true
   ? SuiTransactionBlockResponse
-  : TransactionBlock;
+  : Transaction;
 
 export type ScallopClientVeScaReturnType<T extends boolean> = T extends true
   ? SuiTransactionBlockResponse
   : {
-      tx: TransactionBlock;
+      tx: Transaction;
       scaCoin: TransactionResult;
     };
 

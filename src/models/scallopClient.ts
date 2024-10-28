@@ -1,4 +1,4 @@
-import { normalizeSuiAddress } from '@mysten/sui.js/utils';
+import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import {
@@ -12,13 +12,13 @@ import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopBuilder } from './scallopBuilder';
 import { ScallopQuery } from './scallopQuery';
-import { ScallopCache } from './scallopCache';
-import { requireSender } from 'src/utils';
-import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
+import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
 import type {
   TransactionObjectArgument,
   TransactionResult,
-} from '@mysten/sui.js/transactions';
+} from '@mysten/sui/transactions';
+import { ScallopCache } from './scallopCache';
+import { requireSender } from 'src/utils';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type {
   ScallopClientFnReturnType,
@@ -605,7 +605,7 @@ export class ScallopClient {
     callback: (
       txBlock: ScallopTxBlock,
       coin: TransactionObjectArgument | string
-    ) => SuiObjectArg,
+    ) => SuiObjectArg | Promise<SuiObjectArg>,
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
@@ -813,6 +813,7 @@ export class ScallopClient {
     );
     const stakeCoinName =
       this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
+
     if (stakeMarketCoin) {
       const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
       await this.utils.mergeSimilarCoins(
@@ -1053,7 +1054,7 @@ export class ScallopClient {
               if (sCoin) {
                 sCoins.push(sCoin);
               }
-            } catch (e: any) {
+            } catch (_e: any) {
               // ignore
             }
           }
@@ -1114,7 +1115,7 @@ export class ScallopClient {
           const scaCoin = await tx.redeemScaQuick(key, false);
           if (!scaCoin) return;
           scaCoins.push(scaCoin);
-        } catch (e) {
+        } catch (_e) {
           // ignore
         }
       })

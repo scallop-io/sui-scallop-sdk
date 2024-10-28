@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
 import {
-  SuiTxArg,
+  SuiObjectArg,
   SuiTxBlock,
   normalizeStructTag,
   normalizeSuiAddress,
@@ -17,7 +17,7 @@ import type {
   GetDynamicFieldObjectParams,
   GetBalanceParams,
   SuiClient,
-} from '@mysten/sui.js/client';
+} from '@mysten/sui/client';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { callWithRateLimit, TokenBucket } from 'src/utils';
 import {
@@ -27,7 +27,7 @@ import {
 
 type QueryInspectTxnParams = {
   queryTarget: string;
-  args: SuiTxArg[];
+  args: SuiObjectArg[];
   typeArgs?: any[];
 };
 
@@ -92,20 +92,43 @@ export class ScallopCache {
     });
   }
 
-  /**
-   * @description Cache protocol config call for 60 seconds.
-   * @returns Promise<ProtocolConfig>
-   */
-  public async getProtocolConfig() {
-    return await this.queryClient.fetchQuery({
-      queryKey: ['getProtocolConfig'],
-      queryFn: async () => {
-        return await callWithRateLimit(this.tokenBucket, () =>
-          this.client.getProtocolConfig()
-        );
-      },
-      staleTime: 30000,
-    });
+  public async resolveArgs(
+    txb: SuiTxBlock,
+    args: SuiObjectArg[]
+  ): Promise<SuiObjectArg[]> {
+    return await Promise.all(
+      args.map(async (arg) => {
+        if (typeof arg === 'string') {
+          const objData = (await this.queryGetObject(arg, { showOwner: true }))
+            ?.data;
+          if (!objData) return arg;
+          const owner = objData?.owner as any;
+          if (!owner) return arg;
+
+          if ('Shared' in owner) {
+            return txb.sharedObjectRef({
+              objectId: objData.objectId,
+              initialSharedVersion: owner.Shared.initial_shared_version,
+              mutable: true,
+            });
+          } else {
+            return txb.objectRef({
+              objectId: objData.objectId,
+              version: objData.version,
+              digest: objData.digest,
+            });
+          }
+        } else if ('objectId' in arg && 'version' in arg && 'digest' in arg) {
+          return txb.objectRef({
+            objectId: arg.objectId,
+            version: arg.version as string,
+            digest: arg.digest,
+          });
+        } else {
+          return arg;
+        }
+      })
+    );
   }
 
   /**
@@ -121,23 +144,9 @@ export class ScallopCache {
   }: QueryInspectTxnParams): Promise<DevInspectResults | null> {
     const txBlock = new SuiTxBlock();
 
-    // resolve all the object args to prevent duplicate getNormalizedMoveFunction calls
-    const resolvedArgs = await Promise.all(
-      args.map(async (arg) => {
-        if (typeof arg === 'string') {
-          return (await this.queryGetObject(arg, { showContent: true }))?.data;
-        }
-        return arg;
-      })
-    );
-    txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
+    const resolvedArgs = await this.resolveArgs(txBlock, args);
 
-    // build the txBlock to prevent duplicate getProtocolConfig calls
-    const txBytes = await txBlock.txBlock.build({
-      client: this.client,
-      onlyTransactionKind: true,
-      protocolConfig: (await this.getProtocolConfig()) ?? undefined,
-    });
+    txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
 
     const query = await this.queryClient.fetchQuery({
       queryKey: typeArgs
@@ -150,7 +159,7 @@ export class ScallopCache {
           ],
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
-          this.suiKit.inspectTxn(txBytes)
+          this.suiKit.inspectTxn(txBlock)
         );
       },
     });
