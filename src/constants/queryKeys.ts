@@ -1,4 +1,7 @@
 import type {
+  GetDynamicFieldObjectParams,
+  GetDynamicFieldsParams,
+  GetOwnedObjectsParams,
   SuiObjectData,
   SuiObjectDataOptions,
 } from '@mysten/sui.js/src/client';
@@ -6,7 +9,11 @@ import type { SuiTxArg } from '@scallop-io/sui-kit';
 
 export const queryKeys = {
   api: {
-    getAddresses: (addressesId: string) => ['api', 'getAddresses', addressesId],
+    getAddresses: (addressesId?: string) => [
+      'api',
+      'getAddresses',
+      { addressesId },
+    ],
     getMarket: () => ['api', 'getMarket'],
     getSpools: () => ['api', 'getSpools'],
     getBorrowIncentivePool: () => ['api', 'getBorrowIncentivePools'],
@@ -16,41 +23,96 @@ export const queryKeys = {
   rpc: {
     getProtocolConfig: () => ['rpc', 'getProtocolConfig'],
     getInspectTxn: (
-      queryTarget: string,
-      args: SuiTxArg[],
-      typeArgs: any[] | undefined
+      queryTarget?: string,
+      args?: SuiTxArg[],
+      typeArgs?: any[]
     ) => [
       'rpc',
       'getInspectTxn',
-      queryTarget,
-      JSON.stringify(args),
-      !typeArgs ? undefined : JSON.stringify(typeArgs),
+      {
+        queryTarget,
+        args: JSON.stringify(args),
+        typeArgs: !typeArgs ? undefined : JSON.stringify(typeArgs),
+      },
     ],
+    getObject: (
+      objectId?: string,
+      walletAddress?: string,
+      options?: SuiObjectDataOptions
+    ) => ['rpc', 'getObject', { walletAddress, options, objectId }],
     getObjects: (
-      objectIds: string[],
-      walletAddress: string,
-      options: SuiObjectDataOptions
+      objectIds?: string[],
+      walletAddress?: string,
+      options?: SuiObjectDataOptions
     ) => [
       'rpc',
       'getObjects',
-      JSON.stringify(objectIds),
-      { walletAddress, options },
+      {
+        walletAddress,
+        options,
+        objectIds: JSON.stringify((objectIds ?? []).toSorted()),
+      },
+    ],
+    getOwnedObjects: (input: Partial<GetOwnedObjectsParams>) => [
+      'rpc',
+      'getOwnedObjects',
+      {
+        walletAddress: input.owner,
+        cursor: input.cursor ?? undefined,
+        options: input.options ?? undefined,
+        filter: JSON.stringify(input.filter ?? undefined),
+        limit: input.limit ?? undefined,
+      },
+    ],
+    getDynamicFields: (input: Partial<GetDynamicFieldsParams>) => [
+      'rpc',
+      'getDynamicFields',
+      {
+        parentId: input.parentId,
+        cursor: input.cursor ?? undefined,
+        limit: input.limit ?? undefined,
+      },
+    ],
+    getDynamicFieldObject: (input: Partial<GetDynamicFieldObjectParams>) => [
+      'rpc',
+      'getDynamicFieldObject',
+      {
+        parentId: input.parentId,
+        name: {
+          type: input?.name?.type,
+          value: input?.name?.value,
+        },
+      },
     ],
     getTotalVeScaTreasuryAmount: (
-      refreshArgs: any[],
-      vescaAmountArgs: (string | SuiObjectData)[]
+      refreshArgs?: any[],
+      vescaAmountArgs?: (string | SuiObjectData)[]
     ) => [
       'rpc',
       'getTotalVeScaTreasuryAmount',
-      JSON.stringify(refreshArgs),
-      JSON.stringify(vescaAmountArgs),
+      {
+        refreshArgs: JSON.stringify(refreshArgs),
+        vescaAmountArgs: JSON.stringify(vescaAmountArgs),
+      },
+    ],
+
+    getAllCoinBalances: (owner?: string) => [
+      'rpc',
+      'getAllCoinBalances',
+      { owner },
+    ],
+
+    getCoinBalance: (owner?: string, coinType?: string) => [
+      'rpc',
+      'getCoinBalance',
+      { owner, coinType },
     ],
   },
   pyth: {
-    getPythLatestPriceFeed: (pythPriceId: string) => [
+    getPythLatestPriceFeed: (pythPriceId?: string) => [
       'pyth',
       'getPythPriceId',
-      pythPriceId,
+      { pythPriceId },
     ],
   },
 };
