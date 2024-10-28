@@ -1,4 +1,4 @@
-import { SUI_TYPE_ARG, normalizeStructTag } from '@mysten/sui.js/utils';
+import { SUI_TYPE_ARG, normalizeStructTag } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress } from './scallopAddress';
@@ -46,7 +46,7 @@ import type {
   SupportSuiBridgeCoins,
   SupportWormholeCoins,
 } from '../types';
-import type { SuiAddressArg, SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
+import type { SuiObjectArg, SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
 
 /**
  * @description
@@ -460,7 +460,7 @@ export class ScallopUtils {
       if (existingCoins.length > 0) {
         txBlock.mergeCoins(dest, existingCoins.slice(0, 500));
       }
-    } catch (e) {
+    } catch (_e) {
       // ignore
     }
   }
@@ -475,7 +475,7 @@ export class ScallopUtils {
    * @param obligationId - The obligation id.
    * @return Asset coin Names.
    */
-  public async getObligationCoinNames(obligationId: SuiAddressArg) {
+  public async getObligationCoinNames(obligationId: SuiObjectArg) {
     const obligation = await queryObligation(this, obligationId);
     if (!obligation) return undefined;
 

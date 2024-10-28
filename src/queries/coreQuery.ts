@@ -1,4 +1,4 @@
-import { normalizeStructTag } from '@mysten/sui.js/utils';
+import { normalizeStructTag } from '@mysten/sui/utils';
 import {
   SUPPORT_POOLS,
   PROTOCOL_OBJECT_ID,
@@ -13,8 +13,8 @@ import {
   parseOriginMarketCollateralData,
   calculateMarketCollateralData,
 } from '../utils';
-import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui.js/client';
-import type { SuiAddressArg } from '@scallop-io/sui-kit';
+import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui/client';
+import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopAddress, ScallopCache, ScallopQuery } from '../models';
 import {
   Market,
@@ -818,7 +818,7 @@ export const queryObligation = async (
   }: {
     address: ScallopAddress;
   },
-  obligationId: SuiAddressArg
+  obligationId: SuiObjectArg
 ) => {
   const packageId = address.get('core.packages.query.id');
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
