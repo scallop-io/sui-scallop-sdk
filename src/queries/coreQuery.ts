@@ -38,6 +38,7 @@ import {
 } from '../types';
 import BigNumber from 'bignumber.js';
 import { getSupplyLimit } from './supplyLimit';
+import { isIsolatedAsset } from './isolatedAsset';
 
 /**
  * Query market data.
@@ -155,6 +156,7 @@ export const queryMarket = async (
       borrowFee: parsedMarketPoolData.borrowFee,
       marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
+      isIsolated: await isIsolatedAsset(query.utils, poolCoinName),
       maxSupplyCoin,
       ...calculatedMarketPoolData,
     };
@@ -492,6 +494,7 @@ export const getMarketPool = async (
       marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
       maxSupplyCoin,
+      isIsolated: await isIsolatedAsset(query.utils, poolCoinName),
       ...calculatedMarketPoolData,
     };
   }
