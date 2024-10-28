@@ -225,7 +225,7 @@ const getTotalVeScaTreasuryAmount = async (
 
   // return result
   const res = await utils.cache.queryClient.fetchQuery<DevInspectResults>({
-    queryKey: queryKeys.getTotalVeScaTreasuryAmount(
+    queryKey: queryKeys.rpc.getTotalVeScaTreasuryAmount(
       refreshArgs,
       veScaAmountArgs
     ),
