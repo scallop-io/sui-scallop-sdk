@@ -24,6 +24,7 @@ import {
   DEFAULT_INTERVAL_IN_MS,
   DEFAULT_TOKENS_PER_INTERVAL,
 } from 'src/constants/tokenBucket';
+import queryKeys from 'src/constants/queryKeys';
 
 type QueryInspectTxnParams = {
   queryTarget: string;
@@ -107,7 +108,7 @@ export class ScallopCache {
    */
   public async getProtocolConfig() {
     return await this.queryClient.fetchQuery({
-      queryKey: ['getProtocolConfig'],
+      queryKey: queryKeys.getProtocolConfig(),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
           this.client.getProtocolConfig()
@@ -149,14 +150,7 @@ export class ScallopCache {
     });
 
     const query = await this.queryClient.fetchQuery({
-      queryKey: typeArgs
-        ? ['inspectTxn', queryTarget, JSON.stringify(args)]
-        : [
-            'inspectTxn',
-            queryTarget,
-            JSON.stringify(args),
-            JSON.stringify(typeArgs),
-          ],
+      queryKey: queryKeys.getInspectTxn(queryTarget, args, typeArgs),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
           this.suiKit.inspectTxn(txBytes)
@@ -205,16 +199,10 @@ export class ScallopCache {
     }
   ): Promise<SuiObjectData[]> {
     if (objectIds.length === 0) return [];
-    const queryKey = [
-      'getObjects',
-      JSON.stringify(objectIds),
-      this.walletAddress,
-    ];
-    if (options) {
-      queryKey.push(JSON.stringify(options));
-    }
+    objectIds.sort();
+
     return this.queryClient.fetchQuery({
-      queryKey: queryKey,
+      queryKey: queryKeys.getObjects(objectIds, this.walletAddress, options),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
           this.suiKit.getObjects(objectIds, options)

@@ -10,6 +10,7 @@ import { MAX_LOCK_DURATION } from 'src/constants';
 import { SUI_CLOCK_OBJECT_ID, SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui.js/bcs';
 import { z as zod } from 'zod';
+import queryKeys from 'src/constants/queryKeys';
 /**
  * Query all owned veSca key.
  *
@@ -224,10 +225,10 @@ const getTotalVeScaTreasuryAmount = async (
 
   // return result
   const res = await utils.cache.queryClient.fetchQuery<DevInspectResults>({
-    queryKey: [
-      'getTotalVeScaTreasuryAmount',
-      JSON.stringify([...refreshArgs, ...veScaAmountArgs]),
-    ],
+    queryKey: queryKeys.getTotalVeScaTreasuryAmount(
+      refreshArgs,
+      veScaAmountArgs
+    ),
     queryFn: async () => {
       return await utils.suiKit.inspectTxn(txBytes);
     },

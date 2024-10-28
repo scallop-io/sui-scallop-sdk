@@ -47,6 +47,7 @@ import type {
   SupportWormholeCoins,
 } from '../types';
 import type { SuiAddressArg, SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
+import queryKeys from 'src/constants/queryKeys';
 
 /**
  * @description
@@ -558,7 +559,7 @@ export class ScallopUtils {
             const pythConnection = new SuiPriceServiceConnection(endpoint);
             try {
               const feed = await this.address.cache.queryClient.fetchQuery({
-                queryKey: [priceId],
+                queryKey: queryKeys.getPythLatestPriceFeed(priceId),
                 queryFn: async () => {
                   return await pythConnection.getLatestPriceFeeds([priceId]);
                 },
