@@ -25,6 +25,7 @@ export type Lending = Required<
     | 'coinDecimal'
     | 'coinPrice'
     | 'conversionRate'
+    | 'isIsolated'
   > &
     Pick<Spool, 'marketCoinPrice'>
 > & {

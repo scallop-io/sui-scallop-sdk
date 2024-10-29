@@ -65,7 +65,7 @@ const callWithRateLimit = async <T>(
           await new Promise((resolve) => setTimeout(resolve, delay));
           return tryRequest();
         } else {
-          console.error('An error occurred:', error);
+          console.error('An error occurred:', error.message);
           return null;
         }
       }
