@@ -21,6 +21,7 @@ import {
   DEFAULT_INTERVAL_IN_MS,
   DEFAULT_TOKENS_PER_INTERVAL,
 } from 'src/constants/tokenBucket';
+import type { QueryClient } from '@tanstack/query-core';
 
 /**
  * @argument params - The parameters for the Scallop instance.
@@ -49,7 +50,8 @@ export class Scallop {
   public constructor(
     params: ScallopParams,
     cacheOptions?: QueryClientConfig,
-    tokenBucket?: TokenBucket
+    tokenBucket?: TokenBucket,
+    queryClient?: QueryClient
   ) {
     this.params = params;
     this.suiKit = new SuiKit(params);
@@ -58,7 +60,8 @@ export class Scallop {
       params.walletAddress,
       cacheOptions ?? DEFAULT_CACHE_OPTIONS,
       tokenBucket ??
-        new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS)
+        new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS),
+      queryClient
     );
     this.address = new ScallopAddress(
       {
