@@ -257,3 +257,20 @@
   const flashloanFees = await scallopQuery.getFlashLoanFees();
   // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
+
+## Isolated Assets
+
+- Get isolated assets
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const isolatedAssets = await scallopQuery.getIsolatedAssets(); // returns string[];
+  ```
+
+- Check if an asset is isolated
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const isolatedAssetName = ''; // TODO: fill with isolatedAsset
+  const isIsolated = await scallopQuery.isIsolatedAsset(isolatedAssetName); // returns boolean
+  ```
