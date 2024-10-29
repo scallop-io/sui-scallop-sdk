@@ -162,7 +162,7 @@ export class ScallopCache {
     }
   ): Promise<SuiObjectData[]> {
     if (objectIds.length === 0) return [];
-    objectIds.sort();
+    // objectIds.sort();
 
     return this.queryClient.fetchQuery({
       queryKey: queryKeys.rpc.getObjects(
