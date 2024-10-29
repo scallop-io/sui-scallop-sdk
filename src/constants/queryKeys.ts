@@ -49,7 +49,7 @@ export const queryKeys = {
       {
         walletAddress,
         options,
-        objectIds: JSON.stringify((objectIds ?? []).toSorted()),
+        objectIds: JSON.stringify(objectIds ?? []),
       },
     ],
     getOwnedObjects: (input: Partial<GetOwnedObjectsParams>) => [
