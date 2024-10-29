@@ -24,6 +24,7 @@ import type {
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { SuiKit } from '@scallop-io/sui-kit';
+import { queryKeys } from 'src/constants';
 
 /**
  * @description
@@ -67,7 +68,7 @@ export class ScallopIndexer {
    */
   public async getMarket(): Promise<Pick<Market, 'pools' | 'collaterals'>> {
     const response = await this.cache.queryClient.fetchQuery({
-      queryKey: ['market'],
+      queryKey: queryKeys.api.getMarket(),
       queryFn: async () => {
         return await this._requestClient.get<{
           pools: MarketPool[];
@@ -145,7 +146,7 @@ export class ScallopIndexer {
    */
   public async getSpools(): Promise<Required<Spools>> {
     const response = await this.cache.queryClient.fetchQuery({
-      queryKey: ['spools'],
+      queryKey: queryKeys.api.getSpools(),
       queryFn: async () => {
         return await this._requestClient.get<{
           spools: Spool[];
@@ -183,7 +184,7 @@ export class ScallopIndexer {
     Required<BorrowIncentivePools>
   > {
     const response = await this.cache.queryClient.fetchQuery({
-      queryKey: ['borrowIncentivePools'],
+      queryKey: queryKeys.api.getBorrowIncentivePool(),
       queryFn: async () => {
         return await this._requestClient.get<{
           borrowIncentivePools: BorrowIncentivePool[];
@@ -245,7 +246,7 @@ export class ScallopIndexer {
     }
   > {
     const response = await this.cache.queryClient.fetchQuery({
-      queryKey: ['totalValueLocked'],
+      queryKey: queryKeys.api.getTotalValueLocked(),
       queryFn: async () => {
         return await this._requestClient.get<
           TotalValueLocked & {
