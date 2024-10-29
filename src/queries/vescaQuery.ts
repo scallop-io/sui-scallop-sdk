@@ -4,13 +4,14 @@ import {
   type SuiObjectResponse,
   type SuiObjectData,
   DevInspectResults,
-} from '@mysten/sui.js/client';
+} from '@mysten/sui/client';
 import type { ScallopUtils } from '../models';
 import { MAX_LOCK_DURATION } from 'src/constants';
 import { SUI_CLOCK_OBJECT_ID, SuiTxBlock } from '@scallop-io/sui-kit';
-import { bcs } from '@mysten/sui.js/bcs';
+import { bcs } from '@mysten/sui/bcs';
 import { z as zod } from 'zod';
 import { queryKeys } from 'src/constants';
+import assert from 'assert';
 /**
  * Query all owned veSca key.
  *
@@ -214,6 +215,7 @@ const getTotalVeScaTreasuryAmount = async (
   );
 
   const txb = new SuiTxBlock();
+
   // refresh first
   txb.moveCall(refreshQueryTarget, resolvedRefreshArgs);
   txb.moveCall(veScaAmountQueryTarget, resolvedVeScaAmountArgs);
@@ -238,7 +240,8 @@ const getTotalVeScaTreasuryAmount = async (
   if (results && results[1].returnValues) {
     const value = Uint8Array.from(results[1].returnValues[0][0]);
     const type = results[1].returnValues[0][1];
-    return bcs.de(type, value);
+    assert(type === 'u64', 'Result type is not u64');
+    return bcs.u64().parse(value);
   }
 
   return '0';
