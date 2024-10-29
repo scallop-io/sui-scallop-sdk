@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { normalizeStructTag, parseStructTag } from '@mysten/sui.js/utils';
+import { normalizeStructTag, parseStructTag } from '@mysten/sui/utils';
 import type { ScallopUtils } from '../models';
 import type {
   OriginMarketPoolData,

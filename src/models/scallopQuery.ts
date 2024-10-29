@@ -53,14 +53,14 @@ import { ScallopUtils } from './scallopUtils';
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-import { SuiObjectData } from '@mysten/sui.js/client';
+import { SuiObjectData } from '@mysten/sui/src/client';
 import {
   getSCoinAmount,
   getSCoinAmounts,
   getSCoinSwapRate,
   getSCoinTotalSupply,
 } from 'src/queries/sCoinQuery';
-import { normalizeSuiAddress } from '@mysten/sui.js/utils';
+import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { getSupplyLimit } from 'src/queries/supplyLimit';
 import { withIndexerFallback } from 'src/utils/indexer';
 

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.47.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.6...v0.47.7) (2024-10-28)
+
+### Features
+
+- Add fallback to onchain-data mechanism for methods that support indexer calls ([71b3de2](https://github.com/scallop-io/sui-scallop-sdk/pull/188/commits/71b3de2cdb9082731989fd20df75bbbe2530c7cf))
+- Add missing `forceAddress` parameters ([3d24a39](https://github.com/scallop-io/sui-scallop-sdk/pull/188/commits/3d24a39adfb96fe039fa96a39e6158d215c08804))
+
 ### [0.47.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.5...v0.47.6) (2024-10-22)
 
 ### Features

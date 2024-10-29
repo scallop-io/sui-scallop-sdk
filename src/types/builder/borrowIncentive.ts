@@ -2,7 +2,7 @@ import type {
   SuiTxBlock as SuiKitTxBlock,
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
-import type { TransactionResult } from '@mysten/sui.js/transactions';
+import type { TransactionResult } from '@mysten/sui/transactions';
 import type { ScallopBuilder } from '../../models';
 import type {
   SupportBorrowIncentiveCoins,

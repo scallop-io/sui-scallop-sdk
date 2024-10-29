@@ -1,12 +1,12 @@
-import { normalizeSuiAddress } from '@mysten/sui.js/utils';
+import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ADDRESSES_ID } from '../constants';
 import { newScallopTxBlock } from '../builders';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
-import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
-import type { TransactionBlock } from '@mysten/sui.js/transactions';
+import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
+import type { Transaction } from '@mysten/sui/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type {
   ScallopBuilderParams,
@@ -19,6 +19,7 @@ import type {
 } from '../types';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
+import { SuiClient as SuiClientV0 } from '@mysten/sui.js/client';
 
 /**
  * @description
@@ -41,6 +42,9 @@ export class ScallopBuilder {
   public utils: ScallopUtils;
   public walletAddress: string;
   public cache: ScallopCache;
+
+  // For compatibility with pyth sdk
+  public oldSuiClient: SuiClientV0;
 
   public constructor(
     params: ScallopBuilderParams,
@@ -89,6 +93,11 @@ export class ScallopBuilder {
     this.isTestnet = params.networkType
       ? params.networkType === 'testnet'
       : false;
+
+    // intitialize old Sui Client version
+    this.oldSuiClient = new SuiClientV0({
+      url: this.suiKit.suiInteractor.currentFullNode,
+    });
   }
 
   /**
@@ -113,9 +122,7 @@ export class ScallopBuilder {
    * @param txBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
    * @return Scallop txBlock.
    */
-  public createTxBlock(
-    txBlock?: ScallopTxBlock | SuiKitTxBlock | TransactionBlock
-  ) {
+  public createTxBlock(txBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction) {
     return newScallopTxBlock(this, txBlock);
   }
 
@@ -211,7 +218,7 @@ export class ScallopBuilder {
    * @param txBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
    */
   public async signAndSendTxBlock(
-    txBlock: ScallopTxBlock | SuiKitTxBlock | TransactionBlock
+    txBlock: ScallopTxBlock | SuiKitTxBlock | Transaction
   ) {
     return (await this.suiKit.signAndSendTxn(
       txBlock

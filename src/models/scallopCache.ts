@@ -1,5 +1,9 @@
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
-import { SuiTxArg, SuiTxBlock, normalizeStructTag } from '@scallop-io/sui-kit';
+import {
+  SuiObjectArg,
+  SuiTxBlock,
+  normalizeStructTag,
+} from '@scallop-io/sui-kit';
 import { SuiKit } from '@scallop-io/sui-kit';
 import type {
   SuiObjectResponse,
@@ -12,7 +16,7 @@ import type {
   GetDynamicFieldObjectParams,
   GetBalanceParams,
   SuiClient,
-} from '@mysten/sui.js/client';
+} from '@mysten/sui/client';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { callWithRateLimit, TokenBucket } from 'src/utils';
 import {
@@ -23,7 +27,7 @@ import { queryKeys } from 'src/constants';
 
 type QueryInspectTxnParams = {
   queryTarget: string;
-  args: SuiTxArg[];
+  args: SuiObjectArg[];
   typeArgs?: any[];
 };
 
@@ -98,22 +102,6 @@ export class ScallopCache {
   }
 
   /**
-   * @description Cache protocol config call for 60 seconds.
-   * @returns Promise<ProtocolConfig>
-   */
-  public async getProtocolConfig() {
-    return await this.queryClient.fetchQuery({
-      queryKey: queryKeys.rpc.getProtocolConfig(),
-      queryFn: async () => {
-        return await callWithRateLimit(this.tokenBucket, () =>
-          this.client.getProtocolConfig()
-        );
-      },
-      staleTime: 30000,
-    });
-  }
-
-  /**
    * @description Provides cache for inspectTxn of the SuiKit.
    * @param QueryInspectTxnParams
    * @param txBlock
@@ -126,29 +114,13 @@ export class ScallopCache {
   }: QueryInspectTxnParams): Promise<DevInspectResults | null> {
     const txBlock = new SuiTxBlock();
 
-    // resolve all the object args to prevent duplicate getNormalizedMoveFunction calls
-    const resolvedArgs = await Promise.all(
-      args.map(async (arg) => {
-        if (typeof arg === 'string') {
-          return (await this.queryGetObject(arg, { showContent: true }))?.data;
-        }
-        return arg;
-      })
-    );
-    txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
-
-    // build the txBlock to prevent duplicate getProtocolConfig calls
-    const txBytes = await txBlock.txBlock.build({
-      client: this.client,
-      onlyTransactionKind: true,
-      protocolConfig: (await this.getProtocolConfig()) ?? undefined,
-    });
+    txBlock.moveCall(queryTarget, args, typeArgs);
 
     const query = await this.queryClient.fetchQuery({
       queryKey: queryKeys.rpc.getInspectTxn(queryTarget, args, typeArgs),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
-          this.suiKit.inspectTxn(txBytes)
+          this.suiKit.inspectTxn(txBlock)
         );
       },
     });

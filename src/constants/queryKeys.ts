@@ -4,8 +4,8 @@ import type {
   GetOwnedObjectsParams,
   SuiObjectData,
   SuiObjectDataOptions,
-} from '@mysten/sui.js/src/client';
-import type { SuiTxArg } from '@scallop-io/sui-kit';
+} from '@mysten/sui/client';
+import type { SuiObjectArg } from '@scallop-io/sui-kit';
 
 export const queryKeys = {
   api: {
@@ -21,10 +21,9 @@ export const queryKeys = {
   },
 
   rpc: {
-    getProtocolConfig: () => ['rpc', 'getProtocolConfig'],
     getInspectTxn: (
       queryTarget?: string,
-      args?: SuiTxArg[],
+      args?: SuiObjectArg[],
       typeArgs?: any[]
     ) => [
       'rpc',
