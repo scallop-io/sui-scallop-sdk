@@ -101,9 +101,9 @@ export const queryKeys = {
       { owner },
     ],
   },
-  pyth: {
+  oracle: {
     getPythLatestPriceFeed: (pythPriceId?: string) => [
-      'pyth',
+      'oracle',
       'getPythPriceId',
       { pythPriceId },
     ],
