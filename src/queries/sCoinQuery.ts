@@ -1,4 +1,4 @@
-import { bcs } from '@mysten/sui.js/bcs';
+import { bcs } from '@mysten/sui/bcs';
 import assert from 'assert';
 import BigNumber from 'bignumber.js';
 import { SUPPORT_SCOIN } from 'src/constants';
@@ -38,7 +38,7 @@ export const getSCoinTotalSupply = async (
     const type = results[0].returnValues[0][1]; // should be u64
     assert(type === 'u64', 'Result type is not u64');
 
-    return BigNumber(bcs.de(type, value))
+    return BigNumber(bcs.u64().parse(value))
       .shiftedBy(utils.getCoinDecimal(utils.parseCoinName(sCoinName)))
       .toNumber();
   }

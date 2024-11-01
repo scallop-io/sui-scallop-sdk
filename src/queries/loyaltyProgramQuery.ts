@@ -1,4 +1,4 @@
-import { SuiObjectData } from '@mysten/sui.js/client';
+import { SuiObjectData } from '@mysten/sui/client';
 import BigNumber from 'bignumber.js';
 import { ScallopQuery } from 'src/models';
 import { LoyaltyProgramInfo } from 'src/types';

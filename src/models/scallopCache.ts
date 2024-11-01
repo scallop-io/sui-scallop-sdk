@@ -1,9 +1,8 @@
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
 import {
-  SuiTxArg,
+  SuiObjectArg,
   SuiTxBlock,
   normalizeStructTag,
-  normalizeSuiAddress,
 } from '@scallop-io/sui-kit';
 import { SuiKit } from '@scallop-io/sui-kit';
 import type {
@@ -17,17 +16,18 @@ import type {
   GetDynamicFieldObjectParams,
   GetBalanceParams,
   SuiClient,
-} from '@mysten/sui.js/client';
+} from '@mysten/sui/client';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { callWithRateLimit, TokenBucket } from 'src/utils';
 import {
   DEFAULT_INTERVAL_IN_MS,
   DEFAULT_TOKENS_PER_INTERVAL,
 } from 'src/constants/tokenBucket';
+import { queryKeys } from 'src/constants';
 
 type QueryInspectTxnParams = {
   queryTarget: string;
-  args: SuiTxArg[];
+  args: SuiObjectArg[];
   typeArgs?: any[];
 };
 
@@ -54,9 +54,18 @@ export class ScallopCache {
     suiKit: SuiKit,
     walletAddress?: string,
     cacheOptions?: QueryClientConfig,
-    tokenBucket?: TokenBucket
+    tokenBucket?: TokenBucket,
+    queryClient?: QueryClient
   ) {
-    this.queryClient = new QueryClient(cacheOptions ?? DEFAULT_CACHE_OPTIONS);
+    this.queryClient =
+      queryClient ?? new QueryClient(cacheOptions ?? DEFAULT_CACHE_OPTIONS);
+
+    // if(queryClient && cacheOptions){
+    //   if(cacheOptions.defaultOptions)this.queryClient.setDefaultOptions(cacheOptions.defaultOptions);
+    //   if (cacheOptions.queryCache)
+    //     this.queryClient.defaultQueryOptions(cacheOptions.queryCache);
+    //   if(cacheOptions.mutations)this.queryClient.setMutationDefaults(cacheOptions.mutations);
+    // }
     this._suiKit = suiKit;
     this.tokenBucket =
       tokenBucket ??
@@ -93,22 +102,6 @@ export class ScallopCache {
   }
 
   /**
-   * @description Cache protocol config call for 60 seconds.
-   * @returns Promise<ProtocolConfig>
-   */
-  public async getProtocolConfig() {
-    return await this.queryClient.fetchQuery({
-      queryKey: ['getProtocolConfig'],
-      queryFn: async () => {
-        return await callWithRateLimit(this.tokenBucket, () =>
-          this.client.getProtocolConfig()
-        );
-      },
-      staleTime: 30000,
-    });
-  }
-
-  /**
    * @description Provides cache for inspectTxn of the SuiKit.
    * @param QueryInspectTxnParams
    * @param txBlock
@@ -121,36 +114,13 @@ export class ScallopCache {
   }: QueryInspectTxnParams): Promise<DevInspectResults | null> {
     const txBlock = new SuiTxBlock();
 
-    // resolve all the object args to prevent duplicate getNormalizedMoveFunction calls
-    const resolvedArgs = await Promise.all(
-      args.map(async (arg) => {
-        if (typeof arg === 'string') {
-          return (await this.queryGetObject(arg, { showContent: true }))?.data;
-        }
-        return arg;
-      })
-    );
-    txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
-
-    // build the txBlock to prevent duplicate getProtocolConfig calls
-    const txBytes = await txBlock.txBlock.build({
-      client: this.client,
-      onlyTransactionKind: true,
-      protocolConfig: (await this.getProtocolConfig()) ?? undefined,
-    });
+    txBlock.moveCall(queryTarget, args, typeArgs);
 
     const query = await this.queryClient.fetchQuery({
-      queryKey: typeArgs
-        ? ['inspectTxn', queryTarget, JSON.stringify(args)]
-        : [
-            'inspectTxn',
-            queryTarget,
-            JSON.stringify(args),
-            JSON.stringify(typeArgs),
-          ],
+      queryKey: queryKeys.rpc.getInspectTxn(queryTarget, args, typeArgs),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
-          this.suiKit.inspectTxn(txBytes)
+          this.suiKit.inspectTxn(txBlock)
         );
       },
     });
@@ -167,12 +137,8 @@ export class ScallopCache {
     objectId: string,
     options?: SuiObjectDataOptions
   ): Promise<SuiObjectResponse | null> {
-    const queryKey = ['getObject', objectId, this.walletAddress];
-    if (options) {
-      queryKey.push(JSON.stringify(options));
-    }
     return this.queryClient.fetchQuery({
-      queryKey,
+      queryKey: queryKeys.rpc.getObject(objectId, this.walletAddress, options),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
           this.client.getObject({
@@ -196,16 +162,14 @@ export class ScallopCache {
     }
   ): Promise<SuiObjectData[]> {
     if (objectIds.length === 0) return [];
-    const queryKey = [
-      'getObjects',
-      JSON.stringify(objectIds),
-      this.walletAddress,
-    ];
-    if (options) {
-      queryKey.push(JSON.stringify(options));
-    }
+    // objectIds.sort();
+
     return this.queryClient.fetchQuery({
-      queryKey: queryKey,
+      queryKey: queryKeys.rpc.getObjects(
+        objectIds,
+        this.walletAddress,
+        options
+      ),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
           this.suiKit.getObjects(objectIds, options)
@@ -220,22 +184,8 @@ export class ScallopCache {
    * @returns Promise<PaginatedObjectsResponse>
    */
   public async queryGetOwnedObjects(input: GetOwnedObjectsParams) {
-    const queryKey = ['getOwnedObjects', input.owner];
-    if (input.cursor) {
-      queryKey.push(JSON.stringify(input.cursor));
-    }
-    if (input.options) {
-      queryKey.push(JSON.stringify(input.options));
-    }
-    if (input.filter) {
-      queryKey.push(JSON.stringify(input.filter));
-    }
-    if (input.limit) {
-      queryKey.push(JSON.stringify(input.limit));
-    }
-
     return this.queryClient.fetchQuery({
-      queryKey,
+      queryKey: queryKeys.rpc.getOwnedObjects(input),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
           this.client.getOwnedObjects(input)
@@ -247,16 +197,8 @@ export class ScallopCache {
   public async queryGetDynamicFields(
     input: GetDynamicFieldsParams
   ): Promise<DynamicFieldPage | null> {
-    const queryKey = ['getDynamicFields', input.parentId];
-    if (input.cursor) {
-      queryKey.push(JSON.stringify(input.cursor));
-    }
-    if (input.limit) {
-      queryKey.push(JSON.stringify(input.limit));
-    }
-
     return this.queryClient.fetchQuery({
-      queryKey,
+      queryKey: queryKeys.rpc.getDynamicFields(input),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
           this.client.getDynamicFields(input)
@@ -268,14 +210,8 @@ export class ScallopCache {
   public async queryGetDynamicFieldObject(
     input: GetDynamicFieldObjectParams
   ): Promise<SuiObjectResponse | null> {
-    const queryKey = [
-      'getDynamicFieldObject',
-      input.parentId,
-      input.name.type,
-      input.name.value,
-    ];
     return this.queryClient.fetchQuery({
-      queryKey,
+      queryKey: queryKeys.rpc.getDynamicFieldObject(input),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
           this.client.getDynamicFieldObject(input)
@@ -287,9 +223,8 @@ export class ScallopCache {
   public async queryGetAllCoinBalances(
     owner: string
   ): Promise<{ [k: string]: string }> {
-    const queryKey = ['getAllCoinBalances', owner];
     return this.queryClient.fetchQuery({
-      queryKey,
+      queryKey: queryKeys.rpc.getAllCoinBalances(owner),
       queryFn: async () => {
         const allBalances = await callWithRateLimit(this.tokenBucket, () =>
           this.client.getAllBalances({ owner })
@@ -306,19 +241,6 @@ export class ScallopCache {
           {} as { [k: string]: string }
         );
 
-        // Set query data for each coin balance
-        for (const coinType in balances) {
-          const coinBalanceQueryKey = [
-            'getCoinBalance',
-            normalizeSuiAddress(owner),
-            normalizeStructTag(coinType),
-          ];
-          this.queryClient.setQueryData(
-            coinBalanceQueryKey,
-            balances[coinType]
-          );
-        }
-
         return balances;
       },
     });
@@ -327,21 +249,10 @@ export class ScallopCache {
   public async queryGetCoinBalance(input: GetBalanceParams): Promise<string> {
     if (!input.coinType) return '0';
 
-    const queryKey = [
-      'getCoinBalance',
-      normalizeSuiAddress(input.owner),
-      normalizeStructTag(input.coinType),
-    ];
-    return this.queryClient.fetchQuery({
-      queryKey,
-      queryFn: async () => {
-        if (!input.coinType) return '0';
-        return (
-          (await this.queryGetAllCoinBalances(input.owner))[
-            normalizeStructTag(input.coinType)
-          ] ?? '0'
-        );
-      },
-    });
+    return (
+      ((await this.queryGetAllCoinBalances(input.owner)) || {})[
+        normalizeStructTag(input.coinType)
+      ] ?? '0'
+    );
   }
 }
