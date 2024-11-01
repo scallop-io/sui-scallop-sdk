@@ -2,10 +2,7 @@ import type {
   SuiTxBlock as SuiKitTxBlock,
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
-import type {
-  TransactionArgument,
-  TransactionResult,
-} from '@mysten/sui/transactions';
+import type { Argument, TransactionResult } from '@mysten/sui/transactions';
 import type { ScallopBuilder } from '../../models';
 import type {
   SupportCollateralCoins,
@@ -22,10 +19,7 @@ export type CoreIds = {
   xOracle: string;
 };
 
-export type NestedResult = Extract<
-  TransactionArgument,
-  { kind: 'NestedResult' }
->;
+export type NestedResult = Extract<Argument, { $kind: 'NestedResult' }>;
 type Obligation = NestedResult;
 type ObligationKey = NestedResult;
 type ObligationHotPotato = NestedResult;
