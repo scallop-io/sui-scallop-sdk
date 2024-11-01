@@ -27,13 +27,13 @@ export interface AddressesInterface {
             [K in SupportOracleType]: K extends (typeof SUPPORT_ORACLES)[0]
               ? string
               : K extends (typeof SUPPORT_ORACLES)[1]
-              ? string
-              : K extends (typeof SUPPORT_ORACLES)[2]
-              ? {
-                  feed: string;
-                  feedObject: string;
-                }
-              : never;
+                ? string
+                : K extends (typeof SUPPORT_ORACLES)[2]
+                  ? {
+                      feed: string;
+                      feedObject: string;
+                    }
+                  : never;
           };
         }
       >
@@ -46,19 +46,19 @@ export interface AddressesInterface {
             holder: string;
           }
         : K extends (typeof SUPPORT_ORACLES)[1]
-        ? {
-            registry: string;
-            registryCap: string;
-          }
-        : K extends (typeof SUPPORT_ORACLES)[2]
-        ? {
-            registry: string;
-            registryCap: string;
-            state: string;
-            wormhole: string;
-            wormholeState: string;
-          }
-        : never;
+          ? {
+              registry: string;
+              registryCap: string;
+            }
+          : K extends (typeof SUPPORT_ORACLES)[2]
+            ? {
+                registry: string;
+                registryCap: string;
+                state: string;
+                wormhole: string;
+                wormholeState: string;
+              }
+            : never;
     } & { xOracle: string; xOracleCap: string };
     packages: Partial<
       Record<
@@ -145,12 +145,12 @@ type AddressPathsProps<T> = T extends string
 type Join<T extends string[], D extends string> = T extends []
   ? never
   : T extends [infer F]
-  ? F
-  : T extends [infer F, ...infer R]
-  ? F extends string
-    ? `${F}${D}${Join<Extract<R, string[]>, D>}`
-    : never
-  : string;
+    ? F
+    : T extends [infer F, ...infer R]
+      ? F extends string
+        ? `${F}${D}${Join<Extract<R, string[]>, D>}`
+        : never
+      : string;
 
 export type AddressStringPath = Join<
   AddressPathsProps<AddressesInterface>,

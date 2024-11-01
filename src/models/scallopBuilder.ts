@@ -1,12 +1,12 @@
-import { normalizeSuiAddress } from '@mysten/sui.js/utils';
+import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { ADDRESSES_ID } from '../constants';
 import { newScallopTxBlock } from '../builders';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
-import type { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
-import type { TransactionBlock } from '@mysten/sui.js/transactions';
+import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
+import type { Transaction } from '@mysten/sui/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type {
   ScallopBuilderParams,
@@ -113,9 +113,7 @@ export class ScallopBuilder {
    * @param txBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
    * @return Scallop txBlock.
    */
-  public createTxBlock(
-    txBlock?: ScallopTxBlock | SuiKitTxBlock | TransactionBlock
-  ) {
+  public createTxBlock(txBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction) {
     return newScallopTxBlock(this, txBlock);
   }
 
@@ -211,7 +209,7 @@ export class ScallopBuilder {
    * @param txBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
    */
   public async signAndSendTxBlock(
-    txBlock: ScallopTxBlock | SuiKitTxBlock | TransactionBlock
+    txBlock: ScallopTxBlock | SuiKitTxBlock | Transaction
   ) {
     return (await this.suiKit.signAndSendTxn(
       txBlock

@@ -269,6 +269,7 @@ export const getLending = async (
     availableUnstakeCoin: availableUnstakeCoin.toNumber(),
     availableClaimAmount: availableClaimAmount.toNumber(),
     availableClaimCoin: availableClaimCoin.toNumber(),
+    isIsolated: marketPool ? marketPool.isIsolated : false,
   };
 
   return lending;

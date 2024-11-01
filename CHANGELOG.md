@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.7...v1.3.0) (2024-11-01)
+
+### ⚠ BREAKING CHANGES
+
+Starting from `v1.3.0`, Scallop SDK will use `@mysten/sui@1.3.0`. Further development will continue from this version onward
+
 ### [0.47.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.6...v0.47.7) (2024-10-28)
 
 ### Features

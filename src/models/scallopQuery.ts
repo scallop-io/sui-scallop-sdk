@@ -53,16 +53,17 @@ import { ScallopUtils } from './scallopUtils';
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-import { SuiObjectData } from '@mysten/sui.js/client';
+import { SuiObjectData } from '@mysten/sui/client';
 import {
   getSCoinAmount,
   getSCoinAmounts,
   getSCoinSwapRate,
   getSCoinTotalSupply,
 } from 'src/queries/sCoinQuery';
-import { normalizeSuiAddress } from '@mysten/sui.js/utils';
+import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { getSupplyLimit } from 'src/queries/supplyLimit';
 import { withIndexerFallback } from 'src/utils/indexer';
+import { getIsolatedAssets, isIsolatedAsset } from 'src/queries/isolatedAsset';
 
 /**
  * @description
@@ -738,5 +739,19 @@ export class ScallopQuery {
    */
   public async getPoolSupplyLimit(poolName: SupportPoolCoins) {
     return await getSupplyLimit(this.utils, poolName);
+  }
+
+  /**
+   * Get list of isolated assets
+   */
+  public async getIsolatedAssets() {
+    return await getIsolatedAssets(this.address);
+  }
+
+  /**
+   * Check if asset is an isolated asset
+   */
+  public async isIsolatedAsset(assetCoinName: SupportAssetCoins) {
+    return isIsolatedAsset(this.utils, assetCoinName);
   }
 }
