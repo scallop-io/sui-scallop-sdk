@@ -60,12 +60,16 @@ export class ScallopCache {
     this.queryClient =
       queryClient ?? new QueryClient(cacheOptions ?? DEFAULT_CACHE_OPTIONS);
 
-    // if(queryClient && cacheOptions){
-    //   if(cacheOptions.defaultOptions)this.queryClient.setDefaultOptions(cacheOptions.defaultOptions);
-    //   if (cacheOptions.queryCache)
-    //     this.queryClient.defaultQueryOptions(cacheOptions.queryCache);
-    //   if(cacheOptions.mutations)this.queryClient.setMutationDefaults(cacheOptions.mutations);
-    // }
+    // handle case where there's existing queryClient and cacheOptions is also passed
+    if (queryClient && cacheOptions) {
+      // override the default options with the cacheOptions
+      if (cacheOptions.defaultOptions)
+        this.queryClient.setDefaultOptions(cacheOptions.defaultOptions);
+      // if (cacheOptions.queryCache)
+      //   this.queryClient.defaultQueryOptions(cacheOptions.queryCache);
+      // if(cacheOptions.mutations)this.queryClient.setMutationDefaults(cacheOptions.mutations);
+    }
+
     this._suiKit = suiKit;
     this.tokenBucket =
       tokenBucket ??
