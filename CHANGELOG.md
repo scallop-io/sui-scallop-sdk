@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.0...v1.3.1) (2024-11-04)
+
+### Features
+
+- Add `gcTime` to `scallopCache` ([c138ef4](https://github.com/scallop-io/sui-scallop-sdk/pull/195/commits/c138ef49603fba86335e0b6012830992848e547d)) ([d3a4361](https://github.com/scallop-io/sui-scallop-sdk/pull/195/commits/d3a436127307a69899ed71cff08b31a81848b941))
+
 ### [1.3.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v0.47.7...v1.3.0) (2024-11-01)
 
 ### ⚠ BREAKING CHANGES
