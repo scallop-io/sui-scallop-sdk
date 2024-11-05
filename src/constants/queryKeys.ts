@@ -52,7 +52,7 @@ export const queryKeys = {
         objectIds: JSON.stringify(objectIds ?? []),
       },
     ],
-    getOwnedObjects: (input?: GetOwnedObjectsParams) => [
+    getOwnedObjects: (input?: Partial<GetOwnedObjectsParams>) => [
       'rpc',
       'getOwnedObjects',
       {
@@ -63,7 +63,7 @@ export const queryKeys = {
         limit: input?.limit ?? undefined,
       },
     ],
-    getDynamicFields: (input?: GetDynamicFieldsParams) => [
+    getDynamicFields: (input?: Partial<GetDynamicFieldsParams>) => [
       'rpc',
       'getDynamicFields',
       {
@@ -72,14 +72,14 @@ export const queryKeys = {
         limit: input?.limit ?? undefined,
       },
     ],
-    getDynamicFieldObject: (input?: GetDynamicFieldObjectParams) => [
+    getDynamicFieldObject: (input?: Partial<GetDynamicFieldObjectParams>) => [
       'rpc',
       'getDynamicFieldObject',
       {
         parentId: input?.parentId,
         name: {
-          type: input?.name.type,
-          value: input?.name.value,
+          type: input?.name?.type,
+          value: input?.name?.value,
         },
       },
     ],
