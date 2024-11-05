@@ -305,13 +305,6 @@ export const getStakeAccounts = async (
       {} as Record<string, SupportStakeMarketCoins>
     );
 
-  // const stakeObjectIds: string[] = stakeObjectsResponse
-  //   .map((ref: any) => ref?.data?.objectId)
-  //   .filter((id: any) => id !== undefined);
-  // const stakeObjects = await utils.cache.queryGetObjects(stakeObjectIds, {
-  //   showContent: true,
-  //   showType: true,
-  // });
   for (const stakeObject of stakeObjectsResponse.map((ref) => ref.data)) {
     const id = stakeObject?.objectId;
     const type = stakeObject?.type!;
