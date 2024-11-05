@@ -29,42 +29,47 @@ const ISOLATED_ASSET_KEY =
 export const getIsolatedAssets = async (
   address: ScallopAddress
 ): Promise<string[]> => {
-  const marketObject = address.get('core.market');
-  const isolatedAssets: string[] = [];
-  if (!marketObject) return isolatedAssets;
+  try {
+    const marketObject = address.get('core.market');
+    const isolatedAssets: string[] = [];
+    if (!marketObject) return isolatedAssets;
 
-  let hasNextPage = false;
-  let nextCursor: string | null | undefined = null;
+    let hasNextPage = false;
+    let nextCursor: string | null | undefined = null;
 
-  const isIsolatedDynamicField = (
-    dynamicField: DynamicFieldInfo
-  ): dynamicField is DynamicFieldInfo & {
-    name: DynamicFieldName & { value: { type: { name: string } } };
-  } => {
-    return dynamicField.name.type === ISOLATED_ASSET_KEY;
-  };
+    const isIsolatedDynamicField = (
+      dynamicField: DynamicFieldInfo
+    ): dynamicField is DynamicFieldInfo & {
+      name: DynamicFieldName & { value: { type: { name: string } } };
+    } => {
+      return dynamicField.name.type === ISOLATED_ASSET_KEY;
+    };
 
-  do {
-    const response = await address.cache.queryGetDynamicFields({
-      parentId: marketObject,
-      cursor: nextCursor,
-      limit: 10,
-    });
-    if (!response) break;
+    do {
+      const response = await address.cache.queryGetDynamicFields({
+        parentId: marketObject,
+        cursor: nextCursor,
+        limit: 10,
+      });
+      if (!response) break;
 
-    const isolatedAssetCoinTypes = response.data
-      .filter(isIsolatedDynamicField)
-      .map(({ name }) => `0x${name.value.type.name}`);
-    isolatedAssets.push(...isolatedAssetCoinTypes);
+      const isolatedAssetCoinTypes = response.data
+        .filter(isIsolatedDynamicField)
+        .map(({ name }) => `0x${name.value.type.name}`);
+      isolatedAssets.push(...isolatedAssetCoinTypes);
 
-    if (response && response.hasNextPage && response.nextCursor) {
-      hasNextPage = true;
-      nextCursor = response.nextCursor;
-    } else {
-      hasNextPage = false;
-    }
-  } while (hasNextPage);
-  return isolatedAssets;
+      if (response && response.hasNextPage && response.nextCursor) {
+        hasNextPage = true;
+        nextCursor = response.nextCursor;
+      } else {
+        hasNextPage = false;
+      }
+    } while (hasNextPage);
+    return isolatedAssets;
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
 };
 
 /**
