@@ -127,7 +127,6 @@ export class ScallopCache {
           this.suiKit.inspectTxn(txBlock)
         );
       },
-      ...DEFAULT_CACHE_OPTIONS.defaultOptions.queries,
     });
     return query;
   }
@@ -152,7 +151,6 @@ export class ScallopCache {
           })
         );
       },
-      ...DEFAULT_CACHE_OPTIONS.defaultOptions.queries,
     });
   }
 
@@ -181,7 +179,6 @@ export class ScallopCache {
           this.suiKit.getObjects(objectIds, options)
         );
       },
-      ...DEFAULT_CACHE_OPTIONS.defaultOptions.queries,
     });
   }
 
@@ -198,7 +195,6 @@ export class ScallopCache {
           this.client.getOwnedObjects(input)
         );
       },
-      ...DEFAULT_CACHE_OPTIONS.defaultOptions.queries,
     });
   }
 
@@ -212,7 +208,6 @@ export class ScallopCache {
           this.client.getDynamicFields(input)
         );
       },
-      ...DEFAULT_CACHE_OPTIONS.defaultOptions.queries,
     });
   }
 
@@ -226,7 +221,6 @@ export class ScallopCache {
           this.client.getDynamicFieldObject(input)
         );
       },
-      ...DEFAULT_CACHE_OPTIONS.defaultOptions.queries,
     });
   }
 
