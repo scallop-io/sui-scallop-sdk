@@ -97,10 +97,11 @@ export class ScallopCache {
    * - `all`: All queries that match the refetch predicate will be refetched in the background.
    * - `none`: No queries will be refetched. Queries that match the refetch predicate will only be marked as invalid.
    */
-  public invalidateAllCache() {
+  public async invalidateAllCache() {
     return Object.values(queryKeys.rpc).map((t) =>
       this.queryClient.invalidateQueries({
         queryKey: t(),
+        type: 'all',
       })
     );
   }
