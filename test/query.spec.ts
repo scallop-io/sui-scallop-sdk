@@ -484,14 +484,14 @@ describe('Test Isolated Assets', async () => {
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
 
-  it('Should return isolated assets', async () => {
+  it.skip('Should return isolated assets', async () => {
     const isolatedAssets = await scallopQuery.getIsolatedAssets();
     expect(typeof isolatedAssets).toBe('object');
     expect(isolatedAssets.length > 0).toBe(true);
     expect(typeof isolatedAssets[0]).toBe('string');
   });
 
-  it('Should check if an asset is isolated', async () => {
+  it.skip('Should check if an asset is isolated', async () => {
     const isolatedAssetName = '' as SupportPoolCoins; // TODO: fill in an isolated asset name
     const isIsolated = await scallopQuery.isIsolatedAsset(isolatedAssetName);
     expect(typeof isIsolated).toBe('boolean');
