@@ -29,42 +29,47 @@ const ISOLATED_ASSET_KEY =
 export const getIsolatedAssets = async (
   address: ScallopAddress
 ): Promise<string[]> => {
-  const marketObject = address.get('core.market');
-  const isolatedAssets: string[] = [];
-  if (!marketObject) return isolatedAssets;
+  try {
+    const marketObject = address.get('core.market');
+    const isolatedAssets: string[] = [];
+    if (!marketObject) return isolatedAssets;
 
-  let hasNextPage = false;
-  let nextCursor: string | null | undefined = null;
+    let hasNextPage = false;
+    let nextCursor: string | null | undefined = null;
 
-  const isIsolatedDynamicField = (
-    dynamicField: DynamicFieldInfo
-  ): dynamicField is DynamicFieldInfo & {
-    name: DynamicFieldName & { value: { type: { name: string } } };
-  } => {
-    return dynamicField.name.type === ISOLATED_ASSET_KEY;
-  };
+    const isIsolatedDynamicField = (
+      dynamicField: DynamicFieldInfo
+    ): dynamicField is DynamicFieldInfo & {
+      name: DynamicFieldName & { value: { type: { name: string } } };
+    } => {
+      return dynamicField.name.type === ISOLATED_ASSET_KEY;
+    };
 
-  do {
-    const response = await address.cache.queryGetDynamicFields({
-      parentId: marketObject,
-      cursor: nextCursor,
-      limit: 10,
-    });
-    if (!response) break;
+    do {
+      const response = await address.cache.queryGetDynamicFields({
+        parentId: marketObject,
+        cursor: nextCursor,
+        limit: 10,
+      });
+      if (!response) break;
 
-    const isolatedAssetCoinTypes = response.data
-      .filter(isIsolatedDynamicField)
-      .map(({ name }) => `0x${name.value.type.name}`);
-    isolatedAssets.push(...isolatedAssetCoinTypes);
+      const isolatedAssetCoinTypes = response.data
+        .filter(isIsolatedDynamicField)
+        .map(({ name }) => `0x${name.value.type.name}`);
+      isolatedAssets.push(...isolatedAssetCoinTypes);
 
-    if (response && response.hasNextPage && response.nextCursor) {
-      hasNextPage = true;
-      nextCursor = response.nextCursor;
-    } else {
-      hasNextPage = false;
-    }
-  } while (hasNextPage);
-  return isolatedAssets;
+      if (response && response.hasNextPage && response.nextCursor) {
+        hasNextPage = true;
+        nextCursor = response.nextCursor;
+      } else {
+        hasNextPage = false;
+      }
+    } while (hasNextPage);
+    return isolatedAssets;
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
 };
 
 /**
@@ -76,30 +81,35 @@ export const isIsolatedAsset = async (
   utils: ScallopUtils,
   coinName: SupportPoolCoins
 ): Promise<boolean> => {
-  const marketObject = utils.address.get('core.market');
+  try {
+    const marketObject = utils.address.get('core.market');
 
-  // check if the coin type is in the list
-  const cachedData = utils.address.cache.queryClient.getQueryData<string[]>([
-    'getDynamicFields',
-    marketObject,
-  ]);
-  if (cachedData) {
-    const coinType = utils.parseCoinType(coinName);
-    return cachedData.includes(coinType);
+    // check if the coin type is in the list
+    const cachedData = utils.address.cache.queryClient.getQueryData<string[]>([
+      'getDynamicFields',
+      marketObject,
+    ]);
+    if (cachedData) {
+      const coinType = utils.parseCoinType(coinName);
+      return cachedData.includes(coinType);
+    }
+
+    // fetch dynamic field object
+    const coinType = utils.parseCoinType(coinName).slice(2);
+
+    const object = await utils.cache.queryGetDynamicFieldObject({
+      parentId: marketObject,
+      name: {
+        type: ISOLATED_ASSET_KEY,
+        value: coinType,
+      },
+    });
+
+    const parsedData = isolatedAssetZod.safeParse(object?.data?.content);
+    if (!parsedData.success) return false;
+    return parsedData.data.fields.value;
+  } catch (e) {
+    console.error(e);
+    return false;
   }
-
-  // fetch dynamic field object
-  const coinType = utils.parseCoinType(coinName).slice(2);
-
-  const object = await utils.cache.queryGetDynamicFieldObject({
-    parentId: marketObject,
-    name: {
-      type: ISOLATED_ASSET_KEY,
-      value: coinType,
-    },
-  });
-
-  const parsedData = isolatedAssetZod.safeParse(object?.data?.content);
-  if (!parsedData.success) return false;
-  return parsedData.data.fields.value;
 };
