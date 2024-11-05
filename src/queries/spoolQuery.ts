@@ -254,6 +254,7 @@ export const getStakeAccounts = async (
         filter: { StructType: stakeAccountType },
         options: {
           showContent: true,
+          showType: true,
         },
         cursor: nextCursor,
         limit: 10,
@@ -304,17 +305,17 @@ export const getStakeAccounts = async (
       {} as Record<string, SupportStakeMarketCoins>
     );
 
-  const stakeObjectIds: string[] = stakeObjectsResponse
-    .map((ref: any) => ref?.data?.objectId)
-    .filter((id: any) => id !== undefined);
-  const stakeObjects = await utils.cache.queryGetObjects(stakeObjectIds, {
-    showContent: true,
-    showType: true,
-  });
-  for (const stakeObject of stakeObjects) {
-    const id = stakeObject.objectId;
-    const type = stakeObject.type!;
-    if (stakeObject.content && 'fields' in stakeObject.content) {
+  // const stakeObjectIds: string[] = stakeObjectsResponse
+  //   .map((ref: any) => ref?.data?.objectId)
+  //   .filter((id: any) => id !== undefined);
+  // const stakeObjects = await utils.cache.queryGetObjects(stakeObjectIds, {
+  //   showContent: true,
+  //   showType: true,
+  // });
+  for (const stakeObject of stakeObjectsResponse.map((ref) => ref.data)) {
+    const id = stakeObject?.objectId;
+    const type = stakeObject?.type!;
+    if (id && stakeObject?.content && 'fields' in stakeObject.content) {
       const fields = stakeObject.content.fields as any;
       const stakePoolId = String(fields.spool_id);
       const stakeType = String(fields.stake_type.fields.name);
