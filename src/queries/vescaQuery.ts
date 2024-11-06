@@ -237,7 +237,7 @@ const getTotalVeScaTreasuryAmount = async (
   });
 
   const results = res.results;
-  if (results && results[1].returnValues) {
+  if (results && results[1]?.returnValues) {
     const value = Uint8Array.from(results[1].returnValues[0][0]);
     const type = results[1].returnValues[0][1];
     assert(type === 'u64', 'Result type is not u64');
