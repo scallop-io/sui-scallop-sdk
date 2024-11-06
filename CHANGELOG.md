@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.1...v1.3.2) (2024-11-06)
+
+### Features
+
+- Add optional params for `queryKeys` ([9db4963](https://github.com/scallop-io/sui-scallop-sdk/pull/198/commits/9db4963ebcab36dc6862e020af986f39bdf00f73))
+
+- Disable `isIsolatedAsset` query temporarily ([d9d6284](https://github.com/scallop-io/sui-scallop-sdk/pull/198/commits/d9d62842f7cd470b3a409c3abb548dba91761aa4))
+
+### Bugfixes
+
+- Remove unnecessary `queryGetObjects` ([0a0d4d1](https://github.com/scallop-io/sui-scallop-sdk/pull/198/commits/0a0d4d15ea390d4f0b121dae4a4f7b8e12f8c822))
+- Fix query never invalidate if `staleTime` or `gcTime` is Infinity ([61927c1](https://github.com/scallop-io/sui-scallop-sdk/pull/198/commits/61927c1c2546b2c87b0d10d3b81acb9758f1035c))
+
 ### [1.3.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.0...v1.3.1) (2024-11-04)
 
 ### Features

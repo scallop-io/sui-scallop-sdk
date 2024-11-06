@@ -31,8 +31,6 @@ type QueryInspectTxnParams = {
   typeArgs?: any[];
 };
 
-const DEFAULT_GC_TIME = 5 * 1000; // 5 seconds
-
 /**
  * @description
  * It provides caching for moveCall, RPC Request, and API Request.
@@ -99,12 +97,13 @@ export class ScallopCache {
    * - `all`: All queries that match the refetch predicate will be refetched in the background.
    * - `none`: No queries will be refetched. Queries that match the refetch predicate will only be marked as invalid.
    */
-  public invalidateAndRefetchAllCache(
-    refetchType: 'all' | 'active' | 'inactive' | 'none'
-  ) {
-    return this.queryClient.invalidateQueries({
-      refetchType,
-    });
+  public async invalidateAllCache() {
+    return Object.values(queryKeys.rpc).map((t) =>
+      this.queryClient.invalidateQueries({
+        queryKey: t(),
+        type: 'all',
+      })
+    );
   }
 
   /**
@@ -129,7 +128,6 @@ export class ScallopCache {
           this.suiKit.inspectTxn(txBlock)
         );
       },
-      gcTime: DEFAULT_GC_TIME,
     });
     return query;
   }
@@ -154,7 +152,6 @@ export class ScallopCache {
           })
         );
       },
-      gcTime: DEFAULT_GC_TIME,
     });
   }
 
@@ -183,7 +180,6 @@ export class ScallopCache {
           this.suiKit.getObjects(objectIds, options)
         );
       },
-      gcTime: DEFAULT_GC_TIME,
     });
   }
 
@@ -200,7 +196,6 @@ export class ScallopCache {
           this.client.getOwnedObjects(input)
         );
       },
-      gcTime: DEFAULT_GC_TIME,
     });
   }
 
@@ -214,7 +209,6 @@ export class ScallopCache {
           this.client.getDynamicFields(input)
         );
       },
-      gcTime: DEFAULT_GC_TIME,
     });
   }
 
@@ -228,7 +222,6 @@ export class ScallopCache {
           this.client.getDynamicFieldObject(input)
         );
       },
-      gcTime: DEFAULT_GC_TIME,
     });
   }
 
