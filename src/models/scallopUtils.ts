@@ -566,10 +566,12 @@ export class ScallopUtils {
               const feed = await this.cache.queryClient.fetchQuery({
                 queryKey: queryKeys.oracle.getPythLatestPriceFeed(priceId),
                 queryFn: async () => {
-                  return await pythConnection.getLatestPriceFeeds([priceId]);
+                  return (
+                    (await pythConnection.getLatestPriceFeeds([priceId])) ?? []
+                  );
                 },
               });
-              if (feed) {
+              if (feed[0]) {
                 const data = parseDataFromPythPriceFeed(feed[0], this.address);
                 this._priceMap.set(coinName as SupportAssetCoins, {
                   price: data.price,

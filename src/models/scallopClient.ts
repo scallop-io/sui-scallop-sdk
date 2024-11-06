@@ -416,7 +416,7 @@ export class ScallopClient {
       this.utils.parseMarketCoinName<SupportStakeMarketCoins>(stakeCoinName);
     const stakeAccounts =
       await this.query.getStakeAccounts(stakeMarketCoinName);
-    const targetStakeAccount = stakeAccountId || stakeAccounts[0].id;
+    const targetStakeAccount = stakeAccountId || stakeAccounts[0]?.id;
 
     const marketCoin = await txBlock.depositQuick(amount, stakeCoinName, false);
     if (targetStakeAccount) {
@@ -696,7 +696,7 @@ export class ScallopClient {
 
     const stakeAccounts =
       await this.query.getStakeAccounts(stakeMarketCoinName);
-    const targetStakeAccount = stakeAccountId || stakeAccounts[0].id;
+    const targetStakeAccount = stakeAccountId || stakeAccounts[0]?.id;
     if (targetStakeAccount) {
       await txBlock.stakeQuick(amount, stakeMarketCoinName, targetStakeAccount);
     } else {
@@ -1034,7 +1034,7 @@ export class ScallopClient {
             toDestroyMarketCoin
           );
 
-          // check if current sCoin
+          // Merge with existing sCoin
           await this.utils.mergeSimilarCoins(
             txBlock,
             sCoin,
