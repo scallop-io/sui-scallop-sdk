@@ -89,7 +89,7 @@ export const queryMarket = async (
   const args = [marketId];
 
   const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
-  const marketData = queryResult?.events[0].parsedJson as
+  const marketData = queryResult?.events[0]?.parsedJson as
     | MarketQueryInterface
     | undefined;
 

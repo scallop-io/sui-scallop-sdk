@@ -276,7 +276,7 @@ export class ScallopClient {
     txBlock.setSender(sender);
 
     const obligations = await this.query.getObligations(sender);
-    const specificObligationId = obligationId || obligations?.[0]?.id;
+    const specificObligationId = obligationId || obligations[0]?.id;
     if (specificObligationId) {
       await txBlock.addCollateralQuick(
         amount,
