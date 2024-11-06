@@ -213,6 +213,10 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
         stakeAccountId
       );
 
+      if (stakeAccountIds.length === 0) {
+        throw new Error(`No stakeAccountIds found for user ${sender}`);
+      }
+
       if (typeof amountOrMarketCoin === 'number') {
         // try stake market coin
         const stakedMarketCoinAmount = await stakeHelper(

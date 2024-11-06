@@ -52,35 +52,32 @@ export const queryKeys = {
         objectIds: JSON.stringify(objectIds ?? []),
       },
     ],
-    getOwnedObjects: (input: Partial<GetOwnedObjectsParams>) => [
+    getOwnedObjects: (input?: Partial<GetOwnedObjectsParams>) => [
       'rpc',
       'getOwnedObjects',
       {
-        walletAddress: input.owner,
-        cursor: input.cursor ?? undefined,
-        options: input.options ?? undefined,
-        filter: JSON.stringify(input.filter ?? undefined),
-        limit: input.limit ?? undefined,
+        walletAddress: input?.owner,
+        cursor: input?.cursor ?? undefined,
+        options: input?.options ?? undefined,
+        filter: JSON.stringify(input?.filter ?? undefined),
+        limit: input?.limit ?? undefined,
       },
     ],
-    getDynamicFields: (input: Partial<GetDynamicFieldsParams>) => [
+    getDynamicFields: (input?: Partial<GetDynamicFieldsParams>) => [
       'rpc',
       'getDynamicFields',
       {
-        parentId: input.parentId,
-        cursor: input.cursor ?? undefined,
-        limit: input.limit ?? undefined,
+        parentId: input?.parentId,
+        cursor: input?.cursor ?? undefined,
+        limit: input?.limit ?? undefined,
       },
     ],
-    getDynamicFieldObject: (input: Partial<GetDynamicFieldObjectParams>) => [
+    getDynamicFieldObject: (input?: Partial<GetDynamicFieldObjectParams>) => [
       'rpc',
       'getDynamicFieldObject',
       {
-        parentId: input.parentId,
-        name: {
-          type: input?.name?.type,
-          value: input?.name?.value,
-        },
+        parentId: input?.parentId,
+        name: JSON.stringify(input?.name ?? undefined),
       },
     ],
     getTotalVeScaTreasuryAmount: (
