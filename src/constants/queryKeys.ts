@@ -77,10 +77,7 @@ export const queryKeys = {
       'getDynamicFieldObject',
       {
         parentId: input?.parentId,
-        name: {
-          type: input?.name?.type,
-          value: input?.name?.value,
-        },
+        name: JSON.stringify(input?.name ?? undefined),
       },
     ],
     getTotalVeScaTreasuryAmount: (
