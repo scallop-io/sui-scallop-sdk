@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 - Add optional params for `queryKeys` ([9db4963](https://github.com/scallop-io/sui-scallop-sdk/pull/198/commits/9db4963ebcab36dc6862e020af986f39bdf00f73))
 
+- Disable `isIsolatedAsset` query temporarily ([d9d6284](https://github.com/scallop-io/sui-scallop-sdk/pull/198/commits/d9d62842f7cd470b3a409c3abb548dba91761aa4))
+
 ### Bugfixes
 
 - Remove unnecessary `queryGetObjects` ([0a0d4d1](https://github.com/scallop-io/sui-scallop-sdk/pull/198/commits/0a0d4d15ea390d4f0b121dae4a4f7b8e12f8c822))
