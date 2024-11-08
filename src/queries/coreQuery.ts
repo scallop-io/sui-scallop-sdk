@@ -735,6 +735,9 @@ export const getObligations = async (
         filter: {
           StructType: `${protocolObjectId}::obligation::ObligationKey`,
         },
+        options: {
+          showContent: true,
+        },
         cursor: nextCursor,
         limit: 10,
       });
@@ -753,17 +756,15 @@ export const getObligations = async (
     }
   } while (hasNextPage);
 
-  const keyObjectIds: string[] = keyObjectsResponse
-    .map((ref: any) => ref?.data?.objectId)
-    .filter((id: any) => id !== undefined);
-  const keyObjects = await address.cache.queryGetObjects(keyObjectIds);
+  const keyObjects = keyObjectsResponse.filter((ref) => !!ref.data);
 
   const obligations: Obligation[] = [];
   await Promise.allSettled(
-    keyObjects.map(async (keyObject) => {
-      const keyId = keyObject.objectId;
-      if (keyObject.content && 'fields' in keyObject.content) {
-        const fields = keyObject.content.fields as any;
+    keyObjects.map(async ({ data }) => {
+      const keyId = data?.objectId;
+      const content = data?.content;
+      if (keyId && content && 'fields' in content) {
+        const fields = content.fields as any;
         const obligationId = String(fields.ownership.fields.of);
         const locked = await getObligationLocked(address.cache, obligationId);
         obligations.push({ id: obligationId, keyId, locked });
