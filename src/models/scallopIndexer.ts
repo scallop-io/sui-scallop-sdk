@@ -264,4 +264,13 @@ export class ScallopIndexer {
       throw Error('Failed to getTotalValueLocked.');
     }
   }
+
+  /**
+   * Get coin price index data.
+   *
+   * @return price data.
+   */
+  public async getCoinPrice(poolCoinName: SupportPoolCoins): Promise<number> {
+    return (await this.getMarketPool(poolCoinName))?.coinPrice ?? 0;
+  }
 }
