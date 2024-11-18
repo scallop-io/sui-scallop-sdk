@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.2...v1.3.3) (2024-11-18)
+
+### Features
+
+- Add new function `getCoinPrice` using indexer ([e6fe81e](https://github.com/scallop-io/sui-scallop-sdk/pull/201/commits/1ff66703a9cbd28e2cd3a8d325348b873e6fe81e))
+
 ### [1.3.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.1...v1.3.2) (2024-11-06)
 
 ### Features
