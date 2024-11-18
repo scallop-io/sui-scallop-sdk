@@ -98,10 +98,9 @@ export class ScallopBuilder {
    * @param address - ScallopAddress instance.
    */
   public async init(force: boolean = false, address?: ScallopAddress) {
-    if (force || !this.address.getAddresses() || !address?.getAddresses()) {
+    if (address && !this.address) this.address = address;
+    if (force || !this.address.getAddresses()) {
       await this.address.read();
-    } else {
-      this.address = address;
     }
     await this.query.init(force, this.address);
     await this.utils.init(force, this.address);

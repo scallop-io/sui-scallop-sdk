@@ -18,9 +18,6 @@ const isolatedAssetZod = zod.object({
   }),
 });
 
-const ISOLATED_ASSET_KEY =
-  '0x6e641f0dca8aedab3101d047e96439178f16301bf0b57fe8745086ff1195eb3e::market_dynamic_keys::IsolatedAssetKey';
-
 /**
  * Return list of isolated assets coin types
  * @param utils ScallopUtils
@@ -31,6 +28,8 @@ export const getIsolatedAssets = async (
 ): Promise<string[]> => {
   try {
     const marketObject = address.get('core.market');
+    const protocolObject = address.get('core.packages.protocol.id');
+    const ISOLATED_ASSET_KEY = `${protocolObject}::market_dynamic_keys::IsolatedAssetKey`;
     const isolatedAssets: string[] = [];
     if (!marketObject) return isolatedAssets;
 
@@ -83,7 +82,8 @@ export const isIsolatedAsset = async (
 ): Promise<boolean> => {
   try {
     const marketObject = utils.address.get('core.market');
-
+    const protocolObject = utils.address.get('core.packages.protocol.id');
+    const ISOLATED_ASSET_KEY = `${protocolObject}::market_dynamic_keys::IsolatedAssetKey`;
     // check if the coin type is in the list
     const cachedData = utils.address.cache.queryClient.getQueryData<string[]>([
       'getDynamicFields',

@@ -4,7 +4,6 @@ import {
   PROTOCOL_OBJECT_ID,
   SUPPORT_COLLATERALS,
   BORROW_FEE_PROTOCOL_ID,
-  USE_TEST_ADDRESS,
   FlashLoanFeeObjectMap,
 } from '../constants';
 import {
@@ -38,6 +37,7 @@ import {
 } from '../types';
 import BigNumber from 'bignumber.js';
 import { getSupplyLimit } from './supplyLimit';
+import { isIsolatedAsset } from './isolatedAsset';
 // import { isIsolatedAsset } from './isolatedAsset';
 
 /**
@@ -156,8 +156,8 @@ export const queryMarket = async (
       borrowFee: parsedMarketPoolData.borrowFee,
       marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
-      // isIsolated: await isIsolatedAsset(query.utils, poolCoinName),
-      isIsolated: false,
+      isIsolated: await isIsolatedAsset(query.utils, poolCoinName),
+      // isIsolated: false,
       maxSupplyCoin,
       ...calculatedMarketPoolData,
     };
@@ -204,6 +204,7 @@ export const queryMarket = async (
       liquidationPanelty: parsedMarketCollateralData.liquidationPanelty,
       liquidationReserveFactor:
         parsedMarketCollateralData.liquidationReserveFactor,
+      isIsolated: await isIsolatedAsset(query.utils, collateralCoinName),
       ...calculatedMarketCollateralData,
     };
   }
@@ -293,122 +294,129 @@ export const getMarketPool = async (
   indexer: boolean = false,
   marketObject?: SuiObjectData | null,
   coinPrice?: number
-) => {
-  let marketPool: MarketPool | undefined;
-  let balanceSheet: BalanceSheet | undefined;
-  let borrowIndex: BorrowIndex | undefined;
-  let interestModel: InterestModel | undefined;
-  let borrowFeeRate: { value: string } | undefined;
+): Promise<MarketPool | undefined> => {
+  try {
+    coinPrice =
+      coinPrice ||
+      (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName];
 
-  coinPrice =
-    coinPrice ||
-    (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName];
+    if (indexer) {
+      const marketPoolIndexer = await query.indexer.getMarketPool(poolCoinName);
+      marketPoolIndexer.coinPrice = coinPrice || marketPoolIndexer.coinPrice;
+      marketPoolIndexer.coinWrappedType = query.utils.getCoinWrappedType(
+        marketPoolIndexer.coinName
+      );
 
-  if (indexer) {
-    const marketPoolIndexer = await query.indexer.getMarketPool(poolCoinName);
-    marketPoolIndexer.coinPrice = coinPrice || marketPoolIndexer.coinPrice;
-    marketPoolIndexer.coinWrappedType = query.utils.getCoinWrappedType(
-      marketPoolIndexer.coinName
-    );
+      return marketPoolIndexer;
+    }
 
-    return marketPoolIndexer;
-  }
+    const marketId = query.address.get('core.market');
+    marketObject =
+      marketObject ||
+      (
+        await query.cache.queryGetObject(marketId, {
+          showContent: true,
+        })
+      )?.data;
 
-  const marketId = query.address.get('core.market');
-  marketObject =
-    marketObject ||
-    (
-      await query.cache.queryGetObject(marketId, {
-        showContent: true,
-      })
-    )?.data;
+    if (!(marketObject && marketObject.content?.dataType === 'moveObject'))
+      throw new Error(`Failed to fetch marketObject`);
 
-  if (marketObject) {
-    if (marketObject.content && 'fields' in marketObject.content) {
-      const fields = marketObject.content.fields as any;
-      const coinType = query.utils.parseCoinType(poolCoinName);
-      // Get balance sheet.
-      const balanceSheetParentId =
-        fields.vault.fields.balance_sheets.fields.table.fields.id.id;
-      const balanceSheetDynamicFieldObjectResponse =
-        await query.cache.queryGetDynamicFieldObject({
-          parentId: balanceSheetParentId,
-          name: {
-            type: '0x1::type_name::TypeName',
-            value: {
-              name: coinType.substring(2),
-            },
+    const fields = marketObject.content.fields as any;
+    const coinType = query.utils.parseCoinType(poolCoinName);
+    // Get balance sheet.
+    const balanceSheetParentId =
+      fields.vault.fields.balance_sheets.fields.table.fields.id.id;
+    const balanceSheetDynamicFieldObjectResponse =
+      await query.cache.queryGetDynamicFieldObject({
+        parentId: balanceSheetParentId,
+        name: {
+          type: '0x1::type_name::TypeName',
+          value: {
+            name: coinType.substring(2),
           },
-        });
-      if (!balanceSheetDynamicFieldObjectResponse) return undefined;
+        },
+      });
 
-      const balanceSheetDynamicFieldObject =
-        balanceSheetDynamicFieldObjectResponse.data;
-      if (
+    const balanceSheetDynamicFieldObject =
+      balanceSheetDynamicFieldObjectResponse?.data;
+
+    if (
+      !(
         balanceSheetDynamicFieldObject &&
         balanceSheetDynamicFieldObject.content &&
         'fields' in balanceSheetDynamicFieldObject.content
-      ) {
-        const dynamicFields = balanceSheetDynamicFieldObject.content
-          .fields as any;
-        balanceSheet = dynamicFields.value.fields;
-      }
+      )
+    )
+      throw new Error(
+        `Failed to fetch balanceSheetDynamicFieldObject for ${poolCoinName}: ${balanceSheetDynamicFieldObjectResponse?.error?.code.toString()}`
+      );
+    const balanceSheet: BalanceSheet = (
+      balanceSheetDynamicFieldObject.content.fields as any
+    ).value.fields;
 
-      // Get borrow index.
-      const borrowIndexParentId =
-        fields.borrow_dynamics.fields.table.fields.id.id;
-      const borrowIndexDynamicFieldObjectResponse =
-        await query.cache.queryGetDynamicFieldObject({
-          parentId: borrowIndexParentId,
-          name: {
-            type: '0x1::type_name::TypeName',
-            value: {
-              name: coinType.substring(2),
-            },
+    // Get borrow index.
+    const borrowIndexParentId =
+      fields.borrow_dynamics.fields.table.fields.id.id;
+    const borrowIndexDynamicFieldObjectResponse =
+      await query.cache.queryGetDynamicFieldObject({
+        parentId: borrowIndexParentId,
+        name: {
+          type: '0x1::type_name::TypeName',
+          value: {
+            name: coinType.substring(2),
           },
-        });
-      if (!borrowIndexDynamicFieldObjectResponse) return undefined;
+        },
+      });
 
-      const borrowIndexDynamicFieldObject =
-        borrowIndexDynamicFieldObjectResponse.data;
-      if (
+    const borrowIndexDynamicFieldObject =
+      borrowIndexDynamicFieldObjectResponse?.data;
+    if (
+      !(
         borrowIndexDynamicFieldObject &&
         borrowIndexDynamicFieldObject.content &&
         'fields' in borrowIndexDynamicFieldObject.content
-      ) {
-        const dynamicFields = borrowIndexDynamicFieldObject.content
-          .fields as any;
-        borrowIndex = dynamicFields.value.fields;
-      }
+      )
+    )
+      throw new Error(
+        `Failed to fetch borrowIndexDynamicFieldObject for ${poolCoinName}`
+      );
+    const borrowIndex: BorrowIndex = (
+      borrowIndexDynamicFieldObject.content.fields as any
+    ).value.fields;
 
-      // Get interest models.
-      const interestModelParentId =
-        fields.interest_models.fields.table.fields.id.id;
-      const interestModelDynamicFieldObjectResponse =
-        await query.cache.queryGetDynamicFieldObject({
-          parentId: interestModelParentId,
-          name: {
-            type: '0x1::type_name::TypeName',
-            value: {
-              name: coinType.substring(2),
-            },
+    // Get interest models.
+    const interestModelParentId =
+      fields.interest_models.fields.table.fields.id.id;
+    const interestModelDynamicFieldObjectResponse =
+      await query.cache.queryGetDynamicFieldObject({
+        parentId: interestModelParentId,
+        name: {
+          type: '0x1::type_name::TypeName',
+          value: {
+            name: coinType.substring(2),
           },
-        });
+        },
+      });
 
-      if (!interestModelDynamicFieldObjectResponse) return undefined;
-      const interestModelDynamicFieldObject =
-        interestModelDynamicFieldObjectResponse.data;
-      if (
+    const interestModelDynamicFieldObject =
+      interestModelDynamicFieldObjectResponse?.data;
+    if (
+      !(
         interestModelDynamicFieldObject &&
         interestModelDynamicFieldObject.content &&
         'fields' in interestModelDynamicFieldObject.content
-      ) {
-        const dynamicFields = interestModelDynamicFieldObject.content
-          .fields as any;
-        interestModel = dynamicFields.value.fields;
-      }
+      )
+    )
+      throw new Error(
+        `Failed to fetch interestModelDynamicFieldObject for ${poolCoinName}: ${interestModelDynamicFieldObject}`
+      );
+    const interestModel: InterestModel = (
+      interestModelDynamicFieldObject.content.fields as any
+    ).value.fields;
 
-      // Get borrow fee.
+    // Get borrow fee.
+    const getBorrowFee = async () => {
       const borrowFeeDynamicFieldObjectResponse =
         await query.cache.queryGetDynamicFieldObject({
           parentId: marketId,
@@ -422,26 +430,19 @@ export const getMarketPool = async (
           },
         });
 
-      if (!borrowFeeDynamicFieldObjectResponse) return undefined;
       const borrowFeeDynamicFieldObject =
-        borrowFeeDynamicFieldObjectResponse.data;
+        borrowFeeDynamicFieldObjectResponse?.data;
       if (
-        borrowFeeDynamicFieldObject &&
-        borrowFeeDynamicFieldObject.content &&
-        'fields' in borrowFeeDynamicFieldObject.content
-      ) {
-        const dynamicFields = borrowFeeDynamicFieldObject.content.fields as any;
-        borrowFeeRate = dynamicFields.value.fields;
-      }
-    }
-  }
+        !(
+          borrowFeeDynamicFieldObject &&
+          borrowFeeDynamicFieldObject.content &&
+          'fields' in borrowFeeDynamicFieldObject.content
+        )
+      )
+        return { value: '0' };
+      return (borrowFeeDynamicFieldObject.content.fields as any).value.fields;
+    };
 
-  if (
-    balanceSheet &&
-    borrowIndex &&
-    interestModel &&
-    (USE_TEST_ADDRESS || borrowFeeRate)
-  ) {
     const parsedMarketPoolData = parseOriginMarketPoolData({
       type: interestModel.type.fields,
       maxBorrowRate: interestModel.max_borrow_rate.fields,
@@ -455,7 +456,7 @@ export const getMarketPool = async (
       reserve: balanceSheet.revenue,
       reserveFactor: interestModel.revenue_factor.fields,
       borrowWeight: interestModel.borrow_weight.fields,
-      borrowFeeRate: borrowFeeRate || { value: '0' },
+      borrowFeeRate: await getBorrowFee(),
       baseBorrowRatePerSec: interestModel.base_borrow_rate_per_sec.fields,
       borrowRateOnHighKink: interestModel.borrow_rate_on_high_kink.fields,
       borrowRateOnMidKink: interestModel.borrow_rate_on_mid_kink.fields,
@@ -476,7 +477,7 @@ export const getMarketPool = async (
       .shiftedBy(-coinDecimal)
       .toNumber();
 
-    marketPool = {
+    return {
       coinName: poolCoinName,
       symbol: query.utils.parseSymbol(poolCoinName),
       coinType: query.utils.parseCoinType(poolCoinName),
@@ -495,13 +496,13 @@ export const getMarketPool = async (
       marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
       maxSupplyCoin,
-      // isIsolated: await isIsolatedAsset(query.utils, poolCoinName),
-      isIsolated: false,
+      isIsolated: await isIsolatedAsset(query.utils, poolCoinName),
+      // isIsolated: false,
       ...calculatedMarketPoolData,
     };
+  } catch (e) {
+    console.error(e);
   }
-
-  return marketPool;
 };
 
 /**
@@ -579,7 +580,7 @@ export const getMarketCollateral = async (
   indexer: boolean = false,
   marketObject?: SuiObjectData | null,
   coinPrice?: number
-) => {
+): Promise<MarketCollateral | undefined> => {
   coinPrice =
     coinPrice ||
     (await query.utils.getCoinPrices([collateralCoinName]))?.[
@@ -598,9 +599,9 @@ export const getMarketCollateral = async (
     return marketCollateralIndexer;
   }
 
-  let marketCollateral: MarketCollateral | undefined;
-  let riskModel: RiskModel | undefined;
-  let collateralStat: CollateralStat | undefined;
+  // let marketCollateral: MarketCollateral | undefined;
+  // let riskModel: RiskModel | undefined;
+  // let collateralStat: CollateralStat | undefined;
 
   const marketId = query.address.get('core.market');
   marketObject =
@@ -611,101 +612,106 @@ export const getMarketCollateral = async (
       })
     )?.data;
 
-  if (marketObject) {
-    if (marketObject.content && 'fields' in marketObject.content) {
-      const fields = marketObject.content.fields as any;
-      const coinType = query.utils.parseCoinType(collateralCoinName);
+  if (!(marketObject && marketObject.content?.dataType === 'moveObject'))
+    throw new Error(`Failed to fetch marketObject`);
 
-      // Get risk model.
-      const riskModelParentId = fields.risk_models.fields.table.fields.id.id;
-      const riskModelDynamicFieldObjectResponse =
-        await query.cache.queryGetDynamicFieldObject({
-          parentId: riskModelParentId,
-          name: {
-            type: '0x1::type_name::TypeName',
-            value: {
-              name: coinType.substring(2),
-            },
-          },
-        });
+  const fields = marketObject.content.fields as any;
+  const coinType = query.utils.parseCoinType(collateralCoinName);
 
-      if (!riskModelDynamicFieldObjectResponse) return undefined;
-      const riskModelDynamicFieldObject =
-        riskModelDynamicFieldObjectResponse.data;
-      if (
-        riskModelDynamicFieldObject &&
-        riskModelDynamicFieldObject.content &&
-        'fields' in riskModelDynamicFieldObject.content
-      ) {
-        const dynamicFields = riskModelDynamicFieldObject.content.fields as any;
-        riskModel = dynamicFields.value.fields;
-      }
-
-      // Get collateral stat.
-      const collateralStatParentId =
-        fields.collateral_stats.fields.table.fields.id.id;
-      const collateralStatDynamicFieldObjectResponse =
-        await query.cache.queryGetDynamicFieldObject({
-          parentId: collateralStatParentId,
-          name: {
-            type: '0x1::type_name::TypeName',
-            value: {
-              name: coinType.substring(2),
-            },
-          },
-        });
-
-      if (!collateralStatDynamicFieldObjectResponse) return undefined;
-      const collateralStatDynamicFieldObject =
-        collateralStatDynamicFieldObjectResponse.data;
-      if (
-        collateralStatDynamicFieldObject &&
-        collateralStatDynamicFieldObject.content &&
-        'fields' in collateralStatDynamicFieldObject.content
-      ) {
-        const dynamicFields = collateralStatDynamicFieldObject.content
-          .fields as any;
-        collateralStat = dynamicFields.value.fields;
-      }
-    }
-  }
-
-  if (riskModel && collateralStat) {
-    const parsedMarketCollateralData = parseOriginMarketCollateralData({
-      type: riskModel.type.fields,
-      collateralFactor: riskModel.collateral_factor.fields,
-      liquidationFactor: riskModel.liquidation_factor.fields,
-      liquidationDiscount: riskModel.liquidation_discount.fields,
-      liquidationPanelty: riskModel.liquidation_penalty.fields,
-      liquidationReserveFactor: riskModel.liquidation_revenue_factor.fields,
-      maxCollateralAmount: riskModel.max_collateral_amount,
-      totalCollateralAmount: collateralStat.amount,
+  // Get risk model.
+  const riskModelParentId = fields.risk_models.fields.table.fields.id.id;
+  const riskModelDynamicFieldObjectResponse =
+    await query.cache.queryGetDynamicFieldObject({
+      parentId: riskModelParentId,
+      name: {
+        type: '0x1::type_name::TypeName',
+        value: {
+          name: coinType.substring(2),
+        },
+      },
     });
 
-    const calculatedMarketCollateralData = calculateMarketCollateralData(
-      query.utils,
-      parsedMarketCollateralData
+  const riskModelDynamicFieldObject = riskModelDynamicFieldObjectResponse?.data;
+  if (
+    !(
+      riskModelDynamicFieldObject &&
+      riskModelDynamicFieldObject.content &&
+      'fields' in riskModelDynamicFieldObject.content
+    )
+  )
+    throw new Error(
+      `Failed to ftech riskModelDynamicFieldObject for ${riskModelDynamicFieldObjectResponse?.error?.code.toString()}: `
     );
 
-    marketCollateral = {
-      coinName: collateralCoinName,
-      symbol: query.utils.parseSymbol(collateralCoinName),
-      coinType: query.utils.parseCoinType(collateralCoinName),
-      marketCoinType: query.utils.parseMarketCoinType(collateralCoinName),
-      coinWrappedType: query.utils.getCoinWrappedType(collateralCoinName),
-      coinDecimal: query.utils.getCoinDecimal(collateralCoinName),
-      coinPrice: coinPrice ?? 0,
-      collateralFactor: parsedMarketCollateralData.collateralFactor,
-      liquidationFactor: parsedMarketCollateralData.liquidationFactor,
-      liquidationDiscount: parsedMarketCollateralData.liquidationDiscount,
-      liquidationPanelty: parsedMarketCollateralData.liquidationPanelty,
-      liquidationReserveFactor:
-        parsedMarketCollateralData.liquidationReserveFactor,
-      ...calculatedMarketCollateralData,
-    };
-  }
+  const riskModel: RiskModel = (
+    riskModelDynamicFieldObject.content.fields as any
+  ).value.fields;
 
-  return marketCollateral;
+  // Get collateral stat.
+  const collateralStatParentId =
+    fields.collateral_stats.fields.table.fields.id.id;
+  const collateralStatDynamicFieldObjectResponse =
+    await query.cache.queryGetDynamicFieldObject({
+      parentId: collateralStatParentId,
+      name: {
+        type: '0x1::type_name::TypeName',
+        value: {
+          name: coinType.substring(2),
+        },
+      },
+    });
+
+  const collateralStatDynamicFieldObject =
+    collateralStatDynamicFieldObjectResponse?.data;
+
+  if (
+    !(
+      collateralStatDynamicFieldObject &&
+      collateralStatDynamicFieldObject.content &&
+      'fields' in collateralStatDynamicFieldObject.content
+    )
+  )
+    throw new Error(
+      `Failed to fetch collateralStatDynamicFieldObject for ${collateralCoinName}: ${collateralStatDynamicFieldObjectResponse?.error?.code.toString()}`
+    );
+
+  const collateralStat: CollateralStat = (
+    collateralStatDynamicFieldObject.content.fields as any
+  ).value.fields;
+
+  const parsedMarketCollateralData = parseOriginMarketCollateralData({
+    type: riskModel.type.fields,
+    collateralFactor: riskModel.collateral_factor.fields,
+    liquidationFactor: riskModel.liquidation_factor.fields,
+    liquidationDiscount: riskModel.liquidation_discount.fields,
+    liquidationPanelty: riskModel.liquidation_penalty.fields,
+    liquidationReserveFactor: riskModel.liquidation_revenue_factor.fields,
+    maxCollateralAmount: riskModel.max_collateral_amount,
+    totalCollateralAmount: collateralStat.amount,
+  });
+
+  const calculatedMarketCollateralData = calculateMarketCollateralData(
+    query.utils,
+    parsedMarketCollateralData
+  );
+
+  return {
+    coinName: collateralCoinName,
+    symbol: query.utils.parseSymbol(collateralCoinName),
+    coinType: query.utils.parseCoinType(collateralCoinName),
+    marketCoinType: query.utils.parseMarketCoinType(collateralCoinName),
+    coinWrappedType: query.utils.getCoinWrappedType(collateralCoinName),
+    coinDecimal: query.utils.getCoinDecimal(collateralCoinName),
+    coinPrice: coinPrice ?? 0,
+    collateralFactor: parsedMarketCollateralData.collateralFactor,
+    liquidationFactor: parsedMarketCollateralData.liquidationFactor,
+    liquidationDiscount: parsedMarketCollateralData.liquidationDiscount,
+    liquidationPanelty: parsedMarketCollateralData.liquidationPanelty,
+    liquidationReserveFactor:
+      parsedMarketCollateralData.liquidationReserveFactor,
+    isIsolated: await isIsolatedAsset(query.utils, collateralCoinName),
+    ...calculatedMarketCollateralData,
+  };
 };
 
 /**

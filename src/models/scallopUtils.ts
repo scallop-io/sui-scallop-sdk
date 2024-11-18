@@ -129,10 +129,9 @@ export class ScallopUtils {
    * @param address - ScallopAddress instance.
    */
   public async init(force: boolean = false, address?: ScallopAddress) {
-    if (force || !this.address.getAddresses() || !address?.getAddresses()) {
+    if (address && !this.address) this.address = address;
+    if (force || !this.address.getAddresses()) {
       await this.address.read();
-    } else {
-      this.address = address;
     }
   }
 
@@ -553,7 +552,9 @@ export class ScallopUtils {
             const priceId = this.address.get(
               `core.coins.${coinName}.oracle.pyth.feed`
             );
-            acc[coinName] = priceId;
+            if (priceId) {
+              acc[coinName] = priceId;
+            }
             return acc;
           },
           {} as Record<SupportAssetCoins, string>

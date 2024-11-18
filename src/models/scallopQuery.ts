@@ -167,10 +167,11 @@ export class ScallopQuery {
    * @param address - ScallopAddress instance.
    */
   public async init(force: boolean = false, address?: ScallopAddress) {
-    if (force || !this.address.getAddresses() || !address?.getAddresses()) {
-      await this.address.read();
-    } else {
+    if (address && !this.address) {
       this.address = address;
+    }
+    if (force || !this.address.getAddresses()) {
+      await this.address.read();
     }
 
     await this.utils.init(force, this.address);
