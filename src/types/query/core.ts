@@ -153,6 +153,7 @@ export type MarketCollateral = {
   coinWrappedType: CoinWrappedType;
   coinDecimal: number;
   coinPrice: number;
+  isIsolated: boolean;
 } & Required<
   Pick<
     ParsedMarketCollateralData,
