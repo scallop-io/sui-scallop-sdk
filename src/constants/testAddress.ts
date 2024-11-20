@@ -467,9 +467,9 @@ export const TEST_ADDRESSES: AddressesInterface = {
       },
       ssca: {
         coinType:
-          '0x0a9d3c6c9af9f6e8def82921541bcbd17f73ed31bed3adcb684f2a4c267e42f0::scallop_sca::SCALLOP_SCA',
+          '0x958428555e778e55918a59eb1c92c77f32b5c554fa3a5e56cd0815086b5072e7::scallop_sca::SCALLOP_SCA',
         treasury:
-          '0xe818636d1d6c46d6ea1a2dce9d94696d7cbc18ce27451b603eeaa47aba8d75e0',
+          '0x5f1c5de1df7341075d119570269b7b452af50afe8363080638f1ae29a554c038',
       },
       swusdc: {
         coinType:

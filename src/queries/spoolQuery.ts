@@ -114,7 +114,7 @@ export const getSpool = async (
   const coinName = query.utils.parseCoinName<SupportStakeCoins>(marketCoinName);
   marketPool = marketPool || (await query.getMarketPool(coinName, indexer));
   if (!marketPool) {
-    throw new Error('Failed to fetch marketPool');
+    throw new Error(`Failed to fetch marketPool for ${marketCoinName}`);
   }
 
   const poolId = query.address.get(`spool.pools.${marketCoinName}.id`);

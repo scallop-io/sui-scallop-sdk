@@ -166,7 +166,9 @@ export const sCoinIds: types.SCoinIds = {
   // ssui: '0xaafc4f740de0dd0dde642a31148fb94517087052f19afb0f7bed1dc41a50c77b::scallop_sui::SCALLOP_SUI',
   scetus:
     '0xea346ce428f91ab007210443efcea5f5cdbbb3aae7e9affc0ca93f9203c31f0c::scallop_cetus::SCALLOP_CETUS',
-  ssca: '0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::SCALLOP_SCA',
+  // TODO: Change this to the correct value on production release
+  ssca: '0x958428555e778e55918a59eb1c92c77f32b5c554fa3a5e56cd0815086b5072e7::scallop_sca::SCALLOP_SCA',
+  // '0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::SCALLOP_SCA',
   // TODO: Change this to the correct value on production release
   swusdc:
     '0xf5447c4305a486d8c8557559887c2c39449ddb5e748f15d33946d02a1663c158::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
