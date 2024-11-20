@@ -640,7 +640,7 @@ export const getMarketCollateral = async (
     )
   )
     throw new Error(
-      `Failed to ftech riskModelDynamicFieldObject for ${riskModelDynamicFieldObjectResponse?.error?.code.toString()}: `
+      `Failed to fetch riskModelDynamicFieldObject for ${riskModelDynamicFieldObjectResponse?.error?.code.toString()}: `
     );
 
   const riskModel: RiskModel = (

@@ -329,12 +329,8 @@ export const getObligationAccount = async (
   coinAmounts?: CoinAmounts
 ) => {
   market = market || (await query.queryMarket(indexer));
-  const collateralAssetCoinNames: SupportCollateralCoins[] = [
-    ...new Set([
-      ...Object.values(market.collaterals).map(
-        (collateral) => collateral.coinName
-      ),
-    ]),
+  const poolAssetCoinNames: SupportCollateralCoins[] = [
+    ...new Set([...Object.values(market.pools).map((pool) => pool.coinName)]),
   ];
   const obligationQuery = await query.queryObligation(obligationId);
   const borrowIncentivePools = await query.getBorrowIncentivePools(
@@ -344,11 +340,12 @@ export const getObligationAccount = async (
   const borrowIncentiveAccounts =
     await query.getBorrowIncentiveAccounts(obligationId);
   coinPrices =
-    coinPrices || (await query.utils.getCoinPrices(collateralAssetCoinNames));
+    coinPrices || (await query.utils.getCoinPrices(poolAssetCoinNames));
   coinAmounts =
     coinAmounts ||
-    (await query.getCoinAmounts(collateralAssetCoinNames, ownerAddress));
+    (await query.getCoinAmounts(poolAssetCoinNames, ownerAddress));
 
+  console.log(coinPrices);
   const collaterals: ObligationAccount['collaterals'] = {};
   const debts: ObligationAccount['debts'] = {};
   const borrowIncentives: ObligationAccount['borrowIncentives'] = {};
@@ -361,7 +358,7 @@ export const getObligationAccount = async (
   let totalBorrowedValue = BigNumber(0);
   let totalBorrowedValueWithWeight = BigNumber(0);
 
-  for (const assetCoinName of collateralAssetCoinNames) {
+  for (const assetCoinName of poolAssetCoinNames) {
     const collateral = obligationQuery?.collaterals.find((collateral) => {
       const collateralCoinName =
         query.utils.parseCoinNameFromType<SupportCollateralCoins>(
