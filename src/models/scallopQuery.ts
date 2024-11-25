@@ -754,4 +754,13 @@ export class ScallopQuery {
   public async isIsolatedAsset(assetCoinName: SupportAssetCoins) {
     return isIsolatedAsset(this.utils, assetCoinName);
   }
+
+  /**
+   * Get pool coin price from indexer
+   * @param coinName
+   * @returns price data
+   */
+  public async getCoinPriceByIndexer(poolName: SupportPoolCoins) {
+    return this.indexer.getCoinPrice(poolName);
+  }
 }
