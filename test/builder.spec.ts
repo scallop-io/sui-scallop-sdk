@@ -3,15 +3,22 @@ import {
   MAX_LOCK_ROUNDS,
   SCA_COIN_TYPE,
   Scallop,
+  ScallopBuilder,
   UNLOCK_ROUND_DURATION,
 } from '../src';
 import { Transaction } from '@scallop-io/sui-kit';
 import { scallopSDK } from './scallopSdk';
 
 const ENABLE_LOG = false;
-
+let _scallopBuilder: ScallopBuilder | null = null;
+const getScallopBuilder = async () => {
+  if (!_scallopBuilder) {
+    _scallopBuilder = await scallopSDK.createScallopBuilder();
+  }
+  return _scallopBuilder;
+};
 describe('Test Scallop Core Builder', async () => {
-  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const scallopBuilder = await getScallopBuilder();
   const sender = scallopBuilder.walletAddress;
 
   console.info('Sender:', sender);
@@ -192,7 +199,7 @@ describe('Test Scallop Core Builder', async () => {
 });
 
 describe('Test Scallop Spool Builder', async () => {
-  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const scallopBuilder = await getScallopBuilder();
   const sender = scallopBuilder.walletAddress;
 
   console.info('Sender:', sender);
@@ -255,7 +262,8 @@ describe('Test Scallop Spool Builder', async () => {
 });
 
 describe('Test Scallop Borrow Incentive Builder', async () => {
-  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const scallopBuilder = await getScallopBuilder();
+  const obligations = await scallopBuilder.query.getObligations();
   const sender = scallopBuilder.walletAddress;
 
   console.info('Sender:', sender);
@@ -314,11 +322,153 @@ describe('Test Scallop Borrow Incentive Builder', async () => {
       'success'
     );
   });
+
+  if (obligations.length > 0) {
+    const OTHER_VESCA_KEY =
+      '0xb840d39a2ee0056cf022e286d4dc6b0e543bdcb0fcae2c828af02b39d11532bc';
+    const { id, keyId } = obligations[0]; // replace it with your non boosted obligation
+    const veScaKeys = await scallopBuilder.query.getVeScas({
+      walletAddress: sender,
+    });
+
+    it('"stakeObligationWithVeScaQuick" should succeed on non boosted obligation', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      // Sender is required to invoke "stakeObligationWithVeScaQuick".
+      tx.setSender(sender);
+      await tx.unstakeObligationQuick(id, keyId);
+      await tx.stakeObligationWithVeScaQuick(id, keyId);
+      const stakeObligationWithVeScaQuickResult =
+        await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info(
+          'StakeObligationWithVeScaQuickResult:',
+          stakeObligationWithVeScaQuickResult.effects.status.error
+        );
+      }
+      expect(
+        stakeObligationWithVeScaQuickResult.effects?.status.status
+      ).toEqual('success');
+    });
+
+    it('"stakeObligationWithVeScaQuick" with not owned veScaKey should fail on non boosted obligation', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      // Sender is required to invoke "stakeObligationWithVeScaQuick".
+      tx.setSender(sender);
+      // unstake first
+      await tx.unstakeObligationQuick(id, keyId);
+      await tx.stakeObligationWithVeScaQuick(
+        id,
+        keyId,
+        OTHER_VESCA_KEY // use someone's veScaKey
+      );
+      const stakeObligationWithVeScaQuickResult =
+        await scallopBuilder.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info(
+          'StakeObligationWithVeScaQuickResult:',
+          stakeObligationWithVeScaQuickResult.effects
+        );
+      }
+      expect(
+        stakeObligationWithVeScaQuickResult.effects?.status.status
+      ).toEqual('failure');
+    });
+
+    if (veScaKeys.length > 0) {
+      const veScaKey = veScaKeys[0].keyId;
+      const bindedObligationId =
+        await scallopBuilder.query.getBindedObligationId(veScaKey);
+
+      const obligationWithBoost = obligations.find(
+        ({ id }) => id === bindedObligationId
+      );
+
+      if (obligationWithBoost) {
+        const { id, keyId } = obligationWithBoost;
+        it('"stakesObligationWithVeScaQuick" with correct veScakey on boosted obligation should succeed', async () => {
+          const tx = scallopBuilder.createTxBlock();
+          tx.setSender(sender);
+          await tx.unstakeObligationQuick(id, keyId);
+          await tx.stakeObligationWithVeScaQuick(id, keyId, veScaKey);
+          const stakeObligationWithVeScaQuickResult =
+            await scallopBuilder.suiKit.inspectTxn(tx);
+          if (ENABLE_LOG) {
+            console.info(
+              'StakeObligationWithVeScaQuickResult:',
+              stakeObligationWithVeScaQuickResult.effects.status.error
+            );
+          }
+          expect(
+            stakeObligationWithVeScaQuickResult.effects?.status.status
+          ).toEqual('success');
+        });
+
+        it('"stakesObligationWithVeScaQuick" with incorrect veScakey on boosted obligation should auto switch to correct binded obligation automatically and succeed', async () => {
+          const tx = scallopBuilder.createTxBlock();
+          tx.setSender(sender);
+          await tx.unstakeObligationQuick(id, keyId);
+          await tx.stakeObligationWithVeScaQuick(id, keyId, OTHER_VESCA_KEY);
+          const stakeObligationWithVeScaQuickResult =
+            await scallopBuilder.suiKit.inspectTxn(tx);
+          if (ENABLE_LOG) {
+            console.info(
+              'StakeObligationWithVeScaQuickResult:',
+              stakeObligationWithVeScaQuickResult.effects.status.error
+            );
+          }
+          expect(
+            stakeObligationWithVeScaQuickResult.effects?.status.status
+          ).toEqual('success');
+        });
+
+        it('"deactivateBoost" should success', async () => {
+          const tx = scallopBuilder.createTxBlock();
+          tx.setSender(sender);
+          tx.deactivateBoost(id, veScaKey);
+          const stakeObligationWithVeScaQuickResult =
+            await scallopBuilder.suiKit.inspectTxn(tx);
+          if (ENABLE_LOG) {
+            console.info(
+              'StakeObligationWithVeScaQuickResult:',
+              stakeObligationWithVeScaQuickResult.effects.status.error
+            );
+          }
+          expect(
+            stakeObligationWithVeScaQuickResult.effects?.status.status
+          ).toEqual('success');
+        });
+
+        if (veScaKeys[1])
+          it('"stakesObligationWithVeScaQuick" with other veScaKey after "deactivateBoost" should success', async () => {
+            const tx = scallopBuilder.createTxBlock();
+            tx.setSender(sender);
+            tx.deactivateBoost(id, veScaKey);
+            await tx.unstakeObligationQuick(id, keyId);
+            await tx.stakeObligationWithVeScaQuick(
+              id,
+              keyId,
+              veScaKeys[1].keyId
+            );
+            const stakeObligationWithVeScaQuickResult =
+              await scallopBuilder.suiKit.inspectTxn(tx);
+            if (ENABLE_LOG) {
+              console.info(
+                'StakeObligationWithVeScaQuickResult:',
+                stakeObligationWithVeScaQuickResult.effects.status.error
+              );
+            }
+            expect(
+              stakeObligationWithVeScaQuickResult.effects?.status.status
+            ).toEqual('success');
+          });
+      }
+    }
+  }
 });
 
 describe('Test Scallop VeSca Builder', async () => {
-  const scallopBuilder = await scallopSDK.createScallopBuilder();
-  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopBuilder = await getScallopBuilder();
+  const scallopQuery = scallopBuilder.query;
   const sender = scallopBuilder.walletAddress;
 
   const veScas = await scallopQuery.getVeScas({ walletAddress: sender });
@@ -778,7 +928,7 @@ describe('Test Scallop VeSca Builder', async () => {
 });
 
 describe('Test Scallop Referral Builder', async () => {
-  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const scallopBuilder = await getScallopBuilder();
   const sender = scallopBuilder.walletAddress;
 
   console.info('Sender:', sender);
@@ -848,7 +998,7 @@ describe('Test Scallop Referral Builder', async () => {
 
 describe('Test Scallop Loyalty Program Builder', async () => {
   // Please set IS_VE_SCA_TEST to true in constants/common.ts
-  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const scallopBuilder = await getScallopBuilder();
   const sender = scallopBuilder.walletAddress;
 
   console.info('Sender:', sender);
@@ -871,7 +1021,7 @@ describe('Test Scallop Loyalty Program Builder', async () => {
 });
 
 describe('Test sCoin Builder', async () => {
-  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const scallopBuilder = await getScallopBuilder();
   const sender = scallopBuilder.walletAddress;
   const COIN_NAME = 'sui';
   const COIN_AMOUNT = 1e5;

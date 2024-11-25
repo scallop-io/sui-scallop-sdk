@@ -72,7 +72,7 @@ export const getVeScas = async (
   }: {
     utils: ScallopUtils;
   },
-  ownerAddress?: string,
+  ownerAddress: string,
   excludeEmpty?: boolean
 ) => {
   const keyObjectDatas = await getVescaKeys(utils, ownerAddress);
@@ -88,7 +88,7 @@ export const getVeScas = async (
 
   const result = veScas
     .filter(Boolean)
-    .sort((a, b) => b!.currentVeScaBalance - a!.currentVeScaBalance);
+    .sort((a, b) => b.currentVeScaBalance - a.currentVeScaBalance);
 
   if (excludeEmpty) {
     return result.filter((v) => v.lockedScaAmount !== '0');
@@ -113,11 +113,9 @@ type SuiObjectRefType = zod.infer<typeof SuiObjectRefZod>;
  */
 export const getVeSca = async (
   utils: ScallopUtils,
-  veScaKey?: string | SuiObjectData,
-  ownerAddress?: string
+  veScaKey: string | SuiObjectData
 ) => {
   const tableId = utils.address.get(`vesca.tableId`);
-  veScaKey = veScaKey || (await getVescaKeys(utils, ownerAddress))[0];
 
   if (!veScaKey) return undefined;
   if (typeof veScaKey === 'object') {
@@ -168,7 +166,7 @@ export const getVeSca = async (
       lockedScaCoin,
       currentVeScaBalance,
       unlockAt: BigNumber(dynamicFields.unlock_at * 1000).toNumber(),
-    } as Vesca;
+    };
   }
 
   return vesca;
