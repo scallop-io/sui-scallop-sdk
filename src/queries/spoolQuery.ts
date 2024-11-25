@@ -210,6 +210,7 @@ export const getSpool = async (
         rewardCoinType: isMarketCoin(rewardCoinName)
           ? query.utils.parseMarketCoinType(rewardCoinName)
           : query.utils.parseCoinType(rewardCoinName),
+        sCoinType: marketPool.sCoinType,
         coinDecimal: query.utils.getCoinDecimal(coinName),
         rewardCoinDecimal: query.utils.getCoinDecimal(rewardCoinName),
         coinPrice: coinPrices?.[coinName] ?? 0,
