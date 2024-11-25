@@ -518,7 +518,7 @@ export class ScallopClient {
     );
     txBlock.transferObjects([coin], sender);
     if (sign && availableStake) {
-      await txBlock.stakeObligationQuick(obligationId, obligationKey);
+      await txBlock.stakeObligationWithVeScaQuick(obligationId, obligationKey);
     }
 
     if (sign) {
@@ -560,7 +560,7 @@ export class ScallopClient {
     }
     await txBlock.repayQuick(amount, poolCoinName, obligationId);
     if (sign && availableStake) {
-      await txBlock.stakeObligationQuick(obligationId, obligationKey);
+      await txBlock.stakeObligationWithVeScaQuick(obligationId, obligationKey);
     }
 
     if (sign) {
@@ -902,7 +902,7 @@ export class ScallopClient {
     const sender = walletAddress || this.walletAddress;
     txBlock.setSender(sender);
 
-    await txBlock.stakeObligationQuick(obligationId, obligationKeyId);
+    await txBlock.stakeObligationWithVeScaQuick(obligationId, obligationKeyId);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(

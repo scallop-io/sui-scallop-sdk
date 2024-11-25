@@ -12,6 +12,7 @@ export type Spool = {
   coinType: string;
   marketCoinType: string;
   rewardCoinType: string;
+  sCoinType: string;
   coinDecimal: number;
   rewardCoinDecimal: number;
   coinPrice: number;
