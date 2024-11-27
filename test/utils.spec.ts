@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PROTOCOL_OBJECT_ID } from '../src/constants';
+import { PROTOCOL_OBJECT_ID, SUPPORT_POOLS } from '../src/constants';
 import { scallopSDK } from './scallopSdk';
 
 const ENABLE_LOG = false;
@@ -233,5 +233,14 @@ describe('Test Scallop Utils', async () => {
     }
     expect(!!coinPrices).toBe(true);
     expect(usdcCoinPrice).toBeGreaterThanOrEqual(0);
+  });
+
+  it('Should return supported pool addresses', () => {
+    const poolInfos = scallopUtils.getSupportedPoolAddresses();
+    if (ENABLE_LOG) {
+      console.info('Pool infos:', poolInfos);
+    }
+    expect(!!poolInfos).toBe(true);
+    expect(poolInfos.length).toBe(SUPPORT_POOLS.length);
   });
 });
