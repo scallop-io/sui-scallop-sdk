@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.3...v1.3.4) (2024-11-27)
+
+### Features
+- Add `getSupportedPoolAddresses` in `ScallopUtils` ([4aab3bd](https://github.com/scallop-io/sui-scallop-sdk/commit/4aab3bdfb1b3fa7354876ad1ae43aaaacf9a06f0))
+
 ### [1.3.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.2...v1.3.3) (2024-11-25)
 
 ### Features
