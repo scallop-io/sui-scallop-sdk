@@ -14,6 +14,7 @@ import type {
   SupportAssetCoins,
   SupportCoins,
   SupportMarketCoins,
+  SupportSCoin,
   SupportSuiBridgeCoins,
   SupportWormholeCoins,
 } from '../types';
@@ -30,7 +31,7 @@ const COIN_SET = Array.from(
 
 export const isMarketCoin = (
   coinName: SupportCoins
-): coinName is SupportMarketCoins => {
+): coinName is SupportMarketCoins | SupportSCoin => {
   const assetCoinName = coinName.slice(1).toLowerCase() as SupportAssetCoins;
   return (
     coinName.charAt(0).toLowerCase() === 's' && COIN_SET.includes(assetCoinName)
