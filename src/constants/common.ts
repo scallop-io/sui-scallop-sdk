@@ -117,7 +117,7 @@ export const SUPPORT_BORROW_INCENTIVE_POOLS = [
   'usdc',
 ] as const;
 
-export const SUPPORT_BORROW_INCENTIVE_REWARDS = ['sui', 'sca'] as const;
+export const SUPPORT_BORROW_INCENTIVE_REWARDS = ['ssui', 'ssca'] as const;
 export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
 
 export const SUPPORT_PACKAGES = [
