@@ -4,15 +4,19 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [1.3.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.3...v1.3.4) (2024-11-27)
 
+### ⚠ BREAKING CHANGES
+
 ### Features
+
 - Add `getSupportedPoolAddresses` in `ScallopUtils` ([4aab3bd](https://github.com/scallop-io/sui-scallop-sdk/commit/4aab3bdfb1b3fa7354876ad1ae43aaaacf9a06f0))
+
+- Change borrow incentive rewards type from `[sui, sca]` to `[ssui, ssca]` ([67e4d6d](https://github.com/scallop-io/sui-scallop-sdk/commit/67e4d6d7168c95d0fce0b5dea20af581e7d69738))
 
 ### [1.3.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.2...v1.3.3) (2024-11-25)
 
 ### Features
 
 - Add new function `getCoinPrice` using indexer ([e6fe81e](https://github.com/scallop-io/sui-scallop-sdk/pull/201/commits/1ff66703a9cbd28e2cd3a8d325348b873e6fe81e))
-
 
 - Use `stakeObligationWithVeScaQuick` where possible in scallopClient ([e4c95bd](https://github.com/scallop-io/sui-scallop-sdk/pull/201/commits/e4c95bd383d645a2471aa12a50a4955efdc1f570))
 
