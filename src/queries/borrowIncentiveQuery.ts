@@ -62,17 +62,16 @@ export const getBorrowIncentivePools = async (
   const borrowIncentiveRewardCoinNames = SUPPORT_BORROW_INCENTIVE_REWARDS.map(
     (t) => query.utils.parseCoinName(t)
   );
-  const coinPrices =
-    (await query.utils.getCoinPrices([
+
+  const [coinPrices, marketPools] = await Promise.all([
+    query.utils.getCoinPrices([
       ...new Set([
         ...borrowIncentiveCoinNames,
         ...borrowIncentiveRewardCoinNames,
       ]),
-    ])) ?? {};
-
-  const marketPools = await query.getMarketPools(
-    borrowIncentiveRewardCoinNames
-  );
+    ]),
+    query.getMarketPools(borrowIncentiveRewardCoinNames),
+  ]);
   if (indexer) {
     const borrowIncentivePoolsIndexer =
       await query.indexer.getBorrowIncentivePools();
@@ -80,6 +79,13 @@ export const getBorrowIncentivePools = async (
     const updateBorrowIncentivePool = (pool: BorrowIncentivePool) => {
       if (!borrowIncentiveCoinNames.includes(pool.coinName)) return;
       pool.coinPrice = coinPrices[pool.coinName] || pool.coinPrice;
+      for (const sCoinName of SUPPORT_BORROW_INCENTIVE_REWARDS) {
+        if (pool.points[sCoinName]) {
+          pool.points[sCoinName].coinPrice =
+            (coinPrices[pool.coinName] ?? 0) *
+            (marketPools[pool.coinName]?.conversionRate ?? 1);
+        }
+      }
       borrowIncentivePools[pool.coinName] = pool;
     };
 
@@ -93,7 +99,6 @@ export const getBorrowIncentivePools = async (
   const borrowIncentivePoolsQueryData = await queryBorrowIncentivePools(
     query.address
   );
-
   for (const pool of borrowIncentivePoolsQueryData?.incentive_pools ?? []) {
     const borrowIncentivePoolPoints: OptionalKeys<
       Record<SupportBorrowIncentiveRewardCoins, BorrowIncentivePoolPoints>
