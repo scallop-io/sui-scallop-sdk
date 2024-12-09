@@ -18,6 +18,8 @@ import {
   SUPPORT_SCOIN,
   sCoinIds,
   suiBridgeCoins,
+  COIN_GECKGO_IDS,
+  POOL_ADDRESSES,
 } from '../constants';
 import { getPythPrice, queryObligation } from '../queries';
 import {
@@ -28,7 +30,7 @@ import {
   isSuiBridgeAsset,
   isWormholeAsset,
 } from '../utils';
-import { PYTH_ENDPOINTS } from 'src/constants/pyth';
+import { PYTH_ENDPOINTS, PYTH_FEED_IDS } from 'src/constants/pyth';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import type {
@@ -45,6 +47,7 @@ import type {
   ScallopUtilsInstanceParams,
   SupportSuiBridgeCoins,
   SupportWormholeCoins,
+  PoolAddressInfo,
 } from '../types';
 import { queryKeys } from 'src/constants';
 import type { SuiObjectArg, SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
@@ -669,5 +672,26 @@ export class ScallopUtils {
       newUnlockAtInSecondTimestamp = now + lockPeriod;
     }
     return findClosestUnlockRound(newUnlockAtInSecondTimestamp);
+  }
+
+  /**
+   * Get detailed contract address and price id information for supported pool in Scallop
+   * @returns Supported pool informations
+   */
+  public getSupportedPoolAddresses(): PoolAddressInfo[] {
+    return SUPPORT_POOLS.map((poolName) => {
+      const sCoinName = this.parseSCoinName(poolName)!;
+      return {
+        name: this.parseSymbol(poolName),
+        coingeckoId: COIN_GECKGO_IDS[poolName],
+        decimal: coinDecimals[poolName],
+        pythFeedId: PYTH_FEED_IDS[poolName],
+        ...POOL_ADDRESSES[poolName],
+        sCoinAddress: sCoinIds[sCoinName],
+        marketCoinAddress: this.parseMarketCoinType(poolName),
+        coinAddress: this.parseCoinType(poolName),
+        sCoinName: sCoinName ? this.parseSymbol(sCoinName) : undefined,
+      };
+    });
   }
 }
