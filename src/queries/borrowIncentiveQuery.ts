@@ -59,15 +59,20 @@ export const getBorrowIncentivePools = async (
   indexer: boolean = false
 ) => {
   const borrowIncentivePools: BorrowIncentivePools = {};
-
+  const borrowIncentiveRewardCoinNames = SUPPORT_BORROW_INCENTIVE_REWARDS.map(
+    (t) => query.utils.parseCoinName(t)
+  );
   const coinPrices =
     (await query.utils.getCoinPrices([
       ...new Set([
         ...borrowIncentiveCoinNames,
-        ...SUPPORT_BORROW_INCENTIVE_REWARDS,
+        ...borrowIncentiveRewardCoinNames,
       ]),
     ])) ?? {};
 
+  const marketPools = await query.getMarketPools(
+    borrowIncentiveRewardCoinNames
+  );
   if (indexer) {
     const borrowIncentivePoolsIndexer =
       await query.indexer.getBorrowIncentivePools();
@@ -113,12 +118,16 @@ export const getBorrowIncentivePools = async (
     for (const [coinName, poolPoint] of Object.entries(
       parsedBorrowIncentivePoolData.poolPoints
     )) {
-      const rewardCoinType = normalizeStructTag(poolPoint.pointType);
-      const rewardCoinName =
+      const rewardSCoinType = normalizeStructTag(poolPoint.pointType);
+      const rewardSCoinName =
         query.utils.parseCoinNameFromType<SupportBorrowIncentiveRewardCoins>(
-          rewardCoinType
+          rewardSCoinType
         );
-      const rewardCoinPrice = coinPrices?.[rewardCoinName] ?? 0;
+      const rewardCoinName = query.utils.parseCoinName(rewardSCoinName);
+      const rewardCoinPrice =
+        coinPrices?.[query.utils.parseCoinName(rewardSCoinName)] ?? 0;
+      const rewardSCoinPrice =
+        rewardCoinPrice * (marketPools[rewardCoinName]?.conversionRate ?? 1);
       const rewardCoinDecimal = query.utils.getCoinDecimal(rewardCoinName);
 
       const symbol = query.utils.parseSymbol(rewardCoinName);
@@ -136,10 +145,10 @@ export const getBorrowIncentivePools = async (
       borrowIncentivePoolPoints[coinName as SupportBorrowIncentiveRewardCoins] =
         {
           symbol,
-          coinName: rewardCoinName,
-          coinType: rewardCoinType,
+          coinName: rewardSCoinName,
+          coinType: rewardSCoinType,
           coinDecimal,
-          coinPrice: rewardCoinPrice,
+          coinPrice: rewardSCoinPrice,
           points: poolPoint.points,
           distributedPoint: poolPoint.distributedPoint,
           weightedAmount: poolPoint.weightedAmount,

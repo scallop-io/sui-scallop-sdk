@@ -111,16 +111,16 @@ export const suiBridgeCoins: types.SuiBridgeCoins = {
 };
 
 export const borrowIncentiveRewardCoins: types.BorrowIncentiveRewardCoins = {
-  usdc: ['sui', 'sca'],
-  sui: ['sui', 'sca'],
-  wusdc: ['sui', 'sca'],
-  wusdt: ['sui', 'sca'],
-  sca: ['sui', 'sca'],
-  afsui: ['sui'],
-  hasui: ['sui'],
-  vsui: ['sui'],
-  weth: ['sui'],
-  sbeth: ['sui'],
+  usdc: ['ssui', 'ssca'],
+  sui: ['ssui', 'ssca'],
+  wusdc: ['ssui', 'ssca'],
+  wusdt: ['ssui', 'ssca'],
+  sca: ['ssui', 'ssca'],
+  afsui: ['ssui'],
+  hasui: ['ssui'],
+  vsui: ['ssui'],
+  weth: ['ssui'],
+  sbeth: ['ssui'],
 };
 
 export const coinIds: types.AssetCoinIds = {
