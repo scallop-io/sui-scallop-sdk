@@ -239,6 +239,7 @@ export const getLending = async (
     symbol: query.utils.parseSymbol(poolCoinName),
     coinType: query.utils.parseCoinType(poolCoinName),
     marketCoinType: query.utils.parseMarketCoinType(poolCoinName),
+    sCoinType: marketPool?.sCoinType ?? '',
     coinDecimal: coinDecimal,
     coinPrice: coinPrice ?? 0,
     conversionRate: marketPool?.conversionRate ?? 1,

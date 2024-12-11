@@ -2,12 +2,20 @@ import { describe, it, expect } from 'vitest';
 import { isValidSuiAddress } from '@scallop-io/sui-kit';
 import { z as zod } from 'zod';
 import { scallopSDK } from './scallopSdk';
-import { SupportPoolCoins } from 'src';
+import { ScallopQuery, SupportPoolCoins } from 'src';
 
 const ENABLE_LOG = false;
 
+let _scallopQuery: ScallopQuery | null = null;
+const getScallopQuery = async () => {
+  if (!_scallopQuery) {
+    _scallopQuery = await scallopSDK.createScallopQuery();
+  }
+  return _scallopQuery;
+};
+
 describe('Test Query Scallop Contract On Chain Data', async () => {
-  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopQuery = await getScallopQuery();
   console.info('Your wallet:', scallopQuery.suiKit.currentAddress());
 
   it('Should query market data', async () => {
@@ -131,7 +139,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
 });
 
 describe('Test Query Spool Contract On Chain Data', async () => {
-  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopQuery = await getScallopQuery();
 
   it('Should get spools data', async () => {
     const spools = await scallopQuery.getSpools();
@@ -215,7 +223,7 @@ describe('Test Query Spool Contract On Chain Data', async () => {
 });
 
 describe('Test Query Borrow Incentive Contract On Chain Data', async () => {
-  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopQuery = await getScallopQuery();
 
   it('Should get borrow incentive pools data', async () => {
     const borrowIncentivePools = await scallopQuery.getBorrowIncentivePools();
@@ -247,7 +255,7 @@ describe('Test Query Borrow Incentive Contract On Chain Data', async () => {
 });
 
 describe('Test Portfolio Query', async () => {
-  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopQuery = await getScallopQuery();
   console.info('Your wallet:', scallopQuery.suiKit.currentAddress());
 
   it('Should get user lendings data', async () => {
@@ -306,7 +314,7 @@ describe('Test Portfolio Query', async () => {
 });
 
 describe('Test VeSca Query', async () => {
-  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopQuery = await getScallopQuery();
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
 
@@ -400,7 +408,7 @@ describe('Test VeSca Query', async () => {
 });
 
 describe('Test Referral Query', async () => {
-  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopQuery = await getScallopQuery();
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
 
@@ -415,7 +423,7 @@ describe('Test Referral Query', async () => {
 });
 
 describe('Test Loyalty Program Query', async () => {
-  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopQuery = await getScallopQuery();
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
 
@@ -437,7 +445,7 @@ describe('Test Loyalty Program Query', async () => {
 });
 
 describe('Test sCoin Query', async () => {
-  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopQuery = await getScallopQuery();
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
 
@@ -467,7 +475,7 @@ describe('Test sCoin Query', async () => {
 });
 
 describe('Test Supply Limit Query', async () => {
-  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopQuery = await getScallopQuery();
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
 
@@ -480,7 +488,7 @@ describe('Test Supply Limit Query', async () => {
 });
 
 describe('Test Isolated Assets', async () => {
-  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopQuery = await getScallopQuery();
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
 
