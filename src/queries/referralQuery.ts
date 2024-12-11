@@ -10,7 +10,6 @@ export const queryVeScaKeyIdFromReferralBindings = async (
   refereeAddress: string
 ): Promise<string | null> => {
   const referralBindingTableId = address.get('referral.bindingTableId');
-
   const referralBindResponse = await address.cache.queryGetDynamicFieldObject({
     parentId: referralBindingTableId,
     name: {

@@ -132,10 +132,9 @@ export class ScallopUtils {
    * @param address - ScallopAddress instance.
    */
   public async init(force: boolean = false, address?: ScallopAddress) {
-    if (force || !this.address.getAddresses() || !address?.getAddresses()) {
+    if (address && !this.address) this.address = address;
+    if (force || !this.address.getAddresses()) {
       await this.address.read();
-    } else {
-      this.address = address;
     }
   }
 
@@ -556,39 +555,51 @@ export class ScallopUtils {
             const priceId = this.address.get(
               `core.coins.${coinName}.oracle.pyth.feed`
             );
-            acc[coinName] = priceId;
+            if (priceId) {
+              acc[coinName] = priceId;
+            }
             return acc;
           },
           {} as Record<SupportAssetCoins, string>
         );
 
         await Promise.allSettled(
-          Object.entries(priceIds).map(async ([coinName, priceId]) => {
-            const pythConnection = new SuiPriceServiceConnection(endpoint);
-            try {
-              const feed = await this.cache.queryClient.fetchQuery({
-                queryKey: queryKeys.oracle.getPythLatestPriceFeed(priceId),
-                queryFn: async () => {
-                  return (
-                    (await pythConnection.getLatestPriceFeeds([priceId])) ?? []
-                  );
-                },
-              });
-              if (feed[0]) {
-                const data = parseDataFromPythPriceFeed(feed[0], this.address);
-                this._priceMap.set(coinName as SupportAssetCoins, {
-                  price: data.price,
-                  publishTime: data.publishTime,
+          Object.entries(priceIds)
+            .filter(([_, priceId]) => !!priceId)
+            .map(async ([coinName, priceId]) => {
+              // console.log({ coinName, priceId, endpoint });
+              const pythConnection = new SuiPriceServiceConnection(endpoint);
+              try {
+                const feed = await this.cache.queryClient.fetchQuery({
+                  queryKey: queryKeys.oracle.getPythLatestPriceFeed(
+                    priceId,
+                    endpoint
+                  ),
+                  queryFn: async () => {
+                    return (
+                      (await pythConnection.getLatestPriceFeeds([priceId])) ??
+                      []
+                    );
+                  },
                 });
-                coinPrices[coinName as SupportAssetCoins] = data.price;
+                if (feed[0]) {
+                  const data = parseDataFromPythPriceFeed(
+                    feed[0],
+                    this.address
+                  );
+                  this._priceMap.set(coinName as SupportAssetCoins, {
+                    price: data.price,
+                    publishTime: data.publishTime,
+                  });
+                  coinPrices[coinName as SupportAssetCoins] = data.price;
+                  failedRequests.delete(coinName as SupportAssetCoins); // remove success price feed to prevent duplicate request on the next endpoint
+                }
+              } catch (e) {
+                console.warn(
+                  `Failed to get price ${coinName} feeds with endpoint ${endpoint}: ${e}`
+                );
               }
-              failedRequests.delete(coinName as SupportAssetCoins); // remove success price feed to prevent duplicate request on the next endpoint
-            } catch (e) {
-              console.warn(
-                `Failed to get price ${coinName} feeds with endpoint ${endpoint}: ${e}`
-              );
-            }
-          })
+            })
         );
         if (failedRequests.size === 0) break;
       }
