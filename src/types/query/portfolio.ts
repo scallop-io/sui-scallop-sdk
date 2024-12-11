@@ -22,6 +22,7 @@ export type Lending = Required<
     | 'symbol'
     | 'coinType'
     | 'marketCoinType'
+    | 'sCoinType'
     | 'coinDecimal'
     | 'coinPrice'
     | 'conversionRate'

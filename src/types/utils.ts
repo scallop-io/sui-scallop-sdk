@@ -13,3 +13,16 @@ export type PriceMap = Map<
     publishTime: number;
   }
 >;
+
+export type PoolAddressInfo = {
+  name: string;
+  coingeckoId: string;
+  decimal: number;
+  pythFeedId: string;
+  lendingPoolAddress: string;
+  collateralPoolAddress: string;
+  sCoinAddress: string | undefined;
+  marketCoinAddress: string;
+  coinAddress: string;
+  sCoinName: string | undefined;
+};
