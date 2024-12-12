@@ -20,6 +20,7 @@ import {
   suiBridgeCoins,
   COIN_GECKGO_IDS,
   POOL_ADDRESSES,
+  sCoinTypeToName,
 } from '../constants';
 import { getPythPrice, queryObligation } from '../queries';
 import {
@@ -227,6 +228,7 @@ export class ScallopUtils {
       return undefined;
     }
   }
+
   /**
    * Convert sCoin name into sCoin type
    * @param sCoinName
@@ -234,6 +236,15 @@ export class ScallopUtils {
    */
   public parseSCoinType(sCoinName: SupportSCoin) {
     return sCoinIds[sCoinName];
+  }
+
+  /**
+   * Convert sCoinType into sCoin name
+   * @param sCoinType
+   * @returns sCoin name
+   */
+  public parseSCoinNameFromType(sCoinType: string) {
+    return sCoinTypeToName[sCoinType];
   }
 
   /**
