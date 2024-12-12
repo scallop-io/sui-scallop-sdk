@@ -564,7 +564,7 @@ export class ScallopUtils {
         if (feeds) {
           feeds.forEach((feed, idx) => {
             const coinName = priceIdPairs[idx][0] as SupportAssetCoins;
-            const data = parseDataFromPythPriceFeed(feed[0], this.address);
+            const data = parseDataFromPythPriceFeed(feed, this.address);
             coinPrices[coinName as SupportAssetCoins] = data.price;
             failedRequests.delete(coinName as SupportAssetCoins); // remove success price feed to prevent duplicate request on the next endpoint
           });

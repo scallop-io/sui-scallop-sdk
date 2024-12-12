@@ -393,11 +393,11 @@ export class ScallopAddress {
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      timeout: 30000,
+      timeout: 8000,
     });
     if (auth) this._auth = auth;
     this._id = id;
-    this._network = network || 'mainnet';
+    this._network = network ?? 'mainnet';
     this._addressesMap = USE_TEST_ADDRESS
       ? new Map([['mainnet', TEST_ADDRESSES]])
       : new Map();

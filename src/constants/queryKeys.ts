@@ -99,10 +99,6 @@ export const queryKeys = {
     ],
   },
   oracle: {
-    getPythLatestPriceFeed: (pythPriceId?: string) => [
-      'oracle',
-      'getPythPriceId',
-      { pythPriceId },
-    ],
+    getPythLatestPriceFeeds: () => ['oracle', 'getPythPriceIds'],
   },
 };

@@ -19,6 +19,7 @@ import type {
   SupportStakeMarketCoins,
   SupportStakeCoins,
   CoinPrices,
+  MarketPools,
 } from '../types';
 
 /**
@@ -32,22 +33,20 @@ import type {
 export const getSpools = async (
   query: ScallopQuery,
   stakeMarketCoinNames: SupportStakeMarketCoins[] = [...SUPPORT_SPOOLS],
-  indexer: boolean = false
+  indexer: boolean = false,
+  marketPools?: MarketPools,
+  coinPrices?: CoinPrices
 ) => {
   const stakeCoinNames = stakeMarketCoinNames.map((stakeMarketCoinName) =>
     query.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName)
   );
-  const rewardCoinNames = stakeMarketCoinNames.map((stakeMarketCoinName) => {
-    const rewardCoinName =
-      query.utils.getSpoolRewardCoinName(stakeMarketCoinName);
-    return rewardCoinName;
-  });
-  const coinPrices =
-    (await query.utils.getCoinPrices([
-      ...new Set([...stakeCoinNames, ...rewardCoinNames]),
-    ])) ?? {};
+  coinPrices = coinPrices ?? (await query.utils.getCoinPrices()) ?? {};
 
-  const marketPools = await query.getMarketPools(stakeCoinNames, indexer);
+  marketPools =
+    marketPools ?? (await query.getMarketPools(stakeCoinNames, indexer));
+  if (!marketPools)
+    throw new Error(`Fail to fetch marketPools for ${stakeCoinNames}`);
+
   const spools: Spools = {};
 
   if (indexer) {
@@ -61,12 +60,13 @@ export const getSpools = async (
         spool.marketCoinName
       );
       const marketPool = marketPools[coinName];
-      spool.coinPrice = coinPrices[coinName] || spool.coinPrice;
-      spool.marketCoinPrice =
-        (coinPrices[coinName] ?? 0) *
-          (marketPool ? marketPool.conversionRate : 0) || spool.marketCoinPrice;
+      spool.coinPrice = coinPrices[coinName] ?? spool.coinPrice;
+      spool.marketCoinPrice = coinPrices[coinName]
+        ? (coinPrices[coinName] ?? 0) *
+          (marketPool ? marketPool.conversionRate : 0)
+        : spool.marketCoinPrice;
       spool.rewardCoinPrice =
-        coinPrices[rewardCoinName] || spool.rewardCoinPrice;
+        coinPrices[rewardCoinName] ?? spool.rewardCoinPrice;
       spools[spool.marketCoinName] = spool;
     };
     Object.values(spoolsIndexer).forEach(updateSpools);
@@ -114,7 +114,7 @@ export const getSpool = async (
   const coinName = query.utils.parseCoinName<SupportStakeCoins>(marketCoinName);
   marketPool = marketPool || (await query.getMarketPool(coinName, indexer));
   if (!marketPool) {
-    throw new Error('Fail to fetch marketPool');
+    throw new Error(`Fail to fetch marketPool for ${coinName}`);
   }
 
   const poolId = query.address.get(`spool.pools.${marketCoinName}.id`);

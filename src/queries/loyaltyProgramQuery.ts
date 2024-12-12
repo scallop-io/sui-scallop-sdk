@@ -53,7 +53,7 @@ export const getLoyaltyProgramInformations = async (
   };
 
   // query the user pending reward if exist
-  veScaKey = veScaKey || (await query.getVeScas())[0]?.keyObject;
+  veScaKey = veScaKey ?? (await query.getVeScas())[0]?.keyObject;
   if (!veScaKey) return result;
 
   const userRewardTableId = query.address.get(
