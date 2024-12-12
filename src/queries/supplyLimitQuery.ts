@@ -1,5 +1,5 @@
-import { ScallopUtils } from 'src/models';
-import { SupportPoolCoins } from 'src/types';
+import { ScallopUtils } from '../models';
+import { SupportPoolCoins } from '../types';
 import { z as zod } from 'zod';
 
 const supplyLimitZod = zod.object({

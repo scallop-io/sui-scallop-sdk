@@ -38,7 +38,7 @@ import {
   CoinPrices,
 } from '../types';
 import BigNumber from 'bignumber.js';
-import { getSupplyLimit } from './supplyLimit';
+import { getSupplyLimit } from './supplyLimitQuery';
 // import { isIsolatedAsset } from './isolatedAsset';
 
 /**

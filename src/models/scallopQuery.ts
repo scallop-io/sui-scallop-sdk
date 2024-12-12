@@ -64,9 +64,12 @@ import {
   getSCoinTotalSupply,
 } from 'src/queries/sCoinQuery';
 import { normalizeSuiAddress } from '@mysten/sui/utils';
-import { getSupplyLimit } from 'src/queries/supplyLimit';
+import {
+  getSupplyLimit,
+  getIsolatedAssets,
+  isIsolatedAsset,
+} from 'src/queries';
 import { withIndexerFallback } from 'src/utils/indexer';
-import { getIsolatedAssets, isIsolatedAsset } from 'src/queries/isolatedAsset';
 import { newSuiKit } from './suiKit';
 
 /**
