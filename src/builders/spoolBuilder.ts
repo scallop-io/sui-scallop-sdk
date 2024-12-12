@@ -1,13 +1,13 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { spoolRewardCoins } from '../constants/enum';
-import { getStakeAccounts } from '../queries/spoolQuery';
-import { requireSender } from '../utils';
+import { spoolRewardCoins } from 'src/constants';
+import { getStakeAccounts } from 'src/queries/spoolQuery';
+import { requireSender } from 'src/utils';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import type { ScallopBuilder } from '../models';
-import type {
+import type { ScallopBuilder } from 'src/models';
+import {
   SpoolIds,
   GenerateSpoolNormalMethod,
   GenerateSpoolQuickMethod,
@@ -16,7 +16,7 @@ import type {
   SupportStakeMarketCoins,
   ScallopTxBlock,
   SuiTxBlockWithSCoin,
-} from '../types';
+} from 'src/types';
 
 /**
  * Check and get stake account id from transaction block.

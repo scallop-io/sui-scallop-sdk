@@ -3,7 +3,7 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   TransactionResult,
 } from '@scallop-io/sui-kit';
-import { SupportSCoin } from '../constant';
+import { SupportSCoin } from 'src/types';
 import { ScallopBuilder } from 'src/models';
 import { BaseScallopTxBlock } from '.';
 

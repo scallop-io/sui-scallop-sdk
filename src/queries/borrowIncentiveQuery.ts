@@ -1,12 +1,12 @@
 import { normalizeStructTag } from '@mysten/sui/utils';
-import { SUPPORT_BORROW_INCENTIVE_POOLS } from '../constants';
+import { SUPPORT_BORROW_INCENTIVE_POOLS } from 'src/constants';
 import {
   parseOriginBorrowIncentivePoolData,
   parseOriginBorrowIncentiveAccountData,
   calculateBorrowIncentivePoolPointData,
-} from '../utils';
-import type { ScallopAddress, ScallopQuery, ScallopUtils } from '../models';
-import type {
+} from 'src/utils';
+import type { ScallopAddress, ScallopQuery, ScallopUtils } from 'src/models';
+import {
   BorrowIncentivePoolsQueryInterface,
   BorrowIncentivePools,
   BorrowIncentiveAccountsQueryInterface,
@@ -17,7 +17,7 @@ import type {
   OptionalKeys,
   BorrowIncentivePool,
   CoinPrices,
-} from '../types';
+} from 'src/types';
 import BigNumber from 'bignumber.js';
 
 /**

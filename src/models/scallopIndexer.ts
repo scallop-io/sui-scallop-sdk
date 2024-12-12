@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
-import { SDK_API_BASE_URL } from '../constants';
-import type {
+import { DEFAULT_CACHE_OPTIONS, SDK_API_BASE_URL } from 'src/constants';
+import {
   Market,
   MarketPools,
   MarketPool,
@@ -20,9 +20,8 @@ import type {
   BorrowIncentivePoolPoints,
   SupportBorrowIncentiveRewardCoins,
   ScallopIndexerInstanceParams,
-} from '../types';
+} from 'src/types';
 import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { SuiKit } from '@scallop-io/sui-kit';
 import { queryKeys } from 'src/constants';
 

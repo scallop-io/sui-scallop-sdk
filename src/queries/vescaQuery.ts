@@ -1,17 +1,17 @@
 import BigNumber from 'bignumber.js';
-import { VeScaTreasuryFields, VeScaTreasuryInfo, Vesca } from '../types';
 import {
   type SuiObjectResponse,
   type SuiObjectData,
   DevInspectResults,
 } from '@mysten/sui/client';
-import type { ScallopUtils } from '../models';
+import type { ScallopUtils } from 'src/models';
 import { MAX_LOCK_DURATION } from 'src/constants';
 import { SUI_CLOCK_OBJECT_ID, SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui/bcs';
 import { z as zod } from 'zod';
 import { queryKeys } from 'src/constants';
 import assert from 'assert';
+import { Vesca, VeScaTreasuryFields, VeScaTreasuryInfo } from 'src/types';
 /**
  * Query all owned veSca key.
  *

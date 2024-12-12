@@ -1,20 +1,20 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { getObligations, getObligationLocked } from '../queries';
-import { requireSender } from '../utils';
+import { getObligations, getObligationLocked } from 'src/queries';
+import { requireSender } from 'src/utils';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
-import type {
-  BorrowIncentiveIds,
+import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants';
+import {
   GenerateBorrowIncentiveNormalMethod,
+  BorrowIncentiveIds,
+  VescaIds,
   GenerateBorrowIncentiveQuickMethod,
+  ScallopTxBlock,
   SuiTxBlockWithBorrowIncentiveNormalMethods,
   BorrowIncentiveTxBlock,
-  ScallopTxBlock,
-  VescaIds,
-} from '../types';
-import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants';
+} from 'src/types';
 
 /**
  * Check and get Obligation information from transaction block.

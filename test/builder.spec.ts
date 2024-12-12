@@ -1,13 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import {
-  MAX_LOCK_ROUNDS,
-  SCA_COIN_TYPE,
-  Scallop,
-  ScallopBuilder,
-  UNLOCK_ROUND_DURATION,
-} from '../src';
+import { Scallop, ScallopBuilder } from 'src/models';
 import { Transaction } from '@scallop-io/sui-kit';
 import { scallopSDK } from './scallopSdk';
+import {
+  SCA_COIN_TYPE,
+  MAX_LOCK_ROUNDS,
+  UNLOCK_ROUND_DURATION,
+} from 'src/constants';
 
 const ENABLE_LOG = false;
 let _scallopBuilder: ScallopBuilder | null = null;

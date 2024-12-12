@@ -7,8 +7,8 @@ import type {
   ScallopUtils,
   ScallopBuilder,
   ScallopIndexer,
-} from '../models';
-import { ScallopCache } from 'src/models/scallopCache';
+} from 'src/models';
+import { ScallopCache } from 'src/models';
 import { AddressesInterface } from './address';
 
 export type ScallopClientFnReturnType<T extends boolean> = T extends true

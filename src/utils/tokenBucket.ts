@@ -1,4 +1,4 @@
-import { DEFAULT_INTERVAL_IN_MS } from 'src/constants/tokenBucket';
+import { DEFAULT_INTERVAL_IN_MS } from 'src/constants';
 
 class TokenBucket {
   private tokensPerInterval: number;

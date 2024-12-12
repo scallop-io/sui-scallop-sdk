@@ -17,13 +17,13 @@ import type {
   GetBalanceParams,
   SuiClient,
 } from '@mysten/sui/client';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-import { callWithRateLimit, TokenBucket } from 'src/utils';
 import {
+  DEFAULT_CACHE_OPTIONS,
   DEFAULT_INTERVAL_IN_MS,
   DEFAULT_TOKENS_PER_INTERVAL,
-} from 'src/constants/tokenBucket';
-import { queryKeys } from 'src/constants';
+  queryKeys,
+} from 'src/constants';
+import { callWithRateLimit, TokenBucket } from 'src/utils';
 
 type QueryInspectTxnParams = {
   queryTarget: string;

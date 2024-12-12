@@ -4,10 +4,10 @@ import {
   SUPPORT_COLLATERALS,
   SUPPORT_POOLS,
   SUPPORT_SPOOLS,
-} from '../constants';
+} from 'src/constants';
 import { minBigNumber, estimatedFactor } from 'src/utils';
-import type { ScallopQuery } from '../models';
-import type {
+import type { ScallopQuery } from 'src/models';
+import {
   Market,
   SupportPoolCoins,
   MarketPool,
@@ -26,7 +26,7 @@ import type {
   SupportBorrowIncentiveCoins,
   ObligationBorrowIcentiveReward,
   SupportBorrowIncentiveRewardCoins,
-} from '../types';
+} from 'src/types';
 
 /**
  * Get user lending infomation for specific pools.

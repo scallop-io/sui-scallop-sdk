@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PROTOCOL_OBJECT_ID, SUPPORT_POOLS } from '../src/constants';
+import { PROTOCOL_OBJECT_ID, SUPPORT_POOLS } from 'src/constants';
 import { scallopSDK } from './scallopSdk';
 
 const ENABLE_LOG = false;

@@ -1,16 +1,19 @@
-import { API_BASE_URL, USE_TEST_ADDRESS } from '../constants';
+import {
+  API_BASE_URL,
+  USE_TEST_ADDRESS,
+  DEFAULT_CACHE_OPTIONS,
+  TEST_ADDRESSES,
+  queryKeys,
+} from 'src/constants';
 import { SuiKit, type NetworkType } from '@scallop-io/sui-kit';
-import type {
+import {
   ScallopAddressParams,
   AddressesInterface,
   AddressStringPath,
   ScallopAddressInstanceParams,
-} from '../types';
+} from 'src/types';
 import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import axios, { AxiosInstance } from 'axios';
-import { TEST_ADDRESSES } from 'src/constants/testAddress';
-import { queryKeys } from 'src/constants';
 
 const EMPTY_ADDRESSES: AddressesInterface = {
   core: {

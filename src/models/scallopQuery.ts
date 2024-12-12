@@ -1,5 +1,10 @@
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ADDRESSES_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
+import {
+  ADDRESSES_ID,
+  SUPPORT_POOLS,
+  SUPPORT_SPOOLS,
+  DEFAULT_CACHE_OPTIONS,
+} from 'src/constants';
 import {
   queryMarket,
   getObligations,
@@ -34,7 +39,7 @@ import {
   getFlashLoanFees,
   getVeSca,
   getBorrowIncentivePools,
-} from '../queries';
+} from 'src/queries';
 import {
   ScallopQueryParams,
   SupportStakeMarketCoins,
@@ -50,12 +55,11 @@ import {
   MarketPool,
   CoinPrices,
   MarketPools,
-} from '../types';
+} from 'src/types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { SuiObjectData } from '@mysten/sui/client';
 import {
   getSCoinAmount,
@@ -64,9 +68,12 @@ import {
   getSCoinTotalSupply,
 } from 'src/queries/sCoinQuery';
 import { normalizeSuiAddress } from '@mysten/sui/utils';
-import { getSupplyLimit } from 'src/queries/supplyLimit';
+import {
+  getSupplyLimit,
+  getIsolatedAssets,
+  isIsolatedAsset,
+} from 'src/queries';
 import { withIndexerFallback } from 'src/utils/indexer';
-import { getIsolatedAssets, isIsolatedAsset } from 'src/queries/isolatedAsset';
 import { newSuiKit } from './suiKit';
 
 /**

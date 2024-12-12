@@ -1,13 +1,13 @@
 import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import {
   ADDRESSES_ID,
+  DEFAULT_CACHE_OPTIONS,
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
   SUPPORT_SCOIN,
   SUPPORT_SPOOLS,
-} from '../constants';
+} from 'src/constants';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopBuilder } from './scallopBuilder';
@@ -20,7 +20,7 @@ import type {
 import { ScallopCache } from './scallopCache';
 import { requireSender } from 'src/utils';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
-import type {
+import {
   ScallopClientFnReturnType,
   ScallopClientParams,
   SupportPoolCoins,
@@ -33,7 +33,7 @@ import type {
   SupportSCoin,
   ScallopClientVeScaReturnType,
   ScallopClientInstanceParams,
-} from '../types';
+} from 'src/types';
 import { newSuiKit } from './suiKit';
 
 /**

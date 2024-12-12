@@ -1,10 +1,10 @@
 import type { MarketPool } from './core';
 import type { Spool } from './spool';
-import type {
+import {
   SupportPoolCoins,
   SupportCollateralCoins,
   SupportBorrowIncentiveRewardCoins,
-} from '../constant';
+} from 'src/types';
 
 type OptionalKeys<T> = {
   [K in keyof T]?: T[K];

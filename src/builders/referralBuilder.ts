@@ -12,7 +12,7 @@ import {
   ReferralIds,
   ReferralTxBlock,
   SuiTxBlockWithReferralNormalMethods,
-} from 'src/types/builder/referral';
+} from 'src/types';
 import { SUPPORT_POOLS } from 'src/constants';
 import { requireSender } from 'src/utils';
 

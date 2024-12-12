@@ -1,4 +1,4 @@
-import { SupportPoolCoins } from 'src/types/constant/common';
+import { SupportPoolCoins } from 'src/types';
 
 export const COIN_GECKGO_IDS: Record<SupportPoolCoins, string> = {
   usdc: 'usdc-coin',

@@ -5,8 +5,8 @@ import {
   SuiTxBlock as SuiKitTxBlock,
 } from '@scallop-io/sui-kit';
 import { SCA_COIN_TYPE } from 'src/constants';
-import { ScallopBuilder } from '../models';
-import { getVeSca, getVeScas } from '../queries';
+import { ScallopBuilder } from 'src/models';
+import { getVeSca, getVeScas } from 'src/queries';
 import {
   requireSender,
   checkLockSca,
@@ -14,12 +14,12 @@ import {
   checkExtendLockAmount,
   checkRenewExpiredVeSca,
   checkVesca,
-} from '../utils';
+} from 'src/utils';
 import type {
   TransactionObjectArgument,
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
-import type {
+import {
   GenerateVeScaNormalMethod,
   GenerateVeScaQuickMethod,
   RedeemScaQuickReturnType,

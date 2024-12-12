@@ -9,3 +9,4 @@ export * from './queryKeys';
 export * from './testAddress';
 export * from './tokenBucket';
 export * from './vesca';
+export * from './rpc';

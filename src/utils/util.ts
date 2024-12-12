@@ -8,16 +8,16 @@ import {
   SUPPORT_SCOIN,
   SUPPORT_SUI_BRIDGE,
   SUPPORT_WORMHOLE,
-} from '../constants';
-import type { ScallopAddress } from '../models';
-import type {
+} from 'src/constants';
+import type { ScallopAddress } from 'src/models';
+import {
   SupportAssetCoins,
   SupportCoins,
   SupportMarketCoins,
   SupportSCoin,
   SupportSuiBridgeCoins,
   SupportWormholeCoins,
-} from '../types';
+} from 'src/types';
 
 const COIN_SET = Array.from(
   new Set([

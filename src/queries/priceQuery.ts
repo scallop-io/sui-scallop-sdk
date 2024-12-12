@@ -1,6 +1,6 @@
 import { SuiObjectData } from '@mysten/sui/client';
-import type { ScallopAddress } from '../models';
-import type { SupportAssetCoins } from '../types';
+import type { ScallopAddress } from 'src/models';
+import { SupportAssetCoins } from 'src/types';
 
 /**
  * Get price from pyth fee object.

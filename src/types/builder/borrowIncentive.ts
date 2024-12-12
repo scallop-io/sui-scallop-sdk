@@ -3,11 +3,11 @@ import type {
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import type { ScallopBuilder } from '../../models';
-import type {
+import type { ScallopBuilder } from 'src/models';
+import {
   SupportBorrowIncentiveCoins,
   SupportBorrowIncentiveRewardCoins,
-} from '../constant';
+} from 'src/types';
 
 export type BorrowIncentiveIds = {
   borrowIncentivePkg: string;

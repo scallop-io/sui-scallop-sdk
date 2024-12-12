@@ -6,16 +6,16 @@ import {
   BORROW_FEE_PROTOCOL_ID,
   USE_TEST_ADDRESS,
   FlashLoanFeeObjectMap,
-} from '../constants';
+} from 'src/constants';
 import {
   parseOriginMarketPoolData,
   calculateMarketPoolData,
   parseOriginMarketCollateralData,
   calculateMarketCollateralData,
-} from '../utils';
+} from 'src/utils';
 import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui/client';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
-import type { ScallopAddress, ScallopCache, ScallopQuery } from '../models';
+import type { ScallopAddress, ScallopCache, ScallopQuery } from 'src/models';
 import {
   Market,
   MarketPools,
@@ -36,9 +36,9 @@ import {
   SupportMarketCoins,
   OptionalKeys,
   CoinPrices,
-} from '../types';
+} from 'src/types';
 import BigNumber from 'bignumber.js';
-import { getSupplyLimit } from './supplyLimit';
+import { getSupplyLimit } from './supplyLimitQuery';
 // import { isIsolatedAsset } from './isolatedAsset';
 
 /**

@@ -21,8 +21,8 @@ import {
   COIN_GECKGO_IDS,
   POOL_ADDRESSES,
   sCoinTypeToName,
-} from '../constants';
-import { getPythPrices, queryObligation } from '../queries';
+} from 'src/constants';
+import { getPythPrices, queryObligation } from 'src/queries';
 import {
   parseDataFromPythPriceFeed,
   isMarketCoin,
@@ -30,11 +30,15 @@ import {
   findClosestUnlockRound,
   isSuiBridgeAsset,
   isWormholeAsset,
-} from '../utils';
-import { PYTH_ENDPOINTS, PYTH_FEED_IDS } from 'src/constants/pyth';
+} from 'src/utils';
+import {
+  DEFAULT_CACHE_OPTIONS,
+  PYTH_ENDPOINTS,
+  PYTH_FEED_IDS,
+  queryKeys,
+} from 'src/constants';
 import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-import type {
+import {
   ScallopUtilsParams,
   SupportCoins,
   SupportAssetCoins,
@@ -48,8 +52,7 @@ import type {
   SupportSuiBridgeCoins,
   SupportWormholeCoins,
   PoolAddressInfo,
-} from '../types';
-import { queryKeys } from 'src/constants';
+} from 'src/types';
 import type { SuiObjectArg, SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
 import { newSuiKit } from './suiKit';
 

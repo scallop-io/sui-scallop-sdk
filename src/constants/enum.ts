@@ -1,4 +1,4 @@
-import type * as types from '../types';
+import type * as types from 'src/types';
 import { IS_VE_SCA_TEST } from './common';
 
 export const coinDecimals: types.SupportCoinDecimals = {

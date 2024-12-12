@@ -3,12 +3,12 @@ import type {
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
 import type { Argument, TransactionResult } from '@mysten/sui/transactions';
-import type { ScallopBuilder } from '../../models';
-import type {
+import type { ScallopBuilder } from 'src/models';
+import {
   SupportCollateralCoins,
   SupportPoolCoins,
   SupportAssetCoins,
-} from '../constant';
+} from 'src/types';
 import { SuiTxBlockWithSpool } from '.';
 
 export type CoreIds = {

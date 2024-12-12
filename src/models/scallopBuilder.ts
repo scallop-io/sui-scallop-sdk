@@ -1,14 +1,14 @@
 import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ADDRESSES_ID } from '../constants';
-import { newScallopTxBlock } from '../builders';
+import { ADDRESSES_ID, DEFAULT_CACHE_OPTIONS } from 'src/constants';
+import { newScallopTxBlock } from 'src/builders';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
 import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
 import type { Transaction } from '@mysten/sui/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import type {
+import {
   ScallopBuilderParams,
   ScallopTxBlock,
   SupportMarketCoins,
@@ -16,9 +16,8 @@ import type {
   SupportSCoin,
   ScallopBuilderInstanceParams,
   SelectCoinReturnType,
-} from '../types';
+} from 'src/types';
 import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { newSuiKit } from './suiKit';
 
 /**

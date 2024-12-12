@@ -1,4 +1,4 @@
-import type { SupportStakeMarketCoins } from '../constant';
+import { SupportStakeMarketCoins } from 'src/types';
 
 type OptionalKeys<T> = {
   [K in keyof T]?: T[K];

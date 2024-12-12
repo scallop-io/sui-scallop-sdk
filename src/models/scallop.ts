@@ -4,23 +4,23 @@ import { ScallopClient } from './scallopClient';
 import { ScallopBuilder } from './scallopBuilder';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
-import { ADDRESSES_ID } from '../constants';
-import type {
+import { ADDRESSES_ID } from 'src/constants';
+import {
   ScallopBuilderParams,
   ScallopClientParams,
   ScallopParams,
   ScallopQueryParams,
   ScallopUtilsParams,
-} from '../types/';
+} from 'src/types';
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
 import { QueryClientConfig } from '@tanstack/query-core';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants';
 import { TokenBucket } from 'src/utils';
 import {
   DEFAULT_INTERVAL_IN_MS,
   DEFAULT_TOKENS_PER_INTERVAL,
-} from 'src/constants/tokenBucket';
+} from 'src/constants';
 import type { QueryClient } from '@tanstack/query-core';
 import { newSuiKit } from './suiKit';
 
