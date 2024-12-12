@@ -22,7 +22,7 @@ import {
   POOL_ADDRESSES,
   sCoinTypeToName,
 } from '../constants';
-import { getPythPrice, queryObligation } from '../queries';
+import { getPythPrices, queryObligation } from '../queries';
 import {
   parseDataFromPythPriceFeed,
   isMarketCoin,
@@ -42,7 +42,6 @@ import type {
   SupportStakeMarketCoins,
   SupportBorrowIncentiveCoins,
   CoinPrices,
-  PriceMap,
   CoinWrappedType,
   SupportSCoin,
   ScallopUtilsInstanceParams,
@@ -52,6 +51,7 @@ import type {
 } from '../types';
 import { queryKeys } from 'src/constants';
 import type { SuiObjectArg, SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
+import { newSuiKit } from './suiKit';
 
 /**
  * @description
@@ -73,7 +73,6 @@ export class ScallopUtils {
   public address: ScallopAddress;
   public cache: ScallopCache;
   public walletAddress: string;
-  private _priceMap: PriceMap = new Map();
 
   public constructor(
     params: ScallopUtilsParams,
@@ -84,9 +83,7 @@ export class ScallopUtils {
       ...params,
     };
     this.suiKit =
-      instance?.suiKit ??
-      instance?.address?.cache._suiKit ??
-      new SuiKit(params);
+      instance?.suiKit ?? instance?.address?.cache._suiKit ?? newSuiKit(params);
 
     this.walletAddress = params.walletAddress ?? this.suiKit.currentAddress();
 
@@ -104,7 +101,7 @@ export class ScallopUtils {
         instance?.address ??
         new ScallopAddress(
           {
-            id: params?.addressesId || ADDRESSES_ID,
+            id: params?.addressesId ?? ADDRESSES_ID,
             network: params?.networkType,
             forceInterface: params?.forceAddressesInterface,
           },
@@ -275,7 +272,7 @@ export class ScallopUtils {
    */
   public parseMarketCoinType(coinName: SupportCoins) {
     const protocolObjectId =
-      this.address.get('core.object') || PROTOCOL_OBJECT_ID;
+      this.address.get('core.object') ?? PROTOCOL_OBJECT_ID;
     const coinType = this.parseCoinType(coinName);
     return `${protocolObjectId}::reserve::MarketCoin<${coinType}>`;
   }
@@ -304,7 +301,7 @@ export class ScallopUtils {
     const coinTypeRegex = new RegExp(`((0x[^:]+::[^:]+::[^<>]+))(?![^<>]*<)`);
     const coinTypeMatch = coinType.match(coinTypeRegex);
     const isMarketCoinType = coinType.includes('reserve::MarketCoin');
-    coinType = coinTypeMatch?.[1] || coinType;
+    coinType = coinTypeMatch?.[1] ?? coinType;
 
     const wormHoleCoinTypeMap: Record<string, SupportAssetCoins> = {
       [`${
@@ -442,7 +439,7 @@ export class ScallopUtils {
     coinType: string = SUI_TYPE_ARG,
     ownerAddress?: string
   ) {
-    ownerAddress = ownerAddress || this.suiKit.currentAddress();
+    ownerAddress = ownerAddress ?? this.suiKit.currentAddress();
     const coins = await this.suiKit.suiInteractor.selectCoins(
       ownerAddress,
       amount,
@@ -522,100 +519,68 @@ export class ScallopUtils {
    * @return  Asset coin price.
    */
   public async getCoinPrices(
-    assetCoinNames: SupportAssetCoins[] = [
+    _: SupportAssetCoins[] = [
       ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
     ] as SupportAssetCoins[]
   ) {
-    const coinPrices: CoinPrices = {};
-    const existPricesCoinNames: SupportAssetCoins[] = [];
-    const lackPricesCoinNames: SupportAssetCoins[] = [];
+    let coinPrices: CoinPrices = {};
 
-    assetCoinNames.forEach((assetCoinName) => {
-      if (
-        this._priceMap.has(assetCoinName) &&
-        Date.now() - this._priceMap.get(assetCoinName)!.publishTime < 1000 * 60
-      ) {
-        existPricesCoinNames.push(assetCoinName);
-      } else {
-        lackPricesCoinNames.push(assetCoinName);
-        this.cache.queryClient.invalidateQueries({
-          queryKey: queryKeys.oracle.getPythLatestPriceFeed(
-            this.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`)
-          ),
-        });
-      }
-    });
+    const endpoints =
+      this.params.pythEndpoints ??
+      PYTH_ENDPOINTS[this.isTestnet ? 'testnet' : 'mainnet'];
 
-    if (existPricesCoinNames.length > 0) {
-      for (const coinName of existPricesCoinNames) {
-        coinPrices[coinName] = this._priceMap.get(coinName)!.price;
-      }
-    }
+    const failedRequests: Set<SupportAssetCoins> = new Set([
+      ...SUPPORT_POOLS,
+      ...SUPPORT_COLLATERALS,
+    ]);
 
-    if (lackPricesCoinNames.length > 0) {
-      const endpoints =
-        this.params.pythEndpoints ??
-        PYTH_ENDPOINTS[this.isTestnet ? 'testnet' : 'mainnet'];
-
-      const failedRequests: Set<SupportAssetCoins> = new Set(
-        lackPricesCoinNames
+    for (const endpoint of endpoints) {
+      const priceIdPairs = Array.from(failedRequests.values()).reduce(
+        (acc, coinName) => {
+          const priceId = this.address.get(
+            `core.coins.${coinName}.oracle.pyth.feed`
+          );
+          acc.push([coinName, priceId]);
+          return acc;
+        },
+        [] as [string, string][]
       );
 
-      for (const endpoint of endpoints) {
-        const priceIds = Array.from(failedRequests.values()).reduce(
-          (acc, coinName) => {
-            const priceId = this.address.get(
-              `core.coins.${coinName}.oracle.pyth.feed`
-            );
-            acc[coinName] = priceId;
-            return acc;
+      const priceIds = priceIdPairs.map(([_, priceId]) => priceId);
+
+      const pythConnection = new SuiPriceServiceConnection(endpoint, {
+        timeout: 2000,
+      });
+
+      try {
+        const feeds = await this.cache.queryClient.fetchQuery({
+          queryKey: queryKeys.oracle.getPythLatestPriceFeeds(),
+          queryFn: async () => {
+            return await pythConnection.getLatestPriceFeeds(priceIds);
           },
-          {} as Record<SupportAssetCoins, string>
-        );
-
-        await Promise.allSettled(
-          Object.entries(priceIds).map(async ([coinName, priceId]) => {
-            const pythConnection = new SuiPriceServiceConnection(endpoint);
-            try {
-              const feed = await this.cache.queryClient.fetchQuery({
-                queryKey: queryKeys.oracle.getPythLatestPriceFeed(priceId),
-                queryFn: async () => {
-                  return (
-                    (await pythConnection.getLatestPriceFeeds([priceId])) ?? []
-                  );
-                },
-              });
-              if (feed[0]) {
-                const data = parseDataFromPythPriceFeed(feed[0], this.address);
-                this._priceMap.set(coinName as SupportAssetCoins, {
-                  price: data.price,
-                  publishTime: data.publishTime,
-                });
-                coinPrices[coinName as SupportAssetCoins] = data.price;
-              }
-              failedRequests.delete(coinName as SupportAssetCoins); // remove success price feed to prevent duplicate request on the next endpoint
-            } catch (e) {
-              console.warn(
-                `Failed to get price ${coinName} feeds with endpoint ${endpoint}: ${e}`
-              );
-            }
-          })
-        );
-        if (failedRequests.size === 0) break;
+          staleTime: 30000,
+          gcTime: 30000,
+        });
+        if (feeds) {
+          feeds.forEach((feed, idx) => {
+            const coinName = priceIdPairs[idx][0] as SupportAssetCoins;
+            const data = parseDataFromPythPriceFeed(feed[0], this.address);
+            coinPrices[coinName as SupportAssetCoins] = data.price;
+            failedRequests.delete(coinName as SupportAssetCoins); // remove success price feed to prevent duplicate request on the next endpoint
+          });
+        }
+      } catch (e: any) {
+        console.error(e.message);
       }
+      if (failedRequests.size === 0) break;
+    }
 
-      if (failedRequests.size > 0) {
-        await Promise.allSettled(
-          Array.from(failedRequests.values()).map(async (coinName) => {
-            const price = await getPythPrice(this, coinName);
-            this._priceMap.set(coinName, {
-              price: price,
-              publishTime: Date.now(),
-            });
-            coinPrices[coinName] = price;
-          })
-        );
-      }
+    if (failedRequests.size > 0) {
+      coinPrices = {
+        ...coinPrices,
+        ...(await getPythPrices(this, Array.from(failedRequests.values()))),
+      };
+      failedRequests.clear();
     }
 
     return coinPrices;
