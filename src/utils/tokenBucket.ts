@@ -38,7 +38,7 @@ const callWithRateLimit = async <T>(
   tokenBucket: TokenBucket,
   fn: () => Promise<T>,
   retryDelayInMs = DEFAULT_INTERVAL_IN_MS,
-  maxRetries = 15,
+  maxRetries = 30,
   backoffFactor = 1.25 // The factor by which to increase the delay
 ): Promise<T | null> => {
   let retries = 0;
@@ -65,6 +65,7 @@ const callWithRateLimit = async <T>(
           await new Promise((resolve) => setTimeout(resolve, delay));
           return tryRequest();
         } else {
+          // console.error(error);
           console.error('An error occurred:', error.message);
           return null;
         }

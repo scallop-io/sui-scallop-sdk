@@ -47,6 +47,9 @@ import {
   SupportBorrowIncentiveCoins,
   SupportSCoin,
   ScallopQueryInstanceParams,
+  MarketPool,
+  CoinPrices,
+  MarketPools,
 } from '../types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -64,6 +67,7 @@ import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { getSupplyLimit } from 'src/queries/supplyLimit';
 import { withIndexerFallback } from 'src/utils/indexer';
 import { getIsolatedAssets, isIsolatedAsset } from 'src/queries/isolatedAsset';
+import { newSuiKit } from './suiKit';
 
 /**
  * @description
@@ -93,10 +97,10 @@ export class ScallopQuery {
   ) {
     this.params = params;
     this.suiKit =
-      instance?.suiKit ?? instance?.utils?.suiKit ?? new SuiKit(params);
+      instance?.suiKit ?? instance?.utils?.suiKit ?? newSuiKit(params);
 
     this.walletAddress = normalizeSuiAddress(
-      params.walletAddress || this.suiKit.currentAddress()
+      params.walletAddress ?? this.suiKit.currentAddress()
     );
 
     if (instance?.utils) {
@@ -111,7 +115,7 @@ export class ScallopQuery {
       );
       this.address = new ScallopAddress(
         {
-          id: params?.addressesId || ADDRESSES_ID,
+          id: params?.addressesId ?? ADDRESSES_ID,
           network: params?.networkType,
           forceInterface: params?.forceAddressesInterface,
         },
@@ -183,8 +187,11 @@ export class ScallopQuery {
    * @param indexer - Whether to use indexer.
    * @return Market data.
    */
-  public async queryMarket(indexer: boolean = false) {
-    return await queryMarket(this, indexer);
+  public async queryMarket(
+    indexer: boolean = false,
+    args?: { coinPrices: CoinPrices }
+  ) {
+    return await queryMarket(this, indexer, args?.coinPrices);
   }
 
   /**
@@ -200,9 +207,12 @@ export class ScallopQuery {
    */
   public async getMarketPools(
     poolCoinNames?: SupportPoolCoins[],
-    indexer: boolean = false
+    indexer: boolean = false,
+    args?: {
+      coinPrices?: CoinPrices;
+    }
   ) {
-    return await getMarketPools(this, poolCoinNames, indexer);
+    return await getMarketPools(this, poolCoinNames, indexer, args?.coinPrices);
   }
 
   /**
@@ -214,9 +224,19 @@ export class ScallopQuery {
    */
   public async getMarketPool(
     poolCoinName: SupportPoolCoins,
-    indexer: boolean = false
+    indexer: boolean = false,
+    args?: {
+      marketObject?: SuiObjectData | null;
+      coinPrice?: number;
+    }
   ) {
-    return await getMarketPool(this, poolCoinName, indexer);
+    return await getMarketPool(
+      this,
+      poolCoinName,
+      indexer,
+      args?.marketObject,
+      args?.coinPrice
+    );
   }
 
   /**
@@ -358,9 +378,19 @@ export class ScallopQuery {
    */
   public async getSpools(
     stakeMarketCoinNames?: SupportStakeMarketCoins[],
-    indexer: boolean = false
+    indexer: boolean = false,
+    args?: {
+      marketPools?: MarketPools;
+      coinPrices?: CoinPrices;
+    }
   ) {
-    return await getSpools(this, stakeMarketCoinNames, indexer);
+    return await getSpools(
+      this,
+      stakeMarketCoinNames,
+      indexer,
+      args?.marketPools,
+      args?.coinPrices
+    );
   }
 
   /**
@@ -372,9 +402,16 @@ export class ScallopQuery {
    */
   public async getSpool(
     stakeMarketCoinName: SupportStakeMarketCoins,
-    indexer: boolean = false
+    indexer: boolean = false,
+    args?: { marketPool?: MarketPool; coinPrices?: CoinPrices }
   ) {
-    return await getSpool(this, stakeMarketCoinName, indexer);
+    return await getSpool(
+      this,
+      stakeMarketCoinName,
+      indexer,
+      args?.marketPool,
+      args?.coinPrices
+    );
   }
 
   /**
@@ -495,9 +532,15 @@ export class ScallopQuery {
    */
   public async getBorrowIncentivePools(
     coinNames?: SupportBorrowIncentiveCoins[],
-    indexer: boolean = false
+    indexer: boolean = false,
+    args?: { coinPrices: CoinPrices }
   ) {
-    return await getBorrowIncentivePools(this, coinNames, indexer);
+    return await getBorrowIncentivePools(
+      this,
+      coinNames,
+      indexer,
+      args?.coinPrices
+    );
   }
 
   /**
