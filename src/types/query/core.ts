@@ -130,6 +130,7 @@ export type MarketPool = {
   coinDecimal: number;
   coinPrice: number;
   maxSupplyCoin: number;
+  maxBorrowCoin: number;
   isIsolated: boolean;
 } & Required<
   Pick<

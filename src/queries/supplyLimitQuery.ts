@@ -17,9 +17,6 @@ const supplyLimitZod = zod.object({
   }),
 });
 
-const SUPPLY_LIMIT_KEY =
-  '0x6e641f0dca8aedab3101d047e96439178f16301bf0b57fe8745086ff1195eb3e::market_dynamic_keys::SupplyLimitKey';
-
 /**
  * Return supply limit of a pool (including the decimals)
  * @param utils
@@ -32,12 +29,14 @@ export const getSupplyLimit = async (
 ) => {
   const poolCoinType = utils.parseCoinType(poolName).slice(2);
   const marketObject = utils.address.get('core.market');
+  const protocolObject = utils.address.get('core.packages.protocol.id');
+  const supplyLimitKeyType = `${protocolObject}::market_dynamic_keys::SupplyLimitKey`;
   if (!marketObject) return null;
 
   const object = await utils.cache.queryGetDynamicFieldObject({
     parentId: marketObject,
     name: {
-      type: SUPPLY_LIMIT_KEY,
+      type: supplyLimitKeyType,
       value: poolCoinType,
     },
   });

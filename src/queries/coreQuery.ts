@@ -36,9 +36,9 @@ import {
   OptionalKeys,
 } from '../types';
 import BigNumber from 'bignumber.js';
-import { getSupplyLimit } from './supplyLimit';
-import { isIsolatedAsset } from './isolatedAsset';
-// import { isIsolatedAsset } from './isolatedAsset';
+import { getSupplyLimit } from './supplyLimitQuery';
+import { isIsolatedAsset } from './isolatedAssetQuery';
+import { getBorrowLimit } from './borrowLimitQuery';
 
 /**
  * Query market data.
@@ -138,6 +138,12 @@ export const queryMarket = async (
       .shiftedBy(-coinDecimal)
       .toNumber();
 
+    const maxBorrowCoin = BigNumber(
+      (await getBorrowLimit(query.utils, poolCoinName)) ?? '0'
+    )
+      .shiftedBy(-coinDecimal)
+      .toNumber();
+
     pools[poolCoinName] = {
       coinName: poolCoinName,
       symbol: query.utils.parseSymbol(poolCoinName),
@@ -159,6 +165,7 @@ export const queryMarket = async (
       isIsolated: await isIsolatedAsset(query.utils, poolCoinName),
       // isIsolated: false,
       maxSupplyCoin,
+      maxBorrowCoin,
       ...calculatedMarketPoolData,
     };
   }
@@ -476,6 +483,11 @@ export const getMarketPool = async (
     )
       .shiftedBy(-coinDecimal)
       .toNumber();
+    const maxBorrowCoin = BigNumber(
+      (await getBorrowLimit(query.utils, poolCoinName)) ?? '0'
+    )
+      .shiftedBy(-coinDecimal)
+      .toNumber();
 
     return {
       coinName: poolCoinName,
@@ -496,8 +508,8 @@ export const getMarketPool = async (
       marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
       minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
       maxSupplyCoin,
+      maxBorrowCoin,
       isIsolated: await isIsolatedAsset(query.utils, poolCoinName),
-      // isIsolated: false,
       ...calculatedMarketPoolData,
     };
   } catch (e) {
