@@ -309,6 +309,9 @@ export const getMarketPool = async (
 
     if (indexer) {
       const marketPoolIndexer = await query.indexer.getMarketPool(poolCoinName);
+      if (!marketPoolIndexer) {
+        return undefined;
+      }
       marketPoolIndexer.coinPrice = coinPrice || marketPoolIndexer.coinPrice;
       marketPoolIndexer.coinWrappedType = query.utils.getCoinWrappedType(
         marketPoolIndexer.coinName
