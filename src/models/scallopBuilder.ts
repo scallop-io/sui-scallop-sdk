@@ -19,6 +19,7 @@ import type {
 } from '../types';
 import { ScallopCache } from './scallopCache';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
+import { newSuiKit } from './suiKit';
 
 /**
  * @description
@@ -46,11 +47,11 @@ export class ScallopBuilder {
     params: ScallopBuilderParams,
     instance?: ScallopBuilderInstanceParams
   ) {
-    this.suiKit = instance?.suiKit ?? new SuiKit(params);
+    this.suiKit = instance?.suiKit ?? newSuiKit(params);
 
     this.params = params;
     this.walletAddress = normalizeSuiAddress(
-      params?.walletAddress || this.suiKit.currentAddress()
+      params?.walletAddress ?? this.suiKit.currentAddress()
     );
 
     if (instance?.query) {
@@ -66,7 +67,7 @@ export class ScallopBuilder {
       );
       this.address = new ScallopAddress(
         {
-          id: params?.addressesId || ADDRESSES_ID,
+          id: params?.addressesId ?? ADDRESSES_ID,
           network: params?.networkType,
           forceInterface: params?.forceAddressesInterface,
         },
