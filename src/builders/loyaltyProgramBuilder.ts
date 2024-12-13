@@ -38,7 +38,7 @@ const generateLoyaltyProgramQuickMethod: GenerateLoyaltyProgramQuickMethod = ({
 }) => {
   return {
     claimLoyaltyRevenueQuick: async (veScaKey) => {
-      veScaKey = veScaKey || (await builder.query.getVeScas())[0]?.keyObject;
+      veScaKey = veScaKey ?? (await builder.query.getVeScas())[0]?.keyObject;
       const sender = requireSender(txBlock);
       if (!veScaKey) throw new Error(`No veScaKey found for user ${sender}`);
 

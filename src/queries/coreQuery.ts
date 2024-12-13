@@ -34,6 +34,7 @@ import {
   CollateralStat,
   SupportMarketCoins,
   OptionalKeys,
+  CoinPrices,
 } from '../types';
 import BigNumber from 'bignumber.js';
 import { getSupplyLimit } from './supplyLimitQuery';
@@ -52,9 +53,10 @@ import { getBorrowLimit } from './borrowLimitQuery';
  */
 export const queryMarket = async (
   query: ScallopQuery,
-  indexer: boolean = false
+  indexer: boolean = false,
+  coinPrices?: CoinPrices
 ) => {
-  const coinPrices = await query.utils.getCoinPrices();
+  coinPrices = coinPrices ?? (await query.utils.getCoinPrices()) ?? {};
 
   const pools: MarketPools = {};
   const collaterals: MarketCollaterals = {};
@@ -63,13 +65,13 @@ export const queryMarket = async (
     const marketIndexer = await query.indexer.getMarket();
 
     const updatePools = (item: MarketPool) => {
-      item.coinPrice = coinPrices[item.coinName] || item.coinPrice;
+      item.coinPrice = coinPrices[item.coinName] ?? item.coinPrice;
       item.coinWrappedType = query.utils.getCoinWrappedType(item.coinName);
       pools[item.coinName] = item;
     };
 
     const updateCollaterals = (item: MarketCollateral) => {
-      item.coinPrice = coinPrices[item.coinName] || item.coinPrice;
+      item.coinPrice = coinPrices[item.coinName] ?? item.coinPrice;
       item.coinWrappedType = query.utils.getCoinWrappedType(item.coinName);
       collaterals[item.coinName] = item;
     };
@@ -238,13 +240,14 @@ export const queryMarket = async (
 export const getMarketPools = async (
   query: ScallopQuery,
   poolCoinNames: SupportPoolCoins[] = [...SUPPORT_POOLS],
-  indexer: boolean = false
+  indexer: boolean = false,
+  coinPrices?: CoinPrices
 ) => {
   const marketId = query.address.get('core.market');
   const marketObjectResponse = await query.cache.queryGetObject(marketId, {
     showContent: true,
   });
-  const coinPrices = (await query.utils.getCoinPrices(poolCoinNames)) ?? {};
+  coinPrices = (await query.utils.getCoinPrices(poolCoinNames)) ?? {};
 
   const marketPools: MarketPools = {};
 
@@ -254,7 +257,7 @@ export const getMarketPools = async (
     const updateMarketPool = (marketPool: MarketPool) => {
       if (!poolCoinNames.includes(marketPool.coinName)) return;
       marketPool.coinPrice =
-        coinPrices[marketPool.coinName] || marketPool.coinPrice;
+        coinPrices[marketPool.coinName] ?? marketPool.coinPrice;
       marketPool.coinWrappedType = query.utils.getCoinWrappedType(
         marketPool.coinName
       );
@@ -312,7 +315,7 @@ export const getMarketPool = async (
       if (!marketPoolIndexer) {
         return undefined;
       }
-      marketPoolIndexer.coinPrice = coinPrice || marketPoolIndexer.coinPrice;
+      marketPoolIndexer.coinPrice = coinPrice ?? marketPoolIndexer.coinPrice;
       marketPoolIndexer.coinWrappedType = query.utils.getCoinWrappedType(
         marketPoolIndexer.coinName
       );
@@ -547,7 +550,7 @@ export const getMarketCollaterals = async (
     const updateMarketCollateral = (marketCollateral: MarketCollateral) => {
       if (!collateralCoinNames.includes(marketCollateral.coinName)) return;
       marketCollateral.coinPrice =
-        coinPrices[marketCollateral.coinName] || marketCollateral.coinPrice;
+        coinPrices[marketCollateral.coinName] ?? marketCollateral.coinPrice;
       marketCollateral.coinWrappedType = query.utils.getCoinWrappedType(
         marketCollateral.coinName
       );
@@ -606,7 +609,7 @@ export const getMarketCollateral = async (
     const marketCollateralIndexer =
       await query.indexer.getMarketCollateral(collateralCoinName);
     marketCollateralIndexer.coinPrice =
-      coinPrice || marketCollateralIndexer.coinPrice;
+      coinPrice ?? marketCollateralIndexer.coinPrice;
     marketCollateralIndexer.coinWrappedType = query.utils.getCoinWrappedType(
       marketCollateralIndexer.coinName
     );
@@ -745,7 +748,7 @@ export const getObligations = async (
   ownerAddress: string
 ) => {
   const owner = ownerAddress;
-  const protocolObjectId = address.get('core.object') || PROTOCOL_OBJECT_ID;
+  const protocolObjectId = address.get('core.object') ?? PROTOCOL_OBJECT_ID;
   const keyObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
@@ -875,7 +878,7 @@ export const getCoinAmounts = async (
   assetCoinNames: SupportAssetCoins[] = [...SUPPORT_POOLS],
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || query.suiKit.currentAddress();
+  const owner = ownerAddress ?? query.suiKit.currentAddress();
   const assetCoins = {} as OptionalKeys<Record<SupportAssetCoins, number>>;
 
   await Promise.allSettled(
@@ -901,7 +904,7 @@ export const getCoinAmount = async (
   assetCoinName: SupportAssetCoins,
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || query.suiKit.currentAddress();
+  const owner = ownerAddress ?? query.suiKit.currentAddress();
   const coinType = query.utils.parseCoinType(assetCoinName);
   const amount = await query.cache.queryGetCoinBalance({
     owner,
@@ -928,7 +931,7 @@ export const getMarketCoinAmounts = async (
     [...SUPPORT_POOLS].map((poolCoinName) =>
       query.utils.parseMarketCoinName(poolCoinName)
     );
-  const owner = ownerAddress || query.suiKit.currentAddress();
+  const owner = ownerAddress ?? query.suiKit.currentAddress();
   const marketCoins = {} as OptionalKeys<Record<SupportMarketCoins, number>>;
 
   await Promise.allSettled(
@@ -958,7 +961,7 @@ export const getMarketCoinAmount = async (
   marketCoinName: SupportMarketCoins,
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || query.suiKit.currentAddress();
+  const owner = ownerAddress ?? query.suiKit.currentAddress();
   const marketCoinType = query.utils.parseMarketCoinType(marketCoinName);
   const amount = await query.cache.queryGetCoinBalance({
     owner,

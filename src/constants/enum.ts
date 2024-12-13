@@ -204,6 +204,14 @@ export const sCoinIds: types.SCoinIds = {
     '0x2cf76a9cf5d3337961d1154283234f94da2dcff18544dfe5cbdef65f319591b5::scallop_wormhole_btc::SCALLOP_WORMHOLE_BTC',
 } as const;
 
+export const sCoinTypeToName = Object.entries(sCoinIds).reduce(
+  (acc, [coinName, coinType]) => {
+    acc[coinType] = coinName as types.SupportSCoin;
+    return acc;
+  },
+  {} as Record<string, types.SupportSCoin>
+);
+
 // TEST VERSION
 // export const sCoinIds: types.SCoinIds = {
 //   ssui: '0xfac769100bccc0caebcf4f4e2d00ac2f8883f07f724be28940df90605f5e7e9a::scallop_sui::SCALLOP_SUI',

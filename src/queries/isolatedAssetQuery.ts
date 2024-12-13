@@ -1,6 +1,6 @@
 import { DynamicFieldInfo, DynamicFieldName } from '@mysten/sui/client';
-import { ScallopAddress, ScallopUtils } from 'src/models';
-import { SupportPoolCoins } from 'src/types';
+import { ScallopAddress, ScallopUtils } from '../models';
+import { SupportPoolCoins } from '../types';
 import { z as zod } from 'zod';
 
 const isolatedAssetZod = zod.object({
