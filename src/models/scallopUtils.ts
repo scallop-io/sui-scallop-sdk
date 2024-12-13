@@ -536,9 +536,9 @@ export class ScallopUtils {
     for (const endpoint of endpoints) {
       const priceIdPairs = Array.from(failedRequests.values()).reduce(
         (acc, coinName) => {
-          const priceId = this.address.get(
-            `core.coins.${coinName}.oracle.pyth.feed`
-          );
+          const priceId =
+            this.address.get(`core.coins.${coinName}.oracle.pyth.feed`) ??
+            PYTH_FEED_IDS[coinName];
           acc.push([coinName, priceId]);
           return acc;
         },
