@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { isValidSuiAddress } from '@scallop-io/sui-kit';
 import { z as zod } from 'zod';
 import { scallopSDK } from './scallopSdk';
-import { ScallopQuery, SupportPoolCoins } from 'src';
+import { ScallopQuery } from 'src/models';
+import { SupportPoolCoins } from 'src/types';
 
 const ENABLE_LOG = false;
 
@@ -482,6 +483,19 @@ describe('Test Supply Limit Query', async () => {
   it('Should get supply limit of a pool', async () => {
     const poolName = 'sui';
     const supplyLimit = await scallopQuery.getPoolSupplyLimit(poolName);
+    expect(typeof supplyLimit).toBe('string');
+    expect(+supplyLimit! > 0).toBe(true);
+  });
+});
+
+describe('Test Borrow Limit Query', async () => {
+  const scallopQuery = await getScallopQuery();
+  const sender = scallopQuery.suiKit.currentAddress();
+  console.info(`Your Wallet: ${sender}`);
+
+  it('Should get borrow limit of a pool', async () => {
+    const poolName = 'sui';
+    const supplyLimit = await scallopQuery.getPoolBorrowLimit(poolName);
     expect(typeof supplyLimit).toBe('string');
     expect(+supplyLimit! > 0).toBe(true);
   });

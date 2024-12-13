@@ -29,7 +29,7 @@ export const getIsolatedAssets = async (
   try {
     const marketObject = address.get('core.market');
     const protocolObject = address.get('core.packages.protocol.id');
-    const ISOLATED_ASSET_KEY = `${protocolObject}::market_dynamic_keys::IsolatedAssetKey`;
+    const isolatedAssetKeyType = `${protocolObject}::market_dynamic_keys::IsolatedAssetKey`;
     const isolatedAssets: string[] = [];
     if (!marketObject) return isolatedAssets;
 
@@ -41,7 +41,7 @@ export const getIsolatedAssets = async (
     ): dynamicField is DynamicFieldInfo & {
       name: DynamicFieldName & { value: { type: { name: string } } };
     } => {
-      return dynamicField.name.type === ISOLATED_ASSET_KEY;
+      return dynamicField.name.type === isolatedAssetKeyType;
     };
 
     do {
@@ -83,7 +83,7 @@ export const isIsolatedAsset = async (
   try {
     const marketObject = utils.address.get('core.market');
     const protocolObject = utils.address.get('core.packages.protocol.id');
-    const ISOLATED_ASSET_KEY = `${protocolObject}::market_dynamic_keys::IsolatedAssetKey`;
+    const isolatedAssetKeyType = `${protocolObject}::market_dynamic_keys::IsolatedAssetKey`;
     // check if the coin type is in the list
     const cachedData = utils.address.cache.queryClient.getQueryData<string[]>([
       'getDynamicFields',
@@ -100,7 +100,7 @@ export const isIsolatedAsset = async (
     const object = await utils.cache.queryGetDynamicFieldObject({
       parentId: marketObject,
       name: {
-        type: ISOLATED_ASSET_KEY,
+        type: isolatedAssetKeyType,
         value: coinType,
       },
     });

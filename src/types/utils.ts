@@ -20,7 +20,7 @@ export type PoolAddressInfo = {
   decimal: number;
   pythFeedId: string;
   lendingPoolAddress: string;
-  collateralPoolAddress: string;
+  collateralPoolAddress?: string;
   sCoinAddress: string | undefined;
   marketCoinAddress: string;
   coinAddress: string;

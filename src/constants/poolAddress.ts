@@ -4,7 +4,7 @@ export const POOL_ADDRESSES: Record<
   SupportPoolCoins,
   {
     lendingPoolAddress: string;
-    collateralPoolAddress: string;
+    collateralPoolAddress?: string;
   }
 > = {
   usdc: {
@@ -91,6 +91,10 @@ export const POOL_ADDRESSES: Record<
     collateralPoolAddress:
       '0xff677a5d9e9dc8f08f0a8681ebfc7481d1c7d57bc441f2881974adcdd7b13c31',
   },
-  fud: {},
-  deep: {},
+  fud: {
+    lendingPoolAddress: '',
+  },
+  deep: {
+    lendingPoolAddress: '',
+  },
 };

@@ -331,7 +331,9 @@ export const getObligationAccount = async (
 ) => {
   market = market || (await query.queryMarket(indexer));
   const poolAssetCoinNames: SupportCollateralCoins[] = [
-    ...new Set([...Object.values(market.pools).map((pool) => pool.coinName)]),
+    ...new Set([
+      ...Object.values(market.collaterals).map((pool) => pool.coinName),
+    ]),
   ];
   const obligationQuery = await query.queryObligation(obligationId);
   const borrowIncentivePools = await query.getBorrowIncentivePools(

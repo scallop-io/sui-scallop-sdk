@@ -1,5 +1,10 @@
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ADDRESSES_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
+import {
+  ADDRESSES_ID,
+  SUPPORT_POOLS,
+  SUPPORT_SPOOLS,
+  DEFAULT_CACHE_OPTIONS,
+} from '../constants';
 import {
   queryMarket,
   getObligations,
@@ -34,6 +39,14 @@ import {
   getFlashLoanFees,
   getVeSca,
   getBorrowIncentivePools,
+  getBorrowLimit,
+  getIsolatedAssets,
+  isIsolatedAsset,
+  getSupplyLimit,
+  getSCoinAmount,
+  getSCoinAmounts,
+  getSCoinSwapRate,
+  getSCoinTotalSupply,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -52,18 +65,9 @@ import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { SuiObjectData } from '@mysten/sui/client';
-import {
-  getSCoinAmount,
-  getSCoinAmounts,
-  getSCoinSwapRate,
-  getSCoinTotalSupply,
-} from 'src/queries/sCoinQuery';
 import { normalizeSuiAddress } from '@mysten/sui/utils';
-import { getSupplyLimit } from 'src/queries/supplyLimit';
 import { withIndexerFallback } from 'src/utils/indexer';
-import { getIsolatedAssets, isIsolatedAsset } from 'src/queries/isolatedAsset';
 
 /**
  * @description
@@ -736,10 +740,17 @@ export class ScallopQuery {
   }
 
   /**
-   * Get supply limit of supply pool
+   * Get supply limit of lending pool
    */
   public async getPoolSupplyLimit(poolName: SupportPoolCoins) {
     return await getSupplyLimit(this.utils, poolName);
+  }
+
+  /**
+   * Get borrow limit of borrow pool
+   */
+  public async getPoolBorrowLimit(poolName: SupportPoolCoins) {
+    return await getBorrowLimit(this.utils, poolName);
   }
 
   /**
