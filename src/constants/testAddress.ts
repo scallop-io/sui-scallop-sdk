@@ -279,7 +279,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0x3f203f6fff6a69d151e4f1cd931f22b68c489ef2759765662fc7baf673943c9e',
       },
       protocol: {
-        id: '0x6c23585e940a989588432509107e98bae06dbca4e333f26d0635d401b3c7c76d',
+        id: '0xb784ea287d944e478a3ceaa071f8885072cce6b7224cf245914dc2f9963f460e',
         upgradeCap:
           '0x38527d154618d1fd5a644b90717fe07cf0e9f26b46b63e9568e611a3f86d5c1a',
       },

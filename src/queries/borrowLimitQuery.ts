@@ -17,6 +17,9 @@ const borrowLimitZod = zod.object({
   }),
 });
 
+// const borrowLimitKeyType = `${protocolObject}::market_dynamic_keys::BorrowLimitKey`;
+// TODO: use prod value
+const borrowLimitKeyType = `0xb784ea287d944e478a3ceaa071f8885072cce6b7224cf245914dc2f9963f460e::market_dynamic_keys::BorrowLimitKey`;
 /**
  * Return supply limit of a pool (including the decimals)
  * @param utils
@@ -27,21 +30,24 @@ export const getBorrowLimit = async (
   utils: ScallopUtils,
   poolName: SupportPoolCoins
 ) => {
-  const poolCoinType = utils.parseCoinType(poolName).slice(2);
-  const marketObject = utils.address.get('core.market');
-  const protocolObject = utils.address.get('core.packages.protocol.id');
-  const borrowLimitKeyType = `${protocolObject}::market_dynamic_keys::BorrowLimitKey`;
-  if (!marketObject) return null;
+  try {
+    const poolCoinType = utils.parseCoinType(poolName).slice(2);
+    const marketObject = utils.address.get('core.market');
+    if (!marketObject) return null;
 
-  const object = await utils.cache.queryGetDynamicFieldObject({
-    parentId: marketObject,
-    name: {
-      type: borrowLimitKeyType,
-      value: poolCoinType,
-    },
-  });
+    const object = await utils.cache.queryGetDynamicFieldObject({
+      parentId: marketObject,
+      name: {
+        type: borrowLimitKeyType,
+        value: poolCoinType,
+      },
+    });
 
-  const parsedData = borrowLimitZod.safeParse(object?.data?.content);
-  if (!parsedData.success) return null;
-  return parsedData.data.fields.value;
+    const parsedData = borrowLimitZod.safeParse(object?.data?.content);
+    if (!parsedData.success) return null;
+    return parsedData.data.fields.value;
+  } catch (e: any) {
+    console.error(`Error in getBorrowLimit for ${poolName}: ${e.message}`);
+    return '0';
+  }
 };

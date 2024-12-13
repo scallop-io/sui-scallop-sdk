@@ -348,7 +348,6 @@ export const getObligationAccount = async (
     coinAmounts ||
     (await query.getCoinAmounts(poolAssetCoinNames, ownerAddress));
 
-  console.log(coinPrices);
   const collaterals: ObligationAccount['collaterals'] = {};
   const debts: ObligationAccount['debts'] = {};
   const borrowIncentives: ObligationAccount['borrowIncentives'] = {};
