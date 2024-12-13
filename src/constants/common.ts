@@ -45,6 +45,8 @@ export const SUPPORT_POOLS = [
   'hasui',
   'vsui',
   'sca',
+  'fud',
+  'deep',
 ] as const;
 
 export const SUPPORT_COLLATERALS = [

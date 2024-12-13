@@ -500,8 +500,10 @@ describe('Test Isolated Assets', async () => {
   });
 
   it.skip('Should check if an asset is isolated', async () => {
-    const isolatedAssetName = '' as SupportPoolCoins; // TODO: fill in an isolated asset name
-    const isIsolated = await scallopQuery.isIsolatedAsset(isolatedAssetName);
+    const isolatedAssetNames = ['fud', 'deep'] as SupportPoolCoins[]; // TODO: fill in an isolated asset name
+    const isIsolated = await Promise.all(
+      isolatedAssetNames.map((asset) => scallopQuery.isIsolatedAsset(asset))
+    );
     expect(typeof isIsolated).toBe('boolean');
     expect(isIsolated).toBe(true);
   });
