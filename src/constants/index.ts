@@ -6,6 +6,7 @@ export * from './flashloan';
 export * from './poolAddress';
 export * from './pyth';
 export * from './queryKeys';
+export * from './rpc';
 export * from './testAddress';
 export * from './tokenBucket';
 export * from './vesca';

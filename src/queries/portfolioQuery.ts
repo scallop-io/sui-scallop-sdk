@@ -1,6 +1,7 @@
 import BigNumber from 'bignumber.js';
 import {
   SUPPORT_BORROW_INCENTIVE_REWARDS,
+  SUPPORT_COLLATERALS,
   SUPPORT_POOLS,
   SUPPORT_SPOOLS,
 } from '../constants';
@@ -49,20 +50,18 @@ export const getLendings = async (
     (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName)
   ) as SupportStakeMarketCoins[];
 
-  const [
-    marketPools,
-    spools,
-    coinAmounts,
-    marketCoinAmounts,
-    allStakeAccounts,
+  const coinPrices = await query.utils.getCoinPrices(poolCoinNames);
+  const marketPools = await query.getMarketPools(poolCoinNames, indexer, {
     coinPrices,
-  ] = await Promise.all([
-    query.getMarketPools(poolCoinNames, indexer),
-    query.getSpools(stakeMarketCoinNames, indexer),
+  });
+  const spools = await query.getSpools(stakeMarketCoinNames, indexer, {
+    marketPools,
+    coinPrices,
+  });
+  const [coinAmounts, marketCoinAmounts, allStakeAccounts] = await Promise.all([
     query.getCoinAmounts(poolCoinNames, ownerAddress),
     query.getMarketCoinAmounts(marketCoinNames, ownerAddress),
     query.getAllStakeAccounts(ownerAddress),
-    query.utils.getCoinPrices(poolCoinNames),
   ]);
 
   const lendings: Lendings = {};
@@ -80,7 +79,7 @@ export const getLendings = async (
         indexer,
         marketPools?.[poolCoinName],
         stakeMarketCoinName ? spools[stakeMarketCoinName] : undefined,
-        stakeMarketCoinName ? allStakeAccounts[stakeMarketCoinName] : undefined,
+        stakeMarketCoinName ? allStakeAccounts[stakeMarketCoinName] : [],
         coinAmounts?.[poolCoinName],
         marketCoinAmounts?.[marketCoinName],
         coinPrices?.[poolCoinName] ?? 0
@@ -122,12 +121,37 @@ export const getLending = async (
   sCoinAmount?: number
 ) => {
   const marketCoinName = query.utils.parseMarketCoinName(poolCoinName);
-  marketPool = marketPool || (await query.getMarketPool(poolCoinName, indexer));
+  coinPrice =
+    coinPrice ??
+    (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName] ??
+    0;
+
+  marketPool =
+    marketPool ??
+    (await query.getMarketPool(poolCoinName, indexer, {
+      coinPrice,
+    }));
+
+  if (!marketPool)
+    throw new Error(`Failed to fetch marketPool for ${poolCoinName}`);
+
   spool =
-    spool ||
-    (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName)
-      ? await query.getSpool(marketCoinName as SupportStakeMarketCoins, indexer)
+    (spool ??
+    (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName))
+      ? await query.getSpool(
+          marketCoinName as SupportStakeMarketCoins,
+          indexer,
+          {
+            marketPool,
+            coinPrices: {
+              [poolCoinName]: coinPrice,
+            },
+          }
+        )
       : undefined;
+  // some pool does not have spool
+  // if (!spool) throw new Error(`Failed to fetch spool for ${poolCoinName}`);
+
   stakeAccounts =
     stakeAccounts ||
     (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName)
@@ -143,9 +167,6 @@ export const getLending = async (
     (await query.getMarketCoinAmount(marketCoinName, ownerAddress));
   sCoinAmount =
     sCoinAmount || (await query.getSCoinAmount(marketCoinName, ownerAddress));
-  coinPrice =
-    coinPrice ||
-    (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName];
   const coinDecimal = query.utils.getCoinDecimal(poolCoinName);
 
   // Handle staked scoin
@@ -289,10 +310,12 @@ export const getObligationAccounts = async (
   ownerAddress?: string,
   indexer: boolean = false
 ) => {
-  const market = await query.queryMarket(indexer);
   const coinPrices = await query.utils.getCoinPrices();
-  const coinAmounts = await query.getCoinAmounts(undefined, ownerAddress);
-  const obligations = await query.getObligations(ownerAddress);
+  const market = await query.queryMarket(indexer, { coinPrices });
+  const [coinAmounts, obligations] = await Promise.all([
+    query.getCoinAmounts(undefined, ownerAddress),
+    query.getObligations(ownerAddress),
+  ]);
 
   const obligationAccounts: ObligationAccounts = {};
   await Promise.allSettled(
@@ -329,26 +352,24 @@ export const getObligationAccount = async (
   coinPrices?: CoinPrices,
   coinAmounts?: CoinAmounts
 ) => {
-  market = market || (await query.queryMarket(indexer));
   const collateralAssetCoinNames: SupportCollateralCoins[] = [
-    ...new Set([
-      ...Object.values(market.collaterals).map(
-        (collateral) => collateral.coinName
-      ),
-    ]),
+    ...SUPPORT_COLLATERALS,
   ];
-  const obligationQuery = await query.queryObligation(obligationId);
-  const borrowIncentivePools = await query.getBorrowIncentivePools(
-    undefined,
-    indexer
-  );
-  const borrowIncentiveAccounts =
-    await query.getBorrowIncentiveAccounts(obligationId);
   coinPrices =
-    coinPrices || (await query.utils.getCoinPrices(collateralAssetCoinNames));
+    coinPrices ?? (await query.utils.getCoinPrices(collateralAssetCoinNames));
+  market = market ?? (await query.queryMarket(indexer, { coinPrices }));
   coinAmounts =
     coinAmounts ||
     (await query.getCoinAmounts(collateralAssetCoinNames, ownerAddress));
+
+  const [obligationQuery, borrowIncentivePools, borrowIncentiveAccounts] =
+    await Promise.all([
+      query.queryObligation(obligationId),
+      query.getBorrowIncentivePools(undefined, indexer, {
+        coinPrices,
+      }),
+      query.getBorrowIncentiveAccounts(obligationId),
+    ]);
 
   const collaterals: ObligationAccount['collaterals'] = {};
   const debts: ObligationAccount['debts'] = {};
