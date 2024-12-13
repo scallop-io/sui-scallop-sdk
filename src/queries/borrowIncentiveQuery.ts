@@ -1,8 +1,5 @@
 import { normalizeStructTag } from '@mysten/sui/utils';
-import {
-  SUPPORT_BORROW_INCENTIVE_POOLS,
-  SUPPORT_BORROW_INCENTIVE_REWARDS,
-} from '../constants';
+import { SUPPORT_BORROW_INCENTIVE_POOLS } from '../constants';
 import {
   parseOriginBorrowIncentivePoolData,
   parseOriginBorrowIncentiveAccountData,
@@ -19,6 +16,7 @@ import type {
   BorrowIncentivePoolPoints,
   OptionalKeys,
   BorrowIncentivePool,
+  CoinPrices,
 } from '../types';
 import BigNumber from 'bignumber.js';
 
@@ -56,17 +54,12 @@ export const getBorrowIncentivePools = async (
   borrowIncentiveCoinNames: SupportBorrowIncentiveCoins[] = [
     ...SUPPORT_BORROW_INCENTIVE_POOLS,
   ],
-  indexer: boolean = false
+  indexer: boolean = false,
+  coinPrices?: CoinPrices
 ) => {
   const borrowIncentivePools: BorrowIncentivePools = {};
 
-  const coinPrices =
-    (await query.utils.getCoinPrices([
-      ...new Set([
-        ...borrowIncentiveCoinNames,
-        ...SUPPORT_BORROW_INCENTIVE_REWARDS,
-      ]),
-    ])) ?? {};
+  coinPrices = coinPrices ?? (await query.utils.getCoinPrices()) ?? {};
 
   if (indexer) {
     const borrowIncentivePoolsIndexer =
@@ -74,7 +67,7 @@ export const getBorrowIncentivePools = async (
 
     const updateBorrowIncentivePool = (pool: BorrowIncentivePool) => {
       if (!borrowIncentiveCoinNames.includes(pool.coinName)) return;
-      pool.coinPrice = coinPrices[pool.coinName] || pool.coinPrice;
+      pool.coinPrice = coinPrices[pool.coinName] ?? pool.coinPrice;
       borrowIncentivePools[pool.coinName] = pool;
     };
 
