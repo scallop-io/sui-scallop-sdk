@@ -518,8 +518,8 @@ export const getMarketPool = async (
       isIsolated: await isIsolatedAsset(query.utils, poolCoinName),
       ...calculatedMarketPoolData,
     };
-  } catch (e) {
-    console.error(e);
+  } catch (e: any) {
+    console.error(e.message);
   }
 };
 
