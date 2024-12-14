@@ -2,17 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [1.3.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.3...v1.3.4) (2024-11-27)
+### [1.3.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.3...v1.3.4) (2024-12-14)
 
 ### Features
+
 - Add `getSupportedPoolAddresses` in `ScallopUtils` ([4aab3bd](https://github.com/scallop-io/sui-scallop-sdk/commit/4aab3bdfb1b3fa7354876ad1ae43aaaacf9a06f0))
+- Add `deep` and `fud` as isolated assets ([512125d](https://github.com/scallop-io/sui-scallop-sdk/pull/207/commits/512125dd5c547e7d6efb750d84f2f1ed52b4dbd0))
+- Add borrow limit ([c32bd39](https://github.com/scallop-io/sui-scallop-sdk/pull/207/commits/c32bd393909a31aee6f78199d285b20f4c330fbb))
 
 ### [1.3.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.2...v1.3.3) (2024-11-25)
 
 ### Features
 
 - Add new function `getCoinPrice` using indexer ([e6fe81e](https://github.com/scallop-io/sui-scallop-sdk/pull/201/commits/1ff66703a9cbd28e2cd3a8d325348b873e6fe81e))
-
 
 - Use `stakeObligationWithVeScaQuick` where possible in scallopClient ([e4c95bd](https://github.com/scallop-io/sui-scallop-sdk/pull/201/commits/e4c95bd383d645a2471aa12a50a4955efdc1f570))
 
