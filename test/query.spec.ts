@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { isValidSuiAddress } from '@scallop-io/sui-kit';
 import { z as zod } from 'zod';
 import { scallopSDK } from './scallopSdk';
-import { ScallopQuery, SupportPoolCoins } from 'src';
+import { ScallopQuery } from 'src/models';
+import { SupportPoolCoins } from 'src/types';
 
 const ENABLE_LOG = false;
 
@@ -487,6 +488,19 @@ describe('Test Supply Limit Query', async () => {
   });
 });
 
+describe('Test Borrow Limit Query', async () => {
+  const scallopQuery = await getScallopQuery();
+  const sender = scallopQuery.suiKit.currentAddress();
+  console.info(`Your Wallet: ${sender}`);
+
+  it('Should get borrow limit of a pool', async () => {
+    const poolName = 'sui';
+    const supplyLimit = await scallopQuery.getPoolBorrowLimit(poolName);
+    expect(typeof supplyLimit).toBe('string');
+    expect(+supplyLimit! > 0).toBe(true);
+  });
+});
+
 describe('Test Isolated Assets', async () => {
   const scallopQuery = await getScallopQuery();
   const sender = scallopQuery.suiKit.currentAddress();
@@ -500,8 +514,10 @@ describe('Test Isolated Assets', async () => {
   });
 
   it.skip('Should check if an asset is isolated', async () => {
-    const isolatedAssetName = '' as SupportPoolCoins; // TODO: fill in an isolated asset name
-    const isIsolated = await scallopQuery.isIsolatedAsset(isolatedAssetName);
+    const isolatedAssetNames = ['fud', 'deep'] as SupportPoolCoins[]; // TODO: fill in an isolated asset name
+    const isIsolated = await Promise.all(
+      isolatedAssetNames.map((asset) => scallopQuery.isIsolatedAsset(asset))
+    );
     expect(typeof isIsolated).toBe('boolean');
     expect(isIsolated).toBe(true);
   });

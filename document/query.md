@@ -271,6 +271,6 @@
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
-  const isolatedAssetName = ''; // TODO: fill with isolatedAsset
+  const isolatedAssetName = 'deep';
   const isIsolated = await scallopQuery.isIsolatedAsset(isolatedAssetName); // returns boolean
   ```
