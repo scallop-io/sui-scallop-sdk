@@ -4,7 +4,7 @@ export const POOL_ADDRESSES: Record<
   SupportPoolCoins,
   {
     lendingPoolAddress: string;
-    collateralPoolAddress?: string;
+    collateralPoolAddress?: string; // not all pool has collateral
   }
 > = {
   usdc: {
@@ -92,9 +92,11 @@ export const POOL_ADDRESSES: Record<
       '0xff677a5d9e9dc8f08f0a8681ebfc7481d1c7d57bc441f2881974adcdd7b13c31',
   },
   fud: {
-    lendingPoolAddress: '',
+    lendingPoolAddress:
+      '0x14367ddca30e2860cb89ed4eaca20c7ece260c5d59dd9990d2c85a8321326acb',
   },
   deep: {
-    lendingPoolAddress: '',
+    lendingPoolAddress:
+      '0xf4a67ffb43da1e1c61c049f188f19463ea8dbbf2d5ef4722d6df854ff1b1cc03',
   },
 };
