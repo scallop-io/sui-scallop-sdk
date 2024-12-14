@@ -1,5 +1,10 @@
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ADDRESSES_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
+import {
+  ADDRESSES_ID,
+  SUPPORT_POOLS,
+  SUPPORT_SPOOLS,
+  DEFAULT_CACHE_OPTIONS,
+} from '../constants';
 import {
   queryMarket,
   getObligations,
@@ -34,6 +39,14 @@ import {
   getFlashLoanFees,
   getVeSca,
   getBorrowIncentivePools,
+  getBorrowLimit,
+  getIsolatedAssets,
+  isIsolatedAsset,
+  getSupplyLimit,
+  getSCoinAmount,
+  getSCoinAmounts,
+  getSCoinSwapRate,
+  getSCoinTotalSupply,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -47,24 +60,18 @@ import {
   SupportBorrowIncentiveCoins,
   SupportSCoin,
   ScallopQueryInstanceParams,
+  MarketPool,
+  CoinPrices,
+  MarketPools,
 } from '../types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { SuiObjectData } from '@mysten/sui/client';
-import {
-  getSCoinAmount,
-  getSCoinAmounts,
-  getSCoinSwapRate,
-  getSCoinTotalSupply,
-} from 'src/queries/sCoinQuery';
 import { normalizeSuiAddress } from '@mysten/sui/utils';
-import { getSupplyLimit } from 'src/queries/supplyLimit';
 import { withIndexerFallback } from 'src/utils/indexer';
-import { getIsolatedAssets, isIsolatedAsset } from 'src/queries/isolatedAsset';
-
+import { newSuiKit } from './suiKit';
 /**
  * @description
  * It provides methods for getting on-chain data from the Scallop contract.
@@ -93,10 +100,10 @@ export class ScallopQuery {
   ) {
     this.params = params;
     this.suiKit =
-      instance?.suiKit ?? instance?.utils?.suiKit ?? new SuiKit(params);
+      instance?.suiKit ?? instance?.utils?.suiKit ?? newSuiKit(params);
 
     this.walletAddress = normalizeSuiAddress(
-      params.walletAddress || this.suiKit.currentAddress()
+      params.walletAddress ?? this.suiKit.currentAddress()
     );
 
     if (instance?.utils) {
@@ -111,7 +118,7 @@ export class ScallopQuery {
       );
       this.address = new ScallopAddress(
         {
-          id: params?.addressesId || ADDRESSES_ID,
+          id: params?.addressesId ?? ADDRESSES_ID,
           network: params?.networkType,
           forceInterface: params?.forceAddressesInterface,
         },
@@ -167,10 +174,11 @@ export class ScallopQuery {
    * @param address - ScallopAddress instance.
    */
   public async init(force: boolean = false, address?: ScallopAddress) {
-    if (force || !this.address.getAddresses() || !address?.getAddresses()) {
-      await this.address.read();
-    } else {
+    if (address && !this.address) {
       this.address = address;
+    }
+    if (force || !this.address.getAddresses()) {
+      await this.address.read();
     }
 
     await this.utils.init(force, this.address);
@@ -183,8 +191,11 @@ export class ScallopQuery {
    * @param indexer - Whether to use indexer.
    * @return Market data.
    */
-  public async queryMarket(indexer: boolean = false) {
-    return await queryMarket(this, indexer);
+  public async queryMarket(
+    indexer: boolean = false,
+    args?: { coinPrices: CoinPrices }
+  ) {
+    return await queryMarket(this, indexer, args?.coinPrices);
   }
 
   /**
@@ -200,9 +211,12 @@ export class ScallopQuery {
    */
   public async getMarketPools(
     poolCoinNames?: SupportPoolCoins[],
-    indexer: boolean = false
+    indexer: boolean = false,
+    args?: {
+      coinPrices?: CoinPrices;
+    }
   ) {
-    return await getMarketPools(this, poolCoinNames, indexer);
+    return await getMarketPools(this, poolCoinNames, indexer, args?.coinPrices);
   }
 
   /**
@@ -214,9 +228,19 @@ export class ScallopQuery {
    */
   public async getMarketPool(
     poolCoinName: SupportPoolCoins,
-    indexer: boolean = false
+    indexer: boolean = false,
+    args?: {
+      marketObject?: SuiObjectData | null;
+      coinPrice?: number;
+    }
   ) {
-    return await getMarketPool(this, poolCoinName, indexer);
+    return await getMarketPool(
+      this,
+      poolCoinName,
+      indexer,
+      args?.marketObject,
+      args?.coinPrice
+    );
   }
 
   /**
@@ -358,9 +382,19 @@ export class ScallopQuery {
    */
   public async getSpools(
     stakeMarketCoinNames?: SupportStakeMarketCoins[],
-    indexer: boolean = false
+    indexer: boolean = false,
+    args?: {
+      marketPools?: MarketPools;
+      coinPrices?: CoinPrices;
+    }
   ) {
-    return await getSpools(this, stakeMarketCoinNames, indexer);
+    return await getSpools(
+      this,
+      stakeMarketCoinNames,
+      indexer,
+      args?.marketPools,
+      args?.coinPrices
+    );
   }
 
   /**
@@ -372,9 +406,16 @@ export class ScallopQuery {
    */
   public async getSpool(
     stakeMarketCoinName: SupportStakeMarketCoins,
-    indexer: boolean = false
+    indexer: boolean = false,
+    args?: { marketPool?: MarketPool; coinPrices?: CoinPrices }
   ) {
-    return await getSpool(this, stakeMarketCoinName, indexer);
+    return await getSpool(
+      this,
+      stakeMarketCoinName,
+      indexer,
+      args?.marketPool,
+      args?.coinPrices
+    );
   }
 
   /**
@@ -495,9 +536,15 @@ export class ScallopQuery {
    */
   public async getBorrowIncentivePools(
     coinNames?: SupportBorrowIncentiveCoins[],
-    indexer: boolean = false
+    indexer: boolean = false,
+    args?: { coinPrices: CoinPrices }
   ) {
-    return await getBorrowIncentivePools(this, coinNames, indexer);
+    return await getBorrowIncentivePools(
+      this,
+      coinNames,
+      indexer,
+      args?.coinPrices
+    );
   }
 
   /**
@@ -735,10 +782,17 @@ export class ScallopQuery {
   }
 
   /**
-   * Get supply limit of supply pool
+   * Get supply limit of lending pool
    */
   public async getPoolSupplyLimit(poolName: SupportPoolCoins) {
     return await getSupplyLimit(this.utils, poolName);
+  }
+
+  /**
+   * Get borrow limit of borrow pool
+   */
+  public async getPoolBorrowLimit(poolName: SupportPoolCoins) {
+    return await getBorrowLimit(this.utils, poolName);
   }
 
   /**

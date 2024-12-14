@@ -1,6 +1,6 @@
 import { DynamicFieldInfo, DynamicFieldName } from '@mysten/sui/client';
-import { ScallopAddress, ScallopUtils } from 'src/models';
-import { SupportPoolCoins } from 'src/types';
+import { ScallopAddress, ScallopUtils } from '../models';
+import { SupportPoolCoins } from '../types';
 import { z as zod } from 'zod';
 
 const isolatedAssetZod = zod.object({
@@ -18,8 +18,8 @@ const isolatedAssetZod = zod.object({
   }),
 });
 
-const ISOLATED_ASSET_KEY =
-  '0x6e641f0dca8aedab3101d047e96439178f16301bf0b57fe8745086ff1195eb3e::market_dynamic_keys::IsolatedAssetKey';
+const isolatedAssetKeyType = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da26c7221b220f01af6::market_dynamic_keys::IsolatedAssetKey`; // prod
+// const isolatedAssetKeyType = `0x6c23585e940a989588432509107e98bae06dbca4e333f26d0635d401b3c7c76d::market_dynamic_keys::IsolatedAssetKey`;
 
 /**
  * Return list of isolated assets coin types
@@ -42,7 +42,7 @@ export const getIsolatedAssets = async (
     ): dynamicField is DynamicFieldInfo & {
       name: DynamicFieldName & { value: { type: { name: string } } };
     } => {
-      return dynamicField.name.type === ISOLATED_ASSET_KEY;
+      return dynamicField.name.type === isolatedAssetKeyType;
     };
 
     do {
@@ -83,7 +83,6 @@ export const isIsolatedAsset = async (
 ): Promise<boolean> => {
   try {
     const marketObject = utils.address.get('core.market');
-
     // check if the coin type is in the list
     const cachedData = utils.address.cache.queryClient.getQueryData<string[]>([
       'getDynamicFields',
@@ -100,7 +99,7 @@ export const isIsolatedAsset = async (
     const object = await utils.cache.queryGetDynamicFieldObject({
       parentId: marketObject,
       name: {
-        type: ISOLATED_ASSET_KEY,
+        type: isolatedAssetKeyType,
         value: coinType,
       },
     });

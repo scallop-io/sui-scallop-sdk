@@ -22,6 +22,7 @@ import {
   DEFAULT_TOKENS_PER_INTERVAL,
 } from 'src/constants/tokenBucket';
 import type { QueryClient } from '@tanstack/query-core';
+import { newSuiKit } from './suiKit';
 
 /**
  * @argument params - The parameters for the Scallop instance.
@@ -54,7 +55,7 @@ export class Scallop {
     queryClient?: QueryClient
   ) {
     this.params = params;
-    this.suiKit = new SuiKit(params);
+    this.suiKit = newSuiKit(params);
     this.cache = new ScallopCache(
       this.suiKit,
       params.walletAddress,
@@ -65,7 +66,7 @@ export class Scallop {
     );
     this.address = new ScallopAddress(
       {
-        id: params?.addressesId || ADDRESSES_ID,
+        id: params?.addressesId ?? ADDRESSES_ID,
         network: params?.networkType,
         forceInterface: params?.forceAddressesInterface,
       },

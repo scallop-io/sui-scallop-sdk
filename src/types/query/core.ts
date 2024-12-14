@@ -130,6 +130,7 @@ export type MarketPool = {
   coinDecimal: number;
   coinPrice: number;
   maxSupplyCoin: number;
+  maxBorrowCoin: number;
   isIsolated: boolean;
 } & Required<
   Pick<
@@ -153,6 +154,7 @@ export type MarketCollateral = {
   coinWrappedType: CoinWrappedType;
   coinDecimal: number;
   coinPrice: number;
+  isIsolated: boolean;
 } & Required<
   Pick<
     ParsedMarketCollateralData,
