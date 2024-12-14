@@ -77,10 +77,12 @@ export const getPythPrices = async (
       const pythPriceFeed = address.get(
         `core.coins.${assetCoinName}.oracle.pyth.feedObject`
       );
-      if (!prev[pythPriceFeed]) {
-        prev[pythPriceFeed] = [assetCoinName];
-      } else {
-        prev[pythPriceFeed].push(assetCoinName);
+      if (pythPriceFeed) {
+        if (!prev[pythPriceFeed]) {
+          prev[pythPriceFeed] = [assetCoinName];
+        } else {
+          prev[pythPriceFeed].push(assetCoinName);
+        }
       }
       return prev;
     },
