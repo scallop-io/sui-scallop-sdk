@@ -175,17 +175,13 @@ export const sCoinIds: types.SCoinIds = {
   ssbeth:
     '0xb14f82d8506d139eacef109688d1b71e7236bcce9b2c0ad526abcd6aa5be7de0::scallop_sb_eth::SCALLOP_SB_ETH',
   ssui: '0xaafc4f740de0dd0dde642a31148fb94517087052f19afb0f7bed1dc41a50c77b::scallop_sui::SCALLOP_SUI',
-  // '0xf569919046f19a0c40b519ecfbb6ca0319698cd5908716c29b62ef56541f298b::scallop_sui::SCALLOP_SUI',
   scetus:
     '0xea346ce428f91ab007210443efcea5f5cdbbb3aae7e9affc0ca93f9203c31f0c::scallop_cetus::SCALLOP_CETUS',
   ssca: '0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::SCALLOP_SCA',
-  // '0x958428555e778e55918a59eb1c92c77f32b5c554fa3a5e56cd0815086b5072e7::scallop_sca::SCALLOP_SCA',
   swusdc:
     '0xad4d71551d31092230db1fd482008ea42867dbf27b286e9c70a79d2a6191d58d::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
-  // '0xf5447c4305a486d8c8557559887c2c39449ddb5e748f15d33946d02a1663c158::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
   swusdt:
     '0xe6e5a012ec20a49a3d1d57bd2b67140b96cd4d3400b9d79e541f7bdbab661f95::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
-  // '0xac781d9f73058ff5e69f9bf8dde32f2e8c71c66d7fe8497fc83b2d9182254b22::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
   sweth:
     '0x67540ceb850d418679e69f1fb6b2093d6df78a2a699ffc733f7646096d552e9b::scallop_wormhole_eth::SCALLOP_WORMHOLE_ETH',
   safsui:
@@ -213,21 +209,10 @@ export const sCoinTypeToName = Object.entries(sCoinIds).reduce(
 
 // TEST VERSION
 // export const sCoinIds: types.SCoinIds = {
-//   ssui: '0xfac769100bccc0caebcf4f4e2d00ac2f8883f07f724be28940df90605f5e7e9a::scallop_sui::SCALLOP_SUI',
-//   scetus:
-//     '0x8b71e6d323ed78515af2bead13bf3d0da1562ba4a99234eb7c4f14fd39ef0427::scallop_cetus::SCALLOP_CETUS',
-//   ssca: '0x0a9d3c6c9af9f6e8def82921541bcbd17f73ed31bed3adcb684f2a4c267e42f0::scallop_sca::SCALLOP_SCA',
-//   swusdc:
-//     '0xaedc3ab75db8680b81a755015fa90124d217be93457b893c05bac033817defaf::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
-//   swusdt:
-//     '0xbf02fc87ddc104b342ad8414c85ceadf5b0c823c055a06fb0ed776272c01a52a::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
-//   sweth: '0x27d54f43e3eda701be56b82e5756e41c84467cd202f5cf713d5f9e45a9f1b6bc::scallop_wormhole_eth::SCALLOP_WORMHOLE_ETH',
-//   safsui:
-//     '0xb75b46d975d8d80670b53a6bee90baaa8ce2e0b7d397f079447d641eef6b44ad::scallop_af_sui::SCALLOP_AF_SUI',
-//   shasui:
-//     '0xd973a723874e2c7cde196602a79155a1343a933f8cf87d9b1bb7408bc1acbc58::scallop_ha_sui::SCALLOP_HA_SUI',
-//   svsui:
-//     '0x97023a317320c4498cc4cd239dd02fd30c28246e5e8f81325d63f2bd8d70f6b3::scallop_v_sui::SCALLOP_V_SUI',
+// ssui: '0xf569919046f19a0c40b519ecfbb6ca0319698cd5908716c29b62ef56541f298b::scallop_sui::SCALLOP_SUI',
+// swusdt: '0xac781d9f73058ff5e69f9bf8dde32f2e8c71c66d7fe8497fc83b2d9182254b22::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
+// swusdc: '0xf5447c4305a486d8c8557559887c2c39449ddb5e748f15d33946d02a1663c158::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
+// ssca: '0x958428555e778e55918a59eb1c92c77f32b5c554fa3a5e56cd0815086b5072e7::scallop_sca::SCALLOP_SCA',
 // } as const;
 
 // export const sCoinTreasuryCaps: types.SCoinTreasuryCaps = {
