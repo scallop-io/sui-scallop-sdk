@@ -21,6 +21,7 @@ import {
   COIN_GECKGO_IDS,
   POOL_ADDRESSES,
   sCoinTypeToName,
+  sCoinRawNameToName,
 } from '../constants';
 import { getPythPrices, queryObligation } from '../queries';
 import {
@@ -226,6 +227,16 @@ export class ScallopUtils {
   }
 
   /**
+   * Convert sCoin name to coin name.
+   * This function will parse new sCoin name `scallop_...` to its old market coin name which is shorter
+   * e.g: `scallop_sui -> ssui
+   * @return sCoin name
+   */
+  public parseCoinNameFromSCoinName(coinName: string) {
+    return sCoinRawNameToName[coinName];
+  }
+
+  /**
    * Convert sCoin name into sCoin type
    * @param sCoinName
    * @returns sCoin type
@@ -297,12 +308,13 @@ export class ScallopUtils {
   ): T extends SupportCoins ? T : SupportCoins;
   public parseCoinNameFromType(coinType: string) {
     coinType = normalizeStructTag(coinType);
+
     const coinTypeRegex = new RegExp(`((0x[^:]+::[^:]+::[^<>]+))(?![^<>]*<)`);
     const coinTypeMatch = coinType.match(coinTypeRegex);
     const isMarketCoinType = coinType.includes('reserve::MarketCoin');
     coinType = coinTypeMatch?.[1] ?? coinType;
 
-    const wormHoleCoinTypeMap: Record<string, SupportAssetCoins> = {
+    const wormholeCoinTypeMap: Record<string, SupportAssetCoins> = {
       [`${
         this.address.get('core.coins.wusdc.id') ?? wormholeCoinIds.wusdc
       }::coin::COIN`]: 'wusdc',
@@ -339,7 +351,7 @@ export class ScallopUtils {
     );
 
     const assetCoinName =
-      wormHoleCoinTypeMap[coinType] ||
+      wormholeCoinTypeMap[coinType] ||
       voloCoinTypeMap[coinType] ||
       suiBridgeTypeMap[coinType] ||
       (coinType.split('::')[2].toLowerCase() as SupportAssetCoins);

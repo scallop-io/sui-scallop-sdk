@@ -45,8 +45,9 @@ export const SUPPORT_POOLS = [
   'hasui',
   'vsui',
   'sca',
-  'fud',
-  'deep',
+  // TODO: enable for production
+  // 'fud',
+  // 'deep',
 ] as const;
 
 export const SUPPORT_COLLATERALS = [
@@ -92,8 +93,9 @@ export const SUPPORT_SCOIN = [
   'scetus',
   'swsol',
   'swbtc',
-  'sdeep',
-  'sfud',
+  // TODO: enable for production
+  // 'sdeep',
+  // 'sfud',
 ] as const;
 
 export const SUPPORT_SUI_BRIDGE = ['sbeth'] as const;
@@ -121,7 +123,10 @@ export const SUPPORT_BORROW_INCENTIVE_POOLS = [
   'usdc',
 ] as const;
 
-export const SUPPORT_BORROW_INCENTIVE_REWARDS = ['ssui', 'ssca'] as const;
+export const SUPPORT_BORROW_INCENTIVE_REWARDS = [
+  ...SUPPORT_POOLS,
+  ...SUPPORT_SCOIN,
+] as const;
 export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
 
 export const SUPPORT_PACKAGES = [

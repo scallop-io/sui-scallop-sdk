@@ -47,6 +47,7 @@ import {
   getSCoinAmounts,
   getSCoinSwapRate,
   getSCoinTotalSupply,
+  getAllCoinPrices,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -537,12 +538,13 @@ export class ScallopQuery {
   public async getBorrowIncentivePools(
     coinNames?: SupportBorrowIncentiveCoins[],
     indexer: boolean = false,
-    args?: { coinPrices: CoinPrices }
+    args?: { marketPools?: MarketPools; coinPrices?: CoinPrices }
   ) {
     return await getBorrowIncentivePools(
       this,
       coinNames,
       indexer,
+      args?.marketPools,
       args?.coinPrices
     );
   }
@@ -816,5 +818,16 @@ export class ScallopQuery {
    */
   public async getCoinPriceByIndexer(poolName: SupportPoolCoins) {
     return this.indexer.getCoinPrice(poolName);
+  }
+
+  /**
+   * Get all coin prices, including sCoin
+   * @returns prices data
+   */
+  public async getAllCoinPrices(args?: {
+    marketPools?: MarketPools;
+    coinPrices?: CoinPrices;
+  }) {
+    return getAllCoinPrices(this, args?.marketPools, args?.coinPrices);
   }
 }

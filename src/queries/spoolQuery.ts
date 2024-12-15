@@ -71,7 +71,6 @@ export const getSpools = async (
     };
     Object.values(spoolsIndexer).forEach(updateSpools);
 
-    // console.log(spools);
     return spools;
   }
 
@@ -122,7 +121,7 @@ export const getSpool = async (
     `spool.pools.${marketCoinName}.rewardPoolId`
   );
   let spool: Spool | undefined = undefined;
-  coinPrices = coinPrices || (await query.utils.getCoinPrices([coinName]));
+  coinPrices = coinPrices || (await query.utils.getCoinPrices());
 
   if (indexer) {
     const spoolIndexer = await query.indexer.getSpool(marketCoinName);
@@ -152,8 +151,7 @@ export const getSpool = async (
   }
 
   const rewardCoinName = query.utils.getSpoolRewardCoinName(marketCoinName);
-  coinPrices =
-    coinPrices || (await query.utils.getCoinPrices([coinName, rewardCoinName]));
+  coinPrices = coinPrices || (await query.utils.getCoinPrices());
 
   const spoolObject = spoolObjectResponse[0];
   const rewardPoolObject = spoolObjectResponse[1];
