@@ -16,6 +16,8 @@ export const coinDecimals: types.SupportCoinDecimals = {
   hasui: 9,
   vsui: 9,
   sca: 9,
+  deep: 6,
+  fud: 5,
   susdc: 6,
   sweth: 8,
   ssbeth: 8,
@@ -30,6 +32,8 @@ export const coinDecimals: types.SupportCoinDecimals = {
   shasui: 9,
   svsui: 9,
   ssca: 9,
+  sdeep: 6,
+  sfud: 5,
 };
 
 export const assetCoins: types.AssetCoins = {
@@ -47,6 +51,8 @@ export const assetCoins: types.AssetCoins = {
   hasui: 'hasui',
   vsui: 'vsui',
   sca: 'sca',
+  deep: 'deep',
+  fud: 'fud',
 };
 
 export const marketCoins: types.MarketCoins = {
@@ -64,6 +70,8 @@ export const marketCoins: types.MarketCoins = {
   shasui: 'shasui',
   svsui: 'svsui',
   ssca: 'ssca',
+  sdeep: 'sdeep',
+  sfud: 'sfud',
 };
 
 export const sCoins: types.SCoins = {
@@ -80,6 +88,8 @@ export const sCoins: types.SCoins = {
   ssca: 'ssca',
   swsol: 'swsol',
   swbtc: 'swbtc',
+  sfud: 'sfud',
+  sdeep: 'sdeep',
 };
 
 export const stakeMarketCoins: types.StakeMarketCoins = {
@@ -140,6 +150,9 @@ export const coinIds: types.AssetCoinIds = {
   sca: IS_VE_SCA_TEST
     ? '0x6cd813061a3adf3602b76545f076205f0c8e7ec1d3b1eab9a1da7992c18c0524'
     : '0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6',
+  // isolated assets
+  deep: '0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270',
+  fud: '0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1',
 };
 
 export const wormholeCoinIds: types.WormholeCoinIds = {
@@ -181,25 +194,25 @@ export const sCoinIds: types.SCoinIds = {
     '0x1392650f2eca9e3f6ffae3ff89e42a3590d7102b80e2b430f674730bc30d3259::scallop_wormhole_sol::SCALLOP_WORMHOLE_SOL',
   swbtc:
     '0x2cf76a9cf5d3337961d1154283234f94da2dcff18544dfe5cbdef65f319591b5::scallop_wormhole_btc::SCALLOP_WORMHOLE_BTC',
+  sdeep:
+    '0xeb7a05a3224837c5e5503575aed0be73c091d1ce5e43aa3c3e716e0ae614608f::scallop_deep::SCALLOP_DEEP',
+  sfud: '0xe56d5167f427cbe597da9e8150ef5c337839aaf46891d62468dcf80bdd8e10d1::scallop_fud::SCALLOP_FUD',
 } as const;
+
+export const sCoinTypeToName = Object.entries(sCoinIds).reduce(
+  (acc, [coinName, coinType]) => {
+    acc[coinType] = coinName as types.SupportSCoin;
+    return acc;
+  },
+  {} as Record<string, types.SupportSCoin>
+);
 
 // TEST VERSION
 // export const sCoinIds: types.SCoinIds = {
-//   ssui: '0xfac769100bccc0caebcf4f4e2d00ac2f8883f07f724be28940df90605f5e7e9a::scallop_sui::SCALLOP_SUI',
-//   scetus:
-//     '0x8b71e6d323ed78515af2bead13bf3d0da1562ba4a99234eb7c4f14fd39ef0427::scallop_cetus::SCALLOP_CETUS',
-//   ssca: '0x0a9d3c6c9af9f6e8def82921541bcbd17f73ed31bed3adcb684f2a4c267e42f0::scallop_sca::SCALLOP_SCA',
-//   swusdc:
-//     '0xaedc3ab75db8680b81a755015fa90124d217be93457b893c05bac033817defaf::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
-//   swusdt:
-//     '0xbf02fc87ddc104b342ad8414c85ceadf5b0c823c055a06fb0ed776272c01a52a::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
-//   sweth: '0x27d54f43e3eda701be56b82e5756e41c84467cd202f5cf713d5f9e45a9f1b6bc::scallop_wormhole_eth::SCALLOP_WORMHOLE_ETH',
-//   safsui:
-//     '0xb75b46d975d8d80670b53a6bee90baaa8ce2e0b7d397f079447d641eef6b44ad::scallop_af_sui::SCALLOP_AF_SUI',
-//   shasui:
-//     '0xd973a723874e2c7cde196602a79155a1343a933f8cf87d9b1bb7408bc1acbc58::scallop_ha_sui::SCALLOP_HA_SUI',
-//   svsui:
-//     '0x97023a317320c4498cc4cd239dd02fd30c28246e5e8f81325d63f2bd8d70f6b3::scallop_v_sui::SCALLOP_V_SUI',
+// ssui: '0xf569919046f19a0c40b519ecfbb6ca0319698cd5908716c29b62ef56541f298b::scallop_sui::SCALLOP_SUI',
+// swusdt: '0xac781d9f73058ff5e69f9bf8dde32f2e8c71c66d7fe8497fc83b2d9182254b22::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
+// swusdc: '0xf5447c4305a486d8c8557559887c2c39449ddb5e748f15d33946d02a1663c158::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
+// ssca: '0x958428555e778e55918a59eb1c92c77f32b5c554fa3a5e56cd0815086b5072e7::scallop_sca::SCALLOP_SCA',
 // } as const;
 
 // export const sCoinTreasuryCaps: types.SCoinTreasuryCaps = {

@@ -5,17 +5,17 @@ export const TEST_ADDRESSES: AddressesInterface = {
     // version:
     //   '0x07871c4b3c847a0f674510d4978d5cf6f960452795e8ff6f189fd2088a3f6ac7',
     version:
-      '0x6156d5cd1538bec8a167a40fe1209a4ec9cf8137921fe0a697f191ac561f0b09',
+      '0xd318de9b0f6873879a82cbfcc2daa1d1591a8b54e7cea9f4b567da63c692a52b',
     versionCap:
       '0x590a4011cb649b3878f3ea14b3a78674642a9548d79b7e091ef679574b158a07',
     // object:
     //   '0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf',
     object:
-      '0x87ddec2984645dbbe2403a509cc6edf393a43acdba9b77d45da2bcbefcf733c1',
+      '0x6c23585e940a989588432509107e98bae06dbca4e333f26d0635d401b3c7c76d',
     // market:
     //   '0xa757975255146dc9686aa823b7838b507f315d704f428cbadad2f4ea061939d9',
     market:
-      '0x8606ed145cc887985b8ed793f7753ff5dc762a42c379dac035f568e1bac58490',
+      '0x9d6434e97f3f98fd9b0c0e1dca22632073985abcd22541feae7ee1e34cbe3af2',
     adminCap:
       '0x09689d018e71c337d9db6d67cbca06b74ed92196103624028ccc3ecea411777c',
     coinDecimalsRegistry:
@@ -23,8 +23,23 @@ export const TEST_ADDRESSES: AddressesInterface = {
     // obligationAccessStore:
     //   '0x733e30b7c94d619d78cb8f5bc4bfbb759ced9a531239028caabb2474e5be59c9',
     obligationAccessStore:
-      '0x48b472d68ca910c45f7f3b6c26836b6aa6d2569810d94b1b939023da05ae0a23',
+      '0x46e9b44a77ee9c9d33cc2689ecdfbb8f681935cbc6bdf6ac3df048e396c36c82',
     coins: {
+      usdc: {
+        id: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7',
+        metaData:
+          '0x69b7a7c3c200439c1b5f3b19d7d495d5966d5f08de66c69276152f8db3992ec6',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: 'eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a',
+            feedObject:
+              '0x5dec622733a204ca27f5a90d8c2fad453cc6665186fd5dff13a83d0b6c9027ab',
+          },
+        },
+      },
       cetus: {
         id: '0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b',
         metaData:
@@ -206,6 +221,21 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
+      sbeth: {
+        id: '0xd0e89b2af5e4910726fbcd8b8dd37bb79b29e5f83f7491bca830e94f7f226d29',
+        metaData:
+          '0x89b04ba87f8832d4d76e17a1c9dce72eb3e64d372cf02012b8d2de5384faeef0',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: 'ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace',
+            feedObject:
+              '0x9193fd47f9a0ab99b6e365a464c8a9ae30e6150fc37ed2a89c1586631f6fc4ab',
+          },
+        },
+      },
     },
     oracles: {
       xOracle:
@@ -249,7 +279,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0x3f203f6fff6a69d151e4f1cd931f22b68c489ef2759765662fc7baf673943c9e',
       },
       protocol: {
-        id: '0x87ddec2984645dbbe2403a509cc6edf393a43acdba9b77d45da2bcbefcf733c1',
+        id: '0xb784ea287d944e478a3ceaa071f8885072cce6b7224cf245914dc2f9963f460e',
         upgradeCap:
           '0x38527d154618d1fd5a644b90717fe07cf0e9f26b46b63e9568e611a3f86d5c1a',
       },
@@ -269,7 +299,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
       //     '0x0d535c35f608b9b01b7ccce11acf43b1dd80c1b72bf8b541744a6e28e8d2745f',
       // },
       query: {
-        id: '0xe4f9d62d17746d5b9dbf0d5557747430021a71575780b515161210cdba0a4c1c',
+        id: '0x89706958f43fb170de134579e3fbc53972b946ee78bd2442d8e1adc36074fbdc',
         upgradeCap:
           '0x0d535c35f608b9b01b7ccce11acf43b1dd80c1b72bf8b541744a6e28e8d2745f',
       },
@@ -309,6 +339,11 @@ export const TEST_ADDRESSES: AddressesInterface = {
         rewardPoolId:
           // '0x162250ef72393a4ad3d46294c4e1bdfcb03f04c869d390e7efbfc995353a7ee9',
           '0xc3206071a8d43212efb6e3b5504f2321f8df97ab122b466c0bc7cfdf398dc13a',
+      },
+      susdc: {
+        id: '0x0b5f5f413bd3799e4052c37311966c77f3a4545eb125d2e93e67a68478021918',
+        rewardPoolId:
+          '0x85ed6ed72ea97c35dbf0cdc7ed6fbc48d8ec15de9b17c74bf4512df8a6d7f166',
       },
       swusdc: {
         // id: '0x4ace6648ddc64e646ba47a957c562c32c9599b3bba8f5ac1aadb2ae23a2f8ca0',
@@ -354,35 +389,35 @@ export const TEST_ADDRESSES: AddressesInterface = {
     config: '',
   },
   borrowIncentive: {
-    id: '0x6152f696fc3a658f33c4b891764731a59153125ffedfa8bff7167c42823f58a9',
+    id: '0x85769d63565ce99c7622f8e336ca1460926ddf29738ad2a39407b5cac29f61fe',
     adminCap:
-      '0xc486afa253646f4d381e81d7f1df8aa4723b845a6bb356f69bad635ffefffe2c',
+      '0x56ac8e6f2b360b2b35c0168d72cc6cd17d9592afb83709865cb87af24bb2025b',
     object:
-      '0x002875153e09f8145ab63527bc85c00f2bd102e12f9573c47f8cdf1a1cb62934',
-    query: '0x529edc54a3dce2207703ceebbccb0ac14133f7825c1f528775ba0d85a4063489',
+      '0x85769d63565ce99c7622f8e336ca1460926ddf29738ad2a39407b5cac29f61fe',
+    query: '0x8e0d00f8ff1199d7c5fe56cea0e901a525daeefff0445a1635ace8282ae3302c',
     incentivePools:
-      '0x6547e143d406b5ccd5f46aae482497de279cc1a68c406f701df70a05f9212ab4',
+      '0x9d564c93128c6ab0c0d3e050a47f11df0b91494f3bb779bdc1301c1c637f15eb',
     incentiveAccounts:
-      '0xc4701fdbc1c92f9a636d334d66012b3027659e9fb8aff27279a82edfb6b77d02',
+      '0x09e6040e798246de04941bc79a3ba62d3eca6d7a218cc30f21fb07f478fa2926',
     config:
-      '0xdf5d04b4691cc67e82fd4db8394d89ff44823a9de29716c924f74bb4f11cc1f7',
+      '0x43d4ca1dfc90b161c4240facd119e74e4b850cca2957f88c2ec289c9380da064',
   },
   referral: {
-    id: '0xa3654ebb63eb06c0f4ff52f8aa6512df9f164f7772bdf15dac3709bd3798dda9',
+    id: '0x1bf5a8ce77050d8052549d743e16b469f15aa6b81b752b78b6ebb65179665f5a',
     object:
       '0x5658d4bf5ddcba27e4337b4262108b3ad1716643cac8c2054ac341538adc72ec',
     adminCap:
       '0xc5dc06b9074291259f2cac460c940012c781c4430e42125c541cc43101c3bcbd',
     referralBindings:
-      '0xf63299d58789d99de94092b9011323466e55ca0c1ea1a7a3786a589af46e1c09',
+      '0xcf184487782bed962bf678001efe775d31fb94b9992333a57594cf15d79d5ced',
     bindingTableId:
-      '0x1c8202b17267ec8d6cf97ca013615354181a04f179570e42601ff2dae19294b1',
+      '0x41a50e258c0a266ce84e0e1a618dbf70b878cc943909e613089a50afcceb2bc0',
     referralRevenuePool:
-      '0x6abd852caf90769c1b185cdf636d841673fa95528f0550f018b8a138bd283c07',
+      '0xc24e3e5e37032f29a3dd91a9a1f057af8821b7e6c148e9683900ac8b6d30f0c6',
     revenueTableId:
       '0x595baa3654c297bff84ab7786a2d250f019cefc66e8df8e89fd9d41e02bd30dd',
     referralTiers:
-      '0x962cb903d8d7346190c5204785ccbb91b61086aa764f674c8145df82335cf83e',
+      '0x144350f3db9b46d11b140084cd54e6de0b9c3b8d265ce8059b51d0ef58ea464b',
     tiersTableId:
       '0xeac755a7a8b7798530905ac79e8c114f19d0f130f6eab012954f08faac29c75d',
     // authorizedWitnessList:
@@ -390,21 +425,21 @@ export const TEST_ADDRESSES: AddressesInterface = {
     authorizedWitnessList:
       '0x9d6223dc52015b8a3986a573590ef2af8f1b8f3e4685513888c052f001b87e7f',
     version:
-      '0x1bd4b7285f72e11c316b828c7c47b3f4da18dcec9f9b3dba6d8629cbb6f93e5e',
+      '0x3545849eb97723e676a476ec9d4fe5f2eb0eb2c6b78972851114fd4c7ed4639f',
   },
   vesca: {
-    id: '0xb15b6e0cdd85afb5028bea851dd249405e734d800a259147bbc24980629723a4',
+    id: '0x1158813b32962c2d22888fae257d5f2365b03631f0cd5d5b912ccdf51ff4e2f2',
     object:
-      '0xb15b6e0cdd85afb5028bea851dd249405e734d800a259147bbc24980629723a4',
+      '0x1158813b32962c2d22888fae257d5f2365b03631f0cd5d5b912ccdf51ff4e2f2',
     adminCap:
       '0x8ffa76135c5b85c5fbd73a6448a4a733d826cb63a267ab817656acb77c72d4a5',
     tableId:
-      '0xe3153b2bf124be0b86cb8bd468346a861efd0da52fc42197b54d2f616488a311',
-    table: '0x611cb8d9d4d90867467b5ebdf4cc447a0047ed5b01334a28a29fcfe733e3d609',
+      '0x0a0b7f749baeb61e3dfee2b42245e32d0e6b484063f0a536b33e771d573d7246',
+    table: '0xd3a4632b1080f7d96e1c2487d4dabf2c1196916937c505a69954ac9f393be8d0',
     treasury:
-      '0xe8c112c09b88158dc6c8e23d1fbae5b3c7136cdee54b7dafc08e65db28c4a5bc',
+      '0xafa4b6231e49c15a22d641ce33fda761baaf650fa21899dfa2eb1716146e7306',
     config:
-      '0xe0a2ff281e73c1d53cfa85807080f87e833e4f1a7f93dcf8800b3865269a76b9',
+      '0x7cbcb0a342179577a117dfdff974cf1ab765d3b571067bf22ddf5f9e3a667922',
   },
   loyaltyProgram: {
     id: '0xd17bcf8b5a59652c36225d478564a8593ae0ed7d650bcacdda1d6fe179127907',
@@ -416,13 +451,13 @@ export const TEST_ADDRESSES: AddressesInterface = {
       '0x748a80395849ed37db1b0e14f2ab5d1d96458d2359ab3a84eb079d0f4ac7cf2e',
   },
   scoin: {
-    id: '0xad2ca2aa5089df94bb2d444d5eb3520378c2f2dfb3a0bd2a2c994145ac4b0a53',
+    id: '0x773dab39c90fe05439b06a2d061795e52a974ff92c2aef90b2ee467acf7f33c8',
     coins: {
       ssui: {
         coinType:
-          '0xfac769100bccc0caebcf4f4e2d00ac2f8883f07f724be28940df90605f5e7e9a::scallop_sui::SCALLOP_SUI',
+          '0xf569919046f19a0c40b519ecfbb6ca0319698cd5908716c29b62ef56541f298b::scallop_sui::SCALLOP_SUI',
         treasury:
-          '0x9cb4551b36c17d37e19d700147fa819ea1c487ff8bcf18374de2cceb2e9d4845',
+          '0x0e499640a12c38dd9cc44532f5bc5fd1b6da86d2f9a8810357250f4b26e9e5c7',
       },
       scetus: {
         coinType:
@@ -432,21 +467,21 @@ export const TEST_ADDRESSES: AddressesInterface = {
       },
       ssca: {
         coinType:
-          '0x0a9d3c6c9af9f6e8def82921541bcbd17f73ed31bed3adcb684f2a4c267e42f0::scallop_sca::SCALLOP_SCA',
+          '0x958428555e778e55918a59eb1c92c77f32b5c554fa3a5e56cd0815086b5072e7::scallop_sca::SCALLOP_SCA',
         treasury:
-          '0xe818636d1d6c46d6ea1a2dce9d94696d7cbc18ce27451b603eeaa47aba8d75e0',
+          '0x5f1c5de1df7341075d119570269b7b452af50afe8363080638f1ae29a554c038',
       },
       swusdc: {
         coinType:
-          '0xaedc3ab75db8680b81a755015fa90124d217be93457b893c05bac033817defaf::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
+          '0xf5447c4305a486d8c8557559887c2c39449ddb5e748f15d33946d02a1663c158::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
         treasury:
-          '0xfc6971648f867f7fd6928d1b873af71577e2eaf2c7543ef8bc82c431d833ae78',
+          '0x471fbab72578bab577263006fe32543b6e76153fffa2bef69affe4bc4934258f',
       },
       swusdt: {
         coinType:
-          '0xbf02fc87ddc104b342ad8414c85ceadf5b0c823c055a06fb0ed776272c01a52a::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
+          '0xac781d9f73058ff5e69f9bf8dde32f2e8c71c66d7fe8497fc83b2d9182254b22::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
         treasury:
-          '0xb9593e2c3a0ba796ee815012b75ae46468ea78cda0188b9ac6816efe65503521',
+          '0x921a4ed4bb4b4f11f51a462c83f4c0f6b60a90e441d1bc0d26d6fd893146bf4d',
       },
       sweth: {
         coinType:
@@ -470,7 +505,13 @@ export const TEST_ADDRESSES: AddressesInterface = {
         coinType:
           '0x97023a317320c4498cc4cd239dd02fd30c28246e5e8f81325d63f2bd8d70f6b3::scallop_v_sui::SCALLOP_V_SUI',
         treasury:
-          '0x327114f0bf3559d7e2de10282147ed76a236c7c6775029165c4db09a6062ead6ƒ',
+          '0x327114f0bf3559d7e2de10282147ed76a236c7c6775029165c4db09a6062ead6',
+      },
+      ssbeth: {
+        coinType:
+          '0xb14f82d8506d139eacef109688d1b71e7236bcce9b2c0ad526abcd6aa5be7de0::scallop_sb_eth::SCALLOP_SB_ETH',
+        treasury:
+          '0xfd0f02def6358a1f266acfa1493d4707ee8387460d434fb667d63d755ff907ed',
       },
     },
   },
