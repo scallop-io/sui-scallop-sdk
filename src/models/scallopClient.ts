@@ -34,6 +34,7 @@ import type {
   ScallopClientVeScaReturnType,
   ScallopClientInstanceParams,
 } from '../types';
+import { newSuiKit } from './suiKit';
 
 /**
  * @description
@@ -64,9 +65,9 @@ export class ScallopClient {
   ) {
     this.params = params;
     this.suiKit =
-      instance?.suiKit ?? instance?.builder?.suiKit ?? new SuiKit(params);
+      instance?.suiKit ?? instance?.builder?.suiKit ?? newSuiKit(params);
     this.walletAddress = normalizeSuiAddress(
-      params?.walletAddress || this.suiKit.currentAddress()
+      params?.walletAddress ?? this.suiKit.currentAddress()
     );
 
     if (instance?.builder) {
@@ -83,7 +84,7 @@ export class ScallopClient {
       );
       this.address = new ScallopAddress(
         {
-          id: params?.addressesId || ADDRESSES_ID,
+          id: params?.addressesId ?? ADDRESSES_ID,
           network: params?.networkType,
           forceInterface: params?.forceAddressesInterface,
         },
@@ -142,7 +143,7 @@ export class ScallopClient {
    * @return Obligations data.
    */
   public async getObligations(ownerAddress?: string) {
-    const owner = ownerAddress || this.walletAddress;
+    const owner = ownerAddress ?? this.walletAddress;
     return await this.query.getObligations(owner);
   }
 
@@ -169,7 +170,7 @@ export class ScallopClient {
    * @return All stake accounts data.
    */
   async getAllStakeAccounts(ownerAddress?: string) {
-    const owner = ownerAddress || this.walletAddress;
+    const owner = ownerAddress ?? this.walletAddress;
     return await this.query.getAllStakeAccounts(owner);
   }
 
@@ -187,7 +188,7 @@ export class ScallopClient {
     stakeMarketCoinName: SupportStakeMarketCoins,
     ownerAddress?: string
   ) {
-    const owner = ownerAddress || this.walletAddress;
+    const owner = ownerAddress ?? this.walletAddress;
     return await this.query.getStakeAccounts(stakeMarketCoinName, owner);
   }
 
@@ -272,11 +273,11 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const obligations = await this.query.getObligations(sender);
-    const specificObligationId = obligationId || obligations[0]?.id;
+    const specificObligationId = obligationId ?? obligations[0]?.id;
     if (specificObligationId) {
       await txBlock.addCollateralQuick(
         amount,
@@ -319,7 +320,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const collateralCoin = await txBlock.takeCollateralQuick(
@@ -365,7 +366,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const sCoin = await txBlock.depositQuick(amount, poolCoinName);
@@ -409,14 +410,14 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const stakeMarketCoinName =
       this.utils.parseMarketCoinName<SupportStakeMarketCoins>(stakeCoinName);
     const stakeAccounts =
       await this.query.getStakeAccounts(stakeMarketCoinName);
-    const targetStakeAccount = stakeAccountId || stakeAccounts[0]?.id;
+    const targetStakeAccount = stakeAccountId ?? stakeAccounts[0]?.id;
 
     const marketCoin = await txBlock.depositQuick(amount, stakeCoinName, false);
     if (targetStakeAccount) {
@@ -466,7 +467,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const coin = await txBlock.withdrawQuick(amount, poolCoinName);
@@ -501,7 +502,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const availableStake = (
@@ -549,7 +550,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const availableStake = (
@@ -610,7 +611,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
     const [coin, loan] = txBlock.borrowFlashLoan(amount, poolCoinName);
     txBlock.repayFlashLoan(await callback(txBlock, coin), loan, poolCoinName);
@@ -647,7 +648,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const stakeAccount = txBlock.createStakeAccount(marketCoinName);
@@ -691,12 +692,12 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const stakeAccounts =
       await this.query.getStakeAccounts(stakeMarketCoinName);
-    const targetStakeAccount = stakeAccountId || stakeAccounts[0]?.id;
+    const targetStakeAccount = stakeAccountId ?? stakeAccounts[0]?.id;
     if (targetStakeAccount) {
       await txBlock.stakeQuick(amount, stakeMarketCoinName, targetStakeAccount);
     } else {
@@ -743,7 +744,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const sCoin = await txBlock.unstakeQuick(
@@ -802,7 +803,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const stakeMarketCoin = await txBlock.unstakeQuick(
@@ -863,7 +864,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const rewardCoins = await txBlock.claimQuick(
@@ -899,7 +900,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     await txBlock.stakeObligationWithVeScaQuick(obligationId, obligationKeyId);
@@ -929,7 +930,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     await txBlock.unstakeObligationQuick(obligationId, obligationKeyId);
@@ -961,7 +962,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress || this.walletAddress;
+    const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
     const rewardCoins = [];
@@ -1186,7 +1187,7 @@ export class ScallopClient {
     }
 
     const txBlock = this.builder.createTxBlock();
-    const recipient = receiveAddress || this.walletAddress;
+    const recipient = receiveAddress ?? this.walletAddress;
     const packageId = this.address.get('core.packages.testCoin.id');
     const treasuryId = this.address.get(`core.coins.${assetCoinName}.treasury`);
     const target = `${packageId}::${assetCoinName}::mint`;

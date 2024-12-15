@@ -19,6 +19,8 @@ import type {
   BorrowIncentivePoolPoints,
   OptionalKeys,
   BorrowIncentivePool,
+  CoinPrices,
+  MarketPools,
 } from '../types';
 import BigNumber from 'bignumber.js';
 
@@ -56,22 +58,16 @@ export const getBorrowIncentivePools = async (
   borrowIncentiveCoinNames: SupportBorrowIncentiveCoins[] = [
     ...SUPPORT_BORROW_INCENTIVE_POOLS,
   ],
-  indexer: boolean = false
+  indexer: boolean = false,
+  marketPools?: MarketPools,
+  coinPrices?: CoinPrices
 ) => {
   const borrowIncentivePools: BorrowIncentivePools = {};
-  const borrowIncentiveRewardCoinNames = SUPPORT_BORROW_INCENTIVE_REWARDS.map(
-    (t) => query.utils.parseCoinName(t)
-  );
+  coinPrices = coinPrices ?? (await query.utils.getCoinPrices());
+  marketPools =
+    marketPools ??
+    (await query.getMarketPools(undefined, false, { coinPrices }));
 
-  const [coinPrices, marketPools] = await Promise.all([
-    query.utils.getCoinPrices([
-      ...new Set([
-        ...borrowIncentiveCoinNames,
-        ...borrowIncentiveRewardCoinNames,
-      ]),
-    ]),
-    query.getMarketPools(borrowIncentiveRewardCoinNames),
-  ]);
   if (indexer) {
     const borrowIncentivePoolsIndexer =
       await query.indexer.getBorrowIncentivePools();
