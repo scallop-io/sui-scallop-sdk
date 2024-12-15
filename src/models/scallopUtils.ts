@@ -8,7 +8,6 @@ import {
   SUPPORT_POOLS,
   SUPPORT_COLLATERALS,
   spoolRewardCoins,
-  borrowIncentiveRewardCoins,
   coinDecimals,
   wormholeCoinIds,
   voloCoinIds,
@@ -41,7 +40,6 @@ import type {
   SupportAssetCoins,
   SupportMarketCoins,
   SupportStakeMarketCoins,
-  SupportBorrowIncentiveCoins,
   CoinPrices,
   CoinWrappedType,
   SupportSCoin,
@@ -159,6 +157,10 @@ export class ScallopUtils {
    * @return Coin type.
    */
   public parseCoinType(coinName: SupportCoins) {
+    // try parse scoin first
+    if (sCoinIds[coinName as SupportSCoin]) {
+      return sCoinIds[coinName as SupportSCoin];
+    }
     coinName = isMarketCoin(coinName) ? this.parseCoinName(coinName) : coinName;
     const coinPackageId =
       this.address.get(`core.coins.${coinName}.id`) ||
@@ -393,18 +395,6 @@ export class ScallopUtils {
     stakeMarketCoinName: SupportStakeMarketCoins
   ) => {
     return spoolRewardCoins[stakeMarketCoinName];
-  };
-
-  /**
-   * Get reward type of borrow incentive pool.
-   *
-   * @param borrowIncentiveCoinName - Support borrow incentive coin.
-   * @return Borrow incentive reward coin name.
-   */
-  public getBorrowIncentiveRewardCoinName = (
-    borrowIncentiveCoinName: SupportBorrowIncentiveCoins
-  ) => {
-    return borrowIncentiveRewardCoins[borrowIncentiveCoinName];
   };
 
   /**
