@@ -50,7 +50,7 @@ export const getLendings = async (
     (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName)
   ) as SupportStakeMarketCoins[];
 
-  const coinPrices = await query.utils.getCoinPrices(poolCoinNames);
+  const coinPrices = await query.utils.getCoinPrices();
   const marketPools = await query.getMarketPools(poolCoinNames, indexer, {
     coinPrices,
   });
@@ -122,9 +122,7 @@ export const getLending = async (
 ) => {
   const marketCoinName = query.utils.parseMarketCoinName(poolCoinName);
   coinPrice =
-    coinPrice ??
-    (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName] ??
-    0;
+    coinPrice ?? (await query.utils.getCoinPrices())?.[poolCoinName] ?? 0;
 
   marketPool =
     marketPool ??
@@ -355,8 +353,7 @@ export const getObligationAccount = async (
   const collateralAssetCoinNames: SupportCollateralCoins[] = [
     ...SUPPORT_COLLATERALS,
   ];
-  coinPrices =
-    coinPrices ?? (await query.utils.getCoinPrices(collateralAssetCoinNames));
+  coinPrices = coinPrices ?? (await query.utils.getCoinPrices());
   market = market ?? (await query.queryMarket(indexer, { coinPrices }));
   coinAmounts =
     coinAmounts ||

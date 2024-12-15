@@ -1,6 +1,14 @@
 import { SuiObjectData } from '@mysten/sui/client';
-import type { ScallopAddress } from '../models';
-import type { SupportAssetCoins } from '../types';
+import type { ScallopAddress, ScallopQuery } from '../models';
+import type {
+  CoinPrices,
+  MarketPools,
+  OptionalKeys,
+  SupportAssetCoins,
+  SupportSCoin,
+} from '../types';
+import { SUPPORT_SCOIN } from 'src/constants/common';
+import BigNumber from 'bignumber.js';
 
 /**
  * Get price from pyth fee object.
@@ -125,4 +133,30 @@ export const getPythPrices = async (
     },
     {} as Record<SupportAssetCoins, number>
   );
+};
+
+export const getAllCoinPrices = async (
+  query: ScallopQuery,
+  marketPools?: MarketPools,
+  coinPrices?: CoinPrices
+) => {
+  coinPrices = coinPrices ?? (await query.utils.getCoinPrices());
+  marketPools =
+    marketPools ??
+    (await query.getMarketPools(undefined, undefined, { coinPrices }));
+  if (!marketPools) {
+    throw new Error(`Failed to fetch market pool for getAllCoinPrices`);
+  }
+  const sCoinPrices: OptionalKeys<Record<SupportSCoin, number>> = {};
+  SUPPORT_SCOIN.forEach((sCoinName) => {
+    const coinName = query.utils.parseCoinName(sCoinName);
+    sCoinPrices[sCoinName] = BigNumber(coinPrices[coinName] ?? 0)
+      .multipliedBy(marketPools[coinName]?.conversionRate ?? 1)
+      .toNumber();
+  });
+
+  return {
+    ...coinPrices,
+    ...sCoinPrices,
+  };
 };
