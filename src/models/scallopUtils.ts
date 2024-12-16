@@ -232,13 +232,14 @@ export class ScallopUtils {
   }
 
   /**
-   * Convert sCoin name to coin name.
+   * Convert sCoin name to market coin name.
    * This function will parse new sCoin name `scallop_...` to its old market coin name which is shorter
    * e.g: `scallop_sui -> ssui
+   * if no `scallop_...` is encountered, return coinName
    * @return sCoin name
    */
-  public parseCoinNameFromSCoinName(coinName: string) {
-    return sCoinRawNameToName[coinName];
+  public parseSCoinTypeNameToMarketCoinName(coinName: string) {
+    return sCoinRawNameToName[coinName] ?? coinName;
   }
 
   /**
@@ -311,8 +312,14 @@ export class ScallopUtils {
   public parseCoinNameFromType<T extends SupportCoins>(
     coinType: string
   ): T extends SupportCoins ? T : SupportCoins;
+  public parseCoinNameFromType<T extends SupportSCoin>(
+    coinType: string
+  ): T extends SupportSCoin ? T : SupportSCoin;
   public parseCoinNameFromType(coinType: string) {
     coinType = normalizeStructTag(coinType);
+    if (sCoinTypeToName[coinType]) {
+      return sCoinTypeToName[coinType] as SupportSCoin;
+    }
 
     const coinTypeRegex = new RegExp(`((0x[^:]+::[^:]+::[^<>]+))(?![^<>]*<)`);
     const coinTypeMatch = coinType.match(coinTypeRegex);

@@ -1,6 +1,5 @@
 import BigNumber from 'bignumber.js';
 import {
-  sCoinRawNameToName,
   SUPPORT_COLLATERALS,
   SUPPORT_POOLS,
   SUPPORT_SPOOLS,
@@ -532,7 +531,9 @@ export const getObligationAccount = async (
       Object.entries(borrowIncentiveAccount.pointList).forEach(
         ([key, accountPoint]) => {
           const poolPoint =
-            borrowIncentivePool.points[sCoinRawNameToName[key] ?? key];
+            borrowIncentivePool.points[
+              query.utils.parseSCoinTypeNameToMarketCoinName(key)
+            ];
 
           if (accountPoint && poolPoint) {
             let availableClaimAmount = BigNumber(0);
