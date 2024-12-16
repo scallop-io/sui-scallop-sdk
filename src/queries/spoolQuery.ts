@@ -43,7 +43,7 @@ export const getSpools = async (
   coinPrices = coinPrices ?? (await query.utils.getCoinPrices()) ?? {};
 
   marketPools =
-    marketPools ?? (await query.getMarketPools(stakeCoinNames, indexer));
+    marketPools ?? (await query.getMarketPools(stakeCoinNames, { indexer }));
   if (!marketPools)
     throw new Error(`Fail to fetch marketPools for ${stakeCoinNames}`);
 
@@ -111,7 +111,7 @@ export const getSpool = async (
   coinPrices?: CoinPrices
 ) => {
   const coinName = query.utils.parseCoinName<SupportStakeCoins>(marketCoinName);
-  marketPool = marketPool || (await query.getMarketPool(coinName, indexer));
+  marketPool = marketPool || (await query.getMarketPool(coinName, { indexer }));
   if (!marketPool) {
     throw new Error(`Failed to fetch marketPool for ${marketCoinName}`);
   }
