@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.4...v1.4.0) (2024-12-16)
+
+### ⚠ BREAKING CHANGES
+
+- All `indexer` parameters are moved into object parameters called `args` ([0112d9a](https://github.com/scallop-io/sui-scallop-sdk/commit/0112d9a8cf2013a54f7ce82cb742c77ab81504fd))
+
 ### [1.3.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.3.3...v1.3.4) (2024-12-14)
 
 ### ⚠ BREAKING CHANGES
