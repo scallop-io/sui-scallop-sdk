@@ -25,6 +25,7 @@ import type {
   SupportBorrowIncentiveCoins,
   ObligationBorrowIcentiveReward,
   SupportBorrowIncentiveRewardCoins,
+  SupportAssetCoins,
 } from '../types';
 
 /**
@@ -349,15 +350,18 @@ export const getObligationAccount = async (
   coinPrices?: CoinPrices,
   coinAmounts?: CoinAmounts
 ) => {
-  const collateralAssetCoinNames: SupportCollateralCoins[] = [
+  const coinNames: SupportAssetCoins[] = Array.from(
+    new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS])
+  );
+  const collateralAssetCoinNames = [
     ...SUPPORT_COLLATERALS,
-  ];
+  ] as SupportCollateralCoins[];
+
   market = market ?? (await query.queryMarket({ indexer }));
   coinPrices =
     coinPrices ?? (await query.getAllCoinPrices({ marketPools: market.pools }));
   coinAmounts =
-    coinAmounts ||
-    (await query.getCoinAmounts(collateralAssetCoinNames, ownerAddress));
+    coinAmounts || (await query.getCoinAmounts(coinNames, ownerAddress));
 
   const [obligationQuery, borrowIncentivePools, borrowIncentiveAccounts] =
     await Promise.all([
