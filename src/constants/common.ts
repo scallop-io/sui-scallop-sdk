@@ -9,7 +9,6 @@ export const ADDRESSES_ID =
     ? ('65fb07c39c845425d71d7b18' as const)
     : ('675c65cd301dd817ea262e76' as const);
 // : ('66f8e7ed9bb9e07fdfb86bbb' as const);
-// : ('664dfe22898c36c159e28bc8' as const);
 
 export const PROTOCOL_OBJECT_ID = IS_VE_SCA_TEST
   ? ('0xc9f859f98ca352a11b97a038c4b4162bee437b8df8caa047990fe9cb03d4f778' as const)
@@ -121,7 +120,10 @@ export const SUPPORT_BORROW_INCENTIVE_POOLS = [
   'usdc',
 ] as const;
 
-export const SUPPORT_BORROW_INCENTIVE_REWARDS = ['sui', 'sca'] as const;
+export const SUPPORT_BORROW_INCENTIVE_REWARDS = [
+  ...SUPPORT_POOLS,
+  ...SUPPORT_SCOIN,
+] as const;
 export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
 
 export const SUPPORT_PACKAGES = [

@@ -8,7 +8,6 @@ import {
   SUPPORT_POOLS,
   SUPPORT_COLLATERALS,
   spoolRewardCoins,
-  borrowIncentiveRewardCoins,
   coinDecimals,
   wormholeCoinIds,
   voloCoinIds,
@@ -21,6 +20,7 @@ import {
   COIN_GECKGO_IDS,
   POOL_ADDRESSES,
   sCoinTypeToName,
+  sCoinRawNameToName,
 } from '../constants';
 import { getPythPrices, queryObligation } from '../queries';
 import {
@@ -40,7 +40,6 @@ import type {
   SupportAssetCoins,
   SupportMarketCoins,
   SupportStakeMarketCoins,
-  SupportBorrowIncentiveCoins,
   CoinPrices,
   CoinWrappedType,
   SupportSCoin,
@@ -157,7 +156,14 @@ export class ScallopUtils {
    * @param coinName - Specific support coin name.
    * @return Coin type.
    */
-  public parseCoinType(coinName: SupportCoins) {
+  public parseCoinType(
+    coinName: SupportCoins,
+    useOldMarketCoin: boolean = false
+  ) {
+    // try parse scoin first
+    if (sCoinIds[coinName as SupportSCoin] && !useOldMarketCoin) {
+      return sCoinIds[coinName as SupportSCoin];
+    }
     coinName = isMarketCoin(coinName) ? this.parseCoinName(coinName) : coinName;
     const coinPackageId =
       this.address.get(`core.coins.${coinName}.id`) ||
@@ -226,6 +232,16 @@ export class ScallopUtils {
   }
 
   /**
+   * Convert sCoin name to coin name.
+   * This function will parse new sCoin name `scallop_...` to its old market coin name which is shorter
+   * e.g: `scallop_sui -> ssui
+   * @return sCoin name
+   */
+  public parseCoinNameFromSCoinName(coinName: string) {
+    return sCoinRawNameToName[coinName];
+  }
+
+  /**
    * Convert sCoin name into sCoin type
    * @param sCoinName
    * @returns sCoin type
@@ -272,7 +288,7 @@ export class ScallopUtils {
   public parseMarketCoinType(coinName: SupportCoins) {
     const protocolObjectId =
       this.address.get('core.object') ?? PROTOCOL_OBJECT_ID;
-    const coinType = this.parseCoinType(coinName);
+    const coinType = this.parseCoinType(coinName, true);
     return `${protocolObjectId}::reserve::MarketCoin<${coinType}>`;
   }
 
@@ -297,12 +313,13 @@ export class ScallopUtils {
   ): T extends SupportCoins ? T : SupportCoins;
   public parseCoinNameFromType(coinType: string) {
     coinType = normalizeStructTag(coinType);
+
     const coinTypeRegex = new RegExp(`((0x[^:]+::[^:]+::[^<>]+))(?![^<>]*<)`);
     const coinTypeMatch = coinType.match(coinTypeRegex);
     const isMarketCoinType = coinType.includes('reserve::MarketCoin');
     coinType = coinTypeMatch?.[1] ?? coinType;
 
-    const wormHoleCoinTypeMap: Record<string, SupportAssetCoins> = {
+    const wormholeCoinTypeMap: Record<string, SupportAssetCoins> = {
       [`${
         this.address.get('core.coins.wusdc.id') ?? wormholeCoinIds.wusdc
       }::coin::COIN`]: 'wusdc',
@@ -339,7 +356,7 @@ export class ScallopUtils {
     );
 
     const assetCoinName =
-      wormHoleCoinTypeMap[coinType] ||
+      wormholeCoinTypeMap[coinType] ||
       voloCoinTypeMap[coinType] ||
       suiBridgeTypeMap[coinType] ||
       (coinType.split('::')[2].toLowerCase() as SupportAssetCoins);
@@ -381,18 +398,6 @@ export class ScallopUtils {
     stakeMarketCoinName: SupportStakeMarketCoins
   ) => {
     return spoolRewardCoins[stakeMarketCoinName];
-  };
-
-  /**
-   * Get reward type of borrow incentive pool.
-   *
-   * @param borrowIncentiveCoinName - Support borrow incentive coin.
-   * @return Borrow incentive reward coin name.
-   */
-  public getBorrowIncentiveRewardCoinName = (
-    borrowIncentiveCoinName: SupportBorrowIncentiveCoins
-  ) => {
-    return borrowIncentiveRewardCoins[borrowIncentiveCoinName];
   };
 
   /**

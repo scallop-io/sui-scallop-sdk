@@ -4,7 +4,6 @@ import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import {
   ADDRESSES_ID,
   SUPPORT_BORROW_INCENTIVE_POOLS,
-  SUPPORT_BORROW_INCENTIVE_REWARDS,
   SUPPORT_SCOIN,
   SUPPORT_SPOOLS,
 } from '../constants';
@@ -28,7 +27,6 @@ import type {
   SupportAssetCoins,
   SupportStakeCoins,
   SupportStakeMarketCoins,
-  SupportBorrowIncentiveCoins,
   ScallopTxBlock,
   SupportSCoin,
   ScallopClientVeScaReturnType,
@@ -945,9 +943,9 @@ export class ScallopClient {
   }
 
   /**
-   * unstake market coin from the specific spool.
+   * Claim borrow incentive reward.
    *
-   * @param marketCoinName - Types of mak coin.
+   * @param poolName
    * @param amount - The amount of coins would deposit.
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param accountId - The stake account object.
@@ -955,7 +953,6 @@ export class ScallopClient {
    * @return Transaction block response or transaction block
    */
   public async claimBorrowIncentive<S extends boolean>(
-    coinName: SupportBorrowIncentiveCoins,
     obligationId: string,
     obligationKeyId: string,
     sign: S = true as S,
@@ -965,17 +962,37 @@ export class ScallopClient {
     const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
-    const rewardCoins = [];
-    for (const rewardCoinName of SUPPORT_BORROW_INCENTIVE_REWARDS) {
+    const rewardCoinsCollection: Record<string, TransactionResult[]> = {};
+    const obligationAccount =
+      await this.query.getObligationAccount(obligationId);
+    const rewardCoinNames = Object.values(obligationAccount.borrowIncentives)
+      .flatMap(({ rewards }) =>
+        rewards.filter(({ availableClaimAmount }) => availableClaimAmount > 0)
+      )
+      .flatMap(({ coinName }) => coinName);
+    for (const rewardCoinName of rewardCoinNames) {
       const rewardCoin = await txBlock.claimBorrowIncentiveQuick(
-        coinName,
         rewardCoinName,
         obligationId,
         obligationKeyId
       );
-      rewardCoins.push(rewardCoin);
+      if (!rewardCoinsCollection[rewardCoinName]) {
+        rewardCoinsCollection[rewardCoinName] = [rewardCoin];
+      } else {
+        rewardCoinsCollection[rewardCoinName].push(rewardCoin);
+      }
     }
-    txBlock.transferObjects(rewardCoins, sender);
+
+    txBlock.transferObjects(
+      Object.values(rewardCoinsCollection).map((rewardCoins) => {
+        const mergeDest = rewardCoins[0];
+        if (rewardCoins.length > 1) {
+          txBlock.mergeCoins(mergeDest, rewardCoins.slice(1));
+        }
+        return mergeDest;
+      }),
+      sender
+    );
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(

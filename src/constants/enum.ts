@@ -120,19 +120,6 @@ export const suiBridgeCoins: types.SuiBridgeCoins = {
   sbeth: 'sbeth',
 };
 
-export const borrowIncentiveRewardCoins: types.BorrowIncentiveRewardCoins = {
-  usdc: ['sui', 'sca'],
-  sui: ['sui', 'sca'],
-  wusdc: ['sui', 'sca'],
-  wusdt: ['sui', 'sca'],
-  sca: ['sui', 'sca'],
-  afsui: ['sui'],
-  hasui: ['sui'],
-  vsui: ['sui'],
-  weth: ['sui'],
-  sbeth: ['sui'],
-};
-
 export const coinIds: types.AssetCoinIds = {
   usdc: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7',
   sui: '0x0000000000000000000000000000000000000000000000000000000000000002',
@@ -175,13 +162,13 @@ export const sCoinIds: types.SCoinIds = {
   ssbeth:
     '0xb14f82d8506d139eacef109688d1b71e7236bcce9b2c0ad526abcd6aa5be7de0::scallop_sb_eth::SCALLOP_SB_ETH',
   ssui: '0xaafc4f740de0dd0dde642a31148fb94517087052f19afb0f7bed1dc41a50c77b::scallop_sui::SCALLOP_SUI',
-  scetus:
-    '0xea346ce428f91ab007210443efcea5f5cdbbb3aae7e9affc0ca93f9203c31f0c::scallop_cetus::SCALLOP_CETUS',
-  ssca: '0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::SCALLOP_SCA',
   swusdc:
     '0xad4d71551d31092230db1fd482008ea42867dbf27b286e9c70a79d2a6191d58d::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
   swusdt:
     '0xe6e5a012ec20a49a3d1d57bd2b67140b96cd4d3400b9d79e541f7bdbab661f95::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
+  ssca: '0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::SCALLOP_SCA',
+  scetus:
+    '0xea346ce428f91ab007210443efcea5f5cdbbb3aae7e9affc0ca93f9203c31f0c::scallop_cetus::SCALLOP_CETUS',
   sweth:
     '0x67540ceb850d418679e69f1fb6b2093d6df78a2a699ffc733f7646096d552e9b::scallop_wormhole_eth::SCALLOP_WORMHOLE_ETH',
   safsui:
@@ -202,6 +189,14 @@ export const sCoinIds: types.SCoinIds = {
 export const sCoinTypeToName = Object.entries(sCoinIds).reduce(
   (acc, [coinName, coinType]) => {
     acc[coinType] = coinName as types.SupportSCoin;
+    return acc;
+  },
+  {} as Record<string, types.SupportSCoin>
+);
+
+export const sCoinRawNameToName = Object.entries(sCoinIds).reduce(
+  (acc, [coinName, coinType]) => {
+    acc[coinType.split('::')[2].toLowerCase()] = coinName as types.SupportSCoin;
     return acc;
   },
   {} as Record<string, types.SupportSCoin>
