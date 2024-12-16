@@ -16,11 +16,14 @@ class TokenBucket {
   refill() {
     const now = Date.now();
     const elapsed = now - this.lastRefill;
-    if (elapsed > this.interval) {
+
+    if (elapsed >= this.interval) {
       const tokensToAdd =
         Math.floor(elapsed / this.interval) * this.tokensPerInterval;
       this.tokens = Math.min(this.tokens + tokensToAdd, this.tokensPerInterval);
-      this.lastRefill = now;
+
+      // Update lastRefill to reflect the exact time of the last "refill"
+      this.lastRefill += Math.floor(elapsed / this.interval) * this.interval;
     }
   }
 
@@ -45,35 +48,12 @@ const callWithRateLimit = async <T>(
 
   const tryRequest = async (): Promise<T | null> => {
     if (tokenBucket.removeTokens(1)) {
-      try {
-        const result = await fn();
-
-        // Check if the result is an object with status code (assuming the response has a status property)
-        if (result && (result as any).status === 429) {
-          throw new Error('Unexpected status code: 429');
-        }
-
-        return result;
-      } catch (error: any) {
-        if (
-          error.message === 'Unexpected status code: 429' &&
-          retries < maxRetries
-        ) {
-          retries++;
-          const delay = retryDelayInMs * Math.pow(backoffFactor, retries);
-          // console.warn(`429 encountered, retrying in ${delay} ms`);
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          return tryRequest();
-        } else {
-          // console.error(error);
-          console.error('An error occurred:', error.message);
-          return null;
-        }
-      }
+      const result = await fn();
+      return result;
     } else if (retries < maxRetries) {
       retries++;
       const delay = retryDelayInMs * Math.pow(backoffFactor, retries);
-      // console.warn(`Rate limit exceeded, retrying in ${delay} ms`);
+      console.error(`Rate limit exceeded, retrying in ${delay} ms`);
       await new Promise((resolve) => setTimeout(resolve, delay));
       return tryRequest();
     } else {
