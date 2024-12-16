@@ -236,6 +236,36 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
+      deep: {
+        id: '0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270',
+        metaData:
+          '0x6e60b051a08fa836f5a7acd7c464c8d9825bc29c44657fe170fe9b8e1e4770c0',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '29bdd5248234e33bd93d3b81100b5fa32eaa5997843847e2c2cb16d7c6d9f7ff',
+            feedObject:
+              '0x8c7f3a322b94cc69db2a2ac575cbd94bf5766113324c3a3eceac91e3e88a51ed',
+          },
+        },
+      },
+      fud: {
+        id: '0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1',
+        metaData:
+          '0x01087411ef48aaac1eb6e24803213e3a60a03b147dac930e5e341f17a85e524e',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '6a4090703da959247727f2b490eb21aea95c8684ecfac675f432008830890c75',
+            feedObject:
+              '0x4531c3ed0d22f21f5fce882905372006c9aafa30f01db03b789e95a6c50de7b2',
+          },
+        },
+      },
     },
     oracles: {
       xOracle:
@@ -512,6 +542,18 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0xb14f82d8506d139eacef109688d1b71e7236bcce9b2c0ad526abcd6aa5be7de0::scallop_sb_eth::SCALLOP_SB_ETH',
         treasury:
           '0xfd0f02def6358a1f266acfa1493d4707ee8387460d434fb667d63d755ff907ed',
+      },
+      sdeep: {
+        coinType:
+          '0xeb7a05a3224837c5e5503575aed0be73c091d1ce5e43aa3c3e716e0ae614608f::scallop_deep::SCALLOP_DEEP',
+        treasury:
+          '0xc63838fabe37b25ad897392d89876d920f5e0c6a406bf3abcb84753d2829bc88',
+      },
+      sfud: {
+        coinType:
+          '0xe56d5167f427cbe597da9e8150ef5c337839aaf46891d62468dcf80bdd8e10d1::scallop_fud::SCALLOP_FUD',
+        treasury:
+          '0xf25212f11d182decff7a86165699a73e3d5787aced203ca539f43cfbc10db867',
       },
     },
   },
