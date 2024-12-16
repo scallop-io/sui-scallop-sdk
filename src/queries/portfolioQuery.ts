@@ -51,10 +51,12 @@ export const getLendings = async (
   ) as SupportStakeMarketCoins[];
 
   const coinPrices = await query.utils.getCoinPrices(poolCoinNames);
-  const marketPools = await query.getMarketPools(poolCoinNames, indexer, {
+  const marketPools = await query.getMarketPools(poolCoinNames, {
+    indexer,
     coinPrices,
   });
-  const spools = await query.getSpools(stakeMarketCoinNames, indexer, {
+  const spools = await query.getSpools(stakeMarketCoinNames, {
+    indexer,
     marketPools,
     coinPrices,
   });
@@ -128,7 +130,8 @@ export const getLending = async (
 
   marketPool =
     marketPool ??
-    (await query.getMarketPool(poolCoinName, indexer, {
+    (await query.getMarketPool(poolCoinName, {
+      indexer,
       coinPrice,
     }));
 
@@ -138,16 +141,13 @@ export const getLending = async (
   spool =
     (spool ??
     (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName))
-      ? await query.getSpool(
-          marketCoinName as SupportStakeMarketCoins,
+      ? await query.getSpool(marketCoinName as SupportStakeMarketCoins, {
           indexer,
-          {
-            marketPool,
-            coinPrices: {
-              [poolCoinName]: coinPrice,
-            },
-          }
-        )
+          marketPool,
+          coinPrices: {
+            [poolCoinName]: coinPrice,
+          },
+        })
       : undefined;
   // some pool does not have spool
   // if (!spool) throw new Error(`Failed to fetch spool for ${poolCoinName}`);
@@ -311,7 +311,7 @@ export const getObligationAccounts = async (
   indexer: boolean = false
 ) => {
   const coinPrices = await query.utils.getCoinPrices();
-  const market = await query.queryMarket(indexer, { coinPrices });
+  const market = await query.queryMarket({ indexer, coinPrices });
   const [coinAmounts, obligations] = await Promise.all([
     query.getCoinAmounts(undefined, ownerAddress),
     query.getObligations(ownerAddress),
@@ -357,7 +357,7 @@ export const getObligationAccount = async (
   ];
   coinPrices =
     coinPrices ?? (await query.utils.getCoinPrices(collateralAssetCoinNames));
-  market = market ?? (await query.queryMarket(indexer, { coinPrices }));
+  market = market ?? (await query.queryMarket({ indexer, coinPrices }));
   coinAmounts =
     coinAmounts ||
     (await query.getCoinAmounts(collateralAssetCoinNames, ownerAddress));
@@ -365,8 +365,9 @@ export const getObligationAccount = async (
   const [obligationQuery, borrowIncentivePools, borrowIncentiveAccounts] =
     await Promise.all([
       query.queryObligation(obligationId),
-      query.getBorrowIncentivePools(undefined, indexer, {
+      query.getBorrowIncentivePools(undefined, {
         coinPrices,
+        indexer,
       }),
       query.getBorrowIncentiveAccounts(obligationId),
     ]);
@@ -770,7 +771,7 @@ export const getTotalValueLocked = async (
   query: ScallopQuery,
   indexer: boolean = false
 ) => {
-  const market = await query.queryMarket(indexer);
+  const market = await query.queryMarket({ indexer });
 
   let supplyValue = BigNumber(0);
   let borrowValue = BigNumber(0);

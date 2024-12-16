@@ -11,14 +11,20 @@ export async function callMethodWithIndexerFallback(
   context: any,
   ...args: any[]
 ) {
-  const indexer = args[args.length - 1]; // Assume last argument is always `indexer`
+  const lastArgs = args[args.length - 1]; // Assume last argument is always `indexer`
 
-  if (indexer) {
+  if (typeof lastArgs === 'object' && lastArgs.indexer) {
     try {
       return await method.apply(context, args);
     } catch (e: any) {
       console.warn(`Indexer requests failed: ${e}. Retrying without indexer..`);
-      return await method.apply(context, [...args.slice(0, -1), false]);
+      return await method.apply(context, [
+        ...args.slice(0, -1),
+        {
+          ...lastArgs,
+          indexer: false,
+        },
+      ]);
     }
   }
   return await method.apply(context, args);

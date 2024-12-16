@@ -191,11 +191,11 @@ export class ScallopQuery {
    * @param indexer - Whether to use indexer.
    * @return Market data.
    */
-  public async queryMarket(
-    indexer: boolean = false,
-    args?: { coinPrices: CoinPrices }
-  ) {
-    return await queryMarket(this, indexer, args?.coinPrices);
+  public async queryMarket(args?: {
+    coinPrices?: CoinPrices;
+    indexer?: boolean;
+  }) {
+    return await queryMarket(this, args?.indexer, args?.coinPrices);
   }
 
   /**
@@ -211,12 +211,17 @@ export class ScallopQuery {
    */
   public async getMarketPools(
     poolCoinNames?: SupportPoolCoins[],
-    indexer: boolean = false,
     args?: {
       coinPrices?: CoinPrices;
+      indexer?: boolean;
     }
   ) {
-    return await getMarketPools(this, poolCoinNames, indexer, args?.coinPrices);
+    return await getMarketPools(
+      this,
+      poolCoinNames,
+      args?.indexer,
+      args?.coinPrices
+    );
   }
 
   /**
@@ -228,16 +233,16 @@ export class ScallopQuery {
    */
   public async getMarketPool(
     poolCoinName: SupportPoolCoins,
-    indexer: boolean = false,
     args?: {
       marketObject?: SuiObjectData | null;
       coinPrice?: number;
+      indexer?: boolean;
     }
   ) {
     return await getMarketPool(
       this,
       poolCoinName,
-      indexer,
+      args?.indexer,
       args?.marketObject,
       args?.coinPrice
     );
@@ -256,9 +261,9 @@ export class ScallopQuery {
    */
   public async getMarketCollaterals(
     collateralCoinNames?: SupportCollateralCoins[],
-    indexer: boolean = false
+    args?: { indexer?: boolean }
   ) {
-    return await getMarketCollaterals(this, collateralCoinNames, indexer);
+    return await getMarketCollaterals(this, collateralCoinNames, args?.indexer);
   }
 
   /**
@@ -270,9 +275,9 @@ export class ScallopQuery {
    */
   public async getMarketCollateral(
     collateralCoinName: SupportCollateralCoins,
-    indexer: boolean = false
+    args?: { indexer?: boolean }
   ) {
-    return await getMarketCollateral(this, collateralCoinName, indexer);
+    return await getMarketCollateral(this, collateralCoinName, args?.indexer);
   }
 
   /**
@@ -382,16 +387,16 @@ export class ScallopQuery {
    */
   public async getSpools(
     stakeMarketCoinNames?: SupportStakeMarketCoins[],
-    indexer: boolean = false,
     args?: {
       marketPools?: MarketPools;
       coinPrices?: CoinPrices;
+      indexer?: boolean;
     }
   ) {
     return await getSpools(
       this,
       stakeMarketCoinNames,
-      indexer,
+      args?.indexer,
       args?.marketPools,
       args?.coinPrices
     );
@@ -406,13 +411,16 @@ export class ScallopQuery {
    */
   public async getSpool(
     stakeMarketCoinName: SupportStakeMarketCoins,
-    indexer: boolean = false,
-    args?: { marketPool?: MarketPool; coinPrices?: CoinPrices }
+    args?: {
+      marketPool?: MarketPool;
+      coinPrices?: CoinPrices;
+      indexer?: boolean;
+    }
   ) {
     return await getSpool(
       this,
       stakeMarketCoinName,
-      indexer,
+      args?.indexer,
       args?.marketPool,
       args?.coinPrices
     );
@@ -536,13 +544,12 @@ export class ScallopQuery {
    */
   public async getBorrowIncentivePools(
     coinNames?: SupportBorrowIncentiveCoins[],
-    indexer: boolean = false,
-    args?: { coinPrices: CoinPrices }
+    args?: { coinPrices: CoinPrices; indexer?: boolean }
   ) {
     return await getBorrowIncentivePools(
       this,
       coinNames,
-      indexer,
+      args?.indexer,
       args?.coinPrices
     );
   }
@@ -572,9 +579,9 @@ export class ScallopQuery {
   public async getLendings(
     poolCoinNames?: SupportPoolCoins[],
     ownerAddress: string = this.walletAddress,
-    indexer: boolean = false
+    args?: { indexer?: boolean }
   ) {
-    return await getLendings(this, poolCoinNames, ownerAddress, indexer);
+    return await getLendings(this, poolCoinNames, ownerAddress, args?.indexer);
   }
 
   /**
@@ -588,9 +595,9 @@ export class ScallopQuery {
   public async getLending(
     poolCoinName: SupportPoolCoins,
     ownerAddress: string = this.walletAddress,
-    indexer: boolean = false
+    args?: { indexer?: boolean }
   ) {
-    return await getLending(this, poolCoinName, ownerAddress, indexer);
+    return await getLending(this, poolCoinName, ownerAddress, args?.indexer);
   }
 
   /**
@@ -605,9 +612,9 @@ export class ScallopQuery {
    */
   public async getObligationAccounts(
     ownerAddress: string = this.walletAddress,
-    indexer: boolean = false
+    args?: { indexer: boolean }
   ) {
-    return await getObligationAccounts(this, ownerAddress, indexer);
+    return await getObligationAccounts(this, ownerAddress, args?.indexer);
   }
 
   /**
@@ -624,13 +631,13 @@ export class ScallopQuery {
   public async getObligationAccount(
     obligationId: string,
     ownerAddress: string = this.walletAddress,
-    indexer: boolean = false
+    args?: { indexer?: boolean }
   ) {
     return await getObligationAccount(
       this,
       obligationId,
       ownerAddress,
-      indexer
+      args?.indexer
     );
   }
 
@@ -643,8 +650,8 @@ export class ScallopQuery {
    *
    * @return Total value locked.
    */
-  public async getTvl(indexer: boolean = false) {
-    return await getTotalValueLocked(this, indexer);
+  public async getTvl(args?: { indexer?: boolean }) {
+    return await getTotalValueLocked(this, args?.indexer);
   }
 
   /**
