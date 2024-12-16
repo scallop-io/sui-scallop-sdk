@@ -9,7 +9,6 @@ export const ADDRESSES_ID =
     ? ('65fb07c39c845425d71d7b18' as const)
     : ('675c65cd301dd817ea262e76' as const);
 // : ('66f8e7ed9bb9e07fdfb86bbb' as const);
-// : ('664dfe22898c36c159e28bc8' as const);
 
 export const PROTOCOL_OBJECT_ID = IS_VE_SCA_TEST
   ? ('0xc9f859f98ca352a11b97a038c4b4162bee437b8df8caa047990fe9cb03d4f778' as const)
@@ -45,9 +44,8 @@ export const SUPPORT_POOLS = [
   'hasui',
   'vsui',
   'sca',
-  // TODO: enable for production
-  // 'fud',
-  // 'deep',
+  'fud',
+  'deep',
 ] as const;
 
 export const SUPPORT_COLLATERALS = [
@@ -93,9 +91,8 @@ export const SUPPORT_SCOIN = [
   'scetus',
   'swsol',
   'swbtc',
-  // TODO: enable for production
-  // 'sdeep',
-  // 'sfud',
+  'sdeep',
+  'sfud',
 ] as const;
 
 export const SUPPORT_SUI_BRIDGE = ['sbeth'] as const;

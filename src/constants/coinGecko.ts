@@ -15,7 +15,6 @@ export const COIN_GECKGO_IDS: Record<SupportPoolCoins, string> = {
   hasui: 'sui',
   vsui: 'sui',
   sca: 'scallop-2',
-  // TODO: enable for production
-  // deep: 'deepbook',
-  // fud: 'fud-the-pug',
+  deep: 'deepbook',
+  fud: 'fud-the-pug',
 };
