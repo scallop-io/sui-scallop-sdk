@@ -4,6 +4,7 @@ import {
   SCA_COIN_TYPE,
   Scallop,
   ScallopBuilder,
+  SUPPORT_BORROW_INCENTIVE_REWARDS,
   UNLOCK_ROUND_DURATION,
 } from '../src';
 import { Transaction } from '@scallop-io/sui-kit';
@@ -308,7 +309,10 @@ describe('Test Scallop Borrow Incentive Builder', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "claimQuick".
     tx.setSender(sender);
-    const rewardCoin = await tx.claimBorrowIncentiveQuick('sui', 'sca');
+    const rewardCoin = await tx.claimBorrowIncentiveQuick(
+      'sui',
+      SUPPORT_BORROW_INCENTIVE_REWARDS[0]
+    );
     tx.transferObjects([rewardCoin], sender);
     const claimBorrowIncentiveQuickResult =
       await scallopBuilder.suiKit.inspectTxn(tx);
