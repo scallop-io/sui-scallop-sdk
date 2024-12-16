@@ -156,9 +156,12 @@ export class ScallopUtils {
    * @param coinName - Specific support coin name.
    * @return Coin type.
    */
-  public parseCoinType(coinName: SupportCoins) {
+  public parseCoinType(
+    coinName: SupportCoins,
+    useOldMarketCoin: boolean = false
+  ) {
     // try parse scoin first
-    if (sCoinIds[coinName as SupportSCoin]) {
+    if (sCoinIds[coinName as SupportSCoin] && !useOldMarketCoin) {
       return sCoinIds[coinName as SupportSCoin];
     }
     coinName = isMarketCoin(coinName) ? this.parseCoinName(coinName) : coinName;
@@ -285,7 +288,7 @@ export class ScallopUtils {
   public parseMarketCoinType(coinName: SupportCoins) {
     const protocolObjectId =
       this.address.get('core.object') ?? PROTOCOL_OBJECT_ID;
-    const coinType = this.parseCoinType(coinName);
+    const coinType = this.parseCoinType(coinName, true);
     return `${protocolObjectId}::reserve::MarketCoin<${coinType}>`;
   }
 
