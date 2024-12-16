@@ -107,18 +107,7 @@ export const SUPPORT_WORMHOLE = [
 
 export const SUPPORT_SPOOLS_REWARDS = ['sui'] as const;
 
-export const SUPPORT_BORROW_INCENTIVE_POOLS = [
-  'sui',
-  'wusdc',
-  'wusdt',
-  'afsui',
-  'hasui',
-  'vsui',
-  'weth',
-  'sbeth',
-  'sca',
-  'usdc',
-] as const;
+export const SUPPORT_BORROW_INCENTIVE_POOLS = [...SUPPORT_POOLS] as const;
 
 export const SUPPORT_BORROW_INCENTIVE_REWARDS = [
   ...SUPPORT_POOLS,
