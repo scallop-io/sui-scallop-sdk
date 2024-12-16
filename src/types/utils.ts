@@ -1,18 +1,10 @@
-import type { SupportAssetCoins } from './constant';
+import type { SupportCoins } from './constant';
 
 export type OptionalKeys<T> = {
   [K in keyof T]?: T[K];
 };
 
-export type CoinPrices = OptionalKeys<Record<SupportAssetCoins, number>>;
-
-export type PriceMap = Map<
-  SupportAssetCoins,
-  {
-    price: number;
-    publishTime: number;
-  }
->;
+export type CoinPrices = OptionalKeys<Record<SupportCoins, number>>;
 
 export type PoolAddressInfo = {
   name: string;

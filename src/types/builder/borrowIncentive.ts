@@ -4,10 +4,7 @@ import type {
 } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
 import type { ScallopBuilder } from '../../models';
-import type {
-  SupportBorrowIncentiveCoins,
-  SupportBorrowIncentiveRewardCoins,
-} from '../constant';
+import type { SupportBorrowIncentiveRewardCoins } from '../constant';
 
 export type BorrowIncentiveIds = {
   borrowIncentivePkg: string;
@@ -35,7 +32,6 @@ export type BorrowIncentiveNormalMethods = {
   claimBorrowIncentive: (
     obligation: SuiObjectArg,
     obligationKey: SuiObjectArg,
-    coinName: SupportBorrowIncentiveCoins,
     rewardType: SupportBorrowIncentiveRewardCoins
   ) => TransactionResult;
   deactivateBoost: (obligation: SuiObjectArg, veScaKey: SuiObjectArg) => void;
@@ -43,23 +39,22 @@ export type BorrowIncentiveNormalMethods = {
 
 export type BorrowIncentiveQuickMethods = {
   stakeObligationQuick(
-    obligation?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligation?: string,
+    obligationKey?: string
   ): Promise<void>;
   stakeObligationWithVeScaQuick(
-    obligation?: SuiObjectArg,
-    obligationKey?: SuiObjectArg,
-    veScaKey?: SuiObjectArg
+    obligation?: string,
+    obligationKey?: string,
+    veScaKey?: string
   ): Promise<void>;
   unstakeObligationQuick(
-    obligation?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligation?: string,
+    obligationKey?: string
   ): Promise<void>;
   claimBorrowIncentiveQuick(
-    coinName: SupportBorrowIncentiveCoins,
     rewardType: SupportBorrowIncentiveRewardCoins,
-    obligation?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligation?: string,
+    obligationKey?: string
   ): Promise<TransactionResult>;
 };
 

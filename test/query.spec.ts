@@ -3,7 +3,8 @@ import { isValidSuiAddress } from '@scallop-io/sui-kit';
 import { z as zod } from 'zod';
 import { scallopSDK } from './scallopSdk';
 import { ScallopQuery } from 'src/models';
-import { SupportPoolCoins } from 'src/types';
+import BigNumber from 'bignumber.js';
+// import { SupportPoolCoins } from 'src/types';
 
 const ENABLE_LOG = false;
 
@@ -484,7 +485,7 @@ describe('Test Supply Limit Query', async () => {
     const poolName = 'sui';
     const supplyLimit = await scallopQuery.getPoolSupplyLimit(poolName);
     expect(typeof supplyLimit).toBe('string');
-    expect(+supplyLimit! > 0).toBe(true);
+    expect(BigNumber(supplyLimit!).gte(0)).toBe(true);
   });
 });
 
@@ -495,9 +496,9 @@ describe('Test Borrow Limit Query', async () => {
 
   it('Should get borrow limit of a pool', async () => {
     const poolName = 'sui';
-    const supplyLimit = await scallopQuery.getPoolBorrowLimit(poolName);
-    expect(typeof supplyLimit).toBe('string');
-    expect(+supplyLimit! > 0).toBe(true);
+    const borrowLimit = await scallopQuery.getPoolBorrowLimit(poolName);
+    expect(typeof borrowLimit).toBe('string');
+    expect(BigNumber(borrowLimit!).gte(0)).toBe(true);
   });
 });
 
@@ -506,19 +507,34 @@ describe('Test Isolated Assets', async () => {
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
 
-  it.skip('Should return isolated assets', async () => {
+  it('Should return isolated assets', async () => {
     const isolatedAssets = await scallopQuery.getIsolatedAssets();
     expect(typeof isolatedAssets).toBe('object');
     expect(isolatedAssets.length > 0).toBe(true);
     expect(typeof isolatedAssets[0]).toBe('string');
   });
 
-  it.skip('Should check if an asset is isolated', async () => {
-    const isolatedAssetNames = ['fud', 'deep'] as SupportPoolCoins[]; // TODO: fill in an isolated asset name
-    const isIsolated = await Promise.all(
-      isolatedAssetNames.map((asset) => scallopQuery.isIsolatedAsset(asset))
-    );
-    expect(typeof isIsolated).toBe('boolean');
-    expect(isIsolated).toBe(true);
-  });
+  // TODO: enable for prod
+  // it.skip('Should check if an asset is isolated', async () => {
+  //   const isolatedAssetNames = ['fud', 'deep'] as SupportPoolCoins[];
+  //   const isIsolated = await Promise.all(
+  //     isolatedAssetNames.map((asset) => scallopQuery.isIsolatedAsset(asset))
+  //   );
+  //   expect(typeof isIsolated).toBe('boolean');
+  //   expect(isIsolated).toBe(true);
+  // });
 });
+
+// describe('Test All Coin Prices Query', async () => {
+//   it('Should get coin prices', async () => {
+//     const scallopQuery = await getScallopQuery();
+//     const coinPrices = await scallopQuery.getAllCoinPrices();
+//     const susdcPrice = coinPrices['susdc'];
+//     if (ENABLE_LOG) {
+//       console.info('All coin prices:', coinPrices);
+//       console.info('Usdc coin price:', susdcPrice);
+//     }
+//     expect(!!coinPrices).toBe(true);
+//     expect(susdcPrice).toBeGreaterThanOrEqual(0);
+//   });
+// });

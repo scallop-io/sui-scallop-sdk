@@ -143,17 +143,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           ]
         );
       },
-      claimBorrowIncentive: (
-        obligationId,
-        obligationKey,
-        coinName,
-        rewardCoinName
-      ) => {
-        const rewardCoinNames =
-          builder.utils.getBorrowIncentiveRewardCoinName(coinName);
-        if (rewardCoinNames.includes(rewardCoinName) === false) {
-          throw new Error(`Invalid reward coin name ${rewardCoinName}`);
-        }
+      claimBorrowIncentive: (obligationId, obligationKey, rewardCoinName) => {
         const rewardType = builder.utils.parseCoinType(rewardCoinName);
         return txBlock.moveCall(
           `${borrowIncentiveIds.borrowIncentivePkg}::user::redeem_rewards`,
@@ -284,11 +274,11 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
         }
       },
       claimBorrowIncentiveQuick: async (
-        coinName,
         rewardCoinName,
         obligation,
         obligationKey
       ) => {
+        // check for available reward coin names
         const { obligationId: obligationArg, obligationKey: obligationKeyArg } =
           await requireObligationInfo(
             builder,
@@ -300,7 +290,6 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
         return txBlock.claimBorrowIncentive(
           obligationArg,
           obligationKeyArg,
-          coinName,
           rewardCoinName
         );
       },

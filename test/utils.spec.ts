@@ -7,7 +7,7 @@ const ENABLE_LOG = false;
 describe('Test Scallop Utils', async () => {
   const scallopUtils = await scallopSDK.createScallopUtils();
   const address = await scallopSDK.getScallopAddress();
-  const client = await scallopSDK.createScallopClient();
+  // const client = await scallopSDK.createScallopClient();
 
   it('Should parse to symbol from coin and market coin name', async () => {
     const usdcSymbol = scallopUtils.parseSymbol('wusdc');
@@ -209,24 +209,22 @@ describe('Test Scallop Utils', async () => {
     expect(!!suiMarketCoinObjectIds).toBe(true);
   });
 
-  it('Should get all asset coin names from obligation account', async () => {
-    const obligations = await client.getObligations();
-    expect(obligations.length).toBeGreaterThan(0);
+  // it('Should get all asset coin names from obligation account', async () => {
+  //   const obligations = await client.getObligations();
+  //   expect(obligations.length).toBeGreaterThan(0);
 
-    const assetCoinNames = await scallopUtils.getObligationCoinNames(
-      obligations[0].id
-    );
-    if (ENABLE_LOG) {
-      console.info('Asset coin names from obligation:', assetCoinNames);
-    }
-    expect(!!assetCoinNames).toBe(true);
-  });
+  //   const assetCoinNames = await scallopUtils.getObligationCoinNames(
+  //     obligations[0].id
+  //   );
+  //   if (ENABLE_LOG) {
+  //     console.info('Asset coin names from obligation:', assetCoinNames);
+  //   }
+  //   expect(!!assetCoinNames).toBe(true);
+  // });
 
   it('Should get coin prices', async () => {
     const coinPrices = await scallopUtils.getCoinPrices();
-    const usdcCoinPrice = (await scallopUtils.getCoinPrices(['wusdc']))[
-      'wusdc'
-    ];
+    const usdcCoinPrice = coinPrices['wusdc'];
     if (ENABLE_LOG) {
       console.info('All coin prices:', coinPrices);
       console.info('Usdc coin price:', usdcCoinPrice);

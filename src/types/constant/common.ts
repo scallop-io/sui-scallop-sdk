@@ -23,8 +23,7 @@ export type SupportCoins =
 export type SupportAssetCoins =
   | SupportPoolCoins
   | SupportCollateralCoins
-  | SupportStakeRewardCoins
-  | SupportBorrowIncentiveRewardCoins;
+  | SupportStakeRewardCoins;
 export type SupportPoolCoins = (typeof SUPPORT_POOLS)[number];
 export type SupportCollateralCoins = (typeof SUPPORT_COLLATERALS)[number];
 export type SupportMarketCoins =
