@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.11](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.1...v1.4.11) (2024-12-16)
+
+### Bugfixes
+
+- Fix `name` from `parseOriginBorrowIncentivePoolData` method ([53c219d](https://github.com/scallop-io/sui-scallop-sdk/commit/53c219daeb9a5b25ad5541890a0dbc3f59d3bf65))
+
+- Reduce rate limit
+
 ### [1.4.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.0...v1.4.1) (2024-12-16)
 
 ### ⚠ BREAKING CHANGES

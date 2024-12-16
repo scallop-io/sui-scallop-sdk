@@ -27,6 +27,7 @@ import type {
   ParsedBorrowIncentiveAccountPoolData,
   SupportBorrowIncentiveRewardCoins,
 } from '../types';
+import { sCoinRawNameToName } from 'src/constants';
 
 /**
  *  Parse origin market pool data to a more readable format.
@@ -433,9 +434,12 @@ export const parseOriginBorrowIncentivePoolData = (
     poolPoints: originBorrowIncentivePoolData.points.reduce(
       (acc, point) => {
         const parsed = parseOriginBorrowIncentivesPoolPointData(point);
-        const name = parseStructTag(
+        let name = parseStructTag(
           parsed.pointType
         ).name.toLowerCase() as SupportBorrowIncentiveRewardCoins;
+        if (sCoinRawNameToName[name]) {
+          name = sCoinRawNameToName[name];
+        }
         acc[name] = parsed;
         return acc;
       },
