@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [1.4.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.0...v1.4.1) (2024-12-16)
 
-### BREAKING CHANGES
+### ⚠ BREAKING CHANGES
 
 - Breaking changes for `claimBorrowIncentives` and `parseCoinType` methods ([21dfc91](https://github.com/scallop-io/sui-scallop-sdk/pull/210/commits/21dfc91d450a93e73eea2c83a15044fc6be9d20f))
 
