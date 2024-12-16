@@ -1,5 +1,9 @@
 import { normalizeStructTag } from '@mysten/sui/utils';
-import { SUPPORT_BORROW_INCENTIVE_POOLS } from '../constants';
+import {
+  sCoinRawNameToName,
+  SUPPORT_BORROW_INCENTIVE_POOLS,
+  SUPPORT_BORROW_INCENTIVE_REWARDS,
+} from '../constants';
 import {
   parseOriginBorrowIncentivePoolData,
   parseOriginBorrowIncentiveAccountData,
@@ -17,6 +21,7 @@ import type {
   OptionalKeys,
   BorrowIncentivePool,
   CoinPrices,
+  MarketPools,
 } from '../types';
 import BigNumber from 'bignumber.js';
 
@@ -55,11 +60,14 @@ export const getBorrowIncentivePools = async (
     ...SUPPORT_BORROW_INCENTIVE_POOLS,
   ],
   indexer: boolean = false,
+  marketPools?: MarketPools,
   coinPrices?: CoinPrices
 ) => {
   const borrowIncentivePools: BorrowIncentivePools = {};
-
-  coinPrices = coinPrices ?? (await query.utils.getCoinPrices()) ?? {};
+  marketPools =
+    marketPools ??
+    (await query.getMarketPools(undefined, { coinPrices, indexer }));
+  coinPrices = coinPrices ?? (await query.getAllCoinPrices({ marketPools }));
 
   if (indexer) {
     const borrowIncentivePoolsIndexer =
@@ -67,7 +75,13 @@ export const getBorrowIncentivePools = async (
 
     const updateBorrowIncentivePool = (pool: BorrowIncentivePool) => {
       if (!borrowIncentiveCoinNames.includes(pool.coinName)) return;
-      pool.coinPrice = coinPrices[pool.coinName] ?? pool.coinPrice;
+      pool.coinPrice = coinPrices[pool.coinName] || pool.coinPrice;
+      for (const sCoinName of SUPPORT_BORROW_INCENTIVE_REWARDS) {
+        if (pool.points[sCoinName]) {
+          pool.points[sCoinName].coinPrice =
+            coinPrices[sCoinName] ?? pool.points[sCoinName].coinPrice;
+        }
+      }
       borrowIncentivePools[pool.coinName] = pool;
     };
 
@@ -94,7 +108,6 @@ export const getBorrowIncentivePools = async (
       query.utils.parseCoinNameFromType<SupportBorrowIncentiveCoins>(
         poolCoinType
       );
-
     const poolCoinPrice = coinPrices?.[poolCoinName] ?? 0;
     const poolCoinDecimal = query.utils.getCoinDecimal(poolCoinName);
 
@@ -102,17 +115,21 @@ export const getBorrowIncentivePools = async (
     if (!borrowIncentiveCoinNames.includes(poolCoinName)) {
       continue;
     }
-    // pool points for borrow incentive reward ('sui' and 'sca')
+
+    // pool points for borrow incentive reward
     for (const [coinName, poolPoint] of Object.entries(
       parsedBorrowIncentivePoolData.poolPoints
     )) {
-      const rewardCoinType = normalizeStructTag(poolPoint.pointType);
-      const rewardCoinName =
-        query.utils.parseCoinNameFromType<SupportBorrowIncentiveRewardCoins>(
-          rewardCoinType
-        );
-      const rewardCoinPrice = coinPrices?.[rewardCoinName] ?? 0;
+      const rewardCoinType = poolPoint.pointType;
+      let rewardCoinName = query.utils.parseCoinNameFromType(
+        rewardCoinType
+      ) as SupportBorrowIncentiveRewardCoins;
+      // handle for scoin name
+      if (sCoinRawNameToName[rewardCoinName]) {
+        rewardCoinName = sCoinRawNameToName[rewardCoinName];
+      }
       const rewardCoinDecimal = query.utils.getCoinDecimal(rewardCoinName);
+      const rewardCoinPrice = coinPrices?.[rewardCoinName] ?? 0;
 
       const symbol = query.utils.parseSymbol(rewardCoinName);
       const coinDecimal = query.utils.getCoinDecimal(rewardCoinName);

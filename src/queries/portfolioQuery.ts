@@ -1,6 +1,5 @@
 import BigNumber from 'bignumber.js';
 import {
-  SUPPORT_BORROW_INCENTIVE_REWARDS,
   SUPPORT_COLLATERALS,
   SUPPORT_POOLS,
   SUPPORT_SPOOLS,
@@ -50,7 +49,7 @@ export const getLendings = async (
     (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName)
   ) as SupportStakeMarketCoins[];
 
-  const coinPrices = await query.utils.getCoinPrices(poolCoinNames);
+  const coinPrices = await query.utils.getCoinPrices();
   const marketPools = await query.getMarketPools(poolCoinNames, {
     indexer,
     coinPrices,
@@ -124,9 +123,7 @@ export const getLending = async (
 ) => {
   const marketCoinName = query.utils.parseMarketCoinName(poolCoinName);
   coinPrice =
-    coinPrice ??
-    (await query.utils.getCoinPrices([poolCoinName]))?.[poolCoinName] ??
-    0;
+    coinPrice ?? (await query.utils.getCoinPrices())?.[poolCoinName] ?? 0;
 
   marketPool =
     marketPool ??
@@ -355,9 +352,9 @@ export const getObligationAccount = async (
   const collateralAssetCoinNames: SupportCollateralCoins[] = [
     ...SUPPORT_COLLATERALS,
   ];
+  market = market ?? (await query.queryMarket({ indexer }));
   coinPrices =
-    coinPrices ?? (await query.utils.getCoinPrices(collateralAssetCoinNames));
-  market = market ?? (await query.queryMarket({ indexer, coinPrices }));
+    coinPrices ?? (await query.getAllCoinPrices({ marketPools: market.pools }));
   coinAmounts =
     coinAmounts ||
     (await query.getCoinAmounts(collateralAssetCoinNames, ownerAddress));
@@ -526,64 +523,70 @@ export const getObligationAccount = async (
     const borrowIncentivePool = borrowIncentivePools[coinName];
     if (borrowIncentivePool) {
       const rewards: ObligationBorrowIcentiveReward[] = [];
-      for (const rewardCoinName of SUPPORT_BORROW_INCENTIVE_REWARDS) {
-        const accountPoint = borrowIncentiveAccount.pointList[rewardCoinName];
-        const poolPoint = borrowIncentivePool.points[rewardCoinName];
+      Object.entries(borrowIncentiveAccount.pointList).forEach(
+        ([key, accountPoint]) => {
+          const poolPoint =
+            borrowIncentivePool.points[
+              key as SupportBorrowIncentiveRewardCoins
+            ];
 
-        if (accountPoint && poolPoint) {
-          let availableClaimAmount = BigNumber(0);
-          let availableClaimCoin = BigNumber(0);
-          const accountBorrowedAmount = BigNumber(accountPoint.weightedAmount);
-          const baseIndexRate = 1_000_000_000;
-          const increasedPointRate = poolPoint.currentPointIndex
-            ? Math.max(
-                BigNumber(poolPoint.currentPointIndex - accountPoint.index)
-                  .dividedBy(baseIndexRate)
-                  .toNumber(),
-                0
-              )
-            : 1;
-          availableClaimAmount = availableClaimAmount.plus(
-            accountBorrowedAmount
-              .multipliedBy(increasedPointRate)
-              .plus(accountPoint.points)
-          );
-          availableClaimCoin = availableClaimAmount.shiftedBy(
-            -1 * poolPoint.coinDecimal
-          );
-
-          // for veSCA
-          const weightScale = BigNumber(1_000_000_000_000);
-          const boostValue = BigNumber(accountPoint.weightedAmount)
-            .div(
-              BigNumber(borrowIncentiveAccount.debtAmount)
-                .multipliedBy(poolPoint.baseWeight)
-                .dividedBy(weightScale)
-            )
-            .isFinite()
-            ? BigNumber(accountPoint.weightedAmount)
-                .div(
-                  BigNumber(borrowIncentiveAccount.debtAmount)
-                    .multipliedBy(poolPoint.baseWeight)
-                    .dividedBy(weightScale)
+          if (accountPoint && poolPoint) {
+            let availableClaimAmount = BigNumber(0);
+            let availableClaimCoin = BigNumber(0);
+            const accountBorrowedAmount = BigNumber(
+              accountPoint.weightedAmount
+            );
+            const baseIndexRate = 1_000_000_000;
+            const increasedPointRate = poolPoint.currentPointIndex
+              ? Math.max(
+                  BigNumber(poolPoint.currentPointIndex - accountPoint.index)
+                    .dividedBy(baseIndexRate)
+                    .toNumber(),
+                  0
                 )
-                .toNumber()
-            : 1;
+              : 1;
+            availableClaimAmount = availableClaimAmount.plus(
+              accountBorrowedAmount
+                .multipliedBy(increasedPointRate)
+                .plus(accountPoint.points)
+            );
+            availableClaimCoin = availableClaimAmount.shiftedBy(
+              -1 * poolPoint.coinDecimal
+            );
 
-          if (availableClaimAmount.isGreaterThanOrEqualTo(0)) {
-            rewards.push({
-              coinName: poolPoint.coinName,
-              coinType: poolPoint.coinType,
-              symbol: poolPoint.symbol,
-              coinDecimal: poolPoint.coinDecimal,
-              coinPrice: poolPoint.coinPrice,
-              availableClaimAmount: availableClaimAmount.toNumber(),
-              availableClaimCoin: availableClaimCoin.toNumber(),
-              boostValue,
-            });
+            // for veSCA
+            const weightScale = BigNumber(1_000_000_000_000);
+            const boostValue = BigNumber(accountPoint.weightedAmount)
+              .div(
+                BigNumber(borrowIncentiveAccount.debtAmount)
+                  .multipliedBy(poolPoint.baseWeight)
+                  .dividedBy(weightScale)
+              )
+              .isFinite()
+              ? BigNumber(accountPoint.weightedAmount)
+                  .div(
+                    BigNumber(borrowIncentiveAccount.debtAmount)
+                      .multipliedBy(poolPoint.baseWeight)
+                      .dividedBy(weightScale)
+                  )
+                  .toNumber()
+              : 1;
+
+            if (availableClaimAmount.isGreaterThanOrEqualTo(0)) {
+              rewards.push({
+                coinName: poolPoint.coinName,
+                coinType: poolPoint.coinType,
+                symbol: poolPoint.symbol,
+                coinDecimal: poolPoint.coinDecimal,
+                coinPrice: poolPoint.coinPrice,
+                availableClaimAmount: availableClaimAmount.toNumber(),
+                availableClaimCoin: availableClaimCoin.toNumber(),
+                boostValue,
+              });
+            }
           }
         }
-      }
+      );
 
       if (
         Object.keys(borrowIncentivePool.points).some((coinName: any) => {
