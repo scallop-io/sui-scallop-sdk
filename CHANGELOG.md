@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.12](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.11...v1.4.12) (2024-12-17)
+
+### Bugfixes
+
+- Fix $FUD and $DEEP `availableRepayCoin` ([6f39c06](https://github.com/scallop-io/sui-scallop-sdk/commit/6f39c06e423e0c56f7daec63ca28c92e560c6d97))
+
 ### [1.4.11](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.1...v1.4.11) (2024-12-16)
 
 ### Bugfixes
