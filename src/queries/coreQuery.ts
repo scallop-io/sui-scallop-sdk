@@ -305,221 +305,215 @@ export const getMarketPool = async (
   marketObject?: SuiObjectData | null,
   coinPrice?: number
 ): Promise<MarketPool | undefined> => {
-  try {
-    coinPrice =
-      coinPrice ?? (await query.utils.getCoinPrices())?.[poolCoinName];
+  coinPrice = coinPrice ?? (await query.utils.getCoinPrices())?.[poolCoinName];
 
-    if (indexer) {
-      const marketPoolIndexer = await query.indexer.getMarketPool(poolCoinName);
-      if (!marketPoolIndexer) {
-        return undefined;
-      }
-      marketPoolIndexer.coinPrice = coinPrice ?? marketPoolIndexer.coinPrice;
-      marketPoolIndexer.coinWrappedType = query.utils.getCoinWrappedType(
-        marketPoolIndexer.coinName
-      );
-
-      return marketPoolIndexer;
+  if (indexer) {
+    const marketPoolIndexer = await query.indexer.getMarketPool(poolCoinName);
+    if (!marketPoolIndexer) {
+      return undefined;
     }
-
-    const marketId = query.address.get('core.market');
-    marketObject =
-      marketObject ||
-      (
-        await query.cache.queryGetObject(marketId, {
-          showContent: true,
-        })
-      )?.data;
-
-    if (!(marketObject && marketObject.content?.dataType === 'moveObject'))
-      throw new Error(`Failed to fetch marketObject`);
-
-    const fields = marketObject.content.fields as any;
-    const coinType = query.utils.parseCoinType(poolCoinName);
-    // Get balance sheet.
-    const balanceSheetParentId =
-      fields.vault.fields.balance_sheets.fields.table.fields.id.id;
-    const balanceSheetDynamicFieldObjectResponse =
-      await query.cache.queryGetDynamicFieldObject({
-        parentId: balanceSheetParentId,
-        name: {
-          type: '0x1::type_name::TypeName',
-          value: {
-            name: coinType.substring(2),
-          },
-        },
-      });
-
-    const balanceSheetDynamicFieldObject =
-      balanceSheetDynamicFieldObjectResponse?.data;
-
-    if (
-      !(
-        balanceSheetDynamicFieldObject &&
-        balanceSheetDynamicFieldObject.content &&
-        'fields' in balanceSheetDynamicFieldObject.content
-      )
-    )
-      throw new Error(
-        `Failed to fetch balanceSheetDynamicFieldObject for ${poolCoinName}: ${balanceSheetDynamicFieldObjectResponse?.error?.code.toString()}`
-      );
-    const balanceSheet: BalanceSheet = (
-      balanceSheetDynamicFieldObject.content.fields as any
-    ).value.fields;
-
-    // Get borrow index.
-    const borrowIndexParentId =
-      fields.borrow_dynamics.fields.table.fields.id.id;
-    const borrowIndexDynamicFieldObjectResponse =
-      await query.cache.queryGetDynamicFieldObject({
-        parentId: borrowIndexParentId,
-        name: {
-          type: '0x1::type_name::TypeName',
-          value: {
-            name: coinType.substring(2),
-          },
-        },
-      });
-
-    const borrowIndexDynamicFieldObject =
-      borrowIndexDynamicFieldObjectResponse?.data;
-    if (
-      !(
-        borrowIndexDynamicFieldObject &&
-        borrowIndexDynamicFieldObject.content &&
-        'fields' in borrowIndexDynamicFieldObject.content
-      )
-    )
-      throw new Error(
-        `Failed to fetch borrowIndexDynamicFieldObject for ${poolCoinName}`
-      );
-    const borrowIndex: BorrowIndex = (
-      borrowIndexDynamicFieldObject.content.fields as any
-    ).value.fields;
-
-    // Get interest models.
-    const interestModelParentId =
-      fields.interest_models.fields.table.fields.id.id;
-    const interestModelDynamicFieldObjectResponse =
-      await query.cache.queryGetDynamicFieldObject({
-        parentId: interestModelParentId,
-        name: {
-          type: '0x1::type_name::TypeName',
-          value: {
-            name: coinType.substring(2),
-          },
-        },
-      });
-
-    const interestModelDynamicFieldObject =
-      interestModelDynamicFieldObjectResponse?.data;
-    if (
-      !(
-        interestModelDynamicFieldObject &&
-        interestModelDynamicFieldObject.content &&
-        'fields' in interestModelDynamicFieldObject.content
-      )
-    )
-      throw new Error(
-        `Failed to fetch interestModelDynamicFieldObject for ${poolCoinName}: ${interestModelDynamicFieldObject}`
-      );
-    const interestModel: InterestModel = (
-      interestModelDynamicFieldObject.content.fields as any
-    ).value.fields;
-
-    // Get borrow fee.
-    const getBorrowFee = async () => {
-      const borrowFeeDynamicFieldObjectResponse =
-        await query.cache.queryGetDynamicFieldObject({
-          parentId: marketId,
-          name: {
-            type: `${BORROW_FEE_PROTOCOL_ID}::market_dynamic_keys::BorrowFeeKey`,
-            value: {
-              type: {
-                name: coinType.substring(2),
-              },
-            },
-          },
-        });
-
-      const borrowFeeDynamicFieldObject =
-        borrowFeeDynamicFieldObjectResponse?.data;
-      if (
-        !(
-          borrowFeeDynamicFieldObject &&
-          borrowFeeDynamicFieldObject.content &&
-          'fields' in borrowFeeDynamicFieldObject.content
-        )
-      )
-        return { value: '0' };
-      return (borrowFeeDynamicFieldObject.content.fields as any).value.fields;
-    };
-
-    const parsedMarketPoolData = parseOriginMarketPoolData({
-      type: interestModel.type.fields,
-      maxBorrowRate: interestModel.max_borrow_rate.fields,
-      interestRate: borrowIndex.interest_rate.fields,
-      interestRateScale: borrowIndex.interest_rate_scale,
-      borrowIndex: borrowIndex.borrow_index,
-      lastUpdated: borrowIndex.last_updated,
-      cash: balanceSheet.cash,
-      debt: balanceSheet.debt,
-      marketCoinSupply: balanceSheet.market_coin_supply,
-      reserve: balanceSheet.revenue,
-      reserveFactor: interestModel.revenue_factor.fields,
-      borrowWeight: interestModel.borrow_weight.fields,
-      borrowFeeRate: await getBorrowFee(),
-      baseBorrowRatePerSec: interestModel.base_borrow_rate_per_sec.fields,
-      borrowRateOnHighKink: interestModel.borrow_rate_on_high_kink.fields,
-      borrowRateOnMidKink: interestModel.borrow_rate_on_mid_kink.fields,
-      highKink: interestModel.high_kink.fields,
-      midKink: interestModel.mid_kink.fields,
-      minBorrowAmount: interestModel.min_borrow_amount,
-    });
-
-    const calculatedMarketPoolData = calculateMarketPoolData(
-      query.utils,
-      parsedMarketPoolData
+    marketPoolIndexer.coinPrice = coinPrice ?? marketPoolIndexer.coinPrice;
+    marketPoolIndexer.coinWrappedType = query.utils.getCoinWrappedType(
+      marketPoolIndexer.coinName
     );
 
-    const coinDecimal = query.utils.getCoinDecimal(poolCoinName);
-    const maxSupplyCoin = BigNumber(
-      (await getSupplyLimit(query.utils, poolCoinName)) ?? '0'
-    )
-      .shiftedBy(-coinDecimal)
-      .toNumber();
-    const maxBorrowCoin = BigNumber(
-      (await getBorrowLimit(query.utils, poolCoinName)) ?? '0'
-    )
-      .shiftedBy(-coinDecimal)
-      .toNumber();
-
-    return {
-      coinName: poolCoinName,
-      symbol: query.utils.parseSymbol(poolCoinName),
-      coinType: query.utils.parseCoinType(poolCoinName),
-      marketCoinType: query.utils.parseMarketCoinType(poolCoinName),
-      sCoinType: query.utils.parseSCoinType(
-        query.utils.parseMarketCoinName(poolCoinName)
-      ),
-      coinWrappedType: query.utils.getCoinWrappedType(poolCoinName),
-      coinDecimal,
-      coinPrice: coinPrice ?? 0,
-      highKink: parsedMarketPoolData.highKink,
-      midKink: parsedMarketPoolData.midKink,
-      reserveFactor: parsedMarketPoolData.reserveFactor,
-      borrowWeight: parsedMarketPoolData.borrowWeight,
-      borrowFee: parsedMarketPoolData.borrowFee,
-      marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
-      minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
-      maxSupplyCoin,
-      maxBorrowCoin,
-      isIsolated: await isIsolatedAsset(query.utils, poolCoinName),
-      ...calculatedMarketPoolData,
-    };
-  } catch (e: any) {
-    console.error(e.message);
+    return marketPoolIndexer;
   }
+
+  const marketId = query.address.get('core.market');
+  marketObject =
+    marketObject ||
+    (
+      await query.cache.queryGetObject(marketId, {
+        showContent: true,
+      })
+    )?.data;
+
+  if (!(marketObject && marketObject.content?.dataType === 'moveObject'))
+    throw new Error(`Failed to fetch marketObject`);
+
+  const fields = marketObject.content.fields as any;
+  const coinType = query.utils.parseCoinType(poolCoinName);
+  // Get balance sheet.
+  const balanceSheetParentId =
+    fields.vault.fields.balance_sheets.fields.table.fields.id.id;
+  const balanceSheetDynamicFieldObjectResponse =
+    await query.cache.queryGetDynamicFieldObject({
+      parentId: balanceSheetParentId,
+      name: {
+        type: '0x1::type_name::TypeName',
+        value: {
+          name: coinType.substring(2),
+        },
+      },
+    });
+
+  const balanceSheetDynamicFieldObject =
+    balanceSheetDynamicFieldObjectResponse?.data;
+
+  if (
+    !(
+      balanceSheetDynamicFieldObject &&
+      balanceSheetDynamicFieldObject.content &&
+      'fields' in balanceSheetDynamicFieldObject.content
+    )
+  )
+    throw new Error(
+      `Failed to fetch balanceSheetDynamicFieldObject for ${poolCoinName}: ${balanceSheetDynamicFieldObjectResponse?.error?.code.toString()}`
+    );
+  const balanceSheet: BalanceSheet = (
+    balanceSheetDynamicFieldObject.content.fields as any
+  ).value.fields;
+
+  // Get borrow index.
+  const borrowIndexParentId = fields.borrow_dynamics.fields.table.fields.id.id;
+  const borrowIndexDynamicFieldObjectResponse =
+    await query.cache.queryGetDynamicFieldObject({
+      parentId: borrowIndexParentId,
+      name: {
+        type: '0x1::type_name::TypeName',
+        value: {
+          name: coinType.substring(2),
+        },
+      },
+    });
+
+  const borrowIndexDynamicFieldObject =
+    borrowIndexDynamicFieldObjectResponse?.data;
+  if (
+    !(
+      borrowIndexDynamicFieldObject &&
+      borrowIndexDynamicFieldObject.content &&
+      'fields' in borrowIndexDynamicFieldObject.content
+    )
+  )
+    throw new Error(
+      `Failed to fetch borrowIndexDynamicFieldObject for ${poolCoinName}`
+    );
+  const borrowIndex: BorrowIndex = (
+    borrowIndexDynamicFieldObject.content.fields as any
+  ).value.fields;
+
+  // Get interest models.
+  const interestModelParentId =
+    fields.interest_models.fields.table.fields.id.id;
+  const interestModelDynamicFieldObjectResponse =
+    await query.cache.queryGetDynamicFieldObject({
+      parentId: interestModelParentId,
+      name: {
+        type: '0x1::type_name::TypeName',
+        value: {
+          name: coinType.substring(2),
+        },
+      },
+    });
+
+  const interestModelDynamicFieldObject =
+    interestModelDynamicFieldObjectResponse?.data;
+  if (
+    !(
+      interestModelDynamicFieldObject &&
+      interestModelDynamicFieldObject.content &&
+      'fields' in interestModelDynamicFieldObject.content
+    )
+  )
+    throw new Error(
+      `Failed to fetch interestModelDynamicFieldObject for ${poolCoinName}: ${interestModelDynamicFieldObject}`
+    );
+  const interestModel: InterestModel = (
+    interestModelDynamicFieldObject.content.fields as any
+  ).value.fields;
+
+  // Get borrow fee.
+  const getBorrowFee = async () => {
+    const borrowFeeDynamicFieldObjectResponse =
+      await query.cache.queryGetDynamicFieldObject({
+        parentId: marketId,
+        name: {
+          type: `${BORROW_FEE_PROTOCOL_ID}::market_dynamic_keys::BorrowFeeKey`,
+          value: {
+            type: {
+              name: coinType.substring(2),
+            },
+          },
+        },
+      });
+
+    const borrowFeeDynamicFieldObject =
+      borrowFeeDynamicFieldObjectResponse?.data;
+    if (
+      !(
+        borrowFeeDynamicFieldObject &&
+        borrowFeeDynamicFieldObject.content &&
+        'fields' in borrowFeeDynamicFieldObject.content
+      )
+    )
+      return { value: '0' };
+    return (borrowFeeDynamicFieldObject.content.fields as any).value.fields;
+  };
+
+  const parsedMarketPoolData = parseOriginMarketPoolData({
+    type: interestModel.type.fields,
+    maxBorrowRate: interestModel.max_borrow_rate.fields,
+    interestRate: borrowIndex.interest_rate.fields,
+    interestRateScale: borrowIndex.interest_rate_scale,
+    borrowIndex: borrowIndex.borrow_index,
+    lastUpdated: borrowIndex.last_updated,
+    cash: balanceSheet.cash,
+    debt: balanceSheet.debt,
+    marketCoinSupply: balanceSheet.market_coin_supply,
+    reserve: balanceSheet.revenue,
+    reserveFactor: interestModel.revenue_factor.fields,
+    borrowWeight: interestModel.borrow_weight.fields,
+    borrowFeeRate: await getBorrowFee(),
+    baseBorrowRatePerSec: interestModel.base_borrow_rate_per_sec.fields,
+    borrowRateOnHighKink: interestModel.borrow_rate_on_high_kink.fields,
+    borrowRateOnMidKink: interestModel.borrow_rate_on_mid_kink.fields,
+    highKink: interestModel.high_kink.fields,
+    midKink: interestModel.mid_kink.fields,
+    minBorrowAmount: interestModel.min_borrow_amount,
+  });
+
+  const calculatedMarketPoolData = calculateMarketPoolData(
+    query.utils,
+    parsedMarketPoolData
+  );
+
+  const coinDecimal = query.utils.getCoinDecimal(poolCoinName);
+  const maxSupplyCoin = BigNumber(
+    (await getSupplyLimit(query.utils, poolCoinName)) ?? '0'
+  )
+    .shiftedBy(-coinDecimal)
+    .toNumber();
+  const maxBorrowCoin = BigNumber(
+    (await getBorrowLimit(query.utils, poolCoinName)) ?? '0'
+  )
+    .shiftedBy(-coinDecimal)
+    .toNumber();
+
+  return {
+    coinName: poolCoinName,
+    symbol: query.utils.parseSymbol(poolCoinName),
+    coinType: query.utils.parseCoinType(poolCoinName),
+    marketCoinType: query.utils.parseMarketCoinType(poolCoinName),
+    sCoinType: query.utils.parseSCoinType(
+      query.utils.parseMarketCoinName(poolCoinName)
+    ),
+    coinWrappedType: query.utils.getCoinWrappedType(poolCoinName),
+    coinDecimal,
+    coinPrice: coinPrice ?? 0,
+    highKink: parsedMarketPoolData.highKink,
+    midKink: parsedMarketPoolData.midKink,
+    reserveFactor: parsedMarketPoolData.reserveFactor,
+    borrowWeight: parsedMarketPoolData.borrowWeight,
+    borrowFee: parsedMarketPoolData.borrowFee,
+    marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
+    minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
+    maxSupplyCoin,
+    maxBorrowCoin,
+    isIsolated: await isIsolatedAsset(query.utils, poolCoinName),
+    ...calculatedMarketPoolData,
+  };
 };
 
 /**

@@ -139,8 +139,8 @@ export const getSCoinSwapRate = async (
 
   // Get lending data for both sCoin A and sCoin B
   const marketPools = await Promise.all([
-    query.getMarketPool(fromCoinName, false),
-    query.getMarketPool(toCoinName, false),
+    query.getMarketPool(fromCoinName),
+    query.getMarketPool(toCoinName),
   ]);
   if (marketPools.some((pool) => !pool))
     throw new Error('Failed to fetch the lendings data');
