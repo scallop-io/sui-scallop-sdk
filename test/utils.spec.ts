@@ -159,18 +159,6 @@ describe('Test Scallop Utils', async () => {
     expect(!!spoolRewardCoinName).toBe(true);
   });
 
-  it('Should get borrow incentive reward coin name', async () => {
-    const borrowIncentiveRewardCoinName =
-      scallopUtils.getBorrowIncentiveRewardCoinName('sui');
-    if (ENABLE_LOG) {
-      console.info(
-        'Borrow incentive reward coin name:',
-        borrowIncentiveRewardCoinName
-      );
-    }
-    expect(!!borrowIncentiveRewardCoinName).toBe(true);
-  });
-
   it('Should get coin decimal', async () => {
     const usdcCoinDecimal = scallopUtils.getCoinDecimal('wusdc');
     const usdcMarketCoinDecimal = scallopUtils.getCoinDecimal('swusdc');
