@@ -4,6 +4,7 @@ import { z as zod } from 'zod';
 import { scallopSDK } from './scallopSdk';
 import { ScallopQuery } from 'src/models';
 import BigNumber from 'bignumber.js';
+import { SupportPoolCoins } from 'src/types';
 // import { SupportPoolCoins } from 'src/types';
 
 const ENABLE_LOG = false;
@@ -514,27 +515,26 @@ describe('Test Isolated Assets', async () => {
     expect(typeof isolatedAssets[0]).toBe('string');
   });
 
-  // TODO: enable for prod
-  // it.skip('Should check if an asset is isolated', async () => {
-  //   const isolatedAssetNames = ['fud', 'deep'] as SupportPoolCoins[];
-  //   const isIsolated = await Promise.all(
-  //     isolatedAssetNames.map((asset) => scallopQuery.isIsolatedAsset(asset))
-  //   );
-  //   expect(typeof isIsolated).toBe('boolean');
-  //   expect(isIsolated).toBe(true);
-  // });
+  it.skip('Should check if an asset is isolated', async () => {
+    const isolatedAssetNames = ['fud', 'deep'] as SupportPoolCoins[];
+    const isIsolated = await Promise.all(
+      isolatedAssetNames.map((asset) => scallopQuery.isIsolatedAsset(asset))
+    );
+    expect(typeof isIsolated).toBe('boolean');
+    expect(isIsolated).toBe(true);
+  });
 });
 
-// describe('Test All Coin Prices Query', async () => {
-//   it('Should get coin prices', async () => {
-//     const scallopQuery = await getScallopQuery();
-//     const coinPrices = await scallopQuery.getAllCoinPrices();
-//     const susdcPrice = coinPrices['susdc'];
-//     if (ENABLE_LOG) {
-//       console.info('All coin prices:', coinPrices);
-//       console.info('Usdc coin price:', susdcPrice);
-//     }
-//     expect(!!coinPrices).toBe(true);
-//     expect(susdcPrice).toBeGreaterThanOrEqual(0);
-//   });
-// });
+describe('Test All Coin Prices Query', async () => {
+  it('Should get coin prices', async () => {
+    const scallopQuery = await getScallopQuery();
+    const coinPrices = await scallopQuery.getAllCoinPrices();
+    const swusdcPrice = coinPrices['swusdc'];
+    if (ENABLE_LOG) {
+      console.info('All coin prices:', coinPrices);
+      console.info('Usdc coin price:', swusdcPrice);
+    }
+    expect(!!coinPrices).toBe(true);
+    expect(swusdcPrice).toBeGreaterThanOrEqual(0);
+  });
+});
