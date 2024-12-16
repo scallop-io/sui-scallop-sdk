@@ -1,6 +1,5 @@
 import { normalizeStructTag } from '@mysten/sui/utils';
 import {
-  sCoinRawNameToName,
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_BORROW_INCENTIVE_REWARDS,
 } from '../constants';
@@ -100,8 +99,10 @@ export const getBorrowIncentivePools = async (
     const borrowIncentivePoolPoints: OptionalKeys<
       Record<SupportBorrowIncentiveRewardCoins, BorrowIncentivePoolPoints>
     > = {};
-    const parsedBorrowIncentivePoolData =
-      parseOriginBorrowIncentivePoolData(pool);
+    const parsedBorrowIncentivePoolData = parseOriginBorrowIncentivePoolData(
+      query.utils,
+      pool
+    );
 
     const poolCoinType = normalizeStructTag(pool.pool_type.name);
     const poolCoinName =
@@ -121,13 +122,10 @@ export const getBorrowIncentivePools = async (
       parsedBorrowIncentivePoolData.poolPoints
     )) {
       const rewardCoinType = poolPoint.pointType;
-      let rewardCoinName = query.utils.parseCoinNameFromType(
+      const rewardCoinName = query.utils.parseCoinNameFromType(
         rewardCoinType
       ) as SupportBorrowIncentiveRewardCoins;
       // handle for scoin name
-      if (sCoinRawNameToName[rewardCoinName]) {
-        rewardCoinName = sCoinRawNameToName[rewardCoinName];
-      }
       const rewardCoinDecimal = query.utils.getCoinDecimal(rewardCoinName);
       const rewardCoinPrice = coinPrices?.[rewardCoinName] ?? 0;
 
