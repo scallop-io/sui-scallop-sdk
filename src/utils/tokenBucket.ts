@@ -38,8 +38,8 @@ const callWithRateLimit = async <T>(
   tokenBucket: TokenBucket,
   fn: () => Promise<T>,
   retryDelayInMs = DEFAULT_INTERVAL_IN_MS,
-  maxRetries = 30,
-  backoffFactor = 1.25 // The factor by which to increase the delay
+  maxRetries = 15,
+  backoffFactor = 2 // The factor by which to increase the delay
 ): Promise<T | null> => {
   let retries = 0;
 
