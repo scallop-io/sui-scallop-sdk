@@ -546,7 +546,7 @@ export class ScallopQuery {
   public async getBorrowIncentivePools(
     coinNames?: SupportBorrowIncentiveCoins[],
     args?: {
-      coinPrices: CoinPrices;
+      coinPrices?: CoinPrices;
       indexer?: boolean;
       marketPools?: MarketPools;
     }

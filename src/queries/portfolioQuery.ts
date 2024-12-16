@@ -365,6 +365,7 @@ export const getObligationAccount = async (
       query.getBorrowIncentivePools(undefined, {
         coinPrices,
         indexer,
+        marketPools: market.pools,
       }),
       query.getBorrowIncentiveAccounts(obligationId),
     ]);

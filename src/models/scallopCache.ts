@@ -122,10 +122,13 @@ export class ScallopCache {
     txBlock.moveCall(queryTarget, args, typeArgs);
 
     const query = await this.queryClient.fetchQuery({
+      retry: 5,
+      retryDelay: 1000,
       queryKey: queryKeys.rpc.getInspectTxn(queryTarget, args, typeArgs),
       queryFn: async () => {
-        return await callWithRateLimit(this.tokenBucket, () =>
-          this.suiKit.inspectTxn(txBlock)
+        return await callWithRateLimit(
+          this.tokenBucket,
+          async () => await this.suiKit.inspectTxn(txBlock)
         );
       },
     });
@@ -143,13 +146,17 @@ export class ScallopCache {
     options?: SuiObjectDataOptions
   ): Promise<SuiObjectResponse | null> {
     return this.queryClient.fetchQuery({
+      retry: 5,
+      retryDelay: 1000,
       queryKey: queryKeys.rpc.getObject(objectId, this.walletAddress, options),
       queryFn: async () => {
-        return await callWithRateLimit(this.tokenBucket, () =>
-          this.client.getObject({
-            id: objectId,
-            options,
-          })
+        return await callWithRateLimit(
+          this.tokenBucket,
+          async () =>
+            await this.client.getObject({
+              id: objectId,
+              options,
+            })
         );
       },
     });
@@ -170,14 +177,17 @@ export class ScallopCache {
     // objectIds.sort();
 
     return this.queryClient.fetchQuery({
+      retry: 5,
+      retryDelay: 1000,
       queryKey: queryKeys.rpc.getObjects(
         objectIds,
         this.walletAddress,
         options
       ),
       queryFn: async () => {
-        return await callWithRateLimit(this.tokenBucket, () =>
-          this.suiKit.getObjects(objectIds, options)
+        return await callWithRateLimit(
+          this.tokenBucket,
+          async () => await this.suiKit.getObjects(objectIds, options)
         );
       },
     });
@@ -190,10 +200,13 @@ export class ScallopCache {
    */
   public async queryGetOwnedObjects(input: GetOwnedObjectsParams) {
     return this.queryClient.fetchQuery({
+      retry: 5,
+      retryDelay: 1000,
       queryKey: queryKeys.rpc.getOwnedObjects(input),
       queryFn: async () => {
-        return await callWithRateLimit(this.tokenBucket, () =>
-          this.client.getOwnedObjects(input)
+        return await callWithRateLimit(
+          this.tokenBucket,
+          async () => await this.client.getOwnedObjects(input)
         );
       },
     });
@@ -203,10 +216,13 @@ export class ScallopCache {
     input: GetDynamicFieldsParams
   ): Promise<DynamicFieldPage | null> {
     return this.queryClient.fetchQuery({
+      retry: 5,
+      retryDelay: 1000,
       queryKey: queryKeys.rpc.getDynamicFields(input),
       queryFn: async () => {
-        return await callWithRateLimit(this.tokenBucket, () =>
-          this.client.getDynamicFields(input)
+        return await callWithRateLimit(
+          this.tokenBucket,
+          async () => await this.client.getDynamicFields(input)
         );
       },
     });
@@ -216,6 +232,8 @@ export class ScallopCache {
     input: GetDynamicFieldObjectParams
   ): Promise<SuiObjectResponse | null> {
     return this.queryClient.fetchQuery({
+      retry: 5,
+      retryDelay: (attemptIndex) => Math.min(1000 * attemptIndex, 8000),
       queryKey: queryKeys.rpc.getDynamicFieldObject(input),
       queryFn: async () => {
         return await callWithRateLimit(this.tokenBucket, () =>
@@ -229,10 +247,13 @@ export class ScallopCache {
     owner: string
   ): Promise<{ [k: string]: string }> {
     return this.queryClient.fetchQuery({
+      retry: 5,
+      retryDelay: 1000,
       queryKey: queryKeys.rpc.getAllCoinBalances(owner),
       queryFn: async () => {
-        const allBalances = await callWithRateLimit(this.tokenBucket, () =>
-          this.client.getAllBalances({ owner })
+        const allBalances = await callWithRateLimit(
+          this.tokenBucket,
+          async () => await this.client.getAllBalances({ owner })
         );
         if (!allBalances) return {};
         const balances = allBalances.reduce(
