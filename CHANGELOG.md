@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.13](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.12...v1.4.13) (2024-12-17)
+
+### Bugfixes
+
+- Fix `SUPPORT_BORROW_INCENTIVES` constants ([6904e80](https://github.com/scallop-io/sui-scallop-sdk/commit/6904e80cea19c4c3fec0980dace8d0a7fa063ad1))
+
 ### [1.4.12](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.11...v1.4.12) (2024-12-17)
 
 ### Bugfixes
