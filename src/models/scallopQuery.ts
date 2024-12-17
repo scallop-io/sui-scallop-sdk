@@ -14,7 +14,7 @@ import {
   getStakeRewardPool,
   getPythPrice,
   getMarketPools,
-  getMarketPool,
+  // getMarketPool,
   getMarketCollaterals,
   getMarketCollateral,
   getSpools,
@@ -41,13 +41,15 @@ import {
   getBorrowIncentivePools,
   getBorrowLimit,
   getIsolatedAssets,
-  isIsolatedAsset,
+  // isIsolatedAsset,
   getSupplyLimit,
   getSCoinAmount,
   getSCoinAmounts,
   getSCoinSwapRate,
   getSCoinTotalSupply,
   getAllCoinPrices,
+  getAllAddresses,
+  isIsolatedAsset,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -188,6 +190,7 @@ export class ScallopQuery {
   /* ==================== Core Query Methods ==================== */
 
   /**
+   * @deprecated use getMarketPools
    * Query market data.
    * @param indexer - Whether to use indexer.
    * @return Market data.
@@ -211,7 +214,7 @@ export class ScallopQuery {
    * @return Market pools data.
    */
   public async getMarketPools(
-    poolCoinNames?: SupportPoolCoins[],
+    poolCoinNames: SupportPoolCoins[] = [...SUPPORT_POOLS],
     args?: {
       coinPrices?: CoinPrices;
       indexer?: boolean;
@@ -235,18 +238,19 @@ export class ScallopQuery {
   public async getMarketPool(
     poolCoinName: SupportPoolCoins,
     args?: {
-      marketObject?: SuiObjectData | null;
       coinPrice?: number;
       indexer?: boolean;
     }
   ) {
-    return await getMarketPool(
-      this,
-      poolCoinName,
-      args?.indexer,
-      args?.marketObject,
-      args?.coinPrice
-    );
+    const marketPools = await this.getMarketPools(undefined, args);
+    return marketPools.pools[poolCoinName];
+    // return await getMarketPool(
+    //   this,
+    //   poolCoinName,
+    //   args?.indexer,
+    //   args?.marketObject,
+    //   args?.coinPrice
+    // );
   }
 
   /**
@@ -812,7 +816,7 @@ export class ScallopQuery {
    * Get list of isolated assets
    */
   public async getIsolatedAssets() {
-    return await getIsolatedAssets(this.address);
+    return await getIsolatedAssets(this);
   }
 
   /**
@@ -840,5 +844,13 @@ export class ScallopQuery {
     coinPrices?: CoinPrices;
   }) {
     return getAllCoinPrices(this, args?.marketPools, args?.coinPrices);
+  }
+
+  /**
+   * Query all address (lending pool, collateral pool, borrow dynamics, interest models) of all pool
+   * @returns
+   */
+  public async getPoolAddresses() {
+    return getAllAddresses(this);
   }
 }
