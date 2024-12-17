@@ -42,7 +42,7 @@ const callWithRateLimit = async <T>(
   fn: () => Promise<T>,
   retryDelayInMs = DEFAULT_INTERVAL_IN_MS,
   maxRetries = 15,
-  backoffFactor = 2 // The factor by which to increase the delay
+  backoffFactor = 1.25 // The factor by which to increase the delay
 ): Promise<T | null> => {
   let retries = 0;
 

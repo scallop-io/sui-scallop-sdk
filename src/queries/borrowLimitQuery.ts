@@ -17,8 +17,8 @@ const borrowLimitZod = zod.object({
   }),
 });
 
-const borrowLimitKeyType = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da26c7221b220f01af6::market_dynamic_keys::BorrowLimitKey`; // prod
-// const borrowLimitKeyType = `0xb784ea287d944e478a3ceaa071f8885072cce6b7224cf245914dc2f9963f460e::market_dynamic_keys::BorrowLimitKey`;
+// const borrowLimitKeyType = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da26c7221b220f01af6::market_dynamic_keys::BorrowLimitKey`; // prod
+const borrowLimitKeyType = `0xb784ea287d944e478a3ceaa071f8885072cce6b7224cf245914dc2f9963f460e::market_dynamic_keys::BorrowLimitKey`;
 
 /**
  * Return supply limit of a pool (including the decimals)
