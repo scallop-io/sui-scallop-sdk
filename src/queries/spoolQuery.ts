@@ -43,7 +43,9 @@ export const getSpools = async (
   coinPrices = coinPrices ?? (await query.utils.getCoinPrices()) ?? {};
 
   marketPools =
-    marketPools ?? (await query.getMarketPools(stakeCoinNames, { indexer }));
+    marketPools ??
+    (await query.getMarketPools(stakeCoinNames, { indexer })).pools;
+
   if (!marketPools)
     throw new Error(`Fail to fetch marketPools for ${stakeCoinNames}`);
 

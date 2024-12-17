@@ -62,6 +62,9 @@ export const parseOriginMarketPoolData = (
     highKink: Number(originMarketPoolData.highKink.value) / 2 ** 32,
     midKink: Number(originMarketPoolData.midKink.value) / 2 ** 32,
     minBorrowAmount: Number(originMarketPoolData.minBorrowAmount),
+    isIsolated: originMarketPoolData.isIsolated,
+    supplyLimit: Number(originMarketPoolData.supplyLimit),
+    borrowLimit: Number(originMarketPoolData.borrowLimit),
   };
 };
 
@@ -142,6 +145,7 @@ export const calculateMarketPoolData = (
     borrowApyOnHighKink: utils.parseAprToApy(borrowAprOnHighKink),
     borrowAprOnMidKink,
     borrowApyOnMidKink: utils.parseAprToApy(borrowAprOnMidKink),
+    coinDecimal,
     maxBorrowApr,
     maxBorrowApy: utils.parseAprToApy(maxBorrowApr),
     borrowApr: Math.min(borrowApr, maxBorrowApr),
@@ -161,6 +165,13 @@ export const calculateMarketPoolData = (
     supplyApr: supplyApr.toNumber(),
     supplyApy: utils.parseAprToApy(supplyApr.toNumber()),
     conversionRate: conversionRate.toNumber(),
+    isIsolated: parsedMarketPoolData.isIsolated,
+    maxSupplyCoin: BigNumber(parsedMarketPoolData.supplyLimit)
+      .shiftedBy(coinDecimal)
+      .toNumber(),
+    maxBorrowCoin: BigNumber(parsedMarketPoolData.borrowLimit)
+      .shiftedBy(coinDecimal)
+      .toNumber(),
   };
 };
 
@@ -176,14 +187,15 @@ export const parseOriginMarketCollateralData = (
   const divisor = 2 ** 32;
   return {
     coinType: normalizeStructTag(originMarketCollateralData.type.name),
+    isIsolated: originMarketCollateralData.isIsolated,
     collateralFactor:
       Number(originMarketCollateralData.collateralFactor.value) / divisor,
     liquidationFactor:
       Number(originMarketCollateralData.liquidationFactor.value) / divisor,
     liquidationDiscount:
       Number(originMarketCollateralData.liquidationDiscount.value) / divisor,
-    liquidationPanelty:
-      Number(originMarketCollateralData.liquidationPanelty.value) / divisor,
+    liquidationPenalty:
+      Number(originMarketCollateralData.liquidationPenalty.value) / divisor,
     liquidationReserveFactor:
       Number(originMarketCollateralData.liquidationReserveFactor.value) /
       divisor,
@@ -212,6 +224,8 @@ export const calculateMarketCollateralData = (
   ).shiftedBy(-1 * coinDecimal);
 
   return {
+    coinDecimal,
+    isIsolated: parsedMarketCollateralData.isIsolated,
     maxDepositAmount: parsedMarketCollateralData.maxCollateralAmount,
     maxDepositCoin: maxCollateralCoin.toNumber(),
     depositAmount: parsedMarketCollateralData.totalCollateralAmount,

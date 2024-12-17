@@ -106,6 +106,12 @@ export class ScallopCache {
     );
   }
 
+  private retryFn(errCount: number, e: any) {
+    if (errCount === 5) return false;
+    if (e.status === 429) return true;
+    return false;
+  }
+
   /**
    * @description Provides cache for inspectTxn of the SuiKit.
    * @param QueryInspectTxnParams
@@ -119,10 +125,18 @@ export class ScallopCache {
   }: QueryInspectTxnParams): Promise<DevInspectResults | null> {
     const txBlock = new SuiTxBlock();
 
-    txBlock.moveCall(queryTarget, args, typeArgs);
+    const resolvedArgs = await Promise.all(
+      args.map(async (arg) => {
+        if (typeof arg === 'string') {
+          return (await this.queryGetObject(arg))?.data;
+        }
+        return arg;
+      })
+    );
+    txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
 
     const query = await this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getInspectTxn(queryTarget, args, typeArgs),
       queryFn: async () => {
@@ -144,11 +158,11 @@ export class ScallopCache {
   public async queryGetObject(
     objectId: string,
     options?: SuiObjectDataOptions
-  ): Promise<SuiObjectResponse | null> {
+  ) {
     return this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: 1000,
-      queryKey: queryKeys.rpc.getObject(objectId, this.walletAddress, options),
+      queryKey: queryKeys.rpc.getObject(objectId, options),
       queryFn: async () => {
         return await callWithRateLimit(
           this.tokenBucket,
@@ -177,7 +191,7 @@ export class ScallopCache {
     // objectIds.sort();
 
     return this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getObjects(
         objectIds,
@@ -185,10 +199,28 @@ export class ScallopCache {
         options
       ),
       queryFn: async () => {
-        return await callWithRateLimit(
+        const results = await callWithRateLimit(
           this.tokenBucket,
           async () => await this.suiKit.getObjects(objectIds, options)
         );
+        if (results) {
+          results.forEach((result) => {
+            this.queryClient.setQueriesData(
+              {
+                exact: false,
+                queryKey: queryKeys.rpc.getObject(result.objectId, options),
+              },
+              {
+                data: result,
+                error: null,
+              },
+              {
+                updatedAt: Date.now(),
+              }
+            );
+          });
+        }
+        return results;
       },
     });
   }
@@ -200,7 +232,7 @@ export class ScallopCache {
    */
   public async queryGetOwnedObjects(input: GetOwnedObjectsParams) {
     return this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getOwnedObjects(input),
       queryFn: async () => {
@@ -216,7 +248,7 @@ export class ScallopCache {
     input: GetDynamicFieldsParams
   ): Promise<DynamicFieldPage | null> {
     return this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getDynamicFields(input),
       queryFn: async () => {
@@ -232,7 +264,7 @@ export class ScallopCache {
     input: GetDynamicFieldObjectParams
   ): Promise<SuiObjectResponse | null> {
     return this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: (attemptIndex) => Math.min(1000 * attemptIndex, 8000),
       queryKey: queryKeys.rpc.getDynamicFieldObject(input),
       queryFn: async () => {
@@ -247,7 +279,7 @@ export class ScallopCache {
     owner: string
   ): Promise<{ [k: string]: string }> {
     return this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getAllCoinBalances(owner),
       queryFn: async () => {

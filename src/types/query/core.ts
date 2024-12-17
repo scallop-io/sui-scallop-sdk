@@ -28,7 +28,7 @@ export type BalanceSheet = {
   revenue: string;
 };
 
-export type BorrowIndex = {
+export type BorrowDynamic = {
   borrow_index: string;
   interest_rate: {
     fields: {
@@ -38,6 +38,8 @@ export type BorrowIndex = {
   interest_rate_scale: string;
   last_updated: string;
 };
+
+export type BorrowFee = { value: string };
 
 export type InterestModel = {
   base_borrow_rate_per_sec: {
@@ -161,7 +163,7 @@ export type MarketCollateral = {
     | 'collateralFactor'
     | 'liquidationFactor'
     | 'liquidationDiscount'
-    | 'liquidationPanelty'
+    | 'liquidationPenalty'
     | 'liquidationReserveFactor'
   >
 > &
@@ -187,6 +189,9 @@ export type OriginMarketPoolData = {
   highKink: { value: string };
   midKink: { value: string };
   minBorrowAmount: string;
+  isIsolated: boolean;
+  supplyLimit: string;
+  borrowLimit: string;
 };
 
 export type ParsedMarketPoolData = {
@@ -209,6 +214,9 @@ export type ParsedMarketPoolData = {
   highKink: number;
   midKink: number;
   minBorrowAmount: number;
+  isIsolated: boolean;
+  supplyLimit: number;
+  borrowLimit: number;
 };
 
 export type CalculatedMarketPoolData = {
@@ -218,6 +226,8 @@ export type CalculatedMarketPoolData = {
   borrowApyOnHighKink: number;
   borrowAprOnMidKink: number;
   borrowApyOnMidKink: number;
+  coinDecimal: number;
+  conversionRate: number;
   maxBorrowApr: number;
   maxBorrowApy: number;
   borrowApr: number;
@@ -233,15 +243,18 @@ export type CalculatedMarketPoolData = {
   utilizationRate: number;
   supplyApr: number;
   supplyApy: number;
-  conversionRate: number;
+  isIsolated: boolean;
+  maxSupplyCoin: number;
+  maxBorrowCoin: number;
 };
 
 export type OriginMarketCollateralData = {
   type: { name: string };
+  isIsolated: boolean;
   collateralFactor: { value: string };
   liquidationFactor: { value: string };
   liquidationDiscount: { value: string };
-  liquidationPanelty: { value: string };
+  liquidationPenalty: { value: string };
   liquidationReserveFactor: { value: string };
   maxCollateralAmount: string;
   totalCollateralAmount: string;
@@ -252,13 +265,16 @@ export type ParsedMarketCollateralData = {
   collateralFactor: number;
   liquidationFactor: number;
   liquidationDiscount: number;
-  liquidationPanelty: number;
+  liquidationPenalty: number;
   liquidationReserveFactor: number;
   maxCollateralAmount: number;
   totalCollateralAmount: number;
+  isIsolated: boolean;
 };
 
 export type CalculatedMarketCollateralData = {
+  coinDecimal: number;
+  isIsolated: boolean;
   maxDepositAmount: number;
   maxDepositCoin: number;
   depositAmount: number;
