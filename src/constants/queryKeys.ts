@@ -34,11 +34,11 @@ export const queryKeys = {
         typeArgs: !typeArgs ? undefined : JSON.stringify(typeArgs),
       },
     ],
-    getObject: (
-      objectId?: string,
-      walletAddress?: string,
-      options?: SuiObjectDataOptions
-    ) => ['rpc', 'getObject', { walletAddress, options, objectId }],
+    getObject: (objectId?: string, options?: SuiObjectDataOptions) => [
+      'rpc',
+      'getObject',
+      { options, objectId },
+    ],
     getObjects: (
       objectIds?: string[],
       walletAddress?: string,
