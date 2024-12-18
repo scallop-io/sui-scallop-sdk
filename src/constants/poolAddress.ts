@@ -9,6 +9,7 @@ export const POOL_ADDRESSES: OptionalKeys<
       collateralPoolAddress?: string; // not all pool has collateral
       spool?: string;
       spoolReward?: string;
+      sCoinTreasury?: string;
       borrowDynamic?: string;
       interestModel?: string;
       riskModel?: string;

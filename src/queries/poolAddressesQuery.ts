@@ -1,6 +1,6 @@
 import { SUPPORT_POOLS } from 'src/constants';
 import { ScallopQuery } from 'src/models';
-import { OptionalKeys, SupportPoolCoins, SupportSCoin } from 'src/types';
+import { OptionalKeys, SupportPoolCoins } from 'src/types';
 
 export const getAllAddresses = async (query: ScallopQuery) => {
   const results: OptionalKeys<
@@ -12,6 +12,7 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         borrowDynamic?: string;
         spoolReward?: string;
         spool?: string;
+        sCoinTreasury?: string;
         interestModel?: string;
         riskModel?: string;
         borrowFeeKey?: string;
@@ -106,11 +107,15 @@ export const getAllAddresses = async (query: ScallopQuery) => {
 
       const spool = query.address.get(
         // @ts-ignore
-        `spool.pools.s${coinName as SupportSCoin}.id`
+        `spool.pools.s${coinName}.id`
       );
       const rewardPool = query.address.get(
         // @ts-ignore
         `spool.pools.s${coinName}.rewardPoolId`
+      );
+      const sCoinTreasury = query.address.get(
+        // @ts-ignore
+        `scoin.coins.s${coinName}.treasury`
       );
       results[coinName as SupportPoolCoins] = {
         lendingPoolAddress: addresses[0],
@@ -124,6 +129,7 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         isolatedAssetKey: addresses[8],
         spool,
         spoolReward: rewardPool,
+        sCoinTreasury,
       };
 
       await new Promise((resolve) => setTimeout(resolve, 200));

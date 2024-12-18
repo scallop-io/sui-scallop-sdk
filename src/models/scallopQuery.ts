@@ -14,11 +14,9 @@ import {
   getStakeRewardPool,
   getPythPrice,
   getMarketPools,
-  // getMarketPool,
   getMarketCollaterals,
   getMarketCollateral,
   getSpools,
-  getSpool,
   queryBorrowIncentiveAccounts,
   getCoinAmounts,
   getCoinAmount,
@@ -422,13 +420,8 @@ export class ScallopQuery {
       indexer?: boolean;
     }
   ) {
-    return await getSpool(
-      this,
-      stakeMarketCoinName,
-      args?.indexer,
-      args?.marketPool,
-      args?.coinPrices
-    );
+    const spools = await this.getSpools(undefined, args);
+    return spools[stakeMarketCoinName];
   }
 
   /**
