@@ -231,6 +231,7 @@ export class ScallopCache {
    * @returns Promise<PaginatedObjectsResponse>
    */
   public async queryGetOwnedObjects(input: GetOwnedObjectsParams) {
+    // TODO: This query need its own separate rate limiter (as owned objects can theoretically be infinite), need a better way to handle this
     return this.queryClient.fetchQuery({
       retry: this.retryFn,
       retryDelay: 1000,
