@@ -1,7 +1,8 @@
 import { DynamicFieldInfo, DynamicFieldName } from '@mysten/sui/client';
-import { ScallopAddress, ScallopUtils } from '../models';
+import { ScallopQuery, ScallopUtils } from '../models';
 import { SupportPoolCoins } from '../types';
 import { z as zod } from 'zod';
+import { POOL_ADDRESSES, SUPPORT_POOLS } from 'src/constants';
 
 const isolatedAssetZod = zod.object({
   dataType: zod.string(),
@@ -27,10 +28,16 @@ const isolatedAssetKeyType = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da2
  * @returns list of isolated assets coin types
  */
 export const getIsolatedAssets = async (
-  address: ScallopAddress
+  query: ScallopQuery
 ): Promise<string[]> => {
+  if (SUPPORT_POOLS.every((t) => !!POOL_ADDRESSES[t])) {
+    return SUPPORT_POOLS.filter(
+      (t): t is typeof t & { coinType: string; isolatedAssetKey: string } =>
+        !!POOL_ADDRESSES[t]?.isolatedAssetKey && !!POOL_ADDRESSES[t]?.coinType
+    ).map((t) => POOL_ADDRESSES[t as SupportPoolCoins]?.coinType!);
+  }
   try {
-    const marketObject = address.get('core.market');
+    const marketObject = query.address.get('core.market');
     const isolatedAssets: string[] = [];
     if (!marketObject) return isolatedAssets;
 
@@ -46,7 +53,7 @@ export const getIsolatedAssets = async (
     };
 
     do {
-      const response = await address.cache.queryGetDynamicFields({
+      const response = await query.cache.queryGetDynamicFields({
         parentId: marketObject,
         cursor: nextCursor,
         limit: 10,
@@ -81,34 +88,33 @@ export const isIsolatedAsset = async (
   utils: ScallopUtils,
   coinName: SupportPoolCoins
 ): Promise<boolean> => {
-  try {
-    const marketObject = utils.address.get('core.market');
-    // check if the coin type is in the list
-    const cachedData = utils.address.cache.queryClient.getQueryData<string[]>([
-      'getDynamicFields',
-      marketObject,
-    ]);
-    if (cachedData) {
-      const coinType = utils.parseCoinType(coinName);
-      return cachedData.includes(coinType);
-    }
-
-    // fetch dynamic field object
-    const coinType = utils.parseCoinType(coinName).slice(2);
-
-    const object = await utils.cache.queryGetDynamicFieldObject({
-      parentId: marketObject,
-      name: {
-        type: isolatedAssetKeyType,
-        value: coinType,
-      },
-    });
-
-    const parsedData = isolatedAssetZod.safeParse(object?.data?.content);
-    if (!parsedData.success) return false;
-    return parsedData.data.fields.value;
-  } catch (e) {
-    console.error(e);
-    return false;
+  if (POOL_ADDRESSES[coinName]) {
+    return !!POOL_ADDRESSES[coinName].isolatedAssetKey;
   }
+
+  const marketObject = utils.address.get('core.market');
+  // check if the coin type is in the list
+  const cachedData = utils.address.cache.queryClient.getQueryData<string[]>([
+    'getDynamicFields',
+    marketObject,
+  ]);
+  if (cachedData) {
+    const coinType = utils.parseCoinType(coinName);
+    return cachedData.includes(coinType);
+  }
+
+  // fetch dynamic field object
+  const coinType = utils.parseCoinType(coinName).slice(2);
+
+  const object = await utils.cache.queryGetDynamicFieldObject({
+    parentId: marketObject,
+    name: {
+      type: isolatedAssetKeyType,
+      value: coinType,
+    },
+  });
+
+  const parsedData = isolatedAssetZod.safeParse(object?.data?.content);
+  if (!parsedData.success) return false;
+  return parsedData.data.fields.value;
 };

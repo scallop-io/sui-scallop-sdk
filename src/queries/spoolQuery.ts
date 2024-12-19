@@ -1,16 +1,16 @@
 import { normalizeStructTag } from '@mysten/sui/utils';
-import { SUPPORT_SPOOLS } from '../constants';
+import { POOL_ADDRESSES, SUPPORT_SPOOLS } from '../constants';
 import {
   parseOriginSpoolData,
   calculateSpoolData,
   parseOriginSpoolRewardPoolData,
   calculateSpoolRewardPoolData,
   isMarketCoin,
+  parseObjectAs,
 } from '../utils';
-import type { SuiObjectResponse } from '@mysten/sui/client';
+import type { SuiObjectData, SuiObjectResponse } from '@mysten/sui/client';
 import type { ScallopQuery, ScallopUtils } from '../models';
 import type {
-  MarketPool,
   Spools,
   Spool,
   StakePool,
@@ -20,7 +20,107 @@ import type {
   SupportStakeCoins,
   CoinPrices,
   MarketPools,
+  OriginSpoolRewardPoolData,
+  SpoolData,
+  OriginSpoolData,
 } from '../types';
+import { queryMultipleObjects } from './objectsQuery';
+
+const queryRequiredSpoolObjects = async (
+  query: ScallopQuery,
+  stakePoolCoinNames: SupportStakeCoins[]
+) => {
+  // Prepare all tasks for querying each object type
+  const tasks = stakePoolCoinNames.map((t, idx) => ({
+    poolCoinName: stakePoolCoinNames[idx],
+    spool: POOL_ADDRESSES[t]?.spool,
+    spoolReward: POOL_ADDRESSES[t]?.spoolReward,
+    sCoinTreasury: POOL_ADDRESSES[t]?.sCoinTreasury,
+  }));
+
+  // Query all objects for each key in parallel
+  const [spoolObjects, spoolRewardObjects, sCoinTreasuryObjects] =
+    await Promise.all([
+      queryMultipleObjects(
+        query.cache,
+        tasks.map((task) => task.spool).filter((t): t is string => !!t)
+      ),
+      queryMultipleObjects(
+        query.cache,
+        tasks.map((task) => task.spoolReward).filter((t): t is string => !!t)
+      ),
+      queryMultipleObjects(
+        query.cache,
+        tasks.map((task) => task.sCoinTreasury).filter((t): t is string => !!t)
+      ),
+    ]);
+
+  // Map the results back to poolCoinNames
+  const mapObjects = (
+    tasks: { poolCoinName: string; [key: string]: string | undefined }[],
+    fetchedObjects: SuiObjectData[]
+  ) => {
+    const resultMap: Record<string, SuiObjectData> = {};
+    let fetchedIndex = 0;
+
+    for (const task of tasks) {
+      const key = task[Object.keys(task)[1]]; // current object key being queried
+      if (key) {
+        resultMap[task.poolCoinName] = fetchedObjects[fetchedIndex];
+        fetchedIndex++;
+      }
+    }
+    return resultMap;
+  };
+
+  const spoolMap = mapObjects(tasks, spoolObjects);
+  const spoolRewardMap = mapObjects(tasks, spoolRewardObjects);
+  const sCoinTreasuryMap = mapObjects(tasks, sCoinTreasuryObjects);
+
+  // Construct the final requiredObjects result
+  return stakePoolCoinNames.reduce(
+    (acc, name) => {
+      acc[name] = {
+        spool: spoolMap[name],
+        spoolReward: spoolRewardMap[name],
+        sCoinTreasury: sCoinTreasuryMap[name],
+      };
+      return acc;
+    },
+    {} as Record<
+      SupportStakeCoins,
+      {
+        spool: SuiObjectData;
+        spoolReward: SuiObjectData;
+        sCoinTreasury: SuiObjectData;
+      }
+    >
+  );
+};
+
+const parseSpoolObjects = ({
+  spool,
+  spoolReward,
+}: {
+  spool: SuiObjectData;
+  spoolReward: SuiObjectData;
+}): OriginSpoolData & OriginSpoolRewardPoolData => {
+  const _spool = parseObjectAs<SpoolData>(spool);
+  const _spoolReward = parseObjectAs<OriginSpoolRewardPoolData>(spoolReward);
+  return {
+    stakeType: _spool.stake_type,
+    maxDistributedPoint: _spool.max_distributed_point,
+    distributedPoint: _spool.distributed_point,
+    distributedPointPerPeriod: _spool.distributed_point_per_period,
+    pointDistributionTime: _spool.point_distribution_time,
+    maxStake: _spool.max_stakes,
+    stakes: _spool.stakes,
+    index: _spool.index,
+    createdAt: _spool.created_at,
+    lastUpdate: _spool.last_update,
+    ..._spoolReward,
+  };
+};
 
 /**
  * Get spools data.
@@ -40,10 +140,13 @@ export const getSpools = async (
   const stakeCoinNames = stakeMarketCoinNames.map((stakeMarketCoinName) =>
     query.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName)
   );
-  coinPrices = coinPrices ?? (await query.utils.getCoinPrices()) ?? {};
-
   marketPools =
-    marketPools ?? (await query.getMarketPools(stakeCoinNames, { indexer }));
+    marketPools ??
+    (await query.getMarketPools(stakeCoinNames, { indexer })).pools;
+
+  coinPrices =
+    coinPrices ?? (await query.getAllCoinPrices({ marketPools })) ?? {};
+
   if (!marketPools)
     throw new Error(`Fail to fetch marketPools for ${stakeCoinNames}`);
 
@@ -59,12 +162,9 @@ export const getSpools = async (
       const rewardCoinName = query.utils.getSpoolRewardCoinName(
         spool.marketCoinName
       );
-      const marketPool = marketPools[coinName];
       spool.coinPrice = coinPrices[coinName] ?? spool.coinPrice;
-      spool.marketCoinPrice = coinPrices[coinName]
-        ? (coinPrices[coinName] ?? 0) *
-          (marketPool ? marketPool.conversionRate : 0)
-        : spool.marketCoinPrice;
+      spool.marketCoinPrice =
+        coinPrices[spool.marketCoinName] ?? spool.marketCoinPrice;
       spool.rewardCoinPrice =
         coinPrices[rewardCoinName] ?? spool.rewardCoinPrice;
       spools[spool.marketCoinName] = spool;
@@ -74,21 +174,31 @@ export const getSpools = async (
     return spools;
   }
 
-  for (const stakeMarketCoinName of stakeMarketCoinNames) {
-    const stakeCoinName =
-      query.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
-    const spool = await getSpool(
-      query,
-      stakeMarketCoinName,
-      indexer,
-      marketPools[stakeCoinName],
-      coinPrices
-    );
+  const requiredObjects = await queryRequiredSpoolObjects(
+    query,
+    stakeCoinNames
+  );
 
-    if (spool) {
-      spools[stakeMarketCoinName] = spool;
-    }
-  }
+  await Promise.allSettled(
+    stakeMarketCoinNames.map(async (stakeMarketCoinName, idx) => {
+      try {
+        const stakeCoinName = stakeCoinNames[idx];
+        const spool = await getSpool(
+          query,
+          stakeMarketCoinName,
+          indexer,
+          coinPrices,
+          requiredObjects[stakeCoinName]
+        );
+
+        if (spool) {
+          spools[stakeMarketCoinName] = spool;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    })
+  );
 
   return spools;
 };
@@ -107,126 +217,83 @@ export const getSpool = async (
   query: ScallopQuery,
   marketCoinName: SupportStakeMarketCoins,
   indexer: boolean = false,
-  marketPool?: MarketPool,
-  coinPrices?: CoinPrices
+  coinPrices?: CoinPrices,
+  requiredObjects?: {
+    spool: SuiObjectData;
+    spoolReward: SuiObjectData;
+  }
 ) => {
   const coinName = query.utils.parseCoinName<SupportStakeCoins>(marketCoinName);
-  marketPool = marketPool || (await query.getMarketPool(coinName, { indexer }));
-  if (!marketPool) {
-    throw new Error(`Failed to fetch marketPool for ${marketCoinName}`);
-  }
-
-  const poolId = query.address.get(`spool.pools.${marketCoinName}.id`);
-  const rewardPoolId = query.address.get(
-    `spool.pools.${marketCoinName}.rewardPoolId`
-  );
-  let spool: Spool | undefined = undefined;
-  coinPrices = coinPrices || (await query.utils.getCoinPrices());
+  coinPrices = coinPrices || (await query.getAllCoinPrices());
 
   if (indexer) {
     const spoolIndexer = await query.indexer.getSpool(marketCoinName);
     const coinName =
       query.utils.parseCoinName<SupportStakeCoins>(marketCoinName);
     const rewardCoinName = query.utils.getSpoolRewardCoinName(marketCoinName);
-    spoolIndexer.coinPrice = coinPrices?.[coinName] || spoolIndexer.coinPrice;
+    spoolIndexer.coinPrice = coinPrices?.[coinName] ?? spoolIndexer.coinPrice;
     spoolIndexer.marketCoinPrice =
-      (coinPrices?.[coinName] ?? 0) *
-        (marketPool ? marketPool.conversionRate : 0) ||
-      spoolIndexer.marketCoinPrice;
+      coinPrices?.[marketCoinName] ?? spoolIndexer.marketCoinPrice;
     spoolIndexer.rewardCoinPrice =
-      coinPrices?.[rewardCoinName] || spoolIndexer.rewardCoinPrice;
+      coinPrices?.[rewardCoinName] ?? spoolIndexer.rewardCoinPrice;
 
     return spoolIndexer;
   }
 
-  const spoolObjectResponse = await query.cache.queryGetObjects(
-    [poolId, rewardPoolId],
-    {
-      showContent: true,
-    }
-  );
-
-  if (!(spoolObjectResponse[0] && spoolObjectResponse[1])) {
-    throw new Error('Fail to fetch spoolObjectResponse!');
-  }
+  requiredObjects ??= (await queryRequiredSpoolObjects(query, [coinName]))[
+    coinName
+  ];
 
   const rewardCoinName = query.utils.getSpoolRewardCoinName(marketCoinName);
   coinPrices = coinPrices || (await query.utils.getCoinPrices());
 
-  const spoolObject = spoolObjectResponse[0];
-  const rewardPoolObject = spoolObjectResponse[1];
-  if (spoolObject.content && 'fields' in spoolObject.content) {
-    const spoolFields = spoolObject.content.fields as any;
-    const parsedSpoolData = parseOriginSpoolData({
-      stakeType: spoolFields.stake_type,
-      maxDistributedPoint: spoolFields.max_distributed_point,
-      distributedPoint: spoolFields.distributed_point,
-      distributedPointPerPeriod: spoolFields.distributed_point_per_period,
-      pointDistributionTime: spoolFields.point_distribution_time,
-      maxStake: spoolFields.max_stakes,
-      stakes: spoolFields.stakes,
-      index: spoolFields.index,
-      createdAt: spoolFields.created_at,
-      lastUpdate: spoolFields.last_update,
-    });
+  const parsedSpoolObjects = parseSpoolObjects(requiredObjects);
+  const parsedSpoolData = parseOriginSpoolData(parsedSpoolObjects);
 
-    const marketCoinPrice =
-      (coinPrices?.[coinName] ?? 0) * marketPool.conversionRate;
-    const marketCoinDecimal = query.utils.getCoinDecimal(marketCoinName);
-    const calculatedSpoolData = calculateSpoolData(
-      parsedSpoolData,
-      marketCoinPrice,
-      marketCoinDecimal
-    );
+  const marketCoinPrice = coinPrices?.[marketCoinName] ?? 0;
+  const marketCoinDecimal = query.utils.getCoinDecimal(marketCoinName);
+  const calculatedSpoolData = calculateSpoolData(
+    parsedSpoolData,
+    marketCoinPrice,
+    marketCoinDecimal
+  );
 
-    if (rewardPoolObject.content && 'fields' in rewardPoolObject.content) {
-      const rewardPoolFields = rewardPoolObject.content.fields as any;
-      const parsedSpoolRewardPoolData = parseOriginSpoolRewardPoolData({
-        claimed_rewards: rewardPoolFields.claimed_rewards,
-        exchange_rate_numerator: rewardPoolFields.exchange_rate_numerator,
-        exchange_rate_denominator: rewardPoolFields.exchange_rate_denominator,
-        rewards: rewardPoolFields.rewards,
-        spool_id: rewardPoolFields.spool_id,
-      });
+  const parsedSpoolRewardPoolData =
+    parseOriginSpoolRewardPoolData(parsedSpoolObjects);
 
-      const rewardCoinPrice = coinPrices?.[rewardCoinName] ?? 0;
-      const rewardCoinDecimal = query.utils.getCoinDecimal(rewardCoinName);
+  const rewardCoinPrice = coinPrices?.[rewardCoinName] ?? 0;
+  const rewardCoinDecimal = query.utils.getCoinDecimal(rewardCoinName);
 
-      const calculatedRewardPoolData = calculateSpoolRewardPoolData(
-        parsedSpoolData,
-        parsedSpoolRewardPoolData,
-        calculatedSpoolData,
-        rewardCoinPrice,
-        rewardCoinDecimal
-      );
+  const calculatedRewardPoolData = calculateSpoolRewardPoolData(
+    parsedSpoolData,
+    parsedSpoolRewardPoolData,
+    calculatedSpoolData,
+    rewardCoinPrice,
+    rewardCoinDecimal
+  );
 
-      spool = {
-        marketCoinName: marketCoinName,
-        symbol: query.utils.parseSymbol(marketCoinName),
-        coinType: query.utils.parseCoinType(coinName),
-        marketCoinType: query.utils.parseMarketCoinType(coinName),
-        rewardCoinType: isMarketCoin(rewardCoinName)
-          ? query.utils.parseMarketCoinType(rewardCoinName)
-          : query.utils.parseCoinType(rewardCoinName),
-        sCoinType: marketPool.sCoinType,
-        coinDecimal: query.utils.getCoinDecimal(coinName),
-        rewardCoinDecimal: query.utils.getCoinDecimal(rewardCoinName),
-        coinPrice: coinPrices?.[coinName] ?? 0,
-        marketCoinPrice: marketCoinPrice,
-        rewardCoinPrice: rewardCoinPrice,
-        maxPoint: parsedSpoolData.maxPoint,
-        distributedPoint: parsedSpoolData.distributedPoint,
-        maxStake: parsedSpoolData.maxStake,
-        ...calculatedSpoolData,
-        exchangeRateNumerator: parsedSpoolRewardPoolData.exchangeRateNumerator,
-        exchangeRateDenominator:
-          parsedSpoolRewardPoolData.exchangeRateDenominator,
-        ...calculatedRewardPoolData,
-      };
-    }
-  }
-
-  return spool;
+  return {
+    marketCoinName: marketCoinName,
+    symbol: query.utils.parseSymbol(marketCoinName),
+    coinType: query.utils.parseCoinType(coinName),
+    marketCoinType: query.utils.parseMarketCoinType(coinName),
+    rewardCoinType: isMarketCoin(rewardCoinName)
+      ? query.utils.parseMarketCoinType(rewardCoinName)
+      : query.utils.parseCoinType(rewardCoinName),
+    sCoinType: query.utils.parseSCoinType(marketCoinName),
+    coinDecimal: query.utils.getCoinDecimal(coinName),
+    rewardCoinDecimal: query.utils.getCoinDecimal(rewardCoinName),
+    coinPrice: coinPrices?.[coinName] ?? 0,
+    marketCoinPrice: marketCoinPrice,
+    rewardCoinPrice: rewardCoinPrice,
+    maxPoint: parsedSpoolData.maxPoint,
+    distributedPoint: parsedSpoolData.distributedPoint,
+    maxStake: parsedSpoolData.maxStake,
+    ...calculatedSpoolData,
+    exchangeRateNumerator: parsedSpoolRewardPoolData.exchangeRateNumerator,
+    exchangeRateDenominator: parsedSpoolRewardPoolData.exchangeRateDenominator,
+    ...calculatedRewardPoolData,
+  };
 };
 
 /**

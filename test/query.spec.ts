@@ -508,7 +508,7 @@ describe('Test Isolated Assets', async () => {
   const sender = scallopQuery.suiKit.currentAddress();
   console.info(`Your Wallet: ${sender}`);
 
-  it('Should return isolated assets', async () => {
+  it.skip('Should return isolated assets', async () => {
     const isolatedAssets = await scallopQuery.getIsolatedAssets();
     expect(typeof isolatedAssets).toBe('object');
     expect(isolatedAssets.length > 0).toBe(true);

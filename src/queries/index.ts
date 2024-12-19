@@ -10,3 +10,5 @@ export * from './spoolQuery';
 export * from './supplyLimitQuery';
 export * from './vescaQuery';
 export * from './borrowLimitQuery';
+export * from './poolAddressesQuery';
+export * from './objectsQuery';

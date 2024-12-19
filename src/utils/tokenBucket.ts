@@ -42,7 +42,7 @@ const callWithRateLimit = async <T>(
   fn: () => Promise<T>,
   retryDelayInMs = DEFAULT_INTERVAL_IN_MS,
   maxRetries = 15,
-  backoffFactor = 2 // The factor by which to increase the delay
+  backoffFactor = 1.25 // The factor by which to increase the delay
 ): Promise<T | null> => {
   let retries = 0;
 
@@ -53,7 +53,7 @@ const callWithRateLimit = async <T>(
     } else if (retries < maxRetries) {
       retries++;
       const delay = retryDelayInMs * Math.pow(backoffFactor, retries);
-      console.error(`Rate limit exceeded, retrying in ${delay} ms`);
+      // console.error(`Rate limit exceeded, retrying in ${delay} ms`);
       await new Promise((resolve) => setTimeout(resolve, delay));
       return tryRequest();
     } else {
