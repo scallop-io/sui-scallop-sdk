@@ -25,7 +25,6 @@ import {
   getLendings,
   getLending,
   getObligationAccounts,
-  getObligationAccount,
   getTotalValueLocked,
   queryVeScaKeyIdFromReferralBindings,
   getBindedObligationId,
@@ -615,7 +614,7 @@ export class ScallopQuery {
    */
   public async getObligationAccounts(
     ownerAddress: string = this.walletAddress,
-    args?: { indexer: boolean }
+    args?: { indexer?: boolean }
   ) {
     return await getObligationAccounts(this, ownerAddress, args?.indexer);
   }
@@ -636,12 +635,16 @@ export class ScallopQuery {
     ownerAddress: string = this.walletAddress,
     args?: { indexer?: boolean }
   ) {
-    return await getObligationAccount(
-      this,
-      obligationId,
-      ownerAddress,
-      args?.indexer
+    const results = await this.getObligationAccounts(ownerAddress, args);
+    return Object.values(results).find(
+      (obligation) => obligation?.obligationId === obligationId
     );
+    // return await getObligationAccount(
+    //   this,
+    //   obligationId,
+    //   ownerAddress,
+    //   args?.indexer
+    // );
   }
 
   /**

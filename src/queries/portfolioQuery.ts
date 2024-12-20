@@ -366,7 +366,7 @@ export const getObligationAccount = async (
   coinPrices =
     coinPrices ?? (await query.getAllCoinPrices({ marketPools: market.pools }));
   coinAmounts =
-    coinAmounts || (await query.getCoinAmounts(coinNames, ownerAddress));
+    coinAmounts ?? (await query.getCoinAmounts(coinNames, ownerAddress));
 
   const [obligationQuery, borrowIncentivePools, borrowIncentiveAccounts] =
     await Promise.all([

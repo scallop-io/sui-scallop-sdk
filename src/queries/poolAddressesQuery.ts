@@ -19,6 +19,8 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         supplyLimitKey?: string;
         borrowLimitKey?: string;
         isolatedAssetKey?: string;
+        coinDecimalId?: string;
+        borrowIncentivePoolId?: string;
       }
     >
   > = {};
@@ -117,6 +119,9 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         // @ts-ignore
         `scoin.coins.s${coinName}.treasury`
       );
+      const coinDecimalId = query.address.get(
+        `core.coins.${coinName}.metaData`
+      );
       results[coinName as SupportPoolCoins] = {
         lendingPoolAddress: addresses[0],
         collateralPoolAddress: addresses[1],
@@ -130,6 +135,7 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         spool,
         spoolReward: rewardPool,
         sCoinTreasury,
+        coinDecimalId,
       };
 
       await new Promise((resolve) => setTimeout(resolve, 200));
