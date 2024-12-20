@@ -13,7 +13,11 @@ import {
   calculateMarketCollateralData,
   parseObjectAs,
 } from '../utils';
-import type { SuiObjectResponse, SuiObjectData } from '@mysten/sui/client';
+import type {
+  SuiObjectResponse,
+  SuiObjectData,
+  SuiParsedData,
+} from '@mysten/sui/client';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopAddress, ScallopCache, ScallopQuery } from '../models';
 import {
@@ -902,14 +906,32 @@ export const getObligations = async (
   const keyObjects = keyObjectsResponse.filter((ref) => !!ref.data);
 
   const obligations: Obligation[] = [];
+  // fetch all obligations with multi get objects
+  const obligationsObjects = await queryMultipleObjects(
+    address.cache,
+    keyObjects
+      .map((ref) => ref.data?.content)
+      .filter(
+        (content): content is SuiParsedData & { dataType: 'moveObject' } =>
+          content?.dataType === 'moveObject'
+      )
+      .map((content) => (content.fields as any).ownership.fields.of),
+    {
+      showContent: true,
+    }
+  );
+
   await Promise.allSettled(
-    keyObjects.map(async ({ data }) => {
+    keyObjects.map(async ({ data }, idx) => {
       const keyId = data?.objectId;
       const content = data?.content;
       if (keyId && content && 'fields' in content) {
         const fields = content.fields as any;
         const obligationId = String(fields.ownership.fields.of);
-        const locked = await getObligationLocked(address.cache, obligationId);
+        const locked = await getObligationLocked(
+          address.cache,
+          obligationsObjects[idx]
+        );
         obligations.push({ id: obligationId, keyId, locked });
       }
     })
@@ -929,7 +951,7 @@ export const getObligationLocked = async (
   cache: ScallopCache,
   obligation: string | SuiObjectData
 ) => {
-  const obligationObjectResponse =
+  const obligationObjectData =
     typeof obligation === 'string'
       ? (
           await cache.queryGetObject(obligation, {
@@ -939,13 +961,11 @@ export const getObligationLocked = async (
       : obligation;
   let obligationLocked = false;
   if (
-    obligationObjectResponse &&
-    obligationObjectResponse?.content?.dataType === 'moveObject' &&
-    'lock_key' in obligationObjectResponse.content.fields
+    obligationObjectData &&
+    obligationObjectData?.content?.dataType === 'moveObject' &&
+    'lock_key' in obligationObjectData.content.fields
   ) {
-    obligationLocked = Boolean(
-      obligationObjectResponse.content.fields.lock_key
-    );
+    obligationLocked = Boolean(obligationObjectData.content.fields.lock_key);
   }
 
   return obligationLocked;

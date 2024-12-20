@@ -237,10 +237,38 @@ export class ScallopCache {
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getOwnedObjects(input),
       queryFn: async () => {
-        return await callWithRateLimit(
+        const results = await callWithRateLimit(
           this.tokenBucket,
           async () => await this.client.getOwnedObjects(input)
         );
+        if (results && results.data.length > 0) {
+          results.data
+            .filter(
+              (
+                result
+              ): result is typeof result &
+                NonNullable<{ data: SuiObjectData }> => !!result.data
+            )
+            .forEach((result) => {
+              this.queryClient.setQueriesData(
+                {
+                  exact: false,
+                  queryKey: queryKeys.rpc.getObject(
+                    result.data.objectId,
+                    input.options ?? {}
+                  ),
+                },
+                {
+                  data: result.data,
+                  error: null,
+                },
+                {
+                  updatedAt: Date.now(),
+                }
+              );
+            });
+        }
+        return results;
       },
     });
   }
@@ -269,9 +297,28 @@ export class ScallopCache {
       retryDelay: (attemptIndex) => Math.min(1000 * attemptIndex, 8000),
       queryKey: queryKeys.rpc.getDynamicFieldObject(input),
       queryFn: async () => {
-        return await callWithRateLimit(this.tokenBucket, () =>
+        const result = await callWithRateLimit(this.tokenBucket, () =>
           this.client.getDynamicFieldObject(input)
         );
+        if (result?.data) {
+          this.queryClient.setQueriesData(
+            {
+              exact: false,
+              queryKey: queryKeys.rpc.getObject(result?.data.objectId, {
+                showContent: true,
+                showOwner: true,
+              }),
+            },
+            {
+              data: result.data,
+              error: null,
+            },
+            {
+              updatedAt: Date.now(),
+            }
+          );
+        }
+        return result;
       },
     });
   }

@@ -17,30 +17,10 @@ export const POOL_ADDRESSES: OptionalKeys<
       supplyLimitKey?: string;
       borrowLimitKey?: string;
       isolatedAssetKey?: string;
+      coinDecimalId?: string;
     }
   >
 > = {
-  sbeth: {
-    lendingPoolAddress:
-      '0xaa34c938e0394e5186c7dc626ad69be96af2194b23fdc6ac1c63090e399f5ba4',
-    collateralPoolAddress:
-      '0xce0549a1cbe952e734f56646988e6b02bbae14667889a60e24d0d03540a6119f',
-    borrowDynamic:
-      '0x7bbe75e8b924229f2f2110838ff612ea66e670fa3766759515dee78f617b1ea3',
-    interestModel:
-      '0x9e6cae260d05155785a1904d24e6abc98368509c5752c8a9cec15a35aabc1512',
-    riskModel:
-      '0xcf10334cfee675ecea2d2fee37b0f7cd2835c84b8b5692a853021debe6af80ab',
-    borrowFeeKey:
-      '0x4298c8b6afe7a42a8e3ff93773fb9769529fe6d37e085ab411acf2ba2a44a931',
-    supplyLimitKey:
-      '0x812fe508b78d3e0817149c0b39976221ddb267b5cc9514e81679f9b9a2f3624c',
-    borrowLimitKey:
-      '0x165c274c67eda2b0d13563124741fffd0ce7d643f4c1c4b59d7e53a83796ae25',
-    isolatedAssetKey: undefined,
-    spool: undefined,
-    spoolReward: undefined,
-  },
   usdc: {
     lendingPoolAddress:
       '0xd3be98bf540f7603eeb550c0c0a19dbfc78822f25158b5fa84ebd9609def415f',
@@ -62,49 +42,35 @@ export const POOL_ADDRESSES: OptionalKeys<
     spool: '0x0b5f5f413bd3799e4052c37311966c77f3a4545eb125d2e93e67a68478021918',
     spoolReward:
       '0x85ed6ed72ea97c35dbf0cdc7ed6fbc48d8ec15de9b17c74bf4512df8a6d7f166',
+    sCoinTreasury:
+      '0xbe6b63021f3d82e0e7e977cdd718ed7c019cf2eba374b7b546220402452f938e',
+    coinDecimalId:
+      '0x69b7a7c3c200439c1b5f3b19d7d495d5966d5f08de66c69276152f8db3992ec6',
   },
-  wbtc: {
+  sbeth: {
     lendingPoolAddress:
-      '0x65cc08a5aca0a0b8d72e1993ded8d145f06dd102fd0d8f285b92934faed564ab',
+      '0xaa34c938e0394e5186c7dc626ad69be96af2194b23fdc6ac1c63090e399f5ba4',
     collateralPoolAddress:
-      '0x1aa4e5cf743cd797b4eb8bf1e614f80ae2cf556ced426cddaaf190ffcd0e59c3',
+      '0xce0549a1cbe952e734f56646988e6b02bbae14667889a60e24d0d03540a6119f',
     borrowDynamic:
-      '0x6f97dcf54158a5d08f359a213a41e347bc1e6316414288dc1e1b674dc008742e',
+      '0x7bbe75e8b924229f2f2110838ff612ea66e670fa3766759515dee78f617b1ea3',
     interestModel:
-      '0x582b915cca0ffca9576a7cedd505d0fd7cb146e9521ccf10e7453ed93705684d',
+      '0x9e6cae260d05155785a1904d24e6abc98368509c5752c8a9cec15a35aabc1512',
     riskModel:
-      '0x1d0a242bf1682e259112239720da19d3155dd99d70b1f4b3b973eecbab858911',
+      '0xcf10334cfee675ecea2d2fee37b0f7cd2835c84b8b5692a853021debe6af80ab',
     borrowFeeKey:
-      '0x654ab7e8ff6d9ef04da697e1f12ca21eaf72ebb495daf877e0776e65187dcb92',
+      '0x4298c8b6afe7a42a8e3ff93773fb9769529fe6d37e085ab411acf2ba2a44a931',
     supplyLimitKey:
-      '0xac3b0d17df9f98aa2798c54405cf1d8d5356ef22f76f02d150cbe5195e9f3a36',
+      '0x812fe508b78d3e0817149c0b39976221ddb267b5cc9514e81679f9b9a2f3624c',
     borrowLimitKey:
-      '0x231e13ba6b1eb26c562f4a125778d3152f9a77e31f124bd6012e234a73012169',
+      '0x165c274c67eda2b0d13563124741fffd0ce7d643f4c1c4b59d7e53a83796ae25',
     isolatedAssetKey: undefined,
     spool: undefined,
     spoolReward: undefined,
-  },
-  wusdc: {
-    lendingPoolAddress:
-      '0x2f4df5e1368fbbdaa5c712d28b837b3d41c2d3872979ccededcdfdac55ff8a93',
-    collateralPoolAddress:
-      '0x94cf69158114c5b242d2ee5d0149a335bddf3b9c9a6ba919cca58097a4814980',
-    borrowDynamic:
-      '0x0464d117908b52fc75f7f85322a47caa078ef56f48681bcfdcb630a66f2591e6',
-    interestModel:
-      '0xd72e2b5ba486752939d6dfb86a67b86ce9a60c83cb8fb893caac54a0f112577f',
-    riskModel:
-      '0xb74035de8f70c1531ceb8e2e8c152d6b8db24c8a9fe7bbf6f75dbf7c6700a0a3',
-    borrowFeeKey:
-      '0x76dcf1acbd9951fe3d1a3fe28403fec089ffe53a7c7d6c77e3ea97033a63581a',
-    supplyLimitKey:
-      '0x7b302196907e87c5d5872f2e6f40628d110170f994e0e08bc607bded001958c3',
-    borrowLimitKey:
-      '0x97f1502ce994db0bcb15aac1760d174def9e88e97cd2262eed54521ee2c19f81',
-    isolatedAssetKey: undefined,
-    spool: '0x4ace6648ddc64e646ba47a957c562c32c9599b3bba8f5ac1aadb2ae23a2f8ca0',
-    spoolReward:
-      '0xf4268cc9b9413b9bfe09e8966b8de650494c9e5784bf0930759cfef4904daff8',
+    sCoinTreasury:
+      '0xfd0f02def6358a1f266acfa1493d4707ee8387460d434fb667d63d755ff907ed',
+    coinDecimalId:
+      '0x89b04ba87f8832d4d76e17a1c9dce72eb3e64d372cf02012b8d2de5384faeef0',
   },
   weth: {
     lendingPoolAddress:
@@ -127,6 +93,61 @@ export const POOL_ADDRESSES: OptionalKeys<
     spool: '0xeec40beccb07c575bebd842eeaabb835f77cd3dab73add433477e57f583a6787',
     spoolReward:
       '0x957de68a18d87817de8309b30c1ec269a4d87ae513abbeed86b5619cb9ce1077',
+    sCoinTreasury:
+      '0x4b7f5da0e306c9d52490a0c1d4091e653d6b89778b9b4f23c877e534e4d9cd21',
+    coinDecimalId:
+      '0x8900e4ceede3363bef086d6b50ca89d816d0e90bf6bc46efefe1f8455e08f50f',
+  },
+  wbtc: {
+    lendingPoolAddress:
+      '0x65cc08a5aca0a0b8d72e1993ded8d145f06dd102fd0d8f285b92934faed564ab',
+    collateralPoolAddress:
+      '0x1aa4e5cf743cd797b4eb8bf1e614f80ae2cf556ced426cddaaf190ffcd0e59c3',
+    borrowDynamic:
+      '0x6f97dcf54158a5d08f359a213a41e347bc1e6316414288dc1e1b674dc008742e',
+    interestModel:
+      '0x582b915cca0ffca9576a7cedd505d0fd7cb146e9521ccf10e7453ed93705684d',
+    riskModel:
+      '0x1d0a242bf1682e259112239720da19d3155dd99d70b1f4b3b973eecbab858911',
+    borrowFeeKey:
+      '0x654ab7e8ff6d9ef04da697e1f12ca21eaf72ebb495daf877e0776e65187dcb92',
+    supplyLimitKey:
+      '0xac3b0d17df9f98aa2798c54405cf1d8d5356ef22f76f02d150cbe5195e9f3a36',
+    borrowLimitKey:
+      '0x231e13ba6b1eb26c562f4a125778d3152f9a77e31f124bd6012e234a73012169',
+    isolatedAssetKey: undefined,
+    spool: undefined,
+    spoolReward: undefined,
+    sCoinTreasury:
+      '0xe2883934ea42c99bc998bbe0f01dd6d27aa0e27a56455707b1b34e6a41c20baa',
+    coinDecimalId:
+      '0x5d3c6e60eeff8a05b693b481539e7847dfe33013e7070cdcb387f5c0cac05dfd',
+  },
+  wusdc: {
+    lendingPoolAddress:
+      '0x2f4df5e1368fbbdaa5c712d28b837b3d41c2d3872979ccededcdfdac55ff8a93',
+    collateralPoolAddress:
+      '0x94cf69158114c5b242d2ee5d0149a335bddf3b9c9a6ba919cca58097a4814980',
+    borrowDynamic:
+      '0x0464d117908b52fc75f7f85322a47caa078ef56f48681bcfdcb630a66f2591e6',
+    interestModel:
+      '0xd72e2b5ba486752939d6dfb86a67b86ce9a60c83cb8fb893caac54a0f112577f',
+    riskModel:
+      '0xb74035de8f70c1531ceb8e2e8c152d6b8db24c8a9fe7bbf6f75dbf7c6700a0a3',
+    borrowFeeKey:
+      '0x76dcf1acbd9951fe3d1a3fe28403fec089ffe53a7c7d6c77e3ea97033a63581a',
+    supplyLimitKey:
+      '0x7b302196907e87c5d5872f2e6f40628d110170f994e0e08bc607bded001958c3',
+    borrowLimitKey:
+      '0x97f1502ce994db0bcb15aac1760d174def9e88e97cd2262eed54521ee2c19f81',
+    isolatedAssetKey: undefined,
+    spool: '0x4ace6648ddc64e646ba47a957c562c32c9599b3bba8f5ac1aadb2ae23a2f8ca0',
+    spoolReward:
+      '0xf4268cc9b9413b9bfe09e8966b8de650494c9e5784bf0930759cfef4904daff8',
+    sCoinTreasury:
+      '0x50c5cfcbcca3aaacab0984e4d7ad9a6ad034265bebb440f0d1cd688ec20b2548',
+    coinDecimalId:
+      '0x4fbf84f3029bd0c0b77164b587963be957f853eccf834a67bb9ecba6ec80f189',
   },
   wusdt: {
     lendingPoolAddress:
@@ -149,6 +170,10 @@ export const POOL_ADDRESSES: OptionalKeys<
     spool: '0xcb328f7ffa7f9342ed85af3fdb2f22919e1a06dfb2f713c04c73543870d7548f',
     spoolReward:
       '0x2c9f934d67a5baa586ceec2cc24163a2f049a6af3d5ba36b84d8ac40f25c4080',
+    sCoinTreasury:
+      '0x1f02e2fed702b477732d4ad6044aaed04f2e8e586a169153694861a901379df0',
+    coinDecimalId:
+      '0xfb0e3eb97dd158a5ae979dddfa24348063843c5b20eb8381dd5fa7c93699e45c',
   },
   sui: {
     lendingPoolAddress:
@@ -171,6 +196,10 @@ export const POOL_ADDRESSES: OptionalKeys<
     spool: '0x4f0ba970d3c11db05c8f40c64a15b6a33322db3702d634ced6536960ab6f3ee4',
     spoolReward:
       '0x162250ef72393a4ad3d46294c4e1bdfcb03f04c869d390e7efbfc995353a7ee9',
+    sCoinTreasury:
+      '0x5c1678c8261ac9eec024d4d630006a9f55c80dc0b1aa38a003fcb1d425818c6b',
+    coinDecimalId:
+      '0x9258181f5ceac8dbffb7030890243caed69a9599d2886d957a9cb7656af3bdb3',
   },
   wapt: {
     lendingPoolAddress:
@@ -190,28 +219,9 @@ export const POOL_ADDRESSES: OptionalKeys<
     isolatedAssetKey: undefined,
     spool: undefined,
     spoolReward: undefined,
-  },
-  afsui: {
-    lendingPoolAddress:
-      '0x9b942a24ce390b7f5016d34a0217057bf9487b92aa6d7cc9894271dbbe62471a',
-    collateralPoolAddress:
-      '0xe5e56f5c0e3072760b21f9d49a5cc793f37d736c412a9065c16e1265c74e6341',
-    borrowDynamic:
-      '0x1c76d4df9506154a117bbac0f5e005d8a9c0d9ca60e3fe0c9d080006f6f54e81',
-    interestModel:
-      '0xb155c536b37c9601baaa734ad1dd0ef335b2b597aceb8d3ecee41a43f94dcd70',
-    riskModel:
-      '0x75371b1d04b5bebc0738af548ba64ea658e74f78228ec8014336d8eebb992312',
-    borrowFeeKey:
-      '0xabc6422db2d4ee01635ddaeaa44ba68370eebd785d2c4632515f841ae9bc47d9',
-    supplyLimitKey:
-      '0x61a2054eb37f543c0d774da57f2c9542aad8d79a197f748ac08ef5df6cc47028',
-    borrowLimitKey:
-      '0x4459498a043872cd107ea917493fee0baf2d37a273c7538e1d6581cc61b92af8',
-    isolatedAssetKey: undefined,
-    spool: '0xeedf438abcaa6ce4d9625ffca110920592d5867e4c5637d84ad9f466c4feb800',
-    spoolReward:
-      '0x89255a2f86ed7fbfef35ab8b7be48cc7667015975be2685dd9a55a9a64baf76e',
+    sCoinTreasury: undefined,
+    coinDecimalId:
+      '0xc969c5251f372c0f34c32759f1d315cf1ea0ee5e4454b52aea08778eacfdd0a8',
   },
   wsol: {
     lendingPoolAddress:
@@ -233,6 +243,10 @@ export const POOL_ADDRESSES: OptionalKeys<
     isolatedAssetKey: undefined,
     spool: undefined,
     spoolReward: undefined,
+    sCoinTreasury:
+      '0x760fd66f5be869af4382fa32b812b3c67f0eca1bb1ed7a5578b21d56e1848819',
+    coinDecimalId:
+      '0x4d2c39082b4477e3e79dc4562d939147ab90c42fc5f3e4acf03b94383cd69b6e',
   },
   cetus: {
     lendingPoolAddress:
@@ -255,6 +269,36 @@ export const POOL_ADDRESSES: OptionalKeys<
     spool: '0xac1bb13bf4472a637c18c2415fb0e3c1227ea2bcf35242e50563c98215bd298e',
     spoolReward:
       '0x6835c1224126a45086fc6406adc249e3f30df18d779ca4f4e570e38716a17f3f',
+    sCoinTreasury:
+      '0xa283c63488773c916cb3d6c64109536160d5eb496caddc721eb39aad2977d735',
+    coinDecimalId:
+      '0x4c0dce55eff2db5419bbd2d239d1aa22b4a400c01bbb648b058a9883989025da',
+  },
+  afsui: {
+    lendingPoolAddress:
+      '0x9b942a24ce390b7f5016d34a0217057bf9487b92aa6d7cc9894271dbbe62471a',
+    collateralPoolAddress:
+      '0xe5e56f5c0e3072760b21f9d49a5cc793f37d736c412a9065c16e1265c74e6341',
+    borrowDynamic:
+      '0x1c76d4df9506154a117bbac0f5e005d8a9c0d9ca60e3fe0c9d080006f6f54e81',
+    interestModel:
+      '0xb155c536b37c9601baaa734ad1dd0ef335b2b597aceb8d3ecee41a43f94dcd70',
+    riskModel:
+      '0x75371b1d04b5bebc0738af548ba64ea658e74f78228ec8014336d8eebb992312',
+    borrowFeeKey:
+      '0xabc6422db2d4ee01635ddaeaa44ba68370eebd785d2c4632515f841ae9bc47d9',
+    supplyLimitKey:
+      '0x61a2054eb37f543c0d774da57f2c9542aad8d79a197f748ac08ef5df6cc47028',
+    borrowLimitKey:
+      '0x4459498a043872cd107ea917493fee0baf2d37a273c7538e1d6581cc61b92af8',
+    isolatedAssetKey: undefined,
+    spool: '0xeedf438abcaa6ce4d9625ffca110920592d5867e4c5637d84ad9f466c4feb800',
+    spoolReward:
+      '0x89255a2f86ed7fbfef35ab8b7be48cc7667015975be2685dd9a55a9a64baf76e',
+    sCoinTreasury:
+      '0x55f4dfe9e40bc4cc11c70fcb1f3daefa2bdc330567c58d4f0792fbd9f9175a62',
+    coinDecimalId:
+      '0x2f9217f533e51334873a39b8026a4aa6919497b47f49d0986a4f1aec66f8a34d',
   },
   hasui: {
     lendingPoolAddress:
@@ -277,6 +321,10 @@ export const POOL_ADDRESSES: OptionalKeys<
     spool: '0xa6148bc1b623e936d39a952ceb5bea79e8b37228a8f595067bf1852efd3c34aa',
     spoolReward:
       '0x6f3563644d3e2ef13176dbf9d865bd93479df60ccbe07b7e66db57f6309f5a66',
+    sCoinTreasury:
+      '0x404ccc1404d74a90eb6f9c9d4b6cda6d417fb03189f80d9070a35e5dab1df0f5',
+    coinDecimalId:
+      '0x2c5f33af93f6511df699aaaa5822d823aac6ed99d4a0de2a4a50b3afa0172e24',
   },
   vsui: {
     lendingPoolAddress:
@@ -299,6 +347,10 @@ export const POOL_ADDRESSES: OptionalKeys<
     spool: '0x69ce8e537e750a95381e6040794afa5ab1758353a1a2e1de7760391b01f91670',
     spoolReward:
       '0xbca914adce058ad0902c7f3cfcd698392a475f00dcfdc3f76001d0370b98777a',
+    sCoinTreasury:
+      '0xc06688ee1af25abc286ffb1d18ce273d1d5907cd1064c25f4e8ca61ea989c1d1',
+    coinDecimalId:
+      '0xabd84a23467b33854ab25cf862006fd97479f8f6f53e50fe732c43a274d939bd',
   },
   sca: {
     lendingPoolAddress:
@@ -320,26 +372,10 @@ export const POOL_ADDRESSES: OptionalKeys<
     isolatedAssetKey: undefined,
     spool: undefined,
     spoolReward: undefined,
-  },
-  deep: {
-    lendingPoolAddress:
-      '0xf4a67ffb43da1e1c61c049f188f19463ea8dbbf2d5ef4722d6df854ff1b1cc03',
-    collateralPoolAddress: undefined,
-    borrowDynamic:
-      '0x95e00d7466f97a100e70f08bd37788dc49335796f6f49fab996d40dd0681c6d3',
-    interestModel:
-      '0x4143c298506a332d92ea8a995e6f3991ee3215f58f6fc6441752835d275b9a69',
-    riskModel: undefined,
-    borrowFeeKey:
-      '0xb14ee43f4ad2a2c40bac8c4406a401690e93c982e289cf3802fedf74a159cab2',
-    supplyLimitKey:
-      '0x599528fdfdc253e90dfd0acf4f4a166b391e2aac1ca6528abbff63225b548fee',
-    borrowLimitKey:
-      '0xf4217e8ef9d9c32e8992092e910a77535a8124c19b8a762a673f227f5f765a4e',
-    isolatedAssetKey:
-      '0x208d3a24ba369dcfc8f0387333d1512b98199eb150d2f2a69359ff708cf761e3',
-    spool: undefined,
-    spoolReward: undefined,
+    sCoinTreasury:
+      '0xe04bfc95e00252bd654ee13c08edef9ac5e4b6ae4074e8390db39e9a0109c529',
+    coinDecimalId:
+      '0x5d26a1e9a55c88147ac870bfa31b729d7f49f8804b8b3adfdf3582d301cca844',
   },
   fud: {
     lendingPoolAddress:
@@ -360,5 +396,33 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0xfcb533e9e4e31f9c9f32d6cbf7fbb3425f1d60474e229a363a2dc7f835d587e2',
     spool: undefined,
     spoolReward: undefined,
+    sCoinTreasury:
+      '0xf25212f11d182decff7a86165699a73e3d5787aced203ca539f43cfbc10db867',
+    coinDecimalId:
+      '0x01087411ef48aaac1eb6e24803213e3a60a03b147dac930e5e341f17a85e524e',
+  },
+  deep: {
+    lendingPoolAddress:
+      '0xf4a67ffb43da1e1c61c049f188f19463ea8dbbf2d5ef4722d6df854ff1b1cc03',
+    collateralPoolAddress: undefined,
+    borrowDynamic:
+      '0x95e00d7466f97a100e70f08bd37788dc49335796f6f49fab996d40dd0681c6d3',
+    interestModel:
+      '0x4143c298506a332d92ea8a995e6f3991ee3215f58f6fc6441752835d275b9a69',
+    riskModel: undefined,
+    borrowFeeKey:
+      '0xb14ee43f4ad2a2c40bac8c4406a401690e93c982e289cf3802fedf74a159cab2',
+    supplyLimitKey:
+      '0x599528fdfdc253e90dfd0acf4f4a166b391e2aac1ca6528abbff63225b548fee',
+    borrowLimitKey:
+      '0xf4217e8ef9d9c32e8992092e910a77535a8124c19b8a762a673f227f5f765a4e',
+    isolatedAssetKey:
+      '0x208d3a24ba369dcfc8f0387333d1512b98199eb150d2f2a69359ff708cf761e3',
+    spool: undefined,
+    spoolReward: undefined,
+    sCoinTreasury:
+      '0xc63838fabe37b25ad897392d89876d920f5e0c6a406bf3abcb84753d2829bc88',
+    coinDecimalId:
+      '0x6e60b051a08fa836f5a7acd7c464c8d9825bc29c44657fe170fe9b8e1e4770c0',
   },
 };

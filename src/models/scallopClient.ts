@@ -965,6 +965,7 @@ export class ScallopClient {
     const rewardCoinsCollection: Record<string, TransactionResult[]> = {};
     const obligationAccount =
       await this.query.getObligationAccount(obligationId);
+    if (!obligationAccount) throw new Error('Obligation not found');
     const rewardCoinNames = Object.values(obligationAccount.borrowIncentives)
       .flatMap(({ rewards }) =>
         rewards.filter(({ availableClaimAmount }) => availableClaimAmount > 0)

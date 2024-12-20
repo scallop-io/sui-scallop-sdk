@@ -12,14 +12,17 @@ const ENABLE_LOG = false;
 let _scallopQuery: ScallopQuery | null = null;
 const getScallopQuery = async () => {
   if (!_scallopQuery) {
-    _scallopQuery = await scallopSDK.createScallopQuery();
+    _scallopQuery = await scallopSDK.createScallopQuery({
+      walletAddress:
+        '0x61819c99588108d9f7710047e6ad8f2da598de8e98a26ea62bd7ad9847f5329c',
+    });
   }
   return _scallopQuery;
 };
 
 describe('Test Query Scallop Contract On Chain Data', async () => {
   const scallopQuery = await getScallopQuery();
-  console.info('Your wallet:', scallopQuery.suiKit.currentAddress());
+  console.info('Your wallet:', scallopQuery.walletAddress);
 
   it('Should query market data', async () => {
     const market = await scallopQuery.queryMarket();
@@ -259,7 +262,7 @@ describe('Test Query Borrow Incentive Contract On Chain Data', async () => {
 
 describe('Test Portfolio Query', async () => {
   const scallopQuery = await getScallopQuery();
-  console.info('Your wallet:', scallopQuery.suiKit.currentAddress());
+  console.info('Your wallet:', scallopQuery.walletAddress);
 
   it('Should get user lendings data', async () => {
     const lendings = await scallopQuery.getLendings(['sui', 'wusdc']);
@@ -297,8 +300,7 @@ describe('Test Portfolio Query', async () => {
     expect(obligations.length).toBeGreaterThan(0);
 
     const obligationAccount = await scallopQuery.getObligationAccount(
-      obligations[0].id,
-      scallopQuery.suiKit.currentAddress()
+      obligations[0].id
     );
     if (ENABLE_LOG) {
       console.info('Obligation account:');
@@ -318,7 +320,7 @@ describe('Test Portfolio Query', async () => {
 
 describe('Test VeSca Query', async () => {
   const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.suiKit.currentAddress();
+  const sender = scallopQuery.walletAddress;
   console.info(`Your Wallet: ${sender}`);
 
   let obligationId: string | undefined;
@@ -412,7 +414,7 @@ describe('Test VeSca Query', async () => {
 
 describe('Test Referral Query', async () => {
   const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.suiKit.currentAddress();
+  const sender = scallopQuery.walletAddress;
   console.info(`Your Wallet: ${sender}`);
 
   it(`Should get referrer veSCA key from a referee address`, async () => {
@@ -427,7 +429,7 @@ describe('Test Referral Query', async () => {
 
 describe('Test Loyalty Program Query', async () => {
   const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.suiKit.currentAddress();
+  const sender = scallopQuery.walletAddress;
   console.info(`Your Wallet: ${sender}`);
 
   it(`Should get loyalty program information from a user address`, async () => {
@@ -449,7 +451,7 @@ describe('Test Loyalty Program Query', async () => {
 
 describe('Test sCoin Query', async () => {
   const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.suiKit.currentAddress();
+  const sender = scallopQuery.walletAddress;
   console.info(`Your Wallet: ${sender}`);
 
   it('Should get total supply of sCoin', async () => {
@@ -479,7 +481,7 @@ describe('Test sCoin Query', async () => {
 
 describe('Test Supply Limit Query', async () => {
   const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.suiKit.currentAddress();
+  const sender = scallopQuery.walletAddress;
   console.info(`Your Wallet: ${sender}`);
 
   it('Should get supply limit of a pool', async () => {
@@ -492,7 +494,7 @@ describe('Test Supply Limit Query', async () => {
 
 describe('Test Borrow Limit Query', async () => {
   const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.suiKit.currentAddress();
+  const sender = scallopQuery.walletAddress;
   console.info(`Your Wallet: ${sender}`);
 
   it('Should get borrow limit of a pool', async () => {
@@ -505,7 +507,7 @@ describe('Test Borrow Limit Query', async () => {
 
 describe('Test Isolated Assets', async () => {
   const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.suiKit.currentAddress();
+  const sender = scallopQuery.walletAddress;
   console.info(`Your Wallet: ${sender}`);
 
   it.skip('Should return isolated assets', async () => {
