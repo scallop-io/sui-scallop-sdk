@@ -189,7 +189,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           coreIds.market,
           coreIds.coinDecimalsRegistry,
           borrowReferral,
-          txBlock.pure.u64(amount),
+          typeof amount === 'number' ? txBlock.pure.u64(amount) : amount,
           coreIds.xOracle,
           SUI_CLOCK_OBJECT_ID,
         ],

@@ -1,6 +1,7 @@
 import type {
   SuiTxBlock as SuiKitTxBlock,
   SuiObjectArg,
+  SuiTxArg,
 } from '@scallop-io/sui-kit';
 import type { Argument, TransactionResult } from '@mysten/sui/transactions';
 import type { ScallopBuilder } from '../../models';
@@ -65,7 +66,7 @@ export type CoreNormalMethods = {
     obligation: SuiObjectArg,
     obligationKey: SuiObjectArg,
     borrowReferral: SuiObjectArg,
-    amount: number,
+    amount: number | SuiTxArg,
     poolCoinName: SupportPoolCoins
   ) => TransactionResult;
   borrowEntry: (
@@ -80,7 +81,7 @@ export type CoreNormalMethods = {
     poolCoinName: SupportPoolCoins
   ) => void;
   borrowFlashLoan: (
-    amount: number,
+    amount: number | SuiTxArg,
     poolCoinName: SupportPoolCoins
   ) => TransactionResult;
   repayFlashLoan: (
