@@ -23,6 +23,7 @@ import type {
   MarketPools,
 } from '../types';
 import BigNumber from 'bignumber.js';
+import { SuiObjectRef } from '@mysten/sui/client';
 
 /**
  * Query borrow incentive pools data using moveCall
@@ -188,7 +189,7 @@ export const queryBorrowIncentiveAccounts = async (
   }: {
     utils: ScallopUtils;
   },
-  obligationId: string,
+  obligationId: string | SuiObjectRef,
   borrowIncentiveCoinNames: SupportBorrowIncentiveCoins[] = [
     ...SUPPORT_BORROW_INCENTIVE_POOLS,
   ]

@@ -1,4 +1,4 @@
-import { SuiKit } from '@scallop-io/sui-kit';
+import { SuiKit, SuiObjectArg } from '@scallop-io/sui-kit';
 import {
   ADDRESSES_ID,
   SUPPORT_POOLS,
@@ -72,6 +72,7 @@ import { SuiObjectData } from '@mysten/sui/client';
 import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { withIndexerFallback } from 'src/utils/indexer';
 import { newSuiKit } from './suiKit';
+import { SuiObjectRef } from '@mysten/sui/client';
 /**
  * @description
  * It provides methods for getting on-chain data from the Scallop contract.
@@ -298,7 +299,7 @@ export class ScallopQuery {
    * @param obligationId - The obligation id.
    * @return Obligation data.
    */
-  public async queryObligation(obligationId: string) {
+  public async queryObligation(obligationId: string | SuiObjectArg) {
     return queryObligation(this, obligationId);
   }
 
@@ -564,7 +565,7 @@ export class ScallopQuery {
    * @return Borrow incentive accounts data.
    */
   public async getBorrowIncentiveAccounts(
-    obligationId: string,
+    obligationId: string | SuiObjectRef,
     coinNames?: SupportBorrowIncentiveCoins[]
   ) {
     return await queryBorrowIncentiveAccounts(this, obligationId, coinNames);
