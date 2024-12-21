@@ -19,22 +19,25 @@ export type BorrowIncentiveNormalMethods = {
   stakeObligation: (
     obligation: SuiObjectArg,
     obligationKey: SuiObjectArg
-  ) => void;
+  ) => Promise<void>;
   stakeObligationWithVesca: (
     obligation: SuiObjectArg,
     obligationKey: SuiObjectArg,
     veScaKey: SuiObjectArg
-  ) => void;
+  ) => Promise<void>;
   unstakeObligation: (
     obligation: SuiObjectArg,
     obligationKey: SuiObjectArg
-  ) => void;
+  ) => Promise<void>;
   claimBorrowIncentive: (
     obligation: SuiObjectArg,
     obligationKey: SuiObjectArg,
     rewardType: SupportBorrowIncentiveRewardCoins
-  ) => TransactionResult;
-  deactivateBoost: (obligation: SuiObjectArg, veScaKey: SuiObjectArg) => void;
+  ) => Promise<TransactionResult>;
+  deactivateBoost: (
+    obligation: SuiObjectArg,
+    veScaKey: SuiObjectArg
+  ) => Promise<void>;
 };
 
 export type BorrowIncentiveQuickMethods = {

@@ -97,6 +97,10 @@ export const queryKeys = {
       'getAllCoinBalances',
       { owner },
     ],
+
+    getNormalizedMoveFunction: (target?: string) => {
+      return ['rpc', 'getNormalizedMoveCall', target];
+    },
   },
   oracle: {
     getPythLatestPriceFeeds: () => ['oracle', 'getPythPriceIds'],

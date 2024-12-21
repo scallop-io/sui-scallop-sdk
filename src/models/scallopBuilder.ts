@@ -7,7 +7,13 @@ import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
 import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
 import type { Transaction } from '@mysten/sui/transactions';
-import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
+import type {
+  SuiAmountsArg,
+  SuiTxBlock as SuiKitTxBlock,
+  SuiObjectArg,
+  SuiTxArg,
+  SuiVecTxArg,
+} from '@scallop-io/sui-kit';
 import type {
   ScallopBuilderParams,
   ScallopTxBlock,
@@ -104,7 +110,7 @@ export class ScallopBuilder {
       await this.address.read();
     }
     await this.query.init(force, this.address);
-    await this.utils.init(force, this.address);
+    // await this.utils.init(force, this.address);
   }
 
   /**
@@ -214,5 +220,54 @@ export class ScallopBuilder {
     return (await this.suiKit.signAndSendTxn(
       txBlock
     )) as SuiTransactionBlockResponse;
+  }
+
+  public async moveCall(
+    txb: ScallopTxBlock | SuiKitTxBlock,
+    target: string,
+    args?: (SuiTxArg | SuiVecTxArg | SuiObjectArg | SuiAmountsArg)[],
+    typeArgs?: string[]
+  ) {
+    const resolvedQueryTarget =
+      await this.cache.queryGetNormalizedMoveFunction(target);
+    if (!resolvedQueryTarget) throw new Error('Invalid query target');
+
+    const { parameters } = resolvedQueryTarget;
+    try {
+      // we can try resolve the args first
+      const resolvedArgs = await Promise.all(
+        (args ?? []).map(async (arg, idx) => {
+          if (typeof arg !== 'string') return arg;
+
+          const cachedData = (await this.cache.queryGetObject(arg))?.data;
+          if (!cachedData) return arg;
+
+          const owner = cachedData.owner;
+          if (!owner || typeof owner !== 'object' || !('Shared' in owner))
+            return {
+              objectId: cachedData.objectId,
+              version: cachedData.version,
+              digest: cachedData.digest,
+            };
+
+          const parameter = parameters[idx];
+          if (
+            typeof parameter !== 'object' ||
+            !('MutableReference' in parameter || 'Reference' in parameter)
+          )
+            return arg;
+
+          return {
+            objectId: cachedData.objectId,
+            initialSharedVersion: owner.Shared.initial_shared_version,
+            mutable: 'MutableReference' in parameter,
+          };
+        })
+      );
+      return txb.moveCall(target, resolvedArgs, typeArgs);
+    } catch (e: any) {
+      console.error(e.message);
+      return txb.moveCall(target, args, typeArgs);
+    }
   }
 }

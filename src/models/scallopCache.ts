@@ -3,6 +3,7 @@ import {
   SuiObjectArg,
   SuiTxBlock,
   normalizeStructTag,
+  parseStructTag,
 } from '@scallop-io/sui-kit';
 import { SuiKit } from '@scallop-io/sui-kit';
 import type {
@@ -125,12 +126,39 @@ export class ScallopCache {
   }: QueryInspectTxnParams): Promise<DevInspectResults | null> {
     const txBlock = new SuiTxBlock();
 
+    const resolvedQueryTarget =
+      await this.queryGetNormalizedMoveFunction(queryTarget);
+    if (!resolvedQueryTarget) throw new Error('Invalid query target');
+
+    const { parameters } = resolvedQueryTarget;
+
     const resolvedArgs = await Promise.all(
-      args.map(async (arg) => {
-        if (typeof arg === 'string') {
-          return (await this.queryGetObject(arg))?.data;
-        }
-        return arg;
+      (args ?? []).map(async (arg, idx) => {
+        if (typeof arg !== 'string') return arg;
+
+        const cachedData = (await this.queryGetObject(arg))?.data;
+        if (!cachedData) return arg;
+
+        const owner = cachedData.owner;
+        if (!owner || typeof owner !== 'object' || !('Shared' in owner))
+          return {
+            objectId: cachedData.objectId,
+            version: cachedData.version,
+            digest: cachedData.digest,
+          };
+
+        const parameter = parameters[idx];
+        if (
+          typeof parameter !== 'object' ||
+          !('MutableReference' in parameter || 'Reference' in parameter)
+        )
+          return arg;
+
+        return {
+          objectId: cachedData.objectId,
+          initialSharedVersion: owner.Shared.initial_shared_version,
+          mutable: 'MutableReference' in parameter,
+        };
       })
     );
     txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
@@ -149,6 +177,24 @@ export class ScallopCache {
     return query;
   }
 
+  public async queryGetNormalizedMoveFunction(target: string) {
+    const { address, module, name } = parseStructTag(target);
+    return this.queryClient.fetchQuery({
+      queryKey: queryKeys.rpc.getNormalizedMoveFunction(target),
+      queryFn: async () => {
+        return await callWithRateLimit(
+          this.tokenBucket,
+          async () =>
+            await this.suiKit.client().getNormalizedMoveFunction({
+              package: address,
+              module,
+              function: name,
+            })
+        );
+      },
+    });
+  }
+
   /**
    * @description Provides cache for getObject of the SuiKit.
    * @param objectId
@@ -159,6 +205,11 @@ export class ScallopCache {
     objectId: string,
     options?: SuiObjectDataOptions
   ) {
+    options = {
+      ...options,
+      showOwner: true,
+      showContent: true,
+    };
     return this.queryClient.fetchQuery({
       retry: this.retryFn,
       retryDelay: 1000,
