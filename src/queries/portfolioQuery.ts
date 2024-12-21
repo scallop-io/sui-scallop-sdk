@@ -27,6 +27,8 @@ import type {
   SupportBorrowIncentiveRewardCoins,
   SupportAssetCoins,
 } from '../types';
+import { SuiObjectRef } from '@mysten/sui/client';
+import { queryMultipleObjects } from './objectsQuery';
 
 /**
  * Get user lending infomation for specific pools.
@@ -320,12 +322,16 @@ export const getObligationAccounts = async (
     query.getObligations(ownerAddress),
   ]);
 
+  const obligationObjects = await queryMultipleObjects(
+    query.cache,
+    obligations.map((obligation) => obligation.id)
+  );
   const obligationAccounts: ObligationAccounts = {};
   await Promise.allSettled(
-    obligations.map(async (obligation) => {
+    obligations.map(async (obligation, idx) => {
       obligationAccounts[obligation.keyId] = await getObligationAccount(
         query,
-        obligation.id,
+        obligationObjects[idx] ?? obligation.id,
         ownerAddress,
         indexer,
         market,
@@ -342,13 +348,13 @@ export const getObligationAccounts = async (
  * Get obligation account data.
  *
  * @param query - The Scallop query instance.
- * @param obligationId - The obligation id.
+ * @param obligation - The obligation id.
  * @param indexer - Whether to use indexer.
  * @return Obligation account data.
  */
 export const getObligationAccount = async (
   query: ScallopQuery,
-  obligationId: string,
+  obligation: string | SuiObjectRef,
   ownerAddress?: string,
   indexer: boolean = false,
   market?: Market,
@@ -370,13 +376,13 @@ export const getObligationAccount = async (
 
   const [obligationQuery, borrowIncentivePools, borrowIncentiveAccounts] =
     await Promise.all([
-      query.queryObligation(obligationId),
+      query.queryObligation(obligation),
       query.getBorrowIncentivePools(undefined, {
         coinPrices,
         indexer,
         marketPools: market.pools,
       }),
-      query.getBorrowIncentiveAccounts(obligationId),
+      query.getBorrowIncentiveAccounts(obligation),
     ]);
 
   const collaterals: ObligationAccount['collaterals'] = {};
@@ -656,7 +662,8 @@ export const getObligationAccount = async (
     : BigNumber(0);
 
   const obligationAccount: ObligationAccount = {
-    obligationId: obligationId,
+    obligationId:
+      typeof obligation === 'string' ? obligation : obligation.objectId,
     // Deposited collateral value (collateral balance)
     totalDepositedValue: totalDepositedValue.toNumber(),
     // Borrowed debt value (liabilities balance)
