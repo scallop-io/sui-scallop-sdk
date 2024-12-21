@@ -308,8 +308,10 @@ export const getObligationAccounts = async (
   ownerAddress?: string,
   indexer: boolean = false
 ) => {
-  const coinPrices = await query.utils.getCoinPrices();
-  const market = await query.queryMarket({ indexer, coinPrices });
+  const market = await query.queryMarket({ indexer });
+  const coinPrices = await query.getAllCoinPrices({
+    marketPools: market.pools,
+  });
   const [coinAmounts, obligations] = await Promise.all([
     query.getCoinAmounts(undefined, ownerAddress),
     query.getObligations(ownerAddress),
