@@ -222,52 +222,54 @@ export class ScallopBuilder {
     )) as SuiTransactionBlockResponse;
   }
 
-  public async moveCall(
+  public moveCall(
     txb: ScallopTxBlock | SuiKitTxBlock,
     target: string,
     args?: (SuiTxArg | SuiVecTxArg | SuiObjectArg | SuiAmountsArg)[],
     typeArgs?: string[]
   ) {
-    const resolvedQueryTarget =
-      await this.cache.queryGetNormalizedMoveFunction(target);
-    if (!resolvedQueryTarget) throw new Error('Invalid query target');
+    // Disable for now
+    // const resolvedQueryTarget =
+    //   await this.cache.queryGetNormalizedMoveFunction(target);
+    // if (!resolvedQueryTarget) throw new Error('Invalid query target');
 
-    const { parameters } = resolvedQueryTarget;
-    try {
-      // we can try resolve the args first
-      const resolvedArgs = await Promise.all(
-        (args ?? []).map(async (arg, idx) => {
-          if (typeof arg !== 'string') return arg;
+    // const { parameters } = resolvedQueryTarget;
+    // try {
+    //   // we can try resolve the args first
+    //   const resolvedArgs = await Promise.all(
+    //     (args ?? []).map(async (arg, idx) => {
+    //       if (typeof arg !== 'string') return arg;
 
-          const cachedData = (await this.cache.queryGetObject(arg))?.data;
-          if (!cachedData) return arg;
+    //       const cachedData = (await this.cache.queryGetObject(arg))?.data;
+    //       if (!cachedData) return arg;
 
-          const owner = cachedData.owner;
-          if (!owner || typeof owner !== 'object' || !('Shared' in owner))
-            return {
-              objectId: cachedData.objectId,
-              version: cachedData.version,
-              digest: cachedData.digest,
-            };
+    //       const owner = cachedData.owner;
+    //       if (!owner || typeof owner !== 'object' || !('Shared' in owner))
+    //         return {
+    //           objectId: cachedData.objectId,
+    //           version: cachedData.version,
+    //           digest: cachedData.digest,
+    //         };
 
-          const parameter = parameters[idx];
-          if (
-            typeof parameter !== 'object' ||
-            !('MutableReference' in parameter || 'Reference' in parameter)
-          )
-            return arg;
+    //       const parameter = parameters[idx];
+    //       if (
+    //         typeof parameter !== 'object' ||
+    //         !('MutableReference' in parameter || 'Reference' in parameter)
+    //       )
+    //         return arg;
 
-          return {
-            objectId: cachedData.objectId,
-            initialSharedVersion: owner.Shared.initial_shared_version,
-            mutable: 'MutableReference' in parameter,
-          };
-        })
-      );
-      return txb.moveCall(target, resolvedArgs, typeArgs);
-    } catch (e: any) {
-      console.error(e.message);
-      return txb.moveCall(target, args, typeArgs);
-    }
+    //       return {
+    //         objectId: cachedData.objectId,
+    //         initialSharedVersion: owner.Shared.initial_shared_version,
+    //         mutable: 'MutableReference' in parameter,
+    //       };
+    //     })
+    //   );
+    //   return txb.moveCall(target, resolvedArgs, typeArgs);
+    // } catch (e: any) {
+    //   console.error(e.message);
+    //   return txb.moveCall(target, args, typeArgs);
+    // }
+    return txb.moveCall(target, args, typeArgs);
   }
 }
