@@ -20,8 +20,9 @@ const generateSCoinNormalMethod: GenerateSCoinNormalMethod = ({
   };
 
   return {
-    mintSCoin: (marketCoinName, marketCoin) => {
-      return txBlock.moveCall(
+    mintSCoin: async (marketCoinName, marketCoin) => {
+      return await builder.moveCall(
+        txBlock,
         `${sCoinPkgIds.pkgId}::s_coin_converter::mint_s_coin`,
         [builder.utils.getSCoinTreasury(marketCoinName), marketCoin],
         [
@@ -30,8 +31,9 @@ const generateSCoinNormalMethod: GenerateSCoinNormalMethod = ({
         ]
       );
     },
-    burnSCoin: (sCoinName, sCoin) => {
-      return txBlock.moveCall(
+    burnSCoin: async (sCoinName, sCoin) => {
+      return await builder.moveCall(
+        txBlock,
         `${sCoinPkgIds.pkgId}::s_coin_converter::burn_s_coin`,
         [builder.utils.getSCoinTreasury(sCoinName), sCoin],
         [
@@ -58,7 +60,7 @@ const generateSCoinQuickMethod: GenerateSCoinQuickMethod = ({
       );
 
       txBlock.transferObjects([leftCoin], sender);
-      return txBlock.mintSCoin(marketCoinName, takeCoin);
+      return await txBlock.mintSCoin(marketCoinName, takeCoin);
     },
     burnSCoinQuick: async (sCoinName, amount) => {
       const sender = requireSender(txBlock);
@@ -70,7 +72,7 @@ const generateSCoinQuickMethod: GenerateSCoinQuickMethod = ({
       );
 
       txBlock.transferObjects([leftCoin], sender);
-      return txBlock.burnSCoin(sCoinName, takeCoin);
+      return await txBlock.burnSCoin(sCoinName, takeCoin);
     },
   };
 };

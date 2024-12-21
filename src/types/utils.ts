@@ -11,10 +11,15 @@ export type PoolAddressInfo = {
   coingeckoId: string;
   decimal: number;
   pythFeedId: string;
-  lendingPoolAddress: string;
-  collateralPoolAddress?: string;
+  lendingPoolAddress?: string;
+  collateralPoolAddress?: string; // not all pool has collateral
+  borrowDynamic?: string;
+  interestModelId?: string;
+  borrowFeeKey?: string;
+  supplyLimitKey?: string;
+  borrowLimitKey?: string;
+  isolatedAssetKey?: string;
   sCoinAddress: string | undefined;
   marketCoinAddress: string;
-  coinAddress: string;
   sCoinName: string | undefined;
 };
