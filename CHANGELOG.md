@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.14...v1.4.2) (2024-12-17)
+
+### Bugfixes
+
+- Fix sCoin price not showing ([9aef4aa](https://github.com/scallop-io/sui-scallop-sdk/pull/217/commits/9aef4aa90ac6ee7628d8b9e530bc08b921e014ea))
+
+- Optimize and reduce overall rpc calls
+
 ### [1.4.14](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.13...v1.4.14) (2024-12-17)
 
 ### Bugfixes
