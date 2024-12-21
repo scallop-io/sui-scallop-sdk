@@ -35,6 +35,7 @@ jobs:
             echo "tag=rc" >> $GITHUB_ENV
           else
             echo "tag=latest" >> $GITHUB_ENV
+          fi
       - run: pnpm publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
