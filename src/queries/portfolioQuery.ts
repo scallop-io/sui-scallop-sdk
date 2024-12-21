@@ -311,7 +311,7 @@ export const getObligationAccounts = async (
   ownerAddress?: string,
   indexer: boolean = false
 ) => {
-  const market = await query.queryMarket({ indexer });
+  const market = await query.getMarketPools(undefined, { indexer });
   const coinPrices = await query.getAllCoinPrices({
     marketPools: market.pools,
   });
@@ -362,7 +362,6 @@ export const getObligationAccount = async (
     ...SUPPORT_COLLATERALS,
   ] as SupportCollateralCoins[];
 
-  // market = market ?? (await query.queryMarket({ indexer }));
   market = market ?? (await query.getMarketPools(undefined, { indexer }));
   coinPrices =
     coinPrices ?? (await query.getAllCoinPrices({ marketPools: market.pools }));
@@ -790,7 +789,6 @@ export const getTotalValueLocked = async (
   query: ScallopQuery,
   indexer: boolean = false
 ) => {
-  // const market = await query.queryMarket({ indexer });
   const market = await query.getMarketPools(undefined, { indexer });
 
   let supplyValue = BigNumber(0);
