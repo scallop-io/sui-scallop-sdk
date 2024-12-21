@@ -34,11 +34,11 @@ export const queryKeys = {
         typeArgs: !typeArgs ? undefined : JSON.stringify(typeArgs),
       },
     ],
-    getObject: (
-      objectId?: string,
-      walletAddress?: string,
-      options?: SuiObjectDataOptions
-    ) => ['rpc', 'getObject', { walletAddress, options, objectId }],
+    getObject: (objectId?: string, options?: SuiObjectDataOptions) => [
+      'rpc',
+      'getObject',
+      { options, objectId },
+    ],
     getObjects: (
       objectIds?: string[],
       walletAddress?: string,
@@ -97,6 +97,10 @@ export const queryKeys = {
       'getAllCoinBalances',
       { owner },
     ],
+
+    getNormalizedMoveFunction: (target?: string) => {
+      return ['rpc', 'getNormalizedMoveCall', target];
+    },
   },
   oracle: {
     getPythLatestPriceFeeds: () => ['oracle', 'getPythPriceIds'],

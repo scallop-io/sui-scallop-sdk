@@ -97,8 +97,9 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
     };
 
     return {
-      stakeObligation: (obligationId, obligationKey) => {
-        txBlock.moveCall(
+      stakeObligation: async (obligationId, obligationKey) => {
+        await builder.moveCall(
+          txBlock,
           `${borrowIncentiveIds.borrowIncentivePkg}::user::stake`,
           [
             borrowIncentiveIds.config,
@@ -111,8 +112,13 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           ]
         );
       },
-      stakeObligationWithVesca: (obligationId, obligationKey, veScaKey) => {
-        txBlock.moveCall(
+      stakeObligationWithVesca: async (
+        obligationId,
+        obligationKey,
+        veScaKey
+      ) => {
+        await builder.moveCall(
+          txBlock,
           `${borrowIncentiveIds.borrowIncentivePkg}::user::stake_with_ve_sca`,
           [
             borrowIncentiveIds.config,
@@ -130,8 +136,9 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           []
         );
       },
-      unstakeObligation: (obligationId, obligationKey) => {
-        txBlock.moveCall(
+      unstakeObligation: async (obligationId, obligationKey) => {
+        await builder.moveCall(
+          txBlock,
           `${borrowIncentiveIds.borrowIncentivePkg}::user::unstake`,
           [
             borrowIncentiveIds.config,
@@ -143,9 +150,14 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           ]
         );
       },
-      claimBorrowIncentive: (obligationId, obligationKey, rewardCoinName) => {
+      claimBorrowIncentive: async (
+        obligationId,
+        obligationKey,
+        rewardCoinName
+      ) => {
         const rewardType = builder.utils.parseCoinType(rewardCoinName);
-        return txBlock.moveCall(
+        return await builder.moveCall(
+          txBlock,
           `${borrowIncentiveIds.borrowIncentivePkg}::user::redeem_rewards`,
           [
             borrowIncentiveIds.config,
@@ -158,8 +170,9 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           [rewardType]
         );
       },
-      deactivateBoost: (obligation, veScaKey) => {
-        return txBlock.moveCall(
+      deactivateBoost: async (obligation, veScaKey) => {
+        await builder.moveCall(
+          txBlock,
           `${borrowIncentiveIds.borrowIncentivePkg}::user::deactivate_boost`,
           [
             borrowIncentiveIds.config,
@@ -212,7 +225,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
-          txBlock.stakeObligation(obligationArg, obligationKeyArg);
+          await txBlock.stakeObligation(obligationArg, obligationKeyArg);
         }
       },
       stakeObligationWithVeScaQuick: async (
@@ -247,9 +260,9 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
 
           const _veScaKey = bindedVeScaKey ?? veScaKey;
           if (!_veScaKey) {
-            txBlock.stakeObligation(obligationArg, obligationKeyArg);
+            await txBlock.stakeObligation(obligationArg, obligationKeyArg);
           } else {
-            txBlock.stakeObligationWithVesca(
+            await txBlock.stakeObligationWithVesca(
               obligationArg,
               obligationKeyArg,
               _veScaKey
@@ -270,7 +283,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
         );
 
         if (obligationLocked) {
-          txBlock.unstakeObligation(obligationArg, obligationKeyArg);
+          await txBlock.unstakeObligation(obligationArg, obligationKeyArg);
         }
       },
       claimBorrowIncentiveQuick: async (
@@ -287,7 +300,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
             obligationKey
           );
 
-        return txBlock.claimBorrowIncentive(
+        return await txBlock.claimBorrowIncentive(
           obligationArg,
           obligationKeyArg,
           rewardCoinName
