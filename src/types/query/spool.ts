@@ -37,6 +37,27 @@ export type OriginSpoolData = {
   lastUpdate: string;
 };
 
+export type SpoolData = {
+  created_at: string;
+  distributed_point: string;
+  distributed_point_per_period: string;
+  id: {
+    id: string;
+  };
+  index: string;
+  last_update: string;
+  max_distributed_point: string;
+  max_stakes: string;
+  point_distribution_time: string;
+  stake_type: {
+    type: string;
+    fields: {
+      name: string;
+    };
+  };
+  stakes: string;
+};
+
 export type ParsedSpoolData = {
   stakeType: string;
   maxPoint: number;

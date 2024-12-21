@@ -16,16 +16,18 @@ export type ReferralIds = {
 };
 
 export type ReferralNormalMethods = {
-  bindToReferral: (veScaKeyId: string) => void;
-  claimReferralTicket: (poolCoinName: SupportPoolCoins) => TransactionResult;
+  bindToReferral: (veScaKeyId: string) => Promise<void>;
+  claimReferralTicket: (
+    poolCoinName: SupportPoolCoins
+  ) => Promise<TransactionResult>;
   burnReferralTicket: (
     ticket: SuiObjectArg,
     poolCoinName: SupportPoolCoins
-  ) => void;
+  ) => Promise<void>;
   claimReferralRevenue: (
     veScaKey: SuiObjectArg,
     poolCoinName: SupportPoolCoins
-  ) => TransactionResult;
+  ) => Promise<TransactionResult>;
 };
 
 export type ReferralQuickMethods = {

@@ -3,6 +3,7 @@ import {
   SuiObjectArg,
   SuiTxBlock,
   normalizeStructTag,
+  parseStructTag,
 } from '@scallop-io/sui-kit';
 import { SuiKit } from '@scallop-io/sui-kit';
 import type {
@@ -106,6 +107,12 @@ export class ScallopCache {
     );
   }
 
+  private retryFn(errCount: number, e: any) {
+    if (errCount === 5) return false;
+    if (e.status === 429) return true;
+    return false;
+  }
+
   /**
    * @description Provides cache for inspectTxn of the SuiKit.
    * @param QueryInspectTxnParams
@@ -119,10 +126,45 @@ export class ScallopCache {
   }: QueryInspectTxnParams): Promise<DevInspectResults | null> {
     const txBlock = new SuiTxBlock();
 
-    txBlock.moveCall(queryTarget, args, typeArgs);
+    const resolvedQueryTarget =
+      await this.queryGetNormalizedMoveFunction(queryTarget);
+    if (!resolvedQueryTarget) throw new Error('Invalid query target');
+
+    const { parameters } = resolvedQueryTarget;
+
+    const resolvedArgs = await Promise.all(
+      (args ?? []).map(async (arg, idx) => {
+        if (typeof arg !== 'string') return arg;
+
+        const cachedData = (await this.queryGetObject(arg))?.data;
+        if (!cachedData) return arg;
+
+        const owner = cachedData.owner;
+        if (!owner || typeof owner !== 'object' || !('Shared' in owner))
+          return {
+            objectId: cachedData.objectId,
+            version: cachedData.version,
+            digest: cachedData.digest,
+          };
+
+        const parameter = parameters[idx];
+        if (
+          typeof parameter !== 'object' ||
+          !('MutableReference' in parameter || 'Reference' in parameter)
+        )
+          return arg;
+
+        return {
+          objectId: cachedData.objectId,
+          initialSharedVersion: owner.Shared.initial_shared_version,
+          mutable: 'MutableReference' in parameter,
+        };
+      })
+    );
+    txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
 
     const query = await this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getInspectTxn(queryTarget, args, typeArgs),
       queryFn: async () => {
@@ -135,6 +177,24 @@ export class ScallopCache {
     return query;
   }
 
+  public async queryGetNormalizedMoveFunction(target: string) {
+    const { address, module, name } = parseStructTag(target);
+    return this.queryClient.fetchQuery({
+      queryKey: queryKeys.rpc.getNormalizedMoveFunction(target),
+      queryFn: async () => {
+        return await callWithRateLimit(
+          this.tokenBucket,
+          async () =>
+            await this.suiKit.client().getNormalizedMoveFunction({
+              package: address,
+              module,
+              function: name,
+            })
+        );
+      },
+    });
+  }
+
   /**
    * @description Provides cache for getObject of the SuiKit.
    * @param objectId
@@ -144,11 +204,16 @@ export class ScallopCache {
   public async queryGetObject(
     objectId: string,
     options?: SuiObjectDataOptions
-  ): Promise<SuiObjectResponse | null> {
+  ) {
+    options = {
+      ...options,
+      showOwner: true,
+      showContent: true,
+    };
     return this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: 1000,
-      queryKey: queryKeys.rpc.getObject(objectId, this.walletAddress, options),
+      queryKey: queryKeys.rpc.getObject(objectId, options),
       queryFn: async () => {
         return await callWithRateLimit(
           this.tokenBucket,
@@ -177,7 +242,7 @@ export class ScallopCache {
     // objectIds.sort();
 
     return this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getObjects(
         objectIds,
@@ -185,10 +250,28 @@ export class ScallopCache {
         options
       ),
       queryFn: async () => {
-        return await callWithRateLimit(
+        const results = await callWithRateLimit(
           this.tokenBucket,
           async () => await this.suiKit.getObjects(objectIds, options)
         );
+        if (results) {
+          results.forEach((result) => {
+            this.queryClient.setQueriesData(
+              {
+                exact: false,
+                queryKey: queryKeys.rpc.getObject(result.objectId, options),
+              },
+              {
+                data: result,
+                error: null,
+              },
+              {
+                updatedAt: Date.now(),
+              }
+            );
+          });
+        }
+        return results;
       },
     });
   }
@@ -199,15 +282,44 @@ export class ScallopCache {
    * @returns Promise<PaginatedObjectsResponse>
    */
   public async queryGetOwnedObjects(input: GetOwnedObjectsParams) {
+    // TODO: This query need its own separate rate limiter (as owned objects can theoretically be infinite), need a better way to handle this
     return this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getOwnedObjects(input),
       queryFn: async () => {
-        return await callWithRateLimit(
+        const results = await callWithRateLimit(
           this.tokenBucket,
           async () => await this.client.getOwnedObjects(input)
         );
+        if (results && results.data.length > 0) {
+          results.data
+            .filter(
+              (
+                result
+              ): result is typeof result &
+                NonNullable<{ data: SuiObjectData }> => !!result.data
+            )
+            .forEach((result) => {
+              this.queryClient.setQueriesData(
+                {
+                  exact: false,
+                  queryKey: queryKeys.rpc.getObject(
+                    result.data.objectId,
+                    input.options ?? {}
+                  ),
+                },
+                {
+                  data: result.data,
+                  error: null,
+                },
+                {
+                  updatedAt: Date.now(),
+                }
+              );
+            });
+        }
+        return results;
       },
     });
   }
@@ -216,7 +328,7 @@ export class ScallopCache {
     input: GetDynamicFieldsParams
   ): Promise<DynamicFieldPage | null> {
     return this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getDynamicFields(input),
       queryFn: async () => {
@@ -232,13 +344,32 @@ export class ScallopCache {
     input: GetDynamicFieldObjectParams
   ): Promise<SuiObjectResponse | null> {
     return this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: (attemptIndex) => Math.min(1000 * attemptIndex, 8000),
       queryKey: queryKeys.rpc.getDynamicFieldObject(input),
       queryFn: async () => {
-        return await callWithRateLimit(this.tokenBucket, () =>
+        const result = await callWithRateLimit(this.tokenBucket, () =>
           this.client.getDynamicFieldObject(input)
         );
+        if (result?.data) {
+          this.queryClient.setQueriesData(
+            {
+              exact: false,
+              queryKey: queryKeys.rpc.getObject(result?.data.objectId, {
+                showContent: true,
+                showOwner: true,
+              }),
+            },
+            {
+              data: result.data,
+              error: null,
+            },
+            {
+              updatedAt: Date.now(),
+            }
+          );
+        }
+        return result;
       },
     });
   }
@@ -247,7 +378,7 @@ export class ScallopCache {
     owner: string
   ): Promise<{ [k: string]: string }> {
     return this.queryClient.fetchQuery({
-      retry: 5,
+      retry: this.retryFn,
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getAllCoinBalances(owner),
       queryFn: async () => {

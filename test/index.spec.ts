@@ -315,7 +315,8 @@ describe('Test Scallop Client - Other Method', async () => {
         stakeAccount.id
       );
     } else {
-      const stakeAccount = txBlock.createStakeAccount(stakeMarketCoinName);
+      const stakeAccount =
+        await txBlock.createStakeAccount(stakeMarketCoinName);
       await txBlock.stakeQuick(marketCoin, stakeMarketCoinName, stakeAccount);
       txBlock.transferObjects([stakeAccount], sender);
     }

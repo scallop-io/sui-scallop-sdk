@@ -23,8 +23,9 @@ const generateLoyaltyProgramNormalMethod: GenerateLoyaltyProgramNormalMethod =
     };
 
     return {
-      claimLoyaltyRevenue: (veScaKey) => {
-        return txBlock.moveCall(
+      claimLoyaltyRevenue: async (veScaKey) => {
+        return await builder.moveCall(
+          txBlock,
           `${loyaltyProgramIds.loyaltyProgramPkgId}::reward_pool::redeem_reward`,
           [loyaltyProgramIds.rewardPool, veScaKey]
         );
@@ -43,7 +44,7 @@ const generateLoyaltyProgramQuickMethod: GenerateLoyaltyProgramQuickMethod = ({
       if (!veScaKey) throw new Error(`No veScaKey found for user ${sender}`);
 
       // claim the pending reward
-      const rewardCoin = txBlock.claimLoyaltyRevenue(veScaKey);
+      const rewardCoin = await txBlock.claimLoyaltyRevenue(veScaKey);
 
       // get existing sca coin to merge with
       await builder.utils.mergeSimilarCoins(

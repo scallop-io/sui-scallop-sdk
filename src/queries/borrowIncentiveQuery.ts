@@ -65,7 +65,7 @@ export const getBorrowIncentivePools = async (
   const borrowIncentivePools: BorrowIncentivePools = {};
   marketPools =
     marketPools ??
-    (await query.getMarketPools(undefined, { coinPrices, indexer }));
+    (await query.getMarketPools(undefined, { coinPrices, indexer })).pools;
   coinPrices = coinPrices ?? (await query.getAllCoinPrices({ marketPools }));
 
   if (indexer) {
