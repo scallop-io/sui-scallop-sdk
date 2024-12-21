@@ -77,50 +77,45 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
   const referralWitnessType = `${referralPkgId}::scallop_referral_program::REFERRAL_WITNESS`;
 
   return {
-    openObligation: async () => {
-      const [obligation, obligationKey, obligationHotPotato] =
-        await builder.moveCall(
-          txBlock,
-          `${coreIds.protocolPkg}::open_obligation::open_obligation`,
-          [coreIds.version]
-        );
+    openObligation: () => {
+      const [obligation, obligationKey, obligationHotPotato] = builder.moveCall(
+        txBlock,
+        `${coreIds.protocolPkg}::open_obligation::open_obligation`,
+        [coreIds.version]
+      );
       return [obligation, obligationKey, obligationHotPotato] as [
         NestedResult,
         NestedResult,
         NestedResult,
       ];
     },
-    returnObligation: async (obligation, obligationHotPotato) => {
-      await builder.moveCall(
+    returnObligation: (obligation, obligationHotPotato) => {
+      builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::open_obligation::return_obligation`,
         [coreIds.version, obligation, obligationHotPotato]
       );
     },
-    openObligationEntry: async () => {
-      await builder.moveCall(
+    openObligationEntry: () => {
+      builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::open_obligation::open_obligation_entry`,
         [coreIds.version]
       );
     },
-    addCollateral: async (obligation, coin, collateralCoinName) => {
+    addCollateral: (obligation, coin, collateralCoinName) => {
       const coinType = builder.utils.parseCoinType(collateralCoinName);
-      await builder.moveCall(
+      builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::deposit_collateral::deposit_collateral`,
         [coreIds.version, obligation, coreIds.market, coin],
         [coinType]
       );
     },
-    takeCollateral: async (
-      obligation,
-      obligationKey,
-      amount,
-      collateralCoinName
-    ) => {
+    takeCollateral: (obligation, obligationKey, amount, collateralCoinName) => {
       const coinType = builder.utils.parseCoinType(collateralCoinName);
-      return await builder.moveCall(
+      // return await builder.moveCall(
+      return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::withdraw_collateral::withdraw_collateral`,
         [
@@ -136,45 +131,50 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coinType]
       );
     },
-    deposit: async (coin, poolCoinName) => {
+    deposit: (coin, poolCoinName) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return await builder.moveCall(
+      // return await builder.moveCall(
+      return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::mint::mint`,
         [coreIds.version, coreIds.market, coin, SUI_CLOCK_OBJECT_ID],
         [coinType]
       );
     },
-    depositEntry: async (coin, poolCoinName) => {
+    depositEntry: (coin, poolCoinName) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return await builder.moveCall(
+      // return await builder.moveCall(
+      return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::mint::mint_entry`,
         [coreIds.version, coreIds.market, coin, SUI_CLOCK_OBJECT_ID],
         [coinType]
       );
     },
-    withdraw: async (marketCoin, poolCoinName) => {
+    withdraw: (marketCoin, poolCoinName) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return await builder.moveCall(
+      // return await builder.moveCall(
+      return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::redeem::redeem`,
         [coreIds.version, coreIds.market, marketCoin, SUI_CLOCK_OBJECT_ID],
         [coinType]
       );
     },
-    withdrawEntry: async (marketCoin, poolCoinName) => {
+    withdrawEntry: (marketCoin, poolCoinName) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return await builder.moveCall(
+      // return await builder.moveCall(
+      return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::redeem::redeem_entry`,
         [coreIds.version, coreIds.market, marketCoin, SUI_CLOCK_OBJECT_ID],
         [coinType]
       );
     },
-    borrow: async (obligation, obligationKey, amount, poolCoinName) => {
+    borrow: (obligation, obligationKey, amount, poolCoinName) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return await builder.moveCall(
+      // return await builder.moveCall(
+      return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::borrow::borrow`,
         [
@@ -190,7 +190,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coinType]
       );
     },
-    borrowWithReferral: async (
+    borrowWithReferral: (
       obligation,
       obligationKey,
       borrowReferral,
@@ -198,7 +198,8 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       poolCoinName
     ) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return await builder.moveCall(
+      // return await builder.moveCall(
+      return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::borrow::borrow_with_referral`,
         [
@@ -215,9 +216,10 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coinType, referralWitnessType]
       );
     },
-    borrowEntry: async (obligation, obligationKey, amount, poolCoinName) => {
+    borrowEntry: (obligation, obligationKey, amount, poolCoinName) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return await builder.moveCall(
+      // return await builder.moveCall(
+      return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::borrow::borrow_entry`,
         [
@@ -233,9 +235,9 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coinType]
       );
     },
-    repay: async (obligation, coin, poolCoinName) => {
+    repay: (obligation, coin, poolCoinName) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      await builder.moveCall(
+      builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::repay::repay`,
         [
@@ -248,18 +250,18 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coinType]
       );
     },
-    borrowFlashLoan: async (amount, poolCoinName) => {
+    borrowFlashLoan: (amount, poolCoinName) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return await builder.moveCall(
+      return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::flash_loan::borrow_flash_loan`,
         [coreIds.version, coreIds.market, amount],
         [coinType]
       );
     },
-    repayFlashLoan: async (coin, loan, poolCoinName) => {
+    repayFlashLoan: (coin, loan, poolCoinName) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      await builder.moveCall(
+      builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::flash_loan::repay_flash_loan`,
         [coreIds.version, coreIds.market, coin, loan],

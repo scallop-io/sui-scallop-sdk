@@ -23,8 +23,8 @@ const generateLoyaltyProgramNormalMethod: GenerateLoyaltyProgramNormalMethod =
     };
 
     return {
-      claimLoyaltyRevenue: async (veScaKey) => {
-        return await builder.moveCall(
+      claimLoyaltyRevenue: (veScaKey) => {
+        return builder.moveCall(
           txBlock,
           `${loyaltyProgramIds.loyaltyProgramPkgId}::reward_pool::redeem_reward`,
           [loyaltyProgramIds.rewardPool, veScaKey]

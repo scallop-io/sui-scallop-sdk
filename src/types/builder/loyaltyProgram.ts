@@ -12,7 +12,7 @@ export type LoyaltyProgramIds = {
 };
 
 export type LoyaltyProgramNormalMethods = {
-  claimLoyaltyRevenue: (veScaKey: SuiObjectArg) => Promise<TransactionResult>;
+  claimLoyaltyRevenue: (veScaKey: SuiObjectArg) => TransactionResult;
 };
 
 export type LoyaltyProgramQuickMethods = {

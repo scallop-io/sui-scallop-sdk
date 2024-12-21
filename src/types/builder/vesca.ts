@@ -13,22 +13,19 @@ export type VeScaNormalMethods = {
   lockSca: (
     scaCoin: SuiObjectArg,
     unlockAtInSecondTimestamp: number
-  ) => Promise<TransactionResult>;
+  ) => TransactionResult;
   extendLockPeriod: (
     veScaKey: SuiObjectArg,
     newUnlockAtInSecondTimestamp: number
-  ) => Promise<void>;
-  extendLockAmount: (
-    veScaKey: SuiObjectArg,
-    scaCoin: SuiObjectArg
-  ) => Promise<void>;
+  ) => void;
+  extendLockAmount: (veScaKey: SuiObjectArg, scaCoin: SuiObjectArg) => void;
   renewExpiredVeSca: (
     veScaKey: SuiObjectArg,
     scaCoin: SuiObjectArg,
     newUnlockAtInSecondTimestamp: number
-  ) => Promise<void>;
-  redeemSca: (veScaKey: SuiObjectArg) => Promise<TransactionResult>;
-  mintEmptyVeSca: () => Promise<TransactionResult>;
+  ) => void;
+  redeemSca: (veScaKey: SuiObjectArg) => TransactionResult;
+  mintEmptyVeSca: () => TransactionResult;
 };
 
 export type RedeemScaQuickReturnType<T extends boolean> = T extends true

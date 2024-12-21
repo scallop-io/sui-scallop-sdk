@@ -15,21 +15,21 @@ export type SpoolIds = {
 export type SpoolNormalMethods = {
   createStakeAccount: (
     stakeMarketCoinName: SupportStakeMarketCoins
-  ) => Promise<TransactionResult>;
+  ) => TransactionResult;
   stake: (
     stakeAccount: SuiAddressArg,
     coin: SuiObjectArg,
     stakeMarketCoinName: SupportStakeMarketCoins
-  ) => Promise<void>;
+  ) => void;
   unstake: (
     stakeAccount: SuiAddressArg,
     amount: number,
     stakeMarketCoinName: SupportStakeMarketCoins
-  ) => Promise<TransactionResult>;
+  ) => TransactionResult;
   claim: (
     stakeAccount: SuiAddressArg,
     stakeMarketCoinName: SupportStakeMarketCoins
-  ) => Promise<TransactionResult>;
+  ) => TransactionResult;
 };
 
 export type SpoolQuickMethods = {

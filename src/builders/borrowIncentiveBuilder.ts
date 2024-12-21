@@ -97,8 +97,8 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
     };
 
     return {
-      stakeObligation: async (obligationId, obligationKey) => {
-        await builder.moveCall(
+      stakeObligation: (obligationId, obligationKey) => {
+        builder.moveCall(
           txBlock,
           `${borrowIncentiveIds.borrowIncentivePkg}::user::stake`,
           [
@@ -112,12 +112,8 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           ]
         );
       },
-      stakeObligationWithVesca: async (
-        obligationId,
-        obligationKey,
-        veScaKey
-      ) => {
-        await builder.moveCall(
+      stakeObligationWithVesca: (obligationId, obligationKey, veScaKey) => {
+        builder.moveCall(
           txBlock,
           `${borrowIncentiveIds.borrowIncentivePkg}::user::stake_with_ve_sca`,
           [
@@ -136,8 +132,8 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           []
         );
       },
-      unstakeObligation: async (obligationId, obligationKey) => {
-        await builder.moveCall(
+      unstakeObligation: (obligationId, obligationKey) => {
+        builder.moveCall(
           txBlock,
           `${borrowIncentiveIds.borrowIncentivePkg}::user::unstake`,
           [
@@ -150,13 +146,9 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           ]
         );
       },
-      claimBorrowIncentive: async (
-        obligationId,
-        obligationKey,
-        rewardCoinName
-      ) => {
+      claimBorrowIncentive: (obligationId, obligationKey, rewardCoinName) => {
         const rewardType = builder.utils.parseCoinType(rewardCoinName);
-        return await builder.moveCall(
+        return builder.moveCall(
           txBlock,
           `${borrowIncentiveIds.borrowIncentivePkg}::user::redeem_rewards`,
           [
@@ -170,8 +162,8 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
           [rewardType]
         );
       },
-      deactivateBoost: async (obligation, veScaKey) => {
-        await builder.moveCall(
+      deactivateBoost: (obligation, veScaKey) => {
+        builder.moveCall(
           txBlock,
           `${borrowIncentiveIds.borrowIncentivePkg}::user::deactivate_boost`,
           [
@@ -225,7 +217,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
-          await txBlock.stakeObligation(obligationArg, obligationKeyArg);
+          txBlock.stakeObligation(obligationArg, obligationKeyArg);
         }
       },
       stakeObligationWithVeScaQuick: async (
@@ -260,9 +252,9 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
 
           const _veScaKey = bindedVeScaKey ?? veScaKey;
           if (!_veScaKey) {
-            await txBlock.stakeObligation(obligationArg, obligationKeyArg);
+            txBlock.stakeObligation(obligationArg, obligationKeyArg);
           } else {
-            await txBlock.stakeObligationWithVesca(
+            txBlock.stakeObligationWithVesca(
               obligationArg,
               obligationKeyArg,
               _veScaKey
@@ -283,7 +275,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
         );
 
         if (obligationLocked) {
-          await txBlock.unstakeObligation(obligationArg, obligationKeyArg);
+          txBlock.unstakeObligation(obligationArg, obligationKeyArg);
         }
       },
       claimBorrowIncentiveQuick: async (
@@ -300,7 +292,8 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
             obligationKey
           );
 
-        return await txBlock.claimBorrowIncentive(
+        // return await txBlock.claimBorrowIncentive(
+        return txBlock.claimBorrowIncentive(
           obligationArg,
           obligationKeyArg,
           rewardCoinName
