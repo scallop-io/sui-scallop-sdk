@@ -142,7 +142,9 @@ export const getAllCoinPrices = async (
 ) => {
   coinPrices = coinPrices ?? (await query.utils.getCoinPrices());
   marketPools =
-    marketPools ?? (await query.getMarketPools(undefined, { coinPrices }));
+    marketPools ??
+    (await query.getMarketPools(undefined, { coinPrices })).pools;
+
   if (!marketPools) {
     throw new Error(`Failed to fetch market pool for getAllCoinPrices`);
   }

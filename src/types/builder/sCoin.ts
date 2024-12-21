@@ -21,7 +21,7 @@ export type sCoinNormalMethods = {
   mintSCoin: (
     marketCoinName: SupportSCoin,
     marketCoin: SuiObjectArg
-  ) => TransactionResult;
+  ) => Promise<TransactionResult>;
   /**
    * Burn sCoin and return marketCoin
    * @param sCoinName
@@ -31,7 +31,7 @@ export type sCoinNormalMethods = {
   burnSCoin: (
     sCoinName: SupportSCoin,
     sCoin: SuiObjectArg
-  ) => TransactionResult; // returns marketCoin
+  ) => Promise<TransactionResult>; // returns marketCoin
 };
 
 export type sCoinQuickMethods = {

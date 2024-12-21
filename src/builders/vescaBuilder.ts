@@ -89,8 +89,9 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
   };
 
   return {
-    lockSca: (scaCoin, unlockAtInSecondTimestamp) => {
-      return txBlock.moveCall(
+    lockSca: async (scaCoin, unlockAtInSecondTimestamp) => {
+      return await builder.moveCall(
+        txBlock,
         `${veScaIds.pkgId}::ve_sca::mint_ve_sca_key`,
         [
           veScaIds.config,
@@ -103,8 +104,9 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    extendLockPeriod: (veScaKey, newUnlockAtInSecondTimestamp) => {
-      txBlock.moveCall(
+    extendLockPeriod: async (veScaKey, newUnlockAtInSecondTimestamp) => {
+      await builder.moveCall(
+        txBlock,
         `${veScaIds.pkgId}::ve_sca::extend_lock_period`,
         [
           veScaIds.config,
@@ -117,8 +119,9 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    extendLockAmount: (veScaKey, scaCoin) => {
-      txBlock.moveCall(
+    extendLockAmount: async (veScaKey, scaCoin) => {
+      await builder.moveCall(
+        txBlock,
         `${veScaIds.pkgId}::ve_sca::lock_more_sca`,
         [
           veScaIds.config,
@@ -131,8 +134,13 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    renewExpiredVeSca: (veScaKey, scaCoin, newUnlockAtInSecondTimestamp) => {
-      txBlock.moveCall(
+    renewExpiredVeSca: async (
+      veScaKey,
+      scaCoin,
+      newUnlockAtInSecondTimestamp
+    ) => {
+      await builder.moveCall(
+        txBlock,
         `${veScaIds.pkgId}::ve_sca::renew_expired_ve_sca`,
         [
           veScaIds.config,
@@ -146,8 +154,9 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    redeemSca: (veScaKey) => {
-      return txBlock.moveCall(
+    redeemSca: async (veScaKey) => {
+      return await builder.moveCall(
+        txBlock,
         `${veScaIds.pkgId}::ve_sca::redeem`,
         [
           veScaIds.config,
@@ -159,8 +168,9 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    mintEmptyVeSca: () => {
-      return txBlock.moveCall(
+    mintEmptyVeSca: async () => {
+      return await builder.moveCall(
+        txBlock,
         `${veScaIds.pkgId}::ve_sca::mint_ve_sca_placeholder_key`,
         [veScaIds.config, veScaIds.table],
         []
@@ -346,7 +356,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       checkVesca(veSca?.unlockAt);
 
       if (veSca) {
-        const sca = txBlock.redeemSca(veSca.keyId);
+        const sca = await txBlock.redeemSca(veSca.keyId);
         if (transferSca) {
           txBlock.transferObjects([sca], sender);
           return;

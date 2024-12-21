@@ -140,7 +140,10 @@ describe('Test Scallop Core Builder', async () => {
 
     const SUPPLY_COIN_NAME = 'wusdc';
     const FLASHLOAN_AMOUNT = 10 ** 5;
-    const [coin, loan] = tx.borrowFlashLoan(FLASHLOAN_AMOUNT, SUPPLY_COIN_NAME);
+    const [coin, loan] = await tx.borrowFlashLoan(
+      FLASHLOAN_AMOUNT,
+      SUPPLY_COIN_NAME
+    );
 
     const FLASHLOAN_FEE = Math.ceil(0.07 * FLASHLOAN_AMOUNT);
     const { takeCoin, leftCoin } = await scallopBuilder.selectCoin(
@@ -174,7 +177,7 @@ describe('Test Scallop Core Builder', async () => {
      */
     const suiTxBlock = tx.txBlock;
     const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [10 ** 6]);
-    const marketCoin = tx.deposit(coin, SUPPLY_COIN_NAME);
+    const marketCoin = await tx.deposit(coin, SUPPLY_COIN_NAME);
     suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure.address(sender));
     const txBlockResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
@@ -502,7 +505,7 @@ describe('Test Scallop VeSca Builder', async () => {
     const scaCoin = takeCoin;
     tx.transferObjects([leftCoin], sender);
 
-    const veScaKey = tx.lockSca(scaCoin, newUnlockAt);
+    const veScaKey = await tx.lockSca(scaCoin, newUnlockAt);
     // const lockPeriodInDays = 7; // lock for 1 day
     // const lockAmount = 10 * 10 ** 9;
     // await tx.renewExpiredVeScaQuick(
@@ -985,7 +988,7 @@ describe('Test Scallop Referral Builder', async () => {
   it('"claimReferralTicket" and "burnReferralTicket" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
 
-    const ticket = tx.claimReferralTicket('sui');
+    const ticket = await tx.claimReferralTicket('sui');
     tx.burnReferralTicket(ticket, 'sui');
 
     const claimReferralTicketResult =

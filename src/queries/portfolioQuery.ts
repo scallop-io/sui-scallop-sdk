@@ -51,10 +51,13 @@ export const getLendings = async (
   ) as SupportStakeMarketCoins[];
 
   const coinPrices = await query.utils.getCoinPrices();
-  const marketPools = await query.getMarketPools(poolCoinNames, {
-    indexer,
-    coinPrices,
-  });
+  const marketPools = (
+    await query.getMarketPools(poolCoinNames, {
+      indexer,
+      coinPrices,
+    })
+  ).pools;
+
   const spools = await query.getSpools(stakeMarketCoinNames, {
     indexer,
     marketPools,
@@ -308,8 +311,10 @@ export const getObligationAccounts = async (
   ownerAddress?: string,
   indexer: boolean = false
 ) => {
-  const coinPrices = await query.utils.getCoinPrices();
-  const market = await query.queryMarket({ indexer, coinPrices });
+  const market = await query.queryMarket({ indexer });
+  const coinPrices = await query.getAllCoinPrices({
+    marketPools: market.pools,
+  });
   const [coinAmounts, obligations] = await Promise.all([
     query.getCoinAmounts(undefined, ownerAddress),
     query.getObligations(ownerAddress),
@@ -357,11 +362,12 @@ export const getObligationAccount = async (
     ...SUPPORT_COLLATERALS,
   ] as SupportCollateralCoins[];
 
-  market = market ?? (await query.queryMarket({ indexer }));
+  // market = market ?? (await query.queryMarket({ indexer }));
+  market = market ?? (await query.getMarketPools(undefined, { indexer }));
   coinPrices =
     coinPrices ?? (await query.getAllCoinPrices({ marketPools: market.pools }));
   coinAmounts =
-    coinAmounts || (await query.getCoinAmounts(coinNames, ownerAddress));
+    coinAmounts ?? (await query.getCoinAmounts(coinNames, ownerAddress));
 
   const [obligationQuery, borrowIncentivePools, borrowIncentiveAccounts] =
     await Promise.all([
@@ -784,7 +790,8 @@ export const getTotalValueLocked = async (
   query: ScallopQuery,
   indexer: boolean = false
 ) => {
-  const market = await query.queryMarket({ indexer });
+  // const market = await query.queryMarket({ indexer });
+  const market = await query.getMarketPools(undefined, { indexer });
 
   let supplyValue = BigNumber(0);
   let borrowValue = BigNumber(0);
@@ -811,6 +818,7 @@ export const getTotalValueLocked = async (
     );
   }
 
+  // console.dir(market.collaterals, { depth: null });
   for (const collateral of Object.values(market.collaterals)) {
     supplyValue = supplyValue.plus(
       BigNumber(collateral.depositCoin).multipliedBy(collateral.coinPrice)

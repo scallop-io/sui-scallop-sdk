@@ -34,8 +34,9 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
   const veScaTable = builder.address.get('vesca.table');
 
   return {
-    bindToReferral: (veScaKeyId: string) => {
-      return txBlock.moveCall(
+    bindToReferral: async (veScaKeyId: string) => {
+      await builder.moveCall(
+        txBlock,
         `${referralIds.referralPgkId}::referral_bindings::bind_ve_sca_referrer`,
         [
           referralIds.referralBindings,
@@ -46,9 +47,10 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         []
       );
     },
-    claimReferralTicket: (poolCoinName: SupportCoins) => {
+    claimReferralTicket: async (poolCoinName: SupportCoins) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return txBlock.moveCall(
+      return await builder.moveCall(
+        txBlock,
         `${referralIds.referralPgkId}::scallop_referral_program::claim_ve_sca_referral_ticket`,
         [
           referralIds.version,
@@ -61,9 +63,13 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         [coinType]
       );
     },
-    burnReferralTicket: (ticket: SuiObjectArg, poolCoinName: SupportCoins) => {
+    burnReferralTicket: async (
+      ticket: SuiObjectArg,
+      poolCoinName: SupportCoins
+    ) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return txBlock.moveCall(
+      await builder.moveCall(
+        txBlock,
         `${referralIds.referralPgkId}::scallop_referral_program::burn_ve_sca_referral_ticket`,
         [
           referralIds.version,
@@ -74,12 +80,13 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         [coinType]
       );
     },
-    claimReferralRevenue: (
+    claimReferralRevenue: async (
       veScaKey: SuiObjectArg,
       poolCoinName: SupportCoins
     ) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return txBlock.moveCall(
+      return await builder.moveCall(
+        txBlock,
         `${referralIds.referralPgkId}::referral_revenue_pool::claim_revenue_with_ve_sca_key`,
         [
           referralIds.version,
@@ -106,10 +113,16 @@ const generateReferralQuickMethod: GenerateReferralQuickMethod = ({
       const objToTransfer: SuiObjectArg[] = [];
       for (const coinName of coinNames) {
         if (coinName === 'sui') {
-          const rewardCoin = txBlock.claimReferralRevenue(veScaKey, coinName);
+          const rewardCoin = await txBlock.claimReferralRevenue(
+            veScaKey,
+            coinName
+          );
           objToTransfer.push(rewardCoin);
         } else {
-          const rewardCoin = txBlock.claimReferralRevenue(veScaKey, coinName);
+          const rewardCoin = await txBlock.claimReferralRevenue(
+            veScaKey,
+            coinName
+          );
           try {
             // get the matching user coin if exists
             const coins = await builder.suiKit.suiInteractor.selectCoins(
