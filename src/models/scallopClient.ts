@@ -232,7 +232,7 @@ export class ScallopClient {
     sign: S = true as S
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
-    await txBlock.openObligationEntry();
+    txBlock.openObligationEntry();
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
         txBlock
@@ -283,10 +283,9 @@ export class ScallopClient {
         specificObligationId
       );
     } else {
-      const [obligation, obligationKey, hotPotato] =
-        await txBlock.openObligation();
+      const [obligation, obligationKey, hotPotato] = txBlock.openObligation();
       await txBlock.addCollateralQuick(amount, collateralCoinName, obligation);
-      await txBlock.returnObligation(obligation, hotPotato);
+      txBlock.returnObligation(obligation, hotPotato);
       txBlock.transferObjects([obligationKey], sender);
     }
 
@@ -426,7 +425,7 @@ export class ScallopClient {
         targetStakeAccount
       );
     } else {
-      const account = await txBlock.createStakeAccount(stakeMarketCoinName);
+      const account = txBlock.createStakeAccount(stakeMarketCoinName);
       await txBlock.stakeQuick(marketCoin, stakeMarketCoinName, account);
       txBlock.transferObjects([account], sender);
     }
@@ -612,12 +611,8 @@ export class ScallopClient {
     const txBlock = this.builder.createTxBlock();
     const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
-    const [coin, loan] = await txBlock.borrowFlashLoan(amount, poolCoinName);
-    await txBlock.repayFlashLoan(
-      await callback(txBlock, coin),
-      loan,
-      poolCoinName
-    );
+    const [coin, loan] = txBlock.borrowFlashLoan(amount, poolCoinName);
+    txBlock.repayFlashLoan(await callback(txBlock, coin), loan, poolCoinName);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
@@ -654,7 +649,7 @@ export class ScallopClient {
     const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
-    const stakeAccount = await txBlock.createStakeAccount(marketCoinName);
+    const stakeAccount = txBlock.createStakeAccount(marketCoinName);
     txBlock.transferObjects([stakeAccount], sender);
 
     if (sign) {
@@ -704,7 +699,7 @@ export class ScallopClient {
     if (targetStakeAccount) {
       await txBlock.stakeQuick(amount, stakeMarketCoinName, targetStakeAccount);
     } else {
-      const account = await txBlock.createStakeAccount(stakeMarketCoinName);
+      const account = txBlock.createStakeAccount(stakeMarketCoinName);
       await txBlock.stakeQuick(amount, stakeMarketCoinName, account);
       txBlock.transferObjects([account], sender);
     }
@@ -819,7 +814,7 @@ export class ScallopClient {
       this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
 
     if (stakeMarketCoin) {
-      const coin = await txBlock.withdraw(stakeMarketCoin, stakeCoinName);
+      const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
       await this.utils.mergeSimilarCoins(
         txBlock,
         coin,
@@ -1053,7 +1048,7 @@ export class ScallopClient {
         // if market coin found, mint sCoin
         if (toDestroyMarketCoin) {
           // mint new sCoin
-          const sCoin = await txBlock.mintSCoin(
+          const sCoin = txBlock.mintSCoin(
             sCoinName as SupportSCoin,
             toDestroyMarketCoin
           );

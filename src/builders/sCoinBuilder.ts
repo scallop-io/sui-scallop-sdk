@@ -20,8 +20,8 @@ const generateSCoinNormalMethod: GenerateSCoinNormalMethod = ({
   };
 
   return {
-    mintSCoin: async (marketCoinName, marketCoin) => {
-      return await builder.moveCall(
+    mintSCoin: (marketCoinName, marketCoin) => {
+      return builder.moveCall(
         txBlock,
         `${sCoinPkgIds.pkgId}::s_coin_converter::mint_s_coin`,
         [builder.utils.getSCoinTreasury(marketCoinName), marketCoin],
@@ -31,8 +31,8 @@ const generateSCoinNormalMethod: GenerateSCoinNormalMethod = ({
         ]
       );
     },
-    burnSCoin: async (sCoinName, sCoin) => {
-      return await builder.moveCall(
+    burnSCoin: (sCoinName, sCoin) => {
+      return builder.moveCall(
         txBlock,
         `${sCoinPkgIds.pkgId}::s_coin_converter::burn_s_coin`,
         [builder.utils.getSCoinTreasury(sCoinName), sCoin],

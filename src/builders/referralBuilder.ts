@@ -34,8 +34,8 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
   const veScaTable = builder.address.get('vesca.table');
 
   return {
-    bindToReferral: async (veScaKeyId: string) => {
-      await builder.moveCall(
+    bindToReferral: (veScaKeyId: string) => {
+      builder.moveCall(
         txBlock,
         `${referralIds.referralPgkId}::referral_bindings::bind_ve_sca_referrer`,
         [
@@ -47,9 +47,9 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         []
       );
     },
-    claimReferralTicket: async (poolCoinName: SupportCoins) => {
+    claimReferralTicket: (poolCoinName: SupportCoins) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return await builder.moveCall(
+      return builder.moveCall(
         txBlock,
         `${referralIds.referralPgkId}::scallop_referral_program::claim_ve_sca_referral_ticket`,
         [
@@ -63,12 +63,9 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         [coinType]
       );
     },
-    burnReferralTicket: async (
-      ticket: SuiObjectArg,
-      poolCoinName: SupportCoins
-    ) => {
+    burnReferralTicket: (ticket: SuiObjectArg, poolCoinName: SupportCoins) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      await builder.moveCall(
+      builder.moveCall(
         txBlock,
         `${referralIds.referralPgkId}::scallop_referral_program::burn_ve_sca_referral_ticket`,
         [
@@ -80,12 +77,12 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         [coinType]
       );
     },
-    claimReferralRevenue: async (
+    claimReferralRevenue: (
       veScaKey: SuiObjectArg,
       poolCoinName: SupportCoins
     ) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
-      return await builder.moveCall(
+      return builder.moveCall(
         txBlock,
         `${referralIds.referralPgkId}::referral_revenue_pool::claim_revenue_with_ve_sca_key`,
         [

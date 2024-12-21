@@ -89,8 +89,8 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
   };
 
   return {
-    lockSca: async (scaCoin, unlockAtInSecondTimestamp) => {
-      return await builder.moveCall(
+    lockSca: (scaCoin, unlockAtInSecondTimestamp) => {
+      return builder.moveCall(
         txBlock,
         `${veScaIds.pkgId}::ve_sca::mint_ve_sca_key`,
         [
@@ -104,8 +104,8 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    extendLockPeriod: async (veScaKey, newUnlockAtInSecondTimestamp) => {
-      await builder.moveCall(
+    extendLockPeriod: (veScaKey, newUnlockAtInSecondTimestamp) => {
+      builder.moveCall(
         txBlock,
         `${veScaIds.pkgId}::ve_sca::extend_lock_period`,
         [
@@ -119,8 +119,8 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    extendLockAmount: async (veScaKey, scaCoin) => {
-      await builder.moveCall(
+    extendLockAmount: (veScaKey, scaCoin) => {
+      builder.moveCall(
         txBlock,
         `${veScaIds.pkgId}::ve_sca::lock_more_sca`,
         [
@@ -134,12 +134,8 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    renewExpiredVeSca: async (
-      veScaKey,
-      scaCoin,
-      newUnlockAtInSecondTimestamp
-    ) => {
-      await builder.moveCall(
+    renewExpiredVeSca: (veScaKey, scaCoin, newUnlockAtInSecondTimestamp) => {
+      builder.moveCall(
         txBlock,
         `${veScaIds.pkgId}::ve_sca::renew_expired_ve_sca`,
         [
@@ -154,8 +150,8 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    redeemSca: async (veScaKey) => {
-      return await builder.moveCall(
+    redeemSca: (veScaKey) => {
+      return builder.moveCall(
         txBlock,
         `${veScaIds.pkgId}::ve_sca::redeem`,
         [
@@ -168,8 +164,8 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
         []
       );
     },
-    mintEmptyVeSca: async () => {
-      return await builder.moveCall(
+    mintEmptyVeSca: () => {
+      return builder.moveCall(
         txBlock,
         `${veScaIds.pkgId}::ve_sca::mint_ve_sca_placeholder_key`,
         [veScaIds.config, veScaIds.table],
