@@ -19,8 +19,8 @@ jobs:
         with:
           node-version: '18'
           cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org'
           scope: '@scallop-io'
+          registry-url: 'https://registry.npmjs.org'
       - run: |
           pnpm install --frozen-lockfile
           pnpm run build
@@ -39,11 +39,3 @@ jobs:
       - run: pnpm publish --no-git-checks --tag ${{ env.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-      - uses: actions/setup-node@v3.6.0
-        with:
-          node-version: '18'
-          cache: 'pnpm'
-          registry-url: 'https://npm.pkg.github.com'
-      - run: pnpm publish --no-git-checks  --tag ${{ env.tag }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
