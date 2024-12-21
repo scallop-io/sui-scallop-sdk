@@ -26,69 +26,74 @@ type ObligationKey = NestedResult;
 type ObligationHotPotato = NestedResult;
 
 export type CoreNormalMethods = {
-  openObligation: () => [Obligation, ObligationKey, ObligationHotPotato];
+  openObligation: () => Promise<
+    [Obligation, ObligationKey, ObligationHotPotato]
+  >;
   returnObligation: (
     obligation: SuiObjectArg,
     obligationHotPotato: SuiObjectArg
-  ) => void;
-  openObligationEntry: () => void;
+  ) => Promise<void>;
+  openObligationEntry: () => Promise<void>;
   addCollateral: (
     obligation: SuiObjectArg,
     coin: SuiObjectArg,
     collateralCoinName: SupportCollateralCoins
-  ) => void;
+  ) => Promise<void>;
   takeCollateral: (
     obligation: SuiObjectArg,
     obligationKey: SuiObjectArg,
     amount: number,
     collateralCoinName: SupportCollateralCoins
-  ) => TransactionResult;
+  ) => Promise<TransactionResult>;
   deposit: (
     coin: SuiObjectArg,
     poolCoinName: SupportPoolCoins
-  ) => TransactionResult;
-  depositEntry: (coin: SuiObjectArg, poolCoinName: SupportPoolCoins) => void;
+  ) => Promise<TransactionResult>;
+  depositEntry: (
+    coin: SuiObjectArg,
+    poolCoinName: SupportPoolCoins
+  ) => Promise<TransactionResult>;
   withdraw: (
     marketCoin: SuiObjectArg,
     poolCoinName: SupportPoolCoins
-  ) => TransactionResult;
+  ) => Promise<TransactionResult>;
   withdrawEntry: (
     marketCoin: SuiObjectArg,
     poolCoinName: SupportPoolCoins
-  ) => void;
+  ) => Promise<TransactionResult>;
   borrow: (
     obligation: SuiObjectArg,
     obligationKey: SuiObjectArg,
     amount: number,
     poolCoinName: SupportPoolCoins
-  ) => TransactionResult;
+  ) => Promise<TransactionResult>;
   borrowWithReferral: (
     obligation: SuiObjectArg,
     obligationKey: SuiObjectArg,
     borrowReferral: SuiObjectArg,
     amount: number | SuiTxArg,
     poolCoinName: SupportPoolCoins
-  ) => TransactionResult;
+  ) => Promise<TransactionResult>;
   borrowEntry: (
     obligation: SuiObjectArg,
     obligationKey: SuiObjectArg,
     amount: number,
     poolCoinName: SupportPoolCoins
-  ) => void;
+  ) => Promise<TransactionResult>;
   repay: (
     obligation: SuiObjectArg,
     coin: SuiObjectArg,
     poolCoinName: SupportPoolCoins
-  ) => void;
+  ) => Promise<void>;
   borrowFlashLoan: (
     amount: number | SuiTxArg,
     poolCoinName: SupportPoolCoins
-  ) => TransactionResult;
+  ) => Promise<TransactionResult>;
   repayFlashLoan: (
     coin: SuiObjectArg,
     loan: SuiObjectArg,
     poolCoinName: SupportPoolCoins
-  ) => void;
+  ) => Promise<void>;
 };
 
 export type CoreQuickMethods = {

@@ -100,10 +100,10 @@ const stakeHelper = async (
       ? await builder.selectSCoin(txBlock, coinName, amount, sender)
       : await builder.selectMarketCoin(txBlock, coinName, amount, sender);
     if (isSCoin) {
-      const marketCoin = txBlock.burnSCoin(coinName, takeCoin);
-      txBlock.stake(stakeAccount, marketCoin, coinName);
+      const marketCoin = await txBlock.burnSCoin(coinName, takeCoin);
+      await txBlock.stake(stakeAccount, marketCoin, coinName);
     } else {
-      txBlock.stake(stakeAccount, takeCoin, coinName);
+      await txBlock.stake(stakeAccount, takeCoin, coinName);
     }
     txBlock.transferObjects([leftCoin], sender);
     return totalAmount;
@@ -127,43 +127,46 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
     spoolPkg: builder.address.get('spool.id'),
   };
   return {
-    createStakeAccount: (stakeMarketCoinName) => {
+    createStakeAccount: async (stakeMarketCoinName) => {
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
       const stakePoolId = builder.address.get(
         `spool.pools.${stakeMarketCoinName}.id`
       );
-      return txBlock.moveCall(
+      return await builder.moveCall(
+        txBlock,
         `${spoolIds.spoolPkg}::user::new_spool_account`,
         [stakePoolId, SUI_CLOCK_OBJECT_ID],
         [marketCoinType]
       );
     },
-    stake: (stakeAccount, coin, stakeMarketCoinName) => {
+    stake: async (stakeAccount, coin, stakeMarketCoinName) => {
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
       const stakePoolId = builder.address.get(
         `spool.pools.${stakeMarketCoinName}.id`
       );
-      txBlock.moveCall(
+      await builder.moveCall(
+        txBlock,
         `${spoolIds.spoolPkg}::user::stake`,
         [stakePoolId, stakeAccount, coin, SUI_CLOCK_OBJECT_ID],
         [marketCoinType]
       );
     },
-    unstake: (stakeAccount, amount, stakeMarketCoinName) => {
+    unstake: async (stakeAccount, amount, stakeMarketCoinName) => {
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
       const stakePoolId = builder.address.get(
         `spool.pools.${stakeMarketCoinName}.id`
       );
-      return txBlock.moveCall(
+      return await builder.moveCall(
+        txBlock,
         `${spoolIds.spoolPkg}::user::unstake`,
         [stakePoolId, stakeAccount, amount, SUI_CLOCK_OBJECT_ID],
         [marketCoinType]
       );
     },
-    claim: (stakeAccount, stakeMarketCoinName) => {
+    claim: async (stakeAccount, stakeMarketCoinName) => {
       const stakePoolId = builder.address.get(
         `spool.pools.${stakeMarketCoinName}.id`
       ) as string;
@@ -174,7 +177,8 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
       const rewardCoinName = spoolRewardCoins[stakeMarketCoinName];
       const rewardCoinType = builder.utils.parseCoinType(rewardCoinName);
-      return txBlock.moveCall(
+      return await builder.moveCall(
+        txBlock,
         `${spoolIds.spoolPkg}::user::redeem_rewards`,
         [stakePoolId, rewardPoolId, stakeAccount, SUI_CLOCK_OBJECT_ID],
         [marketCoinType, rewardCoinType]
@@ -265,7 +269,7 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
       for (const account of stakeAccounts) {
         if (account.staked === 0) continue;
         const amountToUnstake = Math.min(amount, account.staked);
-        const marketCoin = txBlock.unstake(
+        const marketCoin = await txBlock.unstake(
           account.id,
           amountToUnstake,
           stakeMarketCoinName
@@ -273,7 +277,10 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
 
         // convert to new sCoin
         if (returnSCoin) {
-          const sCoin = txBlock.mintSCoin(stakeMarketCoinName, marketCoin);
+          const sCoin = await txBlock.mintSCoin(
+            stakeMarketCoinName,
+            marketCoin
+          );
           toTransfer.push(sCoin);
         } else {
           toTransfer.push(marketCoin);
@@ -301,7 +308,7 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
       );
       const rewardCoins: TransactionResult[] = [];
       for (const accountId of stakeAccountIds) {
-        const rewardCoin = txBlock.claim(accountId, stakeMarketCoinName);
+        const rewardCoin = await txBlock.claim(accountId, stakeMarketCoinName);
         rewardCoins.push(rewardCoin);
       }
       return rewardCoins;
