@@ -33,10 +33,9 @@ jobs:
       - name: Determine npm tag
         id: npm_tag
         run: |
-          ref_name=${GITHUB_REF#refs/tags/}
-          if [[ "$ref_name" == *".alpha"* ]]; then
+          if [[ "${{ github.ref_name }}" == *"alpha."* ]]; then
             echo "tag=alpha" >> $GITHUB_ENV
-          elif [[ "$ref_name" == *".rc"* ]]; then
+          elif [[ "${{ github.ref_name }}" == *"rc."* ]]; then
             echo "tag=rc" >> $GITHUB_ENV
           else
             echo "tag=latest" >> $GITHUB_ENV
