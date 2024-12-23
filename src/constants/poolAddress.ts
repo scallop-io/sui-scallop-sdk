@@ -377,6 +377,22 @@ export const POOL_ADDRESSES: OptionalKeys<
     coinDecimalId:
       '0x5d26a1e9a55c88147ac870bfa31b729d7f49f8804b8b3adfdf3582d301cca844',
   },
+  fdusd: {
+    // TODO
+    lendingPoolAddress: '',
+    collateralPoolAddress: '',
+    borrowDynamic: '',
+    interestModel: '',
+    riskModel: '',
+    borrowFeeKey: '',
+    supplyLimitKey: '',
+    borrowLimitKey: '',
+    isolatedAssetKey: undefined,
+    spool: undefined,
+    spoolReward: undefined,
+    sCoinTreasury: '',
+    coinDecimalId: '',
+  },
   fud: {
     lendingPoolAddress:
       '0xefed2cbe76b344792ac724523c8b2236740d1cea2100d46a0ed0dc760c7f4231',
