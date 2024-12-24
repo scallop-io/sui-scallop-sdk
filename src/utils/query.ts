@@ -167,10 +167,10 @@ export const calculateMarketPoolData = (
     conversionRate: conversionRate.toNumber(),
     isIsolated: parsedMarketPoolData.isIsolated,
     maxSupplyCoin: BigNumber(parsedMarketPoolData.supplyLimit)
-      .shiftedBy(coinDecimal)
+      .shiftedBy(-coinDecimal)
       .toNumber(),
     maxBorrowCoin: BigNumber(parsedMarketPoolData.borrowLimit)
-      .shiftedBy(coinDecimal)
+      .shiftedBy(-coinDecimal)
       .toNumber(),
   };
 };
