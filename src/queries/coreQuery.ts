@@ -292,32 +292,61 @@ const queryRequiredMarketObjects = async (
   // Map the results back to poolCoinNames
   const mapObjects = (
     tasks: { poolCoinName: string; [key: string]: string | undefined }[],
-    fetchedObjects: SuiObjectData[]
+    fetchedObjects: SuiObjectData[],
+    keyValue: string
   ) => {
     const resultMap: Record<string, SuiObjectData> = {};
-    let fetchedIndex = 0;
+    const fetchedObjectMap = fetchedObjects.reduce(
+      (acc, obj) => {
+        acc[obj.objectId] = obj;
+        return acc;
+      },
+      {} as Record<string, SuiObjectData>
+    );
 
     for (const task of tasks) {
-      const key = task[Object.keys(task)[1]]; // current object key being queried
-      if (key) {
-        resultMap[task.poolCoinName] = fetchedObjects[fetchedIndex];
-        fetchedIndex++;
+      if (task[keyValue]) {
+        resultMap[task.poolCoinName] = fetchedObjectMap[task[keyValue]];
       }
     }
     return resultMap;
   };
 
-  const balanceSheetMap = mapObjects(tasks, balanceSheetObjects);
-  const collateralStatMap = mapObjects(tasks, collateralStatObjects);
-  const borrowDynamicMap = mapObjects(tasks, borrowDynamicObjects);
-  const interestModelMap = mapObjects(tasks, interestModelObjects);
-  const riskModelMap = mapObjects(tasks, riskModelObjects);
-  const borrowFeeMap = mapObjects(tasks, borrowFeeObjects);
-  const supplyLimitMap = mapObjects(tasks, supplyLimitObjects);
-  const borrowLimitMap = mapObjects(tasks, borrowLimitObjects);
-  const isolatedAssetMap = mapObjects(tasks, isolatedAssetObjects);
+  const balanceSheetMap = mapObjects(
+    tasks,
+    balanceSheetObjects,
+    'balanceSheet'
+  );
+  const collateralStatMap = mapObjects(
+    tasks,
+    collateralStatObjects,
+    'collateralStat'
+  );
+  const borrowDynamicMap = mapObjects(
+    tasks,
+    borrowDynamicObjects,
+    'borrowDynamic'
+  );
+  const interestModelMap = mapObjects(
+    tasks,
+    interestModelObjects,
+    'interestModel'
+  );
+  const riskModelMap = mapObjects(tasks, riskModelObjects, 'riskModel');
+  const borrowFeeMap = mapObjects(tasks, borrowFeeObjects, 'borrowFeeKey');
+  const supplyLimitMap = mapObjects(
+    tasks,
+    supplyLimitObjects,
+    'supplyLimitKey'
+  );
+  const borrowLimitMap = mapObjects(
+    tasks,
+    borrowLimitObjects,
+    'borrowLimitKey'
+  );
+  const isolatedAssetMap = mapObjects(tasks, isolatedAssetObjects, '');
   // Construct the final requiredObjects result
-  return poolCoinNames.reduce(
+  const result = poolCoinNames.reduce(
     (acc, name) => {
       acc[name] = {
         balanceSheet: balanceSheetMap[name],
@@ -347,6 +376,8 @@ const queryRequiredMarketObjects = async (
       }
     >
   );
+
+  return result;
 };
 
 /**
