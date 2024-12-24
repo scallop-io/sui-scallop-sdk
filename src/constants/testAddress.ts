@@ -559,9 +559,10 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0xfd0f02def6358a1f266acfa1493d4707ee8387460d434fb667d63d755ff907ed',
       },
       sfdusd: {
-        // TODO
-        coinType: '::scallop_fdusd::SCALLOP_FDUSD',
-        treasury: '',
+        coinType:
+          '0x6711551c1e7652a270d9fbf0eee25d99594c157cde3cb5fbb49035eb59b1b001::scallop_fdusd::SCALLOP_FDUSD',
+        treasury:
+          '0xdad9bc6293e694f67a5274ea51b596e0bdabfafc585ae6d7e82888e65f1a03e0',
       },
       sdeep: {
         coinType:
