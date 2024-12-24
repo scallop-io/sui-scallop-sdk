@@ -344,7 +344,11 @@ const queryRequiredMarketObjects = async (
     borrowLimitObjects,
     'borrowLimitKey'
   );
-  const isolatedAssetMap = mapObjects(tasks, isolatedAssetObjects, '');
+  const isolatedAssetMap = mapObjects(
+    tasks,
+    isolatedAssetObjects,
+    'isolatedAssetKey'
+  );
   // Construct the final requiredObjects result
   const result = poolCoinNames.reduce(
     (acc, name) => {
