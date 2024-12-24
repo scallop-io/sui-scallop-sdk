@@ -307,42 +307,15 @@ const queryRequiredMarketObjects = async (
     return resultMap;
   };
 
-  const balanceSheetMap = mapObjects(
-    tasks.filter((t) => t.balanceSheet !== undefined),
-    balanceSheetObjects
-  );
-  const collateralStatMap = mapObjects(
-    tasks.filter((t) => t.collateralStat !== undefined),
-    collateralStatObjects
-  );
-  const borrowDynamicMap = mapObjects(
-    tasks.filter((t) => t.borrowDynamic !== undefined),
-    borrowDynamicObjects
-  );
-  const interestModelMap = mapObjects(
-    tasks.filter((t) => t.interestModel !== undefined),
-    interestModelObjects
-  );
-  const riskModelMap = mapObjects(
-    tasks.filter((t) => t.riskModel !== undefined),
-    riskModelObjects
-  );
-  const borrowFeeMap = mapObjects(
-    tasks.filter((t) => t.borrowFeeKey !== undefined),
-    borrowFeeObjects
-  );
-  const supplyLimitMap = mapObjects(
-    tasks.filter((t) => t.supplyLimitKey !== undefined),
-    supplyLimitObjects
-  );
-  const borrowLimitMap = mapObjects(
-    tasks.filter((t) => t.borrowLimitKey !== undefined),
-    borrowLimitObjects
-  );
-  const isolatedAssetMap = mapObjects(
-    tasks.filter((t) => t.isolatedAssetKey !== undefined),
-    isolatedAssetObjects
-  );
+  const balanceSheetMap = mapObjects(tasks, balanceSheetObjects);
+  const collateralStatMap = mapObjects(tasks, collateralStatObjects);
+  const borrowDynamicMap = mapObjects(tasks, borrowDynamicObjects);
+  const interestModelMap = mapObjects(tasks, interestModelObjects);
+  const riskModelMap = mapObjects(tasks, riskModelObjects);
+  const borrowFeeMap = mapObjects(tasks, borrowFeeObjects);
+  const supplyLimitMap = mapObjects(tasks, supplyLimitObjects);
+  const borrowLimitMap = mapObjects(tasks, borrowLimitObjects);
+  const isolatedAssetMap = mapObjects(tasks, isolatedAssetObjects);
   // Construct the final requiredObjects result
   return poolCoinNames.reduce(
     (acc, name) => {
