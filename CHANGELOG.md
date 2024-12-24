@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.4...v1.4.5) (2024-12-24)
+
+### Features
+
+- Add FDUSD
+
 ### [1.4.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.3...v1.4.4) (2024-12-22)
 
 ### Features
