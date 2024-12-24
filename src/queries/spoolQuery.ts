@@ -58,24 +58,33 @@ const queryRequiredSpoolObjects = async (
   // Map the results back to poolCoinNames
   const mapObjects = (
     tasks: { poolCoinName: string; [key: string]: string | undefined }[],
-    fetchedObjects: SuiObjectData[]
+    fetchedObjects: SuiObjectData[],
+    keyValue: string
   ) => {
     const resultMap: Record<string, SuiObjectData> = {};
-    let fetchedIndex = 0;
+    const fetchedObjectMap = fetchedObjects.reduce(
+      (acc, obj) => {
+        acc[obj.objectId] = obj;
+        return acc;
+      },
+      {} as Record<string, SuiObjectData>
+    );
 
     for (const task of tasks) {
-      const key = task[Object.keys(task)[1]]; // current object key being queried
-      if (key) {
-        resultMap[task.poolCoinName] = fetchedObjects[fetchedIndex];
-        fetchedIndex++;
+      if (task[keyValue]) {
+        resultMap[task.poolCoinName] = fetchedObjectMap[task[keyValue]];
       }
     }
     return resultMap;
   };
 
-  const spoolMap = mapObjects(tasks, spoolObjects);
-  const spoolRewardMap = mapObjects(tasks, spoolRewardObjects);
-  const sCoinTreasuryMap = mapObjects(tasks, sCoinTreasuryObjects);
+  const spoolMap = mapObjects(tasks, spoolObjects, 'spool');
+  const spoolRewardMap = mapObjects(tasks, spoolRewardObjects, 'spoolReward');
+  const sCoinTreasuryMap = mapObjects(
+    tasks,
+    sCoinTreasuryObjects,
+    'sCoinTreasury'
+  );
 
   // Construct the final requiredObjects result
   return stakePoolCoinNames.reduce(

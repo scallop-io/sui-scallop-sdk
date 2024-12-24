@@ -236,6 +236,21 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
+      fdusd: {
+        id: '0xf16e6b723f242ec745dfd7634ad072c42d5c1d9ac9d62a39c381303eaa57693a',
+        metaData:
+          '0xdebee5265a67c186ed87fe93303d33dfe1de53e3b4fd7d9329c2852860acd3e7',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '0xccdc1a08923e2e4f4b1e6ea89de6acbc5fe1948e9706f5604b8cb50bc1ed3979',
+            feedObject:
+              '0x5f6583b2b0fe1ecf94aaffeaab8a838794693960cea48c0da282d5f4a24be027',
+          },
+        },
+      },
       deep: {
         id: '0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270',
         metaData:
@@ -542,6 +557,12 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0xb14f82d8506d139eacef109688d1b71e7236bcce9b2c0ad526abcd6aa5be7de0::scallop_sb_eth::SCALLOP_SB_ETH',
         treasury:
           '0xfd0f02def6358a1f266acfa1493d4707ee8387460d434fb667d63d755ff907ed',
+      },
+      sfdusd: {
+        coinType:
+          '0x6711551c1e7652a270d9fbf0eee25d99594c157cde3cb5fbb49035eb59b1b001::scallop_fdusd::SCALLOP_FDUSD',
+        treasury:
+          '0xdad9bc6293e694f67a5274ea51b596e0bdabfafc585ae6d7e82888e65f1a03e0',
       },
       sdeep: {
         coinType:
