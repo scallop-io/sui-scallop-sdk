@@ -540,3 +540,14 @@ describe('Test All Coin Prices Query', async () => {
     expect(swusdcPrice).toBeGreaterThanOrEqual(0);
   });
 });
+
+describe('Test Address Query', async () => {
+  it.skip('Should get pool Addresses', async () => {
+    const scallopQuery = await getScallopQuery();
+    const poolAddresses = await scallopQuery.getPoolAddresses();
+    if (ENABLE_LOG) {
+      console.info('Pool addresses:', poolAddresses);
+    }
+    expect(!!poolAddresses).toBe(true);
+  });
+});
