@@ -425,4 +425,29 @@ export const POOL_ADDRESSES: OptionalKeys<
     coinDecimalId:
       '0x6e60b051a08fa836f5a7acd7c464c8d9825bc29c44657fe170fe9b8e1e4770c0',
   },
+  fdusd: {
+    lendingPoolAddress:
+      '0x4f46051a01f05c3ad9aecf29a771aad5c884e1a1888e08d7709085e3a095bc9c',
+    collateralPoolAddress:
+      '0x4f6647a9afcfdb62bb9b27e4d1cb7bd7130aca1b4f13fa7164453c869c1681ae',
+    borrowDynamic:
+      '0x4ddcf19b6290a8b048ecb314b14ef7f52c1c5b9ddc9259a2a242cd91d681a085',
+    interestModel:
+      '0xb57a33706b29d2d253c74c1c0869e6e20da99036338d2b0b7235ab41621ee9dd',
+    riskModel:
+      '0xd65fb21758dc1e6184940a1a27efb13228d7cf5e19f6dcca06cc2d996af4a6b9',
+    borrowFeeKey:
+      '0xafe673a27747b063fa918d2dfe47794e44af553737ac562c2a63186539a07f45',
+    supplyLimitKey:
+      '0x730e0785ba056a7a95f4a6959371a598d7fe782e81c40785c79982ced4cf4e35',
+    borrowLimitKey:
+      '0x1630c6954918a06fe56312afb8958366c5ed7af653dae0e32c09d088da38577e',
+    isolatedAssetKey: undefined,
+    spool: undefined,
+    spoolReward: undefined,
+    sCoinTreasury:
+      '0xdad9bc6293e694f67a5274ea51b596e0bdabfafc585ae6d7e82888e65f1a03e0',
+    coinDecimalId:
+      '0xdebee5265a67c186ed87fe93303d33dfe1de53e3b4fd7d9329c2852860acd3e7',
+  },
 };
