@@ -837,7 +837,7 @@ export class ScallopQuery {
   }
 
   /**
-   * Query all address (lending pool, collateral pool, borrow dynamics, interest models) of all pool
+   * Query all address (lending pool, collateral pool, borrow dynamics, interest models, etc.) of all pool
    * @returns
    */
   public async getPoolAddresses() {

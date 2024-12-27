@@ -18,6 +18,7 @@ export const POOL_ADDRESSES: OptionalKeys<
       borrowLimitKey?: string;
       isolatedAssetKey?: string;
       coinDecimalId?: string;
+      sCoinType?: string;
     }
   >
 > = {
@@ -44,8 +45,12 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0x85ed6ed72ea97c35dbf0cdc7ed6fbc48d8ec15de9b17c74bf4512df8a6d7f166',
     sCoinTreasury:
       '0xbe6b63021f3d82e0e7e977cdd718ed7c019cf2eba374b7b546220402452f938e',
+    sCoinType:
+      '0x854950aa624b1df59fe64e630b2ba7c550642e9342267a33061d59fb31582da5::scallop_usdc::SCALLOP_USDC',
     coinDecimalId:
       '0x69b7a7c3c200439c1b5f3b19d7d495d5966d5f08de66c69276152f8db3992ec6',
+    coinType:
+      'dba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC',
   },
   sbeth: {
     lendingPoolAddress:
@@ -69,8 +74,12 @@ export const POOL_ADDRESSES: OptionalKeys<
     spoolReward: undefined,
     sCoinTreasury:
       '0xfd0f02def6358a1f266acfa1493d4707ee8387460d434fb667d63d755ff907ed',
+    sCoinType:
+      '0xb14f82d8506d139eacef109688d1b71e7236bcce9b2c0ad526abcd6aa5be7de0::scallop_sb_eth::SCALLOP_SB_ETH',
     coinDecimalId:
       '0x89b04ba87f8832d4d76e17a1c9dce72eb3e64d372cf02012b8d2de5384faeef0',
+    coinType:
+      'd0e89b2af5e4910726fbcd8b8dd37bb79b29e5f83f7491bca830e94f7f226d29::eth::ETH',
   },
   weth: {
     lendingPoolAddress:
@@ -95,8 +104,12 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0x957de68a18d87817de8309b30c1ec269a4d87ae513abbeed86b5619cb9ce1077',
     sCoinTreasury:
       '0x4b7f5da0e306c9d52490a0c1d4091e653d6b89778b9b4f23c877e534e4d9cd21',
+    sCoinType:
+      '0x67540ceb850d418679e69f1fb6b2093d6df78a2a699ffc733f7646096d552e9b::scallop_wormhole_eth::SCALLOP_WORMHOLE_ETH',
     coinDecimalId:
       '0x8900e4ceede3363bef086d6b50ca89d816d0e90bf6bc46efefe1f8455e08f50f',
+    coinType:
+      'af8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5::coin::COIN',
   },
   wbtc: {
     lendingPoolAddress:
@@ -120,8 +133,12 @@ export const POOL_ADDRESSES: OptionalKeys<
     spoolReward: undefined,
     sCoinTreasury:
       '0xe2883934ea42c99bc998bbe0f01dd6d27aa0e27a56455707b1b34e6a41c20baa',
+    sCoinType:
+      '0x2cf76a9cf5d3337961d1154283234f94da2dcff18544dfe5cbdef65f319591b5::scallop_wormhole_btc::SCALLOP_WORMHOLE_BTC',
     coinDecimalId:
       '0x5d3c6e60eeff8a05b693b481539e7847dfe33013e7070cdcb387f5c0cac05dfd',
+    coinType:
+      '027792d9fed7f9844eb4839566001bb6f6cb4804f66aa2da6fe1ee242d896881::coin::COIN',
   },
   wusdc: {
     lendingPoolAddress:
@@ -146,8 +163,12 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0xf4268cc9b9413b9bfe09e8966b8de650494c9e5784bf0930759cfef4904daff8',
     sCoinTreasury:
       '0x50c5cfcbcca3aaacab0984e4d7ad9a6ad034265bebb440f0d1cd688ec20b2548',
+    sCoinType:
+      '0xad4d71551d31092230db1fd482008ea42867dbf27b286e9c70a79d2a6191d58d::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
     coinDecimalId:
       '0x4fbf84f3029bd0c0b77164b587963be957f853eccf834a67bb9ecba6ec80f189',
+    coinType:
+      '5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN',
   },
   wusdt: {
     lendingPoolAddress:
@@ -172,8 +193,12 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0x2c9f934d67a5baa586ceec2cc24163a2f049a6af3d5ba36b84d8ac40f25c4080',
     sCoinTreasury:
       '0x1f02e2fed702b477732d4ad6044aaed04f2e8e586a169153694861a901379df0',
+    sCoinType:
+      '0xe6e5a012ec20a49a3d1d57bd2b67140b96cd4d3400b9d79e541f7bdbab661f95::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
     coinDecimalId:
       '0xfb0e3eb97dd158a5ae979dddfa24348063843c5b20eb8381dd5fa7c93699e45c',
+    coinType:
+      'c060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c::coin::COIN',
   },
   sui: {
     lendingPoolAddress:
@@ -198,8 +223,12 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0x162250ef72393a4ad3d46294c4e1bdfcb03f04c869d390e7efbfc995353a7ee9',
     sCoinTreasury:
       '0x5c1678c8261ac9eec024d4d630006a9f55c80dc0b1aa38a003fcb1d425818c6b',
+    sCoinType:
+      '0xaafc4f740de0dd0dde642a31148fb94517087052f19afb0f7bed1dc41a50c77b::scallop_sui::SCALLOP_SUI',
     coinDecimalId:
       '0x9258181f5ceac8dbffb7030890243caed69a9599d2886d957a9cb7656af3bdb3',
+    coinType:
+      '0000000000000000000000000000000000000000000000000000000000000002::sui::SUI',
   },
   wapt: {
     lendingPoolAddress:
@@ -220,33 +249,11 @@ export const POOL_ADDRESSES: OptionalKeys<
     spool: undefined,
     spoolReward: undefined,
     sCoinTreasury: undefined,
+    sCoinType: undefined,
     coinDecimalId:
       '0xc969c5251f372c0f34c32759f1d315cf1ea0ee5e4454b52aea08778eacfdd0a8',
-  },
-  wsol: {
-    lendingPoolAddress:
-      '0x985682c42984cdfb03f9ff7d8923344c2fe096b1ae4b82ea17721af19d22a21f',
-    collateralPoolAddress:
-      '0xdc1cc2c371a043ae8e3c3fe2d013c35f1346960b7dbb4c072982c5b794ed144f',
-    borrowDynamic:
-      '0xe3f301e16d4f1273ea659dd82c5c3f124ca5a5883a5726c7ec0f77bf43b70895',
-    interestModel:
-      '0xd95affaee077006b8dbb4b108c1b087e95fc6e5143ef0682da345d5b35bc6356',
-    riskModel:
-      '0x8e0da6358073144ec3557400c87f04991ba3a13ca7e0d0a19daed45260b32f16',
-    borrowFeeKey:
-      '0x604bffbc817e8e12db15f2373a9e15b2c7adbc510649cdf2cc62a594af90671c',
-    supplyLimitKey:
-      '0xbd419b536b3f9c9d4adfc20372ca6feedc53cc31798ac860dbfc847bcf05f54b',
-    borrowLimitKey:
-      '0x77d453c51948f32564c810bc73f9ba7abde880657b7f89e1c8a3bc28fa36ee87',
-    isolatedAssetKey: undefined,
-    spool: undefined,
-    spoolReward: undefined,
-    sCoinTreasury:
-      '0x760fd66f5be869af4382fa32b812b3c67f0eca1bb1ed7a5578b21d56e1848819',
-    coinDecimalId:
-      '0x4d2c39082b4477e3e79dc4562d939147ab90c42fc5f3e4acf03b94383cd69b6e',
+    coinType:
+      '3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37::coin::COIN',
   },
   cetus: {
     lendingPoolAddress:
@@ -271,8 +278,41 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0x6835c1224126a45086fc6406adc249e3f30df18d779ca4f4e570e38716a17f3f',
     sCoinTreasury:
       '0xa283c63488773c916cb3d6c64109536160d5eb496caddc721eb39aad2977d735',
+    sCoinType:
+      '0xea346ce428f91ab007210443efcea5f5cdbbb3aae7e9affc0ca93f9203c31f0c::scallop_cetus::SCALLOP_CETUS',
     coinDecimalId:
       '0x4c0dce55eff2db5419bbd2d239d1aa22b4a400c01bbb648b058a9883989025da',
+    coinType:
+      '06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS',
+  },
+  wsol: {
+    lendingPoolAddress:
+      '0x985682c42984cdfb03f9ff7d8923344c2fe096b1ae4b82ea17721af19d22a21f',
+    collateralPoolAddress:
+      '0xdc1cc2c371a043ae8e3c3fe2d013c35f1346960b7dbb4c072982c5b794ed144f',
+    borrowDynamic:
+      '0xe3f301e16d4f1273ea659dd82c5c3f124ca5a5883a5726c7ec0f77bf43b70895',
+    interestModel:
+      '0xd95affaee077006b8dbb4b108c1b087e95fc6e5143ef0682da345d5b35bc6356',
+    riskModel:
+      '0x8e0da6358073144ec3557400c87f04991ba3a13ca7e0d0a19daed45260b32f16',
+    borrowFeeKey:
+      '0x604bffbc817e8e12db15f2373a9e15b2c7adbc510649cdf2cc62a594af90671c',
+    supplyLimitKey:
+      '0xbd419b536b3f9c9d4adfc20372ca6feedc53cc31798ac860dbfc847bcf05f54b',
+    borrowLimitKey:
+      '0x77d453c51948f32564c810bc73f9ba7abde880657b7f89e1c8a3bc28fa36ee87',
+    isolatedAssetKey: undefined,
+    spool: undefined,
+    spoolReward: undefined,
+    sCoinTreasury:
+      '0x760fd66f5be869af4382fa32b812b3c67f0eca1bb1ed7a5578b21d56e1848819',
+    sCoinType:
+      '0x1392650f2eca9e3f6ffae3ff89e42a3590d7102b80e2b430f674730bc30d3259::scallop_wormhole_sol::SCALLOP_WORMHOLE_SOL',
+    coinDecimalId:
+      '0x4d2c39082b4477e3e79dc4562d939147ab90c42fc5f3e4acf03b94383cd69b6e',
+    coinType:
+      'b7844e289a8410e50fb3ca48d69eb9cf29e27d223ef90353fe1bd8e27ff8f3f8::coin::COIN',
   },
   afsui: {
     lendingPoolAddress:
@@ -297,8 +337,12 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0x89255a2f86ed7fbfef35ab8b7be48cc7667015975be2685dd9a55a9a64baf76e',
     sCoinTreasury:
       '0x55f4dfe9e40bc4cc11c70fcb1f3daefa2bdc330567c58d4f0792fbd9f9175a62',
+    sCoinType:
+      '0x00671b1fa2a124f5be8bdae8b91ee711462c5d9e31bda232e70fd9607b523c88::scallop_af_sui::SCALLOP_AF_SUI',
     coinDecimalId:
       '0x2f9217f533e51334873a39b8026a4aa6919497b47f49d0986a4f1aec66f8a34d',
+    coinType:
+      'f325ce1300e8dac124071d3152c5c5ee6174914f8bc2161e88329cf579246efc::afsui::AFSUI',
   },
   hasui: {
     lendingPoolAddress:
@@ -323,8 +367,12 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0x6f3563644d3e2ef13176dbf9d865bd93479df60ccbe07b7e66db57f6309f5a66',
     sCoinTreasury:
       '0x404ccc1404d74a90eb6f9c9d4b6cda6d417fb03189f80d9070a35e5dab1df0f5',
+    sCoinType:
+      '0x9a2376943f7d22f88087c259c5889925f332ca4347e669dc37d54c2bf651af3c::scallop_ha_sui::SCALLOP_HA_SUI',
     coinDecimalId:
       '0x2c5f33af93f6511df699aaaa5822d823aac6ed99d4a0de2a4a50b3afa0172e24',
+    coinType:
+      'bde4ba4c2e274a60ce15c1cfff9e5c42e41654ac8b6d906a57efa4bd3c29f47d::hasui::HASUI',
   },
   vsui: {
     lendingPoolAddress:
@@ -349,8 +397,12 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0xbca914adce058ad0902c7f3cfcd698392a475f00dcfdc3f76001d0370b98777a',
     sCoinTreasury:
       '0xc06688ee1af25abc286ffb1d18ce273d1d5907cd1064c25f4e8ca61ea989c1d1',
+    sCoinType:
+      '0xe1a1cc6bcf0001a015eab84bcc6713393ce20535f55b8b6f35c142e057a25fbe::scallop_v_sui::SCALLOP_V_SUI',
     coinDecimalId:
       '0xabd84a23467b33854ab25cf862006fd97479f8f6f53e50fe732c43a274d939bd',
+    coinType:
+      '549e8b69270defbfafd4f94e17ec44cdbdd99820b33bda2278dea3b9a32d3f55::cert::CERT',
   },
   sca: {
     lendingPoolAddress:
@@ -374,8 +426,12 @@ export const POOL_ADDRESSES: OptionalKeys<
     spoolReward: undefined,
     sCoinTreasury:
       '0xe04bfc95e00252bd654ee13c08edef9ac5e4b6ae4074e8390db39e9a0109c529',
+    sCoinType:
+      '0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::SCALLOP_SCA',
     coinDecimalId:
       '0x5d26a1e9a55c88147ac870bfa31b729d7f49f8804b8b3adfdf3582d301cca844',
+    coinType:
+      '7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6::sca::SCA',
   },
   fud: {
     lendingPoolAddress:
@@ -398,8 +454,12 @@ export const POOL_ADDRESSES: OptionalKeys<
     spoolReward: undefined,
     sCoinTreasury:
       '0xf25212f11d182decff7a86165699a73e3d5787aced203ca539f43cfbc10db867',
+    sCoinType:
+      '0xe56d5167f427cbe597da9e8150ef5c337839aaf46891d62468dcf80bdd8e10d1::scallop_fud::SCALLOP_FUD',
     coinDecimalId:
       '0x01087411ef48aaac1eb6e24803213e3a60a03b147dac930e5e341f17a85e524e',
+    coinType:
+      '76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1::fud::FUD',
   },
   deep: {
     lendingPoolAddress:
@@ -422,8 +482,12 @@ export const POOL_ADDRESSES: OptionalKeys<
     spoolReward: undefined,
     sCoinTreasury:
       '0xc63838fabe37b25ad897392d89876d920f5e0c6a406bf3abcb84753d2829bc88',
+    sCoinType:
+      '0xeb7a05a3224837c5e5503575aed0be73c091d1ce5e43aa3c3e716e0ae614608f::scallop_deep::SCALLOP_DEEP',
     coinDecimalId:
       '0x6e60b051a08fa836f5a7acd7c464c8d9825bc29c44657fe170fe9b8e1e4770c0',
+    coinType:
+      'deeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP',
   },
   fdusd: {
     lendingPoolAddress:
@@ -447,7 +511,11 @@ export const POOL_ADDRESSES: OptionalKeys<
     spoolReward: undefined,
     sCoinTreasury:
       '0xdad9bc6293e694f67a5274ea51b596e0bdabfafc585ae6d7e82888e65f1a03e0',
+    sCoinType:
+      '0x6711551c1e7652a270d9fbf0eee25d99594c157cde3cb5fbb49035eb59b1b001::scallop_fdusd::SCALLOP_FDUSD',
     coinDecimalId:
       '0xdebee5265a67c186ed87fe93303d33dfe1de53e3b4fd7d9329c2852860acd3e7',
+    coinType:
+      'f16e6b723f242ec745dfd7634ad072c42d5c1d9ac9d62a39c381303eaa57693a::fdusd::FDUSD',
   },
 };
