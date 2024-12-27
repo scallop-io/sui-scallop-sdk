@@ -95,11 +95,11 @@ export const getSCoinAmount = async (
 ) => {
   const owner = ownerAddress || utils.suiKit.currentAddress();
   const sCoinType = utils.parseSCoinType(sCoinName);
-  const amount = await utils.cache.queryGetCoinBalance({
+  const coinBalance = await utils.cache.queryGetCoinBalance({
     owner,
     coinType: sCoinType,
   });
-  return BigNumber(amount).toNumber();
+  return BigNumber(coinBalance?.totalBalance ?? '0').toNumber();
 };
 
 const isSupportStakeCoins = (value: string): value is SupportSCoin => {
