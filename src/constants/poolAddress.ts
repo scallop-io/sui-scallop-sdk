@@ -47,6 +47,7 @@ export const POOL_ADDRESSES: OptionalKeys<
     coinDecimalId:
       '0x69b7a7c3c200439c1b5f3b19d7d495d5966d5f08de66c69276152f8db3992ec6',
   },
+  // @TODO: add sbusdt
   sbeth: {
     lendingPoolAddress:
       '0xaa34c938e0394e5186c7dc626ad69be96af2194b23fdc6ac1c63090e399f5ba4',
