@@ -10,6 +10,7 @@ import type {
 } from '../models';
 import { ScallopCache } from 'src/models/scallopCache';
 import { AddressesInterface } from './address';
+import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
 
 export type ScallopClientFnReturnType<T extends boolean> = T extends true
   ? SuiTransactionBlockResponse
@@ -26,7 +27,9 @@ export type ScallopBaseInstanceParams = {
   suiKit?: SuiKit;
 };
 
-export type ScallopCacheInstanceParams = ScallopBaseInstanceParams;
+export type ScallopCacheInstanceParams = ScallopBaseInstanceParams & {
+  queryClient?: QueryClient;
+};
 
 export type ScallopAddressInstanceParams = ScallopBaseInstanceParams & {
   cache?: ScallopCache;
@@ -69,7 +72,8 @@ export type ScallopParams = {
 export type ScallopClientParams = ScallopParams &
   ScallopBuilderParams &
   ScallopQueryParams &
-  ScallopUtilsParams;
+  ScallopUtilsParams &
+  ScallopCacheParams;
 
 export type ScallopBuilderParams = ScallopParams & {
   pythEndpoints?: string[];
@@ -80,4 +84,11 @@ export type ScallopQueryParams = ScallopParams & ScallopUtilsParams;
 
 export type ScallopUtilsParams = ScallopParams & {
   pythEndpoints?: string[];
+};
+
+export type ScallopCacheParams = Omit<
+  ScallopParams,
+  'addressId' | 'forceAddressesInterface'
+> & {
+  cacheOptions?: QueryClientConfig;
 };

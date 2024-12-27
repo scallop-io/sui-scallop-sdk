@@ -15,12 +15,6 @@ import type {
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
 import { QueryClientConfig } from '@tanstack/query-core';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-import { TokenBucket } from 'src/utils';
-import {
-  DEFAULT_INTERVAL_IN_MS,
-  DEFAULT_TOKENS_PER_INTERVAL,
-} from 'src/constants/tokenBucket';
 import type { QueryClient } from '@tanstack/query-core';
 import { newSuiKit } from './suiKit';
 
@@ -51,18 +45,19 @@ export class Scallop {
   public constructor(
     params: ScallopParams,
     cacheOptions?: QueryClientConfig,
-    tokenBucket?: TokenBucket,
     queryClient?: QueryClient
   ) {
     this.params = params;
     this.suiKit = newSuiKit(params);
     this.cache = new ScallopCache(
-      this.suiKit,
-      params.walletAddress,
-      cacheOptions ?? DEFAULT_CACHE_OPTIONS,
-      tokenBucket ??
-        new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS),
-      queryClient
+      {
+        ...this.params,
+        cacheOptions,
+      },
+      {
+        suiKit: this.suiKit,
+        queryClient,
+      }
     );
     this.address = new ScallopAddress(
       {
