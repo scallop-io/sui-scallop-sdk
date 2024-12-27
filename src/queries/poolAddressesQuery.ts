@@ -12,6 +12,7 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         borrowDynamic?: string;
         spoolReward?: string;
         spool?: string;
+        sCoinType?: string;
         sCoinTreasury?: string;
         interestModel?: string;
         riskModel?: string;
@@ -21,6 +22,7 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         isolatedAssetKey?: string;
         coinDecimalId?: string;
         borrowIncentivePoolId?: string;
+        coinType?: string;
       }
     >
   > = {};
@@ -115,6 +117,8 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         // @ts-ignore
         `spool.pools.s${coinName}.rewardPoolId`
       );
+      // @ts-ignore
+      const sCoinType = query.address.get(`scoin.coins.s${coinName}.coinType`);
       const sCoinTreasury = query.address.get(
         // @ts-ignore
         `scoin.coins.s${coinName}.treasury`
@@ -135,7 +139,9 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         spool,
         spoolReward: rewardPool,
         sCoinTreasury,
+        sCoinType,
         coinDecimalId,
+        coinType,
       };
 
       await new Promise((resolve) => setTimeout(resolve, 200));
