@@ -157,7 +157,7 @@ export const coinIds: types.AssetCoinIds = {
   // Sui bridge assets
   sbeth: '0xd0e89b2af5e4910726fbcd8b8dd37bb79b29e5f83f7491bca830e94f7f226d29',
   // @TODO: add sbusdt coin type
-  sbusdt: '',
+  sbusdt: '0x375f70cf2ae4c00bf37117d0c85a2c71545e6ee05c4a5c7d282cd66a4504b068',
 };
 
 export const wormholeCoinIds: types.WormholeCoinIds = {
