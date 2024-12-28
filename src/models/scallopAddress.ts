@@ -1,5 +1,5 @@
 import { API_BASE_URL, USE_TEST_ADDRESS } from '../constants';
-import { SuiKit, type NetworkType } from '@scallop-io/sui-kit';
+import { type NetworkType } from '@scallop-io/sui-kit';
 import type {
   ScallopAddressParams,
   AddressesInterface,
@@ -7,7 +7,6 @@ import type {
   ScallopAddressInstanceParams,
 } from '../types';
 import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import axios, { AxiosInstance } from 'axios';
 import { TEST_ADDRESSES } from 'src/constants/testAddress';
 import { queryKeys } from 'src/constants';
@@ -379,13 +378,7 @@ export class ScallopAddress {
     instance?: ScallopAddressInstanceParams
   ) {
     const { id, auth, network, forceInterface } = params;
-    this.cache =
-      instance?.cache ??
-      new ScallopCache(
-        instance?.suiKit ?? new SuiKit({}),
-        undefined,
-        DEFAULT_CACHE_OPTIONS
-      );
+    this.cache = instance?.cache ?? new ScallopCache({});
 
     this._requestClient = axios.create({
       baseURL: API_BASE_URL,
