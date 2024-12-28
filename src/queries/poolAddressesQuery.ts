@@ -141,7 +141,7 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         sCoinTreasury,
         sCoinType,
         coinDecimalId,
-        coinType,
+        coinType: `0x${coinType}`,
       };
 
       await new Promise((resolve) => setTimeout(resolve, 200));
