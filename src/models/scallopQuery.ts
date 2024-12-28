@@ -42,6 +42,7 @@ import {
   getAllCoinPrices,
   getAllAddresses,
   isIsolatedAsset,
+  getUserPortfolio,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -58,6 +59,7 @@ import {
   MarketPool,
   CoinPrices,
   MarketPools,
+  MarketCollaterals,
 } from '../types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -575,9 +577,15 @@ export class ScallopQuery {
   public async getLendings(
     poolCoinNames?: SupportPoolCoins[],
     ownerAddress: string = this.walletAddress,
-    args?: { indexer?: boolean }
+    args?: { indexer?: boolean; marketPools?: MarketPools }
   ) {
-    return await getLendings(this, poolCoinNames, ownerAddress, args?.indexer);
+    return await getLendings(
+      this,
+      poolCoinNames,
+      ownerAddress,
+      args?.marketPools,
+      args?.indexer
+    );
   }
 
   /**
@@ -608,9 +616,20 @@ export class ScallopQuery {
    */
   public async getObligationAccounts(
     ownerAddress: string = this.walletAddress,
-    args?: { indexer?: boolean }
+    args?: {
+      indexer?: boolean;
+      market?: {
+        collaterals: MarketCollaterals;
+        pools: MarketPools;
+      };
+    }
   ) {
-    return await getObligationAccounts(this, ownerAddress, args?.indexer);
+    return await getObligationAccounts(
+      this,
+      ownerAddress,
+      args?.market,
+      args?.indexer
+    );
   }
 
   /**
@@ -842,5 +861,19 @@ export class ScallopQuery {
    */
   public async getPoolAddresses() {
     return getAllAddresses(this);
+  }
+
+  /**
+   * Get user portfolio
+   */
+  public async getUserPortfolio(args?: {
+    walletAddress?: string;
+    indexer?: boolean;
+  }) {
+    return getUserPortfolio(
+      this,
+      args?.walletAddress ?? this.walletAddress,
+      args?.indexer ?? false
+    );
   }
 }
