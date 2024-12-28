@@ -1,10 +1,5 @@
 import { SuiKit, SuiObjectArg } from '@scallop-io/sui-kit';
-import {
-  ADDRESSES_ID,
-  SUPPORT_POOLS,
-  SUPPORT_SPOOLS,
-  DEFAULT_CACHE_OPTIONS,
-} from '../constants';
+import { ADDRESSES_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
 import {
   queryMarket,
   getObligations,
@@ -112,11 +107,9 @@ export class ScallopQuery {
       this.address = instance.utils.address;
       this.cache = this.address.cache;
     } else {
-      this.cache = new ScallopCache(
-        this.suiKit,
-        this.walletAddress,
-        DEFAULT_CACHE_OPTIONS
-      );
+      this.cache = new ScallopCache(this.params, {
+        suiKit: this.suiKit,
+      });
       this.address = new ScallopAddress(
         {
           id: params?.addressesId ?? ADDRESSES_ID,
@@ -844,7 +837,7 @@ export class ScallopQuery {
   }
 
   /**
-   * Query all address (lending pool, collateral pool, borrow dynamics, interest models) of all pool
+   * Query all address (lending pool, collateral pool, borrow dynamics, interest models, etc.) of all pool
    * @returns
    */
   public async getPoolAddresses() {

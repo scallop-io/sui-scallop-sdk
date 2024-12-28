@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
+import { QueryClient } from '@tanstack/query-core';
 import {
   SuiObjectArg,
   SuiTxBlock,
@@ -19,18 +19,18 @@ import type {
   SuiClient,
 } from '@mysten/sui/client';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-import { callWithRateLimit, TokenBucket } from 'src/utils';
-import {
-  DEFAULT_INTERVAL_IN_MS,
-  DEFAULT_TOKENS_PER_INTERVAL,
-} from 'src/constants/tokenBucket';
 import { queryKeys } from 'src/constants';
+import { ScallopCacheInstanceParams, ScallopCacheParams } from 'src/types';
+import { newSuiKit } from './suiKit';
 
 type QueryInspectTxnParams = {
   queryTarget: string;
   args: SuiObjectArg[];
   typeArgs?: any[];
 };
+
+const DEFAULT_TOKENS_PER_INTERVAL = 10;
+const DEFAULT_INTERVAL_IN_MS = 250;
 
 /**
  * @description
@@ -46,20 +46,26 @@ type QueryInspectTxnParams = {
  */
 
 export class ScallopCache {
-  public readonly queryClient: QueryClient;
-  public readonly _suiKit: SuiKit;
-  private tokenBucket: TokenBucket;
+  public readonly params: ScallopCacheParams;
+
+  public queryClient: QueryClient;
+  public suiKit: SuiKit;
+  // private tokenBucket: TokenBucket;
   public walletAddress: string;
+  private tokensPerInterval: number = DEFAULT_TOKENS_PER_INTERVAL;
+  private interval: number = DEFAULT_INTERVAL_IN_MS;
+  private tokens: number;
+  private lastRefill: number;
 
   public constructor(
-    suiKit: SuiKit,
-    walletAddress?: string,
-    cacheOptions?: QueryClientConfig,
-    tokenBucket?: TokenBucket,
-    queryClient?: QueryClient
+    params: ScallopCacheParams,
+    instance?: ScallopCacheInstanceParams
   ) {
+    this.params = params;
+    this.suiKit = instance?.suiKit ?? newSuiKit(params);
     this.queryClient =
-      queryClient ?? new QueryClient(cacheOptions ?? DEFAULT_CACHE_OPTIONS);
+      instance?.queryClient ??
+      new QueryClient(params?.cacheOptions ?? DEFAULT_CACHE_OPTIONS);
 
     // handle case where there's existing queryClient and cacheOptions is also passed
     // if (queryClient && cacheOptions) {
@@ -71,22 +77,62 @@ export class ScallopCache {
     //   // if(cacheOptions.mutations)this.queryClient.setMutationDefaults(cacheOptions.mutations);
     // }
 
-    this._suiKit = suiKit;
-    this.tokenBucket =
-      tokenBucket ??
-      new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS);
-    this.walletAddress = walletAddress ?? suiKit.currentAddress();
-  }
-
-  private get suiKit(): SuiKit {
-    if (!this._suiKit) {
-      throw new Error('SuiKit instance is not initialized');
-    }
-    return this._suiKit;
+    this.tokens = this.tokensPerInterval;
+    this.lastRefill = Date.now();
+    this.walletAddress = params.walletAddress ?? this.suiKit.currentAddress();
   }
 
   private get client(): SuiClient {
     return this.suiKit.client();
+  }
+
+  private refill() {
+    const now = Date.now();
+    const elapsed = now - this.lastRefill;
+
+    if (elapsed >= this.interval) {
+      const tokensToAdd =
+        Math.floor(elapsed / this.interval) * this.tokensPerInterval;
+      this.tokens = Math.min(this.tokens + tokensToAdd, this.tokensPerInterval);
+
+      // Update lastRefill to reflect the exact time of the last "refill"
+      this.lastRefill += Math.floor(elapsed / this.interval) * this.interval;
+    }
+  }
+
+  private removeTokens(count: number) {
+    this.refill();
+    if (this.tokens >= count) {
+      this.tokens -= count;
+      return true;
+    }
+    return false;
+  }
+
+  private async callWithRateLimit<T>(
+    fn: () => Promise<T>,
+    maxRetries = 15,
+    backoffFactor = 1.25 // The factor by which to increase the delay
+  ): Promise<T | null> {
+    let retries = 0;
+
+    const tryRequest = async (): Promise<T | null> => {
+      if (this.removeTokens(1)) {
+        const result = await fn();
+        return result;
+      } else if (retries < maxRetries) {
+        retries++;
+        const delay = this.interval * Math.pow(backoffFactor, retries);
+        // console.error(`Rate limit exceeded, retrying in ${delay} ms`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return tryRequest();
+      } else {
+        console.error('Maximum retries reached');
+        return null;
+      }
+    };
+
+    return tryRequest();
   }
 
   /**
@@ -168,8 +214,7 @@ export class ScallopCache {
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getInspectTxn(queryTarget, args, typeArgs),
       queryFn: async () => {
-        return await callWithRateLimit(
-          this.tokenBucket,
+        return await this.callWithRateLimit(
           async () => await this.suiKit.inspectTxn(txBlock)
         );
       },
@@ -182,8 +227,7 @@ export class ScallopCache {
     return this.queryClient.fetchQuery({
       queryKey: queryKeys.rpc.getNormalizedMoveFunction(target),
       queryFn: async () => {
-        return await callWithRateLimit(
-          this.tokenBucket,
+        return await this.callWithRateLimit(
           async () =>
             await this.suiKit.client().getNormalizedMoveFunction({
               package: address,
@@ -215,8 +259,7 @@ export class ScallopCache {
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getObject(objectId, options),
       queryFn: async () => {
-        return await callWithRateLimit(
-          this.tokenBucket,
+        return await this.callWithRateLimit(
           async () =>
             await this.client.getObject({
               id: objectId,
@@ -250,8 +293,7 @@ export class ScallopCache {
         options
       ),
       queryFn: async () => {
-        const results = await callWithRateLimit(
-          this.tokenBucket,
+        const results = await this.callWithRateLimit(
           async () => await this.suiKit.getObjects(objectIds, options)
         );
         if (results) {
@@ -288,8 +330,7 @@ export class ScallopCache {
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getOwnedObjects(input),
       queryFn: async () => {
-        const results = await callWithRateLimit(
-          this.tokenBucket,
+        const results = await this.callWithRateLimit(
           async () => await this.client.getOwnedObjects(input)
         );
         if (results && results.data.length > 0) {
@@ -332,8 +373,7 @@ export class ScallopCache {
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getDynamicFields(input),
       queryFn: async () => {
-        return await callWithRateLimit(
-          this.tokenBucket,
+        return await this.callWithRateLimit(
           async () => await this.client.getDynamicFields(input)
         );
       },
@@ -348,7 +388,7 @@ export class ScallopCache {
       retryDelay: (attemptIndex) => Math.min(1000 * attemptIndex, 8000),
       queryKey: queryKeys.rpc.getDynamicFieldObject(input),
       queryFn: async () => {
-        const result = await callWithRateLimit(this.tokenBucket, () =>
+        const result = await this.callWithRateLimit(() =>
           this.client.getDynamicFieldObject(input)
         );
         if (result?.data) {
@@ -382,8 +422,7 @@ export class ScallopCache {
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getAllCoinBalances(owner),
       queryFn: async () => {
-        const allBalances = await callWithRateLimit(
-          this.tokenBucket,
+        const allBalances = await this.callWithRateLimit(
           async () => await this.client.getAllBalances({ owner })
         );
         if (!allBalances) return {};

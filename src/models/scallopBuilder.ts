@@ -24,7 +24,6 @@ import type {
   SelectCoinReturnType,
 } from '../types';
 import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { newSuiKit } from './suiKit';
 
 /**
@@ -66,11 +65,9 @@ export class ScallopBuilder {
       this.address = this.utils.address;
       this.cache = this.address.cache;
     } else {
-      this.cache = new ScallopCache(
-        this.suiKit,
-        this.walletAddress,
-        DEFAULT_CACHE_OPTIONS
-      );
+      this.cache = new ScallopCache(this.params, {
+        suiKit: this.suiKit,
+      });
       this.address = new ScallopAddress(
         {
           id: params?.addressesId ?? ADDRESSES_ID,
