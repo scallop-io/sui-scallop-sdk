@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-scallop-sdk",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "Typescript sdk for interacting with Scallop contract on SUI",
   "keywords": [
     "sui",
