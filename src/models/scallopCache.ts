@@ -17,6 +17,7 @@ import type {
   GetDynamicFieldObjectParams,
   GetBalanceParams,
   SuiClient,
+  CoinBalance,
 } from '@mysten/sui/client';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import { queryKeys } from 'src/constants';
@@ -416,7 +417,7 @@ export class ScallopCache {
 
   public async queryGetAllCoinBalances(
     owner: string
-  ): Promise<{ [k: string]: string }> {
+  ): Promise<{ [k: string]: CoinBalance }> {
     return this.queryClient.fetchQuery({
       retry: this.retryFn,
       retryDelay: 1000,
@@ -429,12 +430,11 @@ export class ScallopCache {
         const balances = allBalances.reduce(
           (acc, coinBalance) => {
             if (coinBalance.totalBalance !== '0') {
-              acc[normalizeStructTag(coinBalance.coinType)] =
-                coinBalance.totalBalance;
+              acc[normalizeStructTag(coinBalance.coinType)] = coinBalance;
             }
             return acc;
           },
-          {} as { [k: string]: string }
+          {} as { [k: string]: CoinBalance }
         );
 
         return balances;
@@ -442,8 +442,10 @@ export class ScallopCache {
     });
   }
 
-  public async queryGetCoinBalance(input: GetBalanceParams): Promise<string> {
-    if (!input.coinType) return '0';
+  public async queryGetCoinBalance(
+    input: GetBalanceParams
+  ): Promise<CoinBalance | null> {
+    if (!input.coinType) return null;
 
     return (
       ((await this.queryGetAllCoinBalances(input.owner)) ?? {})[
