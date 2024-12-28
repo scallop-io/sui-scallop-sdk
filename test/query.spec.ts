@@ -574,3 +574,16 @@ describe('Test Get Flashloan Fees', async () => {
     expect(Object.keys(flashloanFees).length).toBeGreaterThan(0);
   });
 });
+
+describe('Test Get User Portfolio', async () => {
+  it('Should get user lendings and borrowings position', async () => {
+    const scallopQuery = await getScallopQuery();
+    const portfolio = await scallopQuery.getUserPortfolio();
+    if (ENABLE_LOG) {
+      console.info('User portfolio:', portfolio);
+    }
+
+    expect(!!portfolio).toBe(true);
+    expect(portfolio.lendings.totalSupplyValue > 0).toBe(true);
+  });
+});

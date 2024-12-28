@@ -17,7 +17,9 @@ export async function callMethodWithIndexerFallback(
     try {
       return await method.apply(context, args);
     } catch (e: any) {
-      console.warn(`Indexer requests failed: ${e}. Retrying without indexer..`);
+      console.warn(
+        `Indexer requests failed: ${e.message}. Retrying without indexer..`
+      );
       return await method.apply(context, [
         ...args.slice(0, -1),
         {
