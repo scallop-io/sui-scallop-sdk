@@ -577,13 +577,18 @@ export class ScallopQuery {
   public async getLendings(
     poolCoinNames?: SupportPoolCoins[],
     ownerAddress: string = this.walletAddress,
-    args?: { indexer?: boolean; marketPools?: MarketPools }
+    args?: {
+      indexer?: boolean;
+      marketPools?: MarketPools;
+      coinPrices?: CoinPrices;
+    }
   ) {
     return await getLendings(
       this,
       poolCoinNames,
       ownerAddress,
       args?.marketPools,
+      args?.coinPrices,
       args?.indexer
     );
   }
@@ -622,12 +627,14 @@ export class ScallopQuery {
         collaterals: MarketCollaterals;
         pools: MarketPools;
       };
+      coinPrices?: CoinPrices;
     }
   ) {
     return await getObligationAccounts(
       this,
       ownerAddress,
       args?.market,
+      args?.coinPrices,
       args?.indexer
     );
   }

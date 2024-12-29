@@ -47,6 +47,7 @@ export const getLendings = async (
   poolCoinNames: SupportPoolCoins[] = [...SUPPORT_POOLS],
   ownerAddress?: string,
   marketPools?: MarketPools,
+  coinPrices?: CoinPrices,
   indexer: boolean = false
 ) => {
   const marketCoinNames = poolCoinNames.map((poolCoinName) =>
@@ -56,7 +57,7 @@ export const getLendings = async (
     (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName)
   ) as SupportStakeMarketCoins[];
 
-  const coinPrices = await query.utils.getCoinPrices();
+  coinPrices = coinPrices ?? (await query.utils.getCoinPrices());
   marketPools =
     marketPools ??
     (
@@ -321,12 +322,15 @@ export const getObligationAccounts = async (
     pools: MarketPools;
     collaterals: MarketCollaterals;
   },
+  coinPrices?: CoinPrices,
   indexer: boolean = false
 ) => {
   market = market ?? (await query.getMarketPools(undefined, { indexer }));
-  const coinPrices = await query.getAllCoinPrices({
-    marketPools: market.pools,
-  });
+  coinPrices =
+    coinPrices ??
+    (await query.getAllCoinPrices({
+      marketPools: market.pools,
+    }));
   const [coinAmounts, obligations] = await Promise.all([
     query.getCoinAmounts(undefined, ownerAddress),
     query.getObligations(ownerAddress),
@@ -856,20 +860,26 @@ export const getUserPortfolio = async (
   walletAddress: string,
   indexer: boolean = false
 ) => {
-  const market = await query.getMarketPools();
-  const [lendings, obligationAccounts, borrowIncentivePools] =
+  const coinPrices = await query.utils.getCoinPrices();
+  const market = await query.getMarketPools(undefined, { indexer, coinPrices });
+
+  const [lendings, obligationAccounts, borrowIncentivePools, veScas] =
     await Promise.all([
       query.getLendings(undefined, walletAddress, {
         indexer,
         marketPools: market.pools,
+        coinPrices,
       }),
       query.getObligationAccounts(walletAddress, {
         indexer,
         market: market,
+        coinPrices,
       }),
       query.getBorrowIncentivePools(undefined, {
         marketPools: market.pools,
+        coinPrices,
       }),
+      query.getVeScas({ walletAddress, excludeEmpty: true }),
     ]);
 
   // get pending rewards (spool and borrow incentive)
@@ -988,31 +998,45 @@ export const getUserPortfolio = async (
         }
       >
     );
+
+  const parsedVeScas = veScas.map(
+    ({ keyId, lockedScaCoin, currentVeScaBalance, unlockAt }) => ({
+      veScaKey: keyId,
+      coinPrice: coinPrices.sca ?? 0,
+      lockedScaInCoin: lockedScaCoin,
+      lockedScaInUsd: lockedScaCoin * (coinPrices.sca ?? 0),
+      currentVeScaBalance,
+      remainingLockPeriodInDays:
+        unlockAt - Date.now() > 0 ? (unlockAt - Date.now()) / 86400000 : 0,
+      unlockAt,
+    })
+  );
+
   return {
-    lendings: {
-      totalSupplyValue: parsedLendings.reduce((acc, curr) => {
-        acc += curr.suppliedValue;
+    totalSupplyValue: parsedLendings.reduce((acc, curr) => {
+      acc += curr.suppliedValue;
+      return acc;
+    }, 0),
+    ...parsedObligationAccounts.reduce(
+      (acc, curr) => {
+        acc.totalDebtValue += curr.totalDebtsInUsd;
+        acc.totalCollateralValue += curr.totalCollateralInUsd;
         return acc;
-      }, 0),
-      suppliedPools: parsedLendings,
-    },
-    borrowings: {
-      ...parsedObligationAccounts.reduce(
-        (acc, curr) => {
-          acc.totalDebtValue += curr.totalDebtsInUsd;
-          acc.totalCollateralValue += curr.totalCollateralInUsd;
-          return acc;
-        },
-        {
-          totalDebtValue: 0,
-          totalCollateralValue: 0,
-        } as {
-          totalDebtValue: number;
-          totalCollateralValue: number;
-        }
-      ),
-      obligations: parsedObligationAccounts,
-    },
+      },
+      {
+        totalDebtValue: 0,
+        totalCollateralValue: 0,
+      } as {
+        totalDebtValue: number;
+        totalCollateralValue: number;
+      }
+    ),
+    totalLockedScaValue: parsedVeScas.reduce((acc, curr) => {
+      acc += curr.lockedScaInUsd;
+      return acc;
+    }, 0),
+    lendings: parsedLendings,
+    borrowings: parsedObligationAccounts,
     pendingRewards: {
       lendings: Object.entries(pendingLendingRewards).reduce(
         (acc, [key, value]) => {
@@ -1037,5 +1061,6 @@ export const getUserPortfolio = async (
         [] as any
       ),
     },
+    veScas: parsedVeScas,
   };
 };

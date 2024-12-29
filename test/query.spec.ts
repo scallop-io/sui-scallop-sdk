@@ -584,6 +584,6 @@ describe('Test Get User Portfolio', async () => {
     }
 
     expect(!!portfolio).toBe(true);
-    expect(portfolio.lendings.totalSupplyValue > 0).toBe(true);
+    expect(portfolio.totalSupplyValue > 0).toBe(true);
   });
 });
