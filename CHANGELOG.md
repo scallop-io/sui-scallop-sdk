@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.8](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.7...v1.4.8) (2024-12-29)
+
+### Features
+
+- Adjust `getUserPortfolio` return structure ([1ad951da](https://github.com/scallop-io/sui-scallop-sdk/pull/226/commits/1ad951dafd4033e89b9cfd6bc49f039e191d6b5c))
+
 ### [1.4.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.6...v1.4.7) (2024-12-28)
 
 ### Features
