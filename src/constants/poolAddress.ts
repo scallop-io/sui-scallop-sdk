@@ -52,8 +52,26 @@ export const POOL_ADDRESSES: OptionalKeys<
     coinType:
       'dba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC',
   },
-  // @TODO: add missing attributes for sbusdt
   sbusdt: {
+    lendingPoolAddress:
+      '0x958ca02058a7dd8b00e26ed6988f45d7c2834ae2a47ee4c4a8fdedea155f18ca',
+    collateralPoolAddress:
+      '0x63c861f97192ceab2dabb1e74649ae87a9e36c33aaedcc43e40a811d3a39e653',
+    borrowDynamic:
+      '0xf1ef9a19881ed6ddeb88f361c83f37c592ec5b9c64fe715383f63ccc094be205',
+    interestModel:
+      '0x62c46e4667c4fa69a29030ecbc0f661c61365d02adc3810b08b11cfd8f42ca1c',
+    riskModel:
+      '0x59d5f3dbcd14a0aab6ee6e2879803e10b0a752119d19c4ac0bd389d71dc8c2bf',
+    borrowFeeKey:
+      '0xa418990ad042e97cca61830476483933b9e026970fc33451072b2627ccb31da2',
+    supplyLimitKey:
+      '0x93641bfb62ea40760f0c15911b4ec0eb866f8725e36b0ca9a786775d93629139',
+    borrowLimitKey:
+      '0x953a9b8d5353abb38db21a2cbbc5c54f8f23348895acb26cbe2c0ab61b54635d',
+    isolatedAssetKey: undefined,
+    spool: undefined,
+    spoolReward: undefined,
     sCoinTreasury:
       '0x58bdf6a9752e3a60144d0b70e8608d630dfd971513e2b2bfa7282f5eaa7d04d8',
     sCoinType:
