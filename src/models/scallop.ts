@@ -163,6 +163,7 @@ export class Scallop {
       },
       {
         address: this.address,
+        suiKit: this.suiKit,
       }
     );
 
