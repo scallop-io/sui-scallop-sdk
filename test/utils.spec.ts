@@ -135,15 +135,31 @@ describe('Test Scallop Utils', async () => {
     expect(vsuiMarketCoinType).toEqual(vsuiAssertMarketCoinType);
   });
 
+  it('Should parse to scoin type from coin name', () => {
+    SUPPORT_SCOIN.forEach((t) => {
+      const scoinType = scallopUtils.parseSCoinType(t);
+
+      expect(scoinType).toBe(address.get(`scoin.coins.${t}.coinType`));
+    });
+  });
+
   it('Should parse to coin name from coin type', () => {
     const coinTypes = SUPPORT_POOLS.map((t) => scallopUtils.parseCoinType(t));
+    const sCoinTypes = SUPPORT_SCOIN.map((t) => scallopUtils.parseSCoinType(t));
+
     if (ENABLE_LOG) {
       console.info('Coin types:', coinTypes);
+      console.info('Scoin types:', sCoinTypes);
     }
     coinTypes.forEach((t, idx) => {
       const coinName = scallopUtils.parseCoinNameFromType(t);
       expect(coinName).toBeDefined();
       expect(coinName).toBe(SUPPORT_POOLS[idx]);
+    });
+    sCoinTypes.forEach((t, idx) => {
+      const coinName = scallopUtils.parseCoinNameFromType(t);
+      expect(coinName).toBeDefined();
+      expect(coinName).toBe(SUPPORT_SCOIN[idx]);
     });
   });
 
