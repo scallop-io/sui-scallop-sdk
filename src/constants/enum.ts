@@ -156,7 +156,6 @@ export const coinIds: types.AssetCoinIds = {
   fud: '0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1',
   // Sui bridge assets
   sbeth: '0xd0e89b2af5e4910726fbcd8b8dd37bb79b29e5f83f7491bca830e94f7f226d29',
-  // @TODO: add sbusdt coin type
   sbusdt: '0x375f70cf2ae4c00bf37117d0c85a2c71545e6ee05c4a5c7d282cd66a4504b068',
 };
 
@@ -209,8 +208,8 @@ export const sCoinIds: types.SCoinIds = {
   // Sui bridge assets
   ssbeth:
     '0xb14f82d8506d139eacef109688d1b71e7236bcce9b2c0ad526abcd6aa5be7de0::scallop_sb_eth::SCALLOP_SB_ETH',
-  // @TODO: add sCoin type for ssbusdt
-  ssbusdt: '',
+  ssbusdt:
+    '0xb1d7df34829d1513b73ba17cb7ad90c88d1e104bb65ab8f62f13e0cc103783d3::scallop_sb_usdt::SCALLOP_SB_USDT',
 } as const;
 
 export const sCoinTypeToName = Object.entries(sCoinIds).reduce(
