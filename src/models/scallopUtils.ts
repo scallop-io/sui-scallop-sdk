@@ -33,7 +33,6 @@ import {
 } from '../utils';
 import { PYTH_ENDPOINTS, PYTH_FEED_IDS } from 'src/constants/pyth';
 import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 import type {
   ScallopUtilsParams,
   SupportCoins,
@@ -81,21 +80,18 @@ export class ScallopUtils {
       pythEndpoints: params.pythEndpoints ?? PYTH_ENDPOINTS['mainnet'],
       ...params,
     };
+    this.walletAddress =
+      params.walletAddress ?? instance?.suiKit?.currentAddress() ?? '';
     this.suiKit =
-      instance?.suiKit ?? instance?.address?.cache._suiKit ?? newSuiKit(params);
-
-    this.walletAddress = params.walletAddress ?? this.suiKit.currentAddress();
+      instance?.suiKit ?? instance?.address?.cache.suiKit ?? newSuiKit(params);
 
     if (instance?.address) {
       this.address = instance.address;
       this.cache = this.address.cache;
-      this.suiKit = this.address.cache._suiKit;
     } else {
-      this.cache = new ScallopCache(
-        this.suiKit,
-        this.walletAddress,
-        DEFAULT_CACHE_OPTIONS
-      );
+      this.cache = new ScallopCache(this.params, {
+        suiKit: this.suiKit,
+      });
       this.address =
         instance?.address ??
         new ScallopAddress(
@@ -450,7 +446,7 @@ export class ScallopUtils {
     coinType: string = SUI_TYPE_ARG,
     ownerAddress?: string
   ) {
-    ownerAddress = ownerAddress ?? this.suiKit.currentAddress();
+    ownerAddress = ownerAddress ?? this.walletAddress;
     const coins = await this.suiKit.suiInteractor.selectCoins(
       ownerAddress,
       amount,

@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.8](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.7...v1.4.8) (2024-12-29)
+
+### Features
+
+- Adjust `getUserPortfolio` return structure ([1ad951da](https://github.com/scallop-io/sui-scallop-sdk/pull/226/commits/1ad951dafd4033e89b9cfd6bc49f039e191d6b5c))
+
+### [1.4.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.6...v1.4.7) (2024-12-28)
+
+### Features
+
+- Add `getUserPortfolio` into `scallopQuery` ([ce63c7a](https://github.com/scallop-io/sui-scallop-sdk/pull/226/commits/ce63c7a967d46e296ac74b74ea5fbf750434cf64))
+- Merge `tokenBucket` functionality into `scallopCache` ([85d8ef6](https://github.com/scallop-io/sui-scallop-sdk/pull/226/commits/85d8ef653368fc70d022c0c35ff41906f7f7de47))
+
 ### [1.4.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.5...v1.4.6) (2024-12-25)
 
 ### Bugfixes

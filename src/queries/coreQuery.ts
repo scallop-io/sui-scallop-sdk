@@ -1079,11 +1079,11 @@ export const getCoinAmount = async (
 ) => {
   const owner = ownerAddress ?? query.suiKit.currentAddress();
   const coinType = query.utils.parseCoinType(assetCoinName);
-  const amount = await query.cache.queryGetCoinBalance({
+  const coinBalance = await query.cache.queryGetCoinBalance({
     owner,
     coinType: coinType,
   });
-  return BigNumber(amount).toNumber();
+  return BigNumber(coinBalance?.totalBalance ?? '0').toNumber();
 };
 
 /**
@@ -1136,11 +1136,11 @@ export const getMarketCoinAmount = async (
 ) => {
   const owner = ownerAddress ?? query.suiKit.currentAddress();
   const marketCoinType = query.utils.parseMarketCoinType(marketCoinName);
-  const amount = await query.cache.queryGetCoinBalance({
+  const coinBalance = await query.cache.queryGetCoinBalance({
     owner,
     coinType: marketCoinType,
   });
-  return BigNumber(amount).toNumber();
+  return BigNumber(coinBalance?.totalBalance ?? '0').toNumber();
 };
 
 /**

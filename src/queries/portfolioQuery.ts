@@ -26,9 +26,12 @@ import type {
   ObligationBorrowIcentiveReward,
   SupportBorrowIncentiveRewardCoins,
   SupportAssetCoins,
+  MarketPools,
+  MarketCollaterals,
 } from '../types';
 import { SuiObjectRef } from '@mysten/sui/client';
 import { queryMultipleObjects } from './objectsQuery';
+import { normalizeStructTag, SUI_TYPE_ARG } from '@scallop-io/sui-kit';
 
 /**
  * Get user lending infomation for specific pools.
@@ -43,6 +46,8 @@ export const getLendings = async (
   query: ScallopQuery,
   poolCoinNames: SupportPoolCoins[] = [...SUPPORT_POOLS],
   ownerAddress?: string,
+  marketPools?: MarketPools,
+  coinPrices?: CoinPrices,
   indexer: boolean = false
 ) => {
   const marketCoinNames = poolCoinNames.map((poolCoinName) =>
@@ -52,13 +57,15 @@ export const getLendings = async (
     (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName)
   ) as SupportStakeMarketCoins[];
 
-  const coinPrices = await query.utils.getCoinPrices();
-  const marketPools = (
-    await query.getMarketPools(poolCoinNames, {
-      indexer,
-      coinPrices,
-    })
-  ).pools;
+  coinPrices = coinPrices ?? (await query.utils.getCoinPrices());
+  marketPools =
+    marketPools ??
+    (
+      await query.getMarketPools(poolCoinNames, {
+        indexer,
+        coinPrices,
+      })
+    ).pools;
 
   const spools = await query.getSpools(stakeMarketCoinNames, {
     indexer,
@@ -311,12 +318,19 @@ export const getLending = async (
 export const getObligationAccounts = async (
   query: ScallopQuery,
   ownerAddress?: string,
+  market?: {
+    pools: MarketPools;
+    collaterals: MarketCollaterals;
+  },
+  coinPrices?: CoinPrices,
   indexer: boolean = false
 ) => {
-  const market = await query.getMarketPools(undefined, { indexer });
-  const coinPrices = await query.getAllCoinPrices({
-    marketPools: market.pools,
-  });
+  market = market ?? (await query.getMarketPools(undefined, { indexer }));
+  coinPrices =
+    coinPrices ??
+    (await query.getAllCoinPrices({
+      marketPools: market.pools,
+    }));
   const [coinAmounts, obligations] = await Promise.all([
     query.getCoinAmounts(undefined, ownerAddress),
     query.getObligations(ownerAddress),
@@ -379,7 +393,6 @@ export const getObligationAccount = async (
       query.queryObligation(obligation),
       query.getBorrowIncentivePools(undefined, {
         coinPrices,
-        indexer,
         marketPools: market.pools,
       }),
       query.getBorrowIncentiveAccounts(obligation),
@@ -837,4 +850,217 @@ export const getTotalValueLocked = async (
   };
 
   return tvl;
+};
+
+/**
+ * Get user portfolio by wallet address
+ */
+export const getUserPortfolio = async (
+  query: ScallopQuery,
+  walletAddress: string,
+  indexer: boolean = false
+) => {
+  const coinPrices = await query.utils.getCoinPrices();
+  const market = await query.getMarketPools(undefined, { indexer, coinPrices });
+
+  const [lendings, obligationAccounts, borrowIncentivePools, veScas] =
+    await Promise.all([
+      query.getLendings(undefined, walletAddress, {
+        indexer,
+        marketPools: market.pools,
+        coinPrices,
+      }),
+      query.getObligationAccounts(walletAddress, {
+        indexer,
+        market: market,
+        coinPrices,
+      }),
+      query.getBorrowIncentivePools(undefined, {
+        marketPools: market.pools,
+        coinPrices,
+      }),
+      query.getVeScas({ walletAddress, excludeEmpty: true }),
+    ]);
+
+  // get pending rewards (spool and borrow incentive)
+  const parsedLendings = Object.values(lendings)
+    .filter((t) => t.availableWithdrawCoin > 0)
+    .map((lending) => ({
+      suppliedCoin: lending.availableWithdrawCoin,
+      suppliedValue: lending.suppliedValue,
+      stakedCoin: lending.availableUnstakeCoin,
+      coinName: lending.coinName,
+      symbol: lending.symbol,
+      coinType: lending.coinType,
+      coinPrice: lending.coinPrice,
+      coinDecimals: lending.coinDecimal,
+      supplyApr: lending.supplyApr,
+      supplyApy: lending.supplyApy,
+      incentiveApr: isFinite(lending.rewardApr) ? lending.rewardApr : 0,
+    }));
+
+  const parsedObligationAccounts = Object.values(obligationAccounts)
+    .filter(
+      (t): t is NonNullable<typeof t> =>
+        !!t && t.totalBorrowedValueWithWeight > 0
+    )
+    .map((obligationAccount) => {
+      return {
+        obligationId: obligationAccount.obligationId,
+        totalDebtsInUsd: obligationAccount.totalBorrowedValueWithWeight,
+        totalCollateralInUsd: obligationAccount.totalDepositedValue,
+        riskLevel: obligationAccount.totalRiskLevel,
+        availableCollateralInUsd:
+          obligationAccount.totalAvailableCollateralValue,
+        totalUnhealthyCollateralInUsd:
+          obligationAccount.totalUnhealthyCollateralValue,
+        borrowedPools: Object.values(obligationAccount.debts)
+          .filter((debt) => debt.borrowedCoin > 0)
+          .map((debt) => ({
+            coinName: debt.coinName,
+            symbol: debt.symbol,
+            coinDecimals: debt.coinDecimal,
+            coinType: debt.coinType,
+            coinPrice: debt.coinPrice,
+            borrowedCoin: debt.borrowedCoin,
+            borrowedValueInUsd: debt.borrowedValueWithWeight,
+            borrowApr: market.pools[debt.coinName]?.borrowApr,
+            borrowApy: market.pools[debt.coinName]?.borrowApy,
+            incentiveInfos: Object.values(
+              borrowIncentivePools[debt.coinName]?.points ?? {}
+            )
+              .filter((t) => isFinite(t.rewardApr))
+              .map((t) => ({
+                coinName: t.coinName,
+                symbol: t.symbol,
+                coinType: t.coinType,
+                incentiveApr: t.rewardApr,
+              })),
+          })),
+      };
+    });
+
+  const pendingLendingRewards = Object.values(lendings).reduce(
+    (acc, reward) => {
+      if (reward.availableClaimCoin === 0) return acc;
+      if (!acc[reward.symbol]) {
+        acc[reward.symbol] = {
+          symbol: reward.symbol,
+          coinType: normalizeStructTag(SUI_TYPE_ARG), // @TODO: for now lending reward is all in SUI
+          coinPrice: reward.coinPrice,
+          pendingRewardInCoin: reward.availableClaimCoin,
+        };
+      } else {
+        acc[reward.symbol].pendingRewardInCoin += reward.availableClaimCoin;
+      }
+      return acc;
+    },
+    {} as Record<
+      string,
+      {
+        coinType: string;
+        symbol: string;
+        coinPrice: number;
+        pendingRewardInCoin: number;
+      }
+    >
+  );
+
+  const pendingBorrowIncentiveRewards = Object.values(obligationAccounts)
+    .filter((t): t is NonNullable<typeof t> => !!t)
+    .reduce(
+      (acc, curr) => {
+        Object.values(curr.borrowIncentives).forEach((incentive) => {
+          incentive.rewards.forEach((reward) => {
+            if (reward.availableClaimCoin === 0) return acc;
+            if (!acc[reward.coinName]) {
+              acc[reward.coinName] = {
+                symbol: reward.symbol,
+                coinType: reward.coinType,
+                coinPrice: reward.coinPrice,
+                pendingRewardInCoin: reward.availableClaimCoin,
+              };
+            } else {
+              acc[reward.coinName].pendingRewardInCoin +=
+                reward.availableClaimCoin;
+            }
+          });
+        });
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          coinType: string;
+          symbol: string;
+          coinPrice: number;
+          pendingRewardInCoin: number;
+        }
+      >
+    );
+
+  const parsedVeScas = veScas.map(
+    ({ keyId, lockedScaCoin, currentVeScaBalance, unlockAt }) => ({
+      veScaKey: keyId,
+      coinPrice: coinPrices.sca ?? 0,
+      lockedScaInCoin: lockedScaCoin,
+      lockedScaInUsd: lockedScaCoin * (coinPrices.sca ?? 0),
+      currentVeScaBalance,
+      remainingLockPeriodInDays:
+        unlockAt - Date.now() > 0 ? (unlockAt - Date.now()) / 86400000 : 0,
+      unlockAt,
+    })
+  );
+
+  return {
+    totalSupplyValue: parsedLendings.reduce((acc, curr) => {
+      acc += curr.suppliedValue;
+      return acc;
+    }, 0),
+    ...parsedObligationAccounts.reduce(
+      (acc, curr) => {
+        acc.totalDebtValue += curr.totalDebtsInUsd;
+        acc.totalCollateralValue += curr.totalCollateralInUsd;
+        return acc;
+      },
+      {
+        totalDebtValue: 0,
+        totalCollateralValue: 0,
+      } as {
+        totalDebtValue: number;
+        totalCollateralValue: number;
+      }
+    ),
+    totalLockedScaValue: parsedVeScas.reduce((acc, curr) => {
+      acc += curr.lockedScaInUsd;
+      return acc;
+    }, 0),
+    lendings: parsedLendings,
+    borrowings: parsedObligationAccounts,
+    pendingRewards: {
+      lendings: Object.entries(pendingLendingRewards).reduce(
+        (acc, [key, value]) => {
+          acc.push({
+            ...value,
+            coinName: key,
+            pendingRewardInUsd: value.coinPrice * value.pendingRewardInCoin,
+          });
+          return acc;
+        },
+        [] as any
+      ),
+      borrowIncentives: Object.entries(pendingBorrowIncentiveRewards).reduce(
+        (acc, [key, value]) => {
+          acc.push({
+            coinName: key,
+            ...value,
+            pendingRewardInUsd: value.coinPrice * value.pendingRewardInCoin,
+          });
+          return acc;
+        },
+        [] as any
+      ),
+    },
+    veScas: parsedVeScas,
+  };
 };
