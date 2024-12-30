@@ -236,6 +236,9 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
+      // @TODO: add test address
+      // @ts-ignore
+      sbusdt: {},
       fdusd: {
         id: '0xf16e6b723f242ec745dfd7634ad072c42d5c1d9ac9d62a39c381303eaa57693a',
         metaData:
