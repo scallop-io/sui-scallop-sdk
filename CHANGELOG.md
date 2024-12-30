@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.9](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.8...v1.4.9) (2024-12-30)
+
+### Features
+
+- Add support `sbUSDT` and `ssbUSDT` ([5a510ec](https://github.com/scallop-io/sui-scallop-sdk/pull/226/commits/5a510ec4bc8107387a89edfb33c84c6d53daee0c))
+
 ### [1.4.8](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.7...v1.4.8) (2024-12-29)
 
 ### Features
