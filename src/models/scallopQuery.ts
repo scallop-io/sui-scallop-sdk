@@ -1,10 +1,5 @@
 import { SuiKit, SuiObjectArg } from '@scallop-io/sui-kit';
-import {
-  ADDRESSES_ID,
-  SUPPORT_POOLS,
-  SUPPORT_SPOOLS,
-  DEFAULT_CACHE_OPTIONS,
-} from '../constants';
+import { ADDRESSES_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
 import {
   queryMarket,
   getObligations,
@@ -47,6 +42,7 @@ import {
   getAllCoinPrices,
   getAllAddresses,
   isIsolatedAsset,
+  getUserPortfolio,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -63,6 +59,7 @@ import {
   MarketPool,
   CoinPrices,
   MarketPools,
+  MarketCollaterals,
 } from '../types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -112,11 +109,9 @@ export class ScallopQuery {
       this.address = instance.utils.address;
       this.cache = this.address.cache;
     } else {
-      this.cache = new ScallopCache(
-        this.suiKit,
-        this.walletAddress,
-        DEFAULT_CACHE_OPTIONS
-      );
+      this.cache = new ScallopCache(this.params, {
+        suiKit: this.suiKit,
+      });
       this.address = new ScallopAddress(
         {
           id: params?.addressesId ?? ADDRESSES_ID,
@@ -582,9 +577,20 @@ export class ScallopQuery {
   public async getLendings(
     poolCoinNames?: SupportPoolCoins[],
     ownerAddress: string = this.walletAddress,
-    args?: { indexer?: boolean }
+    args?: {
+      indexer?: boolean;
+      marketPools?: MarketPools;
+      coinPrices?: CoinPrices;
+    }
   ) {
-    return await getLendings(this, poolCoinNames, ownerAddress, args?.indexer);
+    return await getLendings(
+      this,
+      poolCoinNames,
+      ownerAddress,
+      args?.marketPools,
+      args?.coinPrices,
+      args?.indexer
+    );
   }
 
   /**
@@ -615,9 +621,22 @@ export class ScallopQuery {
    */
   public async getObligationAccounts(
     ownerAddress: string = this.walletAddress,
-    args?: { indexer?: boolean }
+    args?: {
+      indexer?: boolean;
+      market?: {
+        collaterals: MarketCollaterals;
+        pools: MarketPools;
+      };
+      coinPrices?: CoinPrices;
+    }
   ) {
-    return await getObligationAccounts(this, ownerAddress, args?.indexer);
+    return await getObligationAccounts(
+      this,
+      ownerAddress,
+      args?.market,
+      args?.coinPrices,
+      args?.indexer
+    );
   }
 
   /**
@@ -844,10 +863,24 @@ export class ScallopQuery {
   }
 
   /**
-   * Query all address (lending pool, collateral pool, borrow dynamics, interest models) of all pool
+   * Query all address (lending pool, collateral pool, borrow dynamics, interest models, etc.) of all pool
    * @returns
    */
   public async getPoolAddresses() {
     return getAllAddresses(this);
+  }
+
+  /**
+   * Get user portfolio
+   */
+  public async getUserPortfolio(args?: {
+    walletAddress?: string;
+    indexer?: boolean;
+  }) {
+    return getUserPortfolio(
+      this,
+      args?.walletAddress ?? this.walletAddress,
+      args?.indexer ?? false
+    );
   }
 }

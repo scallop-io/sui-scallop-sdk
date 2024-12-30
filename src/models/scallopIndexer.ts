@@ -22,8 +22,6 @@ import type {
   ScallopIndexerInstanceParams,
 } from '../types';
 import { ScallopCache } from './scallopCache';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-import { SuiKit } from '@scallop-io/sui-kit';
 import { queryKeys } from 'src/constants';
 
 /**
@@ -48,9 +46,7 @@ export class ScallopIndexer {
     instance?: ScallopIndexerInstanceParams
   ) {
     this.params = params;
-    this.cache =
-      instance?.cache ??
-      new ScallopCache(new SuiKit({}), undefined, DEFAULT_CACHE_OPTIONS);
+    this.cache = instance?.cache ?? new ScallopCache(this.params);
     this._requestClient = axios.create({
       baseURL: SDK_API_BASE_URL,
       headers: {
