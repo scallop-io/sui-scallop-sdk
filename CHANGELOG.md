@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.10](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.9...v1.4.10) (2024-12-31)
+
+### Features
+
+- Use `deepMergeObject` instead of replacing cache in `ScallopCache` ([bbb6683](https://github.com/scallop-io/sui-scallop-sdk/pull/226/commits/bbb6683a4222e065fe6cec80b6f36bc22e8ba195))
+
 ### [1.4.9](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.8...v1.4.9) (2024-12-30)
 
 ### Features
