@@ -721,9 +721,7 @@ export const getMarketCollaterals = async (
     return marketCollaterals;
   }
 
-  const marketObjectResponse = await query.cache.queryGetObject(marketId, {
-    showContent: true,
-  });
+  const marketObjectResponse = await query.cache.queryGetObject(marketId);
   await Promise.allSettled(
     collateralCoinNames.map(async (collateralCoinName) => {
       const marketCollateral = await getMarketCollateral(
@@ -781,12 +779,7 @@ export const getMarketCollateral = async (
 
   const marketId = query.address.get('core.market');
   marketObject =
-    marketObject ||
-    (
-      await query.cache.queryGetObject(marketId, {
-        showContent: true,
-      })
-    )?.data;
+    marketObject || (await query.cache.queryGetObject(marketId))?.data;
 
   if (!(marketObject && marketObject.content?.dataType === 'moveObject'))
     throw new Error(`Failed to fetch marketObject`);
@@ -949,10 +942,7 @@ export const getObligations = async (
         (content): content is SuiParsedData & { dataType: 'moveObject' } =>
           content?.dataType === 'moveObject'
       )
-      .map((content) => (content.fields as any).ownership.fields.of),
-    {
-      showContent: true,
-    }
+      .map((content) => (content.fields as any).ownership.fields.of)
   );
 
   await Promise.allSettled(
@@ -987,11 +977,7 @@ export const getObligationLocked = async (
 ) => {
   const obligationObjectData =
     typeof obligation === 'string'
-      ? (
-          await cache.queryGetObject(obligation, {
-            showContent: true,
-          })
-        )?.data
+      ? (await cache.queryGetObject(obligation))?.data
       : obligation;
   let obligationLocked = false;
   if (
@@ -1179,16 +1165,12 @@ export const getFlashLoanFees = async (
     })
     .filter((t) => !!t) as string[];
 
-  const flashloanFeeObjects = await query.cache.queryGetObjects(objIds, {
-    showContent: true,
-  });
+  const flashloanFeeObjects = await query.cache.queryGetObjects(objIds);
 
   if (missingAssets.length > 0) {
     // get market object
     const marketObjectId = query.address.get('core.market');
-    const marketObjectRes = await query.cache.queryGetObject(marketObjectId, {
-      showContent: true,
-    });
+    const marketObjectRes = await query.cache.queryGetObject(marketObjectId);
     if (marketObjectRes?.data?.content?.dataType !== 'moveObject')
       throw new Error('Failed to get market object');
 
@@ -1215,9 +1197,7 @@ export const getFlashLoanFees = async (
         .map((field) => field.objectId) ?? [];
 
     flashloanFeeObjects.push(
-      ...(await query.cache.queryGetObjects(dynamicFieldObjectIds, {
-        showContent: true,
-      }))
+      ...(await query.cache.queryGetObjects(dynamicFieldObjectIds))
     );
   }
 

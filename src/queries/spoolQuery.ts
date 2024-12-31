@@ -453,10 +453,7 @@ export const getStakePool = async (
 ) => {
   const poolId = utils.address.get(`spool.pools.${marketCoinName}.id`);
   let stakePool: StakePool | undefined = undefined;
-  const stakePoolObjectResponse = await utils.cache.queryGetObject(poolId, {
-    showContent: true,
-    showType: true,
-  });
+  const stakePoolObjectResponse = await utils.cache.queryGetObject(poolId);
   if (stakePoolObjectResponse?.data) {
     const stakePoolObject = stakePoolObjectResponse.data;
     const id = stakePoolObject.objectId;
@@ -515,13 +512,8 @@ export const getStakeRewardPool = async (
     `spool.pools.${marketCoinName}.rewardPoolId`
   );
   let stakeRewardPool: StakeRewardPool | undefined = undefined;
-  const stakeRewardPoolObjectResponse = await utils.cache.queryGetObject(
-    poolId,
-    {
-      showContent: true,
-      showType: true,
-    }
-  );
+  const stakeRewardPoolObjectResponse =
+    await utils.cache.queryGetObject(poolId);
 
   if (stakeRewardPoolObjectResponse?.data) {
     const stakeRewardPoolObject = stakeRewardPoolObjectResponse.data;
