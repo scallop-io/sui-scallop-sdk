@@ -28,11 +28,7 @@ export const getAllAddresses = async (query: ScallopQuery) => {
   > = {};
 
   const marketId = query.address.get('core.market');
-  const marketObject = (
-    await query.cache.queryGetObject(marketId, {
-      showContent: true,
-    })
-  )?.data;
+  const marketObject = (await query.cache.queryGetObject(marketId))?.data;
 
   if (!(marketObject && marketObject.content?.dataType === 'moveObject'))
     throw new Error(`Failed to fetch marketObject`);

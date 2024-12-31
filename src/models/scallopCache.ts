@@ -33,6 +33,29 @@ type QueryInspectTxnParams = {
 const DEFAULT_TOKENS_PER_INTERVAL = 10;
 const DEFAULT_INTERVAL_IN_MS = 250;
 
+const deepMergeObject = <T>(curr: T, update: T): T => {
+  const result = { ...curr }; // Clone the current object to avoid mutation
+
+  for (const key in update) {
+    if (
+      update[key] &&
+      typeof update[key] === 'object' &&
+      !Array.isArray(update[key])
+    ) {
+      // If the value is an object, recurse
+      result[key] = deepMergeObject(
+        curr[key] || ({} as T[Extract<keyof T, string>]),
+        update[key]
+      );
+    } else {
+      // Otherwise, directly assign the value
+      result[key] = update[key];
+    }
+  }
+
+  return result;
+};
+
 /**
  * @description
  * It provides caching for moveCall, RPC Request, and API Request.
@@ -254,6 +277,7 @@ export class ScallopCache {
       ...options,
       showOwner: true,
       showContent: true,
+      showType: true,
     };
     return this.queryClient.fetchQuery({
       retry: this.retryFn,
@@ -276,42 +300,38 @@ export class ScallopCache {
    * @param objectIds
    * @returns Promise<SuiObjectData[]>
    */
-  public async queryGetObjects(
-    objectIds: string[],
-    options: SuiObjectDataOptions = {
-      showContent: true,
-    }
-  ): Promise<SuiObjectData[]> {
+  public async queryGetObjects(objectIds: string[]): Promise<SuiObjectData[]> {
     if (objectIds.length === 0) return [];
-    // objectIds.sort();
+    const options: SuiObjectDataOptions = {
+      showContent: true,
+      showOwner: true,
+      showType: true,
+    };
 
     return this.queryClient.fetchQuery({
       retry: this.retryFn,
       retryDelay: 1000,
-      queryKey: queryKeys.rpc.getObjects(
-        objectIds,
-        this.walletAddress,
-        options
-      ),
+      queryKey: queryKeys.rpc.getObjects(objectIds),
       queryFn: async () => {
         const results = await this.callWithRateLimit(
           async () => await this.suiKit.getObjects(objectIds, options)
         );
         if (results) {
           results.forEach((result) => {
-            this.queryClient.setQueriesData(
-              {
+            // fetch previous data
+            const queryKey = queryKeys.rpc.getObject(result.objectId);
+            const prevDatas =
+              this.queryClient.getQueriesData<SuiObjectResponse>({
                 exact: false,
-                queryKey: queryKeys.rpc.getObject(result.objectId, options),
-              },
-              {
-                data: result,
-                error: null,
-              },
-              {
-                updatedAt: Date.now(),
-              }
-            );
+                queryKey,
+              });
+            prevDatas.forEach(([key, prevData]) => {
+              this.queryClient.setQueryData(
+                key,
+                deepMergeObject(prevData, { data: result, error: null }),
+                { updatedAt: Date.now() }
+              );
+            });
           });
         }
         return results;
@@ -343,22 +363,20 @@ export class ScallopCache {
                 NonNullable<{ data: SuiObjectData }> => !!result.data
             )
             .forEach((result) => {
-              this.queryClient.setQueriesData(
-                {
+              // fetch previous data
+              const queryKey = queryKeys.rpc.getObject(result.data.objectId);
+              const prevDatas =
+                this.queryClient.getQueriesData<SuiObjectResponse>({
                   exact: false,
-                  queryKey: queryKeys.rpc.getObject(
-                    result.data.objectId,
-                    input.options ?? {}
-                  ),
-                },
-                {
-                  data: result.data,
-                  error: null,
-                },
-                {
-                  updatedAt: Date.now(),
-                }
-              );
+                  queryKey,
+                });
+              prevDatas.forEach(([key, prevData]) => {
+                this.queryClient.setQueryData(
+                  key,
+                  deepMergeObject(prevData, { data: result.data, error: null }),
+                  { updatedAt: Date.now() }
+                );
+              });
             });
         }
         return results;
@@ -393,22 +411,18 @@ export class ScallopCache {
           this.client.getDynamicFieldObject(input)
         );
         if (result?.data) {
-          this.queryClient.setQueriesData(
-            {
-              exact: false,
-              queryKey: queryKeys.rpc.getObject(result?.data.objectId, {
-                showContent: true,
-                showOwner: true,
-              }),
-            },
-            {
-              data: result.data,
-              error: null,
-            },
-            {
-              updatedAt: Date.now(),
-            }
-          );
+          const queryKey = queryKeys.rpc.getObject(result.data.objectId);
+          const prevDatas = this.queryClient.getQueriesData<SuiObjectResponse>({
+            exact: false,
+            queryKey,
+          });
+          prevDatas.forEach(([key, prevData]) => {
+            this.queryClient.setQueryData(
+              key,
+              deepMergeObject(prevData, { data: result.data, error: null }),
+              { updatedAt: Date.now() }
+            );
+          });
         }
         return result;
       },

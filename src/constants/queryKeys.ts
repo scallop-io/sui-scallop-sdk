@@ -37,18 +37,12 @@ export const queryKeys = {
     getObject: (objectId?: string, options?: SuiObjectDataOptions) => [
       'rpc',
       'getObject',
-      { options, objectId },
+      { objectId, options },
     ],
-    getObjects: (
-      objectIds?: string[],
-      walletAddress?: string,
-      options?: SuiObjectDataOptions
-    ) => [
+    getObjects: (objectIds?: string[]) => [
       'rpc',
       'getObjects',
       {
-        walletAddress,
-        options,
         objectIds: JSON.stringify(objectIds ?? undefined),
       },
     ],
