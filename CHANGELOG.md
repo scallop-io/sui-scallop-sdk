@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.16](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.10...v1.4.16) (2025-01-02)
+
+### Bugfix
+
+- Fix `mergeSimilarCoins` dest type ([b428748](https://github.com/scallop-io/sui-scallop-sdk/pull/226/commits/b428748744a158897d49a57b8546df546ff18cf3))
+
 ### [1.4.10](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.9...v1.4.10) (2024-12-31)
 
 ### Features
