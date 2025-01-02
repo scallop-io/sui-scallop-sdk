@@ -48,7 +48,7 @@ import type {
   PoolAddressInfo,
 } from '../types';
 import { queryKeys } from 'src/constants';
-import type { SuiObjectArg, SuiTxArg, SuiTxBlock } from '@scallop-io/sui-kit';
+import type { SuiObjectArg, SuiTxBlock } from '@scallop-io/sui-kit';
 import { newSuiKit } from './suiKit';
 
 /**
@@ -464,7 +464,7 @@ export class ScallopUtils {
    */
   public async mergeSimilarCoins(
     txBlock: SuiTxBlock,
-    dest: SuiTxArg,
+    dest: SuiObjectArg,
     coinType: string,
     sender: string = this.walletAddress
   ): Promise<void> {
