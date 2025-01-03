@@ -57,7 +57,7 @@ export class ScallopClient {
   public walletAddress: string;
 
   public constructor(
-    params: ScallopClientParams,
+    params: ScallopClientParams = {},
     instance?: ScallopClientInstanceParams
   ) {
     this.params = params;

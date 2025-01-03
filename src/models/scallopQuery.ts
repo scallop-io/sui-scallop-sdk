@@ -93,7 +93,7 @@ export class ScallopQuery {
   public walletAddress: string;
 
   public constructor(
-    params: ScallopQueryParams,
+    params: ScallopQueryParams = {},
     instance?: ScallopQueryInstanceParams
   ) {
     this.params = params;

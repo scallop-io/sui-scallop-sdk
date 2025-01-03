@@ -49,7 +49,7 @@ export class ScallopBuilder {
   public cache: ScallopCache;
 
   public constructor(
-    params: ScallopBuilderParams,
+    params: ScallopBuilderParams = {},
     instance?: ScallopBuilderInstanceParams
   ) {
     this.suiKit = instance?.suiKit ?? newSuiKit(params);
