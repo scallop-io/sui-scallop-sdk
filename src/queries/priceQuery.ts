@@ -31,11 +31,7 @@ export const getPythPrice = async (
   );
   priceFeedObject =
     priceFeedObject ||
-    (
-      await address.cache.queryGetObject(pythFeedObjectId, {
-        showContent: true,
-      })
-    )?.data;
+    (await address.cache.queryGetObject(pythFeedObjectId))?.data;
 
   if (priceFeedObject) {
     const priceFeedPoolObject = priceFeedObject;
@@ -99,8 +95,7 @@ export const getPythPrices = async (
 
   // Fetch multiple objects at once to save rpc calls
   const priceFeedObjects = await address.cache.queryGetObjects(
-    Object.keys(pythPriceFeedIds),
-    { showContent: true }
+    Object.keys(pythPriceFeedIds)
   );
 
   const assetToPriceFeedMapping = priceFeedObjects.reduce(

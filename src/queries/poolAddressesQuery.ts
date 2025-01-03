@@ -12,6 +12,7 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         borrowDynamic?: string;
         spoolReward?: string;
         spool?: string;
+        sCoinType?: string;
         sCoinTreasury?: string;
         interestModel?: string;
         riskModel?: string;
@@ -19,18 +20,15 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         supplyLimitKey?: string;
         borrowLimitKey?: string;
         isolatedAssetKey?: string;
-        coinDecimalId?: string;
+        coinMetadataId?: string;
         borrowIncentivePoolId?: string;
+        coinType?: string;
       }
     >
   > = {};
 
   const marketId = query.address.get('core.market');
-  const marketObject = (
-    await query.cache.queryGetObject(marketId, {
-      showContent: true,
-    })
-  )?.data;
+  const marketObject = (await query.cache.queryGetObject(marketId))?.data;
 
   if (!(marketObject && marketObject.content?.dataType === 'moveObject'))
     throw new Error(`Failed to fetch marketObject`);
@@ -78,7 +76,8 @@ export const getAllAddresses = async (query: ScallopQuery) => {
           },
         })
       )?.data?.objectId;
-    } catch (_e) {
+    } catch (e: any) {
+      console.error(e.message);
       return undefined;
     }
   };
@@ -115,11 +114,13 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         // @ts-ignore
         `spool.pools.s${coinName}.rewardPoolId`
       );
+      // @ts-ignore
+      const sCoinType = query.address.get(`scoin.coins.s${coinName}.coinType`);
       const sCoinTreasury = query.address.get(
         // @ts-ignore
         `scoin.coins.s${coinName}.treasury`
       );
-      const coinDecimalId = query.address.get(
+      const coinMetadataId = query.address.get(
         `core.coins.${coinName}.metaData`
       );
       results[coinName as SupportPoolCoins] = {
@@ -135,10 +136,12 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         spool,
         spoolReward: rewardPool,
         sCoinTreasury,
-        coinDecimalId,
+        sCoinType,
+        coinMetadataId,
+        coinType: `0x${coinType}`,
       };
 
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     })
   );
 
