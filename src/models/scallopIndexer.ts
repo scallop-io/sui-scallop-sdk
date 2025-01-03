@@ -42,7 +42,7 @@ export class ScallopIndexer {
   private readonly _requestClient: AxiosInstance;
 
   public constructor(
-    params: ScallopParams,
+    params: ScallopParams = {},
     instance?: ScallopIndexerInstanceParams
   ) {
     this.params = params;
