@@ -285,5 +285,5 @@
   // const scallopQuery = new ScallopQuery({})
   // await scallopQuery.init()
   const walletAddress = '0x...';
-  const portfolio = await scallopQuery.getUserPortfolio({ userWalletAddress }); // returns user portfolio
+  const portfolio = await scallopQuery.getUserPortfolio({ walletAddress }); // returns user portfolio
   ```
