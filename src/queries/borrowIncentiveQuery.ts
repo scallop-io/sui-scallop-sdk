@@ -246,12 +246,8 @@ export const getBindedObligationId = async (
   const veScaObjId = address.get('vesca.object');
 
   // get incentive pools
-  const incentivePoolsResponse = await address.cache.queryGetObject(
-    incentivePoolsId,
-    {
-      showContent: true,
-    }
-  );
+  const incentivePoolsResponse =
+    await address.cache.queryGetObject(incentivePoolsId);
 
   if (incentivePoolsResponse?.data?.content?.dataType !== 'moveObject')
     return null;
@@ -294,12 +290,8 @@ export const getBindedVeScaKey = async (
   const corePkg = address.get('core.object');
 
   // get IncentiveAccounts object
-  const incentiveAccountsObject = await address.cache.queryGetObject(
-    incentiveAccountsId,
-    {
-      showContent: true,
-    }
-  );
+  const incentiveAccountsObject =
+    await address.cache.queryGetObject(incentiveAccountsId);
   if (incentiveAccountsObject?.data?.content?.dataType !== 'moveObject')
     return null;
   const incentiveAccountsTableId = (

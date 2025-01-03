@@ -274,3 +274,16 @@
   const isolatedAssetName = 'deep';
   const isIsolated = await scallopQuery.isIsolatedAsset(isolatedAssetName); // returns boolean
   ```
+
+## Portfolio
+
+- Get user portfolio by wallet address
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  // Alternative
+  // const scallopQuery = new ScallopQuery({})
+  // await scallopQuery.init()
+  const walletAddress = '0x...';
+  const portfolio = await scallopQuery.getUserPortfolio({ userWalletAddress }); // returns user portfolio
+  ```

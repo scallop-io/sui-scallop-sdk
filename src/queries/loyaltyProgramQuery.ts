@@ -36,9 +36,7 @@ export const getLoyaltyProgramInformations = async (
   const rewardPool = query.address.get('loyaltyProgram.rewardPool');
 
   // get fields from rewardPool object
-  const rewardPoolObject = await query.cache.queryGetObject(rewardPool, {
-    showContent: true,
-  });
+  const rewardPoolObject = await query.cache.queryGetObject(rewardPool);
 
   if (rewardPoolObject?.data?.content?.dataType !== 'moveObject') return null;
   const rewardPoolFields = rewardPoolObject.data.content.fields;

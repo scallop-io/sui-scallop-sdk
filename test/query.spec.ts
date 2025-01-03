@@ -551,3 +551,39 @@ describe('Test Address Query', async () => {
     expect(!!poolAddresses).toBe(true);
   });
 });
+
+describe('Test Get Coin Price By Indexer', async () => {
+  it('Should get coin price by indexer', async () => {
+    const scallopQuery = await getScallopQuery();
+    const coinPrice = await scallopQuery.getCoinPriceByIndexer('wusdc');
+    if (ENABLE_LOG) {
+      console.info('Coin price:', coinPrice);
+    }
+    expect(coinPrice).toBeGreaterThan(0);
+  });
+});
+
+describe('Test Get Flashloan Fees', async () => {
+  it('Should get flashloan fees', async () => {
+    const scallopQuery = await getScallopQuery();
+    const flashloanFees = await scallopQuery.getFlashLoanFees();
+    if (ENABLE_LOG) {
+      console.info('Flashloan fees:', flashloanFees);
+    }
+    expect(!!flashloanFees).toBe(true);
+    expect(Object.keys(flashloanFees).length).toBeGreaterThan(0);
+  });
+});
+
+describe('Test Get User Portfolio', async () => {
+  it('Should get user lendings and borrowings position', async () => {
+    const scallopQuery = await getScallopQuery();
+    const portfolio = await scallopQuery.getUserPortfolio();
+    if (ENABLE_LOG) {
+      console.info('User portfolio:', portfolio);
+    }
+
+    expect(!!portfolio).toBe(true);
+    expect(portfolio.totalSupplyValue > 0).toBe(true);
+  });
+});

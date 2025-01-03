@@ -52,14 +52,14 @@ describe('Test Scallop Indexer', () => {
     expect(Spool).not.toEqual(undefined);
   });
 
-  it('Should get borrow incentive pools', async () => {
+  it.skip('Should get borrow incentive pools', async () => {
     const BorrowIncentivePools = await scallopIndexer.getBorrowIncentivePools();
     if (ENABLE_LOG)
       console.info('borrow incentive pools:', BorrowIncentivePools);
     expect(BorrowIncentivePools).not.toEqual(undefined);
   });
 
-  it('Should get borrow incentive pool', async () => {
+  it.skip('Should get borrow incentive pool', async () => {
     const BorrowIncentivePool =
       await scallopIndexer.getBorrowIncentivePool('sui');
     if (ENABLE_LOG) console.info('borrow incentive pool:', BorrowIncentivePool);

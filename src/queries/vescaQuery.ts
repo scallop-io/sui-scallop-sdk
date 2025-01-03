@@ -195,8 +195,7 @@ const getTotalVeScaTreasuryAmount = async (
   const resolvedRefreshArgs = await Promise.all(
     refreshArgs.map(async (arg) => {
       if (typeof arg === 'string') {
-        return (await utils.cache.queryGetObject(arg, { showContent: true }))
-          ?.data;
+        return (await utils.cache.queryGetObject(arg))?.data;
       }
       return arg;
     })
@@ -205,8 +204,7 @@ const getTotalVeScaTreasuryAmount = async (
   const resolvedVeScaAmountArgs = await Promise.all(
     veScaAmountArgs.map(async (arg) => {
       if (typeof arg === 'string') {
-        return (await utils.cache.queryGetObject(arg, { showContent: true }))
-          ?.data;
+        return (await utils.cache.queryGetObject(arg))?.data;
       }
       return arg;
     })
@@ -254,9 +252,7 @@ export const getVeScaTreasuryInfo = async (
   utils: ScallopUtils
 ): Promise<VeScaTreasuryInfo | null> => {
   const veScaTreasuryId = utils.address.get('vesca.treasury');
-  const veScaTreasury = await utils.cache.queryGetObject(veScaTreasuryId, {
-    showContent: true,
-  });
+  const veScaTreasury = await utils.cache.queryGetObject(veScaTreasuryId);
 
   if (!veScaTreasury || veScaTreasury.data?.content?.dataType !== 'moveObject')
     return null;
