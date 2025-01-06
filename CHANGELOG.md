@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.17](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.16...v1.4.17) (2025-01-07)
+
+### Bugfix
+
+- Fix bad-debt risk level calculation ([65136d5](https://github.com/scallop-io/sui-scallop-sdk/pull/229/commits/65136d532ffb13490dc4c194011e10ee1cef4779))
+
 ### [1.4.16](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.10...v1.4.16) (2025-01-02)
 
 ### Bugfix
