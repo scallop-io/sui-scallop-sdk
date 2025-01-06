@@ -3,10 +3,10 @@ import { partitionArray } from 'src/utils';
 
 export const queryMultipleObjects = async (
   cache: ScallopCache,
-  objectIds: string[],
+  rawObjectIds: string[],
   partitionSize = 50
 ) => {
-  const objectIdsPartition = partitionArray(objectIds, partitionSize);
+  const objectIdsPartition = partitionArray(rawObjectIds, partitionSize);
 
   const objects = [];
   for (const objectIds of objectIdsPartition) {
