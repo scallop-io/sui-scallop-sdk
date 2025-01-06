@@ -650,7 +650,10 @@ export const getObligationAccount = async (
   }
 
   let riskLevel = totalRequiredCollateralValue.isZero()
-    ? BigNumber(0)
+    ? // Note: when there is no collateral and debt is not zero, then it's a bad-debt situation.
+      totalBorrowedValueWithWeight.isGreaterThan(0)
+      ? BigNumber(100)
+      : BigNumber(0)
     : totalBorrowedValueWithWeight.dividedBy(totalRequiredCollateralValue);
   // Note: 100% represents the safety upper limit. Even if it exceeds 100% before it is liquidated, it will only display 100%.
   riskLevel = riskLevel.isLessThan(1) ? riskLevel : BigNumber(1);
