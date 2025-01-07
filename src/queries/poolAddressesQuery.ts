@@ -7,12 +7,16 @@ export const getAllAddresses = async (query: ScallopQuery) => {
     Record<
       SupportPoolCoins,
       {
+        coinName: string;
+        symbol: string;
         lendingPoolAddress?: string;
         collateralPoolAddress?: string; // not all pool has collateral
         borrowDynamic?: string;
         spoolReward?: string;
         spool?: string;
         sCoinType?: string;
+        sCoinName?: string;
+        sCoinSymbol?: string;
         sCoinTreasury?: string;
         interestModel?: string;
         riskModel?: string;
@@ -23,6 +27,8 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         coinMetadataId?: string;
         borrowIncentivePoolId?: string;
         coinType?: string;
+        sCoinMetadataId?: string;
+        spoolName?: string;
       }
     >
   > = {};
@@ -116,6 +122,12 @@ export const getAllAddresses = async (query: ScallopQuery) => {
       );
       // @ts-ignore
       const sCoinType = query.address.get(`scoin.coins.s${coinName}.coinType`);
+      const sCoinName = sCoinType
+        ? query.utils.parseSCoinName(coinName)
+        : undefined;
+      const sCoinSymbol = sCoinName
+        ? query.utils.parseSymbol(sCoinName)
+        : undefined;
       const sCoinTreasury = query.address.get(
         // @ts-ignore
         `scoin.coins.s${coinName}.treasury`
@@ -123,7 +135,14 @@ export const getAllAddresses = async (query: ScallopQuery) => {
       const coinMetadataId = query.address.get(
         `core.coins.${coinName}.metaData`
       );
+      const sCoinMetadataId = query.address.get(
+        // @ts-ignore
+        `scoin.coins.s${coinName}.metaData`
+      );
+      const spoolName = spool ? `s${coinName}` : undefined;
       results[coinName as SupportPoolCoins] = {
+        coinName,
+        symbol: query.utils.parseSymbol(coinName),
         lendingPoolAddress: addresses[0],
         collateralPoolAddress: addresses[1],
         borrowDynamic: addresses[2],
@@ -137,8 +156,12 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         spoolReward: rewardPool,
         sCoinTreasury,
         sCoinType,
+        sCoinName,
+        sCoinSymbol,
         coinMetadataId,
         coinType: `0x${coinType}`,
+        sCoinMetadataId,
+        spoolName,
       };
 
       await new Promise((resolve) => setTimeout(resolve, 500));
