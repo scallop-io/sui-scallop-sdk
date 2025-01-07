@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.18](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.17...v1.4.18) (2025-01-08)
+
+### Features
+
+- Update `poolAddressQuery.ts` ([e37e3c9](https://github.com/scallop-io/sui-scallop-sdk/pull/229/commits/e37e3c93566c005893ffc3b2bb7028bfe1501aad))
+
 ### [1.4.17](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.16...v1.4.17) (2025-01-07)
 
 ### Bugfix
