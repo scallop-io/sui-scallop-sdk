@@ -26,6 +26,7 @@ export const POOL_ADDRESSES: OptionalKeys<
       spool?: string;
       spoolReward?: string;
       spoolName?: string;
+      decimals: number;
     }
   >
 > = {
@@ -64,6 +65,7 @@ export const POOL_ADDRESSES: OptionalKeys<
     sCoinMetadataId:
       '0x763a21eba338e00bc684aaad80491c89eea5f247b59c47df45b17610c9ad58f2',
     spoolName: 'susdc',
+    decimals: 6,
   },
   sbeth: {
     coinName: 'sbeth',
@@ -96,6 +98,7 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0xd0e89b2af5e4910726fbcd8b8dd37bb79b29e5f83f7491bca830e94f7f226d29::eth::ETH',
     sCoinMetadataId:
       '0xdfdd14d53ed8c7ace7cac8a0eecdfa4c2345e15d9efcbd4e1828f81a107cbe2d',
+    decimals: 8,
   },
   sbusdt: {
     coinName: 'sbusdt',
@@ -128,6 +131,7 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0x375f70cf2ae4c00bf37117d0c85a2c71545e6ee05c4a5c7d282cd66a4504b068::usdt::USDT',
     sCoinMetadataId:
       '0x1ce77b036043c8fdcc5cd050ed06433ae60296b194c2abf7ade8b7b7c8386d36',
+    decimals: 6,
   },
   weth: {
     coinName: 'weth',
@@ -164,6 +168,7 @@ export const POOL_ADDRESSES: OptionalKeys<
     sCoinMetadataId:
       '0x077d0fd835b559e5b4bb52641f7627ddbf8b200f9b2cf4e28b3514da2a32a4dd',
     spoolName: 'sweth',
+    decimals: 8,
   },
   wbtc: {
     coinName: 'wbtc',
@@ -196,6 +201,7 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0x027792d9fed7f9844eb4839566001bb6f6cb4804f66aa2da6fe1ee242d896881::coin::COIN',
     sCoinMetadataId:
       '0x1ba5904dae41699683da767c7a97785a55c51ec1253498c8fe1980169a96523d',
+    decimals: 8,
   },
   wusdc: {
     coinName: 'wusdc',
@@ -232,6 +238,7 @@ export const POOL_ADDRESSES: OptionalKeys<
     sCoinMetadataId:
       '0xdc0595d068621d630f3c7c364dd257f7e3f8079e00c31c8d18755a033c15ae93',
     spoolName: 'swusdc',
+    decimals: 6,
   },
   wusdt: {
     coinName: 'wusdt',
@@ -268,6 +275,7 @@ export const POOL_ADDRESSES: OptionalKeys<
     sCoinMetadataId:
       '0x171d0f1ca99d5fefb8b2e40b89899bacdc5417a783906ae119b9cb1c113d59ae',
     spoolName: 'swusdt',
+    decimals: 6,
   },
   sui: {
     coinName: 'sui',
@@ -304,6 +312,7 @@ export const POOL_ADDRESSES: OptionalKeys<
     sCoinMetadataId:
       '0xac724644f481f4870ecdc29b9549aa8ea5180f10827c0d97b493f9f65a91455d',
     spoolName: 'ssui',
+    decimals: 9,
   },
   wapt: {
     coinName: 'wapt',
@@ -324,6 +333,7 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0xc969c5251f372c0f34c32759f1d315cf1ea0ee5e4454b52aea08778eacfdd0a8',
     coinType:
       '0x3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37::coin::COIN',
+    decimals: 8,
   },
   wsol: {
     coinName: 'wsol',
@@ -356,6 +366,7 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0xb7844e289a8410e50fb3ca48d69eb9cf29e27d223ef90353fe1bd8e27ff8f3f8::coin::COIN',
     sCoinMetadataId:
       '0xee202d2013fc09453d695c640088ee08f14afc8f1ae26284b4ebbc4712ff1ba5',
+    decimals: 8,
   },
   cetus: {
     coinName: 'cetus',
@@ -392,6 +403,7 @@ export const POOL_ADDRESSES: OptionalKeys<
     sCoinMetadataId:
       '0xf022d041455a038d762a091f7a9e9521211f20501bcf8b6913ef5493a023218f',
     spoolName: 'scetus',
+    decimals: 9,
   },
   afsui: {
     coinName: 'afsui',
@@ -428,6 +440,7 @@ export const POOL_ADDRESSES: OptionalKeys<
     sCoinMetadataId:
       '0xfd81c4d1b4d9d1b8c522e91121d22e94759386b29eafe1cc3888ca0ebe369b9e',
     spoolName: 'safsui',
+    decimals: 9,
   },
   hasui: {
     coinName: 'hasui',
@@ -464,6 +477,7 @@ export const POOL_ADDRESSES: OptionalKeys<
     sCoinMetadataId:
       '0x0a2a4a25aac50ac79210d710f93cb22db58bc6ee22f213364dda9a709cab2189',
     spoolName: 'shasui',
+    decimals: 9,
   },
   vsui: {
     coinName: 'vsui',
@@ -500,6 +514,7 @@ export const POOL_ADDRESSES: OptionalKeys<
     sCoinMetadataId:
       '0xa96cc21ddfb6486be4a96cda0c58734e4ddea2a8c04984f9e6121d8fae997ddf',
     spoolName: 'svsui',
+    decimals: 9,
   },
   sca: {
     coinName: 'sca',
@@ -532,6 +547,7 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6::sca::SCA',
     sCoinMetadataId:
       '0x27e3877491b308dfac46fb3d9f7dfa6a1e8b7dc3c374e92ecda7976055746964',
+    decimals: 9,
   },
   fud: {
     coinName: 'fud',
@@ -562,36 +578,7 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1::fud::FUD',
     sCoinMetadataId:
       '0x4e03390de36b8c84e0a8297d3d0d08a8a34bed93787e37fcb26bfc26df33226c',
-  },
-  deep: {
-    coinName: 'deep',
-    symbol: 'DEEP',
-    lendingPoolAddress:
-      '0xf4a67ffb43da1e1c61c049f188f19463ea8dbbf2d5ef4722d6df854ff1b1cc03',
-    borrowDynamic:
-      '0x95e00d7466f97a100e70f08bd37788dc49335796f6f49fab996d40dd0681c6d3',
-    interestModel:
-      '0x4143c298506a332d92ea8a995e6f3991ee3215f58f6fc6441752835d275b9a69',
-    borrowFeeKey:
-      '0xb14ee43f4ad2a2c40bac8c4406a401690e93c982e289cf3802fedf74a159cab2',
-    supplyLimitKey:
-      '0x599528fdfdc253e90dfd0acf4f4a166b391e2aac1ca6528abbff63225b548fee',
-    borrowLimitKey:
-      '0xf4217e8ef9d9c32e8992092e910a77535a8124c19b8a762a673f227f5f765a4e',
-    isolatedAssetKey:
-      '0x208d3a24ba369dcfc8f0387333d1512b98199eb150d2f2a69359ff708cf761e3',
-    sCoinTreasury:
-      '0xc63838fabe37b25ad897392d89876d920f5e0c6a406bf3abcb84753d2829bc88',
-    sCoinType:
-      '0xeb7a05a3224837c5e5503575aed0be73c091d1ce5e43aa3c3e716e0ae614608f::scallop_deep::SCALLOP_DEEP',
-    sCoinName: 'sdeep',
-    sCoinSymbol: 'sDEEP',
-    coinMetadataId:
-      '0x6e60b051a08fa836f5a7acd7c464c8d9825bc29c44657fe170fe9b8e1e4770c0',
-    coinType:
-      '0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP',
-    sCoinMetadataId:
-      '0x2443014594a500a9119e11c6c6a86e865834f496c4614280ce8cace33c0b072e',
+    decimals: 5,
   },
   fdusd: {
     coinName: 'fdusd',
@@ -622,5 +609,37 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0xf16e6b723f242ec745dfd7634ad072c42d5c1d9ac9d62a39c381303eaa57693a::fdusd::FDUSD',
     sCoinMetadataId:
       '0xb1529a3b5e5831d19a722493eec19785f613945d3dc984602d44a418f990d73f',
+    decimals: 6,
+  },
+  deep: {
+    coinName: 'deep',
+    symbol: 'DEEP',
+    lendingPoolAddress:
+      '0xf4a67ffb43da1e1c61c049f188f19463ea8dbbf2d5ef4722d6df854ff1b1cc03',
+    borrowDynamic:
+      '0x95e00d7466f97a100e70f08bd37788dc49335796f6f49fab996d40dd0681c6d3',
+    interestModel:
+      '0x4143c298506a332d92ea8a995e6f3991ee3215f58f6fc6441752835d275b9a69',
+    borrowFeeKey:
+      '0xb14ee43f4ad2a2c40bac8c4406a401690e93c982e289cf3802fedf74a159cab2',
+    supplyLimitKey:
+      '0x599528fdfdc253e90dfd0acf4f4a166b391e2aac1ca6528abbff63225b548fee',
+    borrowLimitKey:
+      '0xf4217e8ef9d9c32e8992092e910a77535a8124c19b8a762a673f227f5f765a4e',
+    isolatedAssetKey:
+      '0x208d3a24ba369dcfc8f0387333d1512b98199eb150d2f2a69359ff708cf761e3',
+    sCoinTreasury:
+      '0xc63838fabe37b25ad897392d89876d920f5e0c6a406bf3abcb84753d2829bc88',
+    sCoinType:
+      '0xeb7a05a3224837c5e5503575aed0be73c091d1ce5e43aa3c3e716e0ae614608f::scallop_deep::SCALLOP_DEEP',
+    sCoinName: 'sdeep',
+    sCoinSymbol: 'sDEEP',
+    coinMetadataId:
+      '0x6e60b051a08fa836f5a7acd7c464c8d9825bc29c44657fe170fe9b8e1e4770c0',
+    coinType:
+      '0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP',
+    sCoinMetadataId:
+      '0x2443014594a500a9119e11c6c6a86e865834f496c4614280ce8cace33c0b072e',
+    decimals: 6,
   },
 };

@@ -29,6 +29,7 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         coinType?: string;
         sCoinMetadataId?: string;
         spoolName?: string;
+        decimals: number;
       }
     >
   > = {};
@@ -139,6 +140,8 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         // @ts-ignore
         `scoin.coins.s${coinName}.metaData`
       );
+
+      const decimals = query.utils.getCoinDecimal(coinName);
       const spoolName = spool ? `s${coinName}` : undefined;
       results[coinName as SupportPoolCoins] = {
         coinName,
@@ -162,6 +165,7 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         coinType: `0x${coinType}`,
         sCoinMetadataId,
         spoolName,
+        decimals,
       };
 
       await new Promise((resolve) => setTimeout(resolve, 500));
