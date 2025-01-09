@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.19](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.18...v1.4.19) (2025-01-09)
+
+### Features
+
+- Add `decimals` to `poolAddressQuery` ([469a631](https://github.com/scallop-io/sui-scallop-sdk/pull/229/commits/469a6310981c23b2129dbbfab1e1f82acce0a651))
+
 ### [1.4.18](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.17...v1.4.18) (2025-01-08)
 
 ### Features
