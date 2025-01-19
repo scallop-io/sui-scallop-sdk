@@ -126,7 +126,11 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           coreIds.coinDecimalsRegistry,
           txBlock.pure.u64(amount),
           coreIds.xOracle,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         [coinType]
       );
@@ -137,7 +141,16 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::mint::mint`,
-        [coreIds.version, coreIds.market, coin, SUI_CLOCK_OBJECT_ID],
+        [
+          coreIds.version,
+          coreIds.market,
+          coin,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
+        ],
         [coinType]
       );
     },
@@ -147,7 +160,16 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::mint::mint_entry`,
-        [coreIds.version, coreIds.market, coin, SUI_CLOCK_OBJECT_ID],
+        [
+          coreIds.version,
+          coreIds.market,
+          coin,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
+        ],
         [coinType]
       );
     },
@@ -157,7 +179,16 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::redeem::redeem`,
-        [coreIds.version, coreIds.market, marketCoin, SUI_CLOCK_OBJECT_ID],
+        [
+          coreIds.version,
+          coreIds.market,
+          marketCoin,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
+        ],
         [coinType]
       );
     },
@@ -167,7 +198,16 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::redeem::redeem_entry`,
-        [coreIds.version, coreIds.market, marketCoin, SUI_CLOCK_OBJECT_ID],
+        [
+          coreIds.version,
+          coreIds.market,
+          marketCoin,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
+        ],
         [coinType]
       );
     },
@@ -185,7 +225,11 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           coreIds.coinDecimalsRegistry,
           amount,
           coreIds.xOracle,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         [coinType]
       );
@@ -211,7 +255,11 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           borrowReferral,
           typeof amount === 'number' ? txBlock.pure.u64(amount) : amount,
           coreIds.xOracle,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         [coinType, referralWitnessType]
       );
@@ -230,7 +278,11 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           coreIds.coinDecimalsRegistry,
           txBlock.pure.u64(amount),
           coreIds.xOracle,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         [coinType]
       );
@@ -245,7 +297,11 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           obligation,
           coreIds.market,
           coin,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         [coinType]
       );

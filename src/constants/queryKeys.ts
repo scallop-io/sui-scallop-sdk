@@ -5,7 +5,7 @@ import type {
   SuiObjectData,
   SuiObjectDataOptions,
 } from '@mysten/sui/client';
-import type { SuiObjectArg } from '@scallop-io/sui-kit';
+import type { SuiObjectArg, SuiTxArg } from '@scallop-io/sui-kit';
 
 export const queryKeys = {
   api: {
@@ -76,7 +76,7 @@ export const queryKeys = {
     ],
     getTotalVeScaTreasuryAmount: (
       refreshArgs?: any[],
-      vescaAmountArgs?: (string | SuiObjectData)[]
+      vescaAmountArgs?: (string | SuiObjectData | SuiTxArg)[]
     ) => [
       'rpc',
       'getTotalVeScaTreasuryAmount',

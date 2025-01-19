@@ -136,7 +136,14 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${spoolIds.spoolPkg}::user::new_spool_account`,
-        [stakePoolId, SUI_CLOCK_OBJECT_ID],
+        [
+          stakePoolId,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
+        ],
         [marketCoinType]
       );
     },
@@ -149,7 +156,16 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       builder.moveCall(
         txBlock,
         `${spoolIds.spoolPkg}::user::stake`,
-        [stakePoolId, stakeAccount, coin, SUI_CLOCK_OBJECT_ID],
+        [
+          stakePoolId,
+          stakeAccount,
+          coin,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
+        ],
         [marketCoinType]
       );
     },
@@ -162,7 +178,16 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${spoolIds.spoolPkg}::user::unstake`,
-        [stakePoolId, stakeAccount, amount, SUI_CLOCK_OBJECT_ID],
+        [
+          stakePoolId,
+          stakeAccount,
+          amount,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
+        ],
         [marketCoinType]
       );
     },
@@ -180,7 +205,16 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${spoolIds.spoolPkg}::user::redeem_rewards`,
-        [stakePoolId, rewardPoolId, stakeAccount, SUI_CLOCK_OBJECT_ID],
+        [
+          stakePoolId,
+          rewardPoolId,
+          stakeAccount,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
+        ],
         [marketCoinType, rewardCoinType]
       );
     },
