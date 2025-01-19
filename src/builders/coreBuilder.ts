@@ -449,7 +449,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         )) ?? [];
       const updateCoinNames = [...obligationCoinNames, poolCoinName];
       await updateOracles(builder, txBlock, updateCoinNames);
-      return await txBlock.borrowWithReferral(
+      return txBlock.borrowWithReferral(
         obligationInfo.obligationId,
         obligationInfo.obligationKey as SuiObjectArg,
         borrowReferral,
