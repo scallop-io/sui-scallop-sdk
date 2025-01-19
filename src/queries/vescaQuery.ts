@@ -183,13 +183,29 @@ const getTotalVeScaTreasuryAmount = async (
   const veScaConfig = utils.address.get('vesca.config');
   veScaTreasury = veScaTreasury ?? utils.address.get('vesca.treasury');
 
+  const txb = new SuiTxBlock();
   // refresh query
   const refreshQueryTarget = `${veScaPkgId}::treasury::refresh`;
-  const refreshArgs = [veScaConfig, veScaTreasury, SUI_CLOCK_OBJECT_ID];
+  const refreshArgs = [
+    veScaConfig,
+    veScaTreasury,
+    txb.sharedObjectRef({
+      objectId: SUI_CLOCK_OBJECT_ID,
+      mutable: false,
+      initialSharedVersion: '1',
+    }),
+  ];
 
   // query total veSca amount
   const veScaAmountQueryTarget = `${veScaPkgId}::treasury::total_ve_sca_amount`;
-  const veScaAmountArgs = [veScaTreasury, SUI_CLOCK_OBJECT_ID];
+  const veScaAmountArgs = [
+    veScaTreasury,
+    txb.sharedObjectRef({
+      objectId: SUI_CLOCK_OBJECT_ID,
+      mutable: false,
+      initialSharedVersion: '1',
+    }),
+  ];
 
   // resolve each args
   const resolvedRefreshArgs = await Promise.all(
@@ -209,8 +225,6 @@ const getTotalVeScaTreasuryAmount = async (
       return arg;
     })
   );
-
-  const txb = new SuiTxBlock();
 
   // refresh first
   txb.moveCall(refreshQueryTarget, resolvedRefreshArgs);
