@@ -99,7 +99,11 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.treasury,
           scaCoin,
           unlockAtInSecondTimestamp,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         []
       );
@@ -114,7 +118,11 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.table,
           veScaIds.treasury,
           newUnlockAtInSecondTimestamp,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         []
       );
@@ -129,7 +137,11 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.table,
           veScaIds.treasury,
           scaCoin,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         []
       );
@@ -145,7 +157,11 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.treasury,
           scaCoin,
           newUnlockAtInSecondTimestamp,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         []
       );
@@ -159,7 +175,11 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaKey,
           veScaIds.table,
           veScaIds.treasury,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         []
       );

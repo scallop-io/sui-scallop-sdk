@@ -42,7 +42,11 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
           referralIds.referralBindings,
           txBlock.pure.id(veScaKeyId),
           veScaTable,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         []
       );
@@ -58,7 +62,11 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
           referralIds.referralBindings,
           referralIds.authorizedWitnessList,
           referralIds.referralTiers,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         [coinType]
       );
@@ -72,7 +80,11 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
           referralIds.version,
           ticket,
           referralIds.referralRevenuePool,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         [coinType]
       );
@@ -89,7 +101,11 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
           referralIds.version,
           referralIds.referralRevenuePool,
           veScaKey,
-          SUI_CLOCK_OBJECT_ID,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
         ],
         [coinType]
       );

@@ -231,7 +231,19 @@ const confirmPriceUpdateRequest = (
 ) => {
   const target = `${packageId}::x_oracle::confirm_price_update_request`;
   const typeArgs = [coinType];
-  txBlock.moveCall(target, [xOracleId, request, SUI_CLOCK_OBJECT_ID], typeArgs);
+  txBlock.moveCall(
+    target,
+    [
+      xOracleId,
+      request,
+      txBlock.sharedObjectRef({
+        objectId: SUI_CLOCK_OBJECT_ID,
+        mutable: false,
+        initialSharedVersion: '1',
+      }),
+    ],
+    typeArgs
+  );
   return txBlock;
 };
 
@@ -257,7 +269,16 @@ const updateSupraPrice = (
 ) => {
   txBlock.moveCall(
     `${packageId}::rule::set_price`,
-    [request, holderId, registryId, SUI_CLOCK_OBJECT_ID],
+    [
+      request,
+      holderId,
+      registryId,
+      txBlock.sharedObjectRef({
+        objectId: SUI_CLOCK_OBJECT_ID,
+        mutable: false,
+        initialSharedVersion: '1',
+      }),
+    ],
     [coinType]
   );
 };
@@ -284,7 +305,16 @@ const updateSwitchboardPrice = (
 ) => {
   txBlock.moveCall(
     `${packageId}::rule::set_price`,
-    [request, aggregatorId, registryId, SUI_CLOCK_OBJECT_ID],
+    [
+      request,
+      aggregatorId,
+      registryId,
+      txBlock.sharedObjectRef({
+        objectId: SUI_CLOCK_OBJECT_ID,
+        mutable: false,
+        initialSharedVersion: '1',
+      }),
+    ],
     [coinType]
   );
 };
@@ -315,7 +345,17 @@ const updatePythPrice = (
 ) => {
   txBlock.moveCall(
     `${packageId}::rule::set_price`,
-    [request, stateId, feedObjectId, registryId, SUI_CLOCK_OBJECT_ID],
+    [
+      request,
+      stateId,
+      feedObjectId,
+      registryId,
+      txBlock.sharedObjectRef({
+        objectId: SUI_CLOCK_OBJECT_ID,
+        mutable: false,
+        initialSharedVersion: '1',
+      }),
+    ],
     [coinType]
   );
 };

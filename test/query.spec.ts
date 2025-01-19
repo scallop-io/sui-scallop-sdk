@@ -473,7 +473,6 @@ describe('Test sCoin Query', async () => {
       fromSCoin,
       toSCoin
     );
-    console.log('getSCoinSwapRate', getSCoinSwapRate);
     expect(typeof getSCoinSwapRate).toBe('number');
     expect(getSCoinSwapRate > 0).toBe(true);
   });
