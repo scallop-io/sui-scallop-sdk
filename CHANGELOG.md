@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.20](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.19...v1.4.20) (2025-01-19)
+
+### Features
+
+- Add TotalLendingSupply and TotalCollateralSupply ([83c7aa0](https://github.com/scallop-io/sui-scallop-sdk/pull/230/commits/83c7aa0c9c729703c7a0e81ed820416b34932417))
+
+### [1.4.19](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.18...v1.4.19) (2025-01-09)
+
+### Features
+
+- Add `decimals` to `poolAddressQuery` ([469a631](https://github.com/scallop-io/sui-scallop-sdk/pull/229/commits/469a6310981c23b2129dbbfab1e1f82acce0a651))
+
+### [1.4.18](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.17...v1.4.18) (2025-01-08)
+
+### Features
+
+- Update `poolAddressQuery.ts` ([e37e3c9](https://github.com/scallop-io/sui-scallop-sdk/pull/229/commits/e37e3c93566c005893ffc3b2bb7028bfe1501aad))
+
+### [1.4.17](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.16...v1.4.17) (2025-01-07)
+
+### Bugfix
+
+- Fix bad-debt risk level calculation ([65136d5](https://github.com/scallop-io/sui-scallop-sdk/pull/229/commits/65136d532ffb13490dc4c194011e10ee1cef4779))
+
 ### [1.4.16](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.10...v1.4.16) (2025-01-02)
 
 ### Bugfix

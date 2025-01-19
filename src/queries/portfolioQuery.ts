@@ -650,7 +650,10 @@ export const getObligationAccount = async (
   }
 
   let riskLevel = totalRequiredCollateralValue.isZero()
-    ? BigNumber(0)
+    ? // Note: when there is no collateral and debt is not zero, then it's a bad-debt situation.
+      totalBorrowedValueWithWeight.isGreaterThan(0)
+      ? BigNumber(100)
+      : BigNumber(0)
     : totalBorrowedValueWithWeight.dividedBy(totalRequiredCollateralValue);
   // Note: 100% represents the safety upper limit. Even if it exceeds 100% before it is liquidated, it will only display 100%.
   riskLevel = riskLevel.isLessThan(1) ? riskLevel : BigNumber(1);
@@ -811,7 +814,8 @@ export const getTotalValueLocked = async (
 ) => {
   const market = await query.getMarketPools(undefined, { indexer });
 
-  let supplyValue = BigNumber(0);
+  let supplyLendingValue = BigNumber(0);
+  let supplyCollateralValue = BigNumber(0);
   let borrowValue = BigNumber(0);
 
   if (indexer) {
@@ -823,12 +827,17 @@ export const getTotalValueLocked = async (
       borrowValueChangeRatio: tvlIndexer.borrowValueChangeRatio,
       totalValue: tvlIndexer.totalValue,
       totalValueChangeRatio: tvlIndexer.totalValueChangeRatio,
+      supplyLendingValue: tvlIndexer.supplyLendingValue,
+      supplyLendingValueChangeRatio: tvlIndexer.supplyLendingValueChangeRatio,
+      supplyCollateralValue: tvlIndexer.supplyCollateralValue,
+      supplyCollateralValueChangeRatio:
+        tvlIndexer.supplyCollateralValueChangeRatio,
     };
     return tvl;
   }
 
   for (const pool of Object.values(market.pools)) {
-    supplyValue = supplyValue.plus(
+    supplyLendingValue = supplyLendingValue.plus(
       BigNumber(pool.supplyCoin).multipliedBy(pool.coinPrice)
     );
     borrowValue = borrowValue.plus(
@@ -838,15 +847,20 @@ export const getTotalValueLocked = async (
 
   // console.dir(market.collaterals, { depth: null });
   for (const collateral of Object.values(market.collaterals)) {
-    supplyValue = supplyValue.plus(
+    supplyCollateralValue = supplyCollateralValue.plus(
       BigNumber(collateral.depositCoin).multipliedBy(collateral.coinPrice)
     );
   }
 
   const tvl: TotalValueLocked = {
-    supplyValue: supplyValue.toNumber(),
+    supplyValue: supplyLendingValue.plus(supplyCollateralValue).toNumber(),
+    supplyLendingValue: supplyLendingValue.toNumber(),
+    supplyCollateralValue: supplyCollateralValue.toNumber(),
     borrowValue: borrowValue.toNumber(),
-    totalValue: supplyValue.minus(borrowValue).toNumber(),
+    totalValue: supplyLendingValue
+      .plus(supplyCollateralValue)
+      .minus(borrowValue)
+      .toNumber(),
   };
 
   return tvl;
