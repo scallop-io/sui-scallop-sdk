@@ -138,10 +138,14 @@ export type ObligationBorrowIncentive = {
 };
 
 export type TotalValueLocked = {
+  supplyLendingValue: number;
+  supplyCollateralValue: number;
   supplyValue: number;
   borrowValue: number;
   totalValue: number;
   supplyValueChangeRatio?: number;
+  supplyLendingValueChangeRatio?: number;
+  supplyCollateralValueChangeRatio?: number;
   borrowValueChangeRatio?: number;
   totalValueChangeRatio?: number;
 };
