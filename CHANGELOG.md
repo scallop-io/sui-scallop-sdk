@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.20](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.19...v1.4.20) (2025-01-19)
+
+### Features
+
+- Add TotalLendingSupply and TotalCollateralSupply ([83c7aa0](https://github.com/scallop-io/sui-scallop-sdk/pull/230/commits/83c7aa0c9c729703c7a0e81ed820416b34932417))
+
 ### [1.4.19](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.18...v1.4.19) (2025-01-09)
 
 ### Features
