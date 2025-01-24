@@ -100,6 +100,7 @@ export const SUPPORT_SCOIN = [
   'sdeep',
   'sfud',
   'sfdusd',
+  'sblub',
 ] as const;
 
 export const SUPPORT_SUI_BRIDGE = ['sbeth', 'sbusdt'] as const;

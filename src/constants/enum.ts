@@ -104,6 +104,7 @@ export const sCoins: types.SCoins = {
   sfdusd: 'sfdusd',
   sfud: 'sfud',
   sdeep: 'sdeep',
+  sblub: 'sblub',
 };
 
 export const stakeMarketCoins: types.StakeMarketCoins = {
@@ -210,6 +211,8 @@ export const sCoinIds: types.SCoinIds = {
   sdeep:
     '0xeb7a05a3224837c5e5503575aed0be73c091d1ce5e43aa3c3e716e0ae614608f::scallop_deep::SCALLOP_DEEP',
   sfud: '0xe56d5167f427cbe597da9e8150ef5c337839aaf46891d62468dcf80bdd8e10d1::scallop_fud::SCALLOP_FUD',
+  sblub:
+    '0xe72f65446eabfad2103037af2d49d24599106fb44bf4c046c1e7e9acf6844dd0::scallop_blub::SCALLOP_BLUB',
   // Sui bridge assets
   ssbeth:
     '0xb14f82d8506d139eacef109688d1b71e7236bcce9b2c0ad526abcd6aa5be7de0::scallop_sb_eth::SCALLOP_SB_ETH',
