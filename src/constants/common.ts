@@ -48,6 +48,7 @@ export const SUPPORT_POOLS = [
   'fud',
   'deep',
   'fdusd',
+  'blub',
 ] as const;
 
 export const SUPPORT_COLLATERALS = [
