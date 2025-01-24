@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.21](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.20...v1.4.21) (2025-01-24)
+
+### Features
+
+- Add $BLUB as isolated asset
+
 ### [1.4.20](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.19...v1.4.20) (2025-01-19)
 
 ### Features
