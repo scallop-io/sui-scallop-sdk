@@ -580,6 +580,28 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0x4e03390de36b8c84e0a8297d3d0d08a8a34bed93787e37fcb26bfc26df33226c',
     decimals: 5,
   },
+  // @TODO: fill in the blank
+  blub: {
+    coinName: 'blub',
+    symbol: 'BLUB',
+    lendingPoolAddress: '',
+    borrowDynamic: '',
+    interestModel: '',
+    borrowFeeKey: '',
+    supplyLimitKey: '',
+    borrowLimitKey: '',
+    isolatedAssetKey: '',
+    sCoinTreasury: '',
+    sCoinType: '',
+    sCoinName: 'sblub',
+    sCoinSymbol: 'sBLUB',
+    coinMetadataId:
+      '0xac32b519790cae96c3317457d903d61d04f1bc8f7710096d80fcba72c7a53703',
+    coinType:
+      '0xfa7ac3951fdca92c5200d468d31a365eb03b2be9936fde615e69f0c1274ad3a0::BLUB::BLUB',
+    sCoinMetadataId: '',
+    decimals: 2,
+  },
   fdusd: {
     coinName: 'fdusd',
     symbol: 'FDUSD',
