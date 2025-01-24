@@ -19,4 +19,5 @@ export const COIN_GECKGO_IDS: Record<SupportPoolCoins, string> = {
   fdusd: 'first-digital-usd',
   deep: 'deepbook',
   fud: 'fud-the-pug',
+  blub: 'blub',
 };
