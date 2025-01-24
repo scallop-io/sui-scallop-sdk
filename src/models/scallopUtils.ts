@@ -170,6 +170,9 @@ export class ScallopUtils {
     }
     if (coinName === 'sui')
       return normalizeStructTag(`${coinPackageId}::sui::SUI`);
+    if (coinName === 'blub')
+      return normalizeStructTag(`${coinPackageId}::BLUB::BLUB`);
+
     const wormHolePackageIds = [
       this.address.get('core.coins.wusdc.id') ?? wormholeCoinIds.wusdc,
       this.address.get('core.coins.wusdt.id') ?? wormholeCoinIds.wusdt,
