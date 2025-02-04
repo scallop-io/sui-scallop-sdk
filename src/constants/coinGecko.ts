@@ -20,4 +20,5 @@ export const COIN_GECKGO_IDS: Record<SupportPoolCoins, string> = {
   deep: 'deepbook',
   fud: 'fud-the-pug',
   blub: 'blub',
+  usdy: '',
 };

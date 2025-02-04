@@ -49,6 +49,7 @@ export const SUPPORT_POOLS = [
   'deep',
   'fdusd',
   'blub',
+  'usdy',
 ] as const;
 
 export const SUPPORT_COLLATERALS = [
@@ -68,6 +69,7 @@ export const SUPPORT_COLLATERALS = [
   'vsui',
   'sca',
   'fdusd',
+  'usdy',
 ] as const;
 
 export const SUPPORT_SPOOLS = [
@@ -101,6 +103,7 @@ export const SUPPORT_SCOIN = [
   'sfud',
   'sfdusd',
   'sblub',
+  'susdy',
 ] as const;
 
 export const SUPPORT_SUI_BRIDGE = ['sbeth', 'sbusdt'] as const;

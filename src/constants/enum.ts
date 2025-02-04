@@ -21,6 +21,7 @@ export const coinDecimals: types.SupportCoinDecimals = {
   deep: 6,
   fud: 5,
   blub: 2,
+  usdy: 6,
   susdc: 6,
   sweth: 8,
   ssbeth: 8,
@@ -40,6 +41,7 @@ export const coinDecimals: types.SupportCoinDecimals = {
   sdeep: 6,
   sfud: 5,
   sblub: 2,
+  susdy: 6,
 };
 
 export const assetCoins: types.AssetCoins = {
@@ -62,6 +64,7 @@ export const assetCoins: types.AssetCoins = {
   deep: 'deep',
   fud: 'fud',
   blub: 'blub',
+  usdy: 'usdy',
 };
 
 export const marketCoins: types.MarketCoins = {
@@ -84,6 +87,7 @@ export const marketCoins: types.MarketCoins = {
   sdeep: 'sdeep',
   sfud: 'sfud',
   sblub: 'sblub',
+  susdy: 'susdy',
 };
 
 export const sCoins: types.SCoins = {
@@ -105,6 +109,7 @@ export const sCoins: types.SCoins = {
   sfud: 'sfud',
   sdeep: 'sdeep',
   sblub: 'sblub',
+  susdy: 'susdy',
 };
 
 export const stakeMarketCoins: types.StakeMarketCoins = {
@@ -156,6 +161,7 @@ export const coinIds: types.AssetCoinIds = {
   wusdc: '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf',
   wusdt: '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c',
   fdusd: '0xf16e6b723f242ec745dfd7634ad072c42d5c1d9ac9d62a39c381303eaa57693a',
+  usdy: '0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb',
   // isolated assets
   deep: '0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270',
   fud: '0x76cb819b01abed502bee8a702b4c2d547532c12f25001c9dea795a5e631c26f1',
@@ -207,6 +213,8 @@ export const sCoinIds: types.SCoinIds = {
     '0xe6e5a012ec20a49a3d1d57bd2b67140b96cd4d3400b9d79e541f7bdbab661f95::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
   sfdusd:
     '0x6711551c1e7652a270d9fbf0eee25d99594c157cde3cb5fbb49035eb59b1b001::scallop_fdusd::SCALLOP_FDUSD',
+  // @TODO: add sCoin type
+  susdy: '',
   // isolated assets
   sdeep:
     '0xeb7a05a3224837c5e5503575aed0be73c091d1ce5e43aa3c3e716e0ae614608f::scallop_deep::SCALLOP_DEEP',
