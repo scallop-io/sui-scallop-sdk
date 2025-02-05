@@ -106,6 +106,31 @@ export const POOL_ADDRESSES: OptionalKeys<
     pythFeedObjectId:
       '0x985e3db9f93f76ee8bace7c3dd5cc676a096accd5d9e09e9ae0fb6e492b14572',
   },
+  // @TODO: update the address
+  sbwbtc: {
+    coinName: 'sbwbtc',
+    symbol: 'sbwBTC',
+    lendingPoolAddress: '',
+    collateralPoolAddress: '',
+    borrowDynamic: '',
+    interestModel: '',
+    riskModel: '',
+    borrowFeeKey: '',
+    supplyLimitKey: '',
+    sCoinTreasury: '',
+    sCoinType: '',
+    sCoinName: 'ssbwbtc',
+    sCoinSymbol: 'ssbwBTC',
+    coinMetadataId:
+      '0x53e1cae1ad70a778d0b450d36c7c2553314ca029919005aad26945d65a8fb784',
+    coinType:
+      '0xaafb102dd0902f5055cadecd687fb5b71ca82ef0e0285d90afde828ec58ca96b::btc::BTC',
+    sCoinMetadataId: '',
+    decimals: 8,
+    pythFeed:
+      'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43',
+    pythFeedObjectId: '',
+  },
   usdc: {
     coinName: 'usdc',
     symbol: 'USDC',
