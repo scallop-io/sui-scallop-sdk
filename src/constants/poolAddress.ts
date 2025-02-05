@@ -749,4 +749,29 @@ export const POOL_ADDRESSES: OptionalKeys<
     pythFeedObjectId:
       '0x5f6583b2b0fe1ecf94aaffeaab8a838794693960cea48c0da282d5f4a24be027',
   },
+  // @TODO: update the address
+  usdy: {
+    coinName: 'usdy',
+    symbol: 'USDY',
+    lendingPoolAddress: '',
+    collateralPoolAddress: '',
+    borrowDynamic: '',
+    interestModel: '',
+    riskModel: '',
+    borrowFeeKey: '',
+    supplyLimitKey: '',
+    sCoinTreasury: '',
+    sCoinType: '',
+    sCoinName: 'susdy',
+    sCoinSymbol: 'sUSDY',
+    coinMetadataId:
+      '0xd8dd6cf839e2367de6e6107da4b4361f44798dd6cf26d094058d94e4cee25e36',
+    coinType:
+      '0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb::usdy::USDY',
+    sCoinMetadataId: '',
+    decimals: 6,
+    pythFeed:
+      'e393449f6aff8a4b6d3e1165a7c9ebec103685f3b41e60db4277b5b6d10e7326',
+    pythFeedObjectId: '',
+  },
 };
