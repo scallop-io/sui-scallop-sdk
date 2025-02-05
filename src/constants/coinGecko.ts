@@ -4,6 +4,7 @@ export const COIN_GECKGO_IDS: Record<SupportPoolCoins, string> = {
   usdc: 'usdc',
   sbeth: 'ethereum',
   sbusdt: 'tether',
+  sbwbtc: 'bitcoin',
   weth: 'ethereum',
   wbtc: 'bitcoin',
   wusdc: 'usdc',
