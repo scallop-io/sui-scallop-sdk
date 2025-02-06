@@ -225,8 +225,8 @@ export const sCoinIds: types.SCoinIds = {
     '0xb14f82d8506d139eacef109688d1b71e7236bcce9b2c0ad526abcd6aa5be7de0::scallop_sb_eth::SCALLOP_SB_ETH',
   ssbusdt:
     '0xb1d7df34829d1513b73ba17cb7ad90c88d1e104bb65ab8f62f13e0cc103783d3::scallop_sb_usdt::SCALLOP_SB_USDT',
-  // @TODO: add sCoin type
-  ssbwbtc: '',
+  ssbwbtc:
+    '0x08c0fe357d3a138f4552bee393ce3a28a45bebcca43373d6a90bc44ab76f82e2::scallop_sb_wbtc::SCALLOP_SB_WBTC',
 } as const;
 
 export const sCoinTypeToName = Object.entries(sCoinIds).reduce(
