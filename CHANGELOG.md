@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.22](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.21...v1.4.22) (2025-02-06)
+
+### Features
+
+- Add `sbwBTC` pool support ([f5979d8](https://github.com/scallop-io/sui-scallop-sdk/pull/232/commits/f5979d88387226d440722b3adad997d6a17fffd6))
+
 ### [1.4.21](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.20...v1.4.21) (2025-01-24)
 
 ### Features
