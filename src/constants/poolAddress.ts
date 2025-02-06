@@ -106,30 +106,42 @@ export const POOL_ADDRESSES: OptionalKeys<
     pythFeedObjectId:
       '0x985e3db9f93f76ee8bace7c3dd5cc676a096accd5d9e09e9ae0fb6e492b14572',
   },
-  // @TODO: update the address
   sbwbtc: {
     coinName: 'sbwbtc',
     symbol: 'sbwBTC',
-    lendingPoolAddress: '',
-    collateralPoolAddress: '',
-    borrowDynamic: '',
-    interestModel: '',
-    riskModel: '',
-    borrowFeeKey: '',
-    supplyLimitKey: '',
-    sCoinTreasury: '',
-    sCoinType: '',
+    lendingPoolAddress:
+      '0x5c4fc366c39e0969ddb8912da221cbf298656466f3b58039ff82c5ce64071ad8',
+    collateralPoolAddress:
+      '0x85fb30d16d66f08e8bc8013665b786d5ca04652015c5ac7461cee51c54d7d507',
+    borrowDynamic:
+      '0x1e25ebd25b6e1d4c765ff3172472ae21903e7f237b3efe1f6f011c93fef9f634',
+    interestModel:
+      '0x5f7bff8aa04cc6790a88c51014d5b6feadf6441e4c40a496d67705c2856183b3',
+    riskModel:
+      '0xb62fb27d5f1305ed94092ff4fd7015a71420bd2b47542599d361a1e8b88c46ad',
+    borrowFeeKey:
+      '0x4ede8076a8d83315c49df8db9e6774d55ba149fcfb4a7a38845cd76c34f590d1',
+    supplyLimitKey:
+      '0x4f5dfd04f32cc7ba8fba665486838fd3a291324980460d31bf79918a6b68a112',
+    sCoinTreasury:
+      '0x21db1d3b310d32b5fb1383591103bfea57c6aed62ef6d3b6d469bab752b8681f',
+    borrowLimitKey:
+      '0xc32b0a82ae08248912c39da03c1b347bcfbc7b63da0385e24306c4b97777da56',
+    sCoinType:
+      '0x08c0fe357d3a138f4552bee393ce3a28a45bebcca43373d6a90bc44ab76f82e2::scallop_sb_wbtc::SCALLOP_SB_WBTC',
     sCoinName: 'ssbwbtc',
     sCoinSymbol: 'ssbwBTC',
     coinMetadataId:
       '0x53e1cae1ad70a778d0b450d36c7c2553314ca029919005aad26945d65a8fb784',
     coinType:
       '0xaafb102dd0902f5055cadecd687fb5b71ca82ef0e0285d90afde828ec58ca96b::btc::BTC',
-    sCoinMetadataId: '',
+    sCoinMetadataId:
+      '0x83d3d44ca57f9b1657065865caa497188d6fc1429f0ca846a51a9058f066f591',
     decimals: 8,
     pythFeed:
       'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43',
-    pythFeedObjectId: '',
+    pythFeedObjectId:
+      '0x9a62b4863bdeaabdc9500fce769cf7e72d5585eeb28a6d26e4cafadc13f76ab2',
   },
   usdc: {
     coinName: 'usdc',
