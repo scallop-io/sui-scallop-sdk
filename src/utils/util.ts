@@ -55,6 +55,9 @@ export const parseAssetSymbol = (coinName: SupportCoins): string => {
     return `w${coinName.slice(1).toUpperCase()}`;
   }
   if (isSuiBridgeAsset(coinName)) {
+    if (coinName.startsWith('sbw') && coinName.length > 3) {
+      return `sbw${coinName.slice(3).toUpperCase()}`;
+    }
     return `sb${coinName.slice(2).toUpperCase()}`;
   }
   if (isMarketCoin(coinName)) {
