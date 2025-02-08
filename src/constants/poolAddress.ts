@@ -786,4 +786,27 @@ export const POOL_ADDRESSES: OptionalKeys<
     pythFeedObjectId:
       '0x5f6583b2b0fe1ecf94aaffeaab8a838794693960cea48c0da282d5f4a24be027',
   },
+  // @TODO: add poolAddress
+  musd: {
+    coinName: 'musd',
+    symbol: 'mUSD',
+    lendingPoolAddress: '',
+    collateralPoolAddress: '',
+    borrowDynamic: '',
+    interestModel: '',
+    riskModel: '',
+    borrowFeeKey: '',
+    supplyLimitKey: '',
+    sCoinTreasury: '',
+    sCoinType: '',
+    sCoinName: 'sfdusd',
+    sCoinSymbol: 'sFDUSD',
+    coinMetadataId: '',
+    coinType:
+      '0xe44df51c0b21a27ab915fa1fe2ca610cd3eaa6d9666fe5e62b988bf7f0bd8722::musd::MUSD',
+    sCoinMetadataId: '',
+    decimals: 0,
+    pythFeed: '',
+    pythFeedObjectId: '',
+  },
 };
