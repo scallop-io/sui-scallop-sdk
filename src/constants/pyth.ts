@@ -28,4 +28,5 @@ export const PYTH_FEED_IDS: Record<SupportPoolCoins, string> = {
   deep: '29bdd5248234e33bd93d3b81100b5fa32eaa5997843847e2c2cb16d7c6d9f7ff',
   fud: '6a4090703da959247727f2b490eb21aea95c8684ecfac675f432008830890c75',
   blub: '5fc11ffe4975b624be495be038da30e30bee2004d8ae6282b5364577ef4ca92c',
+  musd: '', // @TODO: add mUSD pyth
 };

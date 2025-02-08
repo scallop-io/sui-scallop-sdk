@@ -22,6 +22,7 @@ export const coinDecimals: types.SupportCoinDecimals = {
   deep: 6,
   fud: 5,
   blub: 2,
+  musd: 9,
   susdc: 6,
   sweth: 8,
   ssbeth: 8,
@@ -42,6 +43,7 @@ export const coinDecimals: types.SupportCoinDecimals = {
   sdeep: 6,
   sfud: 5,
   sblub: 2,
+  smusd: 9,
 };
 
 export const assetCoins: types.AssetCoins = {
@@ -65,6 +67,7 @@ export const assetCoins: types.AssetCoins = {
   deep: 'deep',
   fud: 'fud',
   blub: 'blub',
+  musd: 'musd',
 };
 
 export const marketCoins: types.MarketCoins = {
@@ -88,6 +91,7 @@ export const marketCoins: types.MarketCoins = {
   sdeep: 'sdeep',
   sfud: 'sfud',
   sblub: 'sblub',
+  smusd: 'smusd',
 };
 
 export const sCoins: types.SCoins = {
@@ -110,6 +114,7 @@ export const sCoins: types.SCoins = {
   sfud: 'sfud',
   sdeep: 'sdeep',
   sblub: 'sblub',
+  smusd: 'smusd',
 };
 
 export const stakeMarketCoins: types.StakeMarketCoins = {
@@ -170,6 +175,7 @@ export const coinIds: types.AssetCoinIds = {
   sbeth: '0xd0e89b2af5e4910726fbcd8b8dd37bb79b29e5f83f7491bca830e94f7f226d29',
   sbusdt: '0x375f70cf2ae4c00bf37117d0c85a2c71545e6ee05c4a5c7d282cd66a4504b068',
   sbwbtc: '0xaafb102dd0902f5055cadecd687fb5b71ca82ef0e0285d90afde828ec58ca96b',
+  musd: '0xe44df51c0b21a27ab915fa1fe2ca610cd3eaa6d9666fe5e62b988bf7f0bd8722',
 };
 
 export const wormholeCoinIds: types.WormholeCoinIds = {
@@ -227,6 +233,8 @@ export const sCoinIds: types.SCoinIds = {
     '0xb1d7df34829d1513b73ba17cb7ad90c88d1e104bb65ab8f62f13e0cc103783d3::scallop_sb_usdt::SCALLOP_SB_USDT',
   ssbwbtc:
     '0x08c0fe357d3a138f4552bee393ce3a28a45bebcca43373d6a90bc44ab76f82e2::scallop_sb_wbtc::SCALLOP_SB_WBTC',
+  // @TODO: add coin type
+  smusd: '',
 } as const;
 
 export const sCoinTypeToName = Object.entries(sCoinIds).reduce(
