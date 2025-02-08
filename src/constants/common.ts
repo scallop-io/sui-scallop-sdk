@@ -33,6 +33,7 @@ export const SUPPORT_POOLS = [
   'usdc', // native USDC
   'sbeth', // sui bridge ETH
   'sbusdt', // sui bridge USDT
+  'sbwbtc', // sui bridge WBTC
   'weth',
   'wbtc',
   'wusdc',
@@ -55,6 +56,7 @@ export const SUPPORT_COLLATERALS = [
   'usdc', // native USDC
   'sbeth', // sui bridge ETH
   'sbusdt', // sui bridge USDT
+  'sbwbtc', // sui bridge WBTC
   'weth',
   'wbtc',
   'wusdc',
@@ -86,6 +88,7 @@ export const SUPPORT_SCOIN = [
   'susdc',
   'ssbeth',
   'ssbusdt',
+  'ssbwbtc',
   'ssui',
   'swusdc',
   'swusdt',
@@ -103,7 +106,7 @@ export const SUPPORT_SCOIN = [
   'sblub',
 ] as const;
 
-export const SUPPORT_SUI_BRIDGE = ['sbeth', 'sbusdt'] as const;
+export const SUPPORT_SUI_BRIDGE = ['sbeth', 'sbusdt', 'sbwbtc'] as const;
 export const SUPPORT_WORMHOLE = [
   'wusdc',
   'wusdt',
