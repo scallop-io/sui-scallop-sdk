@@ -786,25 +786,36 @@ export const POOL_ADDRESSES: OptionalKeys<
     pythFeedObjectId:
       '0x5f6583b2b0fe1ecf94aaffeaab8a838794693960cea48c0da282d5f4a24be027',
   },
-  // @TODO: add poolAddress
+  // @TODO: add pyth feed
   musd: {
     coinName: 'musd',
     symbol: 'mUSD',
-    lendingPoolAddress: '',
-    collateralPoolAddress: '',
-    borrowDynamic: '',
-    interestModel: '',
-    riskModel: '',
-    borrowFeeKey: '',
-    supplyLimitKey: '',
-    sCoinTreasury: '',
-    sCoinType: '',
-    sCoinName: 'sfdusd',
-    sCoinSymbol: 'sFDUSD',
-    coinMetadataId: '',
+    lendingPoolAddress:
+      '0x0565254220e7ca857a87341898bdebeb9e5d6f8f8fe68eb25dd3e257d41a0b0c',
+    collateralPoolAddress: undefined,
+    borrowDynamic:
+      '0x9448dc2ae8054d5b735fd617fb4ca57046ddc98bfff91ce31de1df452f3bf695',
+    interestModel:
+      '0xc3b57c57814e22ac42c7062922a0437ebf40495e37aee32cbb94cba0693970ed',
+    riskModel: undefined,
+    borrowFeeKey:
+      '0xfdb02d76dc67553fd15f42f1de49ca79cd2812bdaf8bcd079cfe17ce23ed9fc4',
+    supplyLimitKey:
+      '0x340aaae070f9489b59c4257610babf6f170abf43fbe51cf7de1e2e04492f6823',
+    isolatedAssetKey:
+      '0xe10f03b13d2cdb46543130bafaf1884c9a5a7712b5932aae15b2f8d4fc31a774',
+    sCoinTreasury:
+      '0xadfd554635ccc87e992f23ca838f0f16c14874e324a1b79b77f6bfe118edea9f',
+    sCoinType:
+      '0x0a228d1c59071eccf3716076a1f71216846ee256d9fb07ea11fb7c1eb56435a5::scallop_musd::SCALLOP_MUSD',
+    sCoinName: 'smusd',
+    sCoinSymbol: 'smUSD',
+    coinMetadataId:
+      '0xc154abd271b24032a2c80d96c1b82109490bb600ed189ef881d8c9467ed44a4f',
     coinType:
       '0xe44df51c0b21a27ab915fa1fe2ca610cd3eaa6d9666fe5e62b988bf7f0bd8722::musd::MUSD',
-    sCoinMetadataId: '',
+    sCoinMetadataId:
+      '0xb924f8c3d4b993172d4fc553c1ea242e8ca539e83edc3edaf5512ae44dfa6863',
     decimals: 0,
     pythFeed: '',
     pythFeedObjectId: '',
