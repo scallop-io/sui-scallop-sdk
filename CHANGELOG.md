@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.23](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.22...v1.4.23) (2025-02-08)
+
+### Features
+
+- Fix sui bridge wormhole symbol coin format ([523e523](https://github.com/scallop-io/sui-scallop-sdk/commit/523e523d627c3824d490a98e5ac53f73e6670340))
+
 ### [1.4.22](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.21...v1.4.22) (2025-02-06)
 
 ### Features
