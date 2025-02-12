@@ -372,7 +372,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       checkVesca(veSca?.unlockAt);
 
       if (veSca) {
-        const sca = await txBlock.redeemSca(veSca.keyId);
+        const sca = txBlock.redeemSca(veSca.keyId);
         if (transferSca) {
           txBlock.transferObjects([sca], sender);
           return;
