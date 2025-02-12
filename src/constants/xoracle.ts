@@ -5,7 +5,7 @@ export const xOracleList: xOracleListType = {
     primary: ['pyth'],
     secondary: ['supra'],
   },
-  eth: {
+  weth: {
     primary: ['supra'],
     secondary: ['pyth'],
   },
@@ -13,7 +13,11 @@ export const xOracleList: xOracleListType = {
     primary: ['supra'],
     secondary: [],
   },
-  usdt: {
+  wusdc: {
+    primary: ['pyth'],
+    secondary: ['supra'],
+  }, // fill in
+  wusdt: {
     primary: ['pyth'],
     secondary: ['supra'],
   }, // fill in
@@ -21,11 +25,11 @@ export const xOracleList: xOracleListType = {
     primary: ['pyth'],
     secondary: ['supra'],
   },
-  apt: {
+  wapt: {
     primary: ['supra'],
     secondary: ['pyth'],
   },
-  btc: {
+  wbtc: {
     primary: ['pyth'],
     secondary: ['supra'],
   },
@@ -41,11 +45,39 @@ export const xOracleList: xOracleListType = {
     primary: ['pyth'],
     secondary: ['supra'],
   },
-  sol: {
+  wsol: {
     primary: ['pyth'],
     secondary: ['supra'],
   },
   vsui: {
+    primary: ['pyth'],
+    secondary: ['supra'],
+  },
+  sbeth: {
+    primary: ['pyth'],
+    secondary: ['supra'],
+  },
+  sbusdt: {
+    primary: ['pyth'],
+    secondary: ['supra'],
+  },
+  sbwbtc: {
+    primary: ['pyth'],
+    secondary: ['supra'],
+  },
+  fud: {
+    primary: ['pyth'],
+    secondary: ['supra'],
+  },
+  deep: {
+    primary: ['pyth'],
+    secondary: ['supra'],
+  },
+  fdusd: {
+    primary: ['pyth'],
+    secondary: ['supra'],
+  },
+  blub: {
     primary: ['pyth'],
     secondary: ['supra'],
   },
