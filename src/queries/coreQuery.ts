@@ -898,7 +898,7 @@ export const getObligations = async (
   ownerAddress: string
 ) => {
   const owner = ownerAddress;
-  const protocolObjectId = address.get('core.object') ?? PROTOCOL_OBJECT_ID;
+  const protocolObjectId = address.get('core.object') || PROTOCOL_OBJECT_ID;
   const keyObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
