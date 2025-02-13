@@ -27,16 +27,15 @@ import { xOracleList } from 'src/constants';
 export const updateOracles = async (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
-  assetCoinNames?: SupportAssetCoins[],
+  assetCoinNames: SupportAssetCoins[] = [
+    ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
+  ],
   options: {
     usePythPullModel: boolean;
   } = { usePythPullModel: true }
 ) => {
   const usePythPullModel =
     builder.params.usePythPullModel ?? options.usePythPullModel;
-  assetCoinNames = assetCoinNames ?? [
-    ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
-  ];
   // const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
   const flattenedRules: SupportOracleType[] = [
     ...new Set(

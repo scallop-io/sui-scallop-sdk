@@ -14,8 +14,8 @@ export const xOracleList: xOracleListType = {
     secondary: [],
   },
   wusdc: {
-    primary: ['pyth'],
-    secondary: ['supra'],
+    primary: ['supra'],
+    secondary: [],
   }, // fill in
   wusdt: {
     primary: ['pyth'],
