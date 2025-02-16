@@ -1,11 +1,11 @@
 import { SupportAssetCoins, SupportOracleType } from './common';
 
-export type xOracleType = {
+export type xOracleRules = {
   primary: SupportOracleType[];
   secondary: SupportOracleType[];
 };
-export type xOracleTypeType = keyof xOracleType;
+export type xOracleRuleType = keyof xOracleRules;
 
 export type xOracleListType = {
-  [key in SupportAssetCoins]: xOracleType;
+  [key in SupportAssetCoins]: xOracleRules;
 };
