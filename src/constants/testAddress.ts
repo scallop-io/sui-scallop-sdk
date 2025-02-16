@@ -2,28 +2,20 @@ import { AddressesInterface } from 'src/types';
 
 export const TEST_ADDRESSES: AddressesInterface = {
   core: {
-    // version:
-    //   '0x07871c4b3c847a0f674510d4978d5cf6f960452795e8ff6f189fd2088a3f6ac7',
     version:
-      '0xd318de9b0f6873879a82cbfcc2daa1d1591a8b54e7cea9f4b567da63c692a52b',
+      '0xee15d07800e2ad4852505c57cd86afea774af02c17388f8bd907de75f915b4f4',
     versionCap:
       '0x590a4011cb649b3878f3ea14b3a78674642a9548d79b7e091ef679574b158a07',
-    // object:
-    //   '0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf',
     object:
-      '0x6c23585e940a989588432509107e98bae06dbca4e333f26d0635d401b3c7c76d',
-    // market:
-    //   '0xa757975255146dc9686aa823b7838b507f315d704f428cbadad2f4ea061939d9',
+      '0xb03fa00e2d9f17d78a9d48bd94d8852abec68c19d55e819096b1e062e69bfad1',
     market:
-      '0x9d6434e97f3f98fd9b0c0e1dca22632073985abcd22541feae7ee1e34cbe3af2',
+      '0xa7f41efe3b551c20ad6d6cea6ccd0fd68d2e2eaaacdca5e62d956209f6a51312',
     adminCap:
       '0x09689d018e71c337d9db6d67cbca06b74ed92196103624028ccc3ecea411777c',
     coinDecimalsRegistry:
       '0x200abe9bf19751cc566ae35aa58e2b7e4ff688fc1130f8d8909ea09bc137d668',
-    // obligationAccessStore:
-    //   '0x733e30b7c94d619d78cb8f5bc4bfbb759ced9a531239028caabb2474e5be59c9',
     obligationAccessStore:
-      '0x46e9b44a77ee9c9d33cc2689ecdfbb8f681935cbc6bdf6ac3df048e396c36c82',
+      '0xb7d7e1464936fbdcdd4913308b40335e662401029635289bdb317c7dde9d6c68',
     coins: {
       usdc: {
         id: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7',
@@ -37,111 +29,6 @@ export const TEST_ADDRESSES: AddressesInterface = {
             feed: 'eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a',
             feedObject:
               '0x5dec622733a204ca27f5a90d8c2fad453cc6665186fd5dff13a83d0b6c9027ab',
-          },
-        },
-      },
-      cetus: {
-        id: '0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b',
-        metaData:
-          '0x4c0dce55eff2db5419bbd2d239d1aa22b4a400c01bbb648b058a9883989025da',
-        treasury: '',
-        oracle: {
-          supra: '',
-          switchboard: '',
-          pyth: {
-            feed: 'e5b274b2611143df055d6e7cd8d93fe1961716bcd4dca1cad87a83bc1e78c1ef',
-            feedObject:
-              '0x24c0247fb22457a719efac7f670cdc79be321b521460bd6bd2ccfa9f80713b14',
-          },
-        },
-      },
-      wapt: {
-        id: '0x3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37',
-        metaData:
-          '0xc969c5251f372c0f34c32759f1d315cf1ea0ee5e4454b52aea08778eacfdd0a8',
-        treasury: '',
-        oracle: {
-          supra: '',
-          switchboard: '',
-          pyth: {
-            feed: '03ae4db29ed4ae33d323568895aa00337e658e348b37509f5372ae51f0af00d5',
-            feedObject:
-              '0x7c5b7837c44a69b469325463ac0673ac1aa8435ff44ddb4191c9ae380463647f',
-          },
-        },
-      },
-      wsol: {
-        id: '0xb7844e289a8410e50fb3ca48d69eb9cf29e27d223ef90353fe1bd8e27ff8f3f8',
-        metaData:
-          '0x4d2c39082b4477e3e79dc4562d939147ab90c42fc5f3e4acf03b94383cd69b6e',
-        treasury: '',
-        oracle: {
-          supra: '',
-          switchboard: '',
-          pyth: {
-            feed: 'ef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d',
-            feedObject:
-              '0x9d0d275efbd37d8a8855f6f2c761fa5983293dd8ce202ee5196626de8fcd4469',
-          },
-        },
-      },
-      wbtc: {
-        id: '0x027792d9fed7f9844eb4839566001bb6f6cb4804f66aa2da6fe1ee242d896881',
-        metaData:
-          '0x5d3c6e60eeff8a05b693b481539e7847dfe33013e7070cdcb387f5c0cac05dfd',
-        treasury: '',
-        oracle: {
-          supra: '',
-          switchboard: '',
-          pyth: {
-            feed: 'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43',
-            feedObject:
-              '0x9a62b4863bdeaabdc9500fce769cf7e72d5585eeb28a6d26e4cafadc13f76ab2',
-          },
-        },
-      },
-      weth: {
-        id: '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5',
-        metaData:
-          '0x8900e4ceede3363bef086d6b50ca89d816d0e90bf6bc46efefe1f8455e08f50f',
-        treasury: '',
-        oracle: {
-          supra: '',
-          switchboard: '',
-          pyth: {
-            feed: 'ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace',
-            feedObject:
-              '0x9193fd47f9a0ab99b6e365a464c8a9ae30e6150fc37ed2a89c1586631f6fc4ab',
-          },
-        },
-      },
-      wusdc: {
-        id: '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf',
-        metaData:
-          '0x4fbf84f3029bd0c0b77164b587963be957f853eccf834a67bb9ecba6ec80f189',
-        treasury: '',
-        oracle: {
-          supra: '',
-          switchboard: '',
-          pyth: {
-            feed: 'eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a',
-            feedObject:
-              '0x5dec622733a204ca27f5a90d8c2fad453cc6665186fd5dff13a83d0b6c9027ab',
-          },
-        },
-      },
-      wusdt: {
-        id: '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c',
-        metaData:
-          '0xfb0e3eb97dd158a5ae979dddfa24348063843c5b20eb8381dd5fa7c93699e45c',
-        treasury: '',
-        oracle: {
-          supra: '',
-          switchboard: '',
-          pyth: {
-            feed: '2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b',
-            feedObject:
-              '0x985e3db9f93f76ee8bace7c3dd5cc676a096accd5d9e09e9ae0fb6e492b14572',
           },
         },
       },
@@ -161,51 +48,6 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
-      afsui: {
-        id: '0xf325ce1300e8dac124071d3152c5c5ee6174914f8bc2161e88329cf579246efc',
-        metaData:
-          '0x2f9217f533e51334873a39b8026a4aa6919497b47f49d0986a4f1aec66f8a34d',
-        treasury: '',
-        oracle: {
-          supra: '',
-          switchboard: '',
-          pyth: {
-            feed: '23d7315113f5b1d3ba7a83604c44b94d79f4fd69af77f804fc7f920a6dc65744',
-            feedObject:
-              '0x801dbc2f0053d34734814b2d6df491ce7807a725fe9a01ad74a07e9c51396c37',
-          },
-        },
-      },
-      hasui: {
-        id: '0xbde4ba4c2e274a60ce15c1cfff9e5c42e41654ac8b6d906a57efa4bd3c29f47d',
-        metaData:
-          '0x2c5f33af93f6511df699aaaa5822d823aac6ed99d4a0de2a4a50b3afa0172e24',
-        treasury: '',
-        oracle: {
-          supra: '',
-          switchboard: '',
-          pyth: {
-            feed: '23d7315113f5b1d3ba7a83604c44b94d79f4fd69af77f804fc7f920a6dc65744',
-            feedObject:
-              '0x801dbc2f0053d34734814b2d6df491ce7807a725fe9a01ad74a07e9c51396c37',
-          },
-        },
-      },
-      vsui: {
-        id: '0x549e8b69270defbfafd4f94e17ec44cdbdd99820b33bda2278dea3b9a32d3f55',
-        metaData:
-          '0xabd84a23467b33854ab25cf862006fd97479f8f6f53e50fe732c43a274d939bd',
-        treasury: '',
-        oracle: {
-          supra: '',
-          switchboard: '',
-          pyth: {
-            feed: '23d7315113f5b1d3ba7a83604c44b94d79f4fd69af77f804fc7f920a6dc65744',
-            feedObject:
-              '0x801dbc2f0053d34734814b2d6df491ce7807a725fe9a01ad74a07e9c51396c37',
-          },
-        },
-      },
       sca: {
         id: '0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6',
         metaData:
@@ -218,43 +60,6 @@ export const TEST_ADDRESSES: AddressesInterface = {
             feed: '7e17f0ac105abe9214deb9944c30264f5986bf292869c6bd8e8da3ccd92d79bc',
             feedObject:
               '0xf6de1d3279a269a597d813cbaca59aa906543ab9a8c64e84a4722f1a20863985',
-          },
-        },
-      },
-      sbeth: {
-        id: '0xd0e89b2af5e4910726fbcd8b8dd37bb79b29e5f83f7491bca830e94f7f226d29',
-        metaData:
-          '0x89b04ba87f8832d4d76e17a1c9dce72eb3e64d372cf02012b8d2de5384faeef0',
-        treasury: '',
-        oracle: {
-          supra: '',
-          switchboard: '',
-          pyth: {
-            feed: 'ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace',
-            feedObject:
-              '0x9193fd47f9a0ab99b6e365a464c8a9ae30e6150fc37ed2a89c1586631f6fc4ab',
-          },
-        },
-      },
-      // @TODO: add test address
-      // @ts-ignore
-      sbusdt: {},
-      // @ts-ignore
-      sbwbtc: {},
-      // @ts-ignore
-      blub: {},
-      fdusd: {
-        id: '0xf16e6b723f242ec745dfd7634ad072c42d5c1d9ac9d62a39c381303eaa57693a',
-        metaData:
-          '0xdebee5265a67c186ed87fe93303d33dfe1de53e3b4fd7d9329c2852860acd3e7',
-        treasury: '',
-        oracle: {
-          supra: '',
-          switchboard: '',
-          pyth: {
-            feed: '0xccdc1a08923e2e4f4b1e6ea89de6acbc5fe1948e9706f5604b8cb50bc1ed3979',
-            feedObject:
-              '0x5f6583b2b0fe1ecf94aaffeaab8a838794693960cea48c0da282d5f4a24be027',
           },
         },
       },
@@ -291,14 +96,14 @@ export const TEST_ADDRESSES: AddressesInterface = {
     },
     oracles: {
       xOracle:
-        '0x93d5bf0936b71eb27255941e532fac33b5a5c7759e377b4923af0a1359ad494f',
+        '0x0c09daac413e834f2fe69601c41e836022fa9a185df6b56a80f6bcd8a3ecb8a2',
       xOracleCap:
         '0x1edeae568fde99e090dbdec4bcdbd33a15f53a1ce1f87aeef1a560dedf4b4a90',
       supra: { registry: '', registryCap: '', holder: '' },
       switchboard: { registry: '', registryCap: '' },
       pyth: {
         registry:
-          '0xedc293f9413a5a7a5d53bdba1fd889d0a4030894469228f0acdae4aa3c55a213',
+          '0xdcf813893649521abd27816ba8d946b0cb7fc98d776cc9adcecba54688ccc109',
         registryCap:
           '0xbcb07141eb1f7e01fbda4130ecf5f5adaeabb77f5d9c32158b7532bcd2197acd',
         state:
@@ -331,39 +136,34 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0x3f203f6fff6a69d151e4f1cd931f22b68c489ef2759765662fc7baf673943c9e',
       },
       protocol: {
-        id: '0xb784ea287d944e478a3ceaa071f8885072cce6b7224cf245914dc2f9963f460e',
+        id: '0xb03fa00e2d9f17d78a9d48bd94d8852abec68c19d55e819096b1e062e69bfad1',
         upgradeCap:
           '0x38527d154618d1fd5a644b90717fe07cf0e9f26b46b63e9568e611a3f86d5c1a',
       },
-      // protocol: {
-      //   id: '0x6e641f0dca8aedab3101d047e96439178f16301bf0b57fe8745086ff1195eb3e',
-      //   upgradeCap:
-      //     '0x38527d154618d1fd5a644b90717fe07cf0e9f26b46b63e9568e611a3f86d5c1a',
-      // },
       protocolWhitelist: {
         id: '0x4c262d9343dac53ecb28f482a2a3f62c73d0ebac5b5f03d57383d56ff219acdf',
         upgradeCap:
           '0x4a5e88a75039b00988f633f811f58117f31b8627a46bf822aa114d9010049449',
       },
-      // query: {
-      //   id: '0xb8d603a39114a5efef3dd0bf84df0bed1be1fbd39b78b7dd6e8a61ccc5e6006f',
-      //   upgradeCap:
-      //     '0x0d535c35f608b9b01b7ccce11acf43b1dd80c1b72bf8b541744a6e28e8d2745f',
-      // },
       query: {
-        id: '0x89706958f43fb170de134579e3fbc53972b946ee78bd2442d8e1adc36074fbdc',
+        id: '0x3a0dbce719fc56a96bf8e8dd53cd57eb9c313642a88d99b86f51208762eba258',
+        object: '',
         upgradeCap:
           '0x0d535c35f608b9b01b7ccce11acf43b1dd80c1b72bf8b541744a6e28e8d2745f',
       },
-      supra: { id: '', upgradeCap: '' },
+      supra: { id: '', object: '', upgradeCap: '' },
       pyth: {
-        id: '0x910f30cbc7f601f75a5141a01265cd47c62d468707c5e1aecb32a18f448cb25a',
+        id: '0xe622909f9252d4ef1737c41ea430ef44203d8f5dc8e01e1b3950a31405bc54eb',
+        object:
+          '0xe622909f9252d4ef1737c41ea430ef44203d8f5dc8e01e1b3950a31405bc54eb',
         upgradeCap:
           '0xdf0ffbae1ea5bb25fbca5efba433dcf00c7cced65679af2f04728901275c6157',
       },
       switchboard: { id: '', upgradeCap: '' },
       xOracle: {
-        id: '0x1478a432123e4b3d61878b629f2c692969fdb375644f1251cd278a4b1e7d7cd6',
+        id: '0xe7511600c924f1d0ac4b3fa5de3ae26b8845545902b015dc5fc7894307365d7b',
+        object:
+          '0xe7511600c924f1d0ac4b3fa5de3ae26b8845545902b015dc5fc7894307365d7b',
         upgradeCap:
           '0x0f928a6b2e26b73330fecaf9b44acfc9800a4a9794d6415c2a3153bc70e3c1f0',
       },
@@ -371,12 +171,9 @@ export const TEST_ADDRESSES: AddressesInterface = {
     },
   },
   spool: {
-    // id: '0x7c4fdabe81c31b19a45d1e572a52a539997a90903fbb5bfab71480abe0fa62c3',
     id: '0x1742655fe5872dfa6456673f9e38612a4965e6979e6cd7696a7f1225f28bae21',
     adminCap:
       '0xdd8a047cbbf802bfcde5288b8ef1910965d789cc614da11d39af05fca0bd020a',
-    // object:
-    //   '0xe87f1b2d498106a2c61421cec75b7b5c5e348512b0dc263949a0e7a3c256571a',
     object:
       '0x1742655fe5872dfa6456673f9e38612a4965e6979e6cd7696a7f1225f28bae21',
     pools: {
@@ -386,10 +183,8 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0x957de68a18d87817de8309b30c1ec269a4d87ae513abbeed86b5619cb9ce1077',
       },
       ssui: {
-        // id: '0x4f0ba970d3c11db05c8f40c64a15b6a33322db3702d634ced6536960ab6f3ee4',
         id: '0xb9617f83c06ebdeac0a8834782b1015e1cc7ea23739e30c132c4bfb95c37a579',
         rewardPoolId:
-          // '0x162250ef72393a4ad3d46294c4e1bdfcb03f04c869d390e7efbfc995353a7ee9',
           '0xc3206071a8d43212efb6e3b5504f2321f8df97ab122b466c0bc7cfdf398dc13a',
       },
       susdc: {
@@ -398,17 +193,13 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0x85ed6ed72ea97c35dbf0cdc7ed6fbc48d8ec15de9b17c74bf4512df8a6d7f166',
       },
       swusdc: {
-        // id: '0x4ace6648ddc64e646ba47a957c562c32c9599b3bba8f5ac1aadb2ae23a2f8ca0',
         id: '0xf1b383b9cf2e9f515fc69567df1053098f273849d09cd84b0278a773429bd2b2',
         rewardPoolId:
-          // '0xf4268cc9b9413b9bfe09e8966b8de650494c9e5784bf0930759cfef4904daff8',
           '0xc71c53ee6505d928ba15bea4fe4f45d98c9c31eced94b72d00a7827d4b7ba3ff',
       },
       swusdt: {
-        // id: '0xcb328f7ffa7f9342ed85af3fdb2f22919e1a06dfb2f713c04c73543870d7548f',
         id: '0xb5567dfa5c7fc17a249e959732664c50713dd8c23db1a11376b27df800c17418',
         rewardPoolId:
-          // '0x2c9f934d67a5baa586ceec2cc24163a2f049a6af3d5ba36b84d8ac40f25c4080',
           '0x60768b0687ff0235e376a039709a683e4c436098785e473b67b32dbab47b69ab',
       },
       scetus: {
@@ -417,42 +208,36 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0x6835c1224126a45086fc6406adc249e3f30df18d779ca4f4e570e38716a17f3f',
       },
       safsui: {
-        // id: '0xeedf438abcaa6ce4d9625ffca110920592d5867e4c5637d84ad9f466c4feb800',
         id: '0xc568bb4c991258e839aa54802ecda04fcd9838c826bc3b42b40af81b23c458c8',
         rewardPoolId:
-          // '0x89255a2f86ed7fbfef35ab8b7be48cc7667015975be2685dd9a55a9a64baf76e',
           '0x389a3cbeda742b918941bb24fd00e077bad3367484394d6234f8209b9a6aa03d',
       },
       shasui: {
-        // id: '0xa6148bc1b623e936d39a952ceb5bea79e8b37228a8f595067bf1852efd3c34aa',
         id: '0x93f3f4499bf89f2d05ddc1f8b15f51701a7c6c4d0ac0b9c3bc99462cbbd8e321',
         rewardPoolId:
-          // '0x6f3563644d3e2ef13176dbf9d865bd93479df60ccbe07b7e66db57f6309f5a66',
           '0x94cee1be7f5ff34193f3aabef0b14142cb28af4d905fe487a9a7d85a15edb6aa',
       },
       svsui: {
-        // id: '0x69ce8e537e750a95381e6040794afa5ab1758353a1a2e1de7760391b01f91670',
         id: '0xa970e9087f80cb59e9299b8e7af7175d977ad6c9af0322aa4440e138fbd7ae00',
         rewardPoolId:
-          // '0xbca914adce058ad0902c7f3cfcd698392a475f00dcfdc3f76001d0370b98777a',
           '0x38eee9699c4fc132a6623e54b865f047df4fc6eb83af807300f44e8f4b235ff0',
       },
     },
     config: '',
   },
   borrowIncentive: {
-    id: '0x85769d63565ce99c7622f8e336ca1460926ddf29738ad2a39407b5cac29f61fe',
+    id: '0x8fe05c796e779c71e7739dcaecefb8757ff9482f62e419dbd0dd9c35b740054f',
     adminCap:
       '0x56ac8e6f2b360b2b35c0168d72cc6cd17d9592afb83709865cb87af24bb2025b',
     object:
-      '0x85769d63565ce99c7622f8e336ca1460926ddf29738ad2a39407b5cac29f61fe',
-    query: '0x8e0d00f8ff1199d7c5fe56cea0e901a525daeefff0445a1635ace8282ae3302c',
+      '0x8fe05c796e779c71e7739dcaecefb8757ff9482f62e419dbd0dd9c35b740054f',
+    query: '0x5fba54ac5862f087112c54c02339623bd245721f5e21ea3330fc8c8afc8f51f4',
     incentivePools:
-      '0x9d564c93128c6ab0c0d3e050a47f11df0b91494f3bb779bdc1301c1c637f15eb',
+      '0xcace4f4736229043d9f897667d046370b8a4d6534bfd307787c40b4c9f42514a',
     incentiveAccounts:
-      '0x09e6040e798246de04941bc79a3ba62d3eca6d7a218cc30f21fb07f478fa2926',
+      '0x41ff558f580ca0f711910fd6ef687fce9df76ee8e7fc5e150bdfae08e17fae62',
     config:
-      '0x43d4ca1dfc90b161c4240facd119e74e4b850cca2957f88c2ec289c9380da064',
+      '0x9636e7b947b806b9fe438d037f02bb24026c5b2691d2f6bad349c2e117f77cc3',
   },
   referral: {
     id: '0x1bf5a8ce77050d8052549d743e16b469f15aa6b81b752b78b6ebb65179665f5a',
@@ -472,8 +257,6 @@ export const TEST_ADDRESSES: AddressesInterface = {
       '0x144350f3db9b46d11b140084cd54e6de0b9c3b8d265ce8059b51d0ef58ea464b',
     tiersTableId:
       '0xeac755a7a8b7798530905ac79e8c114f19d0f130f6eab012954f08faac29c75d',
-    // authorizedWitnessList:
-    //   '0xf21b0ed043c9bb70842c0129159f4943dbcc3c9ef2f2f808af65f8be25cfd20e',
     authorizedWitnessList:
       '0x9d6223dc52015b8a3986a573590ef2af8f1b8f3e4685513888c052f001b87e7f',
     version:
@@ -503,25 +286,25 @@ export const TEST_ADDRESSES: AddressesInterface = {
       '0x748a80395849ed37db1b0e14f2ab5d1d96458d2359ab3a84eb079d0f4ac7cf2e',
   },
   scoin: {
-    id: '0x773dab39c90fe05439b06a2d061795e52a974ff92c2aef90b2ee467acf7f33c8',
+    id: '0x826a4934bee9487e558eed603cf42f30cdc4321d6f31083930791b95f903b9f9',
     coins: {
       ssui: {
         coinType:
-          '0xf569919046f19a0c40b519ecfbb6ca0319698cd5908716c29b62ef56541f298b::scallop_sui::SCALLOP_SUI',
+          '0x88618204de2dfdc2597681a8441ee726b0dc13494c41e319c3264eb7b35fea90::scallop_sui::SCALLOP_SUI',
         treasury:
-          '0x0e499640a12c38dd9cc44532f5bc5fd1b6da86d2f9a8810357250f4b26e9e5c7',
-      },
-      scetus: {
-        coinType:
-          '0x8b71e6d323ed78515af2bead13bf3d0da1562ba4a99234eb7c4f14fd39ef0427::scallop_cetus::SCALLOP_CETUS',
-        treasury:
-          '0xd786f4b2d26278cc7911a3445b1b085eab60f269ef9dbb6b87e803d52f155003',
+          '0x03f1d94a40bd9f5d556bacb5c5245732b185572f6a29b36ad8b555d9a8a24f09',
       },
       ssca: {
         coinType:
-          '0x958428555e778e55918a59eb1c92c77f32b5c554fa3a5e56cd0815086b5072e7::scallop_sca::SCALLOP_SCA',
+          '0x9f64a180373a6b66595025ae16a4ab701f0af1dd5c7ce1ac91dc112e52c2a3f8::scallop_sca::SCALLOP_SCA',
         treasury:
-          '0x5f1c5de1df7341075d119570269b7b452af50afe8363080638f1ae29a554c038',
+          '0x1b05d2cd8b20dba19da073a54195fc52d2f438ea19dea0713bae7a7dab308199',
+      },
+      susdc: {
+        coinType:
+          '0x55ed015f9f006c0c96ad36ebe3b3570d088e8498f52defea48e5634c110e485c::scallop_usdc::SCALLOP_USDC',
+        treasury:
+          '0x6ef82ef94472dcb8c2cdeac8df38874024c08570ca165986ba56d1e38fe0c0a3',
       },
       swusdc: {
         coinType:
@@ -573,15 +356,15 @@ export const TEST_ADDRESSES: AddressesInterface = {
       },
       sdeep: {
         coinType:
-          '0xeb7a05a3224837c5e5503575aed0be73c091d1ce5e43aa3c3e716e0ae614608f::scallop_deep::SCALLOP_DEEP',
+          '0x34f0a2e793e1f79ceac72cfe3bb95f65541da449418289ccd12922d16140c882::scallop_deep::SCALLOP_DEEP',
         treasury:
-          '0xc63838fabe37b25ad897392d89876d920f5e0c6a406bf3abcb84753d2829bc88',
+          '0x71d41465cf2d16fa0206126526bebdf65c8871d1fcfbd0c2237db2306afd67ba',
       },
       sfud: {
         coinType:
-          '0xe56d5167f427cbe597da9e8150ef5c337839aaf46891d62468dcf80bdd8e10d1::scallop_fud::SCALLOP_FUD',
+          '0x3b23c05f917052255a0b16a534dbd4446911aa4a30bd3497cdf5b736551e7ef8::scallop_fud::SCALLOP_FUD',
         treasury:
-          '0xf25212f11d182decff7a86165699a73e3d5787aced203ca539f43cfbc10db867',
+          '0x858c492d51425b922c040c1a389e185b3b00d565e7d72ead1a81dc733104660d',
       },
     },
   },
