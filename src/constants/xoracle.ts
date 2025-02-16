@@ -1,84 +1,25 @@
 import { xOracleListType } from 'src/types';
 
 export const xOracleList: xOracleListType = {
-  sui: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  weth: {
-    primary: ['supra'],
-    secondary: ['pyth'],
-  },
-  usdc: {
-    primary: ['supra'],
-    secondary: [],
-  },
-  wusdc: {
-    primary: ['supra'],
-    secondary: [],
-  }, // fill in
-  wusdt: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  }, // fill in
-  afsui: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  wapt: {
-    primary: ['supra'],
-    secondary: ['pyth'],
-  },
-  wbtc: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  cetus: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  hasui: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  sca: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  wsol: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  vsui: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  sbeth: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  sbusdt: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  sbwbtc: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  fud: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  deep: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  fdusd: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
-  blub: {
-    primary: ['pyth'],
-    secondary: ['supra'],
-  },
+  // @TODO: Update to real oracle list
+  usdc: { primary: ['pyth'], secondary: [] },
+  sbeth: { primary: [], secondary: [] },
+  sbusdt: { primary: [], secondary: [] },
+  sbwbtc: { primary: [], secondary: [] },
+  weth: { primary: [], secondary: [] },
+  wbtc: { primary: [], secondary: [] },
+  wusdc: { primary: [], secondary: [] },
+  wusdt: { primary: [], secondary: [] },
+  sui: { primary: ['pyth'], secondary: [] },
+  wapt: { primary: [], secondary: [] },
+  wsol: { primary: [], secondary: [] },
+  cetus: { primary: [], secondary: [] },
+  afsui: { primary: [], secondary: [] },
+  hasui: { primary: [], secondary: [] },
+  vsui: { primary: [], secondary: [] },
+  sca: { primary: ['pyth'], secondary: [] },
+  fud: { primary: ['pyth'], secondary: [] },
+  deep: { primary: ['pyth'], secondary: [] },
+  fdusd: { primary: [], secondary: [] },
+  blub: { primary: [], secondary: [] },
 };

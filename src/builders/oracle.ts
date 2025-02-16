@@ -10,8 +10,8 @@ import type { ScallopBuilder } from '../models';
 import type {
   SupportAssetCoins,
   SupportOracleType,
-  xOracleType,
-  xOracleTypeType,
+  xOracleRules,
+  xOracleRuleType,
 } from '../types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
 import { xOracleList } from 'src/constants';
@@ -103,7 +103,7 @@ const updateOracle = async (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
   assetCoinName: SupportAssetCoins,
-  rules: xOracleType
+  rules: xOracleRules
 ) => {
   const coinType = builder.utils.parseCoinType(assetCoinName);
 
@@ -148,7 +148,7 @@ const updateOracle = async (
  */
 const updatePrice = (
   txBlock: SuiKitTxBlock,
-  rules: xOracleType,
+  rules: xOracleRules,
   xOraclePackageId: string,
   xOracleId: TransactionArgument | string,
   pythPackageId: string,
@@ -284,7 +284,7 @@ const confirmPriceUpdateRequest = (
  * @return TxBlock created by SuiKit.
  */
 const updateSupraPrice = (
-  type: xOracleTypeType,
+  type: xOracleRuleType,
   txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
@@ -312,7 +312,7 @@ const updateSupraPrice = (
  * @return TxBlock created by SuiKit.
  */
 const updateSwitchboardPrice = (
-  type: xOracleTypeType,
+  type: xOracleRuleType,
   txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
@@ -343,7 +343,7 @@ const updateSwitchboardPrice = (
  * @return TxBlock created by SuiKit.
  */
 const updatePythPrice = (
-  type: xOracleTypeType,
+  type: xOracleRuleType,
   txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
