@@ -110,7 +110,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
-- Compatability with @mysten/sui Transaction.
+- Compatibility with @mysten/sui Transaction.
 
   Scallop Transaction Builder contains a `Transaction` instance from `@mysten/sui`.
   So you can use both `Transaction` and `ScallopTransactionBlock` at the same time to build your transaction.
