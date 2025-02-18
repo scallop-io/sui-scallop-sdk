@@ -10,7 +10,7 @@ import {
   SUPPORT_SCOIN,
   SUPPORT_SUI_BRIDGE,
   SUPPORT_WORMHOLE,
-} from '../../constants';
+} from 'src/constants';
 
 type ParseMarketCoins<T extends string> = `s${T}`;
 type ParseCoins<T extends string> = T extends `s${infer R}` ? R : never;

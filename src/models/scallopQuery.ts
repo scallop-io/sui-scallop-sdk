@@ -1,5 +1,5 @@
 import { SuiKit, SuiObjectArg } from '@scallop-io/sui-kit';
-import { ADDRESSES_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
+import { ADDRESSES_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from 'src/constants';
 import {
   queryMarket,
   getObligations,
@@ -43,7 +43,7 @@ import {
   getAllAddresses,
   isIsolatedAsset,
   getUserPortfolio,
-} from '../queries';
+} from 'src/queries';
 import {
   ScallopQueryParams,
   SupportStakeMarketCoins,
@@ -60,7 +60,7 @@ import {
   CoinPrices,
   MarketPools,
   MarketCollaterals,
-} from '../types';
+} from 'src/types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopIndexer } from './scallopIndexer';

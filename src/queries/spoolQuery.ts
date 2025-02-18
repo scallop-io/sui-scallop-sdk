@@ -1,5 +1,5 @@
 import { normalizeStructTag } from '@mysten/sui/utils';
-import { POOL_ADDRESSES, SUPPORT_SPOOLS } from '../constants';
+import { POOL_ADDRESSES, SUPPORT_SPOOLS } from 'src/constants';
 import {
   parseOriginSpoolData,
   calculateSpoolData,
@@ -7,9 +7,9 @@ import {
   calculateSpoolRewardPoolData,
   isMarketCoin,
   parseObjectAs,
-} from '../utils';
+} from 'src/utils';
 import type { SuiObjectData, SuiObjectResponse } from '@mysten/sui/client';
-import type { ScallopQuery, ScallopUtils } from '../models';
+import type { ScallopQuery, ScallopUtils } from 'src/models';
 import type {
   Spools,
   Spool,
@@ -23,7 +23,7 @@ import type {
   OriginSpoolRewardPoolData,
   SpoolData,
   OriginSpoolData,
-} from '../types';
+} from 'src/types';
 import { queryMultipleObjects } from './objectsQuery';
 
 const queryRequiredSpoolObjects = async (

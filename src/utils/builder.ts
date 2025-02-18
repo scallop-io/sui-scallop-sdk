@@ -5,7 +5,7 @@ import {
   MAX_LOCK_ROUNDS,
   MIN_INITIAL_LOCK_AMOUNT,
   MIN_TOP_UP_AMOUNT,
-} from '../constants';
+} from 'src/constants';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 
 /**

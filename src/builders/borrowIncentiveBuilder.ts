@@ -3,8 +3,8 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   SUI_CLOCK_OBJECT_ID,
 } from '@scallop-io/sui-kit';
-import { getObligations, getObligationLocked } from '../queries';
-import { requireSender } from '../utils';
+import { getObligations, getObligationLocked } from 'src/queries';
+import { requireSender } from 'src/utils';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
 import type {
@@ -15,7 +15,7 @@ import type {
   BorrowIncentiveTxBlock,
   ScallopTxBlock,
   VescaIds,
-} from '../types';
+} from 'src/types';
 import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants';
 
 /**

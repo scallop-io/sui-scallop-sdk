@@ -4,14 +4,14 @@ import { ScallopClient } from './scallopClient';
 import { ScallopBuilder } from './scallopBuilder';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
-import { ADDRESSES_ID } from '../constants';
+import { ADDRESSES_ID } from 'src/constants';
 import type {
   ScallopBuilderParams,
   ScallopClientParams,
   ScallopParams,
   ScallopQueryParams,
   ScallopUtilsParams,
-} from '../types/';
+} from 'src/types';
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
 import { QueryClientConfig } from '@tanstack/query-core';

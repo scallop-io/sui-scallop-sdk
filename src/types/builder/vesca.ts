@@ -26,9 +26,19 @@ export type VeScaNormalMethods = {
   ) => void;
   redeemSca: (veScaKey: SuiObjectArg) => TransactionResult;
   mintEmptyVeSca: () => TransactionResult;
+  addMergeSplitSub: (veScaKey: SuiObjectArg) => void;
+  removeMergeSplitSub: (veScaKey: SuiObjectArg) => void;
+  splitVeSca: (
+    veScaKey: SuiObjectArg,
+    splitAmount: string
+  ) => TransactionResult;
+  mergeVeSca: (
+    targetVeScaKey: SuiObjectArg,
+    sourceVeScaKey: SuiObjectArg
+  ) => void;
 };
 
-export type RedeemScaQuickReturnType<T extends boolean> = T extends true
+export type QuickMethodReturnType<T extends boolean> = T extends true
   ? void
   : TransactionResult | undefined;
 
@@ -71,9 +81,18 @@ export type VeScaQuickMethods = {
     autoCheck?: boolean
   ) => Promise<void>;
   redeemScaQuick: <T extends boolean>(
-    veSCaKey?: SuiObjectArg,
+    veScaKey?: SuiObjectArg,
     transferSca?: T
-  ) => Promise<RedeemScaQuickReturnType<T>>;
+  ) => Promise<QuickMethodReturnType<T>>;
+  splitVeScaQuick: <T extends boolean>(
+    splitAmount: string,
+    veScaKey?: SuiObjectArg,
+    transferVeScaKey?: T
+  ) => Promise<QuickMethodReturnType<T>>;
+  mergeVeScaQuick: (
+    targetVeScaKey: SuiObjectArg,
+    sourceVeScaKey?: SuiObjectArg
+  ) => Promise<void>;
 };
 
 export type SuiTxBlockWithVeScaNormalMethods = SuiKitTxBlock &

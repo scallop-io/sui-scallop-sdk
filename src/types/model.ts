@@ -7,7 +7,7 @@ import type {
   ScallopUtils,
   ScallopBuilder,
   ScallopIndexer,
-} from '../models';
+} from 'src/models';
 import { ScallopCache } from 'src/models/scallopCache';
 import { AddressesInterface } from './address';
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';

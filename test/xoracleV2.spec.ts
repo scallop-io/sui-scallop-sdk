@@ -1,8 +1,8 @@
 import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
 import { NetworkType, SuiTxBlock } from '@scallop-io/sui-kit';
-import { Scallop } from '../src';
-import type { SupportAssetCoins } from '../src';
+import { Scallop } from 'src/';
+import type { SupportAssetCoins } from 'src/';
 import { updateOracles } from 'src/builders/oracle';
 
 dotenv.config();

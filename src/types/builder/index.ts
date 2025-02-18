@@ -5,7 +5,7 @@ import type { VeScaTxBlock } from './vesca';
 import type { ReferralTxBlock } from './referral';
 import { LoyaltyProgramTxBlock } from './loyaltyProgram';
 import { SCoinTxBlock } from './sCoin';
-import { SupportAssetCoins } from '../constant';
+import { SupportAssetCoins } from 'src/types/constant';
 
 export type * from './core';
 export type * from './spool';

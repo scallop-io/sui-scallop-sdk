@@ -1,8 +1,8 @@
 import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
 import { NetworkType } from '@scallop-io/sui-kit';
-import { ScallopAddress } from '../src';
-import type { AddressesInterface } from '../src';
+import { ScallopAddress } from 'src';
+import type { AddressesInterface } from 'src/';
 
 dotenv.config();
 

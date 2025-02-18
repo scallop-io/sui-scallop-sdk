@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import { SDK_API_BASE_URL } from '../constants';
+import { SDK_API_BASE_URL } from 'src/constants';
 import type {
   Market,
   MarketPools,
@@ -20,7 +20,7 @@ import type {
   BorrowIncentivePoolPoints,
   SupportBorrowIncentiveRewardCoins,
   ScallopIndexerInstanceParams,
-} from '../types';
+} from 'src/types';
 import { ScallopCache } from './scallopCache';
 import { queryKeys } from 'src/constants';
 

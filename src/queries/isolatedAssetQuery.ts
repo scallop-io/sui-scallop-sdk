@@ -1,6 +1,6 @@
 import { DynamicFieldInfo, DynamicFieldName } from '@mysten/sui/client';
-import { ScallopQuery, ScallopUtils } from '../models';
-import { SupportPoolCoins } from '../types';
+import { ScallopQuery, ScallopUtils } from 'src/models';
+import { SupportPoolCoins } from 'src/types';
 import { z as zod } from 'zod';
 import { POOL_ADDRESSES, SUPPORT_POOLS } from 'src/constants';
 

@@ -1,4 +1,4 @@
-import { SUPPORT_ORACLES } from '../constants';
+import { SUPPORT_ORACLES } from 'src/constants';
 import type {
   SupportAssetCoins,
   SupportOracleType,

@@ -1,8 +1,8 @@
 import { BigNumber } from 'bignumber.js';
 import { describe, it, expect } from 'vitest';
-import { assetCoins } from '../src';
+import { assetCoins } from 'src/';
 import type { Transaction } from '@scallop-io/sui-kit';
-import type { SupportStakeMarketCoins } from '../src';
+import type { SupportStakeMarketCoins } from 'src/';
 import { scallopSDK } from './scallopSdk';
 
 const ENABLE_LOG = false;
