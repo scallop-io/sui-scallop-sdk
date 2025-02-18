@@ -1,7 +1,7 @@
 import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ADDRESSES_ID } from '../constants';
-import { newScallopTxBlock } from '../builders';
+import { ADDRESSES_ID } from 'src/constants';
+import { newScallopTxBlock } from 'src/builders';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
@@ -22,7 +22,7 @@ import type {
   SupportSCoin,
   ScallopBuilderInstanceParams,
   SelectCoinReturnType,
-} from '../types';
+} from 'src/types';
 import { ScallopCache } from './scallopCache';
 import { newSuiKit } from './suiKit';
 

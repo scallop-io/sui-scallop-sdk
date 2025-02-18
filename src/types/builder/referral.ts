@@ -4,7 +4,7 @@ import {
   SuiTxBlock as SuiKitTxBlock,
 } from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models';
-import { SupportPoolCoins } from '../constant';
+import { SupportPoolCoins } from 'src/types/constant';
 
 export type ReferralIds = {
   referralPgkId: string;

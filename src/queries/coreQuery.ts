@@ -5,21 +5,21 @@ import {
   SUPPORT_COLLATERALS,
   FlashLoanFeeObjectMap,
   POOL_ADDRESSES,
-} from '../constants';
+} from 'src/constants';
 import {
   parseOriginMarketPoolData,
   calculateMarketPoolData,
   parseOriginMarketCollateralData,
   calculateMarketCollateralData,
   parseObjectAs,
-} from '../utils';
+} from 'src/utils';
 import type {
   SuiObjectResponse,
   SuiObjectData,
   SuiParsedData,
 } from '@mysten/sui/client';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
-import type { ScallopAddress, ScallopCache, ScallopQuery } from '../models';
+import type { ScallopAddress, ScallopCache, ScallopQuery } from 'src/models';
 import {
   Market,
   MarketPools,
@@ -43,7 +43,7 @@ import {
   BorrowFee,
   BorrowDynamic,
   OriginMarketCollateralData,
-} from '../types';
+} from 'src/types';
 import BigNumber from 'bignumber.js';
 import { getSupplyLimit } from './supplyLimitQuery';
 import { isIsolatedAsset } from './isolatedAssetQuery';

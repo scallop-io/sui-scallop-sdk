@@ -1,11 +1,11 @@
-import { API_BASE_URL, USE_TEST_ADDRESS } from '../constants';
+import { API_BASE_URL, USE_TEST_ADDRESS } from 'src/constants';
 import { type NetworkType } from '@scallop-io/sui-kit';
 import type {
   ScallopAddressParams,
   AddressesInterface,
   AddressStringPath,
   ScallopAddressInstanceParams,
-} from '../types';
+} from 'src/types';
 import { ScallopCache } from './scallopCache';
 import axios, { AxiosInstance } from 'axios';
 import { TEST_ADDRESSES } from 'src/constants/testAddress';

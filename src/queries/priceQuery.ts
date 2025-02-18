@@ -1,12 +1,12 @@
 import { SuiObjectData } from '@mysten/sui/client';
-import type { ScallopAddress, ScallopQuery } from '../models';
+import type { ScallopAddress, ScallopQuery } from 'src/models';
 import type {
   CoinPrices,
   MarketPools,
   OptionalKeys,
   SupportAssetCoins,
   SupportSCoin,
-} from '../types';
+} from 'src/types';
 import { SUPPORT_SCOIN } from 'src/constants/common';
 import BigNumber from 'bignumber.js';
 

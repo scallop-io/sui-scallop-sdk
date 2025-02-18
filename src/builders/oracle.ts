@@ -3,11 +3,11 @@ import {
   SuiPythClient,
   SuiPriceServiceConnection,
 } from '@pythnetwork/pyth-sui-js';
-import { SUPPORT_COLLATERALS, SUPPORT_POOLS } from '../constants';
+import { SUPPORT_COLLATERALS, SUPPORT_POOLS } from 'src/constants';
 import type { TransactionArgument } from '@mysten/sui/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import type { ScallopBuilder } from '../models';
-import type { SupportAssetCoins, SupportOracleType } from '../types';
+import type { ScallopBuilder } from 'src/models';
+import type { SupportAssetCoins, SupportOracleType } from 'src/types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
 
 /**

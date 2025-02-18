@@ -3,9 +3,9 @@ import {
   SUPPORT_COLLATERALS,
   SUPPORT_POOLS,
   SUPPORT_SPOOLS,
-} from '../constants';
+} from 'src/constants';
 import { minBigNumber, estimatedFactor } from 'src/utils';
-import type { ScallopQuery } from '../models';
+import type { ScallopQuery } from 'src/models';
 import type {
   Market,
   SupportPoolCoins,
@@ -28,7 +28,7 @@ import type {
   SupportAssetCoins,
   MarketPools,
   MarketCollaterals,
-} from '../types';
+} from 'src/types';
 import { SuiObjectRef } from '@mysten/sui/client';
 import { queryMultipleObjects } from './objectsQuery';
 import { normalizeStructTag, SUI_TYPE_ARG } from '@scallop-io/sui-kit';

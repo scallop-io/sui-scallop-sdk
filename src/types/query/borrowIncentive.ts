@@ -1,7 +1,7 @@
 import type {
   SupportBorrowIncentiveCoins,
   SupportBorrowIncentiveRewardCoins,
-} from '../constant';
+} from 'src/types/constant';
 
 export interface BorrowIncentiveAccountKey {
   id: string;

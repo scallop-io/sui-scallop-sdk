@@ -5,7 +5,7 @@ import {
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_SCOIN,
   SUPPORT_SPOOLS,
-} from '../constants';
+} from 'src/constants';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopBuilder } from './scallopBuilder';
@@ -30,7 +30,7 @@ import type {
   SupportSCoin,
   ScallopClientVeScaReturnType,
   ScallopClientInstanceParams,
-} from '../types';
+} from 'src/types';
 import { newSuiKit } from './suiKit';
 
 /**

@@ -4,7 +4,7 @@ import type {
   SupportMarketCoins,
   CoinWrappedType,
   SupportSCoin,
-} from '../constant';
+} from 'src/types/constant';
 
 type OptionalKeys<T> = {
   [K in keyof T]?: T[K];

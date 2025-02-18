@@ -3,7 +3,7 @@ import {
   PROTOCOL_OBJECT_ID,
   SUPPORT_POOLS,
   SUPPORT_SCOIN,
-} from '../src/constants';
+} from 'src//constants';
 import { scallopSDK } from './scallopSdk';
 
 const ENABLE_LOG = false;
