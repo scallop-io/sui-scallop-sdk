@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-scallop-sdk",
-  "version": "1.4.23",
+  "version": "1.4.24-alpha.4",
   "description": "Typescript sdk for interacting with Scallop contract on SUI",
   "keywords": [
     "sui",
@@ -39,9 +39,8 @@
   ],
   "scripts": {
     "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
-    "build": "pnpm run build:types && pnpm run build:tsup",
-    "build:tsup": "tsup ./src/index.ts --format esm,cjs --sourcemap",
-    "build:types": "tsc --build",
+    "build": "pnpm run build:tsup",
+    "build:tsup": "tsup ./src/index.ts --format esm,cjs --splitting --minify --treeshake --dts",
     "watch:tsup": "tsup ./src/index.ts --format esm,cjs --clean --splitting --watch",
     "watch:types": "tsc --watch",
     "watch": "pnpm run clean & pnpm run watch:types & pnpm run watch:tsup",
