@@ -782,11 +782,10 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0xb1529a3b5e5831d19a722493eec19785f613945d3dc984602d44a418f990d73f',
     decimals: 6,
     pythFeed:
-      '0xccdc1a08923e2e4f4b1e6ea89de6acbc5fe1948e9706f5604b8cb50bc1ed3979',
+      'ccdc1a08923e2e4f4b1e6ea89de6acbc5fe1948e9706f5604b8cb50bc1ed3979',
     pythFeedObjectId:
       '0x5f6583b2b0fe1ecf94aaffeaab8a838794693960cea48c0da282d5f4a24be027',
   },
-  // @TODO: add pyth feed
   musd: {
     coinName: 'musd',
     symbol: 'mUSD',
@@ -816,8 +815,10 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0xe44df51c0b21a27ab915fa1fe2ca610cd3eaa6d9666fe5e62b988bf7f0bd8722::musd::MUSD',
     sCoinMetadataId:
       '0xb924f8c3d4b993172d4fc553c1ea242e8ca539e83edc3edaf5512ae44dfa6863',
-    decimals: 0,
-    pythFeed: '',
-    pythFeedObjectId: '',
+    decimals: 9,
+    pythFeed:
+      '2ee09cdb656959379b9262f89de5ff3d4dfed0dd34c072b3e22518496a65249c',
+    pythFeedObjectId:
+      '0x72fbf053d6009a40cff74d9708592bd7b86673a0e7b252077e1aa53390976584',
   },
 };
