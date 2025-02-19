@@ -133,16 +133,23 @@ export const getPythPrices = async (
 export const getAllCoinPrices = async (
   query: ScallopQuery,
   marketPools?: MarketPools,
-  coinPrices?: CoinPrices
+  coinPrices?: CoinPrices,
+  indexer: boolean = false
 ) => {
-  coinPrices = coinPrices ?? (await query.utils.getCoinPrices());
+  coinPrices =
+    coinPrices ??
+    (indexer
+      ? await query.getCoinPricesByIndexer()
+      : await query.utils.getCoinPrices());
+
   marketPools =
     marketPools ??
-    (await query.getMarketPools(undefined, { coinPrices })).pools;
+    (await query.getMarketPools(undefined, { coinPrices, indexer })).pools;
 
   if (!marketPools) {
     throw new Error(`Failed to fetch market pool for getAllCoinPrices`);
   }
+
   const sCoinPrices: OptionalKeys<Record<SupportSCoin, number>> = {};
   SUPPORT_SCOIN.forEach((sCoinName) => {
     const coinName = query.utils.parseCoinName(sCoinName);
