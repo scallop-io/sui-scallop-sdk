@@ -768,6 +768,8 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0xafe673a27747b063fa918d2dfe47794e44af553737ac562c2a63186539a07f45',
     supplyLimitKey:
       '0x730e0785ba056a7a95f4a6959371a598d7fe782e81c40785c79982ced4cf4e35',
+    borrowLimitKey:
+      '0x1630c6954918a06fe56312afb8958366c5ed7af653dae0e32c09d088da38577e',
     sCoinTreasury:
       '0xdad9bc6293e694f67a5274ea51b596e0bdabfafc585ae6d7e82888e65f1a03e0',
     sCoinType:
@@ -801,6 +803,8 @@ export const POOL_ADDRESSES: OptionalKeys<
       '0xfdb02d76dc67553fd15f42f1de49ca79cd2812bdaf8bcd079cfe17ce23ed9fc4',
     supplyLimitKey:
       '0x340aaae070f9489b59c4257610babf6f170abf43fbe51cf7de1e2e04492f6823',
+    borrowLimitKey:
+      '0x2af09dd392e5fa0bb1895b021d871f42dd1bdf4843173836d9611c8c6484031a',
     isolatedAssetKey:
       '0xe10f03b13d2cdb46543130bafaf1884c9a5a7712b5932aae15b2f8d4fc31a774',
     sCoinTreasury:
