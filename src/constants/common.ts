@@ -51,6 +51,7 @@ export const SUPPORT_POOLS = [
   'fdusd',
   'blub',
   'musd',
+  'ns',
 ] as const;
 
 export const SUPPORT_COLLATERALS = [
@@ -106,6 +107,7 @@ export const SUPPORT_SCOIN = [
   'sfdusd',
   'sblub',
   'smusd',
+  'sns',
 ] as const;
 
 export const SUPPORT_SUI_BRIDGE = ['sbeth', 'sbusdt', 'sbwbtc'] as const;
