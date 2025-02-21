@@ -825,4 +825,39 @@ export const POOL_ADDRESSES: OptionalKeys<
     pythFeedObjectId:
       '0x72fbf053d6009a40cff74d9708592bd7b86673a0e7b252077e1aa53390976584',
   },
+  ns: {
+    coinName: 'ns',
+    symbol: 'NS',
+    lendingPoolAddress:
+      '0x98491693e99905ce243655f1d2dc86b62d7c9c330985ee71d16760b63601708c',
+    borrowDynamic:
+      '0x320035fc3bdba3106f550531523b5eab623fc3b42639e6b27623838d121ef64a',
+    interestModel:
+      '0x6e3c7426f922c6e8538331d36918dc092a53e46d4bb478c36d09b40d0fddc3bf',
+    borrowFeeKey:
+      '0x9d99ae707899e1034401e8fb8524573a2603ac71a6d367f65d06fbb0ca586950',
+    supplyLimitKey:
+      '0xe6e87903708cbc09c8d5b005ddbec036efde2c58de4b52d4d8b9f10cb5c9a92b',
+    borrowLimitKey:
+      '0x3e958a562c6062e39559bb72feb2e4fa5595d629fcafe36a3a40546e0934bd8a',
+    isolatedAssetKey:
+      '0x73ebd841fdbe2a4b4f87fd58a729cba0a7a5871962dc04f5123339d1e0e64de8',
+    sCoinTreasury:
+      '0xa178587907006828839f312e6b5afa69e8aa9c66bdf06b2a5918bd8d913488e3',
+    sCoinType:
+      '0x6511052d2f1404934e0d877709949bcda7c1d451d1218a4b2643ca2f3fa93991::scallop_ns::SCALLOP_NS',
+    sCoinName: 'sns',
+    sCoinSymbol: 'sNS',
+    coinMetadataId:
+      '0x279adec041f8ec5c2d419abf2c32713ae7930a9a3a1ff244c88e5ceced40db6e',
+    coinType:
+      '0x5145494a5f5100e645e4b0aa950fa6b68f614e8c59e17bc5ded3495123a79178::ns::NS',
+    sCoinMetadataId:
+      '0x898320fe66409bdcf580e2a5764217aa51a6fb26890645efff7011b54117e6df',
+    decimals: 6,
+    pythFeed:
+      'bb5ff26e47a3a6cc7ec2fce1db996c2a145300edc5acaabe43bf9ff7c5dd5d32',
+    pythFeedObjectId:
+      '0xc6352e1ea55d7b5acc3ed690cc3cdf8007978071d7bfd6a189445018cfb366e0',
+  },
 };
