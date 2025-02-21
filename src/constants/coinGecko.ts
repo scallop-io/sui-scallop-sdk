@@ -28,5 +28,6 @@ export const COIN_GECKGO_IDS: Record<SupportPoolCoins, string> = {
   // Isolated Asset
   fud: 'fud-the-pug',
   blub: 'blub',
-  musd: '', // @TODO: add coinGecko id
+  musd: 'meta-usd',
+  ns: 'suins-token',
 };
