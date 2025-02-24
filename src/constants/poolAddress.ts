@@ -860,7 +860,6 @@ export const POOL_ADDRESSES: OptionalKeys<
     pythFeedObjectId:
       '0xc6352e1ea55d7b5acc3ed690cc3cdf8007978071d7bfd6a189445018cfb366e0',
   },
-  // @TODO: update the address
   usdy: {
     coinName: 'usdy',
     symbol: 'USDY',
