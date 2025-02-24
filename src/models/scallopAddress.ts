@@ -316,38 +316,47 @@ const EMPTY_ADDRESSES: AddressesInterface = {
       ssui: {
         coinType: '',
         treasury: '',
+        metaData: '',
       },
       scetus: {
         coinType: '',
         treasury: '',
+        metaData: '',
       },
       ssca: {
         coinType: '',
         treasury: '',
+        metaData: '',
       },
       swusdc: {
         coinType: '',
         treasury: '',
+        metaData: '',
       },
       swusdt: {
         coinType: '',
         treasury: '',
+        metaData: '',
       },
       sweth: {
         coinType: '',
         treasury: '',
+        metaData: '',
       },
       safsui: {
         coinType: '',
         treasury: '',
+        metaData: '',
       },
       shasui: {
         coinType: '',
         treasury: '',
+        metaData: '',
       },
       svsui: {
         coinType: '',
         treasury: '',
+        metaData: '',
       },
     },
   },

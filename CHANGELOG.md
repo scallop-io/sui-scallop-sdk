@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.25](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.24...v1.4.25) (2025-02-21)
+
+### Features
+
+- Add `ns` as isolated asset ([ed4c222](https://github.com/scallop-io/sui-scallop-sdk/pull/236/commits/ed4c2220f3eee780da7a37e324848c7fc409bb7b))
+
+### [1.4.24](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.23...v1.4.24) (2025-02-19)
+
+### Features
+
+- Add `mUSD` as isolated asset
+- Optimize build result
+
+### [1.4.23](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.22...v1.4.23) (2025-02-08)
+
+### Features
+
+- Fix sui bridge wormhole symbol coin format ([523e523](https://github.com/scallop-io/sui-scallop-sdk/commit/523e523d627c3824d490a98e5ac53f73e6670340))
+
+### [1.4.22](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.21...v1.4.22) (2025-02-06)
+
+### Features
+
+- Add `sbwBTC` pool support ([f5979d8](https://github.com/scallop-io/sui-scallop-sdk/pull/232/commits/f5979d88387226d440722b3adad997d6a17fffd6))
+
 ### [1.4.21](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.20...v1.4.21) (2025-01-24)
 
 ### Features
