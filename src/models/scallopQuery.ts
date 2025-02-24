@@ -852,22 +852,38 @@ export class ScallopQuery {
   }
 
   /**
+   * Get all supported pool price from indexer
+   * @returns prices data
+   */
+  public async getCoinPricesByIndexer() {
+    return this.indexer.getCoinPrices();
+  }
+
+  /**
    * Get all coin prices, including sCoin
    * @returns prices data
    */
   public async getAllCoinPrices(args?: {
     marketPools?: MarketPools;
     coinPrices?: CoinPrices;
+    indexer?: boolean;
   }) {
-    return getAllCoinPrices(this, args?.marketPools, args?.coinPrices);
+    return getAllCoinPrices(
+      this,
+      args?.marketPools,
+      args?.coinPrices,
+      args?.indexer
+    );
   }
 
   /**
    * Query all address (lending pool, collateral pool, borrow dynamics, interest models, etc.) of all pool
    * @returns
    */
-  public async getPoolAddresses() {
-    return getAllAddresses(this);
+  public async getPoolAddresses(
+    pools: SupportPoolCoins[] = [...SUPPORT_POOLS]
+  ) {
+    return getAllAddresses(this, pools);
   }
 
   /**
