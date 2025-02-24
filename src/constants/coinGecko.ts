@@ -30,4 +30,5 @@ export const COIN_GECKGO_IDS: Record<SupportPoolCoins, string> = {
   blub: 'blub',
   musd: 'meta-usd',
   ns: 'suins-token',
+  usdy: 'ondo-us-dollar-yield',
 };
