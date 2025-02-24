@@ -357,8 +357,9 @@ export const TEST_ADDRESSES: AddressesInterface = {
           supra: '',
           switchboard: '',
           pyth: {
-            feed: 'e393449f6aff8a4b6d3e1165a7c9ebec103685f3b41e60db4277b5b6d10e7326',
-            feedObject: '',
+            feed: 'e3d1723999820435ebab53003a542ff26847720692af92523eea613a9a28d500',
+            feedObject:
+              '0x773cb390165e227cbd5bd924edaeff7d33b1b78aac045c4903ed9be7e711741a',
           },
         },
       },
@@ -736,8 +737,14 @@ export const TEST_ADDRESSES: AddressesInterface = {
         metaData:
           '0x898320fe66409bdcf580e2a5764217aa51a6fb26890645efff7011b54117e6df',
       },
-      // @TODO: fill data
-      susdy: {},
+      susdy: {
+        coinType:
+          '0xd285cbbf54c87fd93cd15227547467bb3e405da8bbf2ab99f83f323f88ac9a65::scallop_usdy::SCALLOP_USDY',
+        treasury:
+          '0xc8c5339fb10d9ad96f235fb312bda54df351549a3302e7fa7fd5d1725481604f',
+        metaData:
+          '0x098c4c77bd29ec803a11fa2b2d684577c6a09e75b77e0a7ab59b8b785fb492df',
+      },
     },
   },
 };

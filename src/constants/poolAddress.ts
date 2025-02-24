@@ -864,25 +864,38 @@ export const POOL_ADDRESSES: OptionalKeys<
   usdy: {
     coinName: 'usdy',
     symbol: 'USDY',
-    lendingPoolAddress: '',
-    collateralPoolAddress: '',
-    borrowDynamic: '',
-    interestModel: '',
-    riskModel: '',
-    borrowFeeKey: '',
-    supplyLimitKey: '',
-    sCoinTreasury: '',
-    sCoinType: '',
+    lendingPoolAddress:
+      '0xd7a8b75ffcd9f22a0108c95ae735b864e117a28d0bf6d596eb4ccd9d6213210d',
+    collateralPoolAddress:
+      '0x518a921e61aa11a0252bf70d5b2e378e886163a558e07b32424f3930ee0a464a',
+    borrowDynamic:
+      '0xaddf0b9b382f1ace39916383d24e91b5fd6ff49c5ae0c9400c173fd448e173c8',
+    interestModel:
+      '0x85781ba1b952743fbc7ba436e165721a189bd724d65cf4abb78b9fe924e6e2eb',
+    riskModel:
+      '0x96923670c98ec791fefd8074b87cd0087da60e4dbfca9423049fc805e703ec50',
+    borrowFeeKey:
+      '0x1904f3f2b76bbfa6ba6184cace93ee605691333a35525f1d6648a1509411e4d2',
+    supplyLimitKey:
+      '0x2f3a58bcf68426cc998b7a9782dccf87351c44efbe655b13a0ac753d6f34a034',
+    borrowLimitKey:
+      '0xe8ade192f71fbe30d2ed1d246241c370d2882ff78ad312a3382ca8e2c73c386d',
+    sCoinTreasury:
+      '0xc8c5339fb10d9ad96f235fb312bda54df351549a3302e7fa7fd5d1725481604f',
+    sCoinType:
+      '0xd285cbbf54c87fd93cd15227547467bb3e405da8bbf2ab99f83f323f88ac9a65::scallop_usdy::SCALLOP_USDY',
     sCoinName: 'susdy',
     sCoinSymbol: 'sUSDY',
     coinMetadataId:
       '0xd8dd6cf839e2367de6e6107da4b4361f44798dd6cf26d094058d94e4cee25e36',
     coinType:
       '0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb::usdy::USDY',
-    sCoinMetadataId: '',
+    sCoinMetadataId:
+      '0x098c4c77bd29ec803a11fa2b2d684577c6a09e75b77e0a7ab59b8b785fb492df',
     decimals: 6,
     pythFeed:
-      'e393449f6aff8a4b6d3e1165a7c9ebec103685f3b41e60db4277b5b6d10e7326',
-    pythFeedObjectId: '',
+      'e3d1723999820435ebab53003a542ff26847720692af92523eea613a9a28d500',
+    pythFeedObjectId:
+      '0x773cb390165e227cbd5bd924edaeff7d33b1b78aac045c4903ed9be7e711741a',
   },
 };
