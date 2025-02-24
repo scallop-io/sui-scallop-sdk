@@ -348,6 +348,21 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
+      usdy: {
+        id: '0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb',
+        metaData:
+          '0xd8dd6cf839e2367de6e6107da4b4361f44798dd6cf26d094058d94e4cee25e36',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: 'e3d1723999820435ebab53003a542ff26847720692af92523eea613a9a28d500',
+            feedObject:
+              '0x773cb390165e227cbd5bd924edaeff7d33b1b78aac045c4903ed9be7e711741a',
+          },
+        },
+      },
     },
     oracles: {
       xOracle:
@@ -721,6 +736,14 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0xa178587907006828839f312e6b5afa69e8aa9c66bdf06b2a5918bd8d913488e3',
         metaData:
           '0x898320fe66409bdcf580e2a5764217aa51a6fb26890645efff7011b54117e6df',
+      },
+      susdy: {
+        coinType:
+          '0xd285cbbf54c87fd93cd15227547467bb3e405da8bbf2ab99f83f323f88ac9a65::scallop_usdy::SCALLOP_USDY',
+        treasury:
+          '0xc8c5339fb10d9ad96f235fb312bda54df351549a3302e7fa7fd5d1725481604f',
+        metaData:
+          '0x098c4c77bd29ec803a11fa2b2d684577c6a09e75b77e0a7ab59b8b785fb492df',
       },
     },
   },
