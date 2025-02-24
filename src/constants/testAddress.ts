@@ -348,6 +348,20 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
+      usdy: {
+        id: '0x960b531667636f39e85867775f52f6b1f220a058c4de786905bdf761e06a56bb',
+        metaData:
+          '0xd8dd6cf839e2367de6e6107da4b4361f44798dd6cf26d094058d94e4cee25e36',
+        treasury: '',
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: 'e393449f6aff8a4b6d3e1165a7c9ebec103685f3b41e60db4277b5b6d10e7326',
+            feedObject: '',
+          },
+        },
+      },
     },
     oracles: {
       xOracle:
@@ -722,6 +736,8 @@ export const TEST_ADDRESSES: AddressesInterface = {
         metaData:
           '0x898320fe66409bdcf580e2a5764217aa51a6fb26890645efff7011b54117e6df',
       },
+      // @TODO: fill data
+      susdy: {},
     },
   },
 };
