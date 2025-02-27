@@ -131,6 +131,7 @@ export interface AddressesInterface {
         {
           coinType: string;
           treasury: string;
+          metaData: string;
         }
       >
     >;
