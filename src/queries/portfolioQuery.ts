@@ -771,7 +771,8 @@ export const getObligationAccount = async (
         .shiftedBy(marketPool.coinDecimal)
         .dividedBy(marketPool.coinPrice);
       estimatedAvailableBorrowAmount =
-        obligationAccount.totalAvailableCollateralValue !== 0
+        obligationAccount.totalAvailableCollateralValue !== 0 &&
+        BigNumber(marketPool.maxBorrowCoin).isGreaterThan(marketPool.borrowCoin)
           ? minBigNumber(
               estimatedAvailableBorrowAmount
                 // Note: reduced chance of failure when calculations are inaccurate
