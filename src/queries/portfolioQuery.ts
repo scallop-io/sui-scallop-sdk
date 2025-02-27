@@ -435,9 +435,14 @@ export const getObligationAccount = async (
         marketCollateral.liquidationFactor
       );
 
-      const poolSizeAmount = BigNumber(marketCollateral.maxDepositAmount).minus(
+      const poolSizeAmount = BigNumber(marketCollateral.maxDepositAmount).lt(
         marketCollateral.depositAmount
-      );
+      )
+        ? BigNumber(0)
+        : BigNumber(marketCollateral.maxDepositAmount).minus(
+            marketCollateral.depositAmount
+          );
+
       const availableDepositAmount = minBigNumber(
         BigNumber(coinAmount),
         poolSizeAmount
