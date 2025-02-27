@@ -55,10 +55,13 @@ export const parseAssetSymbol = (coinName: SupportCoins): string => {
     return `w${coinName.slice(1).toUpperCase()}`;
   }
   if (isSuiBridgeAsset(coinName)) {
-    if (coinName.startsWith('sbw') && coinName.length > 3) {
-      return `sbw${coinName.slice(3).toUpperCase()}`;
+    switch (coinName) {
+      case 'sbwbtc':
+        return 'sbwBTC';
+      default: {
+        return `sb${coinName.slice(2).toUpperCase()}`;
+      }
     }
-    return `sb${coinName.slice(2).toUpperCase()}`;
   }
   if (isMarketCoin(coinName)) {
     const assetCoinName = coinName.slice(1).toLowerCase() as SupportAssetCoins;
@@ -71,6 +74,8 @@ export const parseAssetSymbol = (coinName: SupportCoins): string => {
       return 'haSUI';
     case 'vsui':
       return 'vSUI';
+    case 'musd':
+      return 'mUSD';
     default:
       return coinName.toUpperCase();
   }

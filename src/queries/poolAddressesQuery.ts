@@ -1,10 +1,10 @@
-import { PYTH_FEED_IDS, SUPPORT_POOLS } from 'src/constants';
+import { PYTH_FEED_IDS } from 'src/constants';
 import { ScallopQuery } from 'src/models';
 import { OptionalKeys, SupportPoolCoins } from 'src/types';
 
 export const getAllAddresses = async (
   query: ScallopQuery,
-  poolNames: SupportPoolCoins[] = [...SUPPORT_POOLS]
+  pools: SupportPoolCoins[]
 ) => {
   const results: OptionalKeys<
     Record<
@@ -47,7 +47,7 @@ export const getAllAddresses = async (
 
   const fields = marketObject.content.fields as any;
 
-  const coinTypesPairs = poolNames.reduce(
+  const coinTypesPairs = pools.reduce(
     (acc, pool) => {
       acc.push([pool, query.utils.parseCoinType(pool).substring(2)]);
       return acc;

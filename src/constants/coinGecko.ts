@@ -1,24 +1,34 @@
 import { SupportPoolCoins } from 'src/types/constant/common';
 
 export const COIN_GECKGO_IDS: Record<SupportPoolCoins, string> = {
-  usdc: 'usdc',
+  // Sui Bridge
   sbeth: 'ethereum',
   sbusdt: 'tether',
   sbwbtc: 'bitcoin',
+  // Wormhole
   weth: 'ethereum',
   wbtc: 'bitcoin',
   wusdc: 'usdc',
   wusdt: 'tether',
-  sui: 'sui',
   wapt: 'aptos',
   wsol: 'solana',
-  cetus: 'cetus-protocol',
+  // Sui Native
+  usdc: 'usdc',
+  // Sui LST
+  sui: 'sui',
   afsui: 'sui',
   hasui: 'sui',
   vsui: 'sui',
-  sca: 'scallop-2',
+  // Stable
   fdusd: 'first-digital-usd',
+  // DeFi
+  cetus: 'cetus-protocol',
+  sca: 'scallop-2',
   deep: 'deepbook',
+  // Isolated Asset
   fud: 'fud-the-pug',
   blub: 'blub',
+  musd: 'meta-usd',
+  ns: 'suins-token',
+  usdy: 'ondo-us-dollar-yield',
 };
