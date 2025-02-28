@@ -78,6 +78,7 @@ export type ScallopClientParams = ScallopParams &
 export type ScallopBuilderParams = ScallopParams & {
   pythEndpoints?: string[];
   usePythPullModel?: boolean;
+  useOnChainXOracleList?: boolean;
 } & ScallopQueryParams;
 
 export type ScallopQueryParams = ScallopParams & ScallopUtilsParams;
