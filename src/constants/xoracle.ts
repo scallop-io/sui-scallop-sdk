@@ -22,4 +22,7 @@ export const xOracleList: xOracleListType = {
   deep: { primary: ['pyth'], secondary: [] },
   fdusd: { primary: [], secondary: [] },
   blub: { primary: [], secondary: [] },
+  musd: { primary: [], secondary: [] },
+  ns: { primary: [], secondary: [] },
+  usdy: { primary: [], secondary: [] },
 };
