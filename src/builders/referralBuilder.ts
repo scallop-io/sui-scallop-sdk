@@ -32,6 +32,11 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
   };
 
   const veScaTable = builder.address.get('vesca.table');
+  const clockObjectRef = txBlock.sharedObjectRef({
+    objectId: SUI_CLOCK_OBJECT_ID,
+    mutable: false,
+    initialSharedVersion: '1',
+  });
 
   return {
     bindToReferral: (veScaKeyId: string) => {
@@ -42,11 +47,7 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
           referralIds.referralBindings,
           txBlock.pure.id(veScaKeyId),
           veScaTable,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         []
       );
@@ -62,11 +63,7 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
           referralIds.referralBindings,
           referralIds.authorizedWitnessList,
           referralIds.referralTiers,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         [coinType]
       );
@@ -80,11 +77,7 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
           referralIds.version,
           ticket,
           referralIds.referralRevenuePool,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         [coinType]
       );
@@ -101,11 +94,7 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
           referralIds.version,
           referralIds.referralRevenuePool,
           veScaKey,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         [coinType]
       );

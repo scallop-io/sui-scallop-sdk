@@ -12,3 +12,4 @@ export * from './vescaQuery';
 export * from './borrowLimitQuery';
 export * from './poolAddressesQuery';
 export * from './objectsQuery';
+export * from './xOracleQuery';

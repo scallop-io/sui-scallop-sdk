@@ -75,6 +75,11 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
 
   const referralPkgId = builder.address.get('referral.id');
   const referralWitnessType = `${referralPkgId}::scallop_referral_program::REFERRAL_WITNESS`;
+  const clockObjectRef = txBlock.sharedObjectRef({
+    objectId: SUI_CLOCK_OBJECT_ID,
+    mutable: false,
+    initialSharedVersion: '1',
+  });
 
   return {
     openObligation: () => {
@@ -126,11 +131,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           coreIds.coinDecimalsRegistry,
           txBlock.pure.u64(amount),
           coreIds.xOracle,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         [coinType]
       );
@@ -141,16 +142,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::mint::mint`,
-        [
-          coreIds.version,
-          coreIds.market,
-          coin,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [coreIds.version, coreIds.market, coin, clockObjectRef],
         [coinType]
       );
     },
@@ -160,16 +152,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::mint::mint_entry`,
-        [
-          coreIds.version,
-          coreIds.market,
-          coin,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [coreIds.version, coreIds.market, coin, clockObjectRef],
         [coinType]
       );
     },
@@ -179,16 +162,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::redeem::redeem`,
-        [
-          coreIds.version,
-          coreIds.market,
-          marketCoin,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [coreIds.version, coreIds.market, marketCoin, clockObjectRef],
         [coinType]
       );
     },
@@ -198,16 +172,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::redeem::redeem_entry`,
-        [
-          coreIds.version,
-          coreIds.market,
-          marketCoin,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [coreIds.version, coreIds.market, marketCoin, clockObjectRef],
         [coinType]
       );
     },
@@ -225,11 +190,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           coreIds.coinDecimalsRegistry,
           amount,
           coreIds.xOracle,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         [coinType]
       );
@@ -255,11 +216,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           borrowReferral,
           typeof amount === 'number' ? txBlock.pure.u64(amount) : amount,
           coreIds.xOracle,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         [coinType, referralWitnessType]
       );
@@ -278,11 +235,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
           coreIds.coinDecimalsRegistry,
           txBlock.pure.u64(amount),
           coreIds.xOracle,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         [coinType]
       );
@@ -292,17 +245,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::repay::repay`,
-        [
-          coreIds.version,
-          obligation,
-          coreIds.market,
-          coin,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [coreIds.version, obligation, coreIds.market, coin, clockObjectRef],
         [coinType]
       );
     },
@@ -479,7 +422,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         )) ?? [];
       const updateCoinNames = [...obligationCoinNames, poolCoinName];
       await updateOracles(builder, txBlock, updateCoinNames);
-      return await txBlock.borrow(
+      return txBlock.borrow(
         obligationInfo.obligationId,
         obligationInfo.obligationKey as SuiObjectArg,
         amount,
