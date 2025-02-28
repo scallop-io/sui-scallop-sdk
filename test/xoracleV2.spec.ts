@@ -18,7 +18,9 @@ describe('Test XOracle V2', async () => {
       mainnet: TEST_ADDRESSES,
     },
   });
-  const scallopBuilder = await scallopSdk.createScallopBuilder();
+  const scallopBuilder = await scallopSdk.createScallopBuilder({
+    useOnChainXOracleList: true,
+  });
 
   // console.info('\x1b[32mAddresses Id: \x1b[33m', TEST_ADDRESSES_ID);
 
@@ -27,7 +29,12 @@ describe('Test XOracle V2', async () => {
     const txb = new SuiTxBlock();
 
     await updateOracles(scallopBuilder, txb, coins);
-    const resp = await scallopBuilder.suiKit.signAndSendTxn(txb);
+    const resp = await scallopBuilder.suiKit
+      .client()
+      .devInspectTransactionBlock({
+        transactionBlock: txb.txBlock,
+        sender: scallopBuilder.walletAddress,
+      });
     expect(resp.effects?.status?.status).toEqual('success');
   });
 });

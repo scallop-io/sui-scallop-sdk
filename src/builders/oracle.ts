@@ -14,7 +14,7 @@ import type {
   xOracleRuleType,
 } from '../types';
 import { PYTH_ENDPOINTS } from 'src/constants/pyth';
-import { xOracleList } from 'src/constants';
+import { xOracleList as X_ORACLE_LIST } from 'src/constants';
 
 /**
  * Update the price of the oracle for multiple coin.
@@ -32,10 +32,18 @@ export const updateOracles = async (
   ],
   options: {
     usePythPullModel: boolean;
-  } = { usePythPullModel: true }
+    onChainXOracleList: boolean;
+  } = { usePythPullModel: true, onChainXOracleList: false }
 ) => {
   const usePythPullModel =
     builder.params.usePythPullModel ?? options.usePythPullModel;
+  const useOnChainXOracleList =
+    builder.params.useOnChainXOracleList ?? options.onChainXOracleList;
+
+  const xOracleList = useOnChainXOracleList
+    ? await builder.query.getAssetOracles()
+    : X_ORACLE_LIST;
+
   // const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
   const flattenedRules: SupportOracleType[] = [
     ...new Set(
