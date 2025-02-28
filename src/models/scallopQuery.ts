@@ -43,6 +43,8 @@ import {
   getAllAddresses,
   isIsolatedAsset,
   getUserPortfolio,
+  getPriceUpdatePolicies,
+  getAssetOracles,
 } from '../queries';
 import {
   ScallopQueryParams,
@@ -60,6 +62,7 @@ import {
   CoinPrices,
   MarketPools,
   MarketCollaterals,
+  xOracleRules,
 } from '../types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -294,8 +297,14 @@ export class ScallopQuery {
    * @param obligationId - The obligation id.
    * @return Obligation data.
    */
-  public async queryObligation(obligationId: string | SuiObjectArg) {
-    return queryObligation(this, obligationId);
+  public async queryObligation(
+    obligationId: SuiObjectArg,
+    args?: {
+      version: SuiObjectArg;
+      market: SuiObjectArg;
+    }
+  ) {
+    return queryObligation(this, obligationId, args?.version, args?.market);
   }
 
   /**
@@ -659,12 +668,6 @@ export class ScallopQuery {
     return Object.values(results).find(
       (obligation) => obligation?.obligationId === obligationId
     );
-    // return await getObligationAccount(
-    //   this,
-    //   obligationId,
-    //   ownerAddress,
-    //   args?.indexer
-    // );
   }
 
   /**
@@ -897,6 +900,36 @@ export class ScallopQuery {
       this,
       args?.walletAddress ?? this.walletAddress,
       args?.indexer ?? false
+    );
+  }
+
+  /**
+   * Get both primary and secondary price update policy objects
+   * @returns price update policies
+   */
+  public async getPriceUpdatePolicies() {
+    return await getPriceUpdatePolicies(this.address);
+  }
+
+  /**
+   * Return the supported primary and secondary oracles for all supported pool assets
+   * @returns
+   */
+  public async getAssetOracles() {
+    const [primary, secondary] = await Promise.all([
+      getAssetOracles(this.utils, 'primary'),
+      getAssetOracles(this.utils, 'secondary'),
+    ]);
+
+    return SUPPORT_POOLS.reduce(
+      (acc, pool) => {
+        acc[pool] = {
+          primary: primary[pool] ?? [],
+          secondary: secondary[pool] ?? [],
+        };
+        return acc;
+      },
+      {} as Record<SupportAssetCoins, xOracleRules>
     );
   }
 }

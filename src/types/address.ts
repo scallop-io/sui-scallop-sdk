@@ -65,6 +65,7 @@ export interface AddressesInterface {
         SupportPackageType,
         {
           id: string;
+          object?: string;
           upgradeCap: string;
         }
       >

@@ -107,7 +107,7 @@ export const parseDataFromPythPriceFeed = (
       publishTime: Number(feed.price.publishTime) * 10 ** 3,
     };
   } else {
-    throw new Error('Invalid feed id');
+    throw new Error(`Invalid feed id: ${feed.id}`);
   }
 };
 

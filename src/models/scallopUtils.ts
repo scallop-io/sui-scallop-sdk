@@ -289,7 +289,7 @@ export class ScallopUtils {
    */
   public parseMarketCoinType(coinName: SupportCoins) {
     const protocolObjectId =
-      this.address.get('core.object') ?? PROTOCOL_OBJECT_ID;
+      this.address.get('core.object') || PROTOCOL_OBJECT_ID;
     const coinType = this.parseCoinType(coinName, true);
     return `${protocolObjectId}::reserve::MarketCoin<${coinType}>`;
   }
