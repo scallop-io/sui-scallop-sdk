@@ -1007,11 +1007,11 @@ export const queryObligation = async (
   }: {
     address: ScallopAddress;
   },
-  obligationId: SuiObjectArg,
-  version: SuiObjectArg = address.get('core.version'),
-  market: SuiObjectArg = address.get('core.market')
+  obligationId: SuiObjectArg
 ) => {
   const packageId = address.get('core.packages.query.id');
+  const version = address.get('core.version');
+  const market = address.get('core.market');
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
 
   const args = [
