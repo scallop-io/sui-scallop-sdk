@@ -918,8 +918,8 @@ export class ScallopQuery {
     return SUPPORT_POOLS.reduce(
       (acc, pool) => {
         acc[pool] = {
-          primary: primary[pool] ?? [],
-          secondary: secondary[pool] ?? [],
+          primary: primary?.[pool] ?? [],
+          secondary: secondary?.[pool] ?? [],
         };
         return acc;
       },

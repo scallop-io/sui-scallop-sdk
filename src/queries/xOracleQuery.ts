@@ -7,14 +7,14 @@ import {
 } from 'src/types';
 
 const PRIMARY_PRICE_UPDATE_POLICY =
-  '0xbcd908d0ee6d63d726e61676f3feeec3d19817f4849bbecf372dd3399f247f6b'; // @TODO: move this constant to api address
+  '0x56e48a141f20a3a6a6d3fc43e58b01fc63f756c08224870e7890c80ec9d2afee';
 const SECONDARY_PRICE_UPDDATE_POLICY =
-  '0x624a6f120777bb30e718b86e836c205ef4229448052377dc3d78272a6662b2c0'; // @TODO: move this constant to api address
+  '0xef4d9430ae42c1b24199ac55e87ddd7262622447ee3c7de8868efe839b3d8705';
 
 /**
  * Query the price update policy table ids. Usually the value for these table will be constant.
  * @param query
- * @returns
+ * @returns Primary and Secondary price update policy table object
  */
 export const getPriceUpdatePolicies = async (
   address: ScallopAddress
@@ -23,7 +23,6 @@ export const getPriceUpdatePolicies = async (
   secondary: SuiObjectResponse | null;
 }> => {
   const priceUpdatePolicyRulesKeyType = `${address.get('core.packages.xOracle.object')}::price_update_policy::PriceUpdatePolicyRulesKey`;
-
   const [primaryPriceUpdatePolicyTable, secondaryPriceUpdatePolicyTable] =
     await Promise.all([
       address.cache.queryGetDynamicFieldObject({
@@ -53,14 +52,23 @@ export const getPriceUpdatePolicies = async (
 // const SECONDARY_PRICE_UPDATE_POLICY_KEY =
 //   '0x304d226734fa5e376423c9ff0f1d49aeb1e2572d4b617d31e11e2f69865b73ed';
 const PRIMARY_PRICE_UPDATE_POLICY_VECSET_ID =
-  '0xfb1330aa028ed6a159b742c71b5a79b3b6824cf71efa40ea82b52486ad209264';
+  '0xc22c9d691ee4c780de09db91d8b487d863211ebf08720772144bcf716318826c';
 const SECONDARY_PRICE_UPDATE_POLICY_VECSET_ID =
-  '0x4b827acc73f3f53f808dd73a7ee0a60ae61e84322176bece72b26467030b467c';
+  '0x3b184ff859f5de30eeaf186898e5224925be6bb6d2baa74347ef471a8cd1c0d3';
 
 export const getAssetOracles = async (
   utils: ScallopUtils,
   ruleType: xOracleRuleType
-): Promise<Record<SupportAssetCoins, SupportOracleType[]>> => {
+): Promise<Record<SupportAssetCoins, SupportOracleType[]> | null> => {
+  if (ruleType === 'primary' && !PRIMARY_PRICE_UPDATE_POLICY_VECSET_ID) {
+    console.error('Primary price update policy vecset id is not set');
+    return null;
+  }
+  if (ruleType === 'secondary' && !SECONDARY_PRICE_UPDATE_POLICY_VECSET_ID) {
+    console.error('Secondary price update policy vecset id is not set');
+    return null;
+  }
+
   const ruleTypeNameToOracleType: Record<string, SupportOracleType> = {
     [`${utils.address.get('core.packages.pyth.object')}::rule::Rule`]: 'pyth',
     [`${utils.address.get('core.packages.supra.object')}::rule::Rule`]: 'supra',

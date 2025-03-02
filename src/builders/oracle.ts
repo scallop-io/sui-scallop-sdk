@@ -32,13 +32,13 @@ export const updateOracles = async (
   ],
   options: {
     usePythPullModel: boolean;
-    onChainXOracleList: boolean;
-  } = { usePythPullModel: true, onChainXOracleList: true }
+    useOnChainXOracleList: boolean;
+  } = { usePythPullModel: true, useOnChainXOracleList: true }
 ) => {
   const usePythPullModel =
     builder.params.usePythPullModel ?? options.usePythPullModel;
   const useOnChainXOracleList =
-    builder.params.useOnChainXOracleList ?? options.onChainXOracleList;
+    builder.params.useOnChainXOracleList ?? options.useOnChainXOracleList;
 
   const xOracleList = useOnChainXOracleList
     ? await builder.query.getAssetOracles()
