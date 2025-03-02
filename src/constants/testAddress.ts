@@ -472,9 +472,9 @@ export const TEST_ADDRESSES: AddressesInterface = {
       },
       pyth: {
         registry:
-          '0xdcf813893649521abd27816ba8d946b0cb7fc98d776cc9adcecba54688ccc109',
+          '0x352c9600e69ff6469f9fc7cd1d0cd5f88264caa5f8908102a223ce663fbb360c',
         registryCap:
-          '0xbcb07141eb1f7e01fbda4130ecf5f5adaeabb77f5d9c32158b7532bcd2197acd',
+          '0xe4995aaca4e70d4203790fbd22332107131e88b92b81bc976e6fc3a7d5005efd',
         state:
           '0x1f9310238ee9298fb703c3419030b35b22bb1cc37113e3bb5007c99aec79e5b8',
         wormhole:
@@ -505,7 +505,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0x3f203f6fff6a69d151e4f1cd931f22b68c489ef2759765662fc7baf673943c9e',
       },
       protocol: {
-        id: '0xb03fa00e2d9f17d78a9d48bd94d8852abec68c19d55e819096b1e062e69bfad1',
+        id: '0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41',
         upgradeCap:
           '0x38527d154618d1fd5a644b90717fe07cf0e9f26b46b63e9568e611a3f86d5c1a',
       },
@@ -515,27 +515,24 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0x4a5e88a75039b00988f633f811f58117f31b8627a46bf822aa114d9010049449',
       },
       query: {
-        id: '0x3a0dbce719fc56a96bf8e8dd53cd57eb9c313642a88d99b86f51208762eba258',
-        object: '',
+        id: '0xbb6e3ffa494b543aa028cf8d3fb894be1a678b5fe710f7bb959df0e3c1acc0e8',
         upgradeCap:
-          '0x0d535c35f608b9b01b7ccce11acf43b1dd80c1b72bf8b541744a6e28e8d2745f',
+          '0x14220f035f4cfc2ce442c30703fb44d24f00846eb7077907a231a56051a1d9b2',
       },
       supra: { id: '', object: '', upgradeCap: '' },
       pyth: {
-        id: '0xe622909f9252d4ef1737c41ea430ef44203d8f5dc8e01e1b3950a31405bc54eb',
-        object:
-          '0xe622909f9252d4ef1737c41ea430ef44203d8f5dc8e01e1b3950a31405bc54eb',
+        id: '0x1cf913c825c202cbbb71c378edccb9c04723fa07a73b88677b2ef89c6e203a85',
         upgradeCap:
-          '0xdf0ffbae1ea5bb25fbca5efba433dcf00c7cced65679af2f04728901275c6157',
+          '0xb1f167889643ff766df31745b6e93b92462d8165b0a4f1b095499e15180370f7',
       },
       switchboard: {
         id: '',
         upgradeCap: '',
       },
       xOracle: {
-        id: '0xe7511600c924f1d0ac4b3fa5de3ae26b8845545902b015dc5fc7894307365d7b',
+        id: '0x897ebc619bdb4c3d9e8d86fb85b86cfd5d861b1696d26175c55ed14903a372f6',
         object:
-          '0xe7511600c924f1d0ac4b3fa5de3ae26b8845545902b015dc5fc7894307365d7b',
+          '0x897ebc619bdb4c3d9e8d86fb85b86cfd5d861b1696d26175c55ed14903a372f6',
         upgradeCap:
           '0x0f928a6b2e26b73330fecaf9b44acfc9800a4a9794d6415c2a3153bc70e3c1f0',
       },
@@ -652,7 +649,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
       '0x7cbcb0a342179577a117dfdff974cf1ab765d3b571067bf22ddf5f9e3a667922',
   },
   referral: {
-    id: '0x54334af0681d89ce4d2396f4367015d8ee3a7ce5634f2a0c77c0fb0f36b23dc0',
+    id: '0x1fc417232d747bf8ce9656b8014759cb2fecc31eb4be41b5c5c5d4f73a1313c2',
     object:
       '0x5658d4bf5ddcba27e4337b4262108b3ad1716643cac8c2054ac341538adc72ec',
     adminCap:

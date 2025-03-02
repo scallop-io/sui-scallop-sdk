@@ -1023,7 +1023,7 @@ export const queryObligation = async (
       mutable: false,
       initialSharedVersion: '1',
     },
-  ]; // @TODO: recheck and confirm on production, need to re-deploy the query package (remind Nathan)
+  ];
 
   const queryResult = await address.cache.queryInspectTxn(
     { queryTarget, args }
