@@ -611,29 +611,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
     config:
       '0x9636e7b947b806b9fe438d037f02bb24026c5b2691d2f6bad349c2e117f77cc3',
   },
-  // referral: {
-  //   id: '0x1bf5a8ce77050d8052549d743e16b469f15aa6b81b752b78b6ebb65179665f5a',
-  //   object:
-  //     '0x5658d4bf5ddcba27e4337b4262108b3ad1716643cac8c2054ac341538adc72ec',
-  //   adminCap:
-  //     '0xc5dc06b9074291259f2cac460c940012c781c4430e42125c541cc43101c3bcbd',
-  //   referralBindings:
-  //     '0xcf184487782bed962bf678001efe775d31fb94b9992333a57594cf15d79d5ced',
-  //   bindingTableId:
-  //     '0x41a50e258c0a266ce84e0e1a618dbf70b878cc943909e613089a50afcceb2bc0',
-  //   referralRevenuePool:
-  //     '0xc24e3e5e37032f29a3dd91a9a1f057af8821b7e6c148e9683900ac8b6d30f0c6',
-  //   revenueTableId:
-  //     '0x595baa3654c297bff84ab7786a2d250f019cefc66e8df8e89fd9d41e02bd30dd',
-  //   referralTiers:
-  //     '0x144350f3db9b46d11b140084cd54e6de0b9c3b8d265ce8059b51d0ef58ea464b',
-  //   tiersTableId:
-  //     '0xeac755a7a8b7798530905ac79e8c114f19d0f130f6eab012954f08faac29c75d',
-  //   authorizedWitnessList:
-  //     '0x9d6223dc52015b8a3986a573590ef2af8f1b8f3e4685513888c052f001b87e7f',
-  //   version:
-  //     '0x3545849eb97723e676a476ec9d4fe5f2eb0eb2c6b78972851114fd4c7ed4639f',
-  // },
+
   vesca: {
     id: '0x1158813b32962c2d22888fae257d5f2365b03631f0cd5d5b912ccdf51ff4e2f2',
     object:
@@ -699,14 +677,6 @@ export const TEST_ADDRESSES: AddressesInterface = {
         treasury:
           '0x1b05d2cd8b20dba19da073a54195fc52d2f438ea19dea0713bae7a7dab308199',
       },
-      // susdc: {
-      //   coinType:
-      //     '0x55ed015f9f006c0c96ad36ebe3b3570d088e8498f52defea48e5634c110e485c::scallop_usdc::SCALLOP_USDC',
-      //   metaData: '',
-      // symbol: '',
-      //   treasury:
-      //     '0x6ef82ef94472dcb8c2cdeac8df38874024c08570ca165986ba56d1e38fe0c0a3',
-      // },
       swusdc: {
         coinType:
           '0xad4d71551d31092230db1fd482008ea42867dbf27b286e9c70a79d2a6191d58d::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
