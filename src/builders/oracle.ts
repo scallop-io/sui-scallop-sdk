@@ -33,7 +33,7 @@ export const updateOracles = async (
   options: {
     usePythPullModel: boolean;
     onChainXOracleList: boolean;
-  } = { usePythPullModel: true, onChainXOracleList: false }
+  } = { usePythPullModel: true, onChainXOracleList: true }
 ) => {
   const usePythPullModel =
     builder.params.usePythPullModel ?? options.usePythPullModel;
