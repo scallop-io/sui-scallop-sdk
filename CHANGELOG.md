@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [1.5.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.0...v1.5.1) (2025-02-28)
+### [1.5.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.1...v1.5.2) (2025-03-03)
+
+### Features
+
+- Update address id to `675c65cd301dd817ea262e76` ([767c09f](https://github.com/scallop-io/sui-scallop-sdk/pull/232/commits/767c09f960f738e6f433f3f93646a6357004dbdf))
+
+### [1.5.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.0...v1.5.1) (2025-03-03)
 
 ### Features
 
