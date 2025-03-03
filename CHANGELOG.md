@@ -2,12 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.0...v1.5.1) (2025-02-28)
+
+### Features
+
+- Allow to query oracle list on-chain ([a50e85c](https://github.com/scallop-io/sui-scallop-sdk/pull/240/commits/a50e85c8dd702c3af6109e1f41b67a8c7735b21f))
+
 ### [1.5.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.27...v1.5.0) (2025-02-28)
 
 ### ⚠ BREAKING CHANGES
 
 Starting from `v1.5.0`, Scallop SDK will use `xOracle V2`. Further development will continue from this version onward. Any version below this version is deprecated.
-
 
 ### [1.4.27](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.26...v1.4.27) (2025-02-27)
 
