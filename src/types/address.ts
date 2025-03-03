@@ -23,6 +23,9 @@ export interface AddressesInterface {
           id: string;
           treasury: string;
           metaData: string;
+          coinType: string;
+          symbol: string;
+          decimals: number;
           oracle: {
             [K in SupportOracleType]: K extends (typeof SUPPORT_ORACLES)[0]
               ? string
@@ -130,6 +133,7 @@ export interface AddressesInterface {
         SupportSCoin,
         {
           coinType: string;
+          symbol: string;
           treasury: string;
           metaData: string;
         }

@@ -203,12 +203,9 @@ export const voloCoinIds: types.VoloCoinIds = {
   vsui: '0x549e8b69270defbfafd4f94e17ec44cdbdd99820b33bda2278dea3b9a32d3f55',
 };
 
-// PROD VERSION
 export const sCoinIds: types.SCoinIds = {
-  // ssui: '0xaafc4f740de0dd0dde642a31148fb94517087052f19afb0f7bed1dc41a50c77b::scallop_sui::SCALLOP_SUI', // @TODO: restore on prod
-  ssui: '0x88618204de2dfdc2597681a8441ee726b0dc13494c41e319c3264eb7b35fea90::scallop_sui::SCALLOP_SUI',
-  // ssca: '0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::SCALLOP_SCA', // @TODO: restore on prod
-  ssca: '0x9f64a180373a6b66595025ae16a4ab701f0af1dd5c7ce1ac91dc112e52c2a3f8::scallop_sca::SCALLOP_SCA',
+  ssui: '0xaafc4f740de0dd0dde642a31148fb94517087052f19afb0f7bed1dc41a50c77b::scallop_sui::SCALLOP_SUI',
+  ssca: '0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::SCALLOP_SCA',
   scetus:
     '0xea346ce428f91ab007210443efcea5f5cdbbb3aae7e9affc0ca93f9203c31f0c::scallop_cetus::SCALLOP_CETUS',
   smusd:
@@ -230,8 +227,7 @@ export const sCoinIds: types.SCoinIds = {
     '0xe1a1cc6bcf0001a015eab84bcc6713393ce20535f55b8b6f35c142e057a25fbe::scallop_v_sui::SCALLOP_V_SUI',
   // stable coins
   susdc:
-    // '0x854950aa624b1df59fe64e630b2ba7c550642e9342267a33061d59fb31582da5::scallop_usdc::SCALLOP_USDC', // @TODO: restore on prod
-    '0x55ed015f9f006c0c96ad36ebe3b3570d088e8498f52defea48e5634c110e485c::scallop_usdc::SCALLOP_USDC',
+    '0x854950aa624b1df59fe64e630b2ba7c550642e9342267a33061d59fb31582da5::scallop_usdc::SCALLOP_USDC',
   swusdc:
     '0xad4d71551d31092230db1fd482008ea42867dbf27b286e9c70a79d2a6191d58d::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
   swusdt:
@@ -242,10 +238,8 @@ export const sCoinIds: types.SCoinIds = {
     '0xd285cbbf54c87fd93cd15227547467bb3e405da8bbf2ab99f83f323f88ac9a65::scallop_usdy::SCALLOP_USDY',
   // isolated assets
   sdeep:
-    // '0xeb7a05a3224837c5e5503575aed0be73c091d1ce5e43aa3c3e716e0ae614608f::scallop_deep::SCALLOP_DEEP', // @TODO: restore on prod
-    '0x34f0a2e793e1f79ceac72cfe3bb95f65541da449418289ccd12922d16140c882::scallop_deep::SCALLOP_DEEP',
-  // sfud: '0xe56d5167f427cbe597da9e8150ef5c337839aaf46891d62468dcf80bdd8e10d1::scallop_fud::SCALLOP_FUD', // @TODO: restore on prod
-  sfud: '0x3b23c05f917052255a0b16a534dbd4446911aa4a30bd3497cdf5b736551e7ef8::scallop_fud::SCALLOP_FUD',
+    '0xeb7a05a3224837c5e5503575aed0be73c091d1ce5e43aa3c3e716e0ae614608f::scallop_deep::SCALLOP_DEEP',
+  sfud: '0xe56d5167f427cbe597da9e8150ef5c337839aaf46891d62468dcf80bdd8e10d1::scallop_fud::SCALLOP_FUD',
   sblub:
     '0xe72f65446eabfad2103037af2d49d24599106fb44bf4c046c1e7e9acf6844dd0::scallop_blub::SCALLOP_BLUB',
   // Sui bridge assets
@@ -272,49 +266,3 @@ export const sCoinRawNameToName = Object.entries(sCoinIds).reduce(
   },
   {} as Record<string, types.SupportSCoin>
 );
-
-// TEST VERSION
-// export const sCoinIds: types.SCoinIds = {
-// ssui: '0xf569919046f19a0c40b519ecfbb6ca0319698cd5908716c29b62ef56541f298b::scallop_sui::SCALLOP_SUI',
-// swusdt: '0xac781d9f73058ff5e69f9bf8dde32f2e8c71c66d7fe8497fc83b2d9182254b22::scallop_wormhole_usdt::SCALLOP_WORMHOLE_USDT',
-// swusdc: '0xf5447c4305a486d8c8557559887c2c39449ddb5e748f15d33946d02a1663c158::scallop_wormhole_usdc::SCALLOP_WORMHOLE_USDC',
-// ssca: '0x958428555e778e55918a59eb1c92c77f32b5c554fa3a5e56cd0815086b5072e7::scallop_sca::SCALLOP_SCA',
-// } as const;
-
-// export const sCoinTreasuryCaps: types.SCoinTreasuryCaps = {
-//   ssui: '0xd2c65de0495a060114c6ecc45f5573b8a4519e9538b93075aa2116e94209db55',
-//   scetus: '0x24ba523450908240698628d554d910ed9aba6ff6c73ad735ee571cebd833fc4c',
-//   ssca: '0xda98f336dd1d5827bfaee0fda75c9618d4c730df79623baca7b13037b514643d',
-//   swusdc: '0xd74d585df52333ac463746225b2ae1a48d7f6b037ee97dd43f746e0f6b6a4723',
-//   swusdt: '0x7bc99da1e37d838c49b018ed061f115d26c364a6b1a25059aebb372dfadba753',
-//   sweth: '0xc2a793057fffb91be6cb026cd35e1fc51d5fdd9fae73d2c1cde19ddde0463c2d',
-//   safsui: '0x20df47fa386c9948e255072df3f4e79e32921846770a0d2e01eb4336b5581aa9',
-//   shasui: '0x5bb658edbd3f905494862e4b69101922fb3bea9ac5b035c32e66ec3ee1f4e685',
-//   svsui: '0x3718f9350999e8be4c20064eaf874f470de4f36e3a7ca580fcd94d640a128936',
-// };
-
-// PROD VERSION
-// export const sCoinConverterTreasury: types.SCoinConverterTreasury = {
-//   ssui: '0x5fe57239383098ef93f75912b145e5937a1b3fc78451c78bb1964bc8c4189d5c',
-//   scetus: '0x065ab504806e2a013308de3d60940d9550d39ef83c8a3882f5cbc9019388eeee',
-//   ssca: '0xa9aa774956ec3ee0cafef4084e16e37aacd15564f6e6eb646a63bd96cb959b27',
-//   swusdc: '0x2081a7fe4847aef473729bd6755686a7f232db46a2ff1be187fca961a6767363',
-//   swusdt: '0xc19b204eee6306c794d4d8c1b02b6f58862a52d2cdfc2f580131abd967292450',
-//   sweth: '0x0517d6380ff1687faf0385ccf758c815f114399e408d8b761fbcac4a3bf32495',
-//   safsui: '0x088d0c107a29f250ead75e561a0f5039397da69fffd09392b33939ddc191cd31',
-//   shasui: '0xa883cc4c09d51d3c3713124efce616a343a1158d3430cb42147488321db22fcf',
-//   svsui: '0x8bd37d8aee69f17c5bb54c77d0d40ff6020b7b4a2c295ed455a79f72fb1c07e7',
-// };
-
-// TEST VERSION
-// export const sCoinConverterTreasury: types.SCoinConverterTreasury = {
-//   ssui: '0x9cb4551b36c17d37e19d700147fa819ea1c487ff8bcf18374de2cceb2e9d4845',
-//   scetus: '0xd786f4b2d26278cc7911a3445b1b085eab60f269ef9dbb6b87e803d52f155003',
-//   ssca: '0xe818636d1d6c46d6ea1a2dce9d94696d7cbc18ce27451b603eeaa47aba8d75e0',
-//   swusdc: '0xfc6971648f867f7fd6928d1b873af71577e2eaf2c7543ef8bc82c431d833ae78',
-//   swusdt: '0xb9593e2c3a0ba796ee815012b75ae46468ea78cda0188b9ac6816efe65503521',
-//   sweth: '0x032b4c8fac94c038dbe986f7587e9b1e4ef580b5ee06d2ef249d85459b7ef05d',
-//   safsui: '0x21450ef0570ef3d224ffa3b873ab802e439ece7b93cc7efad10ae0c1e3b3fcfe',
-//   shasui: '0xf822fc1402207e47d2e3ba8ff6e1e594bf1de777dc5ebd2744619cd2726e3b0d',
-//   svsui: '0x327114f0bf3559d7e2de10282147ed76a236c7c6775029165c4db09a6062ead6',
-// };

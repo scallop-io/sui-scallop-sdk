@@ -7,7 +7,7 @@ export const USE_TEST_ADDRESS: boolean = false;
 export const ADDRESSES_ID =
   IS_VE_SCA_TEST || USE_TEST_ADDRESS
     ? ('65fb07c39c845425d71d7b18' as const)
-    : ('675c65cd301dd817ea262e76' as const);
+    : ('67c44a103fe1b8c454eb9699' as const);
 // : ('66f8e7ed9bb9e07fdfb86bbb' as const);
 
 export const PROTOCOL_OBJECT_ID = IS_VE_SCA_TEST

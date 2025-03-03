@@ -1007,11 +1007,11 @@ export const queryObligation = async (
   }: {
     address: ScallopAddress;
   },
-  obligationId: SuiObjectArg,
-  version: SuiObjectArg = address.get('core.version'),
-  market: SuiObjectArg = address.get('core.market')
+  obligationId: SuiObjectArg
 ) => {
   const packageId = address.get('core.packages.query.id');
+  const version = address.get('core.version');
+  const market = address.get('core.market');
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
 
   const args = [
@@ -1023,7 +1023,7 @@ export const queryObligation = async (
       mutable: false,
       initialSharedVersion: '1',
     },
-  ]; // @TODO: recheck and confirm on production, need to re-deploy the query package (remind Nathan)
+  ];
 
   const queryResult = await address.cache.queryInspectTxn(
     { queryTarget, args }
