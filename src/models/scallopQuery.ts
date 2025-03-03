@@ -297,14 +297,8 @@ export class ScallopQuery {
    * @param obligationId - The obligation id.
    * @return Obligation data.
    */
-  public async queryObligation(
-    obligationId: SuiObjectArg,
-    args?: {
-      version: SuiObjectArg;
-      market: SuiObjectArg;
-    }
-  ) {
-    return queryObligation(this, obligationId, args?.version, args?.market);
+  public async queryObligation(obligationId: SuiObjectArg) {
+    return queryObligation(this, obligationId);
   }
 
   /**
@@ -924,8 +918,8 @@ export class ScallopQuery {
     return SUPPORT_POOLS.reduce(
       (acc, pool) => {
         acc[pool] = {
-          primary: primary[pool] ?? [],
-          secondary: secondary[pool] ?? [],
+          primary: primary?.[pool] ?? [],
+          secondary: secondary?.[pool] ?? [],
         };
         return acc;
       },
