@@ -642,12 +642,12 @@ export class ScallopAddress {
    * @return All addresses.
    */
   public async read(id?: string) {
-    const addressesId = id || this._id || undefined;
-    if (addressesId !== undefined) {
+    const addressId = id || this._id || undefined;
+    if (addressId !== undefined) {
       const response = await this.cache.queryClient.fetchQuery({
-        queryKey: queryKeys.api.getAddresses(addressesId),
+        queryKey: queryKeys.api.getAddresses(addressId),
         queryFn: async () => {
-          return await this._requestClient.get(`/addresses/${addressesId}`, {
+          return await this._requestClient.get(`/addresses/${addressId}`, {
             headers: {
               'Content-Type': 'application/json',
             },
