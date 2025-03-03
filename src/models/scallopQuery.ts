@@ -1,5 +1,5 @@
 import { SuiKit, SuiObjectArg } from '@scallop-io/sui-kit';
-import { ADDRESSES_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
+import { ADDRESS_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
 import {
   queryMarket,
   getObligations,
@@ -117,7 +117,7 @@ export class ScallopQuery {
       });
       this.address = new ScallopAddress(
         {
-          id: params?.addressesId ?? ADDRESSES_ID,
+          id: params?.addressId ?? ADDRESS_ID,
           network: params?.networkType,
           forceInterface: params?.forceAddressesInterface,
         },

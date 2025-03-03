@@ -3,7 +3,7 @@ import { SuiKit } from '@scallop-io/sui-kit';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress } from './scallopAddress';
 import {
-  ADDRESSES_ID,
+  ADDRESS_ID,
   PROTOCOL_OBJECT_ID,
   SUPPORT_POOLS,
   SUPPORT_COLLATERALS,
@@ -96,7 +96,7 @@ export class ScallopUtils {
         instance?.address ??
         new ScallopAddress(
           {
-            id: params?.addressesId ?? ADDRESSES_ID,
+            id: params?.addressId ?? ADDRESS_ID,
             network: params?.networkType,
             forceInterface: params?.forceAddressesInterface,
           },

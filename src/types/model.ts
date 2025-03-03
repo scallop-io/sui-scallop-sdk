@@ -64,7 +64,7 @@ export type ScallopAddressParams = {
 };
 
 export type ScallopParams = {
-  addressesId?: string;
+  addressId?: string;
   forceAddressesInterface?: Partial<Record<NetworkType, AddressesInterface>>;
   walletAddress?: string;
 } & SuiKitParams;

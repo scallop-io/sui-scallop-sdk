@@ -1,6 +1,6 @@
 import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ADDRESSES_ID } from '../constants';
+import { ADDRESS_ID } from '../constants';
 import { newScallopTxBlock } from '../builders';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
@@ -70,7 +70,7 @@ export class ScallopBuilder {
       });
       this.address = new ScallopAddress(
         {
-          id: params?.addressesId ?? ADDRESSES_ID,
+          id: params?.addressId ?? ADDRESS_ID,
           network: params?.networkType,
           forceInterface: params?.forceAddressesInterface,
         },
