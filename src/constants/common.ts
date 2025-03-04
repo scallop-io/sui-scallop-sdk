@@ -4,10 +4,10 @@ export const SDK_API_BASE_URL = 'https://sdk.api.scallop.io' as const;
 export const IS_VE_SCA_TEST: boolean = false;
 export const USE_TEST_ADDRESS: boolean = false;
 
-export const ADDRESSES_ID =
+export const ADDRESS_ID =
   IS_VE_SCA_TEST || USE_TEST_ADDRESS
     ? ('65fb07c39c845425d71d7b18' as const)
-    : ('675c65cd301dd817ea262e76' as const);
+    : ('67c44a103fe1b8c454eb9699' as const);
 // : ('66f8e7ed9bb9e07fdfb86bbb' as const);
 
 export const PROTOCOL_OBJECT_ID = IS_VE_SCA_TEST
@@ -33,6 +33,7 @@ export const SUPPORT_POOLS = [
   'usdc', // native USDC
   'sbeth', // sui bridge ETH
   'sbusdt', // sui bridge USDT
+  'sbwbtc', // sui bridge WBTC
   'weth',
   'wbtc',
   'wusdc',
@@ -48,12 +49,17 @@ export const SUPPORT_POOLS = [
   'fud',
   'deep',
   'fdusd',
+  'blub',
+  'musd',
+  'ns',
+  'usdy',
 ] as const;
 
 export const SUPPORT_COLLATERALS = [
   'usdc', // native USDC
   'sbeth', // sui bridge ETH
   'sbusdt', // sui bridge USDT
+  'sbwbtc', // sui bridge WBTC
   'weth',
   'wbtc',
   'wusdc',
@@ -67,6 +73,7 @@ export const SUPPORT_COLLATERALS = [
   'vsui',
   'sca',
   'fdusd',
+  'usdy',
 ] as const;
 
 export const SUPPORT_SPOOLS = [
@@ -85,6 +92,7 @@ export const SUPPORT_SCOIN = [
   'susdc',
   'ssbeth',
   'ssbusdt',
+  'ssbwbtc',
   'ssui',
   'swusdc',
   'swusdt',
@@ -99,9 +107,13 @@ export const SUPPORT_SCOIN = [
   'sdeep',
   'sfud',
   'sfdusd',
+  'sblub',
+  'smusd',
+  'sns',
+  'susdy',
 ] as const;
 
-export const SUPPORT_SUI_BRIDGE = ['sbeth', 'sbusdt'] as const;
+export const SUPPORT_SUI_BRIDGE = ['sbeth', 'sbusdt', 'sbwbtc'] as const;
 export const SUPPORT_WORMHOLE = [
   'wusdc',
   'wusdt',

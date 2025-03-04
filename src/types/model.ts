@@ -64,7 +64,7 @@ export type ScallopAddressParams = {
 };
 
 export type ScallopParams = {
-  addressesId?: string;
+  addressId?: string;
   forceAddressesInterface?: Partial<Record<NetworkType, AddressesInterface>>;
   walletAddress?: string;
 } & SuiKitParams;
@@ -78,6 +78,7 @@ export type ScallopClientParams = ScallopParams &
 export type ScallopBuilderParams = ScallopParams & {
   pythEndpoints?: string[];
   usePythPullModel?: boolean;
+  useOnChainXOracleList?: boolean;
 } & ScallopQueryParams;
 
 export type ScallopQueryParams = ScallopParams & ScallopUtilsParams;

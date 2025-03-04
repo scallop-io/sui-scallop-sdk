@@ -3,7 +3,7 @@ import { SuiKit } from '@scallop-io/sui-kit';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress } from './scallopAddress';
 import {
-  ADDRESSES_ID,
+  ADDRESS_ID,
   PROTOCOL_OBJECT_ID,
   SUPPORT_POOLS,
   SUPPORT_COLLATERALS,
@@ -96,7 +96,7 @@ export class ScallopUtils {
         instance?.address ??
         new ScallopAddress(
           {
-            id: params?.addressesId ?? ADDRESSES_ID,
+            id: params?.addressId ?? ADDRESS_ID,
             network: params?.networkType,
             forceInterface: params?.forceAddressesInterface,
           },
@@ -170,6 +170,11 @@ export class ScallopUtils {
     }
     if (coinName === 'sui')
       return normalizeStructTag(`${coinPackageId}::sui::SUI`);
+    if (coinName === 'blub')
+      return normalizeStructTag(`${coinPackageId}::BLUB::BLUB`);
+    if (coinName === 'sbwbtc')
+      return normalizeStructTag(`${coinPackageId}::btc::BTC`);
+
     const wormHolePackageIds = [
       this.address.get('core.coins.wusdc.id') ?? wormholeCoinIds.wusdc,
       this.address.get('core.coins.wusdt.id') ?? wormholeCoinIds.wusdt,
@@ -284,7 +289,7 @@ export class ScallopUtils {
    */
   public parseMarketCoinType(coinName: SupportCoins) {
     const protocolObjectId =
-      this.address.get('core.object') ?? PROTOCOL_OBJECT_ID;
+      this.address.get('core.object') || PROTOCOL_OBJECT_ID;
     const coinType = this.parseCoinType(coinName, true);
     return `${protocolObjectId}::reserve::MarketCoin<${coinType}>`;
   }

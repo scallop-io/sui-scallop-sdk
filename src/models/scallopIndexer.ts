@@ -269,4 +269,15 @@ export class ScallopIndexer {
   public async getCoinPrice(poolCoinName: SupportPoolCoins): Promise<number> {
     return (await this.getMarketPool(poolCoinName))?.coinPrice ?? 0;
   }
+
+  public async getCoinPrices(): Promise<Record<string, number>> {
+    const marketPools = await this.getMarketPools();
+    return Object.entries(marketPools).reduce(
+      (prev, [coinName, market]) => {
+        prev[coinName] = market.coinPrice;
+        return prev;
+      },
+      {} as Record<string, number>
+    );
+  }
 }

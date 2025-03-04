@@ -1,4 +1,4 @@
-import { normalizeStructTag } from '@mysten/sui/utils';
+import { normalizeStructTag, SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import {
   SUPPORT_POOLS,
   PROTOCOL_OBJECT_ID,
@@ -898,7 +898,7 @@ export const getObligations = async (
   ownerAddress: string
 ) => {
   const owner = ownerAddress;
-  const protocolObjectId = address.get('core.object') ?? PROTOCOL_OBJECT_ID;
+  const protocolObjectId = address.get('core.object') || PROTOCOL_OBJECT_ID;
   const keyObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
@@ -1010,11 +1010,21 @@ export const queryObligation = async (
   obligationId: SuiObjectArg
 ) => {
   const packageId = address.get('core.packages.query.id');
+  const version = address.get('core.version');
+  const market = address.get('core.market');
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
-  const args = [obligationId];
 
-  // const txBlock = new SuiKitTxBlock();
-  // txBlock.moveCall(queryTarget, args);
+  const args = [
+    version,
+    market,
+    obligationId,
+    {
+      objectId: SUI_CLOCK_OBJECT_ID,
+      mutable: false,
+      initialSharedVersion: '1',
+    },
+  ];
+
   const queryResult = await address.cache.queryInspectTxn(
     { queryTarget, args }
     // txBlock

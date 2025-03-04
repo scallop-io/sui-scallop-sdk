@@ -55,7 +55,13 @@ export const parseAssetSymbol = (coinName: SupportCoins): string => {
     return `w${coinName.slice(1).toUpperCase()}`;
   }
   if (isSuiBridgeAsset(coinName)) {
-    return `sb${coinName.slice(2).toUpperCase()}`;
+    switch (coinName) {
+      case 'sbwbtc':
+        return 'sbwBTC';
+      default: {
+        return `sb${coinName.slice(2).toUpperCase()}`;
+      }
+    }
   }
   if (isMarketCoin(coinName)) {
     const assetCoinName = coinName.slice(1).toLowerCase() as SupportAssetCoins;
@@ -68,6 +74,8 @@ export const parseAssetSymbol = (coinName: SupportCoins): string => {
       return 'haSUI';
     case 'vsui':
       return 'vSUI';
+    case 'musd':
+      return 'mUSD';
     default:
       return coinName.toUpperCase();
   }
@@ -99,7 +107,7 @@ export const parseDataFromPythPriceFeed = (
       publishTime: Number(feed.price.publishTime) * 10 ** 3,
     };
   } else {
-    throw new Error('Invalid feed id');
+    throw new Error(`Invalid feed id: ${feed.id}`);
   }
 };
 
