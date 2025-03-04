@@ -25,6 +25,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -38,6 +41,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -51,6 +57,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -64,6 +73,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -77,6 +89,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -90,6 +105,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -103,6 +121,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -116,6 +137,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -129,6 +153,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -142,6 +169,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -155,6 +185,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -168,6 +201,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -316,38 +352,56 @@ const EMPTY_ADDRESSES: AddressesInterface = {
       ssui: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       scetus: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       ssca: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       swusdc: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       swusdt: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       sweth: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       safsui: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       shasui: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       svsui: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
     },
   },
@@ -588,12 +642,12 @@ export class ScallopAddress {
    * @return All addresses.
    */
   public async read(id?: string) {
-    const addressesId = id || this._id || undefined;
-    if (addressesId !== undefined) {
+    const addressId = id || this._id || undefined;
+    if (addressId !== undefined) {
       const response = await this.cache.queryClient.fetchQuery({
-        queryKey: queryKeys.api.getAddresses(addressesId),
+        queryKey: queryKeys.api.getAddresses(addressId),
         queryFn: async () => {
-          return await this._requestClient.get(`/addresses/${addressesId}`, {
+          return await this._requestClient.get(`/addresses/${addressId}`, {
             headers: {
               'Content-Type': 'application/json',
             },

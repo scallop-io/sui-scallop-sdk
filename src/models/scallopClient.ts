@@ -1,7 +1,7 @@
 import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
 import {
-  ADDRESSES_ID,
+  ADDRESS_ID,
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_SCOIN,
   SUPPORT_SPOOLS,
@@ -79,7 +79,7 @@ export class ScallopClient {
       });
       this.address = new ScallopAddress(
         {
-          id: params?.addressesId ?? ADDRESSES_ID,
+          id: params?.addressId ?? ADDRESS_ID,
           network: params?.networkType,
           forceInterface: params?.forceAddressesInterface,
         },

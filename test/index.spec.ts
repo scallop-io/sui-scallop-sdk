@@ -409,7 +409,7 @@ describe('Test Scallop Client - Other Method', async () => {
         txBlock.transferObjects(txObjects, sender);
         transactionBlock = txBlock.txBlock;
       } else {
-        // dereactly witdhdraw.
+        // directly witdhdraw.
         transactionBlock = await client.withdraw(
           coinName,
           withdrawAmountWithDecimals,

@@ -4,7 +4,7 @@ import { ScallopClient } from './scallopClient';
 import { ScallopBuilder } from './scallopBuilder';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
-import { ADDRESSES_ID } from '../constants';
+import { ADDRESS_ID } from '../constants';
 import type {
   ScallopBuilderParams,
   ScallopClientParams,
@@ -61,7 +61,7 @@ export class Scallop {
     );
     this.address = new ScallopAddress(
       {
-        id: params?.addressesId ?? ADDRESSES_ID,
+        id: params?.addressId ?? ADDRESS_ID,
         network: params?.networkType,
         forceInterface: params?.forceAddressesInterface,
       },

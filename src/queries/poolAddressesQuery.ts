@@ -1,8 +1,11 @@
-import { SUPPORT_POOLS } from 'src/constants';
+import { PYTH_FEED_IDS } from 'src/constants';
 import { ScallopQuery } from 'src/models';
 import { OptionalKeys, SupportPoolCoins } from 'src/types';
 
-export const getAllAddresses = async (query: ScallopQuery) => {
+export const getAllAddresses = async (
+  query: ScallopQuery,
+  pools: SupportPoolCoins[]
+) => {
   const results: OptionalKeys<
     Record<
       SupportPoolCoins,
@@ -30,6 +33,8 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         sCoinMetadataId?: string;
         spoolName?: string;
         decimals: number;
+        pythFeed?: string;
+        pythFeedObjectId?: string;
       }
     >
   > = {};
@@ -42,13 +47,14 @@ export const getAllAddresses = async (query: ScallopQuery) => {
 
   const fields = marketObject.content.fields as any;
 
-  const coinTypesPairs = SUPPORT_POOLS.reduce(
+  const coinTypesPairs = pools.reduce(
     (acc, pool) => {
       acc.push([pool, query.utils.parseCoinType(pool).substring(2)]);
       return acc;
     },
     [] as [SupportPoolCoins, string][]
   );
+
   const balanceSheetParentId =
     fields.vault.fields.balance_sheets.fields.table.fields.id.id;
 
@@ -121,8 +127,10 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         // @ts-ignore
         `spool.pools.s${coinName}.rewardPoolId`
       );
-      // @ts-ignore
-      const sCoinType = query.address.get(`scoin.coins.s${coinName}.coinType`);
+      const sCoinType = query.address.get(
+        // @ts-ignore
+        `scoin.coins.s${coinName}.coinType`
+      );
       const sCoinName = sCoinType
         ? query.utils.parseSCoinName(coinName)
         : undefined;
@@ -141,6 +149,11 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         `scoin.coins.s${coinName}.metaData`
       );
 
+      const pythFeed = PYTH_FEED_IDS[coinName];
+      const pythFeedObjectId = query.address.get(
+        //@ts-ignore
+        `core.coins.${coinName}.oracle.pyth.feedObject`
+      );
       const decimals = query.utils.getCoinDecimal(coinName);
       const spoolName = spool ? `s${coinName}` : undefined;
       results[coinName as SupportPoolCoins] = {
@@ -166,6 +179,8 @@ export const getAllAddresses = async (query: ScallopQuery) => {
         sCoinMetadataId,
         spoolName,
         decimals,
+        pythFeed,
+        pythFeedObjectId,
       };
 
       await new Promise((resolve) => setTimeout(resolve, 500));

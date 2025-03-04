@@ -126,6 +126,12 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
   const spoolIds: SpoolIds = {
     spoolPkg: builder.address.get('spool.id'),
   };
+  const clockObjectRef = txBlock.sharedObjectRef({
+    objectId: SUI_CLOCK_OBJECT_ID,
+    mutable: false,
+    initialSharedVersion: '1',
+  });
+
   return {
     createStakeAccount: (stakeMarketCoinName) => {
       const marketCoinType =
@@ -136,14 +142,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${spoolIds.spoolPkg}::user::new_spool_account`,
-        [
-          stakePoolId,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [stakePoolId, clockObjectRef],
         [marketCoinType]
       );
     },
@@ -156,16 +155,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       builder.moveCall(
         txBlock,
         `${spoolIds.spoolPkg}::user::stake`,
-        [
-          stakePoolId,
-          stakeAccount,
-          coin,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [stakePoolId, stakeAccount, coin, clockObjectRef],
         [marketCoinType]
       );
     },
@@ -178,16 +168,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${spoolIds.spoolPkg}::user::unstake`,
-        [
-          stakePoolId,
-          stakeAccount,
-          amount,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [stakePoolId, stakeAccount, amount, clockObjectRef],
         [marketCoinType]
       );
     },
@@ -205,16 +186,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${spoolIds.spoolPkg}::user::redeem_rewards`,
-        [
-          stakePoolId,
-          rewardPoolId,
-          stakeAccount,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [stakePoolId, rewardPoolId, stakeAccount, clockObjectRef],
         [marketCoinType, rewardCoinType]
       );
     },

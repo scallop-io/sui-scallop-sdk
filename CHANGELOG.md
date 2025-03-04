@@ -2,6 +2,73 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.2...v1.5.3) (2025-03-03)
+
+### Features
+
+- Minor fix
+
+### [1.5.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.1...v1.5.2) (2025-03-03)
+
+### Features
+
+- Update address id to `675c65cd301dd817ea262e76` ([767c09f](https://github.com/scallop-io/sui-scallop-sdk/pull/232/commits/767c09f960f738e6f433f3f93646a6357004dbdf))
+
+### [1.5.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.0...v1.5.1) (2025-03-03)
+
+### Features
+
+- Allow to query oracle list on-chain ([a50e85c](https://github.com/scallop-io/sui-scallop-sdk/pull/240/commits/a50e85c8dd702c3af6109e1f41b67a8c7735b21f))
+
+### [1.5.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.27...v1.5.0) (2025-02-28)
+
+### ⚠ BREAKING CHANGES
+
+Starting from `v1.5.0`, Scallop SDK will use `xOracle V2`. Further development will continue from this version onward. Any version below this version is deprecated.
+
+### [1.4.27](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.26...v1.4.27) (2025-02-27)
+
+### Features
+
+- Fix available deposit / borrow calc
+
+### [1.4.26](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.25...v1.4.26) (2025-02-24)
+
+### Features
+
+- Add `usdy` pool
+
+### [1.4.25](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.24...v1.4.25) (2025-02-21)
+
+### Features
+
+- Add `ns` as isolated asset ([ed4c222](https://github.com/scallop-io/sui-scallop-sdk/pull/236/commits/ed4c2220f3eee780da7a37e324848c7fc409bb7b))
+
+### [1.4.24](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.23...v1.4.24) (2025-02-19)
+
+### Features
+
+- Add `mUSD` as isolated asset
+- Optimize build result
+
+### [1.4.23](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.22...v1.4.23) (2025-02-08)
+
+### Features
+
+- Fix sui bridge wormhole symbol coin format ([523e523](https://github.com/scallop-io/sui-scallop-sdk/commit/523e523d627c3824d490a98e5ac53f73e6670340))
+
+### [1.4.22](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.21...v1.4.22) (2025-02-06)
+
+### Features
+
+- Add `sbwBTC` pool support ([f5979d8](https://github.com/scallop-io/sui-scallop-sdk/pull/232/commits/f5979d88387226d440722b3adad997d6a17fffd6))
+
+### [1.4.21](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.20...v1.4.21) (2025-01-24)
+
+### Features
+
+- Add $BLUB as isolated asset
+
 ### [1.4.20](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.19...v1.4.20) (2025-01-19)
 
 ### Features

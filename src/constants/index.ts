@@ -10,3 +10,4 @@ export * from './rpc';
 export * from './testAddress';
 export * from './vesca';
 export * from './testAddress';
+export * from './xoracle';

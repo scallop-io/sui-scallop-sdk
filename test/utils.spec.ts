@@ -33,6 +33,7 @@ describe('Test Scallop Utils', async () => {
       'FUD',
       'DEEP',
       'FDUSD',
+      'BLUB',
     ] as const;
 
     const expectedSCoinSymbols: string[] = [
@@ -53,6 +54,7 @@ describe('Test Scallop Utils', async () => {
       'sDEEP',
       'sFUD',
       'sFDUSD',
+      'sBLUB',
     ];
 
     // assert element length
