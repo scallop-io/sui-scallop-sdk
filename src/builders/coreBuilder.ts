@@ -40,7 +40,7 @@ const requireObligationInfo = async (
   ]
 ) => {
   const [builder, txBlock, obligationId, obligationKey] = params;
-  if (params.length === 3 && obligationId) return { obligationId };
+  // if (params.length === 3 && obligationId) return { obligationId };
   if (params.length === 4 && obligationId && obligationKey)
     return { obligationId, obligationKey };
   const sender = requireSender(txBlock);
@@ -420,7 +420,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.borrow(
         obligationInfo.obligationId,
-        obligationInfo.obligationKey as SuiObjectArg,
+        obligationInfo.obligationKey,
         amount,
         poolCoinName
       );
@@ -446,7 +446,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       await updateOracles(builder, txBlock, updateCoinNames);
       return txBlock.borrowWithReferral(
         obligationInfo.obligationId,
-        obligationInfo.obligationKey as SuiObjectArg,
+        obligationInfo.obligationKey,
         borrowReferral,
         amount,
         poolCoinName

@@ -5,7 +5,7 @@ import type {
   SuiObjectData,
   SuiObjectDataOptions,
 } from '@mysten/sui/client';
-import type { SuiObjectArg, SuiTxArg } from '@scallop-io/sui-kit';
+import type { SuiTxArg } from '@scallop-io/sui-kit';
 
 export const queryKeys = {
   api: {
@@ -21,17 +21,12 @@ export const queryKeys = {
   },
 
   rpc: {
-    getInspectTxn: (
-      queryTarget?: string,
-      args?: SuiObjectArg[],
-      typeArgs?: any[]
-    ) => [
+    getInspectTxn: (queryTarget?: string, key?: string) => [
       'rpc',
       'getInspectTxn',
       {
         queryTarget,
-        args: JSON.stringify(args),
-        typeArgs: !typeArgs ? undefined : JSON.stringify(typeArgs),
+        key,
       },
     ],
     getObject: (objectId?: string, options?: SuiObjectDataOptions) => [

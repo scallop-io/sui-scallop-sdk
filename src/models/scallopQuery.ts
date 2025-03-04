@@ -1,4 +1,4 @@
-import { SuiKit, SuiObjectArg } from '@scallop-io/sui-kit';
+import { SuiKit } from '@scallop-io/sui-kit';
 import { ADDRESS_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
 import {
   queryMarket,
@@ -33,7 +33,6 @@ import {
   getBorrowIncentivePools,
   getBorrowLimit,
   getIsolatedAssets,
-  // isIsolatedAsset,
   getSupplyLimit,
   getSCoinAmount,
   getSCoinAmounts,
@@ -297,7 +296,7 @@ export class ScallopQuery {
    * @param obligationId - The obligation id.
    * @return Obligation data.
    */
-  public async queryObligation(obligationId: SuiObjectArg) {
+  public async queryObligation(obligationId: string | SuiObjectRef) {
     return queryObligation(this, obligationId);
   }
 

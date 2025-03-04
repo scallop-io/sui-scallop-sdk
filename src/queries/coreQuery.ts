@@ -101,7 +101,10 @@ export const queryMarket = async (
   const queryTarget = `${packageId}::market_query::market_data`;
   const args = [marketId];
 
-  const queryResult = await query.cache.queryInspectTxn({ queryTarget, args });
+  const queryResult = await query.cache.queryInspectTxn(
+    { queryTarget, args },
+    marketId
+  );
   const marketData = queryResult?.events[0]?.parsedJson as
     | MarketQueryInterface
     | undefined;
@@ -1026,7 +1029,12 @@ export const queryObligation = async (
   ];
 
   const queryResult = await address.cache.queryInspectTxn(
-    { queryTarget, args }
+    { queryTarget, args },
+    typeof obligationId === 'string'
+      ? obligationId
+      : 'objectId' in obligationId
+        ? obligationId.objectId
+        : JSON.stringify(obligationId)
     // txBlock
   );
   return queryResult?.events[0]?.parsedJson as

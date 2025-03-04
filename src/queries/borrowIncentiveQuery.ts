@@ -36,10 +36,13 @@ export const queryBorrowIncentivePools = async (address: ScallopAddress) => {
 
   const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
   const args = [incentivePoolsId];
-  const queryResult = await address.cache.queryInspectTxn({
-    queryTarget,
-    args,
-  });
+  const queryResult = await address.cache.queryInspectTxn(
+    {
+      queryTarget,
+      args,
+    },
+    incentivePoolsId
+  );
   const borrowIncentivePoolsQueryData = queryResult?.events[0].parsedJson as
     | BorrowIncentivePoolsQueryInterface
     | undefined;
@@ -201,7 +204,14 @@ export const queryBorrowIncentiveAccounts = async (
   const queryTarget = `${queryPkgId}::incentive_account_query::incentive_account_data`;
   const args = [incentiveAccountsId, obligationId];
 
-  const queryResult = await utils.cache.queryInspectTxn({ queryTarget, args });
+  const queryResult = await utils.cache.queryInspectTxn(
+    { queryTarget, args },
+    JSON.stringify({
+      incentiveAccountsId,
+      obligationId:
+        typeof obligationId === 'string' ? obligationId : obligationId.objectId,
+    })
+  );
   const borrowIncentiveAccountsQueryData = queryResult?.events[0]
     ?.parsedJson as BorrowIncentiveAccountsQueryInterface | undefined;
 

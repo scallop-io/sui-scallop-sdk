@@ -189,11 +189,10 @@ export class ScallopCache {
    * @param txBlock
    * @returns Promise<DevInspectResults>
    */
-  public async queryInspectTxn({
-    queryTarget,
-    args,
-    typeArgs,
-  }: QueryInspectTxnParams): Promise<DevInspectResults | null> {
+  public async queryInspectTxn(
+    { queryTarget, args, typeArgs }: QueryInspectTxnParams,
+    key: string
+  ): Promise<DevInspectResults | null> {
     const txBlock = new SuiTxBlock();
 
     const resolvedQueryTarget =
@@ -236,7 +235,7 @@ export class ScallopCache {
     const query = await this.queryClient.fetchQuery({
       retry: this.retryFn,
       retryDelay: 1000,
-      queryKey: queryKeys.rpc.getInspectTxn(queryTarget, args, typeArgs),
+      queryKey: queryKeys.rpc.getInspectTxn(queryTarget, key),
       queryFn: async () => {
         return await this.callWithRateLimit(
           async () => await this.suiKit.inspectTxn(txBlock)

@@ -21,17 +21,25 @@ export const getSCoinTotalSupply = async (
 ): Promise<sCoinBalance> => {
   const sCoinPkgId = utils.address.get('scoin.id');
   // get treasury
-  const args = [utils.getSCoinTreasury(sCoinName)];
-  const typeArgs = [
-    utils.parseSCoinType(sCoinName),
-    utils.parseUnderlyingSCoinType(sCoinName),
-  ];
+  const treasury = utils.getSCoinTreasury(sCoinName);
+  const args = [treasury];
+
+  const sCoinType = utils.parseSCoinType(sCoinName);
+  const underlyingType = utils.parseUnderlyingSCoinType(sCoinName);
+  const typeArgs = [sCoinType, underlyingType];
   const queryTarget = `${sCoinPkgId}::s_coin_converter::total_supply`;
-  const queryResults = await utils.cache.queryInspectTxn({
-    queryTarget,
-    args,
-    typeArgs,
-  });
+  const queryResults = await utils.cache.queryInspectTxn(
+    {
+      queryTarget,
+      args,
+      typeArgs,
+    },
+    JSON.stringify({
+      treasury,
+      sCoinType,
+      underlyingType,
+    })
+  );
   const results = queryResults?.results;
   if (results && results[0]?.returnValues) {
     const value = Uint8Array.from(results[0].returnValues[0][0]);
