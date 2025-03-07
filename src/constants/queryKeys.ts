@@ -14,6 +14,8 @@ export const queryKeys = {
       'getAddresses',
       { addressId },
     ],
+    getWhiteList: () => ['api', 'getWhiteList'],
+    getPoolAddresses: () => ['api', 'getPoolAddresses'],
     getMarket: () => ['api', 'getMarket'],
     getSpools: () => ['api', 'getSpools'],
     getBorrowIncentivePool: () => ['api', 'getBorrowIncentivePools'],

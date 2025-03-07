@@ -4,7 +4,6 @@ import {
   PROTOCOL_OBJECT_ID,
   SUPPORT_COLLATERALS,
   FlashLoanFeeObjectMap,
-  POOL_ADDRESSES,
 } from '../constants';
 import {
   parseOriginMarketPoolData,
@@ -228,15 +227,16 @@ const queryRequiredMarketObjects = async (
   // Prepare all tasks for querying each object type
   const tasks = poolCoinNames.map((t) => ({
     poolCoinName: t,
-    balanceSheet: POOL_ADDRESSES[t]?.lendingPoolAddress,
-    collateralStat: POOL_ADDRESSES[t]?.collateralPoolAddress,
-    borrowDynamic: POOL_ADDRESSES[t]?.borrowDynamic,
-    interestModel: POOL_ADDRESSES[t]?.interestModel,
-    riskModel: POOL_ADDRESSES[t]?.riskModel,
-    borrowFeeKey: POOL_ADDRESSES[t]?.borrowFeeKey,
-    supplyLimitKey: POOL_ADDRESSES[t]?.supplyLimitKey,
-    borrowLimitKey: POOL_ADDRESSES[t]?.borrowLimitKey,
-    isolatedAssetKey: POOL_ADDRESSES[t]?.isolatedAssetKey,
+    balanceSheet: query.utils.constants.poolAddresses[t]?.lendingPoolAddress,
+    collateralStat:
+      query.utils.constants.poolAddresses[t]?.collateralPoolAddress,
+    borrowDynamic: query.utils.constants.poolAddresses[t]?.borrowDynamic,
+    interestModel: query.utils.constants.poolAddresses[t]?.interestModel,
+    riskModel: query.utils.constants.poolAddresses[t]?.riskModel,
+    borrowFeeKey: query.utils.constants.poolAddresses[t]?.borrowFeeKey,
+    supplyLimitKey: query.utils.constants.poolAddresses[t]?.supplyLimitKey,
+    borrowLimitKey: query.utils.constants.poolAddresses[t]?.borrowLimitKey,
+    isolatedAssetKey: query.utils.constants.poolAddresses[t]?.isolatedAssetKey,
   }));
 
   // Query all objects for each key in parallel

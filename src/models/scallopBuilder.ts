@@ -1,6 +1,5 @@
 import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ADDRESS_ID } from '../constants';
 import { newScallopTxBlock } from '../builders';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
@@ -49,7 +48,7 @@ export class ScallopBuilder {
   public cache: ScallopCache;
 
   public constructor(
-    params: ScallopBuilderParams = {},
+    params: ScallopBuilderParams,
     instance?: ScallopBuilderInstanceParams
   ) {
     this.suiKit = instance?.suiKit ?? newSuiKit(params);
@@ -68,27 +67,15 @@ export class ScallopBuilder {
       this.cache = new ScallopCache(this.params, {
         suiKit: this.suiKit,
       });
-      this.address = new ScallopAddress(
-        {
-          id: params?.addressId ?? ADDRESS_ID,
-          network: params?.networkType,
-          forceInterface: params?.forceAddressesInterface,
-        },
-        {
-          cache: this.cache,
-        }
-      );
+      this.address = new ScallopAddress(params, {
+        cache: this.cache,
+      });
       this.utils = new ScallopUtils(this.params, {
         address: this.address,
       });
-      this.query = new ScallopQuery(
-        {
-          walletAddress: this.walletAddress,
-        },
-        {
-          utils: this.utils,
-        }
-      );
+      this.query = new ScallopQuery(params, {
+        utils: this.utils,
+      });
     }
     this.isTestnet = params.networkType
       ? params.networkType === 'testnet'

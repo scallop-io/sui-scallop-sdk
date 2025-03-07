@@ -15,11 +15,10 @@ import type {
   SupportStakeMarketCoins,
   SupportBorrowIncentiveCoins,
   TotalValueLocked,
-  ScallopQueryParams,
-  ScallopParams,
   BorrowIncentivePoolPoints,
   SupportBorrowIncentiveRewardCoins,
   ScallopIndexerInstanceParams,
+  ScallopIndexerParams,
 } from '../types';
 import { ScallopCache } from './scallopCache';
 import { queryKeys } from 'src/constants';
@@ -38,11 +37,11 @@ import { queryKeys } from 'src/constants';
  */
 export class ScallopIndexer {
   private readonly cache: ScallopCache;
-  public readonly params: ScallopQueryParams;
+  public readonly params: ScallopIndexerParams;
   private readonly _requestClient: AxiosInstance;
 
   public constructor(
-    params: ScallopParams = {},
+    params: ScallopIndexerParams,
     instance?: ScallopIndexerInstanceParams
   ) {
     this.params = params;
