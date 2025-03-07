@@ -4,7 +4,6 @@ import { ScallopClient } from './scallopClient';
 import { ScallopBuilder } from './scallopBuilder';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
-import { ADDRESS_ID } from '../constants';
 import type {
   ScallopBuilderParams,
   ScallopClientParams,
@@ -59,14 +58,7 @@ export class Scallop {
         queryClient,
       }
     );
-    this.address = new ScallopAddress(
-      {
-        id: params?.addressId ?? ADDRESS_ID,
-        network: params?.networkType,
-        forceInterface: params?.forceAddressesInterface,
-      },
-      { cache: this.cache }
-    );
+    this.address = new ScallopAddress(params, { cache: this.cache });
   }
 
   /**

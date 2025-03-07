@@ -33,7 +33,6 @@ import {
   getBorrowIncentivePools,
   getBorrowLimit,
   getIsolatedAssets,
-  // isIsolatedAsset,
   getSupplyLimit,
   getSCoinAmount,
   getSCoinAmounts,
@@ -96,7 +95,7 @@ export class ScallopQuery {
   public walletAddress: string;
 
   public constructor(
-    params: ScallopQueryParams = {},
+    params: ScallopQueryParams,
     instance?: ScallopQueryInstanceParams
   ) {
     this.params = params;
@@ -117,9 +116,10 @@ export class ScallopQuery {
       });
       this.address = new ScallopAddress(
         {
-          id: params?.addressId ?? ADDRESS_ID,
+          addressApiUrl: params.addressApiUrl,
+          addressId: params?.addressId ?? ADDRESS_ID,
           network: params?.networkType,
-          forceInterface: params?.forceAddressesInterface,
+          forceAddressesInterface: params?.forceAddressesInterface,
         },
         {
           cache: this.cache,

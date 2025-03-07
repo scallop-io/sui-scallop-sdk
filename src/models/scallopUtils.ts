@@ -3,10 +3,10 @@ import { SuiKit } from '@scallop-io/sui-kit';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import { ScallopAddress } from './scallopAddress';
 import {
-  ADDRESS_ID,
-  PROTOCOL_OBJECT_ID,
-  SUPPORT_POOLS,
-  SUPPORT_COLLATERALS,
+  // PROTOCOL_OBJECT_ID,
+  // SUPPORT_POOLS,
+  // SUPPORT_COLLATERALS,
+  // SUPPORT_SCOIN,
   spoolRewardCoins,
   coinDecimals,
   wormholeCoinIds,
@@ -14,11 +14,8 @@ import {
   coinIds,
   UNLOCK_ROUND_DURATION,
   MAX_LOCK_DURATION,
-  SUPPORT_SCOIN,
   sCoinIds,
   suiBridgeCoins,
-  COIN_GECKGO_IDS,
-  POOL_ADDRESSES,
   sCoinTypeToName,
   sCoinRawNameToName,
 } from '../constants';
@@ -34,22 +31,23 @@ import {
 import { PYTH_ENDPOINTS, PYTH_FEED_IDS } from 'src/constants/pyth';
 import { ScallopCache } from './scallopCache';
 import type {
+  // SupportCoins,
+  // SupportAssetCoins,
+  // SupportMarketCoins,
+  // SupportStakeMarketCoins,
+  // SupportSCoin,
+  // SupportSuiBridgeCoins,
+  // SupportWormholeCoins,
   ScallopUtilsParams,
-  SupportCoins,
-  SupportAssetCoins,
-  SupportMarketCoins,
-  SupportStakeMarketCoins,
   CoinPrices,
   CoinWrappedType,
-  SupportSCoin,
   ScallopUtilsInstanceParams,
-  SupportSuiBridgeCoins,
-  SupportWormholeCoins,
-  PoolAddressInfo,
+  PoolAddress,
 } from '../types';
 import { queryKeys } from 'src/constants';
 import type { SuiObjectArg, SuiTxBlock } from '@scallop-io/sui-kit';
 import { newSuiKit } from './suiKit';
+import { ScallopConstants } from './scallopConstants';
 
 /**
  * @description
@@ -70,6 +68,7 @@ export class ScallopUtils {
   public suiKit: SuiKit;
   public address: ScallopAddress;
   public cache: ScallopCache;
+  public constants: ScallopConstants;
   public walletAddress: string;
 
   public constructor(
@@ -83,32 +82,37 @@ export class ScallopUtils {
     this.walletAddress =
       params.walletAddress ?? instance?.suiKit?.currentAddress() ?? '';
     this.suiKit =
-      instance?.suiKit ?? instance?.address?.cache.suiKit ?? newSuiKit(params);
+      instance?.suiKit ??
+      instance?.constants?.cache.suiKit ??
+      newSuiKit(params);
 
-    if (instance?.address) {
-      this.address = instance.address;
-      this.cache = this.address.cache;
-    } else {
-      this.cache = new ScallopCache(this.params, {
+    this.cache =
+      instance?.constants?.cache ??
+      new ScallopCache(this.params, {
         suiKit: this.suiKit,
       });
-      this.address =
-        instance?.address ??
-        new ScallopAddress(
-          {
-            id: params?.addressId ?? ADDRESS_ID,
-            network: params?.networkType,
-            forceInterface: params?.forceAddressesInterface,
-          },
-          {
-            cache: this.cache,
-          }
-        );
-    }
+
+    this.address =
+      instance?.constants?.address ??
+      new ScallopAddress(this.params, {
+        cache: this.cache,
+      });
+
+    this.constants =
+      instance?.constants ??
+      new ScallopConstants(this.params, {
+        address: this.address,
+      });
+
     this.isTestnet = params.networkType
       ? params.networkType === 'testnet'
       : false;
   }
+
+  get whitelist() {
+    return this.constants.whitelist;
+  }
+
   // -------------- TYPE GUARDS --------------
   public isSuiBridgeAsset(coinName: any): coinName is SupportSuiBridgeCoins {
     return isSuiBridgeAsset(coinName);
@@ -218,14 +222,11 @@ export class ScallopUtils {
     coinName: SupportCoins | SupportMarketCoins
   ) {
     // need more check because swapt has no sCoin type
-    if (
-      isMarketCoin(coinName) &&
-      SUPPORT_SCOIN.includes(coinName as SupportSCoin)
-    ) {
+    if (isMarketCoin(coinName) && this.whitelist.scoin.has(coinName)) {
       return coinName as T;
     } else {
       const marketCoinName = `s${coinName}`;
-      if (SUPPORT_SCOIN.includes(marketCoinName as SupportSCoin)) {
+      if (this.whitelist.scoin.has(marketCoinName)) {
         return marketCoinName as T;
       }
       return undefined;
@@ -666,20 +667,7 @@ export class ScallopUtils {
    * Get detailed contract address and price id information for supported pool in Scallop
    * @returns Supported pool informations
    */
-  public getSupportedPoolAddresses(): PoolAddressInfo[] {
-    return SUPPORT_POOLS.map((poolName) => {
-      const sCoinName = this.parseSCoinName(poolName)!;
-      return {
-        name: this.parseSymbol(poolName),
-        coingeckoId: COIN_GECKGO_IDS[poolName],
-        decimal: coinDecimals[poolName],
-        pythFeedId: PYTH_FEED_IDS[poolName],
-        ...POOL_ADDRESSES[poolName],
-        sCoinAddress: sCoinIds[sCoinName],
-        marketCoinAddress: this.parseMarketCoinType(poolName),
-        coinAddress: this.parseCoinType(poolName),
-        sCoinName: sCoinName ? this.parseSymbol(sCoinName) : undefined,
-      };
-    });
+  public getSupportedPoolAddresses(): PoolAddress[] {
+    return Object.values(this.constants.poolAddresses);
   }
 }
