@@ -1,5 +1,5 @@
 import { normalizeStructTag } from '@mysten/sui/utils';
-import { POOL_ADDRESSES, SUPPORT_SPOOLS } from '../constants';
+import { SUPPORT_SPOOLS } from '../constants';
 import {
   parseOriginSpoolData,
   calculateSpoolData,
@@ -33,9 +33,9 @@ const queryRequiredSpoolObjects = async (
   // Prepare all tasks for querying each object type
   const tasks = stakePoolCoinNames.map((t, idx) => ({
     poolCoinName: stakePoolCoinNames[idx],
-    spool: POOL_ADDRESSES[t]?.spool,
-    spoolReward: POOL_ADDRESSES[t]?.spoolReward,
-    sCoinTreasury: POOL_ADDRESSES[t]?.sCoinTreasury,
+    spool: query.utils.constants.poolAddresses[t]?.spool,
+    spoolReward: query.utils.constants.poolAddresses[t]?.spoolReward,
+    sCoinTreasury: query.utils.constants.poolAddresses[t]?.sCoinTreasury,
   }));
 
   // Query all objects for each key in parallel

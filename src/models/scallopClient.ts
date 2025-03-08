@@ -1,7 +1,6 @@
 import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
 import {
-  ADDRESS_ID,
   SUPPORT_BORROW_INCENTIVE_POOLS,
   SUPPORT_SCOIN,
   SUPPORT_SPOOLS,
@@ -57,7 +56,7 @@ export class ScallopClient {
   public walletAddress: string;
 
   public constructor(
-    params: ScallopClientParams = {},
+    params: ScallopClientParams,
     instance?: ScallopClientInstanceParams
   ) {
     this.params = params;
@@ -77,16 +76,9 @@ export class ScallopClient {
       this.cache = new ScallopCache(this.params, {
         suiKit: this.suiKit,
       });
-      this.address = new ScallopAddress(
-        {
-          id: params?.addressId ?? ADDRESS_ID,
-          network: params?.networkType,
-          forceInterface: params?.forceAddressesInterface,
-        },
-        {
-          cache: this.cache,
-        }
-      );
+      this.address = new ScallopAddress(params, {
+        cache: this.cache,
+      });
       this.utils = new ScallopUtils(this.params, {
         address: this.address,
       });

@@ -101,7 +101,7 @@ export class ScallopCache {
     //   // if(cacheOptions.mutations)this.queryClient.setMutationDefaults(cacheOptions.mutations);
     // }
 
-    this.tokens = this.tokensPerInterval;
+    this.tokens = this.tokensPerInterval; // Initial tokens value
     this.lastRefill = Date.now();
     this.walletAddress = params.walletAddress ?? this.suiKit.currentAddress();
   }

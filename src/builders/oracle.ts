@@ -91,12 +91,7 @@ export const updateOracles = async (
   // Remove duplicate coin names.
   const updateAssetCoinNames = [...new Set(assetCoinNames)];
   for (const assetCoinName of updateAssetCoinNames) {
-    await updateOracle(
-      builder,
-      txBlock,
-      assetCoinName,
-      xOracleList[assetCoinName]
-    );
+    updateOracle(builder, txBlock, assetCoinName, xOracleList[assetCoinName]);
   }
 };
 
@@ -107,7 +102,7 @@ export const updateOracles = async (
  * @param txBlock - TxBlock created by SuiKit.
  * @param assetCoinName - Specific support asset coin name.
  */
-const updateOracle = async (
+const updateOracle = (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
   assetCoinName: SupportAssetCoins,
