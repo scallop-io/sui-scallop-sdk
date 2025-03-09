@@ -1,5 +1,5 @@
 import { SuiKit, SuiObjectArg } from '@scallop-io/sui-kit';
-import { ADDRESS_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
+// import { ADDRESS_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
 import {
   queryMarket,
   getObligations,
@@ -39,23 +39,23 @@ import {
   getSCoinSwapRate,
   getSCoinTotalSupply,
   getAllCoinPrices,
-  getAllAddresses,
+  getPoolAddresses,
   isIsolatedAsset,
   getUserPortfolio,
   getPriceUpdatePolicies,
   getAssetOracles,
 } from '../queries';
 import {
+  // string,
+  // string,
+  // string,
+  // string,
+  // string,
+  // string,
+  // string,
   ScallopQueryParams,
-  SupportStakeMarketCoins,
-  SupportAssetCoins,
-  SupportPoolCoins,
-  SupportCollateralCoins,
-  SupportMarketCoins,
   StakePools,
   StakeRewardPools,
-  SupportBorrowIncentiveCoins,
-  SupportSCoin,
   ScallopQueryInstanceParams,
   MarketPool,
   CoinPrices,
@@ -72,6 +72,7 @@ import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { withIndexerFallback } from 'src/utils/indexer';
 import { newSuiKit } from './suiKit';
 import { SuiObjectRef } from '@mysten/sui/client';
+import { ScallopConstants } from './scallopConstants';
 /**
  * @description
  * It provides methods for getting on-chain data from the Scallop contract.
@@ -90,6 +91,7 @@ export class ScallopQuery {
   public suiKit: SuiKit;
   public address: ScallopAddress;
   public utils: ScallopUtils;
+  public constants: ScallopConstants;
   public indexer: ScallopIndexer;
   public cache: ScallopCache;
   public walletAddress: string;
@@ -106,29 +108,29 @@ export class ScallopQuery {
       params.walletAddress ?? this.suiKit.currentAddress()
     );
 
-    if (instance?.utils) {
-      this.utils = instance.utils;
-      this.address = instance.utils.address;
-      this.cache = this.address.cache;
-    } else {
-      this.cache = new ScallopCache(this.params, {
+    this.cache =
+      instance?.utils?.cache ??
+      new ScallopCache(this.params, {
         suiKit: this.suiKit,
       });
-      this.address = new ScallopAddress(
-        {
-          addressApiUrl: params.addressApiUrl,
-          addressId: params?.addressId ?? ADDRESS_ID,
-          network: params?.networkType,
-          forceAddressesInterface: params?.forceAddressesInterface,
-        },
-        {
-          cache: this.cache,
-        }
-      );
-      this.utils = new ScallopUtils(this.params, {
+
+    this.address =
+      instance?.utils?.address ??
+      new ScallopAddress(this.params, {
+        cache: this.cache,
+      });
+
+    this.constants =
+      instance?.utils?.constants ??
+      new ScallopConstants(this.params, {
         address: this.address,
       });
-    }
+
+    this.utils =
+      instance?.utils ??
+      new ScallopUtils(this.params, {
+        constants: this.constants,
+      });
     this.indexer =
       instance?.indexer ??
       new ScallopIndexer(this.params, { cache: this.cache });
@@ -210,7 +212,7 @@ export class ScallopQuery {
    * @return Market pools data.
    */
   public async getMarketPools(
-    poolCoinNames: SupportPoolCoins[] = [...SUPPORT_POOLS],
+    poolCoinNames: string[] = [...this.constants.whitelist.lending],
     args?: {
       coinPrices?: CoinPrices;
       indexer?: boolean;
@@ -232,7 +234,7 @@ export class ScallopQuery {
    * @return Market pool data.
    */
   public async getMarketPool(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     args?: {
       coinPrice?: number;
       indexer?: boolean;
@@ -261,7 +263,7 @@ export class ScallopQuery {
    * @return Market collaterals data.
    */
   public async getMarketCollaterals(
-    collateralCoinNames?: SupportCollateralCoins[],
+    collateralCoinNames: string[] = [...this.constants.whitelist.collateral],
     args?: { indexer?: boolean }
   ) {
     return await getMarketCollaterals(this, collateralCoinNames, args?.indexer);
@@ -275,7 +277,7 @@ export class ScallopQuery {
    * @return Market collateral data.
    */
   public async getMarketCollateral(
-    collateralCoinName: SupportCollateralCoins,
+    collateralCoinName: string,
     args?: { indexer?: boolean }
   ) {
     return await getMarketCollateral(this, collateralCoinName, args?.indexer);
@@ -309,7 +311,7 @@ export class ScallopQuery {
    * @return All coin amounts.
    */
   public async getCoinAmounts(
-    assetCoinNames?: SupportAssetCoins[],
+    assetCoinNames?: string[],
     ownerAddress: string = this.walletAddress
   ) {
     return await getCoinAmounts(this, assetCoinNames, ownerAddress);
@@ -323,7 +325,7 @@ export class ScallopQuery {
    * @return Coin amount.
    */
   public async getCoinAmount(
-    assetCoinName: SupportAssetCoins,
+    assetCoinName: string,
     ownerAddress: string = this.walletAddress
   ) {
     return await getCoinAmount(this, assetCoinName, ownerAddress);
@@ -337,7 +339,7 @@ export class ScallopQuery {
    * @return All market market coin amounts.
    */
   public async getMarketCoinAmounts(
-    marketCoinNames?: SupportMarketCoins[],
+    marketCoinNames?: string[],
     ownerAddress: string = this.walletAddress
   ) {
     return await getMarketCoinAmounts(this, marketCoinNames, ownerAddress);
@@ -351,7 +353,7 @@ export class ScallopQuery {
    * @return Market market coin amount.
    */
   public async getMarketCoinAmount(
-    marketCoinName: SupportMarketCoins,
+    marketCoinName: string,
     ownerAddress: string = this.walletAddress
   ) {
     return await getMarketCoinAmount(this, marketCoinName, ownerAddress);
@@ -363,7 +365,7 @@ export class ScallopQuery {
    * @param assetCoinName - Specific support asset coin name.
    * @return Asset coin price.
    */
-  public async getPriceFromPyth(assetCoinName: SupportAssetCoins) {
+  public async getPriceFromPyth(assetCoinName: string) {
     return await getPythPrice(this, assetCoinName);
   }
 
@@ -373,7 +375,7 @@ export class ScallopQuery {
    * @param assetCoinNames - Array of supported asset coin names.
    * @return Array of asset coin prices.
    */
-  public async getPricesFromPyth(assetCoinNames: SupportAssetCoins[]) {
+  public async getPricesFromPyth(assetCoinNames: string[]) {
     return await getPythPrices(this, assetCoinNames);
   }
 
@@ -387,7 +389,7 @@ export class ScallopQuery {
    * @return Spools data.
    */
   public async getSpools(
-    stakeMarketCoinNames?: SupportStakeMarketCoins[],
+    stakeMarketCoinNames?: string[],
     args?: {
       marketPools?: MarketPools;
       coinPrices?: CoinPrices;
@@ -411,7 +413,7 @@ export class ScallopQuery {
    * @return Spool data.
    */
   public async getSpool(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     args?: {
       marketPool?: MarketPool;
       coinPrices?: CoinPrices;
@@ -440,7 +442,7 @@ export class ScallopQuery {
    * @return Stake accounts data.
    */
   public async getStakeAccounts(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     ownerAddress: string = this.walletAddress
   ) {
     const allStakeAccount = await this.getAllStakeAccounts(ownerAddress);
@@ -458,7 +460,7 @@ export class ScallopQuery {
    * @return Stake pools data.
    */
   public async getStakePools(
-    stakeMarketCoinNames: SupportStakeMarketCoins[] = [...SUPPORT_SPOOLS]
+    stakeMarketCoinNames: string[] = [...this.constants.whitelist.spool]
   ) {
     const stakePools: StakePools = {};
     for (const stakeMarketCoinName of stakeMarketCoinNames) {
@@ -482,7 +484,7 @@ export class ScallopQuery {
    * @param stakeMarketCoinName - Specific support stake market coin name.
    * @return Stake pool data.
    */
-  public async getStakePool(stakeMarketCoinName: SupportStakeMarketCoins) {
+  public async getStakePool(stakeMarketCoinName: string) {
     return await getStakePool(this, stakeMarketCoinName);
   }
 
@@ -497,7 +499,7 @@ export class ScallopQuery {
    * @return Stake reward pools data.
    */
   public async getStakeRewardPools(
-    stakeMarketCoinNames: SupportStakeMarketCoins[] = [...SUPPORT_SPOOLS]
+    stakeMarketCoinNames: string[] = [...this.constants.whitelist.spool]
   ) {
     const stakeRewardPools: StakeRewardPools = {};
     await Promise.allSettled(
@@ -525,9 +527,7 @@ export class ScallopQuery {
    * @param marketCoinName - Specific support stake market coin name.
    * @return Stake reward pool data.
    */
-  public async getStakeRewardPool(
-    stakeMarketCoinName: SupportStakeMarketCoins
-  ) {
+  public async getStakeRewardPool(stakeMarketCoinName: string) {
     return await getStakeRewardPool(this, stakeMarketCoinName);
   }
 
@@ -539,7 +539,7 @@ export class ScallopQuery {
    * @return Borrow incentive pools data.
    */
   public async getBorrowIncentivePools(
-    coinNames?: SupportBorrowIncentiveCoins[],
+    coinNames: string[] = [...this.constants.whitelist.lending],
     args?: {
       coinPrices?: CoinPrices;
       indexer?: boolean;
@@ -564,7 +564,7 @@ export class ScallopQuery {
    */
   public async getBorrowIncentiveAccounts(
     obligationId: string | SuiObjectRef,
-    coinNames?: SupportBorrowIncentiveCoins[]
+    coinNames?: string[]
   ) {
     return await queryBorrowIncentiveAccounts(this, obligationId, coinNames);
   }
@@ -578,7 +578,7 @@ export class ScallopQuery {
    * @return All lending and spool infomation.
    */
   public async getLendings(
-    poolCoinNames?: SupportPoolCoins[],
+    poolCoinNames?: string[],
     ownerAddress: string = this.walletAddress,
     args?: {
       indexer?: boolean;
@@ -605,7 +605,7 @@ export class ScallopQuery {
    * @return Lending pool data.
    */
   public async getLending(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     ownerAddress: string = this.walletAddress,
     args?: { indexer?: boolean }
   ) {
@@ -755,7 +755,7 @@ export class ScallopQuery {
    * @param sCoinName - Supported sCoin name
    * @returns Total Supply
    */
-  public async getSCoinTotalSupply(sCoinName: SupportSCoin) {
+  public async getSCoinTotalSupply(sCoinName: string) {
     return await getSCoinTotalSupply(this, sCoinName);
   }
 
@@ -767,7 +767,7 @@ export class ScallopQuery {
    * @return All market sCoin amounts.
    */
   public async getSCoinAmounts(
-    sCoinNames?: SupportSCoin[],
+    sCoinNames?: string[],
     ownerAddress: string = this.walletAddress
   ) {
     return await getSCoinAmounts(this, sCoinNames, ownerAddress);
@@ -781,7 +781,7 @@ export class ScallopQuery {
    * @return sCoin amount.
    */
   public async getSCoinAmount(
-    sCoinName: SupportSCoin | SupportMarketCoins,
+    sCoinName: string | string,
     ownerAddress: string = this.walletAddress
   ) {
     const parsedSCoinName = this.utils.parseSCoinName(sCoinName);
@@ -795,10 +795,7 @@ export class ScallopQuery {
    * @param assetCoinNames
    * @returns
    */
-  public async getSCoinSwapRate(
-    fromSCoin: SupportSCoin,
-    toSCoin: SupportSCoin
-  ) {
+  public async getSCoinSwapRate(fromSCoin: string, toSCoin: string) {
     return await getSCoinSwapRate(this, fromSCoin, toSCoin);
   }
 
@@ -806,7 +803,7 @@ export class ScallopQuery {
    * Get flashloan fee for specified assets
    */
   public async getFlashLoanFees(
-    assetCoinNames: SupportAssetCoins[] = [...SUPPORT_POOLS]
+    assetCoinNames: string[] = [...this.constants.whitelist.lending]
   ) {
     return await getFlashLoanFees(this, assetCoinNames);
   }
@@ -814,14 +811,14 @@ export class ScallopQuery {
   /**
    * Get supply limit of lending pool
    */
-  public async getPoolSupplyLimit(poolName: SupportPoolCoins) {
+  public async getPoolSupplyLimit(poolName: string) {
     return await getSupplyLimit(this.utils, poolName);
   }
 
   /**
    * Get borrow limit of borrow pool
    */
-  public async getPoolBorrowLimit(poolName: SupportPoolCoins) {
+  public async getPoolBorrowLimit(poolName: string) {
     return await getBorrowLimit(this.utils, poolName);
   }
 
@@ -835,7 +832,7 @@ export class ScallopQuery {
   /**
    * Check if asset is an isolated asset
    */
-  public async isIsolatedAsset(assetCoinName: SupportAssetCoins) {
+  public async isIsolatedAsset(assetCoinName: string) {
     return isIsolatedAsset(this.utils, assetCoinName);
   }
 
@@ -844,7 +841,7 @@ export class ScallopQuery {
    * @param coinName
    * @returns price data
    */
-  public async getCoinPriceByIndexer(poolName: SupportPoolCoins) {
+  public async getCoinPriceByIndexer(poolName: string) {
     return this.indexer.getCoinPrice(poolName);
   }
 
@@ -877,10 +874,9 @@ export class ScallopQuery {
    * Query all address (lending pool, collateral pool, borrow dynamics, interest models, etc.) of all pool
    * @returns
    */
-  public async getPoolAddresses(
-    pools: SupportPoolCoins[] = [...SUPPORT_POOLS]
-  ) {
-    return getAllAddresses(this, pools);
+  public async getPoolAddresses(apiAddressId = this.address.getId()) {
+    if (!apiAddressId) throw new Error('apiAddressId is required');
+    return getPoolAddresses(apiAddressId);
   }
 
   /**
@@ -915,7 +911,7 @@ export class ScallopQuery {
       getAssetOracles(this.utils, 'secondary'),
     ]);
 
-    return SUPPORT_POOLS.reduce(
+    return [...this.constants.whitelist.lending].reduce(
       (acc, pool) => {
         acc[pool] = {
           primary: primary?.[pool] ?? [],
@@ -923,7 +919,7 @@ export class ScallopQuery {
         };
         return acc;
       },
-      {} as Record<SupportAssetCoins, xOracleRules>
+      {} as Record<string, xOracleRules>
     );
   }
 }

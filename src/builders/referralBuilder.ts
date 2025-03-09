@@ -1,5 +1,5 @@
 import { ScallopBuilder } from 'src/models';
-import { ScallopTxBlock, SupportCoins, SupportPoolCoins } from 'src/types';
+import { ScallopTxBlock } from 'src/types';
 import {
   SUI_CLOCK_OBJECT_ID,
   SuiTxBlock as SuiKitTxBlock,
@@ -13,7 +13,6 @@ import {
   ReferralTxBlock,
   SuiTxBlockWithReferralNormalMethods,
 } from 'src/types/builder/referral';
-import { SUPPORT_POOLS } from 'src/constants';
 import { requireSender } from 'src/utils';
 
 const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
@@ -52,7 +51,7 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         []
       );
     },
-    claimReferralTicket: (poolCoinName: SupportCoins) => {
+    claimReferralTicket: (poolCoinName: string) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
       return builder.moveCall(
         txBlock,
@@ -68,7 +67,7 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         [coinType]
       );
     },
-    burnReferralTicket: (ticket: SuiObjectArg, poolCoinName: SupportCoins) => {
+    burnReferralTicket: (ticket: SuiObjectArg, poolCoinName: string) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
       builder.moveCall(
         txBlock,
@@ -82,10 +81,7 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         [coinType]
       );
     },
-    claimReferralRevenue: (
-      veScaKey: SuiObjectArg,
-      poolCoinName: SupportCoins
-    ) => {
+    claimReferralRevenue: (veScaKey: SuiObjectArg, poolCoinName: string) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
       return builder.moveCall(
         txBlock,
@@ -109,7 +105,7 @@ const generateReferralQuickMethod: GenerateReferralQuickMethod = ({
   return {
     claimReferralRevenueQuick: async (
       veScaKey: SuiObjectArg,
-      coinNames: SupportPoolCoins[] = [...SUPPORT_POOLS]
+      coinNames: string[] = [...builder.constants.whitelist.lending]
     ) => {
       const sender = requireSender(txBlock);
       const objToTransfer: SuiObjectArg[] = [];

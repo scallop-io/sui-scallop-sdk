@@ -1,6 +1,5 @@
 import { DynamicFieldInfo, DynamicFieldName } from '@mysten/sui/client';
 import { ScallopQuery, ScallopUtils } from '../models';
-import { SupportPoolCoins } from '../types';
 import { z as zod } from 'zod';
 // import { SUPPORT_POOLS } from 'src/constants';
 
@@ -88,7 +87,7 @@ export const getIsolatedAssets = async (
  */
 export const isIsolatedAsset = async (
   utils: ScallopUtils,
-  coinName: SupportPoolCoins
+  coinName: string
 ): Promise<boolean> => {
   const assetInPoolAddresses = utils.constants.poolAddresses[coinName];
   if (assetInPoolAddresses) {

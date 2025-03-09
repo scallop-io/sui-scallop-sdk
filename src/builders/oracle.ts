@@ -3,17 +3,10 @@ import {
   SuiPythClient,
   SuiPriceServiceConnection,
 } from '@pythnetwork/pyth-sui-js';
-import { SUPPORT_COLLATERALS, SUPPORT_POOLS } from '../constants';
 import type { TransactionArgument } from '@mysten/sui/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
-import type {
-  SupportAssetCoins,
-  SupportOracleType,
-  xOracleRules,
-  xOracleRuleType,
-} from '../types';
-import { PYTH_ENDPOINTS } from 'src/constants/pyth';
+import type { xOracleRules, xOracleRuleType } from '../types';
 import { xOracleList as X_ORACLE_LIST } from 'src/constants';
 
 /**
@@ -27,9 +20,7 @@ import { xOracleList as X_ORACLE_LIST } from 'src/constants';
 export const updateOracles = async (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
-  assetCoinNames: SupportAssetCoins[] = [
-    ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
-  ],
+  assetCoinNames: string[] = [...builder.constants.whitelist.lending],
   options: {
     usePythPullModel: boolean;
     useOnChainXOracleList: boolean;
@@ -45,7 +36,7 @@ export const updateOracles = async (
     : X_ORACLE_LIST;
 
   // const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
-  const flattenedRules: SupportOracleType[] = [
+  const flattenedRules = [
     ...new Set(
       Object.values(xOracleList).flatMap(({ primary, secondary }) => [
         ...primary,
@@ -65,9 +56,9 @@ export const updateOracles = async (
     );
 
     // iterate through the endpoints
-    const endpoints =
-      builder.params.pythEndpoints ??
-      PYTH_ENDPOINTS[builder.isTestnet ? 'testnet' : 'mainnet'];
+    const endpoints = builder.params.pythEndpoints ?? [
+      ...builder.constants.whitelist.pythEndpoints,
+    ];
     for (const endpoint of endpoints) {
       try {
         const pythConnection = new SuiPriceServiceConnection(endpoint);
@@ -105,7 +96,7 @@ export const updateOracles = async (
 const updateOracle = (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
-  assetCoinName: SupportAssetCoins,
+  assetCoinName: string,
   rules: xOracleRules
 ) => {
   const coinType = builder.utils.parseCoinType(assetCoinName);
@@ -172,7 +163,7 @@ const updatePrice = (
     xOracleId,
     coinType
   );
-  Object.entries(rules).forEach(([type, rule]: [any, SupportOracleType[]]) => {
+  Object.entries(rules).forEach(([type, rule]: [any, string[]]) => {
     if (rule.includes('pyth')) {
       updatePythPrice(
         type,

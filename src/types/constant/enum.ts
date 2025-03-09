@@ -1,76 +1,64 @@
-import {
-  SupportCoins,
-  SupportAssetCoins,
-  SupportMarketCoins,
-  SupportStakeMarketCoins,
-  SupportStakeRewardCoins,
-  SupportBorrowIncentiveCoins,
-  SupportBorrowIncentiveRewardCoins,
-  SupportSCoin,
-  SupportSuiBridgeCoins,
-} from './common';
-
 export type Coins = {
-  [K in SupportCoins]: K;
+  [K in string]: K;
 };
 
 export type AssetCoins = {
-  [K in SupportAssetCoins]: K;
+  [K in string]: K;
 };
 
 export type MarketCoins = {
-  [K in SupportMarketCoins]: K;
+  [K in string]: K;
 };
 
 export type SCoins = {
-  [K in SupportSCoin]: K;
+  [K in string]: K;
 };
 
 export type StakeMarketCoins = {
-  [K in SupportStakeMarketCoins]: K;
+  [K in string]: K;
 };
 
 export type StakeRewardCoins = {
-  [key in SupportStakeMarketCoins]: SupportStakeRewardCoins;
+  [key in string]: string;
 };
 
 export type SuiBridgeCoins = {
-  [K in SupportSuiBridgeCoins]: K;
+  [K in string]: K;
 };
 
 export type BorrowIncentiveRewardCoins = {
-  [key in SupportBorrowIncentiveCoins]: SupportBorrowIncentiveRewardCoins[];
+  [key in string]: string[];
 };
 
 export type AssetCoinIds = {
-  [key in SupportAssetCoins]: string;
+  [key in string]: string;
 };
 
 export type SCoinIds = {
-  [key in SupportSCoin]: string;
+  [key in string]: string;
 };
 
 export type SCoinTreasuryCaps = {
-  [key in SupportSCoin]: string;
+  [key in string]: string;
 };
 
 export type SCoinConverterTreasury = {
-  [key in SupportSCoin]: string;
+  [key in string]: string;
 };
 
 type PickFromUnion<T, K extends string> = K extends T ? K : never;
 
 export type WormholeCoinIds = {
   [key in PickFromUnion<
-    SupportAssetCoins,
+    string,
     'weth' | 'wbtc' | 'wusdc' | 'wusdt' | 'wapt' | 'wsol'
   >]: string;
 };
 
 export type VoloCoinIds = {
-  [key in PickFromUnion<SupportAssetCoins, 'vsui'>]: string;
+  [key in PickFromUnion<string, 'vsui'>]: string;
 };
 
 export type SuiBridgedCoinPackageIds = {
-  [key in SupportSuiBridgeCoins]: string;
+  [key in string]: string;
 };

@@ -18,14 +18,11 @@ import type {
   ParsedBorrowIncentivePoolData,
   OriginBorrowIncentiveAccountData,
   ParsedBorrowIncentiveAccountData,
-  SupportPoolCoins,
-  SupportCollateralCoins,
   OriginBorrowIncentivePoolPointData,
   ParsedBorrowIncentivePoolPointData,
   CalculatedBorrowIncentivePoolPointData,
   OriginBorrowIncentiveAccountPoolData,
   ParsedBorrowIncentiveAccountPoolData,
-  SupportBorrowIncentiveRewardCoins,
 } from '../types';
 
 /**
@@ -72,10 +69,12 @@ export const calculateMarketPoolData = (
   utils: ScallopUtils,
   parsedMarketPoolData: ParsedMarketPoolData
 ): CalculatedMarketPoolData => {
-  const poolCoinName = utils.parseCoinNameFromType<SupportPoolCoins>(
+  const poolCoinName = utils.parseCoinNameFromType(
     parsedMarketPoolData.coinType
   );
   const coinDecimal = utils.getCoinDecimal(poolCoinName);
+  if (coinDecimal === undefined)
+    throw new Error(`Coin decimal not found for ${poolCoinName}`);
 
   const borrowYearFactor = 24 * 365 * 3600;
 
@@ -210,11 +209,12 @@ export const calculateMarketCollateralData = (
   utils: ScallopUtils,
   parsedMarketCollateralData: ParsedMarketCollateralData
 ): CalculatedMarketCollateralData => {
-  const collateralCoinName =
-    utils.parseCoinNameFromType<SupportCollateralCoins>(
-      parsedMarketCollateralData.coinType
-    );
+  const collateralCoinName = utils.parseCoinNameFromType(
+    parsedMarketCollateralData.coinType
+  );
   const coinDecimal = utils.getCoinDecimal(collateralCoinName);
+  if (coinDecimal === undefined)
+    throw new Error(`Coin decimal not found for ${collateralCoinName}`);
 
   const maxCollateralCoin = BigNumber(
     parsedMarketCollateralData.maxCollateralAmount
@@ -450,15 +450,12 @@ export const parseOriginBorrowIncentivePoolData = (
         const parsed = parseOriginBorrowIncentivesPoolPointData(point);
         const name = utils.parseSCoinTypeNameToMarketCoinName(
           parseStructTag(parsed.pointType).name.toLowerCase()
-        ) as SupportBorrowIncentiveRewardCoins;
+        ) as string;
 
         acc[name] = parsed;
         return acc;
       },
-      {} as Record<
-        SupportBorrowIncentiveRewardCoins,
-        ParsedBorrowIncentivePoolPointData
-      >
+      {} as Record<string, ParsedBorrowIncentivePoolPointData>
     ),
   };
 };
@@ -597,14 +594,11 @@ export const parseOriginBorrowIncentiveAccountData = (
         const parsed = parseOriginBorrowIncentiveAccountPoolPointData(point);
         const name = parseStructTag(
           parsed.pointType
-        ).name.toLowerCase() as SupportBorrowIncentiveRewardCoins;
+        ).name.toLowerCase() as string;
         acc[name] = parsed;
         return acc;
       },
-      {} as Record<
-        SupportBorrowIncentiveRewardCoins,
-        ParsedBorrowIncentiveAccountPoolData
-      >
+      {} as Record<string, ParsedBorrowIncentiveAccountPoolData>
     ),
   };
 };

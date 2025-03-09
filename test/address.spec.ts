@@ -13,7 +13,7 @@ const NETWORK: NetworkType = 'mainnet';
 
 describe('Test Scallop Address', () => {
   const scallopAddress = new ScallopAddress({
-    id: TEST_ADDRESSES_ID,
+    addressId: TEST_ADDRESSES_ID,
     auth: process.env.API_KEY,
     network: NETWORK,
   });
@@ -601,9 +601,9 @@ describe('Test Forced Scallop Address Interface', () => {
       }
     `);
   const scallopAddress = new ScallopAddress({
-    id: TEST_ADDRESSES_ID,
+    addressId: TEST_ADDRESSES_ID,
     network: NETWORK,
-    forceInterface: {
+    forceAddressesInterface: {
       mainnet: testAddresses,
     },
   });

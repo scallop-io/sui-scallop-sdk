@@ -10,6 +10,7 @@ import { ScallopCache } from './scallopCache';
 import { QueryKey } from '@tanstack/query-core';
 import { newSuiKit } from './suiKit';
 import { ScallopAddress } from './scallopAddress';
+import { parseStructTag } from '@scallop-io/sui-kit';
 
 /**
  * @description
@@ -26,7 +27,7 @@ export class ScallopConstants {
   public address: ScallopAddress;
   public cache: ScallopCache;
 
-  private _poolAddresses: Record<string, PoolAddress> = {};
+  private _poolAddresses: Record<string, PoolAddress | undefined> = {};
   private _whitelist: Whitelist = {
     lending: new Set(),
     borrowing: new Set(),
@@ -34,7 +35,27 @@ export class ScallopConstants {
     packages: new Set(),
     scoin: new Set(),
     spool: new Set(),
+    borrowIncentiveRewards: new Set(),
+    suiBridge: new Set(),
+    wormhole: new Set(),
+    oracles: new Set(),
+    pythEndpoints: new Set(),
   };
+
+  private _coinDecimals: Record<string, number | undefined> = {};
+  private _coinNameToCoinTypeMap: Record<string, string | undefined> = {};
+  private _coinNameToOldMarketCoinTypeMap: Record<string, string | undefined> =
+    {};
+  private _scoinRawNameToSCoinNameMap: Record<string, string | undefined> = {};
+  private _scoinTypeToSCoinNameMap: Record<string, string | undefined> = {};
+  private _wormholeCoinTypeToCoinNameMap: Record<string, string | undefined> =
+    {};
+  private _voloCoinTypeToCoinNameMap: Record<string, string | undefined> = {};
+  private _suiBridgeCoinTypeToCoinNameMap: Record<string, string | undefined> =
+    {};
+  private _coinTypes: Record<string, string | undefined> = {};
+  private _sCoinTypes: Record<string, string | undefined> = {};
+  private _coinTypeToCoinNameMap: Record<string, string | undefined> = {};
 
   constructor(
     public readonly params: ScallopConstantsParams,
@@ -70,6 +91,16 @@ export class ScallopConstants {
     }
   }
 
+  get isAddressInitialized() {
+    return !this.isEmptyObject(this.address.getAllAddresses());
+  }
+
+  get isInitialized() {
+    return (
+      !!this._poolAddresses && !!this._whitelist && this.isAddressInitialized
+    );
+  }
+
   get queryClient() {
     return this.cache.queryClient;
   }
@@ -87,6 +118,143 @@ export class ScallopConstants {
       (this.address.get('core.object') as string | undefined) ??
       ('0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf' as const)
     );
+  }
+
+  get coinDecimals() {
+    if (this.isEmptyObject(this._coinDecimals)) {
+      this._coinDecimals = Object.fromEntries([
+        ...Object.entries(this.poolAddresses)
+          .filter(([_, value]) => !!value)
+          .map(([key, value]) => [key, value!.decimals]),
+        ...Object.entries(this.poolAddresses)
+          .filter(([_, value]) => !!value?.sCoinName)
+          .map(([_, value]) => [value!.sCoinName, value!.decimals]),
+      ]);
+    }
+    return this._coinDecimals;
+  }
+
+  get coinTypes() {
+    if (this.isEmptyObject(this._coinTypes))
+      this._coinTypes = Object.fromEntries([
+        ...Object.entries(this.poolAddresses)
+          .filter(([_, value]) => !!value)
+          .map(([key, value]) => [key, value?.coinType]),
+        ...Object.entries(this.poolAddresses)
+          .filter(([_, value]) => !!value && value.sCoinName && value.sCoinType)
+          .map(([_, value]) => [value!.sCoinName, value!.sCoinType]),
+      ]);
+    return this._coinTypes;
+  }
+
+  get wormholeCoinTypeToCoinName() {
+    if (this.isEmptyObject(this._wormholeCoinTypeToCoinNameMap))
+      this._wormholeCoinTypeToCoinNameMap = Object.fromEntries(
+        Object.entries(this.poolAddresses)
+          .filter(([key, value]) => !!value && this.whitelist.wormhole.has(key))
+          .map(([_, value]) => [value!.coinType, value!.coinName])
+      );
+    return this._wormholeCoinTypeToCoinNameMap;
+  }
+
+  get coinNameToCoinTypeMap() {
+    if (this.isEmptyObject(this._coinNameToCoinTypeMap))
+      this._coinNameToCoinTypeMap = Object.fromEntries(
+        Object.entries(this.poolAddresses)
+          .filter(([_, value]) => !!value)
+          .map(([_, value]) => [value!.coinName, value!.coinType])
+      );
+    return this._coinNameToCoinTypeMap;
+  }
+
+  get coinTypeToCoinNameMap() {
+    if (this.isEmptyObject(this._coinTypeToCoinNameMap))
+      this._coinTypeToCoinNameMap = Object.fromEntries(
+        Object.entries(this.coinNameToCoinTypeMap).map(([key, val]) => [
+          val,
+          key,
+        ])
+      );
+    return this._coinTypeToCoinNameMap;
+  }
+
+  get coinNameToOldMarketCoinTypeMap() {
+    if (this.isEmptyObject(this._coinNameToOldMarketCoinTypeMap))
+      this._coinNameToOldMarketCoinTypeMap = Object.fromEntries(
+        Object.entries(this.poolAddresses)
+          .filter(([_, value]) => !!value && value.spoolType)
+          .map(([_, value]) => [value!.coinName, value!.spoolType])
+      );
+    return this._coinNameToOldMarketCoinTypeMap;
+  }
+
+  get sCoinRawNameToScoinNameMap() {
+    if (this.isEmptyObject(this._scoinRawNameToSCoinNameMap))
+      this._scoinRawNameToSCoinNameMap = Object.fromEntries(
+        Object.entries(this.poolAddresses)
+          .filter(([_, value]) => !!value && value.sCoinType && value.sCoinName)
+          .map(([_, value]) => {
+            const scoinRawName = parseStructTag(value!.sCoinType!).name;
+            return [scoinRawName, value!.sCoinName!];
+          })
+      );
+
+    return this._scoinRawNameToSCoinNameMap;
+  }
+
+  get sCoinTypeToSCoinNameMap() {
+    if (this.isEmptyObject(this._scoinTypeToSCoinNameMap))
+      this._scoinTypeToSCoinNameMap = Object.fromEntries(
+        Object.entries(this.poolAddresses)
+          .filter(([_, value]) => !!value && value.sCoinType && value.sCoinName)
+          .map(([_, value]) => [value!.sCoinType!, value!.sCoinName!])
+      );
+
+    return this._scoinTypeToSCoinNameMap;
+  }
+
+  get voloCoinTypeToCoinNameMap() {
+    if (this.isEmptyObject(this._voloCoinTypeToCoinNameMap))
+      this._coinNameToCoinTypeMap = {
+        [this.poolAddresses['vsui']!.coinType]: 'vsui',
+      };
+    return this._voloCoinTypeToCoinNameMap;
+  }
+
+  get suiBridgeCoinTypeToCoinNameMap() {
+    if (this.isEmptyObject(this._suiBridgeCoinTypeToCoinNameMap))
+      this._suiBridgeCoinTypeToCoinNameMap = Object.fromEntries(
+        Object.entries(this.poolAddresses)
+          .filter(
+            ([_, value]) =>
+              !!value && this.whitelist.suiBridge.has(value.coinName)
+          )
+          .map(([_, value]) => [value!.coinType, value!.coinName])
+      );
+    return this._suiBridgeCoinTypeToCoinNameMap;
+  }
+
+  get sCoinTypes() {
+    if (this.isEmptyObject(this._sCoinTypes))
+      this._sCoinTypes = Object.fromEntries(
+        Object.entries(this.poolAddresses)
+          .filter(([_, value]) => !!value && value.sCoinName && value.sCoinType)
+          .map(([_, value]) => [value!.sCoinName, value!.sCoinType!])
+      );
+
+    return this._sCoinTypes;
+  }
+
+  get supportedBorrowIncentiveRewards() {
+    return new Set([
+      ...this.whitelist.borrowIncentiveRewards,
+      ...this.whitelist.scoin,
+      ...this.whitelist.lending,
+    ]);
+  }
+
+  private isEmptyObject(obj: Record<string, unknown>) {
+    return Object.keys(obj).length === 0;
   }
 
   private async readApi<T>({
@@ -113,10 +281,14 @@ export class ScallopConstants {
   }
 
   async readWhiteList() {
-    return await this.readApi<Whitelist>({
+    const response = await this.readApi<Record<keyof Whitelist, string[]>>({
       url: this.params.whitelistApiUrl ?? '', // @TODO: add whitelist url default
       queryKey: queryKeys.api.getWhiteList(),
     });
+
+    return Object.fromEntries(
+      Object.entries(response).map(([key, value]) => [key, new Set(value)])
+    ) as Whitelist;
   }
 
   async readPoolAddresses() {
@@ -128,7 +300,21 @@ export class ScallopConstants {
     });
   }
 
-  async init() {
+  async init(params?: Partial<ScallopConstantsParams>) {
+    if (!this.isAddressInitialized) {
+      await this.address.read();
+    }
+
+    if (params?.forcePoolAddressInterface) {
+      this._poolAddresses = params?.forcePoolAddressInterface;
+    }
+
+    if (params?.forceWhitelistInterface) {
+      this._whitelist = params?.forceWhitelistInterface;
+    }
+
+    if (this.isInitialized) return;
+
     const [whitelistResponse, poolAddressesResponse] = await Promise.all([
       this.readWhiteList(),
       this.readPoolAddresses(),

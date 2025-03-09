@@ -1,10 +1,6 @@
 import { SuiObjectResponse } from '@mysten/sui/client';
 import { ScallopAddress, ScallopUtils } from 'src/models';
-import {
-  SupportAssetCoins,
-  SupportOracleType,
-  xOracleRuleType,
-} from 'src/types';
+import { xOracleRuleType } from 'src/types';
 
 const PRIMARY_PRICE_UPDATE_POLICY =
   '0x56e48a141f20a3a6a6d3fc43e58b01fc63f756c08224870e7890c80ec9d2afee';
@@ -47,10 +43,6 @@ export const getPriceUpdatePolicies = async (
   };
 };
 
-// const PRIMARY_PRICE_UPDATE_POLICY_KEY =
-//   '0x856d0930acc36780eda9ea47019c979ca6ad34fd36f158b181eb7350195acc00';
-// const SECONDARY_PRICE_UPDATE_POLICY_KEY =
-//   '0x304d226734fa5e376423c9ff0f1d49aeb1e2572d4b617d31e11e2f69865b73ed';
 const PRIMARY_PRICE_UPDATE_POLICY_VECSET_ID =
   '0xc22c9d691ee4c780de09db91d8b487d863211ebf08720772144bcf716318826c';
 const SECONDARY_PRICE_UPDATE_POLICY_VECSET_ID =
@@ -59,7 +51,7 @@ const SECONDARY_PRICE_UPDATE_POLICY_VECSET_ID =
 export const getAssetOracles = async (
   utils: ScallopUtils,
   ruleType: xOracleRuleType
-): Promise<Record<SupportAssetCoins, SupportOracleType[]> | null> => {
+): Promise<Record<string, string[]> | null> => {
   if (ruleType === 'primary' && !PRIMARY_PRICE_UPDATE_POLICY_VECSET_ID) {
     console.error('Primary price update policy vecset id is not set');
     return null;
@@ -69,17 +61,14 @@ export const getAssetOracles = async (
     return null;
   }
 
-  const ruleTypeNameToOracleType: Record<string, SupportOracleType> = {
+  const ruleTypeNameToOracleType: Record<string, string> = {
     [`${utils.address.get('core.packages.pyth.object')}::rule::Rule`]: 'pyth',
     [`${utils.address.get('core.packages.supra.object')}::rule::Rule`]: 'supra',
     [`${utils.address.get('core.packages.switchboard.object')}::rule::Rule`]:
       'switchboard',
   };
 
-  const assetPrimaryOracles = {} as Record<
-    SupportAssetCoins,
-    SupportOracleType[]
-  >;
+  const assetPrimaryOracles = {} as Record<string, string[]>;
   let cursor = null;
   do {
     const response = await utils.cache.queryGetDynamicFields({
