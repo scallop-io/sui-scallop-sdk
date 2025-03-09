@@ -108,6 +108,7 @@ export type ScallopBuilderParams = ScallopQueryParams & {
 
 export type ScallopClientParams = ScallopBuilderParams;
 export type ScallopParams = SuiKitParams &
-  ScallopAddressParams & {
+  ScallopAddressParams &
+  ScallopConstantsParams & {
     walletAddress?: string;
   };

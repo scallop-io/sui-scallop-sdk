@@ -1,8 +1,8 @@
 import { normalizeStructTag } from '@mysten/sui/utils';
-import {
-  SUPPORT_BORROW_INCENTIVE_POOLS,
-  SUPPORT_BORROW_INCENTIVE_REWARDS,
-} from '../constants';
+// import {
+//   SUPPORT_BORROW_INCENTIVE_POOLS,
+//   SUPPORT_BORROW_INCENTIVE_REWARDS,
+// } from '../constants';
 import {
   parseOriginBorrowIncentivePoolData,
   parseOriginBorrowIncentiveAccountData,
@@ -14,8 +14,7 @@ import type {
   BorrowIncentivePools,
   BorrowIncentiveAccountsQueryInterface,
   BorrowIncentiveAccounts,
-  SupportBorrowIncentiveCoins,
-  SupportBorrowIncentiveRewardCoins,
+  // string,
   BorrowIncentivePoolPoints,
   OptionalKeys,
   BorrowIncentivePool,
@@ -56,9 +55,7 @@ export const queryBorrowIncentivePools = async (address: ScallopAddress) => {
  */
 export const getBorrowIncentivePools = async (
   query: ScallopQuery,
-  borrowIncentiveCoinNames: SupportBorrowIncentiveCoins[] = [
-    ...SUPPORT_BORROW_INCENTIVE_POOLS,
-  ],
+  borrowIncentiveCoinNames: string[] = [...query.constants.whitelist.lending],
   indexer: boolean = false,
   marketPools?: MarketPools,
   coinPrices?: CoinPrices
@@ -76,18 +73,20 @@ export const getBorrowIncentivePools = async (
     const updateBorrowIncentivePool = (pool: BorrowIncentivePool) => {
       if (!borrowIncentiveCoinNames.includes(pool.coinName)) return;
       pool.coinPrice = coinPrices[pool.coinName] || pool.coinPrice;
-      for (const sCoinName of SUPPORT_BORROW_INCENTIVE_REWARDS) {
-        if (pool.points[sCoinName]) {
-          pool.points[sCoinName].coinPrice =
-            coinPrices[sCoinName] ?? pool.points[sCoinName].coinPrice;
+      for (const incentiveCoinName of query.constants
+        .supportedBorrowIncentiveRewards) {
+        if (pool.points[incentiveCoinName]) {
+          pool.points[incentiveCoinName]!.coinPrice =
+            coinPrices[incentiveCoinName] ??
+            pool.points[incentiveCoinName]!.coinPrice;
         }
       }
       borrowIncentivePools[pool.coinName] = pool;
     };
 
-    Object.values(borrowIncentivePoolsIndexer).forEach(
-      updateBorrowIncentivePool
-    );
+    Object.values(borrowIncentivePoolsIndexer)
+      .filter((pool): pool is BorrowIncentivePool => pool !== undefined)
+      .forEach(updateBorrowIncentivePool);
 
     return borrowIncentivePools;
   }
@@ -98,7 +97,7 @@ export const getBorrowIncentivePools = async (
 
   for (const pool of borrowIncentivePoolsQueryData?.incentive_pools ?? []) {
     const borrowIncentivePoolPoints: OptionalKeys<
-      Record<SupportBorrowIncentiveRewardCoins, BorrowIncentivePoolPoints>
+      Record<string, BorrowIncentivePoolPoints>
     > = {};
     const parsedBorrowIncentivePoolData = parseOriginBorrowIncentivePoolData(
       query.utils,
@@ -106,10 +105,7 @@ export const getBorrowIncentivePools = async (
     );
 
     const poolCoinType = normalizeStructTag(pool.pool_type.name);
-    const poolCoinName =
-      query.utils.parseCoinNameFromType<SupportBorrowIncentiveCoins>(
-        poolCoinType
-      );
+    const poolCoinName = query.utils.parseCoinNameFromType(poolCoinType);
     const poolCoinPrice = coinPrices?.[poolCoinName] ?? 0;
     const poolCoinDecimal = query.utils.getCoinDecimal(poolCoinName);
 
@@ -122,12 +118,16 @@ export const getBorrowIncentivePools = async (
     for (const [coinName, poolPoint] of Object.entries(
       parsedBorrowIncentivePoolData.poolPoints
     )) {
+      if (!poolPoint) continue;
       const rewardCoinType = poolPoint.pointType;
       const rewardCoinName = query.utils.parseCoinNameFromType(
         rewardCoinType
-      ) as SupportBorrowIncentiveRewardCoins;
+      ) as string;
       // handle for scoin name
       const rewardCoinDecimal = query.utils.getCoinDecimal(rewardCoinName);
+      if (rewardCoinDecimal === undefined)
+        throw new Error(`Coin decimal not found for ${rewardCoinName}`);
+
       const rewardCoinPrice = coinPrices?.[rewardCoinName] ?? 0;
 
       const symbol = query.utils.parseSymbol(rewardCoinName);
@@ -142,18 +142,17 @@ export const getBorrowIncentivePools = async (
         poolCoinDecimal
       );
 
-      borrowIncentivePoolPoints[coinName as SupportBorrowIncentiveRewardCoins] =
-        {
-          symbol,
-          coinName: rewardCoinName,
-          coinType: rewardCoinType,
-          coinDecimal,
-          coinPrice: rewardCoinPrice,
-          points: poolPoint.points,
-          distributedPoint: poolPoint.distributedPoint,
-          weightedAmount: poolPoint.weightedAmount,
-          ...calculatedPoolPoint,
-        };
+      borrowIncentivePoolPoints[coinName as string] = {
+        symbol,
+        coinName: rewardCoinName,
+        coinType: rewardCoinType,
+        coinDecimal,
+        coinPrice: rewardCoinPrice,
+        points: poolPoint.points,
+        distributedPoint: poolPoint.distributedPoint,
+        weightedAmount: poolPoint.weightedAmount,
+        ...calculatedPoolPoint,
+      };
     }
 
     const stakedAmount = BigNumber(parsedBorrowIncentivePoolData.staked);
@@ -190,9 +189,7 @@ export const queryBorrowIncentiveAccounts = async (
     utils: ScallopUtils;
   },
   obligationId: string | SuiObjectRef,
-  borrowIncentiveCoinNames: SupportBorrowIncentiveCoins[] = [
-    ...SUPPORT_BORROW_INCENTIVE_POOLS,
-  ]
+  borrowIncentiveCoinNames: string[] = [...utils.constants.whitelist.lending]
 ) => {
   const queryPkgId = utils.address.get('borrowIncentive.query');
   const incentiveAccountsId = utils.address.get(
@@ -211,8 +208,7 @@ export const queryBorrowIncentiveAccounts = async (
     const parsedBorrowIncentiveAccount =
       parseOriginBorrowIncentiveAccountData(accountData);
     const poolType = parsedBorrowIncentiveAccount.poolType;
-    const coinName =
-      utils.parseCoinNameFromType<SupportBorrowIncentiveCoins>(poolType);
+    const coinName = utils.parseCoinNameFromType(poolType);
 
     if (
       borrowIncentiveCoinNames &&

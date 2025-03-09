@@ -16,14 +16,12 @@ import type {
 import type {
   ScallopBuilderParams,
   ScallopTxBlock,
-  SupportMarketCoins,
-  SupportAssetCoins,
-  SupportSCoin,
   ScallopBuilderInstanceParams,
   SelectCoinReturnType,
 } from '../types';
 import { ScallopCache } from './scallopCache';
 import { newSuiKit } from './suiKit';
+import { ScallopConstants } from './scallopConstants';
 
 /**
  * @description
@@ -42,6 +40,7 @@ export class ScallopBuilder {
 
   public suiKit: SuiKit;
   public address: ScallopAddress;
+  public constants: ScallopConstants;
   public query: ScallopQuery;
   public utils: ScallopUtils;
   public walletAddress: string;
@@ -58,25 +57,36 @@ export class ScallopBuilder {
       params?.walletAddress ?? this.suiKit.currentAddress()
     );
 
-    if (instance?.query) {
-      this.query = instance.query;
-      this.utils = this.query.utils;
-      this.address = this.utils.address;
-      this.cache = this.address.cache;
-    } else {
-      this.cache = new ScallopCache(this.params, {
+    this.cache =
+      instance?.query?.cache ??
+      new ScallopCache(this.params, {
         suiKit: this.suiKit,
       });
-      this.address = new ScallopAddress(params, {
+
+    this.address =
+      instance?.query?.address ??
+      new ScallopAddress(this.params, {
         cache: this.cache,
       });
-      this.utils = new ScallopUtils(this.params, {
+
+    this.constants =
+      instance?.query?.constants ??
+      new ScallopConstants(this.params, {
         address: this.address,
       });
-      this.query = new ScallopQuery(params, {
+
+    this.utils =
+      instance?.query?.utils ??
+      new ScallopUtils(this.params, {
+        constants: this.constants,
+      });
+
+    this.query =
+      instance?.query ??
+      new ScallopQuery(this.params, {
         utils: this.utils,
       });
-    }
+
     this.isTestnet = params.networkType
       ? params.networkType === 'testnet'
       : false;
@@ -116,7 +126,7 @@ export class ScallopBuilder {
    * @param sender - Sender address.
    * @return Take coin and left coin.
    */
-  public async selectCoin<T extends SupportAssetCoins>(
+  public async selectCoin<T extends string>(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
     assetCoinName: T,
     amount: number,
@@ -144,7 +154,7 @@ export class ScallopBuilder {
    */
   public async selectMarketCoin(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
-    marketCoinName: SupportMarketCoins,
+    marketCoinName: string,
     amount: number,
     sender: string = this.walletAddress
   ) {
@@ -172,7 +182,7 @@ export class ScallopBuilder {
    */
   public async selectSCoin(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
-    sCoinName: SupportSCoin,
+    sCoinName: string,
     amount: number,
     sender: string = this.walletAddress
   ) {

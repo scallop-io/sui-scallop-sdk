@@ -1,10 +1,5 @@
 import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
-import {
-  SUPPORT_BORROW_INCENTIVE_POOLS,
-  SUPPORT_SCOIN,
-  SUPPORT_SPOOLS,
-} from '../constants';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
 import { ScallopBuilder } from './scallopBuilder';
@@ -20,17 +15,12 @@ import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type {
   ScallopClientFnReturnType,
   ScallopClientParams,
-  SupportPoolCoins,
-  SupportCollateralCoins,
-  SupportAssetCoins,
-  SupportStakeCoins,
-  SupportStakeMarketCoins,
   ScallopTxBlock,
-  SupportSCoin,
   ScallopClientVeScaReturnType,
   ScallopClientInstanceParams,
 } from '../types';
 import { newSuiKit } from './suiKit';
+import { ScallopConstants } from './scallopConstants';
 
 /**
  * @description
@@ -49,6 +39,7 @@ export class ScallopClient {
 
   public suiKit: SuiKit;
   public address: ScallopAddress;
+  public constants: ScallopConstants;
   public builder: ScallopBuilder;
   public query: ScallopQuery;
   public utils: ScallopUtils;
@@ -66,29 +57,41 @@ export class ScallopClient {
       params?.walletAddress ?? this.suiKit.currentAddress()
     );
 
-    if (instance?.builder) {
-      this.builder = instance.builder;
-      this.query = this.builder.query;
-      this.utils = this.query.utils;
-      this.address = this.utils.address;
-      this.cache = this.address.cache;
-    } else {
-      this.cache = new ScallopCache(this.params, {
+    this.cache =
+      instance?.builder?.cache ??
+      new ScallopCache(this.params, {
         suiKit: this.suiKit,
       });
-      this.address = new ScallopAddress(params, {
+
+    this.address =
+      instance?.builder?.address ??
+      new ScallopAddress(this.params, {
         cache: this.cache,
       });
-      this.utils = new ScallopUtils(this.params, {
+
+    this.constants =
+      instance?.builder?.constants ??
+      new ScallopConstants(this.params, {
         address: this.address,
       });
-      this.query = new ScallopQuery(this.params, {
+
+    this.utils =
+      instance?.builder?.utils ??
+      new ScallopUtils(this.params, {
+        constants: this.constants,
+      });
+
+    this.query =
+      instance?.builder?.query ??
+      new ScallopQuery(this.params, {
         utils: this.utils,
       });
-      this.builder = new ScallopBuilder(this.params, {
+
+    this.builder =
+      instance?.builder ??
+      new ScallopBuilder(this.params, {
         query: this.query,
       });
-    }
   }
 
   /**
@@ -171,10 +174,7 @@ export class ScallopClient {
    * @param ownerAddress - The owner address.
    * @return Stake accounts data.
    */
-  async getStakeAccounts(
-    stakeMarketCoinName: SupportStakeMarketCoins,
-    ownerAddress?: string
-  ) {
+  async getStakeAccounts(stakeMarketCoinName: string, ownerAddress?: string) {
     const owner = ownerAddress ?? this.walletAddress;
     return await this.query.getStakeAccounts(stakeMarketCoinName, owner);
   }
@@ -188,7 +188,7 @@ export class ScallopClient {
    * @param stakeMarketCoinName - Support stake market coin.
    * @return Stake pool data.
    */
-  async getStakePool(stakeMarketCoinName: SupportStakeMarketCoins) {
+  async getStakePool(stakeMarketCoinName: string) {
     return await this.query.getStakePool(stakeMarketCoinName);
   }
 
@@ -201,7 +201,7 @@ export class ScallopClient {
    * @param stakeMarketCoinName - Support stake market coin.
    * @return Reward pool data.
    */
-  async getStakeRewardPool(stakeMarketCoinName: SupportStakeMarketCoins) {
+  async getStakeRewardPool(stakeMarketCoinName: string) {
     return await this.query.getStakeRewardPool(stakeMarketCoinName);
   }
 
@@ -242,18 +242,18 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async depositCollateral(
-    collateralCoinName: SupportCollateralCoins,
+    collateralCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async depositCollateral<S extends boolean>(
-    collateralCoinName: SupportCollateralCoins,
+    collateralCoinName: string,
     amount: number,
     sign?: S,
     obligationId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async depositCollateral<S extends boolean>(
-    collateralCoinName: SupportCollateralCoins,
+    collateralCoinName: string,
     amount: number,
     sign: S = true as S,
     obligationId?: string,
@@ -299,7 +299,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async withdrawCollateral<S extends boolean>(
-    collateralCoinName: SupportCollateralCoins,
+    collateralCoinName: string,
     amount: number,
     sign: S = true as S,
     obligationId: string,
@@ -337,17 +337,17 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async deposit(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async deposit<S extends boolean>(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     amount: number,
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async deposit<S extends boolean>(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     amount: number,
     sign: S = true as S,
     walletAddress?: string
@@ -379,18 +379,18 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async depositAndStake(
-    stakeCoinName: SupportStakeCoins,
+    stakeCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async depositAndStake<S extends boolean>(
-    stakeCoinName: SupportStakeCoins,
+    stakeCoinName: string,
     amount: number,
     sign?: S,
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async depositAndStake<S extends boolean>(
-    stakeCoinName: SupportStakeCoins,
+    stakeCoinName: string,
     amount: number,
     sign: S = true as S,
     stakeAccountId?: string,
@@ -401,7 +401,7 @@ export class ScallopClient {
     txBlock.setSender(sender);
 
     const stakeMarketCoinName =
-      this.utils.parseMarketCoinName<SupportStakeMarketCoins>(stakeCoinName);
+      this.utils.parseMarketCoinName<string>(stakeCoinName);
     const stakeAccounts =
       await this.query.getStakeAccounts(stakeMarketCoinName);
     const targetStakeAccount = stakeAccountId ?? stakeAccounts[0]?.id;
@@ -438,17 +438,17 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async withdraw(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async withdraw<S extends boolean>(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     amount: number,
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async withdraw<S extends boolean>(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     amount: number,
     sign: S = true as S,
     walletAddress?: string
@@ -481,7 +481,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async borrow<S extends boolean>(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     amount: number,
     sign: S = true as S,
     obligationId: string,
@@ -493,7 +493,7 @@ export class ScallopClient {
     txBlock.setSender(sender);
 
     const availableStake = (
-      SUPPORT_BORROW_INCENTIVE_POOLS as readonly SupportPoolCoins[]
+      [...this.constants.whitelist.lending] as readonly string[]
     ).includes(poolCoinName);
     if (sign && availableStake) {
       await txBlock.unstakeObligationQuick(obligationId, obligationKey);
@@ -529,7 +529,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async repay<S extends boolean>(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     amount: number,
     sign: S = true as S,
     obligationId: string,
@@ -541,7 +541,7 @@ export class ScallopClient {
     txBlock.setSender(sender);
 
     const availableStake = (
-      SUPPORT_BORROW_INCENTIVE_POOLS as readonly SupportPoolCoins[]
+      [...this.constants.whitelist.lending] as readonly string[]
     ).includes(poolCoinName);
     if (sign && availableStake) {
       await txBlock.unstakeObligationQuick(obligationId, obligationKey);
@@ -570,7 +570,7 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async flashLoan(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     amount: number,
     callback: (
       txBlock: ScallopTxBlock,
@@ -578,7 +578,7 @@ export class ScallopClient {
     ) => SuiObjectArg
   ): Promise<SuiTransactionBlockResponse>;
   public async flashLoan<S extends boolean>(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     amount: number,
     callback: (
       txBlock: ScallopTxBlock,
@@ -588,7 +588,7 @@ export class ScallopClient {
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async flashLoan<S extends boolean>(
-    poolCoinName: SupportPoolCoins,
+    poolCoinName: string,
     amount: number,
     callback: (
       txBlock: ScallopTxBlock,
@@ -622,15 +622,15 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async createStakeAccount(
-    marketCoinName: SupportStakeMarketCoins
+    marketCoinName: string
   ): Promise<SuiTransactionBlockResponse>;
   public async createStakeAccount<S extends boolean>(
-    marketCoinName: SupportStakeMarketCoins,
+    marketCoinName: string,
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async createStakeAccount<S extends boolean>(
-    marketCoinName: SupportStakeMarketCoins,
+    marketCoinName: string,
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
@@ -661,18 +661,18 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async stake(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async stake<S extends boolean>(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     amount: number,
     sign?: S,
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async stake<S extends boolean>(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     amount: number,
     sign: S = true as S,
     stakeAccountId?: string,
@@ -713,18 +713,18 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async unstake(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async unstake<S extends boolean>(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     amount: number,
     sign?: S,
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async unstake<S extends boolean>(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     amount: number,
     sign: S = true as S,
     stakeAccountId?: string,
@@ -741,11 +741,15 @@ export class ScallopClient {
     );
 
     if (sCoin) {
+      const sCoinType = this.utils.parseSCoinType(stakeMarketCoinName);
+      if (!sCoinType)
+        throw new Error(`Invalid sCoin type: ${stakeMarketCoinName}`);
+
       // merge to existing sCoins if exist
       await this.utils.mergeSimilarCoins(
         txBlock,
         sCoin,
-        this.utils.parseSCoinType(stakeMarketCoinName),
+        sCoinType,
         requireSender(txBlock)
       );
     }
@@ -772,18 +776,18 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async unstakeAndWithdraw(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async unstakeAndWithdraw<S extends boolean>(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     amount: number,
     sign?: S,
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async unstakeAndWithdraw<S extends boolean>(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     amount: number,
     sign: S = true as S,
     stakeAccountId?: string,
@@ -799,8 +803,7 @@ export class ScallopClient {
       stakeAccountId,
       false
     );
-    const stakeCoinName =
-      this.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
+    const stakeCoinName = this.utils.parseCoinName(stakeMarketCoinName);
 
     if (stakeMarketCoin) {
       const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
@@ -836,16 +839,16 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async claim(
-    stakeMarketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: string
   ): Promise<SuiTransactionBlockResponse>;
   public async claim<S extends boolean>(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     sign?: S,
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async claim<S extends boolean>(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     sign: S = true as S,
     stakeAccountId?: string,
     walletAddress?: string
@@ -956,6 +959,7 @@ export class ScallopClient {
       await this.query.getObligationAccount(obligationId);
     if (!obligationAccount) throw new Error('Obligation not found');
     const rewardCoinNames = Object.values(obligationAccount.borrowIncentives)
+      .filter((t): t is NonNullable<typeof t> => !!t)
       .flatMap(({ rewards }) =>
         rewards.filter(({ availableClaimAmount }) => availableClaimAmount > 0)
       )
@@ -1007,7 +1011,7 @@ export class ScallopClient {
 
     const toTransfer: SuiObjectArg[] = [];
     await Promise.all(
-      SUPPORT_SCOIN.map(async (sCoinName) => {
+      [...this.constants.whitelist.scoin].map(async (sCoinName) => {
         /**
          * First check marketCoin inside mini wallet
          * Then check stakedMarketCoin inside spool
@@ -1019,7 +1023,7 @@ export class ScallopClient {
         try {
           const marketCoins = await this.utils.selectCoins(
             Number.MAX_SAFE_INTEGER,
-            this.utils.parseMarketCoinType(sCoinName as SupportSCoin),
+            this.utils.parseMarketCoinType(sCoinName as string),
             this.walletAddress
           ); // throw error no coins found
 
@@ -1038,26 +1042,28 @@ export class ScallopClient {
         if (toDestroyMarketCoin) {
           // mint new sCoin
           const sCoin = txBlock.mintSCoin(
-            sCoinName as SupportSCoin,
+            sCoinName as string,
             toDestroyMarketCoin
           );
 
+          const sCoinType = this.utils.parseSCoinType(sCoinName as string);
+          if (!sCoinType) throw new Error('Invalid sCoin type');
           // Merge with existing sCoin
           await this.utils.mergeSimilarCoins(
             txBlock,
             sCoin,
-            this.utils.parseSCoinType(sCoinName as SupportSCoin),
+            sCoinType,
             requireSender(txBlock)
           );
           sCoins.push(sCoin);
         }
         if (includeStakePool) {
           // check for staked market coin in spool
-          if (SUPPORT_SPOOLS.includes(sCoinName as SupportStakeMarketCoins)) {
+          if (this.constants.whitelist.spool.has(sCoinName as string)) {
             try {
               const sCoin = await txBlock.unstakeQuick(
                 Number.MAX_SAFE_INTEGER,
-                sCoinName as SupportStakeMarketCoins
+                sCoinName as string
               );
               if (sCoin) {
                 sCoins.push(sCoin);
@@ -1170,17 +1176,17 @@ export class ScallopClient {
    * @return Transaction block response or transaction block.
    */
   public async mintTestCoin(
-    assetCoinName: Exclude<SupportAssetCoins, 'sui'>,
+    assetCoinName: Exclude<string, 'sui'>,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
   public async mintTestCoin<S extends boolean>(
-    assetCoinName: Exclude<SupportAssetCoins, 'sui'>,
+    assetCoinName: Exclude<string, 'sui'>,
     amount: number,
     sign?: S,
     receiveAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
   public async mintTestCoin<S extends boolean>(
-    assetCoinName: Exclude<SupportAssetCoins, 'sui'>,
+    assetCoinName: Exclude<string, 'sui'>,
     amount: number,
     sign: S = true as S,
     receiveAddress?: string

@@ -1,5 +1,4 @@
 import { ScallopUtils } from 'src/models';
-import { SupportPoolCoins } from 'src/types';
 import { z as zod } from 'zod';
 
 const borrowLimitZod = zod.object({
@@ -26,10 +25,7 @@ const borrowLimitKeyType = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da26c
  * @param poolName
  * @returns supply limit (decimals included)
  */
-export const getBorrowLimit = async (
-  utils: ScallopUtils,
-  poolName: SupportPoolCoins
-) => {
+export const getBorrowLimit = async (utils: ScallopUtils, poolName: string) => {
   try {
     const poolCoinType = utils.parseCoinType(poolName).slice(2);
     const marketObject = utils.address.get('core.market');

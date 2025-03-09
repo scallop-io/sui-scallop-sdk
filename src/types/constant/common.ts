@@ -16,32 +16,32 @@
 // type ParseCoins<T extends string> = T extends `s${infer R}` ? R : never;
 
 // export type SupportCoins =
-//   | SupportAssetCoins
-//   | SupportMarketCoins
-//   | SupportStakeMarketCoins
-//   | SupportSCoin;
-// export type SupportAssetCoins =
-//   | SupportPoolCoins
-//   | SupportCollateralCoins
+//   | string
+//   | string
+//   | string
+//   | string;
+// export type string =
+//   | string
+//   | string
 //   | SupportStakeRewardCoins;
-// export type SupportPoolCoins = (typeof SUPPORT_POOLS)[number];
-// export type SupportCollateralCoins = (typeof SUPPORT_COLLATERALS)[number];
-// export type SupportMarketCoins =
-//   | ParseMarketCoins<SupportPoolCoins>
-//   | SupportStakeMarketCoins;
-// export type SupportStakeMarketCoins = (typeof SUPPORT_SPOOLS)[number];
-// export type SupportSuiBridgeCoins = (typeof SUPPORT_SUI_BRIDGE)[number];
-// export type SupportWormholeCoins = (typeof SUPPORT_WORMHOLE)[number];
-// export type SupportStakeCoins = Extract<
-//   SupportPoolCoins,
-//   ParseCoins<SupportStakeMarketCoins>
+// export type string = (typeof SUPPORT_POOLS)[number];
+// export type string = (typeof SUPPORT_COLLATERALS)[number];
+// export type string =
+//   | ParseMarketCoins<string>
+//   | string;
+// export type string = (typeof SUPPORT_SPOOLS)[number];
+// export type string = (typeof SUPPORT_SUI_BRIDGE)[number];
+// export type string = (typeof SUPPORT_WORMHOLE)[number];
+// export type string = Extract<
+//   string,
+//   ParseCoins<string>
 // >;
 // export type SupportStakeRewardCoins = (typeof SUPPORT_SPOOLS_REWARDS)[number];
-// export type SupportBorrowIncentiveCoins =
+// export type string =
 //   (typeof SUPPORT_BORROW_INCENTIVE_POOLS)[number];
-// export type SupportBorrowIncentiveRewardCoins =
+// export type string =
 //   (typeof SUPPORT_BORROW_INCENTIVE_REWARDS)[number];
-// export type SupportSCoin = (typeof SUPPORT_SCOIN)[number];
+// export type string = (typeof SUPPORT_SCOIN)[number];
 
 // export type SupportOracleType = (typeof SUPPORT_ORACLES)[number];
 
@@ -62,6 +62,7 @@ export type PoolAddress = {
   pythFeed: string;
   pythFeedObjectId: string;
   // optional keys
+  flashloanFeeObject?: string;
   coinGeckoId?: string;
   collateralPoolAddress?: string; // not all pool has collateral
   riskModel?: string;
@@ -76,6 +77,7 @@ export type PoolAddress = {
   spool?: string;
   spoolReward?: string;
   spoolName?: string;
+  spoolType?: string;
 };
 
 export type Whitelist = {
@@ -88,6 +90,8 @@ export type Whitelist = {
   suiBridge: Set<string>;
   wormhole: Set<string>;
   oracles: Set<string>;
+  borrowIncentiveRewards: Set<string>;
+  pythEndpoints: Set<string>;
 };
 
 export type CoinWrappedType =

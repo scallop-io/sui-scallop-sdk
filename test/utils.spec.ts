@@ -1,9 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import {
-  PROTOCOL_OBJECT_ID,
-  SUPPORT_POOLS,
-  SUPPORT_SCOIN,
-} from '../src/constants';
 import { scallopSDK } from './scallopSdk';
 
 const ENABLE_LOG = false;
@@ -11,6 +6,8 @@ const ENABLE_LOG = false;
 describe('Test Scallop Utils', async () => {
   const scallopUtils = await scallopSDK.createScallopUtils();
   const address = await scallopSDK.getScallopAddress();
+  const SUPPORT_POOLS = [...scallopUtils.constants.whitelist.lending];
+  const SUPPORT_SCOIN = [...scallopUtils.constants.whitelist.scoin];
   // const client = await scallopSDK.createScallopClient();
 
   it('Should parse to symbol from coin and market coin name', () => {
@@ -113,16 +110,16 @@ describe('Test Scallop Utils', async () => {
     const usdtMarketCoinType = scallopUtils.parseMarketCoinType('swusdt');
     const vsuiMarketCoinType = scallopUtils.parseMarketCoinType('svsui');
 
-    const suiAssertMarketCoinType = `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<${address.get(
+    const suiAssertMarketCoinType = `${scallopUtils.constants.protocolObjectId}::reserve::MarketCoin<${address.get(
       'core.coins.sui.id'
     )}::sui::SUI>`;
-    const usdcAssertMarketCoinType = `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<${address.get(
+    const usdcAssertMarketCoinType = `${scallopUtils.constants.protocolObjectId}::reserve::MarketCoin<${address.get(
       'core.coins.wusdc.id'
     )}::coin::COIN>`;
-    const usdtAssertMarketCoinType = `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<${address.get(
+    const usdtAssertMarketCoinType = `${scallopUtils.constants.protocolObjectId}::reserve::MarketCoin<${address.get(
       'core.coins.wusdt.id'
     )}::coin::COIN>`;
-    const vsuiAssertMarketCoinType = `${PROTOCOL_OBJECT_ID}::reserve::MarketCoin<${address.get(
+    const vsuiAssertMarketCoinType = `${scallopUtils.constants.protocolObjectId}::reserve::MarketCoin<${address.get(
       'core.coins.vsui.id'
     )}::cert::CERT>`;
     if (ENABLE_LOG) {
@@ -158,11 +155,13 @@ describe('Test Scallop Utils', async () => {
       expect(coinName).toBeDefined();
       expect(coinName).toBe(SUPPORT_POOLS[idx]);
     });
-    sCoinTypes.forEach((t, idx) => {
-      const coinName = scallopUtils.parseCoinNameFromType(t);
-      expect(coinName).toBeDefined();
-      expect(coinName).toBe(SUPPORT_SCOIN[idx]);
-    });
+    sCoinTypes
+      .filter((t): t is NonNullable<typeof t> => !!t)
+      .forEach((t, idx) => {
+        const coinName = scallopUtils.parseCoinNameFromType(t);
+        expect(coinName).toBeDefined();
+        expect(coinName).toBe(SUPPORT_SCOIN[idx]);
+      });
   });
 
   it('Should parse to coin name from market name', () => {
@@ -180,7 +179,7 @@ describe('Test Scallop Utils', async () => {
   });
 
   it('Should get spool reward coin name', () => {
-    const spoolRewardCoinName = scallopUtils.getSpoolRewardCoinName('swusdc');
+    const spoolRewardCoinName = scallopUtils.getSpoolRewardCoinName();
     if (ENABLE_LOG) {
       console.info('Spool reward coin name:', spoolRewardCoinName);
     }
@@ -244,7 +243,7 @@ describe('Test Scallop Utils', async () => {
       console.info('All coin prices:', coinPrices);
     }
     expect(!!coinPrices).toBe(true);
-    expect(Object.values(coinPrices).every((t) => t > 0)).toBe(true);
+    expect(Object.values(coinPrices).every((t) => t && t > 0)).toBe(true);
   });
 
   it('Should return supported pool addresses', () => {

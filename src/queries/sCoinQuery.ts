@@ -1,9 +1,8 @@
 import { bcs } from '@mysten/sui/bcs';
 import assert from 'assert';
 import BigNumber from 'bignumber.js';
-import { SUPPORT_SCOIN } from 'src/constants';
 import { ScallopQuery, ScallopUtils } from 'src/models';
-import { OptionalKeys, SupportSCoin, sCoinBalance } from 'src/types';
+import { OptionalKeys, sCoinBalance } from 'src/types';
 
 /**
  * Get total supply of sCoin
@@ -17,7 +16,7 @@ export const getSCoinTotalSupply = async (
   }: {
     utils: ScallopUtils;
   },
-  sCoinName: SupportSCoin
+  sCoinName: string
 ): Promise<sCoinBalance> => {
   const sCoinPkgId = utils.address.get('scoin.id');
   // get treasury
@@ -60,11 +59,11 @@ export const getSCoinAmounts = async (
   }: {
     utils: ScallopUtils;
   },
-  sCoinNames: SupportSCoin[] = [...SUPPORT_SCOIN],
+  sCoinNames: string[] = [...utils.constants.whitelist.scoin],
   ownerAddress?: string
 ) => {
   const owner = ownerAddress || utils.suiKit.currentAddress();
-  const sCoins = {} as OptionalKeys<Record<SupportSCoin, number>>;
+  const sCoins = {} as OptionalKeys<Record<string, number>>;
 
   await Promise.allSettled(
     sCoinNames.map(async (sCoinName) => {
@@ -90,7 +89,7 @@ export const getSCoinAmount = async (
   }: {
     utils: ScallopUtils;
   },
-  sCoinName: SupportSCoin,
+  sCoinName: string,
   ownerAddress?: string
 ) => {
   const owner = ownerAddress || utils.suiKit.currentAddress();
@@ -102,18 +101,18 @@ export const getSCoinAmount = async (
   return BigNumber(coinBalance?.totalBalance ?? '0').toNumber();
 };
 
-const isSupportStakeCoins = (value: string): value is SupportSCoin => {
-  return SUPPORT_SCOIN.includes(value as SupportSCoin);
-};
-
-const checkAssetParams = (fromSCoin: SupportSCoin, toSCoin: SupportSCoin) => {
+const checkAssetParams = (
+  utils: ScallopUtils,
+  fromSCoin: string,
+  toSCoin: string
+) => {
   if (fromSCoin === toSCoin)
     throw new Error('fromAsset and toAsset must be different');
 
-  if (!isSupportStakeCoins(fromSCoin))
+  if (!utils.constants.whitelist.scoin.has(fromSCoin))
     throw new Error('fromAsset is not supported');
 
-  if (!isSupportStakeCoins(toSCoin)) {
+  if (!utils.constants.whitelist.scoin.has(toSCoin)) {
     throw new Error('toAsset is not supported');
   }
 };
@@ -129,11 +128,11 @@ const checkAssetParams = (fromSCoin: SupportSCoin, toSCoin: SupportSCoin) => {
  */
 export const getSCoinSwapRate = async (
   query: ScallopQuery,
-  fromSCoin: SupportSCoin,
-  toSCoin: SupportSCoin,
+  fromSCoin: string,
+  toSCoin: string,
   underlyingCoinPrice?: number
 ) => {
-  checkAssetParams(fromSCoin, toSCoin);
+  checkAssetParams(query.utils, fromSCoin, toSCoin);
   const fromCoinName = query.utils.parseCoinName(fromSCoin);
   const toCoinName = query.utils.parseCoinName(toSCoin);
 

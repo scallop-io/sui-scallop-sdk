@@ -4,7 +4,6 @@ import {
   SuiTxBlock as SuiKitTxBlock,
 } from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models';
-import { SupportPoolCoins } from '../constant';
 
 export type ReferralIds = {
   referralPgkId: string;
@@ -17,21 +16,18 @@ export type ReferralIds = {
 
 export type ReferralNormalMethods = {
   bindToReferral: (veScaKeyId: string) => void;
-  claimReferralTicket: (poolCoinName: SupportPoolCoins) => TransactionResult;
-  burnReferralTicket: (
-    ticket: SuiObjectArg,
-    poolCoinName: SupportPoolCoins
-  ) => void;
+  claimReferralTicket: (poolCoinName: string) => TransactionResult;
+  burnReferralTicket: (ticket: SuiObjectArg, poolCoinName: string) => void;
   claimReferralRevenue: (
     veScaKey: SuiObjectArg,
-    poolCoinName: SupportPoolCoins
+    poolCoinName: string
   ) => TransactionResult;
 };
 
 export type ReferralQuickMethods = {
   claimReferralRevenueQuick: (
     veScaKey: SuiObjectArg,
-    coinNames: SupportPoolCoins[]
+    coinNames: string[]
   ) => Promise<void>;
 };
 

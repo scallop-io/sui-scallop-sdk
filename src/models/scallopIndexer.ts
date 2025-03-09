@@ -10,13 +10,8 @@ import type {
   Spool,
   BorrowIncentivePools,
   BorrowIncentivePool,
-  SupportPoolCoins,
-  SupportCollateralCoins,
-  SupportStakeMarketCoins,
-  SupportBorrowIncentiveCoins,
   TotalValueLocked,
   BorrowIncentivePoolPoints,
-  SupportBorrowIncentiveRewardCoins,
   ScallopIndexerInstanceParams,
   ScallopIndexerParams,
 } from '../types';
@@ -106,9 +101,7 @@ export class ScallopIndexer {
    *
    * @return Market pool data.
    */
-  public async getMarketPool(
-    poolCoinName: SupportPoolCoins
-  ): Promise<MarketPool> {
+  public async getMarketPool(poolCoinName: string): Promise<MarketPool> {
     return (await this.getMarketPools())[poolCoinName] as MarketPool;
   }
 
@@ -127,7 +120,7 @@ export class ScallopIndexer {
    * @return Market collateral data.
    */
   public async getMarketCollateral(
-    collateralCoinName: SupportCollateralCoins
+    collateralCoinName: string
   ): Promise<MarketCollateral> {
     return (await this.getMarketCollaterals())[
       collateralCoinName
@@ -164,9 +157,7 @@ export class ScallopIndexer {
    *
    * @return Spool data.
    */
-  public async getSpool(
-    marketCoinName: SupportStakeMarketCoins
-  ): Promise<Spool> {
+  public async getSpool(marketCoinName: string): Promise<Spool> {
     return (await this.getSpools())[marketCoinName] as Spool;
   }
 
@@ -198,10 +189,7 @@ export class ScallopIndexer {
                 prev[curr.coinName] = curr;
                 return prev;
               },
-              {} as Record<
-                SupportBorrowIncentiveRewardCoins,
-                BorrowIncentivePoolPoints
-              >
+              {} as Record<string, BorrowIncentivePoolPoints>
             );
           }
           borrowIncentivePools[borrowIncentivePool.coinName] =
@@ -221,7 +209,7 @@ export class ScallopIndexer {
    * @return Borrow incentive pool data.
    */
   public async getBorrowIncentivePool(
-    borrowIncentiveCoinName: SupportBorrowIncentiveCoins
+    borrowIncentiveCoinName: string
   ): Promise<BorrowIncentivePool> {
     return (await this.getBorrowIncentivePools())[
       borrowIncentiveCoinName
@@ -265,7 +253,7 @@ export class ScallopIndexer {
    *
    * @return price data.
    */
-  public async getCoinPrice(poolCoinName: SupportPoolCoins): Promise<number> {
+  public async getCoinPrice(poolCoinName: string): Promise<number> {
     return (await this.getMarketPool(poolCoinName))?.coinPrice ?? 0;
   }
 
@@ -273,7 +261,7 @@ export class ScallopIndexer {
     const marketPools = await this.getMarketPools();
     return Object.entries(marketPools).reduce(
       (prev, [coinName, market]) => {
-        prev[coinName] = market.coinPrice;
+        if (market) prev[coinName] = market.coinPrice;
         return prev;
       },
       {} as Record<string, number>
