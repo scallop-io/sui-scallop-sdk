@@ -40,7 +40,8 @@ export const getBorrowLimit = async (utils: ScallopUtils, poolName: string) => {
     });
 
     const parsedData = borrowLimitZod.safeParse(object?.data?.content);
-    if (!parsedData.success) return null;
+    if (!parsedData.success) return '0';
+
     return parsedData.data.fields.value;
   } catch (e: any) {
     console.error(`Error in getBorrowLimit for ${poolName}: ${e.message}`);

@@ -72,6 +72,7 @@ export const calculateMarketPoolData = (
   const poolCoinName = utils.parseCoinNameFromType(
     parsedMarketPoolData.coinType
   );
+
   const coinDecimal = utils.getCoinDecimal(poolCoinName);
   if (coinDecimal === undefined)
     throw new Error(`Coin decimal not found for ${poolCoinName}`);

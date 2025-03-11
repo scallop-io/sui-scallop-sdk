@@ -39,7 +39,7 @@ export const getSupplyLimit = async (utils: ScallopUtils, poolName: string) => {
     });
 
     const parsedData = supplyLimitZod.safeParse(object?.data?.content);
-    if (!parsedData.success) return null;
+    if (!parsedData.success) return '0';
     return parsedData.data.fields.value;
   } catch (e: any) {
     console.error(`Error in getSupplyLimit for ${poolName}: ${e.message}`);

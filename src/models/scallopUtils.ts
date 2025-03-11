@@ -59,6 +59,7 @@ export class ScallopUtils {
     };
     this.walletAddress =
       params.walletAddress ?? instance?.suiKit?.currentAddress() ?? '';
+
     this.suiKit =
       instance?.suiKit ??
       instance?.constants?.cache.suiKit ??
@@ -237,12 +238,15 @@ export class ScallopUtils {
    */
   public parseCoinNameFromType(coinType: string) {
     coinType = normalizeStructTag(coinType);
-    const isMarketCoinType = coinType.includes('reserve::MarketCoin');
+    const { address, module, name, typeParams } = parseStructTag(coinType);
+    const isMarketCoinType =
+      address === this.constants.protocolObjectId &&
+      module === 'reserve' &&
+      name === 'MarketCoin';
+
     if (isMarketCoinType) {
       return this.parseMarketCoinName(
-        parseStructTag(
-          parseStructTag(coinType).typeParams as any
-        ).name.toLowerCase()
+        parseStructTag(typeParams as any).name.toLowerCase()
       );
     }
     const assetCoinName =
@@ -253,7 +257,6 @@ export class ScallopUtils {
       this.constants.suiBridgeCoinTypeToCoinNameMap[coinType] ||
       parseStructTag(coinType).name.toLowerCase();
 
-    if (assetCoinName === 'coin') console.log({ coinType });
     return assetCoinName;
   }
 

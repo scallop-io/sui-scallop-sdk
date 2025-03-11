@@ -29,9 +29,9 @@ const queryRequiredSpoolObjects = async (
   // Prepare all tasks for querying each object type
   const tasks = stakePoolCoinNames.map((t, idx) => ({
     poolCoinName: stakePoolCoinNames[idx],
-    spool: query.utils.constants.poolAddresses[t]?.spool,
-    spoolReward: query.utils.constants.poolAddresses[t]?.spoolReward,
-    sCoinTreasury: query.utils.constants.poolAddresses[t]?.sCoinTreasury,
+    spool: query.constants.poolAddresses[t]?.spool,
+    spoolReward: query.constants.poolAddresses[t]?.spoolReward,
+    sCoinTreasury: query.constants.poolAddresses[t]?.sCoinTreasury,
   }));
 
   // Query all objects for each key in parallel
@@ -143,7 +143,7 @@ export const getSpools = async (
   coinPrices?: CoinPrices
 ) => {
   const stakeCoinNames = stakeMarketCoinNames.map((stakeMarketCoinName) =>
-    query.utils.parseCoinName<string>(stakeMarketCoinName)
+    query.utils.parseCoinName(stakeMarketCoinName)
   );
   marketPools =
     marketPools ??
@@ -161,7 +161,7 @@ export const getSpools = async (
     const spoolsIndexer = await query.indexer.getSpools();
     const updateSpools = (spool: Spool) => {
       if (!stakeMarketCoinNames.includes(spool.marketCoinName)) return;
-      const coinName = query.utils.parseCoinName<string>(spool.marketCoinName);
+      const coinName = query.utils.parseCoinName(spool.marketCoinName);
       const rewardCoinName = query.utils.getSpoolRewardCoinName();
       spool.coinPrice = coinPrices[coinName] ?? spool.coinPrice;
       spool.marketCoinPrice =

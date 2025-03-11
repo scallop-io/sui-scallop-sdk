@@ -113,6 +113,10 @@ export class ScallopConstants {
     return this._whitelist;
   }
 
+  parseToOldMarketCoin(coinType: string) {
+    return `${this.protocolObjectId}::reserve::MarketCoin<${coinType}>`;
+  }
+
   get protocolObjectId() {
     return (
       (this.address.get('core.object') as string | undefined) ??
@@ -182,8 +186,11 @@ export class ScallopConstants {
     if (this.isEmptyObject(this._coinNameToOldMarketCoinTypeMap))
       this._coinNameToOldMarketCoinTypeMap = Object.fromEntries(
         Object.entries(this.poolAddresses)
-          .filter(([_, value]) => !!value && value.spoolType)
-          .map(([_, value]) => [value!.coinName, value!.spoolType])
+          .filter(([_, value]) => !!value && value.spool)
+          .map(([_, value]) => [
+            value!.coinName,
+            this.parseToOldMarketCoin(value!.coinType),
+          ])
       );
     return this._coinNameToOldMarketCoinTypeMap;
   }
@@ -215,7 +222,7 @@ export class ScallopConstants {
 
   get voloCoinTypeToCoinNameMap() {
     if (this.isEmptyObject(this._voloCoinTypeToCoinNameMap))
-      this._coinNameToCoinTypeMap = {
+      this._voloCoinTypeToCoinNameMap = {
         [this.poolAddresses['vsui']!.coinType]: 'vsui',
       };
     return this._voloCoinTypeToCoinNameMap;
