@@ -449,9 +449,7 @@ export const parseOriginBorrowIncentivePoolData = (
     poolPoints: originBorrowIncentivePoolData.points.reduce(
       (acc, point) => {
         const parsed = parseOriginBorrowIncentivesPoolPointData(point);
-        const name = utils.parseSCoinTypeNameToMarketCoinName(
-          parseStructTag(parsed.pointType).name.toLowerCase()
-        ) as string;
+        const name = utils.parseCoinNameFromType(parsed.pointType) as string;
 
         acc[name] = parsed;
         return acc;

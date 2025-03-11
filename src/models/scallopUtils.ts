@@ -251,10 +251,7 @@ export class ScallopUtils {
     }
     const assetCoinName =
       this.constants.coinTypeToCoinNameMap[coinType] ||
-      this.constants.wormholeCoinTypeToCoinName[coinType] ||
-      this.constants.voloCoinTypeToCoinNameMap[coinType] ||
       this.constants.sCoinTypeToSCoinNameMap[coinType] ||
-      this.constants.suiBridgeCoinTypeToCoinNameMap[coinType] ||
       parseStructTag(coinType).name.toLowerCase();
 
     return assetCoinName;
