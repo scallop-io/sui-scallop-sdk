@@ -2,15 +2,15 @@ export type PoolAddress = {
   coinName: string;
   symbol: string;
   coinType: string;
-  lendingPoolAddress: string;
-  borrowDynamic: string;
-  interestModel: string;
-  borrowFeeKey: string;
   coinMetadataId: string;
   decimals: number;
-  pythFeed: string;
-  pythFeedObjectId: string;
   // optional keys
+  pythFeed?: string;
+  pythFeedObjectId?: string;
+  lendingPoolAddress?: string;
+  borrowDynamic?: string;
+  interestModel?: string;
+  borrowFeeKey?: string;
   flashloanFeeObject?: string;
   coinGeckoId?: string;
   collateralPoolAddress?: string; // not all pool has collateral

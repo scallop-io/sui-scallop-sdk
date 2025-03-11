@@ -221,9 +221,11 @@ export class ScallopUtils {
    * @return Market coin type.
    */
   public parseMarketCoinType(coinName: string) {
-    const protocolObjectId = this.constants.protocolObjectId;
-    const coinType = this.parseCoinType(coinName, true);
-    return `${protocolObjectId}::reserve::MarketCoin<${coinType}>`;
+    const coinType = this.parseCoinType(
+      this.isMarketCoin(coinName) ? this.parseCoinName(coinName) : coinName,
+      true
+    );
+    return coinType;
   }
 
   /**

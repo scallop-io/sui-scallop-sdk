@@ -31,6 +31,37 @@ const tryRequest = async <T>(fn: (client: SuiClient) => T) => {
   throw new Error('Failed to fetch data');
 };
 
+const queryFlashloanFeeObjectIds = async (
+  client: SuiClient,
+  coinTypeMap: Set<string>, // set of coin types
+  flashloanFeeTableId: string = '0x00481a93b819d744a7d79ecdc6c62c74f2f7cb4779316c4df640415817ac61bb'
+) => {
+  let cursor: string | null | undefined = null;
+  let nextPage: boolean = false;
+  const flashloanFeeObjectIds: Record<string, string> = {}; // <coinType, flashloanFeeObjectId>
+
+  do {
+    const resp = await client.getDynamicFields({
+      parentId: flashloanFeeTableId,
+      limit: 10,
+      cursor,
+    });
+    if (!resp) break;
+    const { data, hasNextPage, nextCursor } = resp;
+    // get the dynamic object ids
+    data.forEach((field) => {
+      const assetType = `0x${(field.name.value as any).name as string}`;
+      if (coinTypeMap.has(assetType)) {
+        flashloanFeeObjectIds[assetType] = field.objectId;
+      }
+    });
+    nextPage = hasNextPage;
+    cursor = nextCursor;
+  } while (nextPage);
+
+  return flashloanFeeObjectIds;
+};
+
 export const getPoolAddresses = async (
   addressId: string,
   poolNames: string[] = []
@@ -120,6 +151,14 @@ export const getPoolAddresses = async (
     ).data?.objectId;
   };
 
+  // query flashloan fee objects first
+  const flashloanFeeObjectIds = await tryRequest(async (client) => {
+    return await queryFlashloanFeeObjectIds(
+      client,
+      new Set(coinTypesPairs.map(([, coinType]) => coinType))
+    );
+  });
+
   await Promise.all(
     coinTypesPairs.map(async ([coinName, coinType]) => {
       const coinTypeKey = coinType.slice(2);
@@ -150,11 +189,11 @@ export const getPoolAddresses = async (
         addressApiResponse.core.coins[coinName];
 
       let spoolData = undefined;
+      const _spoolData = addressApiResponse.spool.pools[`s${coinName}`];
       // @ts-ignore
-      if (addressApiResponse.spool.pools[`s${coinName}`]) {
+      if (_spoolData) {
         // @ts-ignore
-        const { id: spool, rewardPoolId: spoolReward } =
-          addressApiResponse.spool.pools[`s${coinName}`];
+        const { id: spool, rewardPoolId: spoolReward } = _spoolData;
         spoolData = {
           spool,
           spoolReward,
@@ -164,13 +203,14 @@ export const getPoolAddresses = async (
 
       let sCoinData = undefined;
       const sCoinName = `s${coinName}`;
-      if (addressApiResponse.scoin.coins[sCoinName]) {
+      const _sCoinData = addressApiResponse.scoin.coins[sCoinName];
+      if (_sCoinData) {
         const {
           coinType: sCoinType,
           treasury: sCoinTreasury,
           metaData: sCoinMetadataId,
           symbol: sCoinSymbol,
-        } = addressApiResponse.scoin.coins[sCoinName];
+        } = _sCoinData;
         sCoinData = {
           sCoinType,
           sCoinTreasury,
@@ -206,8 +246,8 @@ export const getPoolAddresses = async (
         supplyLimitKey: addresses[6],
         borrowLimitKey: addresses[7],
         isolatedAssetKey: addresses[8],
-        ...spoolData,
-        ...sCoinData,
+        ...(spoolData ?? {}),
+        ...(sCoinData ?? {}),
         sCoinName,
         coinMetadataId,
         coinType,
@@ -215,6 +255,7 @@ export const getPoolAddresses = async (
         decimals,
         pythFeed,
         pythFeedObjectId,
+        flashloanFeeObject: flashloanFeeObjectIds[coinType] ?? '',
       };
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
