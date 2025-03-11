@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import { queryKeys, SDK_API_BASE_URL } from 'src/constants';
+import { queryKeys } from 'src/constants';
 import {
   PoolAddress,
   ScallopConstantsInstanceParams,
@@ -254,9 +254,9 @@ export class ScallopConstants {
 
   get supportedBorrowIncentiveRewards() {
     return new Set([
-      ...this.whitelist.borrowIncentiveRewards,
-      ...this.whitelist.scoin,
-      ...this.whitelist.lending,
+      ...Object.values(this.poolAddresses)
+        .filter((t) => !!t)
+        .map((t) => t?.coinName),
     ]);
   }
 
@@ -289,7 +289,8 @@ export class ScallopConstants {
 
   async readWhiteList() {
     const response = await this.readApi<Record<keyof Whitelist, string[]>>({
-      url: this.params.whitelistApiUrl ?? '', // @TODO: add whitelist url default
+      url:
+        this.params.whitelistApiUrl ?? 'https://sui.apis.scallop.io/whitelist',
       queryKey: queryKeys.api.getWhiteList(),
     });
 
@@ -302,7 +303,7 @@ export class ScallopConstants {
     return await this.readApi<Record<string, PoolAddress>>({
       url:
         this.params.poolAddressesApiUrl ??
-        `${SDK_API_BASE_URL}/api/market/coinPoolInfo`,
+        `https://sui.apis.scallop.io/poolAddresses`,
       queryKey: queryKeys.api.getPoolAddresses(),
     });
   }
