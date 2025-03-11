@@ -42,7 +42,7 @@ export class ScallopIndexer {
     this.params = params;
     this.cache = instance?.cache ?? new ScallopCache(this.params);
     this._requestClient = axios.create({
-      baseURL: SDK_API_BASE_URL,
+      baseURL: params.indexerApiUrl ?? SDK_API_BASE_URL,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',

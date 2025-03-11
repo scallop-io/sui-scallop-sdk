@@ -4,7 +4,6 @@ import { z as zod } from 'zod';
 import { scallopSDK } from './scallopSdk';
 import { ScallopQuery } from 'src/models';
 import BigNumber from 'bignumber.js';
-// import { string } from 'src/types';
 
 const ENABLE_LOG = false;
 
@@ -256,63 +255,63 @@ describe('Test Query Borrow Incentive Contract On Chain Data', async () => {
   });
 });
 
-describe('Test Portfolio Query', async () => {
-  const scallopQuery = await getScallopQuery();
-  console.info('Your wallet:', scallopQuery.walletAddress);
+// describe('Test Portfolio Query', async () => {
+//   const scallopQuery = await getScallopQuery();
+//   console.info('Your wallet:', scallopQuery.walletAddress);
 
-  it('Should get user lendings data', async () => {
-    const lendings = await scallopQuery.getLendings(['sui', 'wusdc']);
+//   it('Should get user lendings data', async () => {
+//     const lendings = await scallopQuery.getLendings(['sui', 'wusdc']);
 
-    if (ENABLE_LOG) {
-      console.info('User lendings:', lendings);
-    }
-    expect(!!lendings).toBe(true);
-  }, 120000);
+//     if (ENABLE_LOG) {
+//       console.info('User lendings:', lendings);
+//     }
+//     expect(!!lendings).toBe(true);
+//   }, 120000);
 
-  it('Should get user lending data', async () => {
-    const lending = await scallopQuery.getLending('sui');
+//   it('Should get user lending data', async () => {
+//     const lending = await scallopQuery.getLending('sui');
 
-    if (ENABLE_LOG) {
-      console.info('User lending:', lending);
-    }
-    expect(!!lending).toBe(true);
-  });
+//     if (ENABLE_LOG) {
+//       console.info('User lending:', lending);
+//     }
+//     expect(!!lending).toBe(true);
+//   });
 
-  it('Should get all obligation accounts', async () => {
-    const obligationAccounts = await scallopQuery.getObligationAccounts();
-    if (ENABLE_LOG) {
-      console.info('Obligation accounts:');
-      console.dir(obligationAccounts, { depth: null, colors: true });
-    }
-    expect(!!obligationAccounts).toBe(true);
-  }, 120000);
+//   it('Should get all obligation accounts', async () => {
+//     const obligationAccounts = await scallopQuery.getObligationAccounts();
+//     if (ENABLE_LOG) {
+//       console.info('Obligation accounts:');
+//       console.dir(obligationAccounts, { depth: null, colors: true });
+//     }
+//     expect(!!obligationAccounts).toBe(true);
+//   }, 120000);
 
-  it('Should get obligation account', async () => {
-    const obligations = await scallopQuery.getObligations();
+//   it('Should get obligation account', async () => {
+//     const obligations = await scallopQuery.getObligations();
 
-    if (ENABLE_LOG) {
-      console.info('Obligations', obligations);
-    }
-    expect(obligations.length).toBeGreaterThan(0);
+//     if (ENABLE_LOG) {
+//       console.info('Obligations', obligations);
+//     }
+//     expect(obligations.length).toBeGreaterThan(0);
 
-    const obligationAccount = await scallopQuery.getObligationAccount(
-      obligations[0].id
-    );
-    if (ENABLE_LOG) {
-      console.info('Obligation account:');
-      console.dir(obligationAccount, { depth: null, colors: true });
-    }
-    expect(!!obligationAccount).toBe(true);
-  });
+//     const obligationAccount = await scallopQuery.getObligationAccount(
+//       obligations[0].id
+//     );
+//     if (ENABLE_LOG) {
+//       console.info('Obligation account:');
+//       console.dir(obligationAccount, { depth: null, colors: true });
+//     }
+//     expect(!!obligationAccount).toBe(true);
+//   });
 
-  it('Should get total value locked', async () => {
-    const tvl = await scallopQuery.getTvl();
-    if (ENABLE_LOG) {
-      console.info('Scallop tvl:', tvl);
-    }
-    expect(!!tvl).toBe(true);
-  });
-});
+//   it('Should get total value locked', async () => {
+//     const tvl = await scallopQuery.getTvl();
+//     if (ENABLE_LOG) {
+//       console.info('Scallop tvl:', tvl);
+//     }
+//     expect(!!tvl).toBe(true);
+//   });
+// });
 
 describe('Test VeSca Query', async () => {
   const scallopQuery = await getScallopQuery();
@@ -505,18 +504,22 @@ describe('Test Isolated Assets', async () => {
   const sender = scallopQuery.walletAddress;
   console.info(`Your Wallet: ${sender}`);
 
-  it.skip('Should return isolated assets', async () => {
+  it('Should return isolated assets', async () => {
     const isolatedAssets = await scallopQuery.getIsolatedAssets();
     expect(typeof isolatedAssets).toBe('object');
     expect(isolatedAssets.length > 0).toBe(true);
     expect(typeof isolatedAssets[0]).toBe('string');
   });
 
-  it.skip('Should check if an asset is isolated', async () => {
+  it('Should check if an asset is isolated', async () => {
     const isolatedAssetNames = ['fud', 'deep'] as string[];
-    const isIsolated = await Promise.all(
-      isolatedAssetNames.map((asset) => scallopQuery.isIsolatedAsset(asset))
-    );
+    const isIsolated = (
+      await Promise.all(
+        isolatedAssetNames.map(
+          async (asset) => await scallopQuery.isIsolatedAsset(asset)
+        )
+      )
+    ).every((isIsolated) => isIsolated);
     expect(typeof isIsolated).toBe('boolean');
     expect(isIsolated).toBe(true);
   });

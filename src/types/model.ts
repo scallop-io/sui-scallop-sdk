@@ -90,7 +90,7 @@ export type ScallopAddressParams = ScallopCacheParams & {
 export type ScallopConstantsParams = ScallopAddressParams & {
   poolAddressesApiUrl?: string;
   whitelistApiUrl?: string;
-  forcePoolAddressInterface?: Record<string, PoolAddress>; // @TODO: change any into PoolAddress type
+  forcePoolAddressInterface?: Record<string, PoolAddress>;
   forceWhitelistInterface?: Whitelist;
 };
 

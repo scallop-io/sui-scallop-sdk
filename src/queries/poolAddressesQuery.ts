@@ -31,7 +31,11 @@ const tryRequest = async <T>(fn: (client: SuiClient) => T) => {
   throw new Error('Failed to fetch data');
 };
 
-export const getPoolAddresses = async (addressId: string) => {
+export const getPoolAddresses = async (
+  addressId: string,
+  poolNames: string[] = []
+) => {
+  const poolNameSet = new Set(poolNames);
   const results: OptionalKeys<Record<string, PoolAddress>> = {};
 
   // fetch the Address API
@@ -48,6 +52,7 @@ export const getPoolAddresses = async (addressId: string) => {
 
   const coinTypesPairs = pools.reduce(
     (acc, poolName) => {
+      if (poolNameSet.size > 0 && !poolNameSet.has(poolName)) return acc;
       const value =
         addressApiResponse.core.coins[
           poolName as keyof typeof addressApiResponse.core.coins
@@ -146,13 +151,13 @@ export const getPoolAddresses = async (addressId: string) => {
 
       let spoolData = undefined;
       // @ts-ignore
-      if (addressApiResponse.spool.pools[coinName]) {
-        const { id: spool, rewardPoolId: rewardPool } =
-          // @ts-ignore
-          addressApiResponse.spool.pools[coinName];
+      if (addressApiResponse.spool.pools[`s${coinName}`]) {
+        // @ts-ignore
+        const { id: spool, rewardPoolId: spoolReward } =
+          addressApiResponse.spool.pools[`s${coinName}`];
         spoolData = {
           spool,
-          rewardPool,
+          spoolReward,
           coinMetadataId,
         };
       }
@@ -188,7 +193,7 @@ export const getPoolAddresses = async (addressId: string) => {
         )?.decimals ?? 0;
       const spoolName = spoolData ? `s${coinName}` : undefined;
 
-      // @TODO: add query for spoolType and flashloanFeeObject
+      // @TODO: add query for flashloanFeeObject
       results[coinName] = {
         coinName,
         symbol,
@@ -205,9 +210,8 @@ export const getPoolAddresses = async (addressId: string) => {
         ...sCoinData,
         sCoinName,
         coinMetadataId,
-        coinType: `0x${coinType}`,
+        coinType,
         spoolName,
-        spoolType: '',
         decimals,
         pythFeed,
         pythFeedObjectId,

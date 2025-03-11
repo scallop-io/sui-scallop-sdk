@@ -39,6 +39,7 @@ import { isIsolatedAsset } from './isolatedAssetQuery';
 import { getBorrowLimit } from './borrowLimitQuery';
 import { queryMultipleObjects } from './objectsQuery';
 import { ScallopConstants } from 'src/models/scallopConstants';
+import { queryFlashLoanFees } from './flashloanFeeQuery';
 
 /**
  * Query market data.
@@ -221,16 +222,15 @@ const queryRequiredMarketObjects = async (
   // Prepare all tasks for querying each object type
   const tasks = poolCoinNames.map((t) => ({
     poolCoinName: t,
-    balanceSheet: query.utils.constants.poolAddresses[t]?.lendingPoolAddress,
-    collateralStat:
-      query.utils.constants.poolAddresses[t]?.collateralPoolAddress,
-    borrowDynamic: query.utils.constants.poolAddresses[t]?.borrowDynamic,
-    interestModel: query.utils.constants.poolAddresses[t]?.interestModel,
-    riskModel: query.utils.constants.poolAddresses[t]?.riskModel,
-    borrowFeeKey: query.utils.constants.poolAddresses[t]?.borrowFeeKey,
-    supplyLimitKey: query.utils.constants.poolAddresses[t]?.supplyLimitKey,
-    borrowLimitKey: query.utils.constants.poolAddresses[t]?.borrowLimitKey,
-    isolatedAssetKey: query.utils.constants.poolAddresses[t]?.isolatedAssetKey,
+    balanceSheet: query.constants.poolAddresses[t]?.lendingPoolAddress,
+    collateralStat: query.constants.poolAddresses[t]?.collateralPoolAddress,
+    borrowDynamic: query.constants.poolAddresses[t]?.borrowDynamic,
+    interestModel: query.constants.poolAddresses[t]?.interestModel,
+    riskModel: query.constants.poolAddresses[t]?.riskModel,
+    borrowFeeKey: query.constants.poolAddresses[t]?.borrowFeeKey,
+    supplyLimitKey: query.constants.poolAddresses[t]?.supplyLimitKey,
+    borrowLimitKey: query.constants.poolAddresses[t]?.borrowLimitKey,
+    isolatedAssetKey: query.constants.poolAddresses[t]?.isolatedAssetKey,
   }));
 
   // Query all objects for each key in parallel
@@ -1152,6 +1152,7 @@ export const getFlashLoanFees = async (
   feeRate = 1e4
 ): Promise<Record<string, number>> => {
   const missingAssets: string[] = [];
+  let results: Record<string, number> = {};
 
   // create mapping from asset type to asset name
   const assetTypeMap = assetNames.reduce(
@@ -1177,52 +1178,31 @@ export const getFlashLoanFees = async (
     })
     .filter((t) => !!t) as string[];
 
-  const flashloanFeeObjects = await query.cache.queryGetObjects(objIds);
+  const flashloanFeeObjects = await queryMultipleObjects(query.cache, objIds);
 
   if (missingAssets.length > 0) {
-    // get market object
-    const marketObjectId = query.address.get('core.market');
-    const marketObjectRes = await query.cache.queryGetObject(marketObjectId);
-    if (marketObjectRes?.data?.content?.dataType !== 'moveObject')
-      throw new Error('Failed to get market object');
-
-    // get vault
-    const vault = (marketObjectRes.data.content.fields as any).vault;
-
-    // get vault balance sheet object id
-    const flashloanFeesTableId = vault.fields.flash_loan_fees.fields.table
-      .fields.id.id as string;
-
-    // the balance sheet is a VecSet<0x1::type_name::TypeName
-    const balanceSheetDynamicFields = await query.cache.queryGetDynamicFields({
-      parentId: flashloanFeesTableId,
-      limit: 10,
-    });
-
-    // get the dynamic object ids
-    const dynamicFieldObjectIds =
-      balanceSheetDynamicFields?.data
-        .filter((field) => {
-          const assetType = (field.name.value as any).name as string;
-          return !!assetTypeMap[assetType];
-        })
-        .map((field) => field.objectId) ?? [];
-
-    flashloanFeeObjects.push(
-      ...(await query.cache.queryGetObjects(dynamicFieldObjectIds))
+    const missingDatas = await queryFlashLoanFees(
+      query.utils,
+      missingAssets,
+      feeRate
     );
+    results = { ...results, ...missingDatas };
   }
 
-  return flashloanFeeObjects.reduce(
-    (prev, curr) => {
-      if (curr.content?.dataType === 'moveObject') {
-        const objectFields = curr.content.fields as any;
-        const assetType = (curr.content.fields as any).name.fields.name;
-        const feeNumerator = +objectFields.value;
-        prev[assetTypeMap[assetType]] = feeNumerator / feeRate;
-      }
-      return prev;
-    },
-    {} as Record<string, number>
-  );
+  results = {
+    ...results,
+    ...flashloanFeeObjects.reduce(
+      (prev, curr) => {
+        if (curr.content?.dataType === 'moveObject') {
+          const objectFields = curr.content.fields as any;
+          const assetType = (curr.content.fields as any).name.fields.name;
+          const feeNumerator = +objectFields.value;
+          prev[assetTypeMap[assetType]] = feeNumerator / feeRate;
+        }
+        return prev;
+      },
+      {} as Record<string, number>
+    ),
+  };
+  return results;
 };

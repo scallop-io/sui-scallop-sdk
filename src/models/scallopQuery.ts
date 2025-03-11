@@ -1,5 +1,4 @@
 import { SuiKit, SuiObjectArg } from '@scallop-io/sui-kit';
-// import { ADDRESS_ID, SUPPORT_POOLS, SUPPORT_SPOOLS } from '../constants';
 import {
   queryMarket,
   getObligations,

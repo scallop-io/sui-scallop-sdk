@@ -1,7 +1,6 @@
 import { DynamicFieldInfo, DynamicFieldName } from '@mysten/sui/client';
 import { ScallopQuery, ScallopUtils } from '../models';
 import { z as zod } from 'zod';
-// import { SUPPORT_POOLS } from 'src/constants';
 
 const isolatedAssetZod = zod.object({
   dataType: zod.string(),

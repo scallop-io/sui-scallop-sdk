@@ -592,11 +592,6 @@ export const getObligationAccount = async (
                   .toNumber()
               : 1;
 
-            // console.log({
-            //   availableClaimAmount: availableClaimAmount.toString(),
-            //   coinName: poolPoint.coinName,
-            //   coinType: poolPoint.coinType,
-            // });
             if (availableClaimAmount.isGreaterThanOrEqualTo(0)) {
               rewards.push({
                 coinName: poolPoint.coinName,

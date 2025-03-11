@@ -1,8 +1,4 @@
 import { normalizeStructTag } from '@mysten/sui/utils';
-// import {
-//   SUPPORT_BORROW_INCENTIVE_POOLS,
-//   SUPPORT_BORROW_INCENTIVE_REWARDS,
-// } from '../constants';
 import {
   parseOriginBorrowIncentivePoolData,
   parseOriginBorrowIncentiveAccountData,
@@ -14,10 +10,8 @@ import type {
   BorrowIncentivePools,
   BorrowIncentiveAccountsQueryInterface,
   BorrowIncentiveAccounts,
-  // string,
   BorrowIncentivePoolPoints,
   OptionalKeys,
-  BorrowIncentivePool,
   CoinPrices,
   MarketPools,
 } from '../types';
@@ -66,30 +60,30 @@ export const getBorrowIncentivePools = async (
     (await query.getMarketPools(undefined, { coinPrices, indexer })).pools;
   coinPrices = coinPrices ?? (await query.getAllCoinPrices({ marketPools }));
 
-  if (indexer) {
-    const borrowIncentivePoolsIndexer =
-      await query.indexer.getBorrowIncentivePools();
+  // if (indexer) {
+  //   const borrowIncentivePoolsIndexer =
+  //     await query.indexer.getBorrowIncentivePools();
 
-    const updateBorrowIncentivePool = (pool: BorrowIncentivePool) => {
-      if (!borrowIncentiveCoinNames.includes(pool.coinName)) return;
-      pool.coinPrice = coinPrices[pool.coinName] || pool.coinPrice;
-      for (const incentiveCoinName of query.constants
-        .supportedBorrowIncentiveRewards) {
-        if (pool.points[incentiveCoinName]) {
-          pool.points[incentiveCoinName]!.coinPrice =
-            coinPrices[incentiveCoinName] ??
-            pool.points[incentiveCoinName]!.coinPrice;
-        }
-      }
-      borrowIncentivePools[pool.coinName] = pool;
-    };
+  //   const updateBorrowIncentivePool = (pool: BorrowIncentivePool) => {
+  //     if (!borrowIncentiveCoinNames.includes(pool.coinName)) return;
+  //     pool.coinPrice = coinPrices[pool.coinName] || pool.coinPrice;
+  //     for (const incentiveCoinName of query.constants
+  //       .supportedBorrowIncentiveRewards) {
+  //       if (pool.points[incentiveCoinName]) {
+  //         pool.points[incentiveCoinName]!.coinPrice =
+  //           coinPrices[incentiveCoinName] ??
+  //           pool.points[incentiveCoinName]!.coinPrice;
+  //       }
+  //     }
+  //     borrowIncentivePools[pool.coinName] = pool;
+  //   };
 
-    Object.values(borrowIncentivePoolsIndexer)
-      .filter((pool): pool is BorrowIncentivePool => pool !== undefined)
-      .forEach(updateBorrowIncentivePool);
+  //   Object.values(borrowIncentivePoolsIndexer)
+  //     .filter((pool): pool is BorrowIncentivePool => pool !== undefined)
+  //     .forEach(updateBorrowIncentivePool);
 
-    return borrowIncentivePools;
-  }
+  //   return borrowIncentivePools;
+  // }
 
   const borrowIncentivePoolsQueryData = await queryBorrowIncentivePools(
     query.address
