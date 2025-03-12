@@ -993,6 +993,8 @@ export const WHITELIST: Whitelist = {
     'sns',
     'susdy',
   ]),
+  borrowIncentiveRewards: new Set([]),
+  deprecated: new Set(['wapt']),
   suiBridge: new Set(['sbeth', 'sbusdt', 'sbwbtc']),
   wormhole: new Set(['wusdc', 'wusdt', 'weth', 'wbtc', 'wapt', 'wsol']),
   oracles: new Set(['pyth', 'supra', 'switchboard']),

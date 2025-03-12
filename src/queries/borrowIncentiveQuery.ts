@@ -174,8 +174,10 @@ export const queryBorrowIncentiveAccounts = async (
   const borrowIncentiveAccounts: BorrowIncentiveAccounts = Object.values(
     borrowIncentiveAccountsQueryData?.pool_records ?? []
   ).reduce((accounts, accountData) => {
-    const parsedBorrowIncentiveAccount =
-      parseOriginBorrowIncentiveAccountData(accountData);
+    const parsedBorrowIncentiveAccount = parseOriginBorrowIncentiveAccountData(
+      utils,
+      accountData
+    );
     const poolType = parsedBorrowIncentiveAccount.poolType;
     const coinName = utils.parseCoinNameFromType(poolType);
 

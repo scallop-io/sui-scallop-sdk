@@ -84,6 +84,7 @@ export type ScallopIndexerParams = ScallopCacheParams & {
 export type ScallopAddressParams = ScallopCacheParams & {
   addressApiUrl?: string;
   addressId: string;
+  whitelistId: string;
   auth?: string;
   network?: NetworkType;
   forceAddressesInterface?: Partial<Record<NetworkType, AddressesInterface>>;

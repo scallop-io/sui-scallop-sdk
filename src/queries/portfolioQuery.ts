@@ -549,7 +549,6 @@ export const getObligationAccount = async (
             borrowIncentivePool.points[
               query.utils.parseSCoinTypeNameToMarketCoinName(key)
             ];
-
           if (accountPoint && poolPoint) {
             let availableClaimAmount = BigNumber(0);
             let availableClaimCoin = BigNumber(0);
