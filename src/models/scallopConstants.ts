@@ -40,6 +40,7 @@ export class ScallopConstants {
     wormhole: new Set(),
     oracles: new Set(),
     pythEndpoints: new Set(),
+    deprecated: new Set(),
   };
 
   private _coinDecimals: Record<string, number | undefined> = {};
