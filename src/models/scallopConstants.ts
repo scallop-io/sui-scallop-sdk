@@ -44,7 +44,6 @@ export class ScallopConstants {
   };
 
   private _coinDecimals: Record<string, number | undefined> = {};
-  private _coinNameToCoinTypeMap: Record<string, string | undefined> = {};
   private _coinNameToOldMarketCoinTypeMap: Record<string, string | undefined> =
     {};
   private _scoinRawNameToSCoinNameMap: Record<string, string | undefined> = {};
@@ -99,7 +98,9 @@ export class ScallopConstants {
 
   get isInitialized() {
     return (
-      !!this._poolAddresses && !!this._whitelist && this.isAddressInitialized
+      !this.isEmptyObject(this._poolAddresses) &&
+      Object.values(this._whitelist).every((t) => t.size > 0) &&
+      this.isAddressInitialized
     );
   }
 
@@ -163,23 +164,10 @@ export class ScallopConstants {
     return this._wormholeCoinTypeToCoinNameMap;
   }
 
-  get coinNameToCoinTypeMap() {
-    if (this.isEmptyObject(this._coinNameToCoinTypeMap))
-      this._coinNameToCoinTypeMap = Object.fromEntries(
-        Object.entries(this.poolAddresses)
-          .filter(([_, value]) => !!value)
-          .map(([_, value]) => [value!.coinName, value!.coinType])
-      );
-    return this._coinNameToCoinTypeMap;
-  }
-
   get coinTypeToCoinNameMap() {
     if (this.isEmptyObject(this._coinTypeToCoinNameMap))
       this._coinTypeToCoinNameMap = Object.fromEntries(
-        Object.entries(this.coinNameToCoinTypeMap).map(([key, val]) => [
-          val,
-          key,
-        ])
+        Object.entries(this.coinTypes).map(([key, val]) => [val, key])
       );
     return this._coinTypeToCoinNameMap;
   }
@@ -292,7 +280,8 @@ export class ScallopConstants {
   async readWhiteList() {
     const response = await this.readApi<Record<keyof Whitelist, string[]>>({
       url:
-        this.params.whitelistApiUrl ?? 'https://sui.apis.scallop.io/whitelist',
+        this.params.whitelistApiUrl ??
+        `https://sui.apis.scallop.io/pool/whitelist/${this.params.whitelistId}`,
       queryKey: queryKeys.api.getWhiteList(),
     });
 
@@ -305,7 +294,7 @@ export class ScallopConstants {
     return await this.readApi<Record<string, PoolAddress>>({
       url:
         this.params.poolAddressesApiUrl ??
-        `https://sui.apis.scallop.io/poolAddresses`,
+        `https://sui.apis.scallop.io/pool/addresses`,
       queryKey: queryKeys.api.getPoolAddresses(),
     });
   }
@@ -323,20 +312,42 @@ export class ScallopConstants {
       this._whitelist = params?.forceWhitelistInterface;
     }
 
+    console.log({
+      isAddressInitialized: this.isAddressInitialized,
+      a: params?.forcePoolAddressInterface,
+      b: params?.forceWhitelistInterface,
+      isInitialized: this.isInitialized,
+    });
     if (this.isInitialized) return;
 
     const [whitelistResponse, poolAddressesResponse] = await Promise.all([
       this.readWhiteList(),
       this.readPoolAddresses(),
     ]);
+
     if (!this.params.forceWhitelistInterface) {
-      this._whitelist = whitelistResponse;
+      this._whitelist = Object.fromEntries(
+        Object.entries(whitelistResponse)
+          .filter(([key]) => key !== 'id')
+          .map(([key, value]) => [
+            key as keyof Whitelist,
+            key !== 'id' ? new Set(value) : value,
+          ])
+      ) as Whitelist;
     }
     if (!this.params.forcePoolAddressInterface)
       this._poolAddresses = Object.fromEntries(
-        Object.entries(poolAddressesResponse).filter(([key]) =>
-          Object.values(this.whitelist).some((set) => set.has(key))
-        )
+        Object.entries(poolAddressesResponse)
+          .filter(([key]) =>
+            Object.values(this.whitelist).some((set) => set.has(key))
+          )
+          .map(([key, value]) => {
+            const parsedValue = Object.fromEntries(
+              Object.entries(value).map(([k, v]) => [k, v || undefined])
+            );
+            return [key, parsedValue as PoolAddress];
+          })
       );
+    console.log({ p: this._poolAddresses });
   }
 }

@@ -146,7 +146,7 @@ export class ScallopUtils {
     if (useOldMarketCoin) {
       return this.constants.coinNameToOldMarketCoinTypeMap[coinName] ?? '';
     }
-    return this.constants.coinNameToCoinTypeMap[coinName] ?? '';
+    return this.constants.coinTypes[coinName] ?? '';
   }
 
   /**

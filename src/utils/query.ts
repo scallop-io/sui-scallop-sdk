@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { normalizeStructTag, parseStructTag } from '@mysten/sui/utils';
+import { normalizeStructTag } from '@mysten/sui/utils';
 import type { ScallopUtils } from '../models';
 import type {
   OriginMarketPoolData,
@@ -581,6 +581,7 @@ export const parseOriginBorrowIncentiveAccountPoolPointData = (
  * @return Parsed borrow incentive account data
  */
 export const parseOriginBorrowIncentiveAccountData = (
+  utils: ScallopUtils,
   originBorrowIncentiveAccountData: OriginBorrowIncentiveAccountData
 ): ParsedBorrowIncentiveAccountData => {
   return {
@@ -591,9 +592,7 @@ export const parseOriginBorrowIncentiveAccountData = (
     pointList: originBorrowIncentiveAccountData.points_list.reduce(
       (acc, point) => {
         const parsed = parseOriginBorrowIncentiveAccountPoolPointData(point);
-        const name = parseStructTag(
-          parsed.pointType
-        ).name.toLowerCase() as string;
+        const name = utils.parseCoinNameFromType(parsed.pointType);
         acc[name] = parsed;
         return acc;
       },

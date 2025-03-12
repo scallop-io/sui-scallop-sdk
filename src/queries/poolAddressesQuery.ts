@@ -188,7 +188,10 @@ export const getPoolAddresses = async (
       const { symbol, metaData: coinMetadataId } =
         addressApiResponse.core.coins[coinName];
 
-      let spoolData = undefined;
+      let spoolData = {
+        spool: '',
+        spoolReward: '',
+      };
       const _spoolData = addressApiResponse.spool.pools[`s${coinName}`];
       // @ts-ignore
       if (_spoolData) {
@@ -197,11 +200,15 @@ export const getPoolAddresses = async (
         spoolData = {
           spool,
           spoolReward,
-          coinMetadataId,
         };
       }
 
-      let sCoinData = undefined;
+      let sCoinData = {
+        sCoinType: '',
+        sCoinTreasury: '',
+        sCoinMetadataId: '',
+        sCoinSymbol: '',
+      };
       const sCoinName = `s${coinName}`;
       const _sCoinData = addressApiResponse.scoin.coins[sCoinName];
       if (_sCoinData) {
@@ -219,7 +226,21 @@ export const getPoolAddresses = async (
         };
       }
 
-      const { feed: pythFeed, feedObject: pythFeedObjectId } =
+      let pythData = {
+        pythFeed: '',
+        pythFeedObjectId: '',
+      };
+
+      if (addressApiResponse.core.coins[coinName]?.oracle.pyth) {
+        const { feed: pythFeed, feedObject: pythFeedObjectId } =
+          //@ts-ignore
+          addressApiResponse.core.coins[coinName].oracle.pyth;
+        pythData = {
+          pythFeed,
+          pythFeedObjectId,
+        };
+      }
+      const { feed: _pythFeed, feedObject: _pythFeedObjectId } =
         //@ts-ignore
         addressApiResponse.core.coins[coinName].oracle.pyth;
 
@@ -243,18 +264,17 @@ export const getPoolAddresses = async (
         interestModel: addresses[3] ?? '',
         riskModel: addresses[4],
         borrowFeeKey: addresses[5] ?? '',
-        supplyLimitKey: addresses[6],
-        borrowLimitKey: addresses[7],
-        isolatedAssetKey: addresses[8],
-        ...(spoolData ?? {}),
-        ...(sCoinData ?? {}),
+        supplyLimitKey: addresses[6] ?? '',
+        borrowLimitKey: addresses[7] ?? '',
+        isolatedAssetKey: addresses[8] ?? '',
+        ...spoolData,
+        ...sCoinData,
         sCoinName,
         coinMetadataId,
         coinType,
         spoolName,
         decimals,
-        pythFeed,
-        pythFeedObjectId,
+        ...pythData,
         flashloanFeeObject: flashloanFeeObjectIds[coinType] ?? '',
       };
 
