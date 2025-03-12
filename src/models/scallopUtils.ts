@@ -439,9 +439,9 @@ export class ScallopUtils {
         },
         [] as [string, string][]
       );
+      if (priceIdPairs.length === 0) break;
 
       const priceIds = priceIdPairs.map(([_, priceId]) => priceId);
-
       const pythConnection = new SuiPriceServiceConnection(endpoint, {
         timeout: 4000,
       });

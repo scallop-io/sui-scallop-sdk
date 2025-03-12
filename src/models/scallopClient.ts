@@ -493,9 +493,7 @@ export class ScallopClient {
     const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
-    const availableStake = (
-      [...this.constants.whitelist.lending] as readonly string[]
-    ).includes(poolCoinName);
+    const availableStake = this.constants.whitelist.lending.has(poolCoinName);
     if (sign && availableStake) {
       await txBlock.unstakeObligationQuick(obligationId, obligationKey);
     }
@@ -541,9 +539,7 @@ export class ScallopClient {
     const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
-    const availableStake = (
-      [...this.constants.whitelist.lending] as readonly string[]
-    ).includes(poolCoinName);
+    const availableStake = this.constants.whitelist.lending.has(poolCoinName);
     if (sign && availableStake) {
       await txBlock.unstakeObligationQuick(obligationId, obligationKey);
     }
