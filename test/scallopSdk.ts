@@ -9,6 +9,7 @@ export const scallopSDK = new Scallop({
   secretKey: process.env.SECRET_KEY,
   networkType: NETWORK,
   addressId: '67c44a103fe1b8c454eb9699',
+  whitelistId: '67d0a6659b2f19676efffe78',
   forcePoolAddressInterface: POOL_ADDRESSES,
   forceWhitelistInterface: WHITELIST,
 });

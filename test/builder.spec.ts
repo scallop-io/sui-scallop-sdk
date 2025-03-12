@@ -942,6 +942,7 @@ describe('Test Scallop Referral Builder', async () => {
   const createRandomWalletAccountBuilder = async () => {
     const scallopSDK = new Scallop({
       addressId: '67c44a103fe1b8c454eb9699',
+      whitelistId: '67d0a6659b2f19676efffe78',
       secretKey: '',
       networkType: 'mainnet',
     });
