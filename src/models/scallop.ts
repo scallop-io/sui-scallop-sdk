@@ -90,7 +90,7 @@ export class Scallop {
    * @return Scallop Builder.
    */
   public async createScallopBuilder(params?: Partial<ScallopBuilderParams>) {
-    await this.initConstants();
+    await this.initConstants(params);
     const builderParams = {
       ...this.params,
       ...params,
@@ -109,7 +109,7 @@ export class Scallop {
    * @return Scallop Client.
    */
   public async createScallopClient(params?: Partial<ScallopClientParams>) {
-    await this.initConstants();
+    await this.initConstants(params);
     const clientParams = {
       ...this.params,
       ...params,
@@ -159,7 +159,7 @@ export class Scallop {
    * @return Scallop Utils.
    */
   public async createScallopUtils(params?: Partial<ScallopUtilsParams>) {
-    await this.initConstants();
+    await this.initConstants(params);
     const scallopUtils = new ScallopUtils(
       {
         ...this.params,

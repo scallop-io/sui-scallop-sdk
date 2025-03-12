@@ -40,6 +40,7 @@ export type Whitelist = {
   oracles: Set<string>;
   borrowIncentiveRewards: Set<string>;
   pythEndpoints: Set<string>;
+  deprecated: Set<string>;
 };
 
 export type CoinWrappedType =

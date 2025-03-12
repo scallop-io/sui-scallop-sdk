@@ -182,7 +182,7 @@ export class ScallopUtils {
    * @returns sCoin type
    */
   public parseSCoinType(sCoinName: string) {
-    return this.constants.sCoinTypes[sCoinName];
+    return this.constants.sCoinTypes[sCoinName] ?? '';
   }
 
   /**
@@ -295,9 +295,7 @@ export class ScallopUtils {
    * return Coin decimal.
    */
   public getCoinDecimal(coinName: string) {
-    if (!this.constants.coinDecimals[coinName])
-      throw new Error(`Coin decimals for ${coinName} not found!`);
-    return this.constants.coinDecimals[coinName];
+    return this.constants.coinDecimals[coinName] ?? 0;
   }
 
   /**
