@@ -28,6 +28,7 @@ export type ScallopClientVeScaReturnType<T extends boolean> = T extends true
 
 export type ScallopBaseInstanceParams = {
   suiKit?: SuiKit;
+  cache?: ScallopCache;
 };
 
 export type ScallopCacheInstanceParams = ScallopBaseInstanceParams & {
@@ -40,6 +41,7 @@ export type ScallopAddressInstanceParams = ScallopBaseInstanceParams & {
 
 export type ScallopConstantsInstanceParams = {
   address?: ScallopAddress;
+  cache?: ScallopCache;
 };
 
 export type ScallopIndexerInstanceParams = {
