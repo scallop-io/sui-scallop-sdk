@@ -14,6 +14,7 @@ const NETWORK: NetworkType = 'mainnet';
 describe('Test Scallop Address', () => {
   const scallopAddress = new ScallopAddress({
     addressId: TEST_ADDRESSES_ID,
+    whitelistId: '67d0a6659b2f19676efffe78',
     auth: process.env.API_KEY,
     network: NETWORK,
   });
@@ -602,6 +603,7 @@ describe('Test Forced Scallop Address Interface', () => {
     `);
   const scallopAddress = new ScallopAddress({
     addressId: TEST_ADDRESSES_ID,
+    whitelistId: '67d0a6659b2f19676efffe78',
     network: NETWORK,
     forceAddressesInterface: {
       mainnet: testAddresses,
