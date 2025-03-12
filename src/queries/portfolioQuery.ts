@@ -42,9 +42,7 @@ export const getLendings = async (
     query.utils.parseMarketCoinName(poolCoinName)
   );
   const stakeMarketCoinNames = marketCoinNames.filter((marketCoinName) =>
-    ([...query.constants.whitelist.spool] as readonly string[]).includes(
-      marketCoinName
-    )
+    query.constants.whitelist.spool.has(marketCoinName)
   ) as string[];
 
   coinPrices = coinPrices ?? (await query.utils.getCoinPrices());
@@ -139,10 +137,7 @@ export const getLending = async (
     throw new Error(`Failed to fetch marketPool for ${poolCoinName}`);
 
   spool =
-    (spool ??
-    ([...query.constants.whitelist.spool] as readonly string[]).includes(
-      marketCoinName
-    ))
+    (spool ?? query.constants.whitelist.spool.has(marketCoinName))
       ? await query.getSpool(marketCoinName as string, {
           indexer,
           marketPool,
@@ -155,10 +150,7 @@ export const getLending = async (
   // if (!spool) throw new Error(`Failed to fetch spool for ${poolCoinName}`);
 
   stakeAccounts =
-    stakeAccounts ||
-    ([...query.constants.whitelist.spool] as readonly string[]).includes(
-      marketCoinName
-    )
+    stakeAccounts || query.constants.whitelist.spool.has(marketCoinName)
       ? await query.getStakeAccounts(marketCoinName as string, ownerAddress)
       : [];
   coinAmount =

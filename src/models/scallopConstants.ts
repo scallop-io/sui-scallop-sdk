@@ -312,12 +312,6 @@ export class ScallopConstants {
       this._whitelist = params?.forceWhitelistInterface;
     }
 
-    console.log({
-      isAddressInitialized: this.isAddressInitialized,
-      a: params?.forcePoolAddressInterface,
-      b: params?.forceWhitelistInterface,
-      isInitialized: this.isInitialized,
-    });
     if (this.isInitialized) return;
 
     const [whitelistResponse, poolAddressesResponse] = await Promise.all([
@@ -348,6 +342,5 @@ export class ScallopConstants {
             return [key, parsedValue as PoolAddress];
           })
       );
-    console.log({ p: this._poolAddresses });
   }
 }
