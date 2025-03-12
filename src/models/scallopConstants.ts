@@ -73,6 +73,7 @@ export class ScallopConstants {
 
     this.cache =
       instance?.address?.cache ??
+      instance?.cache ??
       new ScallopCache(this.params, {
         suiKit: newSuiKit(this.params),
       });

@@ -109,6 +109,7 @@ export class ScallopQuery {
 
     this.cache =
       instance?.utils?.cache ??
+      instance?.cache ??
       new ScallopCache(this.params, {
         suiKit: this.suiKit,
       });
@@ -173,15 +174,12 @@ export class ScallopQuery {
    * @param force - Whether to force initialization.
    * @param address - ScallopAddress instance.
    */
-  public async init(force: boolean = false, address?: ScallopAddress) {
-    if (address && !this.address) {
-      this.address = address;
-    }
-    if (force || !this.address.getAddresses()) {
-      await this.address.read();
+  public async init(force: boolean = false) {
+    if (force || !this.constants.isInitialized) {
+      await this.constants.init();
     }
 
-    await this.utils.init(force, this.address);
+    await this.utils.init(force);
   }
 
   /* ==================== Core Query Methods ==================== */
