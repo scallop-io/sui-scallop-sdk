@@ -251,7 +251,10 @@ export class ScallopUtils {
 
     if (isMarketCoinType) {
       return this.parseMarketCoinName(
-        parseStructTag(typeParams as any).name.toLowerCase()
+        (typeof typeParams[0] === 'string'
+          ? parseStructTag(typeParams[0])
+          : typeParams[0]
+        ).name.toLowerCase()
       );
     }
     const assetCoinName =
