@@ -56,6 +56,7 @@ export class ScallopConstants {
   private _coinTypes: Record<string, string | undefined> = {};
   private _sCoinTypes: Record<string, string | undefined> = {};
   private _coinTypeToCoinNameMap: Record<string, string | undefined> = {};
+  private _supportedBorrowIncentiveRewards: Set<string> = new Set();
 
   constructor(
     public readonly params: ScallopConstantsParams,
@@ -127,6 +128,10 @@ export class ScallopConstants {
     );
   }
 
+  /**
+   * @description
+   * Return maps of coin names to coin decimals.
+   */
   get coinDecimals() {
     if (this.isEmptyObject(this._coinDecimals)) {
       this._coinDecimals = Object.fromEntries([
@@ -141,6 +146,10 @@ export class ScallopConstants {
     return this._coinDecimals;
   }
 
+  /**
+   * @description
+   * Return maps of coin names to coin types.
+   */
   get coinTypes() {
     if (this.isEmptyObject(this._coinTypes))
       this._coinTypes = Object.fromEntries([
@@ -154,6 +163,22 @@ export class ScallopConstants {
     return this._coinTypes;
   }
 
+  /**
+   * @description
+   * Return maps of coin types to its coin name
+   */
+  get coinTypeToCoinNameMap() {
+    if (this.isEmptyObject(this._coinTypeToCoinNameMap))
+      this._coinTypeToCoinNameMap = Object.fromEntries(
+        Object.entries(this.coinTypes).map(([key, val]) => [val, key])
+      );
+    return this._coinTypeToCoinNameMap;
+  }
+
+  /**
+   * @description
+   * Return maps of wormhole coin types to its coin name.
+   */
   get wormholeCoinTypeToCoinName() {
     if (this.isEmptyObject(this._wormholeCoinTypeToCoinNameMap))
       this._wormholeCoinTypeToCoinNameMap = Object.fromEntries(
@@ -164,14 +189,10 @@ export class ScallopConstants {
     return this._wormholeCoinTypeToCoinNameMap;
   }
 
-  get coinTypeToCoinNameMap() {
-    if (this.isEmptyObject(this._coinTypeToCoinNameMap))
-      this._coinTypeToCoinNameMap = Object.fromEntries(
-        Object.entries(this.coinTypes).map(([key, val]) => [val, key])
-      );
-    return this._coinTypeToCoinNameMap;
-  }
-
+  /**
+   * @description
+   * Return maps of coin name to its old market coin type (...::reserve::MarketCoin<coinType>)
+   */
   get coinNameToOldMarketCoinTypeMap() {
     if (this.isEmptyObject(this._coinNameToOldMarketCoinTypeMap))
       this._coinNameToOldMarketCoinTypeMap = Object.fromEntries(
@@ -185,6 +206,10 @@ export class ScallopConstants {
     return this._coinNameToOldMarketCoinTypeMap;
   }
 
+  /**
+   * @description
+   * Return maps of sCoin raw name from its type to its sCoin name. (e.g. 'scallop_sui' -> 'ssui')
+   */
   get sCoinRawNameToScoinNameMap() {
     if (this.isEmptyObject(this._scoinRawNameToSCoinNameMap))
       this._scoinRawNameToSCoinNameMap = Object.fromEntries(
@@ -199,6 +224,10 @@ export class ScallopConstants {
     return this._scoinRawNameToSCoinNameMap;
   }
 
+  /**
+   * @description
+   * Return maps of scoin type to its sCoin name
+   */
   get sCoinTypeToSCoinNameMap() {
     if (this.isEmptyObject(this._scoinTypeToSCoinNameMap))
       this._scoinTypeToSCoinNameMap = Object.fromEntries(
@@ -210,6 +239,10 @@ export class ScallopConstants {
     return this._scoinTypeToSCoinNameMap;
   }
 
+  /**
+   * @description
+   * Return maps of volo coin type to its coin name
+   */
   get voloCoinTypeToCoinNameMap() {
     if (this.isEmptyObject(this._voloCoinTypeToCoinNameMap))
       this._voloCoinTypeToCoinNameMap = {
@@ -218,6 +251,10 @@ export class ScallopConstants {
     return this._voloCoinTypeToCoinNameMap;
   }
 
+  /**
+   * @description
+   * Return maps of sui bridge coin type to its coin name
+   */
   get suiBridgeCoinTypeToCoinNameMap() {
     if (this.isEmptyObject(this._suiBridgeCoinTypeToCoinNameMap))
       this._suiBridgeCoinTypeToCoinNameMap = Object.fromEntries(
@@ -231,6 +268,10 @@ export class ScallopConstants {
     return this._suiBridgeCoinTypeToCoinNameMap;
   }
 
+  /**
+   * @description
+   * Return maps of sCoin coin name to its coin type
+   */
   get sCoinTypes() {
     if (this.isEmptyObject(this._sCoinTypes))
       this._sCoinTypes = Object.fromEntries(
@@ -242,12 +283,20 @@ export class ScallopConstants {
     return this._sCoinTypes;
   }
 
+  /**
+   * @description
+   * Return set of supported coin types for borrow incentive rewards
+   * (all supported pools + sCoins + custom coins from `whitelist.borrowIncentiveRewards`)
+   */
   get supportedBorrowIncentiveRewards() {
-    return new Set([
-      ...Object.values(this.poolAddresses)
-        .filter((t) => !!t)
-        .map((t) => t.coinName),
-    ]);
+    if (!this._supportedBorrowIncentiveRewards.size)
+      this._supportedBorrowIncentiveRewards = new Set([
+        ...Object.values(this.poolAddresses)
+          .filter((t) => !!t)
+          .map((t) => (t.sCoinName ? [t.coinName, t.sCoinName] : [t.coinName]))
+          .flat(),
+      ]);
+    return this._supportedBorrowIncentiveRewards;
   }
 
   private isEmptyObject(obj: Record<string, unknown>) {
@@ -286,7 +335,9 @@ export class ScallopConstants {
     });
 
     return Object.fromEntries(
-      Object.entries(response).map(([key, value]) => [key, new Set(value)])
+      Object.entries(response)
+        .filter(([_, value]) => Array.isArray(value))
+        .map(([key, value]) => [key, new Set(value)])
     ) as Whitelist;
   }
 
@@ -322,14 +373,14 @@ export class ScallopConstants {
     if (!this.params.forceWhitelistInterface) {
       this._whitelist = Object.fromEntries(
         Object.entries(whitelistResponse)
-          .filter(([key]) => key !== 'id')
+          .filter(([_, value]) => Array.isArray(value) || value instanceof Set)
           .map(([key, value]) => [
             key as keyof Whitelist,
-            key !== 'id' ? new Set(value) : value,
+            value instanceof Set ? value : new Set(value),
           ])
       ) as Whitelist;
     }
-    if (!this.params.forcePoolAddressInterface)
+    if (!this.params.forcePoolAddressInterface) {
       this._poolAddresses = Object.fromEntries(
         Object.entries(poolAddressesResponse)
           .filter(([key]) =>
@@ -342,5 +393,6 @@ export class ScallopConstants {
             return [key, parsedValue as PoolAddress];
           })
       );
+    }
   }
 }
