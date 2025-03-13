@@ -246,7 +246,7 @@ export class ScallopConstants {
     return new Set([
       ...Object.values(this.poolAddresses)
         .filter((t) => !!t)
-        .map((t) => t?.coinName),
+        .map((t) => t.coinName),
     ]);
   }
 
@@ -281,7 +281,7 @@ export class ScallopConstants {
     const response = await this.readApi<Record<keyof Whitelist, string[]>>({
       url:
         this.params.whitelistApiUrl ??
-        `https://sui.apis.scallop.io/pool/whitelist/${this.params.whitelistId}`,
+        `https://sui.apis.scallop.io/pool/whitelist`,
       queryKey: queryKeys.api.getWhiteList(),
     });
 
