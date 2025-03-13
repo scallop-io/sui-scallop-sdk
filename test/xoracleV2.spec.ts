@@ -12,7 +12,6 @@ const NETWORK: NetworkType = 'mainnet';
 describe('Test XOracle V2', async () => {
   const scallopSdk = new Scallop({
     addressId: '67c44a103fe1b8c454eb9699',
-    whitelistId: '67d0a6659b2f19676efffe78',
     secretKey: process.env.SECRET_KEY as string,
     networkType: NETWORK,
     forceAddressesInterface: {
