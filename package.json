@@ -166,10 +166,5 @@
         }
       ]
     }
-  },
-  "pnpm": {
-    "patchedDependencies": {
-      "@switchboard-xyz/sui-sdk@0.0.21": "patches/@switchboard-xyz__sui-sdk@0.0.21.patch"
-    }
   }
 }
