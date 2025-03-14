@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
 import { NetworkType, SuiTxBlock } from '@scallop-io/sui-kit';
 import { Scallop, TEST_ADDRESSES } from '../src';
-import { updateOracles } from 'src/builders/oracle';
+import { updateOracles } from 'src/builders/oracles';
 
 dotenv.config();
 

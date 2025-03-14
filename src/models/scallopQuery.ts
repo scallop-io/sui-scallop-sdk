@@ -43,15 +43,9 @@ import {
   getUserPortfolio,
   getPriceUpdatePolicies,
   getAssetOracles,
+  getOnDemandAggObjectIds,
 } from '../queries';
 import {
-  // string,
-  // string,
-  // string,
-  // string,
-  // string,
-  // string,
-  // string,
   ScallopQueryParams,
   StakePools,
   StakeRewardPools,
@@ -61,6 +55,7 @@ import {
   MarketPools,
   MarketCollaterals,
   xOracleRules,
+  SupportOracleType,
 } from '../types';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopUtils } from './scallopUtils';
@@ -911,12 +906,21 @@ export class ScallopQuery {
     return [...this.constants.whitelist.lending].reduce(
       (acc, pool) => {
         acc[pool] = {
-          primary: primary?.[pool] ?? [],
-          secondary: secondary?.[pool] ?? [],
+          primary: (primary?.[pool] ?? []) as SupportOracleType[],
+          secondary: (secondary?.[pool] ?? []) as SupportOracleType[],
         };
         return acc;
       },
       {} as Record<string, xOracleRules>
     );
+  }
+
+  /**
+   * Get switchboard on-demand aggregator object id based on coinType
+   * @param coinType
+   * @returns
+   */
+  public async getSwitchboardOnDemandAggregatorObjectIds(coinName: string[]) {
+    return await getOnDemandAggObjectIds(this, coinName);
   }
 }

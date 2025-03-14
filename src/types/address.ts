@@ -1,5 +1,4 @@
-const _SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
-type SupportOracleType = (typeof _SUPPORT_ORACLES)[number];
+import { _SUPPORT_ORACLES, SupportOracleType } from './constant/xOracle';
 
 export interface AddressesInterface {
   core: {
@@ -46,6 +45,8 @@ export interface AddressesInterface {
           ? {
               registry: string;
               registryCap: string;
+              registryTableId: string;
+              state: string;
             }
           : K extends (typeof _SUPPORT_ORACLES)[2]
             ? {
@@ -56,7 +57,14 @@ export interface AddressesInterface {
                 wormholeState: string;
               }
             : never;
-    } & { xOracle: string; xOracleCap: string };
+    } & {
+      xOracle: string;
+      xOracleCap: string;
+      primaryPriceUpdatePolicyObject: string;
+      secondaryPriceUpdatePolicyObject: string;
+      primaryPriceUpdatePolicyVecsetId: string;
+      secondaryPriceUpdatePolicyVecsetId: string;
+    };
     packages: Partial<
       Record<
         string,

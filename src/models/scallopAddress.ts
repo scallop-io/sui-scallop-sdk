@@ -217,8 +217,17 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     oracles: {
       xOracle: '',
       xOracleCap: '',
+      primaryPriceUpdatePolicyObject: '',
+      secondaryPriceUpdatePolicyObject: '',
+      primaryPriceUpdatePolicyVecsetId: '',
+      secondaryPriceUpdatePolicyVecsetId: '',
       supra: { registry: '', registryCap: '', holder: '' },
-      switchboard: { registry: '', registryCap: '' },
+      switchboard: {
+        registry: '',
+        registryCap: '',
+        registryTableId: '',
+        state: '',
+      },
       pyth: {
         registry: '',
         registryCap: '',

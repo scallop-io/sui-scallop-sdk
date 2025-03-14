@@ -254,7 +254,6 @@ export const getPoolAddresses = async (
         )?.decimals ?? 0;
       const spoolName = spoolData ? `s${coinName}` : undefined;
 
-      // @TODO: add query for flashloanFeeObject
       results[coinName] = {
         coinName,
         symbol,
