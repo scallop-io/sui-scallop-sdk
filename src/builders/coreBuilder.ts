@@ -2,7 +2,7 @@ import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { getObligations } from '../queries';
-import { updateOracles } from './oracle';
+import { updateOracles } from './oracles';
 import { requireSender } from '../utils';
 import type { SuiObjectArg, TransactionResult } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from '../models';
@@ -361,39 +361,16 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       const sender = requireSender(txBlock);
       const marketCoinName = builder.utils.parseMarketCoinName(poolCoinName);
 
-      // check if user has sCoin instead of marketCoin
-      try {
-        const sCoinName = builder.utils.parseSCoinName(poolCoinName);
-        if (!sCoinName) throw new Error(`No sCoin for ${poolCoinName}`);
-        const {
-          leftCoin,
-          takeCoin: sCoins,
-          totalAmount,
-        } = await builder.selectSCoin(txBlock, sCoinName, amount, sender);
-        txBlock.transferObjects([leftCoin], sender);
-        const marketCoins = txBlock.burnSCoin(sCoinName, sCoins);
+      const sCoinName = builder.utils.parseSCoinName(poolCoinName);
+      if (!sCoinName) throw new Error(`No sCoin for ${poolCoinName}`);
 
-        // check amount
-        amount -= totalAmount;
-        try {
-          if (amount > 0) {
-            // sCoin is not enough, try market coin
-            const { leftCoin, takeCoin: walletMarketCoins } =
-              await builder.selectMarketCoin(
-                txBlock,
-                marketCoinName,
-                amount,
-                sender
-              );
-            txBlock.transferObjects([leftCoin], sender);
-            txBlock.mergeCoins(marketCoins, [walletMarketCoins]);
-          }
-        } catch (_e) {
-          // ignore
-        }
-        return txBlock.withdraw(marketCoins, poolCoinName);
-      } catch (_e) {
-        // no sCoin found
+      // check if user has sCoin instead of marketCoin
+      const {
+        leftCoin,
+        takeCoin: sCoins,
+        totalAmount,
+      } = await builder.selectSCoin(txBlock, sCoinName, amount, sender);
+      if (totalAmount === 0) {
         const { leftCoin, takeCoin: walletMarketCoins } =
           await builder.selectMarketCoin(
             txBlock,
@@ -404,6 +381,29 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         txBlock.transferObjects([leftCoin], sender);
         return txBlock.withdraw(walletMarketCoins, poolCoinName);
       }
+
+      txBlock.transferObjects([leftCoin], sender);
+      const marketCoins = txBlock.burnSCoin(sCoinName, sCoins);
+
+      // check amount
+      amount -= totalAmount;
+      try {
+        if (amount > 0) {
+          // sCoin is not enough, try market coin
+          const { leftCoin, takeCoin: walletMarketCoins } =
+            await builder.selectMarketCoin(
+              txBlock,
+              marketCoinName,
+              amount,
+              sender
+            );
+          txBlock.transferObjects([leftCoin], sender);
+          txBlock.mergeCoins(marketCoins, [walletMarketCoins]);
+        }
+      } catch (_e) {
+        // ignore
+      }
+      return txBlock.withdraw(marketCoins, poolCoinName);
     },
     borrowQuick: async (amount, poolCoinName, obligationId, obligationKey) => {
       const obligationInfo = await requireObligationInfo(

@@ -1,13 +1,15 @@
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
-import {
-  SuiPythClient,
-  SuiPriceServiceConnection,
-} from '@pythnetwork/pyth-sui-js';
 import type { TransactionArgument } from '@mysten/sui/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import type { ScallopBuilder } from '../models';
-import type { xOracleRules, xOracleRuleType } from '../types';
+import type { ScallopBuilder } from 'src/models';
+import type {
+  SupportOracleType,
+  xOracleRules,
+  xOracleRuleType,
+} from 'src/types';
 import { xOracleList as X_ORACLE_LIST } from 'src/constants';
+import { updatePythPriceFeeds } from './pyth';
+import { updateSwitchboardAggregators } from './switchboard';
 
 /**
  * Update the price of the oracle for multiple coin.
@@ -36,46 +38,45 @@ export const updateOracles = async (
     : X_ORACLE_LIST;
 
   // const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
-  const flattenedRules = [
-    ...new Set(
-      Object.values(xOracleList).flatMap(({ primary, secondary }) => [
-        ...primary,
-        ...secondary,
-      ])
-    ),
-  ];
+  const flattenedRules = new Set(
+    Object.values(xOracleList).flatMap(({ primary, secondary }) => [
+      ...primary,
+      ...secondary,
+    ])
+  );
 
-  if (flattenedRules.includes('pyth') && usePythPullModel) {
-    const pythClient = new SuiPythClient(
-      builder.suiKit.client(),
-      builder.address.get('core.oracles.pyth.state'),
-      builder.address.get('core.oracles.pyth.wormholeState')
+  const filterAssetCoinNames = (
+    assetCoinName: string,
+    rule: SupportOracleType
+  ) => {
+    const assetXOracle = xOracleList[assetCoinName];
+    return (
+      assetXOracle &&
+      (assetXOracle.primary.includes(rule) ||
+        assetXOracle.secondary.includes(rule))
     );
-    const priceIds = assetCoinNames.map((assetCoinName) =>
-      builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`)
+  };
+
+  // Handle Pyth price feed
+  if (flattenedRules.has('pyth') && usePythPullModel) {
+    const pythAssetCoinNames = assetCoinNames.filter((assetCoinName) =>
+      filterAssetCoinNames(assetCoinName, 'pyth')
     );
+    if (pythAssetCoinNames.length > 0)
+      await updatePythPriceFeeds(builder, assetCoinNames, txBlock);
+  }
 
-    // iterate through the endpoints
-    const endpoints = builder.params.pythEndpoints ?? [
-      ...builder.constants.whitelist.pythEndpoints,
-    ];
-    for (const endpoint of endpoints) {
-      try {
-        const pythConnection = new SuiPriceServiceConnection(endpoint);
-        const priceUpdateData =
-          await pythConnection.getPriceFeedsUpdateData(priceIds);
-        await pythClient.updatePriceFeeds(
-          txBlock.txBlock, // convert txBlock to TransactionBlock because pyth sdk not support new @mysten/sui yet
-          priceUpdateData,
-          priceIds
-        );
-
-        break;
-      } catch (e) {
-        console.warn(
-          `Failed to update price feeds with endpoint ${endpoint}: ${e}`
-        );
-      }
+  // Handle Switchboard on-demand aggregator
+  if (flattenedRules.has('switchboard')) {
+    const switchboardAssetCoinNames = assetCoinNames.filter((assetCoinName) =>
+      filterAssetCoinNames(assetCoinName, 'switchboard')
+    );
+    if (switchboardAssetCoinNames.length > 0) {
+      await updateSwitchboardAggregators(
+        builder,
+        switchboardAssetCoinNames,
+        txBlock
+      );
     }
   }
 
@@ -324,7 +325,8 @@ const updateSwitchboardPrice = (
   coinType: string
 ) => {
   txBlock.moveCall(
-    `${packageId}::rule::set_price_as_${type}`,
+    // `${packageId}::rule::set_price_as_${type}`,
+    `${packageId}::rule::set_as_${type}_price`,
     [
       request,
       aggregatorId,

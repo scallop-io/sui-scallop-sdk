@@ -496,7 +496,7 @@ const parseMarketPoolObjects = ({
   collateralStat?: SuiObjectData;
   interestModel: SuiObjectData;
   riskModel?: SuiObjectData;
-  borrowFeeKey: SuiObjectData;
+  borrowFeeKey?: SuiObjectData;
   supplyLimitKey?: SuiObjectData;
   borrowLimitKey?: SuiObjectData;
   isolatedAssetKey: SuiObjectData;
@@ -506,7 +506,9 @@ const parseMarketPoolObjects = ({
   const _balanceSheet = parseObjectAs<BalanceSheet>(balanceSheet);
   const _interestModel = parseObjectAs<InterestModel>(interestModel);
   const _borrowDynamic = parseObjectAs<BorrowDynamic>(borrowDynamic);
-  const _borrowFee = parseObjectAs<BorrowFee>(borrowFeeKey);
+  const _borrowFee = borrowFeeKey
+    ? parseObjectAs<BorrowFee>(borrowFeeKey)
+    : { value: '0' };
   const _supplyLimit = supplyLimitKey
     ? parseObjectAs<string>(supplyLimitKey)
     : '0';
