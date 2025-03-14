@@ -9,7 +9,7 @@ import type {
 } from 'src/types';
 import { xOracleList as X_ORACLE_LIST } from 'src/constants';
 import { updatePythPriceFeeds } from './pyth';
-import { updateSwitchboardAggregators } from './switchboard';
+// import { updateSwitchboardAggregators } from './switchboard';
 
 /**
  * Update the price of the oracle for multiple coin.
@@ -67,18 +67,18 @@ export const updateOracles = async (
   }
 
   // Handle Switchboard on-demand aggregator
-  if (flattenedRules.has('switchboard')) {
-    const switchboardAssetCoinNames = assetCoinNames.filter((assetCoinName) =>
-      filterAssetCoinNames(assetCoinName, 'switchboard')
-    );
-    if (switchboardAssetCoinNames.length > 0) {
-      await updateSwitchboardAggregators(
-        builder,
-        switchboardAssetCoinNames,
-        txBlock
-      );
-    }
-  }
+  // if (flattenedRules.has('switchboard')) {
+  //   const switchboardAssetCoinNames = assetCoinNames.filter((assetCoinName) =>
+  //     filterAssetCoinNames(assetCoinName, 'switchboard')
+  //   );
+  //   if (switchboardAssetCoinNames.length > 0) {
+  //     await updateSwitchboardAggregators(
+  //       builder,
+  //       switchboardAssetCoinNames,
+  //       txBlock
+  //     );
+  //   }
+  // }
 
   // Remove duplicate coin names.
   const updateAssetCoinNames = [...new Set(assetCoinNames)];
