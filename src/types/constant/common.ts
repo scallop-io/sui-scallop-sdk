@@ -39,6 +39,7 @@ export type Whitelist = {
   wormhole: Set<string>;
   oracles: Set<string>;
   borrowIncentiveRewards: Set<string>;
+  rewardsAsPoint: Set<string>;
   pythEndpoints: Set<string>;
   deprecated: Set<string>;
 };
