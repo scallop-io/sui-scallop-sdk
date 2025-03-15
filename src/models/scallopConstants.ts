@@ -36,6 +36,7 @@ export class ScallopConstants {
     scoin: new Set(),
     spool: new Set(),
     borrowIncentiveRewards: new Set(),
+    rewardsAsPoint: new Set(),
     suiBridge: new Set(),
     wormhole: new Set(),
     oracles: new Set(),

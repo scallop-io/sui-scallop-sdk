@@ -114,6 +114,7 @@ export type ObligationBorrowIcentiveReward = {
   symbol: string;
   coinDecimal: number;
   coinPrice: number;
+  weightedBorrowAmount: number;
   availableClaimCoin: number;
   availableClaimAmount: number;
   boostValue: number;

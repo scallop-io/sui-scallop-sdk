@@ -590,6 +590,7 @@ export const getObligationAccount = async (
                 symbol: poolPoint.symbol,
                 coinDecimal: poolPoint.coinDecimal,
                 coinPrice: poolPoint.coinPrice,
+                weightedBorrowAmount: accountBorrowedAmount.toNumber(),
                 availableClaimAmount: availableClaimAmount.toNumber(),
                 availableClaimCoin: availableClaimCoin.toNumber(),
                 boostValue,
