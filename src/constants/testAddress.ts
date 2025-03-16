@@ -122,12 +122,16 @@ export const TEST_ADDRESSES: AddressesInterface = {
         '0x1edeae568fde99e090dbdec4bcdbd33a15f53a1ce1f87aeef1a560dedf4b4a90',
       primaryPriceUpdatePolicyObject:
         '0xbcd908d0ee6d63d726e61676f3feeec3d19817f4849bbecf372dd3399f247f6b',
+      // '0x56e48a141f20a3a6a6d3fc43e58b01fc63f756c08224870e7890c80ec9d2afee' // prod
       secondaryPriceUpdatePolicyObject:
         '0x624a6f120777bb30e718b86e836c205ef4229448052377dc3d78272a6662b2c0',
+      // '0xef4d9430ae42c1b24199ac55e87ddd7262622447ee3c7de8868efe839b3d8705' // prod
       primaryPriceUpdatePolicyVecsetId:
         '0xfb1330aa028ed6a159b742c71b5a79b3b6824cf71efa40ea82b52486ad209264',
+      // '0xc22c9d691ee4c780de09db91d8b487d863211ebf08720772144bcf716318826c', // prod
       secondaryPriceUpdatePolicyVecsetId:
         '0x4b827acc73f3f53f808dd73a7ee0a60ae61e84322176bece72b26467030b467c',
+      // '0x3b184ff859f5de30eeaf186898e5224925be6bb6d2baa74347ef471a8cd1c0d3' // prod
       supra: {
         registry: '',
         registryCap: '',
@@ -304,7 +308,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
         coinType:
           '0x88618204de2dfdc2597681a8441ee726b0dc13494c41e319c3264eb7b35fea90::scallop_sui::SCALLOP_SUI',
         metaData: '',
-        symbol: '',
+        symbol: 'sSUI',
         treasury:
           '0x03f1d94a40bd9f5d556bacb5c5245732b185572f6a29b36ad8b555d9a8a24f09',
       },
@@ -312,7 +316,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
         coinType:
           '0x9f64a180373a6b66595025ae16a4ab701f0af1dd5c7ce1ac91dc112e52c2a3f8::scallop_sca::SCALLOP_SCA',
         metaData: '',
-        symbol: '',
+        symbol: 'sSCA',
         treasury:
           '0x1b05d2cd8b20dba19da073a54195fc52d2f438ea19dea0713bae7a7dab308199',
       },
@@ -321,7 +325,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0x55ed015f9f006c0c96ad36ebe3b3570d088e8498f52defea48e5634c110e485c::scallop_usdc::SCALLOP_USDC',
         treasury:
           '0x6ef82ef94472dcb8c2cdeac8df38874024c08570ca165986ba56d1e38fe0c0a3',
-        symbol: '',
+        symbol: 'sUSDC',
         metaData:
           '0x763a21eba338e00bc684aaad80491c89eea5f247b59c47df45b17610c9ad58f2',
       },
@@ -329,7 +333,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
         coinType:
           '0x34f0a2e793e1f79ceac72cfe3bb95f65541da449418289ccd12922d16140c882::scallop_deep::SCALLOP_DEEP',
         metaData: '',
-        symbol: '',
+        symbol: 'sDEEP',
         treasury:
           '0x71d41465cf2d16fa0206126526bebdf65c8871d1fcfbd0c2237db2306afd67ba',
       },
@@ -337,7 +341,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
         coinType:
           '0x3b23c05f917052255a0b16a534dbd4446911aa4a30bd3497cdf5b736551e7ef8::scallop_fud::SCALLOP_FUD',
         metaData: '',
-        symbol: '',
+        symbol: 'sFUD',
         treasury:
           '0x858c492d51425b922c040c1a389e185b3b00d565e7d72ead1a81dc733104660d',
       },
