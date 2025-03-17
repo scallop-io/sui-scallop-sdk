@@ -4,10 +4,10 @@ import { ScallopClient } from './scallopClient';
 import { ScallopBuilder } from './scallopBuilder';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
-import { ADDRESS_ID } from '../constants';
 import type {
   ScallopBuilderParams,
   ScallopClientParams,
+  ScallopConstantsParams,
   ScallopParams,
   ScallopQueryParams,
   ScallopUtilsParams,
@@ -15,8 +15,9 @@ import type {
 import { ScallopIndexer } from './scallopIndexer';
 import { ScallopCache } from './scallopCache';
 import { QueryClientConfig } from '@tanstack/query-core';
-import type { QueryClient } from '@tanstack/query-core';
 import { newSuiKit } from './suiKit';
+import { ScallopConstants } from './scallopConstants';
+import type { QueryClient } from '@tanstack/query-core';
 
 /**
  * @argument params - The parameters for the Scallop instance.
@@ -41,6 +42,7 @@ export class Scallop {
   public cache: ScallopCache;
 
   private address: ScallopAddress;
+  private constants: ScallopConstants;
 
   public constructor(
     params: ScallopParams,
@@ -59,14 +61,15 @@ export class Scallop {
         queryClient,
       }
     );
-    this.address = new ScallopAddress(
-      {
-        id: params?.addressId ?? ADDRESS_ID,
-        network: params?.networkType,
-        forceInterface: params?.forceAddressesInterface,
-      },
-      { cache: this.cache }
-    );
+
+    this.address = new ScallopAddress(params, {
+      cache: this.cache,
+    });
+    this.constants = new ScallopConstants(params, { address: this.address });
+  }
+
+  private async initConstants(params?: Partial<ScallopConstantsParams>) {
+    if (!this.constants.isInitialized) await this.constants.init(params);
   }
 
   /**
@@ -86,8 +89,8 @@ export class Scallop {
    *
    * @return Scallop Builder.
    */
-  public async createScallopBuilder(params?: ScallopBuilderParams) {
-    if (!this.address.getAddresses()) await this.address.read();
+  public async createScallopBuilder(params?: Partial<ScallopBuilderParams>) {
+    await this.initConstants(params);
     const builderParams = {
       ...this.params,
       ...params,
@@ -105,8 +108,8 @@ export class Scallop {
    * @param walletAddress - When user cannot provide a secret key or mnemonic, the scallop client cannot directly derive the address of the transaction the user wants to sign. This argument specifies the wallet address for signing the transaction.
    * @return Scallop Client.
    */
-  public async createScallopClient(params?: ScallopClientParams) {
-    if (!this.address.getAddresses()) await this.address.read();
+  public async createScallopClient(params?: Partial<ScallopClientParams>) {
+    await this.initConstants(params);
     const clientParams = {
       ...this.params,
       ...params,
@@ -123,12 +126,13 @@ export class Scallop {
    *
    * @return Scallop Query.
    */
-  public async createScallopQuery(params?: ScallopQueryParams) {
-    if (!this.address.getAddresses()) await this.address.read();
+  public async createScallopQuery(params?: Partial<ScallopQueryParams>) {
+    await this.initConstants(params);
     const queryParams = {
       ...this.params,
       ...params,
     };
+
     const scallopQuery = new ScallopQuery(queryParams, {
       utils: await this.createScallopUtils(queryParams),
     });
@@ -154,15 +158,15 @@ export class Scallop {
    *
    * @return Scallop Utils.
    */
-  public async createScallopUtils(params?: ScallopUtilsParams) {
-    if (!this.address.getAddresses()) await this.address.read();
+  public async createScallopUtils(params?: Partial<ScallopUtilsParams>) {
+    await this.initConstants(params);
     const scallopUtils = new ScallopUtils(
       {
         ...this.params,
         ...params,
       },
       {
-        address: this.address,
+        constants: this.constants,
         suiKit: this.suiKit,
       }
     );
