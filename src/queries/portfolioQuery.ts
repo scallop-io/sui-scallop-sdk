@@ -13,7 +13,7 @@ import type {
   CoinAmounts,
   CoinPrices,
   TotalValueLocked,
-  ObligationBorrowIcentiveReward,
+  ObligationBorrowIncentiveReward,
   MarketPools,
   MarketCollaterals,
 } from '../types';
@@ -534,7 +534,7 @@ export const getObligationAccount = async (
     const coinName = poolCoinName as string;
     const borrowIncentivePool = borrowIncentivePools[coinName];
     if (borrowIncentivePool) {
-      const rewards: ObligationBorrowIcentiveReward[] = [];
+      const rewards: ObligationBorrowIncentiveReward[] = [];
       Object.entries(borrowIncentiveAccount.pointList).forEach(
         ([key, accountPoint]) => {
           const poolPoint =
