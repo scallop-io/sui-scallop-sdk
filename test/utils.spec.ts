@@ -5,7 +5,7 @@ const ENABLE_LOG = false;
 
 describe('Test Scallop Utils', async () => {
   const scallopUtils = await scallopSDK.createScallopUtils();
-  const address = await scallopSDK.getScallopAddress();
+  const address = scallopUtils.address;
   const SUPPORT_POOLS = [...scallopUtils.constants.whitelist.lending];
   const SUPPORT_SCOIN = [...scallopUtils.constants.whitelist.scoin];
   // const client = await scallopSDK.createScallopClient();
