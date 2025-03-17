@@ -108,7 +108,7 @@ export type ObligationDebt = {
   availableRepayCoin: number;
 };
 
-export type ObligationBorrowIcentiveReward = {
+export type ObligationBorrowIncentiveReward = {
   coinName: string;
   coinType: string;
   symbol: string;
@@ -126,7 +126,7 @@ export type ObligationBorrowIncentive = {
   symbol: string;
   coinDecimal: number;
   coinPrice: number;
-  rewards: ObligationBorrowIcentiveReward[];
+  rewards: ObligationBorrowIncentiveReward[];
 };
 
 export type TotalValueLocked = {
