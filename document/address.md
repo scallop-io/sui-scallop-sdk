@@ -6,7 +6,7 @@ General Users will basically only use the `read`, `switchCurrentAddresses`, `get
 
 ```typescript
 const scallopAddress = new ScallopAddress({
-  id: TEST_ADDRESSES_ID,
+  addressId: TEST_ADDRESSES_ID,
   network: NETWORK,
 });
 
@@ -32,7 +32,7 @@ The rest of the features are for Scallop administrators to use, and require a se
 
 ```typescript
   const scallopAddress = new ScallopAddress({
-    id: TEST_ADDRESSES_ID,
+    addressId: TEST_ADDRESSES_ID,
     auth: process.env.API_KEY,
     network: NETWORK,
   });
