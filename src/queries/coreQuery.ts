@@ -405,21 +405,6 @@ export const getMarketPools = async (
   const collaterals: MarketCollaterals = {};
 
   if (indexer) {
-    // const marketPoolsIndexer = await query.indexer.getMarketPools();
-
-    // const updateMarketPool = (marketPool: MarketPool) => {
-    //   if (!poolCoinNames.includes(marketPool.coinName)) return;
-    //   marketPool.coinPrice =
-    //     coinPrices[marketPool.coinName] ?? marketPool.coinPrice;
-    //   marketPool.coinWrappedType = query.utils.getCoinWrappedType(
-    //     marketPool.coinName
-    //   );
-    //   pools[marketPool.coinName] = marketPool;
-    // };
-
-    // Object.values(marketPoolsIndexer).forEach(updateMarketPool);
-
-    // return pools;
     const marketIndexer = await query.indexer.getMarket();
 
     const updatePools = (item: MarketPool) => {

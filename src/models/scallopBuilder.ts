@@ -220,48 +220,6 @@ export class ScallopBuilder {
     args?: (SuiTxArg | SuiVecTxArg | SuiObjectArg | SuiAmountsArg)[],
     typeArgs?: string[]
   ) {
-    // Disable for now
-    // const resolvedQueryTarget =
-    //   await this.cache.queryGetNormalizedMoveFunction(target);
-    // if (!resolvedQueryTarget) throw new Error('Invalid query target');
-
-    // const { parameters } = resolvedQueryTarget;
-    // try {
-    //   // we can try resolve the args first
-    //   const resolvedArgs = await Promise.all(
-    //     (args ?? []).map(async (arg, idx) => {
-    //       if (typeof arg !== 'string') return arg;
-
-    //       const cachedData = (await this.cache.queryGetObject(arg))?.data;
-    //       if (!cachedData) return arg;
-
-    //       const owner = cachedData.owner;
-    //       if (!owner || typeof owner !== 'object' || !('Shared' in owner))
-    //         return {
-    //           objectId: cachedData.objectId,
-    //           version: cachedData.version,
-    //           digest: cachedData.digest,
-    //         };
-
-    //       const parameter = parameters[idx];
-    //       if (
-    //         typeof parameter !== 'object' ||
-    //         !('MutableReference' in parameter || 'Reference' in parameter)
-    //       )
-    //         return arg;
-
-    //       return {
-    //         objectId: cachedData.objectId,
-    //         initialSharedVersion: owner.Shared.initial_shared_version,
-    //         mutable: 'MutableReference' in parameter,
-    //       };
-    //     })
-    //   );
-    //   return txb.moveCall(target, resolvedArgs, typeArgs);
-    // } catch (e: any) {
-    //   console.error(e.message);
-    //   return txb.moveCall(target, args, typeArgs);
-    // }
     return txb.moveCall(target, args, typeArgs);
   }
 }
