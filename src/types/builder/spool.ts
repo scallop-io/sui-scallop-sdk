@@ -5,7 +5,6 @@ import type {
 } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
 import type { ScallopBuilder } from '../../models';
-import type { SupportStakeMarketCoins } from '../constant';
 import { SuiTxBlockWithSCoin } from '.';
 
 export type SpoolIds = {
@@ -13,39 +12,37 @@ export type SpoolIds = {
 };
 
 export type SpoolNormalMethods = {
-  createStakeAccount: (
-    stakeMarketCoinName: SupportStakeMarketCoins
-  ) => TransactionResult;
+  createStakeAccount: (stakeMarketCoinName: string) => TransactionResult;
   stake: (
     stakeAccount: SuiAddressArg,
     coin: SuiObjectArg,
-    stakeMarketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: string
   ) => void;
   unstake: (
     stakeAccount: SuiAddressArg,
     amount: number,
-    stakeMarketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: string
   ) => TransactionResult;
   claim: (
     stakeAccount: SuiAddressArg,
-    stakeMarketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: string
   ) => TransactionResult;
 };
 
 export type SpoolQuickMethods = {
   stakeQuick(
     amountOrMarketCoin: SuiObjectArg | number,
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     stakeAccountId?: SuiAddressArg
   ): Promise<void>;
   unstakeQuick(
     amount: number,
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     stakeAccountId?: SuiAddressArg,
     returnSCoin?: boolean
   ): Promise<TransactionResult | undefined>;
   claimQuick(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     stakeAccountId?: SuiAddressArg
   ): Promise<TransactionResult[]>;
 };

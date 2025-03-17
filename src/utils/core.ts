@@ -2,7 +2,7 @@ import { SuiObjectData } from '@mysten/sui/client';
 
 export const parseObjectAs = <T>(object: SuiObjectData): T => {
   if (!(object && object.content && 'fields' in object.content))
-    throw new Error(`Failed to parse object`);
+    throw new Error(`Failed to parse object ${object}`);
 
   const fields = object.content.fields as any;
 

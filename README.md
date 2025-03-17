@@ -45,6 +45,7 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
   ```typescript
   // Create an instance quickly through the`Scallop` class to construct other models.
   const scallopSDK = new Scallop({
+      addressId: '675c65cd301dd817ea262e76',
       networkType: 'mainnet',
       ...
   });
@@ -59,6 +60,7 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
   // Or, you can choose to import the class directly to create an instance.
   import {
     ScallopAddress,
+    ScallopConstants,
     ScallopBuilder,
     ScallopQuery,
     ScallopUtils,
@@ -66,14 +68,34 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
     ScallopClient,
   } from '@scallop-io/sui-scallop-sdk'
 
-  const scallopAddress = new ScallopAddress(...);
-  const ScallopQuery = new ScallopQuery(...);
-  const ScallopBuilder = new ScallopBuilder(...);
-  const ScallopUtils = new ScallopUtils(...);
-  const scallopClient = new ScallopClient(...);
+  const scallopAddress = new ScallopAddress(
+    addressId: '675c65cd301dd817ea262e76',
+    ...
+  );
+  const scallopConstants = new ScallopConstants(
+    addressId: '675c65cd301dd817ea262e76',
+    ...
+  );
+  const ScallopQuery = new ScallopQuery(
+    addressId: '675c65cd301dd817ea262e76',
+    ...
+  );
+  const ScallopBuilder = new ScallopBuilder(
+    addressId: '675c65cd301dd817ea262e76',
+    ...
+  );
+  const ScallopUtils = new ScallopUtils(
+    addressId: '675c65cd301dd817ea262e76',
+    ...
+  );
+  const scallopClient = new ScallopClient(
+    addressId: '675c65cd301dd817ea262e76',
+    ...
+  );
   const ScallopIndexer = new ScallopIndexer();
   // Remember to initialize the instance before using it
   await scallopAddress.read();
+  await scallopConstants.init();
   await ScallopQuery.init();
   await ScallopBuilder.init();
   await ScallopUtils.init();
@@ -90,6 +112,7 @@ Below we will give a brief introduction to these instances respectively, and int
 - [Use Scallop Builder](./document/builder.md)
 - [Use Scallop Utils](./document/utils.md)
 - [Use Scallop Indexer](./document/indexer.md)
+- [Use Scallop Indexer](./document/constants.md)
 
 For the original codes, please refer to `test` folder.
 

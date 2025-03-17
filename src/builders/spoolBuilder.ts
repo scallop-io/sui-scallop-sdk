@@ -1,7 +1,6 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { spoolRewardCoins } from '../constants/enum';
 import { getStakeAccounts } from '../queries/spoolQuery';
 import { requireSender } from '../utils';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
@@ -13,7 +12,6 @@ import type {
   GenerateSpoolQuickMethod,
   SuiTxBlockWithSpoolNormalMethods,
   SpoolTxBlock,
-  SupportStakeMarketCoins,
   ScallopTxBlock,
   SuiTxBlockWithSCoin,
 } from '../types';
@@ -35,7 +33,7 @@ const requireStakeAccountIds = async (
   ...params: [
     builder: ScallopBuilder,
     txBlock: SuiKitTxBlock,
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     stakeAccountId?: SuiAddressArg,
   ]
 ) => {
@@ -66,7 +64,7 @@ const requireStakeAccounts = async (
   ...params: [
     builder: ScallopBuilder,
     txBlock: SuiKitTxBlock,
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     stakeAccountId?: SuiAddressArg,
   ]
 ) => {
@@ -90,7 +88,7 @@ const stakeHelper = async (
   builder: ScallopBuilder,
   txBlock: SuiTxBlockWithSpoolNormalMethods,
   stakeAccount: SuiAddressArg,
-  coinName: SupportStakeMarketCoins,
+  coinName: string,
   amount: number,
   sender: string,
   isSCoin: boolean = false
@@ -181,7 +179,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       ) as string;
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
-      const rewardCoinName = spoolRewardCoins[stakeMarketCoinName];
+      const rewardCoinName = builder.utils.getSpoolRewardCoinName();
       const rewardCoinType = builder.utils.parseCoinType(rewardCoinName);
       return builder.moveCall(
         txBlock,

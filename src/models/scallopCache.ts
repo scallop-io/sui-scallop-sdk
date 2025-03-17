@@ -101,7 +101,7 @@ export class ScallopCache {
     //   // if(cacheOptions.mutations)this.queryClient.setMutationDefaults(cacheOptions.mutations);
     // }
 
-    this.tokens = this.tokensPerInterval;
+    this.tokens = this.tokensPerInterval; // Initial tokens value
     this.lastRefill = Date.now();
     this.walletAddress = params.walletAddress ?? this.suiKit.currentAddress();
   }
@@ -351,8 +351,8 @@ export class ScallopCache {
       retryDelay: 1000,
       queryKey: queryKeys.rpc.getOwnedObjects(input),
       queryFn: async () => {
-        const results = await this.callWithRateLimit(
-          async () => await this.client.getOwnedObjects(input)
+        const results = await this.callWithRateLimit(() =>
+          this.client.getOwnedObjects(input)
         );
         if (results && results.data.length > 0) {
           results.data
