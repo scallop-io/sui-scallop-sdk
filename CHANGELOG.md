@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### ⚠ BREAKING CHANGES
+
+Starting from `v2.0.0`, Scallop SDK will use API for dynamic asset listing. Most of the constants in the SDK is replaced with
+the new `ScallopConstants` class.
+
+### [2.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.3...v2.0.0) (2025-03-17)
+
+### Features
+
+- Add `ScallopConstants` class
+- Adjust structure to use `ScallopConstants` class
+
 ### [1.5.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.2...v1.5.3) (2025-03-03)
 
 ### Features
