@@ -146,8 +146,6 @@ export const getLending = async (
           },
         })
       : undefined;
-  // some pool does not have spool
-  // if (!spool) throw new Error(`Failed to fetch spool for ${poolCoinName}`);
 
   stakeAccounts =
     stakeAccounts || query.constants.whitelist.spool.has(marketCoinName)

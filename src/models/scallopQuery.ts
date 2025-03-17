@@ -234,13 +234,6 @@ export class ScallopQuery {
   ) {
     const marketPools = await this.getMarketPools(undefined, args);
     return marketPools.pools[poolCoinName];
-    // return await getMarketPool(
-    //   this,
-    //   poolCoinName,
-    //   args?.indexer,
-    //   args?.marketObject,
-    //   args?.coinPrice
-    // );
   }
 
   /**

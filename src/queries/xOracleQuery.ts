@@ -2,11 +2,6 @@ import { SuiObjectResponse } from '@mysten/sui/client';
 import { ScallopAddress, ScallopUtils } from 'src/models';
 import { SupportOracleType, xOracleRuleType } from 'src/types';
 
-// const PRIMARY_PRICE_UPDATE_POLICY =
-//   '0x56e48a141f20a3a6a6d3fc43e58b01fc63f756c08224870e7890c80ec9d2afee';
-// const SECONDARY_PRICE_UPDDATE_POLICY =
-//   '0xef4d9430ae42c1b24199ac55e87ddd7262622447ee3c7de8868efe839b3d8705';
-
 /**
  * Query the price update policy table ids. Usually the value for these table will be constant.
  * @param query
@@ -42,11 +37,6 @@ export const getPriceUpdatePolicies = async (
     secondary: secondaryPriceUpdatePolicyTable,
   };
 };
-
-// const PRIMARY_PRICE_UPDATE_POLICY_VECSET_ID =
-//   '0xc22c9d691ee4c780de09db91d8b487d863211ebf08720772144bcf716318826c';
-// const SECONDARY_PRICE_UPDATE_POLICY_VECSET_ID =
-//   '0x3b184ff859f5de30eeaf186898e5224925be6bb6d2baa74347ef471a8cd1c0d3';
 
 export const getAssetOracles = async (
   utils: ScallopUtils,

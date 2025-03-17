@@ -193,9 +193,7 @@ export const getPoolAddresses = async (
         spoolReward: '',
       };
       const _spoolData = addressApiResponse.spool.pools[`s${coinName}`];
-      // @ts-ignore
       if (_spoolData) {
-        // @ts-ignore
         const { id: spool, rewardPoolId: spoolReward } = _spoolData;
         spoolData = {
           spool,
