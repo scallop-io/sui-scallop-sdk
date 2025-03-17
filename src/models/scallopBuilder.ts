@@ -1,6 +1,5 @@
 import { normalizeSuiAddress } from '@mysten/sui/utils';
 import { SuiKit } from '@scallop-io/sui-kit';
-import { ADDRESS_ID } from '../constants';
 import { newScallopTxBlock } from '../builders';
 import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
@@ -17,14 +16,12 @@ import type {
 import type {
   ScallopBuilderParams,
   ScallopTxBlock,
-  SupportMarketCoins,
-  SupportAssetCoins,
-  SupportSCoin,
   ScallopBuilderInstanceParams,
   SelectCoinReturnType,
 } from '../types';
 import { ScallopCache } from './scallopCache';
 import { newSuiKit } from './suiKit';
+import { ScallopConstants } from './scallopConstants';
 
 /**
  * @description
@@ -43,13 +40,14 @@ export class ScallopBuilder {
 
   public suiKit: SuiKit;
   public address: ScallopAddress;
+  public constants: ScallopConstants;
   public query: ScallopQuery;
   public utils: ScallopUtils;
   public walletAddress: string;
   public cache: ScallopCache;
 
   public constructor(
-    params: ScallopBuilderParams = {},
+    params: ScallopBuilderParams,
     instance?: ScallopBuilderInstanceParams
   ) {
     this.suiKit = instance?.suiKit ?? newSuiKit(params);
@@ -59,37 +57,36 @@ export class ScallopBuilder {
       params?.walletAddress ?? this.suiKit.currentAddress()
     );
 
-    if (instance?.query) {
-      this.query = instance.query;
-      this.utils = this.query.utils;
-      this.address = this.utils.address;
-      this.cache = this.address.cache;
-    } else {
-      this.cache = new ScallopCache(this.params, {
+    this.cache =
+      instance?.query?.cache ??
+      new ScallopCache(this.params, {
         suiKit: this.suiKit,
       });
-      this.address = new ScallopAddress(
-        {
-          id: params?.addressId ?? ADDRESS_ID,
-          network: params?.networkType,
-          forceInterface: params?.forceAddressesInterface,
-        },
-        {
-          cache: this.cache,
-        }
-      );
-      this.utils = new ScallopUtils(this.params, {
+
+    this.address =
+      instance?.query?.address ??
+      new ScallopAddress(this.params, {
+        cache: this.cache,
+      });
+
+    this.constants =
+      instance?.query?.constants ??
+      new ScallopConstants(this.params, {
         address: this.address,
       });
-      this.query = new ScallopQuery(
-        {
-          walletAddress: this.walletAddress,
-        },
-        {
-          utils: this.utils,
-        }
-      );
-    }
+
+    this.utils =
+      instance?.query?.utils ??
+      new ScallopUtils(this.params, {
+        constants: this.constants,
+      });
+
+    this.query =
+      instance?.query ??
+      new ScallopQuery(this.params, {
+        utils: this.utils,
+      });
+
     this.isTestnet = params.networkType
       ? params.networkType === 'testnet'
       : false;
@@ -101,13 +98,11 @@ export class ScallopBuilder {
    * @param force - Whether to force initialization.
    * @param address - ScallopAddress instance.
    */
-  public async init(force: boolean = false, address?: ScallopAddress) {
-    if (address && !this.address) this.address = address;
-    if (force || !this.address.getAddresses()) {
-      await this.address.read();
+  public async init(force: boolean = false) {
+    if (force || !this.constants.isInitialized) {
+      await this.constants.init();
     }
-    await this.query.init(force, this.address);
-    // await this.utils.init(force, this.address);
+    await this.query.init(force);
   }
 
   /**
@@ -129,7 +124,7 @@ export class ScallopBuilder {
    * @param sender - Sender address.
    * @return Take coin and left coin.
    */
-  public async selectCoin<T extends SupportAssetCoins>(
+  public async selectCoin<T extends string>(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
     assetCoinName: T,
     amount: number,
@@ -157,7 +152,7 @@ export class ScallopBuilder {
    */
   public async selectMarketCoin(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
-    marketCoinName: SupportMarketCoins,
+    marketCoinName: string,
     amount: number,
     sender: string = this.walletAddress
   ) {
@@ -185,7 +180,7 @@ export class ScallopBuilder {
    */
   public async selectSCoin(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
-    sCoinName: SupportSCoin,
+    sCoinName: string,
     amount: number,
     sender: string = this.walletAddress
   ) {
@@ -225,48 +220,6 @@ export class ScallopBuilder {
     args?: (SuiTxArg | SuiVecTxArg | SuiObjectArg | SuiAmountsArg)[],
     typeArgs?: string[]
   ) {
-    // Disable for now
-    // const resolvedQueryTarget =
-    //   await this.cache.queryGetNormalizedMoveFunction(target);
-    // if (!resolvedQueryTarget) throw new Error('Invalid query target');
-
-    // const { parameters } = resolvedQueryTarget;
-    // try {
-    //   // we can try resolve the args first
-    //   const resolvedArgs = await Promise.all(
-    //     (args ?? []).map(async (arg, idx) => {
-    //       if (typeof arg !== 'string') return arg;
-
-    //       const cachedData = (await this.cache.queryGetObject(arg))?.data;
-    //       if (!cachedData) return arg;
-
-    //       const owner = cachedData.owner;
-    //       if (!owner || typeof owner !== 'object' || !('Shared' in owner))
-    //         return {
-    //           objectId: cachedData.objectId,
-    //           version: cachedData.version,
-    //           digest: cachedData.digest,
-    //         };
-
-    //       const parameter = parameters[idx];
-    //       if (
-    //         typeof parameter !== 'object' ||
-    //         !('MutableReference' in parameter || 'Reference' in parameter)
-    //       )
-    //         return arg;
-
-    //       return {
-    //         objectId: cachedData.objectId,
-    //         initialSharedVersion: owner.Shared.initial_shared_version,
-    //         mutable: 'MutableReference' in parameter,
-    //       };
-    //     })
-    //   );
-    //   return txb.moveCall(target, resolvedArgs, typeArgs);
-    // } catch (e: any) {
-    //   console.error(e.message);
-    //   return txb.moveCall(target, args, typeArgs);
-    // }
     return txb.moveCall(target, args, typeArgs);
   }
 }

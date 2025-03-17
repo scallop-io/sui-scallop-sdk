@@ -1,4 +1,5 @@
-import { SupportAssetCoins, SupportOracleType } from './common';
+export const _SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
+export type SupportOracleType = (typeof _SUPPORT_ORACLES)[number];
 
 export type xOracleRules = {
   primary: SupportOracleType[];
@@ -7,5 +8,5 @@ export type xOracleRules = {
 export type xOracleRuleType = keyof xOracleRules;
 
 export type xOracleListType = {
-  [key in SupportAssetCoins]: xOracleRules;
+  [key in string]: xOracleRules;
 };

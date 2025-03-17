@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { normalizeStructTag, parseStructTag } from '@mysten/sui/utils';
+import { normalizeStructTag } from '@mysten/sui/utils';
 import type { ScallopUtils } from '../models';
 import type {
   OriginMarketPoolData,
@@ -18,14 +18,11 @@ import type {
   ParsedBorrowIncentivePoolData,
   OriginBorrowIncentiveAccountData,
   ParsedBorrowIncentiveAccountData,
-  SupportPoolCoins,
-  SupportCollateralCoins,
   OriginBorrowIncentivePoolPointData,
   ParsedBorrowIncentivePoolPointData,
   CalculatedBorrowIncentivePoolPointData,
   OriginBorrowIncentiveAccountPoolData,
   ParsedBorrowIncentiveAccountPoolData,
-  SupportBorrowIncentiveRewardCoins,
 } from '../types';
 
 /**
@@ -72,10 +69,13 @@ export const calculateMarketPoolData = (
   utils: ScallopUtils,
   parsedMarketPoolData: ParsedMarketPoolData
 ): CalculatedMarketPoolData => {
-  const poolCoinName = utils.parseCoinNameFromType<SupportPoolCoins>(
+  const poolCoinName = utils.parseCoinNameFromType(
     parsedMarketPoolData.coinType
   );
+
   const coinDecimal = utils.getCoinDecimal(poolCoinName);
+  if (coinDecimal === undefined)
+    throw new Error(`Coin decimal not found for ${poolCoinName}`);
 
   const borrowYearFactor = 24 * 365 * 3600;
 
@@ -210,11 +210,12 @@ export const calculateMarketCollateralData = (
   utils: ScallopUtils,
   parsedMarketCollateralData: ParsedMarketCollateralData
 ): CalculatedMarketCollateralData => {
-  const collateralCoinName =
-    utils.parseCoinNameFromType<SupportCollateralCoins>(
-      parsedMarketCollateralData.coinType
-    );
+  const collateralCoinName = utils.parseCoinNameFromType(
+    parsedMarketCollateralData.coinType
+  );
   const coinDecimal = utils.getCoinDecimal(collateralCoinName);
+  if (coinDecimal === undefined)
+    throw new Error(`Coin decimal not found for ${collateralCoinName}`);
 
   const maxCollateralCoin = BigNumber(
     parsedMarketCollateralData.maxCollateralAmount
@@ -448,17 +449,12 @@ export const parseOriginBorrowIncentivePoolData = (
     poolPoints: originBorrowIncentivePoolData.points.reduce(
       (acc, point) => {
         const parsed = parseOriginBorrowIncentivesPoolPointData(point);
-        const name = utils.parseSCoinTypeNameToMarketCoinName(
-          parseStructTag(parsed.pointType).name.toLowerCase()
-        ) as SupportBorrowIncentiveRewardCoins;
+        const name = utils.parseCoinNameFromType(parsed.pointType) as string;
 
         acc[name] = parsed;
         return acc;
       },
-      {} as Record<
-        SupportBorrowIncentiveRewardCoins,
-        ParsedBorrowIncentivePoolPointData
-      >
+      {} as Record<string, ParsedBorrowIncentivePoolPointData>
     ),
   };
 };
@@ -585,6 +581,7 @@ export const parseOriginBorrowIncentiveAccountPoolPointData = (
  * @return Parsed borrow incentive account data
  */
 export const parseOriginBorrowIncentiveAccountData = (
+  utils: ScallopUtils,
   originBorrowIncentiveAccountData: OriginBorrowIncentiveAccountData
 ): ParsedBorrowIncentiveAccountData => {
   return {
@@ -595,16 +592,11 @@ export const parseOriginBorrowIncentiveAccountData = (
     pointList: originBorrowIncentiveAccountData.points_list.reduce(
       (acc, point) => {
         const parsed = parseOriginBorrowIncentiveAccountPoolPointData(point);
-        const name = parseStructTag(
-          parsed.pointType
-        ).name.toLowerCase() as SupportBorrowIncentiveRewardCoins;
+        const name = utils.parseCoinNameFromType(parsed.pointType);
         acc[name] = parsed;
         return acc;
       },
-      {} as Record<
-        SupportBorrowIncentiveRewardCoins,
-        ParsedBorrowIncentiveAccountPoolData
-      >
+      {} as Record<string, ParsedBorrowIncentiveAccountPoolData>
     ),
   };
 };

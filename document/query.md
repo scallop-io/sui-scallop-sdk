@@ -70,7 +70,7 @@
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  const assetCoinsPrices = await scallopQuery.getPricesFromPyth(); // return Record<SupportAssetCoins, number>
+  const assetCoinsPrices = await scallopQuery.getPricesFromPyth(); // return Record<string, number>
   ```
 
 ## Spool query

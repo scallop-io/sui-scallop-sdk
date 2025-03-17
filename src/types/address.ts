@@ -1,11 +1,4 @@
-import { SUPPORT_ORACLES } from '../constants';
-import type {
-  SupportAssetCoins,
-  SupportOracleType,
-  SupportPackageType,
-  SupportSCoin,
-  SupportStakeMarketCoins,
-} from './constant';
+import { _SUPPORT_ORACLES, SupportOracleType } from './constant/xOracle';
 
 export interface AddressesInterface {
   core: {
@@ -18,7 +11,7 @@ export interface AddressesInterface {
     obligationAccessStore: string;
     coins: Partial<
       Record<
-        SupportAssetCoins,
+        string,
         {
           id: string;
           treasury: string;
@@ -27,11 +20,11 @@ export interface AddressesInterface {
           symbol: string;
           decimals: number;
           oracle: {
-            [K in SupportOracleType]: K extends (typeof SUPPORT_ORACLES)[0]
+            [K in SupportOracleType]: K extends (typeof _SUPPORT_ORACLES)[0]
               ? string
-              : K extends (typeof SUPPORT_ORACLES)[1]
+              : K extends (typeof _SUPPORT_ORACLES)[1]
                 ? string
-                : K extends (typeof SUPPORT_ORACLES)[2]
+                : K extends (typeof _SUPPORT_ORACLES)[2]
                   ? {
                       feed: string;
                       feedObject: string;
@@ -42,18 +35,20 @@ export interface AddressesInterface {
       >
     >;
     oracles: {
-      [K in SupportOracleType]: K extends (typeof SUPPORT_ORACLES)[0]
+      [K in SupportOracleType]: K extends (typeof _SUPPORT_ORACLES)[0]
         ? {
             registry: string;
             registryCap: string;
             holder: string;
           }
-        : K extends (typeof SUPPORT_ORACLES)[1]
+        : K extends (typeof _SUPPORT_ORACLES)[1]
           ? {
               registry: string;
               registryCap: string;
+              registryTableId: string;
+              state: string;
             }
-          : K extends (typeof SUPPORT_ORACLES)[2]
+          : K extends (typeof _SUPPORT_ORACLES)[2]
             ? {
                 registry: string;
                 registryCap: string;
@@ -62,10 +57,17 @@ export interface AddressesInterface {
                 wormholeState: string;
               }
             : never;
-    } & { xOracle: string; xOracleCap: string };
+    } & {
+      xOracle: string;
+      xOracleCap: string;
+      primaryPriceUpdatePolicyObject: string;
+      secondaryPriceUpdatePolicyObject: string;
+      primaryPriceUpdatePolicyVecsetId: string;
+      secondaryPriceUpdatePolicyVecsetId: string;
+    };
     packages: Partial<
       Record<
-        SupportPackageType,
+        string,
         {
           id: string;
           object?: string;
@@ -81,7 +83,7 @@ export interface AddressesInterface {
     config: string;
     pools: Partial<
       Record<
-        SupportStakeMarketCoins,
+        string,
         {
           id: string;
           rewardPoolId: string;
@@ -130,7 +132,7 @@ export interface AddressesInterface {
     id: string;
     coins: Partial<
       Record<
-        SupportSCoin,
+        string,
         {
           coinType: string;
           symbol: string;

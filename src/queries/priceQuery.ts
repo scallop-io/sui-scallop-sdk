@@ -1,14 +1,8 @@
 import { SuiObjectData } from '@mysten/sui/client';
 import type { ScallopAddress, ScallopQuery } from '../models';
-import type {
-  CoinPrices,
-  MarketPools,
-  OptionalKeys,
-  SupportAssetCoins,
-  SupportSCoin,
-} from '../types';
-import { SUPPORT_SCOIN } from 'src/constants/common';
+import type { CoinPrices, MarketPools, OptionalKeys } from '../types';
 import BigNumber from 'bignumber.js';
+import { ScallopConstants } from 'src/models/scallopConstants';
 
 /**
  * Get price from pyth fee object.
@@ -23,7 +17,7 @@ export const getPythPrice = async (
   }: {
     address: ScallopAddress;
   },
-  assetCoinName: SupportAssetCoins,
+  assetCoinName: string,
   priceFeedObject?: SuiObjectData | null
 ) => {
   const pythFeedObjectId = address.get(
@@ -70,15 +64,15 @@ export const getPythPrice = async (
 
 export const getPythPrices = async (
   {
-    address,
+    constants,
   }: {
-    address: ScallopAddress;
+    constants: ScallopConstants;
   },
-  assetCoinNames: SupportAssetCoins[]
+  assetCoinNames: string[]
 ) => {
   const pythPriceFeedIds = assetCoinNames.reduce(
     (prev, assetCoinName) => {
-      const pythPriceFeed = address.get(
+      const pythPriceFeed = constants.address.get(
         `core.coins.${assetCoinName}.oracle.pyth.feedObject`
       );
       if (pythPriceFeed) {
@@ -90,11 +84,11 @@ export const getPythPrices = async (
       }
       return prev;
     },
-    {} as Record<string, SupportAssetCoins[]>
+    {} as Record<string, string[]>
   );
 
   // Fetch multiple objects at once to save rpc calls
-  const priceFeedObjects = await address.cache.queryGetObjects(
+  const priceFeedObjects = await constants.address.cache.queryGetObjects(
     Object.keys(pythPriceFeedIds)
   );
 
@@ -105,7 +99,7 @@ export const getPythPrices = async (
       });
       return prev;
     },
-    {} as Record<SupportAssetCoins, SuiObjectData>
+    {} as Record<string, SuiObjectData>
   );
 
   return (
@@ -114,8 +108,8 @@ export const getPythPrices = async (
         async ([assetCoinName, priceFeedObject]) => ({
           coinName: assetCoinName,
           price: await getPythPrice(
-            { address },
-            assetCoinName as SupportAssetCoins,
+            constants,
+            assetCoinName as string,
             priceFeedObject
           ),
         })
@@ -123,10 +117,10 @@ export const getPythPrices = async (
     )
   ).reduce(
     (prev, curr) => {
-      prev[curr.coinName as SupportAssetCoins] = curr.price;
+      prev[curr.coinName as string] = curr.price;
       return prev;
     },
-    {} as Record<SupportAssetCoins, number>
+    {} as Record<string, number>
   );
 };
 
@@ -150,8 +144,8 @@ export const getAllCoinPrices = async (
     throw new Error(`Failed to fetch market pool for getAllCoinPrices`);
   }
 
-  const sCoinPrices: OptionalKeys<Record<SupportSCoin, number>> = {};
-  SUPPORT_SCOIN.forEach((sCoinName) => {
+  const sCoinPrices: OptionalKeys<Record<string, number>> = {};
+  query.constants.whitelist.scoin.forEach((sCoinName) => {
     const coinName = query.utils.parseCoinName(sCoinName);
     sCoinPrices[sCoinName] = BigNumber(coinPrices[coinName] ?? 0)
       .multipliedBy(marketPools[coinName]?.conversionRate ?? 1)

@@ -217,8 +217,17 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     oracles: {
       xOracle: '',
       xOracleCap: '',
+      primaryPriceUpdatePolicyObject: '',
+      secondaryPriceUpdatePolicyObject: '',
+      primaryPriceUpdatePolicyVecsetId: '',
+      secondaryPriceUpdatePolicyVecsetId: '',
       supra: { registry: '', registryCap: '', holder: '' },
-      switchboard: { registry: '', registryCap: '' },
+      switchboard: {
+        registry: '',
+        registryCap: '',
+        registryTableId: '',
+        state: '',
+      },
       pyth: {
         registry: '',
         registryCap: '',
@@ -406,6 +415,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     },
   },
 };
+
 /**
  * @description
  * It provides methods for managing addresses.
@@ -417,6 +427,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
  * await scallopAddress.<address async functions>();
  * ```
  */
+
 export class ScallopAddress {
   private readonly _auth?: string;
   private readonly _requestClient: AxiosInstance;
@@ -431,7 +442,7 @@ export class ScallopAddress {
     params: ScallopAddressParams,
     instance?: ScallopAddressInstanceParams
   ) {
-    const { id, auth, network, forceInterface } = params;
+    const { addressId, auth, network, forceAddressesInterface } = params;
     this.cache = instance?.cache ?? new ScallopCache({});
 
     this._requestClient = axios.create({
@@ -443,7 +454,8 @@ export class ScallopAddress {
       timeout: 8000,
     });
     if (auth) this._auth = auth;
-    this._id = id;
+
+    this._id = addressId;
     this._network = network ?? 'mainnet';
     this._addressesMap = USE_TEST_ADDRESS
       ? new Map([['mainnet', TEST_ADDRESSES]])
@@ -451,9 +463,9 @@ export class ScallopAddress {
     if (USE_TEST_ADDRESS) this._currentAddresses = TEST_ADDRESSES;
 
     // Set the addresses from the forceInterface if it is provided.
-    if (forceInterface) {
+    if (forceAddressesInterface) {
       for (const [network, addresses] of Object.entries<AddressesInterface>(
-        forceInterface
+        forceAddressesInterface
       )) {
         if (['localnet', 'devnet', 'testnet', 'mainnet'].includes(network)) {
           if (network === this._network) this._currentAddresses = addresses;
