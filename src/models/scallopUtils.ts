@@ -554,7 +554,9 @@ export class ScallopUtils {
   public getSupportedPoolAddresses(): PoolAddress[] {
     return this.constants.poolAddresses
       ? Object.values(this.constants.poolAddresses).filter(
-          (address): address is PoolAddress => address !== undefined
+          (poolAddress): poolAddress is PoolAddress =>
+            poolAddress !== undefined &&
+            this.constants.whitelist.lending.has(poolAddress.coinName)
         )
       : [];
   }
