@@ -99,10 +99,20 @@ export class ScallopConstants {
   }
 
   get isInitialized() {
+    const REQUIRED_WHITELIST_KEYS = [
+      'lending',
+      'collateral',
+      'borrowing',
+      'packages',
+      'scoin',
+      'spool',
+      'oracles',
+      'pythEndpoints',
+    ] as const;
     return (
-      !this.isEmptyObject(this._poolAddresses) &&
-      Object.values(this._whitelist).every((t) => t.size > 0) &&
-      this.isAddressInitialized
+      this.isAddressInitialized && // address is initialized
+      !this.isEmptyObject(this._poolAddresses) && // poolAddresses is initialized
+      REQUIRED_WHITELIST_KEYS.every((t) => this.whitelist[t].size > 0) // whitelist is initialized
     );
   }
 
