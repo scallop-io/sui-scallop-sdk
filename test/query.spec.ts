@@ -4,18 +4,13 @@ import { z as zod } from 'zod';
 import { scallopSDK } from './scallopSdk';
 import { ScallopQuery } from 'src/models';
 import BigNumber from 'bignumber.js';
-import { SupportPoolCoins } from 'src/types';
-// import { SupportPoolCoins } from 'src/types';
 
 const ENABLE_LOG = false;
 
 let _scallopQuery: ScallopQuery | null = null;
 const getScallopQuery = async () => {
   if (!_scallopQuery) {
-    _scallopQuery = await scallopSDK.createScallopQuery({
-      walletAddress:
-        '0x61819c99588108d9f7710047e6ad8f2da598de8e98a26ea62bd7ad9847f5329c',
-    });
+    _scallopQuery = await scallopSDK.createScallopQuery();
   }
   return _scallopQuery;
 };
@@ -509,18 +504,22 @@ describe('Test Isolated Assets', async () => {
   const sender = scallopQuery.walletAddress;
   console.info(`Your Wallet: ${sender}`);
 
-  it.skip('Should return isolated assets', async () => {
+  it('Should return isolated assets', async () => {
     const isolatedAssets = await scallopQuery.getIsolatedAssets();
     expect(typeof isolatedAssets).toBe('object');
     expect(isolatedAssets.length > 0).toBe(true);
     expect(typeof isolatedAssets[0]).toBe('string');
   });
 
-  it.skip('Should check if an asset is isolated', async () => {
-    const isolatedAssetNames = ['fud', 'deep'] as SupportPoolCoins[];
-    const isIsolated = await Promise.all(
-      isolatedAssetNames.map((asset) => scallopQuery.isIsolatedAsset(asset))
-    );
+  it('Should check if an asset is isolated', async () => {
+    const isolatedAssetNames = ['fud', 'deep'] as string[];
+    const isIsolated = (
+      await Promise.all(
+        isolatedAssetNames.map(
+          async (asset) => await scallopQuery.isIsolatedAsset(asset)
+        )
+      )
+    ).every((isIsolated) => isIsolated);
     expect(typeof isIsolated).toBe('boolean');
     expect(isIsolated).toBe(true);
   });

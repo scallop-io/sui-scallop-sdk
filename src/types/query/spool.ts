@@ -1,13 +1,11 @@
-import type { SupportStakeMarketCoins } from '../constant';
-
 type OptionalKeys<T> = {
   [K in keyof T]?: T[K];
 };
 
-export type Spools = OptionalKeys<Record<SupportStakeMarketCoins, Spool>>;
+export type Spools = OptionalKeys<Record<string, Spool>>;
 
 export type Spool = {
-  marketCoinName: SupportStakeMarketCoins;
+  marketCoinName: string;
   symbol: string;
   coinType: string;
   marketCoinType: string;
@@ -121,13 +119,9 @@ export type CalculatedSpoolRewardPoolData = {
   rewardPerSec: number;
 };
 
-export type StakePools = OptionalKeys<
-  Record<SupportStakeMarketCoins, StakePool>
->;
-export type StakeRewardPools = OptionalKeys<
-  Record<SupportStakeMarketCoins, StakeRewardPool>
->;
-export type StakeAccounts = Record<SupportStakeMarketCoins, StakeAccount[]>;
+export type StakePools = OptionalKeys<Record<string, StakePool>>;
+export type StakeRewardPools = OptionalKeys<Record<string, StakeRewardPool>>;
+export type StakeAccounts = Record<string, StakeAccount[]>;
 
 export interface StakeAccount {
   id: string;

@@ -1,20 +1,14 @@
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
-import {
-  SuiPythClient,
-  SuiPriceServiceConnection,
-} from '@pythnetwork/pyth-sui-js';
-import { SUPPORT_COLLATERALS, SUPPORT_POOLS } from '../constants';
 import type { TransactionArgument } from '@mysten/sui/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import type { ScallopBuilder } from '../models';
+import type { ScallopBuilder } from 'src/models';
 import type {
-  SupportAssetCoins,
   SupportOracleType,
   xOracleRules,
   xOracleRuleType,
-} from '../types';
-import { PYTH_ENDPOINTS } from 'src/constants/pyth';
+} from 'src/types';
 import { xOracleList as X_ORACLE_LIST } from 'src/constants';
+import { updatePythPriceFeeds } from './pyth';
 
 /**
  * Update the price of the oracle for multiple coin.
@@ -27,9 +21,7 @@ import { xOracleList as X_ORACLE_LIST } from 'src/constants';
 export const updateOracles = async (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
-  assetCoinNames: SupportAssetCoins[] = [
-    ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
-  ],
+  assetCoinNames: string[] = [...builder.constants.whitelist.lending],
   options: {
     usePythPullModel: boolean;
     useOnChainXOracleList: boolean;
@@ -45,58 +37,38 @@ export const updateOracles = async (
     : X_ORACLE_LIST;
 
   // const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
-  const flattenedRules: SupportOracleType[] = [
-    ...new Set(
-      Object.values(xOracleList).flatMap(({ primary, secondary }) => [
-        ...primary,
-        ...secondary,
-      ])
-    ),
-  ];
+  const flattenedRules = new Set(
+    Object.values(xOracleList).flatMap(({ primary, secondary }) => [
+      ...primary,
+      ...secondary,
+    ])
+  );
 
-  if (flattenedRules.includes('pyth') && usePythPullModel) {
-    const pythClient = new SuiPythClient(
-      builder.suiKit.client(),
-      builder.address.get('core.oracles.pyth.state'),
-      builder.address.get('core.oracles.pyth.wormholeState')
+  const filterAssetCoinNames = (
+    assetCoinName: string,
+    rule: SupportOracleType
+  ) => {
+    const assetXOracle = xOracleList[assetCoinName];
+    return (
+      assetXOracle &&
+      (assetXOracle.primary.includes(rule) ||
+        assetXOracle.secondary.includes(rule))
     );
-    const priceIds = assetCoinNames.map((assetCoinName) =>
-      builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`)
+  };
+
+  // Handle Pyth price feed
+  if (flattenedRules.has('pyth') && usePythPullModel) {
+    const pythAssetCoinNames = assetCoinNames.filter((assetCoinName) =>
+      filterAssetCoinNames(assetCoinName, 'pyth')
     );
-
-    // iterate through the endpoints
-    const endpoints =
-      builder.params.pythEndpoints ??
-      PYTH_ENDPOINTS[builder.isTestnet ? 'testnet' : 'mainnet'];
-    for (const endpoint of endpoints) {
-      try {
-        const pythConnection = new SuiPriceServiceConnection(endpoint);
-        const priceUpdateData =
-          await pythConnection.getPriceFeedsUpdateData(priceIds);
-        await pythClient.updatePriceFeeds(
-          txBlock.txBlock, // convert txBlock to TransactionBlock because pyth sdk not support new @mysten/sui yet
-          priceUpdateData,
-          priceIds
-        );
-
-        break;
-      } catch (e) {
-        console.warn(
-          `Failed to update price feeds with endpoint ${endpoint}: ${e}`
-        );
-      }
-    }
+    if (pythAssetCoinNames.length > 0)
+      await updatePythPriceFeeds(builder, assetCoinNames, txBlock);
   }
 
   // Remove duplicate coin names.
   const updateAssetCoinNames = [...new Set(assetCoinNames)];
   for (const assetCoinName of updateAssetCoinNames) {
-    await updateOracle(
-      builder,
-      txBlock,
-      assetCoinName,
-      xOracleList[assetCoinName]
-    );
+    updateOracle(builder, txBlock, assetCoinName, xOracleList[assetCoinName]);
   }
 };
 
@@ -107,10 +79,10 @@ export const updateOracles = async (
  * @param txBlock - TxBlock created by SuiKit.
  * @param assetCoinName - Specific support asset coin name.
  */
-const updateOracle = async (
+const updateOracle = (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
-  assetCoinName: SupportAssetCoins,
+  assetCoinName: string,
   rules: xOracleRules
 ) => {
   const coinType = builder.utils.parseCoinType(assetCoinName);
@@ -177,7 +149,7 @@ const updatePrice = (
     xOracleId,
     coinType
   );
-  Object.entries(rules).forEach(([type, rule]: [any, SupportOracleType[]]) => {
+  Object.entries(rules).forEach(([type, rule]: [any, string[]]) => {
     if (rule.includes('pyth')) {
       updatePythPrice(
         type,
@@ -338,7 +310,8 @@ const updateSwitchboardPrice = (
   coinType: string
 ) => {
   txBlock.moveCall(
-    `${packageId}::rule::set_price_as_${type}`,
+    // `${packageId}::rule::set_price_as_${type}`,
+    `${packageId}::rule::set_as_${type}_price`,
     [
       request,
       aggregatorId,

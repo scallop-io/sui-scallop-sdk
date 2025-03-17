@@ -1,11 +1,9 @@
 import { normalizeStructTag } from '@mysten/sui/utils';
-import { POOL_ADDRESSES, SUPPORT_SPOOLS } from '../constants';
 import {
   parseOriginSpoolData,
   calculateSpoolData,
   parseOriginSpoolRewardPoolData,
   calculateSpoolRewardPoolData,
-  isMarketCoin,
   parseObjectAs,
 } from '../utils';
 import type { SuiObjectData, SuiObjectResponse } from '@mysten/sui/client';
@@ -16,8 +14,6 @@ import type {
   StakePool,
   StakeRewardPool,
   StakeAccounts,
-  SupportStakeMarketCoins,
-  SupportStakeCoins,
   CoinPrices,
   MarketPools,
   OriginSpoolRewardPoolData,
@@ -28,14 +24,14 @@ import { queryMultipleObjects } from './objectsQuery';
 
 const queryRequiredSpoolObjects = async (
   query: ScallopQuery,
-  stakePoolCoinNames: SupportStakeCoins[]
+  stakePoolCoinNames: string[]
 ) => {
   // Prepare all tasks for querying each object type
   const tasks = stakePoolCoinNames.map((t, idx) => ({
     poolCoinName: stakePoolCoinNames[idx],
-    spool: POOL_ADDRESSES[t]?.spool,
-    spoolReward: POOL_ADDRESSES[t]?.spoolReward,
-    sCoinTreasury: POOL_ADDRESSES[t]?.sCoinTreasury,
+    spool: query.constants.poolAddresses[t]?.spool,
+    spoolReward: query.constants.poolAddresses[t]?.spoolReward,
+    sCoinTreasury: query.constants.poolAddresses[t]?.sCoinTreasury,
   }));
 
   // Query all objects for each key in parallel
@@ -97,7 +93,7 @@ const queryRequiredSpoolObjects = async (
       return acc;
     },
     {} as Record<
-      SupportStakeCoins,
+      string,
       {
         spool: SuiObjectData;
         spoolReward: SuiObjectData;
@@ -141,13 +137,13 @@ const parseSpoolObjects = ({
  */
 export const getSpools = async (
   query: ScallopQuery,
-  stakeMarketCoinNames: SupportStakeMarketCoins[] = [...SUPPORT_SPOOLS],
+  stakeMarketCoinNames: string[] = [...query.constants.whitelist.spool],
   indexer: boolean = false,
   marketPools?: MarketPools,
   coinPrices?: CoinPrices
 ) => {
   const stakeCoinNames = stakeMarketCoinNames.map((stakeMarketCoinName) =>
-    query.utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName)
+    query.utils.parseCoinName(stakeMarketCoinName)
   );
   marketPools =
     marketPools ??
@@ -165,12 +161,8 @@ export const getSpools = async (
     const spoolsIndexer = await query.indexer.getSpools();
     const updateSpools = (spool: Spool) => {
       if (!stakeMarketCoinNames.includes(spool.marketCoinName)) return;
-      const coinName = query.utils.parseCoinName<SupportStakeCoins>(
-        spool.marketCoinName
-      );
-      const rewardCoinName = query.utils.getSpoolRewardCoinName(
-        spool.marketCoinName
-      );
+      const coinName = query.utils.parseCoinName(spool.marketCoinName);
+      const rewardCoinName = query.utils.getSpoolRewardCoinName();
       spool.coinPrice = coinPrices[coinName] ?? spool.coinPrice;
       spool.marketCoinPrice =
         coinPrices[spool.marketCoinName] ?? spool.marketCoinPrice;
@@ -178,7 +170,9 @@ export const getSpools = async (
         coinPrices[rewardCoinName] ?? spool.rewardCoinPrice;
       spools[spool.marketCoinName] = spool;
     };
-    Object.values(spoolsIndexer).forEach(updateSpools);
+    Object.values(spoolsIndexer)
+      .filter((t) => !!t)
+      .forEach(updateSpools);
 
     return spools;
   }
@@ -224,7 +218,7 @@ export const getSpools = async (
  */
 export const getSpool = async (
   query: ScallopQuery,
-  marketCoinName: SupportStakeMarketCoins,
+  marketCoinName: string,
   indexer: boolean = false,
   coinPrices?: CoinPrices,
   requiredObjects?: {
@@ -232,14 +226,13 @@ export const getSpool = async (
     spoolReward: SuiObjectData;
   }
 ) => {
-  const coinName = query.utils.parseCoinName<SupportStakeCoins>(marketCoinName);
+  const coinName = query.utils.parseCoinName<string>(marketCoinName);
   coinPrices = coinPrices || (await query.getAllCoinPrices());
 
   if (indexer) {
     const spoolIndexer = await query.indexer.getSpool(marketCoinName);
-    const coinName =
-      query.utils.parseCoinName<SupportStakeCoins>(marketCoinName);
-    const rewardCoinName = query.utils.getSpoolRewardCoinName(marketCoinName);
+    const coinName = query.utils.parseCoinName<string>(marketCoinName);
+    const rewardCoinName = query.utils.getSpoolRewardCoinName();
     spoolIndexer.coinPrice = coinPrices?.[coinName] ?? spoolIndexer.coinPrice;
     spoolIndexer.marketCoinPrice =
       coinPrices?.[marketCoinName] ?? spoolIndexer.marketCoinPrice;
@@ -253,7 +246,7 @@ export const getSpool = async (
     coinName
   ];
 
-  const rewardCoinName = query.utils.getSpoolRewardCoinName(marketCoinName);
+  const rewardCoinName = query.utils.getSpoolRewardCoinName();
   coinPrices = coinPrices || (await query.utils.getCoinPrices());
 
   const parsedSpoolObjects = parseSpoolObjects(requiredObjects);
@@ -286,10 +279,10 @@ export const getSpool = async (
     symbol: query.utils.parseSymbol(marketCoinName),
     coinType: query.utils.parseCoinType(coinName),
     marketCoinType: query.utils.parseMarketCoinType(coinName),
-    rewardCoinType: isMarketCoin(rewardCoinName)
+    rewardCoinType: query.utils.isMarketCoin(rewardCoinName)
       ? query.utils.parseMarketCoinType(rewardCoinName)
       : query.utils.parseCoinType(rewardCoinName),
-    sCoinType: query.utils.parseSCoinType(marketCoinName),
+    sCoinType: query.utils.parseSCoinType(marketCoinName) ?? '',
     coinDecimal: query.utils.getCoinDecimal(coinName),
     rewardCoinDecimal: query.utils.getCoinDecimal(rewardCoinName),
     coinPrice: coinPrices?.[coinName] ?? 0,
@@ -352,37 +345,37 @@ export const getStakeAccounts = async (
     }
   } while (hasNextPage);
 
-  const stakeAccounts: StakeAccounts = SUPPORT_SPOOLS.reduce(
-    (acc, stakeName) => {
-      acc[stakeName] = [];
-      return acc;
+  const stakeAccounts: StakeAccounts = [
+    ...utils.constants.whitelist.spool,
+  ].reduce((acc, stakeName) => {
+    acc[stakeName] = [];
+    return acc;
+  }, {} as StakeAccounts);
+
+  const stakeMarketCoinTypes: Record<string, string> = Object.keys(
+    stakeAccounts
+  ).reduce(
+    (types, stakeMarketCoinName) => {
+      const stakeCoinName = utils.parseCoinName<string>(stakeMarketCoinName);
+      const marketCoinType = utils.parseMarketCoinType(stakeCoinName);
+
+      types[stakeMarketCoinName as string] =
+        `${spoolObjectId}::spool_account::SpoolAccount<${marketCoinType}>`;
+      return types;
     },
-    {} as StakeAccounts
+    {} as Record<string, string>
   );
 
-  const stakeMarketCoinTypes: Record<SupportStakeMarketCoins, string> =
-    Object.keys(stakeAccounts).reduce(
-      (types, stakeMarketCoinName) => {
-        const stakeCoinName =
-          utils.parseCoinName<SupportStakeCoins>(stakeMarketCoinName);
-        const marketCoinType = utils.parseMarketCoinType(stakeCoinName);
-
-        types[stakeMarketCoinName as SupportStakeMarketCoins] =
-          `${spoolObjectId}::spool_account::SpoolAccount<${marketCoinType}>`;
-        return types;
-      },
-      {} as Record<SupportStakeMarketCoins, string>
-    );
-
   // Reverse the mapping
-  const reversedStakeMarketCoinTypes: Record<string, SupportStakeMarketCoins> =
-    Object.entries(stakeMarketCoinTypes).reduce(
-      (reversedTypes, [key, value]) => {
-        reversedTypes[value] = key as SupportStakeMarketCoins;
-        return reversedTypes;
-      },
-      {} as Record<string, SupportStakeMarketCoins>
-    );
+  const reversedStakeMarketCoinTypes: Record<string, string> = Object.entries(
+    stakeMarketCoinTypes
+  ).reduce(
+    (reversedTypes, [key, value]) => {
+      reversedTypes[value] = key as string;
+      return reversedTypes;
+    },
+    {} as Record<string, string>
+  );
 
   for (const stakeObject of stakeObjectsResponse.map((ref) => ref.data)) {
     const id = stakeObject?.objectId;
@@ -396,10 +389,7 @@ export const getStakeAccounts = async (
       const points = Number(fields.points);
       const totalPoints = Number(fields.total_points);
 
-      const stakeMarketCoinTypeMap: Record<
-        SupportStakeMarketCoins,
-        StakeAccounts[SupportStakeMarketCoins]
-      > = {
+      const stakeMarketCoinTypeMap: Record<string, StakeAccounts[string]> = {
         sweth: stakeAccounts.sweth,
         ssui: stakeAccounts.ssui,
         swusdc: stakeAccounts.swusdc,
@@ -449,7 +439,7 @@ export const getStakePool = async (
   }: {
     utils: ScallopUtils;
   },
-  marketCoinName: SupportStakeMarketCoins
+  marketCoinName: string
 ) => {
   const poolId = utils.address.get(`spool.pools.${marketCoinName}.id`);
   let stakePool: StakePool | undefined = undefined;
@@ -506,7 +496,7 @@ export const getStakeRewardPool = async (
   }: {
     utils: ScallopUtils;
   },
-  marketCoinName: SupportStakeMarketCoins
+  marketCoinName: string
 ) => {
   const poolId = utils.address.get(
     `spool.pools.${marketCoinName}.rewardPoolId`

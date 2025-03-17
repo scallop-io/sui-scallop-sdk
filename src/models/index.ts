@@ -6,3 +6,4 @@ export * from './scallopQuery';
 export * from './scallopUtils';
 export * from './scallopIndexer';
 export * from './scallopCache';
+export * from './scallopConstants';
