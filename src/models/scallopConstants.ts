@@ -112,7 +112,9 @@ export class ScallopConstants {
     return (
       this.isAddressInitialized && // address is initialized
       !this.isEmptyObject(this._poolAddresses) && // poolAddresses is initialized
-      REQUIRED_WHITELIST_KEYS.every((t) => this.whitelist[t].size > 0) // whitelist is initialized
+      REQUIRED_WHITELIST_KEYS.every(
+        (t) => this.whitelist[t] && this.whitelist[t].size > 0
+      ) // whitelist is initialized
     );
   }
 

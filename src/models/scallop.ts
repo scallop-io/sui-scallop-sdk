@@ -85,6 +85,16 @@ export class Scallop {
   }
 
   /**
+   * Get a scallop constants instance that already has initial data.
+   * @returns Scallop Constants
+   */
+  public async getScallopConstants(params?: Partial<ScallopConstantsParams>) {
+    await this.initConstants(params);
+
+    return this.constants;
+  }
+
+  /**
    * Create a scallop builder instance that already has initial data.
    *
    * @return Scallop Builder.
