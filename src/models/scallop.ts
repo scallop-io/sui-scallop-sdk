@@ -78,7 +78,7 @@ export class Scallop {
    * @param id - The API id of the addresses.
    * @return Scallop Address.
    */
-  public async getScallopAddress(id?: string) {
+  public async getScallopAddress(id: string = this.params.addressId) {
     await this.address.read(id);
 
     return this.address;
@@ -89,7 +89,10 @@ export class Scallop {
    * @returns Scallop Constants
    */
   public async getScallopConstants(params?: Partial<ScallopConstantsParams>) {
-    await this.initConstants(params);
+    await this.initConstants({
+      ...this.params,
+      ...params,
+    });
 
     return this.constants;
   }

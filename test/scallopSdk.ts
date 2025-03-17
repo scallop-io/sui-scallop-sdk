@@ -6,9 +6,9 @@ dotenv.config();
 
 const NETWORK: NetworkType = 'mainnet';
 export const scallopSDK = new Scallop({
+  addressId: '67c44a103fe1b8c454eb9699',
   secretKey: process.env.SECRET_KEY,
   networkType: NETWORK,
-  addressId: '67c44a103fe1b8c454eb9699',
   forcePoolAddressInterface: POOL_ADDRESSES,
   forceWhitelistInterface: WHITELIST,
 });
