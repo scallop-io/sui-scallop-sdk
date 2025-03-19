@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-scallop-sdk",
-  "version": "2.0.2",
+  "version": "2.0.2-switchboard-alpha.1",
   "description": "Typescript sdk for interacting with Scallop contract on SUI",
   "keywords": [
     "sui",
@@ -69,7 +69,6 @@
     "@pythnetwork/pyth-sui-js": "2.1.0",
     "@scallop-io/sui-kit": "1.3.5",
     "@scure/bip39": "^1.2.1",
-    "@switchboard-xyz/on-demand": "^2.3.3",
     "@switchboard-xyz/sui-sdk": "0.0.22-beta.1",
     "@tanstack/query-core": "5.51.15",
     "axios": "^1.6.0",
