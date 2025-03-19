@@ -74,7 +74,7 @@ export type ScallopCacheParams = {
   walletAddress?: string;
   cacheOptions?: QueryClientConfig;
   config?: ScallopCacheConfig;
-} & SuiKitParams;
+} & Partial<SuiKitParams>;
 
 export type ScallopIndexerParams = ScallopCacheParams & {
   indexerApiUrl?: string;
@@ -99,6 +99,7 @@ export type ScallopConstantsParams = ScallopAddressParams & {
 export type ScallopUtilsParams = ScallopAddressParams &
   ScallopConstantsParams & {
     pythEndpoints?: string[];
+    switchboardSolanaRpc?: string;
   };
 
 export type ScallopQueryParams = ScallopUtilsParams & ScallopIndexerParams;
@@ -109,7 +110,7 @@ export type ScallopBuilderParams = ScallopQueryParams & {
 };
 
 export type ScallopClientParams = ScallopBuilderParams;
-export type ScallopParams = SuiKitParams &
+export type ScallopParams = Partial<SuiKitParams> &
   ScallopAddressParams &
   ScallopConstantsParams & {
     walletAddress?: string;

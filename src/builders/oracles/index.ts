@@ -9,6 +9,7 @@ import type {
 } from 'src/types';
 import { xOracleList as X_ORACLE_LIST } from 'src/constants';
 import { updatePythPriceFeeds } from './pyth';
+import { updateSwitchboardAggregators } from './switchboard';
 
 /**
  * Update the price of the oracle for multiple coin.
@@ -62,7 +63,22 @@ export const updateOracles = async (
       filterAssetCoinNames(assetCoinName, 'pyth')
     );
     if (pythAssetCoinNames.length > 0)
-      await updatePythPriceFeeds(builder, assetCoinNames, txBlock);
+      await updatePythPriceFeeds(builder, pythAssetCoinNames, txBlock);
+  }
+
+  if (flattenedRules.has('switchboard')) {
+    const switchboardAssetCoinNames = assetCoinNames.filter((assetCoinName) =>
+      filterAssetCoinNames(assetCoinName, 'switchboard')
+    );
+
+    if (switchboardAssetCoinNames.length > 0) {
+      await updateSwitchboardAggregators(
+        builder,
+        switchboardAssetCoinNames,
+        txBlock,
+        builder.params.switchboardSolanaRpc
+      );
+    }
   }
 
   // Remove duplicate coin names.
