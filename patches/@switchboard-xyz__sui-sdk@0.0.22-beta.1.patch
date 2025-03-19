@@ -1,3 +1,39 @@
+diff --git a/dist/esm/aggregator/index.js b/dist/esm/aggregator/index.js
+index 2bbf14fcff63f910ac7d0f9a3ece2f56bf02296f..9984dc3afc2b189dce609a34a6b5cd3485c46304 100644
+--- a/dist/esm/aggregator/index.js
++++ b/dist/esm/aggregator/index.js
+@@ -1,6 +1,6 @@
+ import { getFieldsFromObject, ObjectParsingHelper, Queue, solanaProgramCache, suiQueueCache, } from "../index.js";
+ import { graphql } from "@mysten/sui/graphql/schemas/2024.4";
+-import { fromBase64, fromHex, SUI_CLOCK_OBJECT_ID, SUI_TYPE_ARG, toBase58, toHex, } from "@mysten/sui/utils";
++import { fromBase64, fromHex, SUI_CLOCK_OBJECT_ID, SUI_TYPE_ARG, toBase58, toHex, } from "@mysten/bcs";
+ import { CrossbarClient, OracleJob } from "@switchboard-xyz/common";
+ import { getDefaultDevnetQueue, getDefaultQueue, ON_DEMAND_DEVNET_QUEUE, ON_DEMAND_MAINNET_QUEUE, } from "@switchboard-xyz/on-demand";
+ export class Aggregator {
+diff --git a/dist/esm/oracle/index.js b/dist/esm/oracle/index.js
+index 9df29d69fcbf62ec160b6ae0f7bdce8e1576532e..aec9fb143931ff80b29c4a28a48e0c9d1967ec2a 100644
+--- a/dist/esm/oracle/index.js
++++ b/dist/esm/oracle/index.js
+@@ -1,6 +1,6 @@
+ import { getFieldsFromObject, ObjectParsingHelper, Queue, solanaProgramCache, suiQueueCache, } from "../index.js";
+ import { graphql } from "@mysten/sui/graphql/schemas/2024.4";
+-import { fromBase58, fromBase64, fromHex, SUI_CLOCK_OBJECT_ID, toBase58, toHex, } from "@mysten/sui/utils";
++import { fromBase58, fromBase64, fromHex, SUI_CLOCK_OBJECT_ID, toBase58, toHex, } from "@mysten/bcs";
+ import { getDefaultDevnetGuardianQueue, getDefaultGuardianQueue, ON_DEMAND_DEVNET_GUARDIAN_QUEUE, ON_DEMAND_MAINNET_GUARDIAN_QUEUE, } from "@switchboard-xyz/on-demand";
+ export class Oracle {
+     constructor(client, address) {
+diff --git a/dist/esm/queue/index.js b/dist/esm/queue/index.js
+index a14599e7d5742d0fa1189c6611551b31fcaca1bd..9157e31113a39602b73420cd6aa0c72a80fc6e25 100644
+--- a/dist/esm/queue/index.js
++++ b/dist/esm/queue/index.js
+@@ -1,6 +1,6 @@
+ import { getFieldsFromObject, ObjectParsingHelper } from "../index.js";
+ import { Oracle } from "../oracle/index.js";
+-import { fromHex, toBase58 } from "@mysten/sui/utils";
++import { fromHex, toBase58 } from "@mysten/bcs";
+ import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
+ export class Queue {
+     constructor(client, address) {
 diff --git a/package.json b/package.json
 index 7adc55335fa0f60b38a94e0dae5b5d93bb718af7..2165f95f7b1b9c067f21944d1db17ac7fceaa08f 100644
 --- a/package.json
