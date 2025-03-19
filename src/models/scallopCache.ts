@@ -82,7 +82,7 @@ export class ScallopCache {
   private lastRefill: number;
 
   public constructor(
-    params: ScallopCacheParams = {},
+    params: ScallopCacheParams,
     instance?: ScallopCacheInstanceParams
   ) {
     this.params = params;
@@ -246,7 +246,7 @@ export class ScallopCache {
     return query;
   }
 
-  public async queryGetNormalizedMoveFunction(target: string) {
+  private async queryGetNormalizedMoveFunction(target: string) {
     const { address, module, name } = parseStructTag(target);
     return this.queryClient.fetchQuery({
       queryKey: queryKeys.rpc.getNormalizedMoveFunction(target),
@@ -460,11 +460,7 @@ export class ScallopCache {
     input: GetBalanceParams
   ): Promise<CoinBalance | null> {
     if (!input.coinType) return null;
-
-    return (
-      ((await this.queryGetAllCoinBalances(input.owner)) ?? {})[
-        normalizeStructTag(input.coinType)
-      ] ?? '0'
-    );
+    const coinBalances = await this.queryGetAllCoinBalances(input.owner);
+    return coinBalances[normalizeStructTag(input.coinType)] ?? null;
   }
 }
