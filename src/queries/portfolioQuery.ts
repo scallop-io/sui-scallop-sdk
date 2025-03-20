@@ -908,6 +908,20 @@ export const getUserPortfolio = async (
           obligationAccount.totalAvailableCollateralValue,
         totalUnhealthyCollateralInUsd:
           obligationAccount.totalUnhealthyCollateralValue,
+        collaterals: Object.values(obligationAccount.collaterals)
+          .filter(
+            (collateral): collateral is NonNullable<typeof collateral> =>
+              !!collateral && collateral.depositedCoin > 0
+          )
+          .map((collateral) => ({
+            coinName: collateral.coinName,
+            symbol: collateral.symbol,
+            coinDecimals: collateral.coinDecimal,
+            coinType: collateral.coinType,
+            coinPrice: collateral.coinPrice,
+            depositedCoin: collateral.depositedCoin,
+            depositedValueInUsd: collateral.depositedValue,
+          })),
         borrowedPools: Object.values(obligationAccount.debts)
           .filter(
             (debt): debt is NonNullable<typeof debt> =>
