@@ -896,7 +896,7 @@ export const getUserPortfolio = async (
   const parsedObligationAccounts = Object.values(obligationAccounts)
     .filter(
       (t): t is NonNullable<typeof t> =>
-        !!t && t.totalBorrowedValueWithWeight > 0
+        !!t && (t.totalBorrowedValueWithWeight > 0 || t.totalDepositedValue > 0)
     )
     .map((obligationAccount) => {
       return {
