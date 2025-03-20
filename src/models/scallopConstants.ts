@@ -326,7 +326,9 @@ export class ScallopConstants {
     const resp = await this.queryClient.fetchQuery({
       queryKey,
       queryFn: async () => {
-        return await this._requestClient.get(url);
+        return await this._requestClient.get(url, {
+          timeout: 4000,
+        });
       },
     });
 
