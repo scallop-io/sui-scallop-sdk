@@ -51,6 +51,7 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
   });
 
   const scallopAddress = await scallopSDK.getScallopAddress(...);
+  const scallopConstants = await scallopSDK.getScallopConstants(...);
   const scallopQuery = await scallopSDK.createScallopQuery(...);
   const scallopBuilder = await scallopSDK.createScallopBuilder(...);
   const scallopUtils = await scallopSDK.createScallopUtils(...);

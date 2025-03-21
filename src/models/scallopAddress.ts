@@ -443,7 +443,7 @@ export class ScallopAddress {
     instance?: ScallopAddressInstanceParams
   ) {
     const { addressId, auth, network, forceAddressesInterface } = params;
-    this.cache = instance?.cache ?? new ScallopCache({});
+    this.cache = instance?.cache ?? new ScallopCache(params);
 
     this._requestClient = axios.create({
       baseURL: API_BASE_URL,

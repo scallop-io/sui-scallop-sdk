@@ -2,10 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.4...v2.0.5) (2025-03-21)
+
+### Features
+
+- fix lending pending rewards ([d084e41](https://github.com/scallop-io/sui-scallop-sdk/pull/249/commits/d084e41749085c63cba04df9bf31a41b0ad6af45))
+
+### [2.0.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.3...v2.0.4) (2025-03-20)
+
+### Features
+
+- add collateral details in portfolio query ([eef0a2e](https://github.com/scallop-io/sui-scallop-sdk/commit/eef0a2e9c73e97d62e56622575efdda0be49320f))
+
+### [2.0.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.2...v2.0.3) (2025-03-20)
+
+### Bug Fixes
+
+- update filter logic in getUserPortfolio to include accounts with positive totalDepositedValue ([9163326](https://github.com/scallop-io/sui-scallop-sdk/commit/916332600d51b9d3507586ca5b08fb425f6b864c))
+
+- make suiKit params optional ([c79890c](https://github.com/scallop-io/sui-scallop-sdk/pull/247/commits/c79890cc8d6a808e6b836dda37020187ba916476))
+
+### [2.0.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.1...v2.0.2) (2025-03-19)
+
+### [2.0.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.0...v2.0.1) (2025-03-18)
+
+### Features
+
+- Add `getScallopConstants` method ([972250c](https://github.com/scallop-io/sui-scallop-sdk/pull/244/commits/972250ccfd633c4e92dd341b3ed0496c55dd88ad))
+- Update README and add documentation for `ScallopConstants` ([51bfaf8](https://github.com/scallop-io/sui-scallop-sdk/pull/244/commits/51bfaf82a4d0be326f57f5506ebef51d04177019))
+
 ### ⚠ BREAKING CHANGES
 
-Starting from `v2.0.0`, Scallop SDK will use API for dynamic asset listing. Most of the constants in the SDK is replaced with
-the new `ScallopConstants` class.
+Starting from `v2.0.0`, all constants in the Scallop SDK will be replaced by the `ScallopConstants` class. This class dynamically fetches necessary data from the API, allowing assets to be added or removed without requiring an SDK upgrade for each new pool.
 
 ### [2.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.3...v2.0.0) (2025-03-17)
 
