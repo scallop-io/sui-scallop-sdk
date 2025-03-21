@@ -327,7 +327,7 @@ const updateSwitchboardPrice = (
 ) => {
   txBlock.moveCall(
     // `${packageId}::rule::set_price_as_${type}`,
-    `${packageId}::rule::set_as_${type}_price`,
+    `${packageId}::rule::set_price_as_${type}`,
     [
       request,
       aggregatorId,
