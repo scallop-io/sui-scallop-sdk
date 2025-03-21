@@ -852,7 +852,7 @@ export const getUserPortfolio = async (
   walletAddress: string,
   indexer: boolean = false
 ) => {
-  const coinPrices = await query.utils.getCoinPrices();
+  const coinPrices = await query.getAllCoinPrices({ indexer });
   const market = await query.getMarketPools(undefined, { indexer, coinPrices });
 
   const [lendings, obligationAccounts, borrowIncentivePools, veScas] =
@@ -953,19 +953,22 @@ export const getUserPortfolio = async (
       };
     });
 
+  const LENDING_SPOOL_REWARD_COIN_NAME = 'sui' as const;
+  const LENDING_SPOOL_REWARD_COIN_SYMBOL = 'SUI' as const;
   const pendingLendingRewards = Object.values(lendings).reduce(
     (acc, reward) => {
       if (reward) {
         if (reward.availableClaimCoin === 0) return acc;
-        if (!acc[reward.symbol]) {
-          acc[reward.symbol] = {
-            symbol: reward.symbol,
+        if (!acc[LENDING_SPOOL_REWARD_COIN_NAME]) {
+          acc[LENDING_SPOOL_REWARD_COIN_NAME] = {
+            symbol: LENDING_SPOOL_REWARD_COIN_SYMBOL,
             coinType: normalizeStructTag(SUI_TYPE_ARG), // @TODO: for now lending reward is all in SUI
-            coinPrice: reward.coinPrice,
+            coinPrice: coinPrices[LENDING_SPOOL_REWARD_COIN_NAME] ?? 0,
             pendingRewardInCoin: reward.availableClaimCoin,
           };
         } else {
-          acc[reward.symbol].pendingRewardInCoin += reward.availableClaimCoin;
+          acc[LENDING_SPOOL_REWARD_COIN_NAME].pendingRewardInCoin +=
+            reward.availableClaimCoin;
         }
       }
       return acc;
@@ -1054,10 +1057,10 @@ export const getUserPortfolio = async (
     borrowings: parsedObligationAccounts,
     pendingRewards: {
       lendings: Object.entries(pendingLendingRewards).reduce(
-        (acc, [key, value]) => {
+        (acc, [_, value]) => {
           acc.push({
             ...value,
-            coinName: key,
+            coinName: 'sui',
             pendingRewardInUsd: value.coinPrice * value.pendingRewardInCoin,
           });
           return acc;
