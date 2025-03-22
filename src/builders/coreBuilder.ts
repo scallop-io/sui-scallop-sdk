@@ -359,51 +359,28 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
     },
     withdrawQuick: async (amount, poolCoinName) => {
       const sender = requireSender(txBlock);
-      const marketCoinName = builder.utils.parseMarketCoinName(poolCoinName);
-
       const sCoinName = builder.utils.parseSCoinName(poolCoinName);
       if (!sCoinName) throw new Error(`No sCoin for ${poolCoinName}`);
 
-      // check if user has sCoin instead of marketCoin
-      const {
-        leftCoin,
-        takeCoin: sCoins,
-        totalAmount,
-      } = await builder.selectSCoin(txBlock, sCoinName, amount, sender);
-      if (totalAmount === 0) {
-        const { leftCoin, takeCoin: walletMarketCoins } =
-          await builder.selectMarketCoin(
-            txBlock,
-            marketCoinName,
-            amount,
-            sender
-          );
-        txBlock.transferObjects([leftCoin], sender);
-        return txBlock.withdraw(walletMarketCoins, poolCoinName);
-      }
+      // eslint-disable-next-line prefer-const
+      let { sCoin, marketCoin } = await builder.selectSCoinOrMarketCoin(
+        txBlock,
+        sCoinName,
+        amount,
+        sender
+      );
 
-      txBlock.transferObjects([leftCoin], sender);
-      const marketCoins = txBlock.burnSCoin(sCoinName, sCoins);
-
-      // check amount
-      amount -= totalAmount;
-      try {
-        if (amount > 0) {
-          // sCoin is not enough, try market coin
-          const { leftCoin, takeCoin: walletMarketCoins } =
-            await builder.selectMarketCoin(
-              txBlock,
-              marketCoinName,
-              amount,
-              sender
-            );
-          txBlock.transferObjects([leftCoin], sender);
-          txBlock.mergeCoins(marketCoins, [walletMarketCoins]);
+      if (sCoin) {
+        const newMarketCoin = txBlock.burnSCoin(sCoinName, sCoin);
+        if (marketCoin) {
+          txBlock.mergeCoins(marketCoin, newMarketCoin);
+        } else {
+          marketCoin = newMarketCoin;
         }
-      } catch (_e) {
-        // ignore
       }
-      return txBlock.withdraw(marketCoins, poolCoinName);
+
+      if (!marketCoin) throw new Error(`No market coin for ${poolCoinName}`);
+      return txBlock.withdraw(marketCoin, poolCoinName);
     },
     borrowQuick: async (amount, poolCoinName, obligationId, obligationKey) => {
       const obligationInfo = await requireObligationInfo(
