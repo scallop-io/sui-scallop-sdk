@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.5...v2.0.6) (2025-03-23)
+
+### Features
+
+- add `selectSCoinOrMarketCoin` function and use it on `withdrawQuick` ([e888676](https://github.com/scallop-io/sui-scallop-sdk/commit/e8886766ab865331e9a9467f27653c79c85413ac))
+
+### Bugfixes
+
+- fix `coinNameToOldMarketCoinTypeMap` logic ([0384be0](https://github.com/scallop-io/sui-scallop-sdk/commit/0384be08d764c9d3a5a0f9c41ea83d0a887385ff))
+- scallop cache init param ([87b4869](https://github.com/scallop-io/sui-scallop-sdk/commit/87b4869f063887168c9a1cbe35e95d8f95d5ae12))
+
 ### [2.0.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.4...v2.0.5) (2025-03-21)
 
 ### Features
