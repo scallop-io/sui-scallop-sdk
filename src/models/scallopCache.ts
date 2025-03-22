@@ -82,7 +82,7 @@ export class ScallopCache {
   private lastRefill: number;
 
   public constructor(
-    params: ScallopCacheParams,
+    params: ScallopCacheParams = {},
     instance?: ScallopCacheInstanceParams
   ) {
     this.params = params;

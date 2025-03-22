@@ -5,7 +5,10 @@ import { ScallopAddress } from './scallopAddress';
 import { ScallopQuery } from './scallopQuery';
 import { ScallopUtils } from './scallopUtils';
 import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
-import type { Transaction } from '@mysten/sui/transactions';
+import type {
+  Transaction,
+  TransactionObjectArgument,
+} from '@mysten/sui/transactions';
 import type {
   SuiAmountsArg,
   SuiTxBlock as SuiKitTxBlock,
@@ -198,6 +201,79 @@ export class ScallopBuilder {
       takeCoin,
       leftCoin,
       totalAmount,
+    };
+  }
+
+  /**
+   * Select sCoin or market coin automatically. Prioritize sCoin first
+   */
+  public async selectSCoinOrMarketCoin(
+    txBlock: ScallopTxBlock | SuiKitTxBlock,
+    sCoinName: string,
+    amount: number,
+    sender: string = this.walletAddress
+  ) {
+    let totalAmount = amount;
+    const result = {
+      sCoins: [] as TransactionObjectArgument[],
+      marketCoins: [] as TransactionObjectArgument[],
+      leftCoins: [] as TransactionObjectArgument[],
+    };
+    try {
+      // try sCoin first
+      const {
+        leftCoin,
+        takeCoin,
+        totalAmount: sCoinAmount,
+      } = await this.selectSCoin(txBlock, sCoinName, totalAmount, sender);
+      result.leftCoins.push(leftCoin);
+      result.sCoins.push(takeCoin);
+      totalAmount -= sCoinAmount;
+
+      if (totalAmount > 0) {
+        // sCoin is not enough, try market coin
+        const { leftCoin, takeCoin: marketCoin } = await this.selectMarketCoin(
+          txBlock,
+          sCoinName,
+          amount,
+          sender
+        );
+        txBlock.transferObjects([leftCoin], sender);
+        result.marketCoins.push(marketCoin);
+      }
+    } catch (_e) {
+      // no sCoin, try market coin
+      const { takeCoin: marketCoin, leftCoin } = await this.selectMarketCoin(
+        txBlock,
+        sCoinName,
+        amount,
+        sender
+      );
+      result.leftCoins.push(leftCoin);
+      result.marketCoins.push(marketCoin);
+    }
+
+    txBlock.transferObjects(result.leftCoins, sender);
+
+    // merge sCoins and marketCoins
+    const mergedMarketCoins =
+      result.marketCoins.length > 0
+        ? result.marketCoins.length > 1
+          ? txBlock.mergeCoins(
+              result.marketCoins[0],
+              result.marketCoins.slice(1)
+            )
+          : result.marketCoins[0]
+        : undefined;
+    const mergedSCoins =
+      result.sCoins.length > 0
+        ? result.sCoins.length > 1
+          ? txBlock.mergeCoins(result.sCoins[0], result.sCoins.slice(1))
+          : result.sCoins[0]
+        : undefined;
+    return {
+      sCoin: mergedSCoins,
+      marketCoin: mergedMarketCoins,
     };
   }
 
