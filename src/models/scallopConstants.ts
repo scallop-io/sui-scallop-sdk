@@ -210,7 +210,7 @@ export class ScallopConstants {
     if (this.isEmptyObject(this._coinNameToOldMarketCoinTypeMap))
       this._coinNameToOldMarketCoinTypeMap = Object.fromEntries(
         Object.entries(this.poolAddresses)
-          .filter(([_, value]) => !!value && value.spool)
+          .filter(([_, value]) => !!value)
           .map(([_, value]) => [
             value!.coinName,
             this.parseToOldMarketCoin(value!.coinType),
