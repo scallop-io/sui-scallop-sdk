@@ -373,7 +373,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       if (sCoin) {
         const newMarketCoin = txBlock.burnSCoin(sCoinName, sCoin);
         if (marketCoin) {
-          txBlock.mergeCoins(marketCoin, newMarketCoin);
+          txBlock.mergeCoins(marketCoin, [newMarketCoin]);
         } else {
           marketCoin = newMarketCoin;
         }
