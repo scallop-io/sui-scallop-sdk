@@ -14,8 +14,8 @@ export const newSuiKit = (params: Partial<SuiKitParams>) => {
   } else {
     initParams = {
       fullnodeUrls:
-        'fullnodeUrls' in params
-          ? (params?.fullnodeUrls ?? RPC_PROVIDERS)
+        'fullnodeUrls' in params && params.fullnodeUrls
+          ? Array.from(new Set([...params.fullnodeUrls, ...RPC_PROVIDERS]))
           : RPC_PROVIDERS,
     };
   }
