@@ -61,7 +61,7 @@ class RateLimiter {
   private readonly refillRate: number; // tokens per millisecond
 
   constructor(private readonly capacity: number = 10) {
-    this.refillRate = 10 / 1000; // 10 tokens per second = 0.01 tokens/ms
+    this.refillRate = this.capacity / 1000; // 10 tokens per second = 0.01 tokens/ms
     this.tokens = this.capacity;
     this.lastRefillTime = Date.now();
   }
