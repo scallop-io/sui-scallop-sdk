@@ -42,6 +42,7 @@ export class ScallopConstants {
     oracles: new Set(),
     pythEndpoints: new Set(),
     deprecated: new Set(),
+    emerging: new Set(),
   };
 
   private _coinDecimals: Record<string, number | undefined> = {};
