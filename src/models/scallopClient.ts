@@ -1092,12 +1092,12 @@ export class ScallopClient {
    */
   public async claimAllUnlockedSca(): Promise<SuiTransactionBlockResponse>;
   public async claimAllUnlockedSca<S extends boolean>(
-    walletAddress?: string,
-    sign?: S
+    sign?: S,
+    walletAddress?: string
   ): Promise<ScallopClientVeScaReturnType<S>>;
   public async claimAllUnlockedSca<S extends boolean>(
-    walletAddress?: string,
-    sign: S = true as S
+    sign: S = true as S,
+    walletAddress?: string
   ): Promise<ScallopClientVeScaReturnType<S>> {
     const sender = walletAddress ?? this.walletAddress;
     // get all veSca keys
