@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.10](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.9...v2.0.10) (2025-03-31)
+
+### Features
+
+- Add `isIsolated` to `PoolAddress` interface to ensure backward compatibility ([e62bc06](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/e62bc06637f6c1c992ad1687eb51e69903bb3262))
+
 ### [2.0.9](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.8...v2.0.9) (2025-03-31)
 
 ### Features
