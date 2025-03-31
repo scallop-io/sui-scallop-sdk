@@ -1015,7 +1015,6 @@ export class ScallopClient {
        * Then check stakedMarketCoin inside spool
        */
       const sCoins: SuiObjectArg[] = [];
-      let toDestroyMarketCoin: SuiObjectArg | undefined;
 
       // check market coin in mini wallet
       try {
@@ -1026,7 +1025,11 @@ export class ScallopClient {
           sender
         ); // throw error no coins found
 
-        toDestroyMarketCoin = takeCoin;
+        if (takeCoin) {
+          // mint new sCoin
+          const sCoin = txBlock.mintSCoin(sCoinName as string, takeCoin);
+          sCoins.push(sCoin);
+        }
       } catch (e: any) {
         // Ignore
         const errMsg = e.toString() as String;
@@ -1035,19 +1038,6 @@ export class ScallopClient {
       }
 
       // if market coin found, mint sCoin
-      if (toDestroyMarketCoin) {
-        // mint new sCoin
-        const sCoin = txBlock.mintSCoin(
-          sCoinName as string,
-          toDestroyMarketCoin
-        );
-
-        const sCoinType = this.utils.parseSCoinType(sCoinName as string);
-        if (!sCoinType) throw new Error('Invalid sCoin type');
-        // Merge with existing sCoin
-        await this.utils.mergeSimilarCoins(txBlock, sCoin, sCoinType, sender);
-        sCoins.push(sCoin);
-      }
       if (includeStakePool) {
         // check for staked market coin in spool
         if (this.constants.whitelist.spool.has(sCoinName as string)) {
@@ -1070,7 +1060,15 @@ export class ScallopClient {
         if (sCoins.length > 1) {
           txBlock.mergeCoins(mergedSCoin, sCoins.slice(1));
         }
+        const sCoinType = this.utils.parseSCoinType(sCoinName as string);
 
+        // Merge with existing sCoin in wallet
+        await this.utils.mergeSimilarCoins(
+          txBlock,
+          mergedSCoin,
+          sCoinType,
+          sender
+        );
         toTransfer.push(mergedSCoin);
       }
     }
