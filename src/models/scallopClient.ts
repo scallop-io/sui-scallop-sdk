@@ -1001,8 +1001,8 @@ export class ScallopClient {
    */
   public async migrateAllMarketCoin<S extends boolean>(
     includeStakePool: boolean = true,
-    walletAddress?: string,
-    sign: S = true as S
+    sign: S = true as S,
+    walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
     const sender = walletAddress ?? this.walletAddress;
     const txBlock = this.builder.createTxBlock();
