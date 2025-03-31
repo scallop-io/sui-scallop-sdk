@@ -90,7 +90,7 @@ export const isIsolatedAsset = async (
 ): Promise<boolean> => {
   const assetInPoolAddresses = utils.constants.poolAddresses[coinName];
   if (assetInPoolAddresses) {
-    return assetInPoolAddresses.isolatedAssetKey;
+    return assetInPoolAddresses.isIsolated;
   }
 
   const marketObject = utils.address.get('core.market');

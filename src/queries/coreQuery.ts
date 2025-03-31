@@ -352,8 +352,7 @@ const queryRequiredMarketObjects = async (
         borrowFeeKey: borrowFeeMap[name],
         supplyLimitKey: supplyLimitMap[name],
         borrowLimitKey: borrowLimitMap[name],
-        isolatedAssetKey:
-          query.constants.poolAddresses[name]?.isolatedAssetKey ?? false,
+        isIsolated: query.constants.poolAddresses[name]?.isIsolated ?? false,
       };
       return acc;
     },
@@ -368,7 +367,7 @@ const queryRequiredMarketObjects = async (
         borrowFeeKey: SuiObjectData;
         supplyLimitKey: SuiObjectData;
         borrowLimitKey: SuiObjectData;
-        isolatedAssetKey: boolean;
+        isIsolated: boolean;
       }
     >
   );
@@ -472,7 +471,7 @@ const parseMarketPoolObjects = ({
   borrowFeeKey,
   supplyLimitKey,
   borrowLimitKey,
-  isolatedAssetKey,
+  isIsolated,
 }: {
   balanceSheet: SuiObjectData;
   borrowDynamic: SuiObjectData;
@@ -482,7 +481,7 @@ const parseMarketPoolObjects = ({
   borrowFeeKey?: SuiObjectData;
   supplyLimitKey?: SuiObjectData;
   borrowLimitKey?: SuiObjectData;
-  isolatedAssetKey: boolean;
+  isIsolated: boolean;
 }): OriginMarketPoolData & {
   parsedOriginMarketCollateral?: OriginMarketCollateralData;
 } => {
@@ -509,7 +508,7 @@ const parseMarketPoolObjects = ({
     _riskModel && _collateralStat
       ? {
           type: _interestModel.type.fields,
-          isIsolated: isolatedAssetKey,
+          isIsolated: isIsolated,
           collateralFactor: _riskModel.collateral_factor.fields,
           liquidationFactor: _riskModel.liquidation_factor.fields,
           liquidationPenalty: _riskModel.liquidation_penalty.fields,
@@ -541,7 +540,7 @@ const parseMarketPoolObjects = ({
     highKink: _interestModel.high_kink.fields,
     midKink: _interestModel.mid_kink.fields,
     minBorrowAmount: _interestModel.min_borrow_amount,
-    isIsolated: !!isolatedAssetKey,
+    isIsolated,
     supplyLimit: _supplyLimit,
     borrowLimit: _borrowLimit,
     parsedOriginMarketCollateral,
@@ -570,7 +569,7 @@ export const getMarketPool = async (
     borrowFeeKey: SuiObjectData;
     supplyLimitKey: SuiObjectData;
     borrowLimitKey: SuiObjectData;
-    isolatedAssetKey: boolean;
+    isIsolated: boolean;
   }
 ): Promise<
   { marketPool: MarketPool; collateral?: MarketCollateral } | undefined
