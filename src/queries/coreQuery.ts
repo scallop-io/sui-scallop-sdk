@@ -230,7 +230,6 @@ const queryRequiredMarketObjects = async (
     borrowFeeKey: query.constants.poolAddresses[t]?.borrowFeeKey,
     supplyLimitKey: query.constants.poolAddresses[t]?.supplyLimitKey,
     borrowLimitKey: query.constants.poolAddresses[t]?.borrowLimitKey,
-    isolatedAssetKey: query.constants.poolAddresses[t]?.isolatedAssetKey,
   }));
 
   // Query all objects for each key in parallel
@@ -243,7 +242,6 @@ const queryRequiredMarketObjects = async (
     borrowFeeObjects,
     supplyLimitObjects,
     borrowLimitObjects,
-    isolatedAssetObjects,
   ] = await Promise.all([
     queryMultipleObjects(
       query.cache,
@@ -277,15 +275,14 @@ const queryRequiredMarketObjects = async (
       query.cache,
       tasks.map((task) => task.borrowLimitKey).filter((t): t is string => !!t)
     ),
-    queryMultipleObjects(
-      query.cache,
-      tasks.map((task) => task.isolatedAssetKey).filter((t): t is string => !!t)
-    ),
   ]);
 
   // Map the results back to poolCoinNames
   const mapObjects = (
-    tasks: { poolCoinName: string; [key: string]: string | undefined }[],
+    tasks: {
+      poolCoinName: string;
+      [key: string]: string | undefined;
+    }[],
     fetchedObjects: SuiObjectData[],
     keyValue: string
   ) => {
@@ -338,11 +335,11 @@ const queryRequiredMarketObjects = async (
     borrowLimitObjects,
     'borrowLimitKey'
   );
-  const isolatedAssetMap = mapObjects(
-    tasks,
-    isolatedAssetObjects,
-    'isolatedAssetKey'
-  );
+  // const isolatedAssetMap = mapObjects(
+  //   tasks,
+  //   isolatedAssetObjects,
+  //   'isolatedAssetKey'
+  // );
   // Construct the final requiredObjects result
   const result = poolCoinNames.reduce(
     (acc, name) => {
@@ -355,7 +352,8 @@ const queryRequiredMarketObjects = async (
         borrowFeeKey: borrowFeeMap[name],
         supplyLimitKey: supplyLimitMap[name],
         borrowLimitKey: borrowLimitMap[name],
-        isolatedAssetKey: isolatedAssetMap[name],
+        isolatedAssetKey:
+          query.constants.poolAddresses[name]?.isolatedAssetKey ?? false,
       };
       return acc;
     },
@@ -370,7 +368,7 @@ const queryRequiredMarketObjects = async (
         borrowFeeKey: SuiObjectData;
         supplyLimitKey: SuiObjectData;
         borrowLimitKey: SuiObjectData;
-        isolatedAssetKey: SuiObjectData;
+        isolatedAssetKey: boolean;
       }
     >
   );
@@ -484,7 +482,7 @@ const parseMarketPoolObjects = ({
   borrowFeeKey?: SuiObjectData;
   supplyLimitKey?: SuiObjectData;
   borrowLimitKey?: SuiObjectData;
-  isolatedAssetKey: SuiObjectData;
+  isolatedAssetKey: boolean;
 }): OriginMarketPoolData & {
   parsedOriginMarketCollateral?: OriginMarketCollateralData;
 } => {
@@ -511,7 +509,7 @@ const parseMarketPoolObjects = ({
     _riskModel && _collateralStat
       ? {
           type: _interestModel.type.fields,
-          isIsolated: !!isolatedAssetKey,
+          isIsolated: isolatedAssetKey,
           collateralFactor: _riskModel.collateral_factor.fields,
           liquidationFactor: _riskModel.liquidation_factor.fields,
           liquidationPenalty: _riskModel.liquidation_penalty.fields,
@@ -572,7 +570,7 @@ export const getMarketPool = async (
     borrowFeeKey: SuiObjectData;
     supplyLimitKey: SuiObjectData;
     borrowLimitKey: SuiObjectData;
-    isolatedAssetKey: SuiObjectData;
+    isolatedAssetKey: boolean;
   }
 ): Promise<
   { marketPool: MarketPool; collateral?: MarketCollateral } | undefined
