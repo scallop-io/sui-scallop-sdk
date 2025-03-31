@@ -1001,89 +1001,80 @@ export class ScallopClient {
    */
   public async migrateAllMarketCoin<S extends boolean>(
     includeStakePool: boolean = true,
-    sign: S = true as S
+    sign: S = true as S,
+    walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
+    const sender = walletAddress ?? this.walletAddress;
     const txBlock = this.builder.createTxBlock();
-    txBlock.setSender(this.walletAddress);
+    txBlock.setSender(sender);
 
     const toTransfer: SuiObjectArg[] = [];
-    await Promise.all(
-      [...this.constants.whitelist.scoin].map(async (sCoinName) => {
-        /**
-         * First check marketCoin inside mini wallet
-         * Then check stakedMarketCoin inside spool
-         */
-        const sCoins: SuiObjectArg[] = [];
-        let toDestroyMarketCoin: SuiObjectArg | undefined;
+    for (const sCoinName of this.constants.whitelist.scoin) {
+      /**
+       * First check marketCoin inside mini wallet
+       * Then check stakedMarketCoin inside spool
+       */
+      const sCoins: SuiObjectArg[] = [];
 
-        // check market coin in mini wallet
-        try {
-          const marketCoins = await this.utils.selectCoins(
-            Number.MAX_SAFE_INTEGER,
-            this.utils.parseMarketCoinType(sCoinName as string),
-            this.walletAddress
-          ); // throw error no coins found
+      // check market coin in mini wallet
+      try {
+        const { takeCoin } = await this.builder.selectMarketCoin(
+          txBlock,
+          sCoinName,
+          Number.MAX_SAFE_INTEGER,
+          sender
+        ); // throw error no coins found
 
-          toDestroyMarketCoin = marketCoins[0];
-          if (marketCoins.length > 1) {
-            txBlock.mergeCoins(toDestroyMarketCoin, marketCoins.slice(1));
-          }
-        } catch (e: any) {
-          // Ignore
-          const errMsg = e.toString() as String;
-          if (!errMsg.includes('No valid coins found for the transaction'))
-            throw e;
-        }
-
-        // if market coin found, mint sCoin
-        if (toDestroyMarketCoin) {
+        if (takeCoin) {
           // mint new sCoin
-          const sCoin = txBlock.mintSCoin(
-            sCoinName as string,
-            toDestroyMarketCoin
-          );
-
-          const sCoinType = this.utils.parseSCoinType(sCoinName as string);
-          if (!sCoinType) throw new Error('Invalid sCoin type');
-          // Merge with existing sCoin
-          await this.utils.mergeSimilarCoins(
-            txBlock,
-            sCoin,
-            sCoinType,
-            requireSender(txBlock)
-          );
+          const sCoin = txBlock.mintSCoin(sCoinName as string, takeCoin);
           sCoins.push(sCoin);
         }
-        if (includeStakePool) {
-          // check for staked market coin in spool
-          if (this.constants.whitelist.spool.has(sCoinName as string)) {
-            try {
-              const sCoin = await txBlock.unstakeQuick(
-                Number.MAX_SAFE_INTEGER,
-                sCoinName as string
-              );
-              if (sCoin) {
-                sCoins.push(sCoin);
-              }
-            } catch (_e: any) {
-              // ignore
+      } catch (e: any) {
+        // Ignore
+        const errMsg = e.toString() as String;
+        if (!errMsg.includes('No valid coins found for the transaction'))
+          throw e;
+      }
+
+      // if market coin found, mint sCoin
+      if (includeStakePool) {
+        // check for staked market coin in spool
+        if (this.constants.whitelist.spool.has(sCoinName as string)) {
+          try {
+            const sCoin = await txBlock.unstakeQuick(
+              Number.MAX_SAFE_INTEGER,
+              sCoinName as string
+            );
+            if (sCoin) {
+              sCoins.push(sCoin);
             }
+          } catch (_e: any) {
+            // ignore
           }
         }
+      }
 
-        if (sCoins.length > 0) {
-          const mergedSCoin = sCoins[0];
-          if (sCoins.length > 1) {
-            txBlock.mergeCoins(mergedSCoin, sCoins.slice(1));
-          }
-
-          toTransfer.push(mergedSCoin);
+      if (sCoins.length > 0) {
+        const mergedSCoin = sCoins[0];
+        if (sCoins.length > 1) {
+          txBlock.mergeCoins(mergedSCoin, sCoins.slice(1));
         }
-      })
-    );
+        const sCoinType = this.utils.parseSCoinType(sCoinName as string);
+
+        // Merge with existing sCoin in wallet
+        await this.utils.mergeSimilarCoins(
+          txBlock,
+          mergedSCoin,
+          sCoinType,
+          sender
+        );
+        toTransfer.push(mergedSCoin);
+      }
+    }
 
     if (toTransfer.length > 0) {
-      txBlock.transferObjects(toTransfer, this.walletAddress);
+      txBlock.transferObjects(toTransfer, sender);
     }
 
     if (sign) {
@@ -1101,15 +1092,18 @@ export class ScallopClient {
    */
   public async claimAllUnlockedSca(): Promise<SuiTransactionBlockResponse>;
   public async claimAllUnlockedSca<S extends boolean>(
+    walletAddress?: string,
     sign?: S
   ): Promise<ScallopClientVeScaReturnType<S>>;
   public async claimAllUnlockedSca<S extends boolean>(
+    walletAddress?: string,
     sign: S = true as S
   ): Promise<ScallopClientVeScaReturnType<S>> {
+    const sender = walletAddress ?? this.walletAddress;
     // get all veSca keys
     const veScaKeys = (
       (await this.query.getVeScas({
-        walletAddress: this.walletAddress,
+        walletAddress: sender,
       })) ?? []
     ).map(({ keyObject }) => keyObject);
     if (veScaKeys.length === 0) {
@@ -1118,7 +1112,7 @@ export class ScallopClient {
 
     const scaCoins: TransactionResult[] = [];
     const tx = this.builder.createTxBlock();
-    tx.setSender(this.walletAddress);
+    tx.setSender(sender);
 
     await Promise.all(
       veScaKeys.map(async (key) => {
@@ -1139,12 +1133,7 @@ export class ScallopClient {
     if (scaCoins.length > 1) {
       tx.mergeCoins(scaCoins[0], scaCoins.slice(1));
     }
-    await this.utils.mergeSimilarCoins(
-      tx,
-      scaCoins[0],
-      'sca',
-      this.walletAddress
-    );
+    await this.utils.mergeSimilarCoins(tx, scaCoins[0], 'sca', sender);
 
     if (sign) {
       return (await this.suiKit.signAndSendTxn(
