@@ -413,7 +413,5 @@ export class ScallopConstants {
           })
       );
     }
-
-    console.log(poolAddressesResponse.wal, this.poolAddresses.wal);
   }
 }
