@@ -109,6 +109,7 @@ export class ScallopConstants {
       'spool',
       'oracles',
       'pythEndpoints',
+      'emerging',
     ] as const;
     return (
       this.isAddressInitialized && // address is initialized
