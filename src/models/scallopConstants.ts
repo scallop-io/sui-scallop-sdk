@@ -391,15 +391,13 @@ export class ScallopConstants {
         (acc, key: unknown) => {
           const whiteListKey = key as keyof Whitelist;
           const whiteListValue = whitelistResponse[whiteListKey];
-          return {
-            ...acc,
-            [whiteListKey]:
-              whiteListValue instanceof Set
-                ? whiteListValue
-                : Array.isArray(whiteListValue)
-                  ? new Set(whiteListValue)
-                  : new Set(),
-          };
+          acc[whiteListKey] =
+            whiteListValue instanceof Set
+              ? whiteListValue
+              : Array.isArray(whiteListValue)
+                ? new Set(whiteListValue)
+                : new Set();
+          return acc;
         },
         {} as Whitelist
       );
