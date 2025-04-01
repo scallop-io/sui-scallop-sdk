@@ -404,7 +404,10 @@ export class ScallopConstants {
           )
           .map(([key, value]) => {
             const parsedValue = Object.fromEntries(
-              Object.entries(value).map(([k, v]) => [k, v || undefined])
+              Object.entries(value).map(([k, v]) => [
+                k,
+                typeof v === 'boolean' ? (v ?? false) : v || undefined,
+              ])
             );
             return [key, parsedValue as PoolAddress];
           })
