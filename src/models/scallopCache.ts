@@ -31,7 +31,6 @@ type QueryInspectTxnParams = {
 };
 
 const DEFAULT_TOKENS_PER_INTERVAL = 10;
-const DEFAULT_INTERVAL_IN_MS = 250;
 
 const deepMergeObject = <T>(curr: T, update: T): T => {
   const result = { ...curr }; // Clone the current object to avoid mutation
@@ -56,6 +55,61 @@ const deepMergeObject = <T>(curr: T, update: T): T => {
   return result;
 };
 
+class RateLimiter {
+  private tokens: number;
+  private lastRefillTime: number;
+  private readonly refillRate: number; // tokens per millisecond
+
+  constructor(private readonly capacity: number = 10) {
+    this.refillRate = this.capacity / 1000; // 10 tokens per second = 0.01 tokens/ms
+    this.tokens = this.capacity;
+    this.lastRefillTime = Date.now();
+  }
+
+  private refill() {
+    const now = Date.now();
+    const elapsed = now - this.lastRefillTime;
+    const newTokens = elapsed * this.refillRate;
+
+    this.tokens = Math.min(this.capacity, this.tokens + newTokens);
+    this.lastRefillTime = now;
+  }
+
+  private getTimeToNextToken(): number {
+    this.refill();
+
+    if (this.tokens >= 1) {
+      return 0;
+    }
+
+    // Calculate exact milliseconds needed for 1 full token
+    const deficit = 1 - this.tokens;
+    return Math.ceil(deficit / this.refillRate);
+  }
+
+  async acquireToken(): Promise<void> {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const waitTime = this.getTimeToNextToken();
+
+      if (waitTime === 0) {
+        if (this.tokens >= 1) {
+          this.tokens -= 1;
+          return;
+        }
+        continue;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+      this.refill();
+    }
+  }
+
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
+    await this.acquireToken();
+    return await fn();
+  }
+}
 /**
  * @description
  * It provides caching for moveCall, RPC Request, and API Request.
@@ -74,12 +128,8 @@ export class ScallopCache {
 
   public queryClient: QueryClient;
   public suiKit: SuiKit;
-  // private tokenBucket: TokenBucket;
   public walletAddress: string;
-  private tokensPerInterval: number = DEFAULT_TOKENS_PER_INTERVAL;
-  private interval: number = DEFAULT_INTERVAL_IN_MS;
-  private tokens: number;
-  private lastRefill: number;
+  private limiter: RateLimiter;
 
   public constructor(
     params: ScallopCacheParams = {},
@@ -101,86 +151,14 @@ export class ScallopCache {
     //   // if(cacheOptions.mutations)this.queryClient.setMutationDefaults(cacheOptions.mutations);
     // }
 
-    this.tokens = this.tokensPerInterval; // Initial tokens value
-    this.lastRefill = Date.now();
+    this.limiter = new RateLimiter(
+      this.params.tokensPerSecond ?? DEFAULT_TOKENS_PER_INTERVAL
+    );
     this.walletAddress = params.walletAddress ?? this.suiKit.currentAddress();
   }
 
   private get client(): SuiClient {
     return this.suiKit.client();
-  }
-
-  private refill() {
-    const now = Date.now();
-    const elapsed = now - this.lastRefill;
-
-    if (elapsed >= this.interval) {
-      const tokensToAdd =
-        Math.floor(elapsed / this.interval) * this.tokensPerInterval;
-      this.tokens = Math.min(this.tokens + tokensToAdd, this.tokensPerInterval);
-
-      // Update lastRefill to reflect the exact time of the last "refill"
-      this.lastRefill += Math.floor(elapsed / this.interval) * this.interval;
-    }
-  }
-
-  private removeTokens(count: number) {
-    this.refill();
-    if (this.tokens >= count) {
-      this.tokens -= count;
-      return true;
-    }
-    return false;
-  }
-
-  private async callWithRateLimit<T>(
-    fn: () => Promise<T>,
-    maxRetries = 15,
-    backoffFactor = 1.25 // The factor by which to increase the delay
-  ): Promise<T | null> {
-    let retries = 0;
-
-    const tryRequest = async (): Promise<T | null> => {
-      if (this.removeTokens(1)) {
-        const result = await fn();
-        return result;
-      } else if (retries < maxRetries) {
-        retries++;
-        const delay = this.interval * Math.pow(backoffFactor, retries);
-        // console.error(`Rate limit exceeded, retrying in ${delay} ms`);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        return tryRequest();
-      } else {
-        console.error('Maximum retries reached');
-        return null;
-      }
-    };
-
-    return tryRequest();
-  }
-
-  /**
-   * @description Invalidate cache based on the refetchType parameter
-   * @param refetchType Determines the type of queries to be refetched. Defaults to `active`.
-   *
-   * - `active`: Only queries that match the refetch predicate and are actively being rendered via useQuery and related functions will be refetched in the background.
-   * - `inactive`: Only queries that match the refetch predicate and are NOT actively being rendered via useQuery and related functions will be refetched in the background.
-   * - `all`: All queries that match the refetch predicate will be refetched in the background.
-   * - `none`: No queries will be refetched. Queries that match the refetch predicate will only be marked as invalid.
-   */
-  // public async invalidateAllCache() {
-  //   return Object.values(queryKeys.rpc).map((t) =>
-  //     this.queryClient.invalidateQueries({
-  //       queryKey: t(),
-  //       type: 'all',
-  //     })
-  //   );
-  // }
-
-  private retryFn(errCount: number, e: any) {
-    if (errCount === 5) return false;
-    if (e.status === 429) return true;
-    return false;
   }
 
   /**
@@ -234,12 +212,10 @@ export class ScallopCache {
     txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
 
     const query = await this.queryClient.fetchQuery({
-      retry: this.retryFn,
-      retryDelay: 1000,
       queryKey: queryKeys.rpc.getInspectTxn(queryTarget, args, typeArgs),
       queryFn: async () => {
-        return await this.callWithRateLimit(
-          async () => await this.suiKit.inspectTxn(txBlock)
+        return await this.limiter.execute(() =>
+          this.suiKit.inspectTxn(txBlock)
         );
       },
     });
@@ -251,13 +227,12 @@ export class ScallopCache {
     return this.queryClient.fetchQuery({
       queryKey: queryKeys.rpc.getNormalizedMoveFunction(target),
       queryFn: async () => {
-        return await this.callWithRateLimit(
-          async () =>
-            await this.suiKit.client().getNormalizedMoveFunction({
-              package: address,
-              module,
-              function: name,
-            })
+        return await this.limiter.execute(() =>
+          this.client.getNormalizedMoveFunction({
+            package: address,
+            module,
+            function: name,
+          })
         );
       },
     });
@@ -280,16 +255,13 @@ export class ScallopCache {
       showType: true,
     };
     return this.queryClient.fetchQuery({
-      retry: this.retryFn,
-      retryDelay: 1000,
       queryKey: queryKeys.rpc.getObject(objectId, options),
       queryFn: async () => {
-        return await this.callWithRateLimit(
-          async () =>
-            await this.client.getObject({
-              id: objectId,
-              options,
-            })
+        return await this.limiter.execute(() =>
+          this.client.getObject({
+            id: objectId,
+            options,
+          })
         );
       },
     });
@@ -309,12 +281,10 @@ export class ScallopCache {
     };
 
     return this.queryClient.fetchQuery({
-      retry: this.retryFn,
-      retryDelay: 1000,
       queryKey: queryKeys.rpc.getObjects(objectIds),
       queryFn: async () => {
-        const results = await this.callWithRateLimit(
-          async () => await this.suiKit.getObjects(objectIds, options)
+        const results = await this.limiter.execute(() =>
+          this.suiKit.getObjects(objectIds, options)
         );
         if (results) {
           results.forEach((result) => {
@@ -347,11 +317,9 @@ export class ScallopCache {
   public async queryGetOwnedObjects(input: GetOwnedObjectsParams) {
     // @TODO: This query need its own separate rate limiter (as owned objects can theoretically be infinite), need a better way to handle this
     return this.queryClient.fetchQuery({
-      retry: this.retryFn,
-      retryDelay: 1000,
       queryKey: queryKeys.rpc.getOwnedObjects(input),
       queryFn: async () => {
-        const results = await this.callWithRateLimit(() =>
+        const results = await this.limiter.execute(() =>
           this.client.getOwnedObjects(input)
         );
         if (results && results.data.length > 0) {
@@ -388,12 +356,10 @@ export class ScallopCache {
     input: GetDynamicFieldsParams
   ): Promise<DynamicFieldPage | null> {
     return this.queryClient.fetchQuery({
-      retry: this.retryFn,
-      retryDelay: 1000,
       queryKey: queryKeys.rpc.getDynamicFields(input),
       queryFn: async () => {
-        return await this.callWithRateLimit(
-          async () => await this.client.getDynamicFields(input)
+        return await this.limiter.execute(() =>
+          this.client.getDynamicFields(input)
         );
       },
     });
@@ -403,11 +369,9 @@ export class ScallopCache {
     input: GetDynamicFieldObjectParams
   ): Promise<SuiObjectResponse | null> {
     return this.queryClient.fetchQuery({
-      retry: this.retryFn,
-      retryDelay: (attemptIndex) => Math.min(1000 * attemptIndex, 8000),
       queryKey: queryKeys.rpc.getDynamicFieldObject(input),
       queryFn: async () => {
-        const result = await this.callWithRateLimit(() =>
+        const result = await this.limiter.execute(() =>
           this.client.getDynamicFieldObject(input)
         );
         if (result?.data) {
@@ -433,12 +397,10 @@ export class ScallopCache {
     owner: string
   ): Promise<{ [k: string]: CoinBalance }> {
     return this.queryClient.fetchQuery({
-      retry: this.retryFn,
-      retryDelay: 1000,
       queryKey: queryKeys.rpc.getAllCoinBalances(owner),
       queryFn: async () => {
-        const allBalances = await this.callWithRateLimit(
-          async () => await this.client.getAllBalances({ owner })
+        const allBalances = await this.limiter.execute(() =>
+          this.client.getAllBalances({ owner })
         );
         if (!allBalances) return {};
         const balances = allBalances.reduce(

@@ -74,6 +74,7 @@ export type ScallopCacheParams = {
   walletAddress?: string;
   cacheOptions?: QueryClientConfig;
   config?: ScallopCacheConfig;
+  tokensPerSecond?: number; // for rate limit
 } & Partial<SuiKitParams>;
 
 export type ScallopIndexerParams = ScallopCacheParams & {
