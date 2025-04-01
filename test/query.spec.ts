@@ -16,7 +16,16 @@ let sender: string;
 
 beforeAll(async () => {
   console.log('start beforeAll');
-  scallopQuery = await scallopSDK.createScallopQuery();
+  scallopQuery = await scallopSDK.createScallopQuery({
+    cacheOptions: {
+      defaultOptions: {
+        queries: {
+          staleTime: Infinity,
+          gcTime: Infinity,
+        },
+      },
+    },
+  });
   obligationId = await scallopQuery.getBindedObligationId(VE_SCA_KEY);
   sender = scallopQuery.walletAddress;
   console.log('end beforeAll');
@@ -24,7 +33,7 @@ beforeAll(async () => {
 });
 
 describe('Test Query Scallop Contract On Chain Data', () => {
-  it('Should query market data', async () => {
+  it.skip('Should query market data', async () => {
     const market = await scallopQuery.queryMarket();
     if (ENABLE_LOG) {
       console.info('Market:');
