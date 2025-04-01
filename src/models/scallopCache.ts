@@ -55,7 +55,7 @@ const deepMergeObject = <T>(curr: T, update: T): T => {
   return result;
 };
 
-class RateLimiter {
+export class RateLimiter {
   private tokens: number;
   private lastRefillTime: number;
   private readonly refillRate: number; // tokens per millisecond
