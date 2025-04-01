@@ -1,15 +1,21 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { scallopSDK } from './scallopSdk';
+import { ScallopAddress, ScallopUtils } from 'src';
 
 const ENABLE_LOG = false;
+let scallopUtils: ScallopUtils;
+let address: ScallopAddress;
+let SUPPORT_POOLS: string[] = [];
+let SUPPORT_SCOIN: string[] = [];
 
-describe('Test Scallop Utils', async () => {
-  const scallopUtils = await scallopSDK.createScallopUtils();
-  const address = scallopUtils.address;
-  const SUPPORT_POOLS = [...scallopUtils.constants.whitelist.lending];
-  const SUPPORT_SCOIN = [...scallopUtils.constants.whitelist.scoin];
-  // const client = await scallopSDK.createScallopClient();
+beforeAll(async () => {
+  scallopUtils = await scallopSDK.createScallopUtils();
+  address = scallopUtils.address;
+  SUPPORT_POOLS = [...scallopUtils.constants.whitelist.lending];
+  SUPPORT_SCOIN = [...scallopUtils.constants.whitelist.scoin];
+});
 
+describe('Test Scallop Utils', () => {
   it.skip('Should parse to symbol from coin and market coin name', () => {
     const expectedCoinSymbols = new Set([
       'USDC', // native USDC
