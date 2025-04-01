@@ -229,7 +229,6 @@ const queryRequiredMarketObjects = async (
     borrowFeeKey?: string;
     supplyLimitKey?: string;
     borrowLimitKey?: string;
-    isolatedAssetKey?: string;
   };
 
   const keyCollections: Record<keyof KeyType, string[]> = {
@@ -241,7 +240,6 @@ const queryRequiredMarketObjects = async (
     borrowFeeKey: [],
     supplyLimitKey: [],
     borrowLimitKey: [],
-    isolatedAssetKey: [],
   };
 
   const taskMap = new Map<string, KeyType>();
@@ -258,7 +256,6 @@ const queryRequiredMarketObjects = async (
       borrowFeeKey: poolData?.borrowFeeKey,
       supplyLimitKey: poolData?.supplyLimitKey,
       borrowLimitKey: poolData?.borrowLimitKey,
-      isolatedAssetKey: poolData?.isolatedAssetKey,
     };
 
     // Add to key collections
@@ -281,7 +278,6 @@ const queryRequiredMarketObjects = async (
     queryMultipleObjects(query.cache, keyCollections.borrowFeeKey),
     queryMultipleObjects(query.cache, keyCollections.supplyLimitKey),
     queryMultipleObjects(query.cache, keyCollections.borrowLimitKey),
-    queryMultipleObjects(query.cache, keyCollections.isolatedAssetKey),
   ]);
 
   // Phase 3: Single-pass result mapping
@@ -294,7 +290,7 @@ const queryRequiredMarketObjects = async (
     borrowFeeKey: new Map<string, SuiObjectData>(),
     supplyLimitKey: new Map<string, SuiObjectData>(),
     borrowLimitKey: new Map<string, SuiObjectData>(),
-    isolatedAssetKey: new Map<string, SuiObjectData>(),
+    isIsolated: new Map<string, boolean>(),
   } as Record<keyof KeyType, Map<string, SuiObjectData>>;
 
   queryResults.forEach((objects, index) => {
@@ -332,9 +328,7 @@ const queryRequiredMarketObjects = async (
       borrowLimitKey: task.borrowLimitKey
         ? resultMaps.borrowLimitKey.get(task.borrowLimitKey)
         : undefined,
-      isolatedAssetKey: task.isolatedAssetKey
-        ? resultMaps.isolatedAssetKey.get(task.isolatedAssetKey)
-        : undefined,
+      isolatedAssetKey: query.constants.poolAddresses[poolCoinName]?.isIsolated,
     };
   }
 
@@ -437,7 +431,7 @@ const parseMarketPoolObjects = ({
   borrowFeeKey,
   supplyLimitKey,
   borrowLimitKey,
-  isolatedAssetKey,
+  isIsolated,
 }: {
   balanceSheet?: SuiObjectData;
   borrowDynamic?: SuiObjectData;
@@ -447,7 +441,7 @@ const parseMarketPoolObjects = ({
   borrowFeeKey?: SuiObjectData;
   supplyLimitKey?: SuiObjectData;
   borrowLimitKey?: SuiObjectData;
-  isolatedAssetKey?: SuiObjectData;
+  isIsolated: boolean;
 }): OriginMarketPoolData & {
   parsedOriginMarketCollateral?: OriginMarketCollateralData;
 } => {
@@ -477,7 +471,7 @@ const parseMarketPoolObjects = ({
     _riskModel && _collateralStat
       ? {
           type: _interestModel.type.fields,
-          isIsolated: !!isolatedAssetKey,
+          isIsolated: isIsolated,
           collateralFactor: _riskModel.collateral_factor.fields,
           liquidationFactor: _riskModel.liquidation_factor.fields,
           liquidationPenalty: _riskModel.liquidation_penalty.fields,
@@ -509,7 +503,7 @@ const parseMarketPoolObjects = ({
     highKink: _interestModel.high_kink.fields,
     midKink: _interestModel.mid_kink.fields,
     minBorrowAmount: _interestModel.min_borrow_amount,
-    isIsolated: !!isolatedAssetKey,
+    isIsolated,
     supplyLimit: _supplyLimit,
     borrowLimit: _borrowLimit,
     parsedOriginMarketCollateral,
@@ -532,13 +526,13 @@ export const getMarketPool = async (
   indexer: boolean = false,
   coinPrice: number,
   requiredObjects?: {
-    balanceSheet?: SuiObjectData;
-    borrowDynamic?: SuiObjectData;
-    interestModel?: SuiObjectData;
-    borrowFeeKey?: SuiObjectData;
-    supplyLimitKey?: SuiObjectData;
-    borrowLimitKey?: SuiObjectData;
-    isolatedAssetKey?: SuiObjectData;
+    balanceSheet: SuiObjectData;
+    borrowDynamic: SuiObjectData;
+    interestModel: SuiObjectData;
+    borrowFeeKey: SuiObjectData;
+    supplyLimitKey: SuiObjectData;
+    borrowLimitKey: SuiObjectData;
+    isIsolated: boolean;
   }
 ): Promise<
   { marketPool: MarketPool; collateral?: MarketCollateral } | undefined

@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.12](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.11...v2.0.12) (2025-04-01)
+
+### Features
+
+- Add more strict rate limiter class in `ScallopCache`([c3eddb4](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/c3eddb44e721b336c2307c7cf362ef79ad1d5ce0))
+
+### [2.0.11](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.10...v2.0.11) (2025-03-31)
+
+### Bugfixes
+
+- Handle boolean values when parsing pool addresses values ([b713bb1](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/b713bb13d5aff02390cd8f80d8e520199197e9e2))
+
+### [2.0.10](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.9...v2.0.10) (2025-03-31)
+
+### Features
+
+- Add `isIsolated` to `PoolAddress` interface to ensure backward compatibility ([e62bc06](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/e62bc06637f6c1c992ad1687eb51e69903bb3262))
+
+### [2.0.9](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.8...v2.0.9) (2025-03-31)
+
+### Features
+
+- Add `emerging` to whitelist ([6900254](https://github.com/scallop-io/sui-scallop-sdk/pull/254/commits/6900254ce902351d730460ad3f9bec91f65d9262))
+
+### [2.0.8](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.7...v2.0.8) (2025-03-31)
+
+### Bugfixes
+
+- Add `walletAddress` as parameter ([535e381](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/535e3819e727b5407dbaf86bd233a951268342e2))
+
 ### [2.0.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.6...v2.0.7) (2025-03-26)
 
 ### Bugfixes
