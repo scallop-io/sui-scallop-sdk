@@ -109,6 +109,7 @@ export class ScallopConstants {
       'spool',
       'oracles',
       'pythEndpoints',
+      'emerging',
     ] as const;
     return (
       this.isAddressInitialized && // address is initialized
@@ -387,15 +388,22 @@ export class ScallopConstants {
     ]);
 
     if (!this.params.forceWhitelistInterface) {
-      this._whitelist = Object.fromEntries(
-        Object.entries(whitelistResponse)
-          .filter(([_, value]) => Array.isArray(value) || value instanceof Set)
-          .map(([key, value]) => [
-            key as keyof Whitelist,
-            value instanceof Set ? value : new Set(value),
-          ])
-      ) as Whitelist;
+      this._whitelist = Object.keys(this._whitelist).reduce(
+        (acc, key: unknown) => {
+          const whiteListKey = key as keyof Whitelist;
+          const whiteListValue = whitelistResponse[whiteListKey];
+          acc[whiteListKey] =
+            whiteListValue instanceof Set
+              ? whiteListValue
+              : Array.isArray(whiteListValue)
+                ? new Set(whiteListValue)
+                : new Set();
+          return acc;
+        },
+        {} as Whitelist
+      );
     }
+
     if (!this.params.forcePoolAddressInterface) {
       this._poolAddresses = Object.fromEntries(
         Object.entries(poolAddressesResponse)
