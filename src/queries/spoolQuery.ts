@@ -26,90 +26,92 @@ const queryRequiredSpoolObjects = async (
   query: ScallopQuery,
   stakePoolCoinNames: string[]
 ) => {
-  // Prepare all tasks for querying each object type
-  const tasks = stakePoolCoinNames.map((t, idx) => ({
-    poolCoinName: stakePoolCoinNames[idx],
-    spool: query.constants.poolAddresses[t]?.spool,
-    spoolReward: query.constants.poolAddresses[t]?.spoolReward,
-    sCoinTreasury: query.constants.poolAddresses[t]?.sCoinTreasury,
-  }));
-
-  // Query all objects for each key in parallel
-  const [spoolObjects, spoolRewardObjects, sCoinTreasuryObjects] =
-    await Promise.all([
-      queryMultipleObjects(
-        query.cache,
-        tasks.map((task) => task.spool).filter((t): t is string => !!t)
-      ),
-      queryMultipleObjects(
-        query.cache,
-        tasks.map((task) => task.spoolReward).filter((t): t is string => !!t)
-      ),
-      queryMultipleObjects(
-        query.cache,
-        tasks.map((task) => task.sCoinTreasury).filter((t): t is string => !!t)
-      ),
-    ]);
-
-  // Map the results back to poolCoinNames
-  const mapObjects = (
-    tasks: { poolCoinName: string; [key: string]: string | undefined }[],
-    fetchedObjects: SuiObjectData[],
-    keyValue: string
-  ) => {
-    const resultMap: Record<string, SuiObjectData> = {};
-    const fetchedObjectMap = fetchedObjects.reduce(
-      (acc, obj) => {
-        acc[obj.objectId] = obj;
-        return acc;
-      },
-      {} as Record<string, SuiObjectData>
-    );
-
-    for (const task of tasks) {
-      if (task[keyValue]) {
-        resultMap[task.poolCoinName] = fetchedObjectMap[task[keyValue]];
-      }
-    }
-    return resultMap;
+  // Phase 1: Single-pass data preparation
+  type KeyType = {
+    spool?: string;
+    spoolReward?: string;
+    sCoinTreasury?: string;
   };
 
-  const spoolMap = mapObjects(tasks, spoolObjects, 'spool');
-  const spoolRewardMap = mapObjects(tasks, spoolRewardObjects, 'spoolReward');
-  const sCoinTreasuryMap = mapObjects(
-    tasks,
-    sCoinTreasuryObjects,
-    'sCoinTreasury'
-  );
+  const keyCollections: Record<keyof KeyType, string[]> = {
+    spool: [],
+    spoolReward: [],
+    sCoinTreasury: [],
+  };
 
-  // Construct the final requiredObjects result
-  return stakePoolCoinNames.reduce(
-    (acc, name) => {
-      acc[name] = {
-        spool: spoolMap[name],
-        spoolReward: spoolRewardMap[name],
-        sCoinTreasury: sCoinTreasuryMap[name],
-      };
-      return acc;
-    },
-    {} as Record<
-      string,
-      {
-        spool: SuiObjectData;
-        spoolReward: SuiObjectData;
-        sCoinTreasury: SuiObjectData;
+  const taskMap = new Map<string, KeyType>();
+
+  // Single iteration to collect all keys
+  for (const poolCoinName of stakePoolCoinNames) {
+    const poolData = query.constants.poolAddresses[poolCoinName];
+    const task: KeyType = {
+      spool: poolData?.spool,
+      spoolReward: poolData?.spoolReward,
+      sCoinTreasury: poolData?.sCoinTreasury,
+    };
+
+    // Add to key collections
+    (Object.entries(task) as [keyof KeyType, string | undefined][]).forEach(
+      ([key, value]) => {
+        if (value) keyCollections[key].push(value);
       }
-    >
-  );
+    );
+
+    taskMap.set(poolCoinName, task);
+  }
+
+  // Phase 2: Parallel queries with pre-collected keys
+  const [spoolObjects, spoolRewardObjects, sCoinTreasuryObjects] =
+    await Promise.all([
+      queryMultipleObjects(query.cache, keyCollections.spool),
+      queryMultipleObjects(query.cache, keyCollections.spoolReward),
+      queryMultipleObjects(query.cache, keyCollections.sCoinTreasury),
+    ]);
+
+  // Phase 3: Create lookup maps
+  const createObjectMap = (objects: SuiObjectData[]) =>
+    new Map(objects.map((obj) => [obj.objectId, obj]));
+
+  const objectMaps = {
+    spool: createObjectMap(spoolObjects),
+    spoolReward: createObjectMap(spoolRewardObjects),
+    sCoinTreasury: createObjectMap(sCoinTreasuryObjects),
+  };
+
+  // Phase 4: Build result in single pass
+  const result: Record<string, any> = {};
+  for (const [poolCoinName, task] of taskMap) {
+    result[poolCoinName] = {
+      spool: task.spool ? objectMaps.spool.get(task.spool) : undefined,
+      spoolReward: task.spoolReward
+        ? objectMaps.spoolReward.get(task.spoolReward)
+        : undefined,
+      sCoinTreasury: task.sCoinTreasury
+        ? objectMaps.sCoinTreasury.get(task.sCoinTreasury)
+        : undefined,
+    };
+  }
+
+  return result as Record<
+    string,
+    {
+      spool?: SuiObjectData;
+      spoolReward?: SuiObjectData;
+      sCoinTreasury?: SuiObjectData;
+    }
+  >;
 };
 
 const parseSpoolObjects = ({
   spool,
   spoolReward,
 }: {
-  spool: SuiObjectData;
-  spoolReward: SuiObjectData;
+  spool?: SuiObjectData;
+  spoolReward?: SuiObjectData;
 }): OriginSpoolData & OriginSpoolRewardPoolData => {
+  if (!spool || !spoolReward) {
+    throw new Error('spool or spoolReward is undefined');
+  }
   const _spool = parseObjectAs<SpoolData>(spool);
   const _spoolReward = parseObjectAs<OriginSpoolRewardPoolData>(spoolReward);
   return {
@@ -222,8 +224,8 @@ export const getSpool = async (
   indexer: boolean = false,
   coinPrices?: CoinPrices,
   requiredObjects?: {
-    spool: SuiObjectData;
-    spoolReward: SuiObjectData;
+    spool?: SuiObjectData;
+    spoolReward?: SuiObjectData;
   }
 ) => {
   const coinName = query.utils.parseCoinName<string>(marketCoinName);

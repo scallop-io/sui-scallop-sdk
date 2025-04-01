@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { isValidSuiAddress } from '@scallop-io/sui-kit';
 import { z as zod } from 'zod';
 import { scallopSDK } from './scallopSdk';
@@ -6,20 +6,34 @@ import { ScallopQuery } from 'src/models';
 import BigNumber from 'bignumber.js';
 
 const ENABLE_LOG = false;
+let obligationId: string | null;
 
-let _scallopQuery: ScallopQuery | null = null;
-const getScallopQuery = async () => {
-  if (!_scallopQuery) {
-    _scallopQuery = await scallopSDK.createScallopQuery();
-  }
-  return _scallopQuery;
-};
+const VE_SCA_KEY =
+  '0xad50994e23ae4268fc081f477d0bdc3f1b92c7049c9038dedec5bac725273d18' as const;
+// make sure you test with an account that has binded obligationId to a veScaKey
+let scallopQuery: ScallopQuery;
+let sender: string;
 
-describe('Test Query Scallop Contract On Chain Data', async () => {
-  const scallopQuery = await getScallopQuery();
-  console.info('Your wallet:', scallopQuery.walletAddress);
+beforeAll(async () => {
+  console.log('start beforeAll');
+  scallopQuery = await scallopSDK.createScallopQuery({
+    cacheOptions: {
+      defaultOptions: {
+        queries: {
+          staleTime: Infinity,
+          gcTime: Infinity,
+        },
+      },
+    },
+  });
+  obligationId = await scallopQuery.getBindedObligationId(VE_SCA_KEY);
+  sender = scallopQuery.walletAddress;
+  console.log('end beforeAll');
+  console.log(`Your wallet: ${sender}`);
+});
 
-  it('Should query market data', async () => {
+describe('Test Query Scallop Contract On Chain Data', () => {
+  it.skip('Should query market data', async () => {
     const market = await scallopQuery.queryMarket();
     if (ENABLE_LOG) {
       console.info('Market:');
@@ -139,9 +153,7 @@ describe('Test Query Scallop Contract On Chain Data', async () => {
   });
 });
 
-describe('Test Query Spool Contract On Chain Data', async () => {
-  const scallopQuery = await getScallopQuery();
-
+describe('Test Query Spool Contract On Chain Data', () => {
   it('Should get spools data', async () => {
     const spools = await scallopQuery.getSpools();
 
@@ -223,9 +235,7 @@ describe('Test Query Spool Contract On Chain Data', async () => {
   });
 });
 
-describe('Test Query Borrow Incentive Contract On Chain Data', async () => {
-  const scallopQuery = await getScallopQuery();
-
+describe('Test Query Borrow Incentive Contract On Chain Data', () => {
   it('Should get borrow incentive pools data', async () => {
     const borrowIncentivePools = await scallopQuery.getBorrowIncentivePools();
 
@@ -255,10 +265,7 @@ describe('Test Query Borrow Incentive Contract On Chain Data', async () => {
   });
 });
 
-describe('Test Portfolio Query', async () => {
-  const scallopQuery = await getScallopQuery();
-  console.info('Your wallet:', scallopQuery.walletAddress);
-
+describe('Test Portfolio Query', () => {
   it('Should get user lendings data', async () => {
     const lendings = await scallopQuery.getLendings(['sui', 'wusdc']);
 
@@ -313,16 +320,7 @@ describe('Test Portfolio Query', async () => {
   });
 });
 
-describe('Test VeSca Query', async () => {
-  const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.walletAddress;
-  console.info(`Your Wallet: ${sender}`);
-
-  let obligationId: string | undefined;
-
-  const VE_SCA_KEY =
-    '0xad50994e23ae4268fc081f477d0bdc3f1b92c7049c9038dedec5bac725273d18' as const;
-  // make sure you test with an account that has binded obligationId to a veScaKey
+describe('Test VeSca Query', () => {
   it(`Should get binded obligationId of veScaKey ${VE_SCA_KEY}`, async () => {
     const bindedObligationId =
       await scallopQuery.getBindedObligationId(VE_SCA_KEY);
@@ -407,11 +405,7 @@ describe('Test VeSca Query', async () => {
   });
 });
 
-describe('Test Referral Query', async () => {
-  const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.walletAddress;
-  console.info(`Your Wallet: ${sender}`);
-
+describe('Test Referral Query', () => {
   it(`Should get referrer veSCA key from a referee address`, async () => {
     const REFEREE_ADDRESS =
       '0xebd7bba0820d6f8ad036929161d9ccb29b4507ffbeb45787b95655bb60785d76' as const;
@@ -422,11 +416,7 @@ describe('Test Referral Query', async () => {
   });
 });
 
-describe('Test Loyalty Program Query', async () => {
-  const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.walletAddress;
-  console.info(`Your Wallet: ${sender}`);
-
+describe('Test Loyalty Program Query', () => {
   it(`Should get loyalty program information from a user address`, async () => {
     const loyaltyProgramInfoZod = zod.object({
       pendingReward: zod.optional(zod.number()),
@@ -444,11 +434,7 @@ describe('Test Loyalty Program Query', async () => {
   });
 });
 
-describe('Test sCoin Query', async () => {
-  const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.walletAddress;
-  console.info(`Your Wallet: ${sender}`);
-
+describe('Test sCoin Query', () => {
   it('Should get total supply of sCoin', async () => {
     const sCoinName = 'ssui';
     const totalSupply = await scallopQuery.getSCoinTotalSupply(sCoinName);
@@ -473,11 +459,7 @@ describe('Test sCoin Query', async () => {
   });
 });
 
-describe('Test Supply Limit Query', async () => {
-  const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.walletAddress;
-  console.info(`Your Wallet: ${sender}`);
-
+describe('Test Supply Limit Query', () => {
   it('Should get supply limit of a pool', async () => {
     const poolName = 'sui';
     const supplyLimit = await scallopQuery.getPoolSupplyLimit(poolName);
@@ -486,11 +468,7 @@ describe('Test Supply Limit Query', async () => {
   });
 });
 
-describe('Test Borrow Limit Query', async () => {
-  const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.walletAddress;
-  console.info(`Your Wallet: ${sender}`);
-
+describe('Test Borrow Limit Query', () => {
   it('Should get borrow limit of a pool', async () => {
     const poolName = 'sui';
     const borrowLimit = await scallopQuery.getPoolBorrowLimit(poolName);
@@ -499,11 +477,7 @@ describe('Test Borrow Limit Query', async () => {
   });
 });
 
-describe('Test Isolated Assets', async () => {
-  const scallopQuery = await getScallopQuery();
-  const sender = scallopQuery.walletAddress;
-  console.info(`Your Wallet: ${sender}`);
-
+describe('Test Isolated Assets', () => {
   it('Should return isolated assets', async () => {
     const isolatedAssets = await scallopQuery.getIsolatedAssets();
     expect(typeof isolatedAssets).toBe('object');
@@ -535,9 +509,8 @@ describe('Test Isolated Assets', async () => {
   });
 });
 
-describe('Test All Coin Prices Query', async () => {
+describe('Test All Coin Prices Query', () => {
   it('Should get coin prices', async () => {
-    const scallopQuery = await getScallopQuery();
     const coinPrices = await scallopQuery.getAllCoinPrices();
     const swusdcPrice = coinPrices['swusdc'];
     if (ENABLE_LOG) {
@@ -549,9 +522,8 @@ describe('Test All Coin Prices Query', async () => {
   });
 });
 
-describe('Test Address Query', async () => {
+describe('Test Address Query', () => {
   it.skip('Should get pool Addresses', async () => {
-    const scallopQuery = await getScallopQuery();
     const poolAddresses = await scallopQuery.getPoolAddresses();
     if (ENABLE_LOG) {
       console.info('Pool addresses:', poolAddresses);
@@ -560,9 +532,8 @@ describe('Test Address Query', async () => {
   });
 });
 
-describe('Test Get Coin Price By Indexer', async () => {
+describe('Test Get Coin Price By Indexer', () => {
   it('Should get coin price by indexer', async () => {
-    const scallopQuery = await getScallopQuery();
     const coinPrice = await scallopQuery.getCoinPriceByIndexer('wusdc');
     if (ENABLE_LOG) {
       console.info('Coin price:', coinPrice);
@@ -571,9 +542,8 @@ describe('Test Get Coin Price By Indexer', async () => {
   });
 });
 
-describe('Test Get Flashloan Fees', async () => {
+describe('Test Get Flashloan Fees', () => {
   it('Should get flashloan fees', async () => {
-    const scallopQuery = await getScallopQuery();
     const flashloanFees = await scallopQuery.getFlashLoanFees();
     if (ENABLE_LOG) {
       console.info('Flashloan fees:', flashloanFees);
@@ -583,9 +553,8 @@ describe('Test Get Flashloan Fees', async () => {
   });
 });
 
-describe('Test Get User Portfolio', async () => {
+describe('Test Get User Portfolio', () => {
   it('Should get user lendings and borrowings position', async () => {
-    const scallopQuery = await getScallopQuery();
     const portfolio = await scallopQuery.getUserPortfolio();
     if (ENABLE_LOG) {
       console.info('User portfolio:', portfolio);
