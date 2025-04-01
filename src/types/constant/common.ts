@@ -4,6 +4,7 @@ export type PoolAddress = {
   coinType: string;
   coinMetadataId: string;
   decimals: number;
+  isIsolated: boolean;
   // optional keys
   pythFeed?: string;
   pythFeedObjectId?: string;
@@ -22,7 +23,7 @@ export type PoolAddress = {
   sCoinSymbol?: string;
   sCoinMetadataId?: string;
   sCoinTreasury?: string;
-  isolatedAssetKey: boolean;
+  isolatedAssetKey: string;
   spool?: string;
   spoolReward?: string;
   spoolName?: string;
