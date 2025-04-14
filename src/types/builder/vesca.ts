@@ -2,13 +2,6 @@ import { SuiTxBlock as SuiKitTxBlock, SuiObjectArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
 import { ScallopBuilder } from 'src/models';
 
-export type VescaIds = {
-  pkgId: string;
-  table: string;
-  treasury: string;
-  config: string;
-};
-
 export type VeScaNormalMethods = {
   lockSca: (
     scaCoin: SuiObjectArg,
@@ -26,8 +19,6 @@ export type VeScaNormalMethods = {
   ) => void;
   redeemSca: (veScaKey: SuiObjectArg) => TransactionResult;
   mintEmptyVeSca: () => TransactionResult;
-  addMergeSplitSub: (veScaKey: SuiObjectArg) => void;
-  removeMergeSplitSub: (veScaKey: SuiObjectArg) => void;
   splitVeSca: (
     veScaKey: SuiObjectArg,
     splitAmount: string
@@ -86,12 +77,12 @@ export type VeScaQuickMethods = {
   ) => Promise<QuickMethodReturnType<T>>;
   splitVeScaQuick: <T extends boolean>(
     splitAmount: string,
-    veScaKey?: SuiObjectArg,
+    veScaKey: string,
     transferVeScaKey?: T
   ) => Promise<QuickMethodReturnType<T>>;
   mergeVeScaQuick: (
-    targetVeScaKey: SuiObjectArg,
-    sourceVeScaKey?: SuiObjectArg
+    targetVeScaKey: string,
+    sourceVeScaKey: string
   ) => Promise<void>;
 };
 
