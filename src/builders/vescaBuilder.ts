@@ -5,8 +5,8 @@ import {
   SuiTxBlock as SuiKitTxBlock,
 } from '@scallop-io/sui-kit';
 import { SCA_COIN_TYPE } from 'src/constants';
-import { ScallopBuilder } from '../models';
-import { getVeSca, getVeScas } from '../queries';
+import { ScallopBuilder } from 'src/models';
+import { getVeSca, getVeScas } from 'src/queries';
 import {
   requireSender,
   checkLockSca,
@@ -14,19 +14,19 @@ import {
   checkExtendLockAmount,
   checkRenewExpiredVeSca,
   checkVesca,
-} from '../utils';
+} from 'src/utils';
 import type {
   TransactionObjectArgument,
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
 import type {
+  AddressesInterface,
   GenerateVeScaNormalMethod,
   GenerateVeScaQuickMethod,
-  RedeemScaQuickReturnType,
+  QuickMethodReturnType,
   ScallopTxBlock,
   SuiTxBlockWithVeScaNormalMethods,
   VeScaTxBlock,
-  VescaIds,
 } from 'src/types';
 
 /**
@@ -70,6 +70,27 @@ export const requireVeSca = async (
   return veScaKey ? veScas.find(({ keyId }) => veScaKey === keyId) : veScas[0];
 };
 
+export const isInSubsTable = async (
+  ...params: [builder: ScallopBuilder, veScaKey: string, tableId: string]
+) => {
+  const [builder, veScaKey, tableId] = params;
+  try {
+    const _resp = await builder.cache.queryGetDynamicFieldObject({
+      parentId: tableId,
+      name: {
+        type: '0x2::object::ID',
+        value: veScaKey,
+      },
+    });
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+};
+
+type VeScaProps = 'id' | 'table' | 'treasury' | 'config' | 'subsTable';
+
 /**
  * Generate veSCA normal methods.
  *
@@ -81,12 +102,14 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
   builder,
   txBlock,
 }) => {
-  const veScaIds: VescaIds = {
-    pkgId: builder.address.get('vesca.id'),
+  const veScaIds: Pick<AddressesInterface['vesca'], VeScaProps> = {
+    id: builder.address.get('vesca.id'),
     table: builder.address.get('vesca.table'),
     treasury: builder.address.get('vesca.treasury'),
     config: builder.address.get('vesca.config'),
+    subsTable: builder.address.get('vesca.subsTable'),
   };
+
   const clockObjectRef = txBlock.sharedObjectRef({
     objectId: SUI_CLOCK_OBJECT_ID,
     mutable: false,
@@ -97,7 +120,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
     lockSca: (scaCoin, unlockAtInSecondTimestamp) => {
       return builder.moveCall(
         txBlock,
-        `${veScaIds.pkgId}::ve_sca::mint_ve_sca_key`,
+        `${veScaIds.id}::ve_sca::mint_ve_sca_key`,
         [
           veScaIds.config,
           veScaIds.table,
@@ -112,7 +135,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
     extendLockPeriod: (veScaKey, newUnlockAtInSecondTimestamp) => {
       builder.moveCall(
         txBlock,
-        `${veScaIds.pkgId}::ve_sca::extend_lock_period`,
+        `${veScaIds.id}::ve_sca::extend_lock_period`,
         [
           veScaIds.config,
           veScaKey,
@@ -127,7 +150,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
     extendLockAmount: (veScaKey, scaCoin) => {
       builder.moveCall(
         txBlock,
-        `${veScaIds.pkgId}::ve_sca::lock_more_sca`,
+        `${veScaIds.id}::ve_sca::lock_more_sca`,
         [
           veScaIds.config,
           veScaKey,
@@ -142,7 +165,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
     renewExpiredVeSca: (veScaKey, scaCoin, newUnlockAtInSecondTimestamp) => {
       builder.moveCall(
         txBlock,
-        `${veScaIds.pkgId}::ve_sca::renew_expired_ve_sca`,
+        `${veScaIds.id}::ve_sca::renew_expired_ve_sca`,
         [
           veScaIds.config,
           veScaKey,
@@ -158,7 +181,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
     redeemSca: (veScaKey) => {
       return builder.moveCall(
         txBlock,
-        `${veScaIds.pkgId}::ve_sca::redeem`,
+        `${veScaIds.id}::ve_sca::redeem`,
         [
           veScaIds.config,
           veScaKey,
@@ -172,8 +195,36 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
     mintEmptyVeSca: () => {
       return builder.moveCall(
         txBlock,
-        `${veScaIds.pkgId}::ve_sca::mint_ve_sca_placeholder_key`,
+        `${veScaIds.id}::ve_sca::mint_ve_sca_placeholder_key`,
         [veScaIds.config, veScaIds.table],
+        []
+      );
+    },
+    splitVeSca: (veScaKey, splitAmount) => {
+      return builder.moveCall(txBlock, `${veScaIds.id}::ve_sca::split`, [
+        veScaIds.config,
+        veScaKey,
+        veScaIds.table,
+        veScaIds.subsTable,
+        txBlock.pure.u64(splitAmount),
+      ]);
+    },
+    mergeVeSca: (targetKey, sourceKey) => {
+      return builder.moveCall(
+        txBlock,
+        `${veScaIds.id}::ve_sca::merge`,
+        [
+          veScaIds.config,
+          targetKey,
+          sourceKey,
+          veScaIds.table,
+          veScaIds.subsTable,
+          txBlock.sharedObjectRef({
+            objectId: SUI_CLOCK_OBJECT_ID,
+            mutable: false,
+            initialSharedVersion: '1',
+          }),
+        ],
         []
       );
     },
@@ -362,8 +413,56 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           txBlock.transferObjects([sca], sender);
           return;
         }
-        return sca as RedeemScaQuickReturnType<S>;
+        return sca as QuickMethodReturnType<S>;
       }
+    },
+    splitVeScaQuick: async <S extends boolean>(
+      splitAmount: string,
+      veScaKey: string,
+      transferVeScaKey: S = true as S
+    ) => {
+      const isKeyInSubTable = await isInSubsTable(
+        builder,
+        veScaKey,
+        builder.address.get('vesca.subsTable')
+      );
+      if (isKeyInSubTable) {
+        throw new Error(
+          'Key cannot be in the subs table, please call unsubscribe vesca or unstake obligation first'
+        );
+      }
+
+      const newVeScaKey = txBlock.splitVeSca(veScaKey, splitAmount);
+      // txBlock.addMergeSplitSub(newVeScaKey);
+      if (transferVeScaKey) {
+        txBlock.transferObjects(newVeScaKey, requireSender(txBlock));
+        return;
+      } else {
+        return newVeScaKey as QuickMethodReturnType<S>;
+      }
+    },
+    mergeVeScaQuick: async (targetKey: string, sourceKey: string) => {
+      // check targetKey and sourceKey
+      const [isTargetInSubTable, isSourceInSubTable] = await Promise.all([
+        isInSubsTable(
+          builder,
+          targetKey,
+          builder.address.get('vesca.subsTable')
+        ),
+        isInSubsTable(
+          builder,
+          sourceKey,
+          builder.address.get('vesca.subsTable')
+        ),
+      ]);
+
+      if (isTargetInSubTable || isSourceInSubTable) {
+        throw new Error(
+          'Both target and source cannot be in the subs table. Please call unsubscribe vesca or unstake obligation first'
+        );
+      }
+
+      return txBlock.mergeVeSca(targetKey, sourceKey);
     },
   };
 };

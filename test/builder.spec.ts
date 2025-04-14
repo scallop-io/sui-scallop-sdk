@@ -34,8 +34,10 @@ let hasSCoinInWallet = false;
 let bindedObligationId: string | null;
 let obligationWithBoost: Obligation | undefined;
 
-const createNewVeScaTx = async (initialLockPeriodInDays: number = 1459) => {
-  const tx = scallopBuilder.createTxBlock();
+const createNewVeScaTx = async (
+  tx = scallopBuilder.createTxBlock(),
+  initialLockPeriodInDays: number = 1
+) => {
   tx.setSender(sender);
 
   const lockAmount = 10 * 10 ** 9;
@@ -50,14 +52,7 @@ const createNewVeScaTx = async (initialLockPeriodInDays: number = 1459) => {
   const scaCoin = takeCoin;
   tx.transferObjects([leftCoin], sender);
 
-  const veScaKey = await tx.lockSca(scaCoin, newUnlockAt);
-  // const lockPeriodInDays = 7; // lock for 1 day
-  // const lockAmount = 10 * 10 ** 9;
-  // await tx.renewExpiredVeScaQuick(
-  //   lockAmount,
-  //   lockPeriodInDays,
-  //   expiredVeScaKey
-  // );
+  const veScaKey = tx.lockSca(scaCoin, newUnlockAt);
   return { tx, veScaKey };
 };
 
@@ -91,6 +86,33 @@ const createRandomWalletAccountBuilder = async () => {
   });
   const scallopBuilder = await scallopSDK.createScallopBuilder();
   return scallopBuilder;
+};
+
+const createVeScasForMergeSplit = async () => {
+  const initialLockPeriodInDays: number = 1;
+
+  const tx = scallopBuilder.createTxBlock();
+  tx.setSender(sender);
+
+  const lockAmount = 10 * 10 ** 9; // make sure to have 20 SCA in the wallet
+  const lockPeriodInDays = initialLockPeriodInDays;
+  const newUnlockAt = scallopBuilder.utils.getUnlockAt(lockPeriodInDays);
+  const coins = await scallopBuilder.utils.selectCoins(
+    lockAmount * 2,
+    SCA_COIN_TYPE,
+    sender
+  );
+
+  const merged = coins[0];
+  if (coins.length > 1) {
+    tx.mergeCoins(merged, coins.slice(1));
+  }
+  const [scaCoin1] = tx.splitCoins(merged, [lockAmount]);
+  const [scaCoin2] = tx.splitCoins(merged, [lockAmount]);
+
+  const veScaKey1 = tx.lockSca(scaCoin1, newUnlockAt);
+  const veScaKey2 = tx.lockSca(scaCoin2, newUnlockAt);
+  return { tx, veScaKey1, veScaKey2 };
 };
 
 beforeAll(async () => {
@@ -939,6 +961,33 @@ describe('Test Scallop VeSca Builder', () => {
       );
     }
     expect(redeemScaQuickResult.effects?.status.status).toEqual('failure');
+  });
+
+  it('"mergeVeSca" should succeed', async () => {
+    const {
+      tx,
+      veScaKey1: targetKey,
+      veScaKey2: sourceKey,
+    } = await createVeScasForMergeSplit();
+    tx.mergeVeSca(targetKey, sourceKey);
+    const mergeVeScaResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('MergeVeScaResult:', mergeVeScaResult.effects.status.error);
+    }
+    console.log(mergeVeScaResult.error);
+    console.log(tx.blockData.transactions);
+    expect(mergeVeScaResult.effects?.status.status).toEqual('success');
+  });
+
+  it('"splitVeSca" should succeed', async () => {
+    const { tx, veScaKey } = await createNewVeScaTx();
+    const splitVeScaKey = tx.splitVeSca(veScaKey, '0');
+    const splitVeScaResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    if (ENABLE_LOG) {
+      console.info('SplitVeScaResult:', splitVeScaResult.effects.status.error);
+    }
+    expect(splitVeScaResult.effects?.status.status).toEqual('success');
+    expect(splitVeScaKey).toBeDefined();
   });
 });
 

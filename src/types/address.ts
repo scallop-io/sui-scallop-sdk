@@ -108,6 +108,9 @@ export interface AddressesInterface {
     table: string;
     treasury: string;
     config: string;
+    subsTable: string;
+    subsTableId: string;
+    subsWhitelist: string;
   };
   referral: {
     id: string;
