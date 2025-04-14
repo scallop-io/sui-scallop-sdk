@@ -14,7 +14,6 @@ import type {
   SuiTxBlockWithBorrowIncentiveNormalMethods,
   BorrowIncentiveTxBlock,
   ScallopTxBlock,
-  VescaIds,
 } from 'src/types';
 import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants';
 
@@ -92,7 +91,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
       obligationAccessStore: builder.address.get('core.obligationAccessStore'),
     };
 
-    const veScaIds: Omit<VescaIds, 'pkgId'> = {
+    const veScaIds = {
       table: builder.address.get('vesca.table'),
       treasury: builder.address.get('vesca.treasury'),
       config: builder.address.get('vesca.config'),

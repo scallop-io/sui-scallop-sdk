@@ -974,8 +974,6 @@ describe('Test Scallop VeSca Builder', () => {
     if (ENABLE_LOG) {
       console.info('MergeVeScaResult:', mergeVeScaResult.effects.status.error);
     }
-    console.log(mergeVeScaResult.error);
-    console.log(tx.blockData.transactions);
     expect(mergeVeScaResult.effects?.status.status).toEqual('success');
   });
 
