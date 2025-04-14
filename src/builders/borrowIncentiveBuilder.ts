@@ -98,6 +98,12 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
       config: builder.address.get('vesca.config'),
     };
 
+    const clockObjectRef = txBlock.sharedObjectRef({
+      objectId: SUI_CLOCK_OBJECT_ID,
+      mutable: false,
+      initialSharedVersion: '1',
+    });
+
     return {
       stakeObligation: (obligationId, obligationKey) => {
         builder.moveCall(
@@ -110,11 +116,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
             obligationKey,
             obligationId,
             borrowIncentiveIds.obligationAccessStore,
-            txBlock.sharedObjectRef({
-              objectId: SUI_CLOCK_OBJECT_ID,
-              mutable: false,
-              initialSharedVersion: '1',
-            }),
+            clockObjectRef,
           ]
         );
       },
@@ -133,11 +135,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
             veScaIds.treasury,
             veScaIds.table,
             veScaKey,
-            txBlock.sharedObjectRef({
-              objectId: SUI_CLOCK_OBJECT_ID,
-              mutable: false,
-              initialSharedVersion: '1',
-            }),
+            clockObjectRef,
           ],
           []
         );
@@ -152,11 +150,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
             borrowIncentiveIds.incentiveAccounts,
             obligationKey,
             obligationId,
-            txBlock.sharedObjectRef({
-              objectId: SUI_CLOCK_OBJECT_ID,
-              mutable: false,
-              initialSharedVersion: '1',
-            }),
+            clockObjectRef,
           ]
         );
       },
@@ -171,11 +165,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
             borrowIncentiveIds.incentiveAccounts,
             obligationKey,
             obligationId,
-            txBlock.sharedObjectRef({
-              objectId: SUI_CLOCK_OBJECT_ID,
-              mutable: false,
-              initialSharedVersion: '1',
-            }),
+            clockObjectRef,
           ],
           [rewardType]
         );
@@ -190,11 +180,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
             borrowIncentiveIds.incentiveAccounts,
             obligation,
             veScaKey,
-            txBlock.sharedObjectRef({
-              objectId: SUI_CLOCK_OBJECT_ID,
-              mutable: false,
-              initialSharedVersion: '1',
-            }),
+            clockObjectRef,
           ]
         );
       },

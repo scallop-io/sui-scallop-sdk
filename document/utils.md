@@ -1,4 +1,4 @@
-# Use ScallopUtils
+# Use Scallop Utils
 
 ## Some common conversion methods for coin name supported by Scallop
 

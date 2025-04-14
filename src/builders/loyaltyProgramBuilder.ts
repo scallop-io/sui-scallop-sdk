@@ -1,6 +1,5 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { coinIds } from 'src/constants';
 import { ScallopBuilder } from 'src/models';
 import {
   GenerateLoyaltyProgramNormalMethod,
@@ -44,13 +43,16 @@ const generateLoyaltyProgramQuickMethod: GenerateLoyaltyProgramQuickMethod = ({
       if (!veScaKey) throw new Error(`No veScaKey found for user ${sender}`);
 
       // claim the pending reward
-      const rewardCoin = await txBlock.claimLoyaltyRevenue(veScaKey);
+      const rewardCoin = txBlock.claimLoyaltyRevenue(veScaKey);
 
       // get existing sca coin to merge with
+      const scaCoinType = builder.constants.coinTypes.sca;
+      if (!scaCoinType) throw new Error('Coin type sca not found');
+
       await builder.utils.mergeSimilarCoins(
         txBlock,
         rewardCoin,
-        coinIds.sca,
+        scaCoinType,
         requireSender(txBlock)
       );
       txBlock.transferObjects([rewardCoin], sender);

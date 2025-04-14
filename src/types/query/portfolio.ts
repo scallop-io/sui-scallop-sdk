@@ -1,16 +1,11 @@
 import type { MarketPool } from './core';
 import type { Spool } from './spool';
-import type {
-  SupportPoolCoins,
-  SupportCollateralCoins,
-  SupportBorrowIncentiveRewardCoins,
-} from 'src/types/constant';
 
 type OptionalKeys<T> = {
   [K in keyof T]?: T[K];
 };
 
-export type Lendings = OptionalKeys<Record<SupportPoolCoins, Lending>>;
+export type Lendings = OptionalKeys<Record<string, Lending>>;
 export type ObligationAccounts = OptionalKeys<
   Record<string, ObligationAccount>
 >;
@@ -72,17 +67,13 @@ export type ObligationAccount = {
   totalDepositedPools: number;
   totalBorrowedPools: number;
   totalRewardedPools: number;
-  collaterals: OptionalKeys<
-    Record<SupportCollateralCoins, ObligationCollateral>
-  >;
-  debts: OptionalKeys<Record<SupportPoolCoins, ObligationDebt>>;
-  borrowIncentives: OptionalKeys<
-    Record<SupportPoolCoins, ObligationBorrowIncentive>
-  >;
+  collaterals: OptionalKeys<Record<string, ObligationCollateral>>;
+  debts: OptionalKeys<Record<string, ObligationDebt>>;
+  borrowIncentives: OptionalKeys<Record<string, ObligationBorrowIncentive>>;
 };
 
 export type ObligationCollateral = {
-  coinName: SupportCollateralCoins;
+  coinName: string;
   coinType: string;
   symbol: string;
   coinDecimal: number;
@@ -99,7 +90,7 @@ export type ObligationCollateral = {
 };
 
 export type ObligationDebt = {
-  coinName: SupportPoolCoins;
+  coinName: string;
   coinType: string;
   symbol: string;
   coinDecimal: number;
@@ -117,24 +108,25 @@ export type ObligationDebt = {
   availableRepayCoin: number;
 };
 
-export type ObligationBorrowIcentiveReward = {
-  coinName: SupportBorrowIncentiveRewardCoins;
+export type ObligationBorrowIncentiveReward = {
+  coinName: string;
   coinType: string;
   symbol: string;
   coinDecimal: number;
   coinPrice: number;
+  weightedBorrowAmount: number;
   availableClaimCoin: number;
   availableClaimAmount: number;
   boostValue: number;
 };
 
 export type ObligationBorrowIncentive = {
-  coinName: SupportPoolCoins;
+  coinName: string;
   coinType: string;
   symbol: string;
   coinDecimal: number;
   coinPrice: number;
-  rewards: ObligationBorrowIcentiveReward[];
+  rewards: ObligationBorrowIncentiveReward[];
 };
 
 export type TotalValueLocked = {

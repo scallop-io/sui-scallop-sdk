@@ -13,7 +13,7 @@ const NETWORK: NetworkType = 'mainnet';
 
 describe('Test Scallop Address', () => {
   const scallopAddress = new ScallopAddress({
-    id: TEST_ADDRESSES_ID,
+    addressId: TEST_ADDRESSES_ID,
     auth: process.env.API_KEY,
     network: NETWORK,
   });
@@ -32,11 +32,11 @@ describe('Test Scallop Address', () => {
   });
 
   it('Should get new addresses after update', async () => {
-    let addressesId = scallopAddress.getId();
+    let addressId = scallopAddress.getId();
     let oldAddresses: AddressesInterface | undefined = undefined;
-    if (addressesId === undefined) {
+    if (addressId === undefined) {
       await scallopAddress.create({ memo: 'Scallop sdk addresses unit test' });
-      addressesId = scallopAddress.getId();
+      addressId = scallopAddress.getId();
       oldAddresses = scallopAddress.getAddresses();
     } else {
       oldAddresses = scallopAddress.getAddresses();
@@ -281,7 +281,7 @@ describe('Test Scallop Address', () => {
     });
     const updatedAddresses = scallopAddress.getAddresses();
     if (ENABLE_LOG) {
-      console.log('Id', addressesId);
+      console.log('Id', addressId);
       console.info('Addresses:', updatedAddresses);
     }
     expect(!!updatedAddresses).toBe(true);
@@ -290,19 +290,19 @@ describe('Test Scallop Address', () => {
   });
 
   it('Should read and get addresses success', async () => {
-    let addressesId = scallopAddress.getId();
-    if (addressesId === undefined) {
+    let addressId = scallopAddress.getId();
+    if (addressId === undefined) {
       const oldAddresses = scallopAddress.getAddresses();
       expect(oldAddresses).toEqual(undefined);
       await scallopAddress.create({ memo: 'Scallop sdk addresses unit test' });
-      addressesId = scallopAddress.getId();
+      addressId = scallopAddress.getId();
     }
 
     await scallopAddress.read();
     const addresses = scallopAddress.getAddresses();
     const allAddresses = scallopAddress.getAllAddresses();
     if (ENABLE_LOG) {
-      console.info('Id:', addressesId);
+      console.info('Id:', addressId);
       console.info('Addresses:', addresses);
       console.info('All addresses:', allAddresses);
     }
@@ -311,16 +311,16 @@ describe('Test Scallop Address', () => {
   });
 
   it('Should get success', async () => {
-    let addressesId = scallopAddress.getId();
-    if (addressesId === undefined) {
+    let addressId = scallopAddress.getId();
+    if (addressId === undefined) {
       await scallopAddress.create({ memo: 'Scallop sdk addresses unit test' });
-      addressesId = scallopAddress.getId();
+      addressId = scallopAddress.getId();
     }
 
     const addresses = scallopAddress.getAddresses();
     const usdcCoinId = scallopAddress.get('core.coins.wusdc.id');
     if (ENABLE_LOG) {
-      console.info('Id:', addressesId);
+      console.info('Id:', addressId);
       console.info('UsdcCoinId', usdcCoinId);
     }
     expect(usdcCoinId).toEqual(addresses?.core.coins.wusdc?.id || undefined);
@@ -328,16 +328,16 @@ describe('Test Scallop Address', () => {
   });
 
   it('Should set success', async () => {
-    let addressesId = scallopAddress.getId();
-    if (addressesId === undefined) {
+    let addressId = scallopAddress.getId();
+    if (addressId === undefined) {
       await scallopAddress.create({ memo: 'Scallop sdk addresses unit test' });
-      addressesId = scallopAddress.getId();
+      addressId = scallopAddress.getId();
     }
     const oldUsdcCoinId = scallopAddress.get('core.coins.wusdc.id');
     scallopAddress.set('core.coins.wusdc.id', '0x00');
     const newAddresses = scallopAddress.get('core.coins.wusdc.id');
     if (ENABLE_LOG) {
-      console.info('Id:', addressesId);
+      console.info('Id:', addressId);
       console.info('Old usdcCoinId', oldUsdcCoinId);
       console.info('New usdcCoinId', newAddresses);
     }
@@ -346,15 +346,15 @@ describe('Test Scallop Address', () => {
   });
 
   it('Should switch current addresses success', async () => {
-    let addressesId = scallopAddress.getId();
-    if (addressesId === undefined) {
+    let addressId = scallopAddress.getId();
+    if (addressId === undefined) {
       await scallopAddress.create({ memo: 'Scallop sdk addresses unit test' });
-      addressesId = scallopAddress.getId();
+      addressId = scallopAddress.getId();
     }
     const testnetAddresses = scallopAddress.getAddresses('testnet');
     const currentAddresses = scallopAddress.switchCurrentAddresses('testnet');
     if (ENABLE_LOG) {
-      console.info('Id:', addressesId);
+      console.info('Id:', addressId);
       console.info('Testnet Addresses', testnetAddresses);
       console.info('Current addresses', currentAddresses);
     }
@@ -601,9 +601,9 @@ describe('Test Forced Scallop Address Interface', () => {
       }
     `);
   const scallopAddress = new ScallopAddress({
-    id: TEST_ADDRESSES_ID,
+    addressId: TEST_ADDRESSES_ID,
     network: NETWORK,
-    forceInterface: {
+    forceAddressesInterface: {
       mainnet: testAddresses,
     },
   });

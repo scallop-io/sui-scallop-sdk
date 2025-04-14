@@ -3,7 +3,6 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   TransactionResult,
 } from '@scallop-io/sui-kit';
-import { SupportSCoin } from 'src/types/constant';
 import { ScallopBuilder } from 'src/models';
 import { BaseScallopTxBlock } from '.';
 
@@ -19,7 +18,7 @@ export type sCoinNormalMethods = {
    * @returns
    */
   mintSCoin: (
-    marketCoinName: SupportSCoin,
+    marketCoinName: string,
     marketCoin: SuiObjectArg
   ) => TransactionResult;
   /**
@@ -28,19 +27,16 @@ export type sCoinNormalMethods = {
    * @param sCoin
    * @returns
    */
-  burnSCoin: (
-    sCoinName: SupportSCoin,
-    sCoin: SuiObjectArg
-  ) => TransactionResult; // returns marketCoin
+  burnSCoin: (sCoinName: string, sCoin: SuiObjectArg) => TransactionResult; // returns marketCoin
 };
 
 export type sCoinQuickMethods = {
   mintSCoinQuick: (
-    marketCoinName: SupportSCoin,
+    marketCoinName: string,
     amount: number
   ) => Promise<TransactionResult>;
   burnSCoinQuick: (
-    sCoinName: SupportSCoin,
+    sCoinName: string,
     amount: number
   ) => Promise<TransactionResult>;
 };

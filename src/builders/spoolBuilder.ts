@@ -1,9 +1,8 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { spoolRewardCoins } from 'src/constants/enum';
-import { getStakeAccounts } from 'src/queries/spoolQuery';
-import { requireSender } from 'src/utils';
+import { getStakeAccounts } from '../queries/spoolQuery';
+import { requireSender } from '../utils';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
 import type { ScallopBuilder } from 'src/models';
@@ -13,7 +12,6 @@ import type {
   GenerateSpoolQuickMethod,
   SuiTxBlockWithSpoolNormalMethods,
   SpoolTxBlock,
-  SupportStakeMarketCoins,
   ScallopTxBlock,
   SuiTxBlockWithSCoin,
 } from 'src/types';
@@ -35,7 +33,7 @@ const requireStakeAccountIds = async (
   ...params: [
     builder: ScallopBuilder,
     txBlock: SuiKitTxBlock,
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     stakeAccountId?: SuiAddressArg,
   ]
 ) => {
@@ -66,7 +64,7 @@ const requireStakeAccounts = async (
   ...params: [
     builder: ScallopBuilder,
     txBlock: SuiKitTxBlock,
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     stakeAccountId?: SuiAddressArg,
   ]
 ) => {
@@ -90,7 +88,7 @@ const stakeHelper = async (
   builder: ScallopBuilder,
   txBlock: SuiTxBlockWithSpoolNormalMethods,
   stakeAccount: SuiAddressArg,
-  coinName: SupportStakeMarketCoins,
+  coinName: string,
   amount: number,
   sender: string,
   isSCoin: boolean = false
@@ -126,6 +124,12 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
   const spoolIds: SpoolIds = {
     spoolPkg: builder.address.get('spool.id'),
   };
+  const clockObjectRef = txBlock.sharedObjectRef({
+    objectId: SUI_CLOCK_OBJECT_ID,
+    mutable: false,
+    initialSharedVersion: '1',
+  });
+
   return {
     createStakeAccount: (stakeMarketCoinName) => {
       const marketCoinType =
@@ -136,14 +140,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${spoolIds.spoolPkg}::user::new_spool_account`,
-        [
-          stakePoolId,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [stakePoolId, clockObjectRef],
         [marketCoinType]
       );
     },
@@ -156,16 +153,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       builder.moveCall(
         txBlock,
         `${spoolIds.spoolPkg}::user::stake`,
-        [
-          stakePoolId,
-          stakeAccount,
-          coin,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [stakePoolId, stakeAccount, coin, clockObjectRef],
         [marketCoinType]
       );
     },
@@ -178,16 +166,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       return builder.moveCall(
         txBlock,
         `${spoolIds.spoolPkg}::user::unstake`,
-        [
-          stakePoolId,
-          stakeAccount,
-          amount,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [stakePoolId, stakeAccount, amount, clockObjectRef],
         [marketCoinType]
       );
     },
@@ -200,21 +179,12 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       ) as string;
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
-      const rewardCoinName = spoolRewardCoins[stakeMarketCoinName];
+      const rewardCoinName = builder.utils.getSpoolRewardCoinName();
       const rewardCoinType = builder.utils.parseCoinType(rewardCoinName);
       return builder.moveCall(
         txBlock,
         `${spoolIds.spoolPkg}::user::redeem_rewards`,
-        [
-          stakePoolId,
-          rewardPoolId,
-          stakeAccount,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
+        [stakePoolId, rewardPoolId, stakeAccount, clockObjectRef],
         [marketCoinType, rewardCoinType]
       );
     },

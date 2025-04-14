@@ -1,14 +1,14 @@
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
-import {
-  SuiPythClient,
-  SuiPriceServiceConnection,
-} from '@pythnetwork/pyth-sui-js';
-import { SUPPORT_COLLATERALS, SUPPORT_POOLS } from 'src/constants';
 import type { TransactionArgument } from '@mysten/sui/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
-import type { SupportAssetCoins, SupportOracleType } from 'src/types';
-import { PYTH_ENDPOINTS } from 'src/constants/pyth';
+import type {
+  SupportOracleType,
+  xOracleRules,
+  xOracleRuleType,
+} from 'src/types';
+import { xOracleList as X_ORACLE_LIST } from 'src/constants';
+import { updatePythPriceFeeds } from './pyth';
 
 /**
  * Update the price of the oracle for multiple coin.
@@ -21,55 +21,54 @@ import { PYTH_ENDPOINTS } from 'src/constants/pyth';
 export const updateOracles = async (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
-  assetCoinNames?: SupportAssetCoins[],
+  assetCoinNames: string[] = [...builder.constants.whitelist.lending],
   options: {
     usePythPullModel: boolean;
-  } = { usePythPullModel: true }
+    useOnChainXOracleList: boolean;
+  } = { usePythPullModel: true, useOnChainXOracleList: true }
 ) => {
   const usePythPullModel =
     builder.params.usePythPullModel ?? options.usePythPullModel;
-  assetCoinNames = assetCoinNames ?? [
-    ...new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS]),
-  ];
-  const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
-  if (usePythPullModel && rules.includes('pyth')) {
-    const pythClient = new SuiPythClient(
-      builder.suiKit.client(),
-      builder.address.get('core.oracles.pyth.state'),
-      builder.address.get('core.oracles.pyth.wormholeState')
-    );
-    const priceIds = assetCoinNames.map((assetCoinName) =>
-      builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`)
-    );
+  const useOnChainXOracleList =
+    builder.params.useOnChainXOracleList ?? options.useOnChainXOracleList;
 
-    // iterate through the endpoints
-    const endpoints =
-      builder.params.pythEndpoints ??
-      PYTH_ENDPOINTS[builder.isTestnet ? 'testnet' : 'mainnet'];
-    for (const endpoint of endpoints) {
-      try {
-        const pythConnection = new SuiPriceServiceConnection(endpoint);
-        const priceUpdateData =
-          await pythConnection.getPriceFeedsUpdateData(priceIds);
-        await pythClient.updatePriceFeeds(
-          txBlock.txBlock, // convert txBlock to TransactionBlock because pyth sdk not support new @mysten/sui yet
-          priceUpdateData,
-          priceIds
-        );
+  const xOracleList = useOnChainXOracleList
+    ? await builder.query.getAssetOracles()
+    : X_ORACLE_LIST;
 
-        break;
-      } catch (e) {
-        console.warn(
-          `Failed to update price feeds with endpoint ${endpoint}: ${e}`
-        );
-      }
-    }
+  // const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
+  const flattenedRules = new Set(
+    Object.values(xOracleList).flatMap(({ primary, secondary }) => [
+      ...primary,
+      ...secondary,
+    ])
+  );
+
+  const filterAssetCoinNames = (
+    assetCoinName: string,
+    rule: SupportOracleType
+  ) => {
+    const assetXOracle = xOracleList[assetCoinName];
+    return (
+      assetXOracle &&
+      (assetXOracle.primary.includes(rule) ||
+        assetXOracle.secondary.includes(rule))
+    );
+  };
+
+  // Handle Pyth price feed
+  if (flattenedRules.has('pyth') && usePythPullModel) {
+    const pythAssetCoinNames = assetCoinNames.filter((assetCoinName) =>
+      filterAssetCoinNames(assetCoinName, 'pyth')
+    );
+    if (pythAssetCoinNames.length > 0)
+      await updatePythPriceFeeds(builder, assetCoinNames, txBlock);
   }
 
   // Remove duplicate coin names.
   const updateAssetCoinNames = [...new Set(assetCoinNames)];
   for (const assetCoinName of updateAssetCoinNames) {
-    await updateOracle(builder, txBlock, assetCoinName, rules);
+    updateOracle(builder, txBlock, assetCoinName, xOracleList[assetCoinName]);
   }
 };
 
@@ -80,11 +79,11 @@ export const updateOracles = async (
  * @param txBlock - TxBlock created by SuiKit.
  * @param assetCoinName - Specific support asset coin name.
  */
-const updateOracle = async (
+const updateOracle = (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
-  assetCoinName: SupportAssetCoins,
-  rules: SupportOracleType[]
+  assetCoinName: string,
+  rules: xOracleRules
 ) => {
   const coinType = builder.utils.parseCoinType(assetCoinName);
 
@@ -129,7 +128,7 @@ const updateOracle = async (
  */
 const updatePrice = (
   txBlock: SuiKitTxBlock,
-  rules: SupportOracleType[],
+  rules: xOracleRules,
   xOraclePackageId: string,
   xOracleId: TransactionArgument | string,
   pythPackageId: string,
@@ -150,37 +149,42 @@ const updatePrice = (
     xOracleId,
     coinType
   );
-  if (rules.includes('pyth')) {
-    updatePythPrice(
-      txBlock,
-      pythPackageId,
-      request,
-      pythStateId,
-      pythFeedObjectId,
-      pythRegistryId,
-      coinType
-    );
-  }
-  if (rules.includes('switchboard')) {
-    updateSwitchboardPrice(
-      txBlock,
-      switchboardPackageId,
-      request,
-      switchboardAggregatorId,
-      switchboardRegistryId,
-      coinType
-    );
-  }
-  if (rules.includes('supra')) {
-    updateSupraPrice(
-      txBlock,
-      supraPackageId,
-      request,
-      supraHolderId,
-      supraRegistryId,
-      coinType
-    );
-  }
+  Object.entries(rules).forEach(([type, rule]: [any, string[]]) => {
+    if (rule.includes('pyth')) {
+      updatePythPrice(
+        type,
+        txBlock,
+        pythPackageId,
+        request,
+        pythStateId,
+        pythFeedObjectId,
+        pythRegistryId,
+        coinType
+      );
+    }
+    if (rule.includes('supra')) {
+      updateSupraPrice(
+        type,
+        txBlock,
+        supraPackageId,
+        request,
+        supraHolderId,
+        supraRegistryId,
+        coinType
+      );
+    }
+    if (rule.includes('switchboard')) {
+      updateSwitchboardPrice(
+        type,
+        txBlock,
+        switchboardPackageId,
+        request,
+        switchboardAggregatorId,
+        switchboardRegistryId,
+        coinType
+      );
+    }
+  });
 
   confirmPriceUpdateRequest(
     txBlock,
@@ -260,6 +264,7 @@ const confirmPriceUpdateRequest = (
  * @return TxBlock created by SuiKit.
  */
 const updateSupraPrice = (
+  type: xOracleRuleType,
   txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
@@ -268,15 +273,15 @@ const updateSupraPrice = (
   coinType: string
 ) => {
   txBlock.moveCall(
-    `${packageId}::rule::set_price`,
+    `${packageId}::rule::set_price_as_${type}`,
     [
       request,
       holderId,
       registryId,
       txBlock.sharedObjectRef({
         objectId: SUI_CLOCK_OBJECT_ID,
-        mutable: false,
         initialSharedVersion: '1',
+        mutable: false,
       }),
     ],
     [coinType]
@@ -296,6 +301,7 @@ const updateSupraPrice = (
  * @return TxBlock created by SuiKit.
  */
 const updateSwitchboardPrice = (
+  type: xOracleRuleType,
   txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
@@ -304,15 +310,16 @@ const updateSwitchboardPrice = (
   coinType: string
 ) => {
   txBlock.moveCall(
-    `${packageId}::rule::set_price`,
+    // `${packageId}::rule::set_price_as_${type}`,
+    `${packageId}::rule::set_as_${type}_price`,
     [
       request,
       aggregatorId,
       registryId,
       txBlock.sharedObjectRef({
         objectId: SUI_CLOCK_OBJECT_ID,
-        mutable: false,
         initialSharedVersion: '1',
+        mutable: false,
       }),
     ],
     [coinType]
@@ -335,6 +342,7 @@ const updateSwitchboardPrice = (
  * @return TxBlock created by SuiKit.
  */
 const updatePythPrice = (
+  type: xOracleRuleType,
   txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
@@ -344,7 +352,7 @@ const updatePythPrice = (
   coinType: string
 ) => {
   txBlock.moveCall(
-    `${packageId}::rule::set_price`,
+    `${packageId}::rule::set_price_as_${type}`,
     [
       request,
       stateId,
@@ -352,8 +360,8 @@ const updatePythPrice = (
       registryId,
       txBlock.sharedObjectRef({
         objectId: SUI_CLOCK_OBJECT_ID,
-        mutable: false,
         initialSharedVersion: '1',
+        mutable: false,
       }),
     ],
     [coinType]

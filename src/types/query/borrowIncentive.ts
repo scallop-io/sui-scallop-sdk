@@ -1,8 +1,3 @@
-import type {
-  SupportBorrowIncentiveCoins,
-  SupportBorrowIncentiveRewardCoins,
-} from 'src/types/constant';
-
 export interface BorrowIncentiveAccountKey {
   id: string;
   onwerId: string;
@@ -13,12 +8,12 @@ type OptionalKeys<T> = {
 };
 
 export type BorrowIncentivePools = OptionalKeys<
-  Record<SupportBorrowIncentiveCoins, BorrowIncentivePool>
+  Record<string, BorrowIncentivePool>
 >;
 
 export type BorrowIncentivePoolPoints = {
   symbol: string;
-  coinName: SupportBorrowIncentiveRewardCoins;
+  coinName: string;
   coinType: string;
   coinDecimal: number;
   coinPrice: number;
@@ -31,7 +26,7 @@ export type BorrowIncentivePoolPoints = {
   CalculatedBorrowIncentivePoolPointData;
 
 export type BorrowIncentivePool = {
-  coinName: SupportBorrowIncentiveCoins;
+  coinName: string;
   symbol: string;
   coinType: string;
   coinDecimal: number;
@@ -39,9 +34,7 @@ export type BorrowIncentivePool = {
   stakedAmount: number;
   stakedCoin: number;
   stakedValue: number;
-  points: OptionalKeys<
-    Record<SupportBorrowIncentiveRewardCoins, BorrowIncentivePoolPoints>
-  >;
+  points: OptionalKeys<Record<string, BorrowIncentivePoolPoints>>;
 };
 
 export type OriginBorrowIncentivePoolPointData = {
@@ -85,12 +78,7 @@ export type ParsedBorrowIncentivePoolPointData = {
 
 export type ParsedBorrowIncentivePoolData = {
   poolType: string;
-  poolPoints: OptionalKeys<
-    Record<
-      SupportBorrowIncentiveRewardCoins,
-      ParsedBorrowIncentivePoolPointData
-    >
-  >;
+  poolPoints: OptionalKeys<Record<string, ParsedBorrowIncentivePoolPointData>>;
   minStakes: number;
   maxStakes: number;
   staked: number;
@@ -110,7 +98,7 @@ export type CalculatedBorrowIncentivePoolPointData = {
 };
 
 export type BorrowIncentiveAccounts = OptionalKeys<
-  Record<SupportBorrowIncentiveCoins, ParsedBorrowIncentiveAccountData>
+  Record<string, ParsedBorrowIncentiveAccountData>
 >;
 
 export type OriginBorrowIncentiveAccountPoolData = {
@@ -140,12 +128,7 @@ export type ParsedBorrowIncentiveAccountPoolData = {
 };
 
 export type ParsedBorrowIncentiveAccountData = {
-  pointList: OptionalKeys<
-    Record<
-      SupportBorrowIncentiveRewardCoins,
-      ParsedBorrowIncentiveAccountPoolData
-    >
-  >;
+  pointList: OptionalKeys<Record<string, ParsedBorrowIncentiveAccountPoolData>>;
   poolType: string;
   debtAmount: number;
 };

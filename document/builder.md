@@ -4,6 +4,7 @@
 
 ```typescript
 const scallopSDK = new Scallop({
+  addressId: '675c65cd301dd817ea262e76',
   secretKey: process.env.SECRET_KEY,
   networkType: NETWORK,
 });

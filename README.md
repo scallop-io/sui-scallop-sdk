@@ -45,11 +45,13 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
   ```typescript
   // Create an instance quickly through the`Scallop` class to construct other models.
   const scallopSDK = new Scallop({
+      addressId: '67c44a103fe1b8c454eb9699',
       networkType: 'mainnet',
       ...
   });
 
   const scallopAddress = await scallopSDK.getScallopAddress(...);
+  const scallopConstants = await scallopSDK.getScallopConstants(...);
   const scallopQuery = await scallopSDK.createScallopQuery(...);
   const scallopBuilder = await scallopSDK.createScallopBuilder(...);
   const scallopUtils = await scallopSDK.createScallopUtils(...);
@@ -59,6 +61,7 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
   // Or, you can choose to import the class directly to create an instance.
   import {
     ScallopAddress,
+    ScallopConstants,
     ScallopBuilder,
     ScallopQuery,
     ScallopUtils,
@@ -66,14 +69,34 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
     ScallopClient,
   } from '@scallop-io/sui-scallop-sdk'
 
-  const scallopAddress = new ScallopAddress(...);
-  const ScallopQuery = new ScallopQuery(...);
-  const ScallopBuilder = new ScallopBuilder(...);
-  const ScallopUtils = new ScallopUtils(...);
-  const scallopClient = new ScallopClient(...);
+  const scallopAddress = new ScallopAddress(
+    addressId: '67c44a103fe1b8c454eb9699',
+    ...
+  );
+  const scallopConstants = new ScallopConstants(
+    addressId: '67c44a103fe1b8c454eb9699',
+    ...
+  );
+  const ScallopQuery = new ScallopQuery(
+    addressId: '67c44a103fe1b8c454eb9699',
+    ...
+  );
+  const ScallopBuilder = new ScallopBuilder(
+    addressId: '67c44a103fe1b8c454eb9699',
+    ...
+  );
+  const ScallopUtils = new ScallopUtils(
+    addressId: '67c44a103fe1b8c454eb9699',
+    ...
+  );
+  const scallopClient = new ScallopClient(
+    addressId: '67c44a103fe1b8c454eb9699',
+    ...
+  );
   const ScallopIndexer = new ScallopIndexer();
   // Remember to initialize the instance before using it
   await scallopAddress.read();
+  await scallopConstants.init();
   await ScallopQuery.init();
   await ScallopBuilder.init();
   await ScallopUtils.init();
@@ -90,6 +113,7 @@ Below we will give a brief introduction to these instances respectively, and int
 - [Use Scallop Builder](./document/builder.md)
 - [Use Scallop Utils](./document/utils.md)
 - [Use Scallop Indexer](./document/indexer.md)
+- [Use Scallop Indexer](./document/constants.md)
 
 For the original codes, please refer to `test` folder.
 

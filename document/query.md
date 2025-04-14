@@ -70,7 +70,7 @@
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  const assetCoinsPrices = await scallopQuery.getPricesFromPyth(); // return Record<SupportAssetCoins, number>
+  const assetCoinsPrices = await scallopQuery.getPricesFromPyth(); // return Record<string, number>
   ```
 
 ## Spool query
@@ -286,4 +286,33 @@
   // await scallopQuery.init()
   const walletAddress = '0x...';
   const portfolio = await scallopQuery.getUserPortfolio({ walletAddress }); // returns user portfolio
+  ```
+
+## XOracle
+
+- Get primary and secondary price update policy objects
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const policies = await scallopQuery.getPriceUpdatePolicies();
+  // return { primary: SuiObjectResponse, secondary: SuiObjectResponse }
+  ```
+
+- Get primary and secondary oracles for all supported pool assets
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const oracles = await scallopSDK.getAssetOracles();
+  /**
+   * return
+   *  {
+   *    sui: {
+   *      primary: ['pyth', ...],
+   *      secondary: ['supra', ...]
+   *    },
+   *    usdc: {
+   *      primary: [...],
+   *    ...
+   *  }
+   */
   ```
