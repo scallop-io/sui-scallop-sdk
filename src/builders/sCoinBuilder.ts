@@ -21,25 +21,26 @@ const generateSCoinNormalMethod: GenerateSCoinNormalMethod = ({
 
   return {
     mintSCoin: (marketCoinName, marketCoin) => {
+      const sCoinType = builder.utils.parseSCoinType(marketCoinName);
+      if (!sCoinType)
+        throw new Error(`Invalid marketCoinName name: ${marketCoinName}`);
+
       return builder.moveCall(
         txBlock,
         `${sCoinPkgIds.pkgId}::s_coin_converter::mint_s_coin`,
         [builder.utils.getSCoinTreasury(marketCoinName), marketCoin],
-        [
-          builder.utils.parseSCoinType(marketCoinName),
-          builder.utils.parseUnderlyingSCoinType(marketCoinName),
-        ]
+        [sCoinType, builder.utils.parseUnderlyingSCoinType(marketCoinName)]
       );
     },
     burnSCoin: (sCoinName, sCoin) => {
+      const sCoinType = builder.utils.parseSCoinType(sCoinName);
+      if (!sCoinType) throw new Error(`Invalid sCoin name: ${sCoinName}`);
+
       return builder.moveCall(
         txBlock,
         `${sCoinPkgIds.pkgId}::s_coin_converter::burn_s_coin`,
         [builder.utils.getSCoinTreasury(sCoinName), sCoin],
-        [
-          builder.utils.parseSCoinType(sCoinName),
-          builder.utils.parseUnderlyingSCoinType(sCoinName),
-        ]
+        [sCoinType, builder.utils.parseUnderlyingSCoinType(sCoinName)]
       );
     },
   };
@@ -60,7 +61,7 @@ const generateSCoinQuickMethod: GenerateSCoinQuickMethod = ({
       );
 
       txBlock.transferObjects([leftCoin], sender);
-      return await txBlock.mintSCoin(marketCoinName, takeCoin);
+      return txBlock.mintSCoin(marketCoinName, takeCoin);
     },
     burnSCoinQuick: async (sCoinName, amount) => {
       const sender = requireSender(txBlock);
@@ -72,7 +73,7 @@ const generateSCoinQuickMethod: GenerateSCoinQuickMethod = ({
       );
 
       txBlock.transferObjects([leftCoin], sender);
-      return await txBlock.burnSCoin(sCoinName, takeCoin);
+      return txBlock.burnSCoin(sCoinName, takeCoin);
     },
   };
 };

@@ -87,6 +87,11 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
     treasury: builder.address.get('vesca.treasury'),
     config: builder.address.get('vesca.config'),
   };
+  const clockObjectRef = txBlock.sharedObjectRef({
+    objectId: SUI_CLOCK_OBJECT_ID,
+    mutable: false,
+    initialSharedVersion: '1',
+  });
 
   return {
     lockSca: (scaCoin, unlockAtInSecondTimestamp) => {
@@ -99,11 +104,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.treasury,
           scaCoin,
           unlockAtInSecondTimestamp,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         []
       );
@@ -118,11 +119,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.table,
           veScaIds.treasury,
           newUnlockAtInSecondTimestamp,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         []
       );
@@ -137,11 +134,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.table,
           veScaIds.treasury,
           scaCoin,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         []
       );
@@ -157,11 +150,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaIds.treasury,
           scaCoin,
           newUnlockAtInSecondTimestamp,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         []
       );
@@ -175,11 +164,7 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
           veScaKey,
           veScaIds.table,
           veScaIds.treasury,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
+          clockObjectRef,
         ],
         []
       );
@@ -372,7 +357,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       checkVesca(veSca?.unlockAt);
 
       if (veSca) {
-        const sca = await txBlock.redeemSca(veSca.keyId);
+        const sca = txBlock.redeemSca(veSca.keyId);
         if (transferSca) {
           txBlock.transferObjects([sca], sender);
           return;

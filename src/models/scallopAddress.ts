@@ -25,6 +25,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -38,6 +41,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -51,6 +57,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -64,6 +73,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -77,6 +89,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -90,6 +105,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -103,6 +121,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -116,6 +137,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -129,6 +153,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -142,6 +169,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -155,6 +185,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -168,6 +201,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         metaData: '',
         treasury: '',
+        symbol: '',
+        coinType: '',
+        decimals: 0,
         oracle: {
           supra: '',
           switchboard: '',
@@ -181,8 +217,17 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     oracles: {
       xOracle: '',
       xOracleCap: '',
+      primaryPriceUpdatePolicyObject: '',
+      secondaryPriceUpdatePolicyObject: '',
+      primaryPriceUpdatePolicyVecsetId: '',
+      secondaryPriceUpdatePolicyVecsetId: '',
       supra: { registry: '', registryCap: '', holder: '' },
-      switchboard: { registry: '', registryCap: '' },
+      switchboard: {
+        registry: '',
+        registryCap: '',
+        registryTableId: '',
+        state: '',
+      },
       pyth: {
         registry: '',
         registryCap: '',
@@ -316,42 +361,61 @@ const EMPTY_ADDRESSES: AddressesInterface = {
       ssui: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       scetus: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       ssca: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       swusdc: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       swusdt: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       sweth: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       safsui: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       shasui: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
       svsui: {
         coinType: '',
         treasury: '',
+        metaData: '',
+        symbol: '',
       },
     },
   },
 };
+
 /**
  * @description
  * It provides methods for managing addresses.
@@ -363,6 +427,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
  * await scallopAddress.<address async functions>();
  * ```
  */
+
 export class ScallopAddress {
   private readonly _auth?: string;
   private readonly _requestClient: AxiosInstance;
@@ -377,8 +442,8 @@ export class ScallopAddress {
     params: ScallopAddressParams,
     instance?: ScallopAddressInstanceParams
   ) {
-    const { id, auth, network, forceInterface } = params;
-    this.cache = instance?.cache ?? new ScallopCache({});
+    const { addressId, auth, network, forceAddressesInterface } = params;
+    this.cache = instance?.cache ?? new ScallopCache(params);
 
     this._requestClient = axios.create({
       baseURL: API_BASE_URL,
@@ -389,7 +454,8 @@ export class ScallopAddress {
       timeout: 8000,
     });
     if (auth) this._auth = auth;
-    this._id = id;
+
+    this._id = addressId;
     this._network = network ?? 'mainnet';
     this._addressesMap = USE_TEST_ADDRESS
       ? new Map([['mainnet', TEST_ADDRESSES]])
@@ -397,9 +463,9 @@ export class ScallopAddress {
     if (USE_TEST_ADDRESS) this._currentAddresses = TEST_ADDRESSES;
 
     // Set the addresses from the forceInterface if it is provided.
-    if (forceInterface) {
+    if (forceAddressesInterface) {
       for (const [network, addresses] of Object.entries<AddressesInterface>(
-        forceInterface
+        forceAddressesInterface
       )) {
         if (['localnet', 'devnet', 'testnet', 'mainnet'].includes(network)) {
           if (network === this._network) this._currentAddresses = addresses;
@@ -588,12 +654,12 @@ export class ScallopAddress {
    * @return All addresses.
    */
   public async read(id?: string) {
-    const addressesId = id || this._id || undefined;
-    if (addressesId !== undefined) {
+    const addressId = id || this._id || undefined;
+    if (addressId !== undefined) {
       const response = await this.cache.queryClient.fetchQuery({
-        queryKey: queryKeys.api.getAddresses(addressesId),
+        queryKey: queryKeys.api.getAddresses(addressId),
         queryFn: async () => {
-          return await this._requestClient.get(`/addresses/${addressesId}`, {
+          return await this._requestClient.get(`/addresses/${addressId}`, {
             headers: {
               'Content-Type': 'application/json',
             },

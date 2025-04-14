@@ -2,6 +2,142 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.12](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.11...v2.0.12) (2025-04-01)
+
+### Features
+
+- Add more strict rate limiter class in `ScallopCache`([c3eddb4](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/c3eddb44e721b336c2307c7cf362ef79ad1d5ce0))
+
+### [2.0.11](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.10...v2.0.11) (2025-03-31)
+
+### Bugfixes
+
+- Handle boolean values when parsing pool addresses values ([b713bb1](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/b713bb13d5aff02390cd8f80d8e520199197e9e2))
+
+### [2.0.10](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.9...v2.0.10) (2025-03-31)
+
+### Features
+
+- Add `isIsolated` to `PoolAddress` interface to ensure backward compatibility ([e62bc06](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/e62bc06637f6c1c992ad1687eb51e69903bb3262))
+
+### [2.0.9](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.8...v2.0.9) (2025-03-31)
+
+### Features
+
+- Add `emerging` to whitelist ([6900254](https://github.com/scallop-io/sui-scallop-sdk/pull/254/commits/6900254ce902351d730460ad3f9bec91f65d9262))
+
+### [2.0.8](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.7...v2.0.8) (2025-03-31)
+
+### Bugfixes
+
+- Add `walletAddress` as parameter ([535e381](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/535e3819e727b5407dbaf86bd233a951268342e2))
+
+### [2.0.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.6...v2.0.7) (2025-03-26)
+
+### Bugfixes
+
+- minor bug fixes ([aa59980](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/aa59980ab65032ce7d4892990ad941fa0c6f3959))
+
+### [2.0.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.5...v2.0.6) (2025-03-23)
+
+### Features
+
+- add `selectSCoinOrMarketCoin` function and use it on `withdrawQuick` ([e888676](https://github.com/scallop-io/sui-scallop-sdk/commit/e8886766ab865331e9a9467f27653c79c85413ac))
+
+### Bugfixes
+
+- fix `coinNameToOldMarketCoinTypeMap` logic ([0384be0](https://github.com/scallop-io/sui-scallop-sdk/commit/0384be08d764c9d3a5a0f9c41ea83d0a887385ff))
+- scallop cache init param ([87b4869](https://github.com/scallop-io/sui-scallop-sdk/commit/87b4869f063887168c9a1cbe35e95d8f95d5ae12))
+
+### [2.0.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.4...v2.0.5) (2025-03-21)
+
+### Features
+
+- fix lending pending rewards ([d084e41](https://github.com/scallop-io/sui-scallop-sdk/pull/249/commits/d084e41749085c63cba04df9bf31a41b0ad6af45))
+
+### [2.0.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.3...v2.0.4) (2025-03-20)
+
+### Features
+
+- add collateral details in portfolio query ([eef0a2e](https://github.com/scallop-io/sui-scallop-sdk/commit/eef0a2e9c73e97d62e56622575efdda0be49320f))
+
+### [2.0.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.2...v2.0.3) (2025-03-20)
+
+### Bug Fixes
+
+- update filter logic in getUserPortfolio to include accounts with positive totalDepositedValue ([9163326](https://github.com/scallop-io/sui-scallop-sdk/commit/916332600d51b9d3507586ca5b08fb425f6b864c))
+
+- make suiKit params optional ([c79890c](https://github.com/scallop-io/sui-scallop-sdk/pull/247/commits/c79890cc8d6a808e6b836dda37020187ba916476))
+
+### [2.0.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.1...v2.0.2) (2025-03-19)
+
+### [2.0.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.0...v2.0.1) (2025-03-18)
+
+### Features
+
+- Add `getScallopConstants` method ([972250c](https://github.com/scallop-io/sui-scallop-sdk/pull/244/commits/972250ccfd633c4e92dd341b3ed0496c55dd88ad))
+- Update README and add documentation for `ScallopConstants` ([51bfaf8](https://github.com/scallop-io/sui-scallop-sdk/pull/244/commits/51bfaf82a4d0be326f57f5506ebef51d04177019))
+
+### ⚠ BREAKING CHANGES
+
+Starting from `v2.0.0`, all constants in the Scallop SDK will be replaced by the `ScallopConstants` class. This class dynamically fetches necessary data from the API, allowing assets to be added or removed without requiring an SDK upgrade for each new pool.
+
+### [2.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.3...v2.0.0) (2025-03-17)
+
+### Features
+
+- Add `ScallopConstants` class
+- Adjust structure to use `ScallopConstants` class
+
+### [1.5.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.2...v1.5.3) (2025-03-03)
+
+### Features
+
+- Minor fix
+
+### [1.5.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.1...v1.5.2) (2025-03-03)
+
+### Features
+
+- Update address id to `675c65cd301dd817ea262e76` ([767c09f](https://github.com/scallop-io/sui-scallop-sdk/pull/232/commits/767c09f960f738e6f433f3f93646a6357004dbdf))
+
+### [1.5.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.0...v1.5.1) (2025-03-03)
+
+### Features
+
+- Allow to query oracle list on-chain ([a50e85c](https://github.com/scallop-io/sui-scallop-sdk/pull/240/commits/a50e85c8dd702c3af6109e1f41b67a8c7735b21f))
+
+### [1.5.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.27...v1.5.0) (2025-02-28)
+
+### ⚠ BREAKING CHANGES
+
+Starting from `v1.5.0`, Scallop SDK will use `xOracle V2`. Further development will continue from this version onward. Any version below this version is deprecated.
+
+### [1.4.27](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.26...v1.4.27) (2025-02-27)
+
+### Features
+
+- Fix available deposit / borrow calc
+
+### [1.4.26](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.25...v1.4.26) (2025-02-24)
+
+### Features
+
+- Add `usdy` pool
+
+### [1.4.25](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.24...v1.4.25) (2025-02-21)
+
+### Features
+
+- Add `ns` as isolated asset ([ed4c222](https://github.com/scallop-io/sui-scallop-sdk/pull/236/commits/ed4c2220f3eee780da7a37e324848c7fc409bb7b))
+
+### [1.4.24](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.23...v1.4.24) (2025-02-19)
+
+### Features
+
+- Add `mUSD` as isolated asset
+- Optimize build result
+
 ### [1.4.23](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.4.22...v1.4.23) (2025-02-08)
 
 ### Features

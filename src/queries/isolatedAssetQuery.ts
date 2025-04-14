@@ -1,8 +1,6 @@
 import { DynamicFieldInfo, DynamicFieldName } from '@mysten/sui/client';
-import { ScallopQuery, ScallopUtils } from 'src/models';
-import { SupportPoolCoins } from 'src/types';
+import { ScallopQuery, ScallopUtils } from '../models';
 import { z as zod } from 'zod';
-import { POOL_ADDRESSES, SUPPORT_POOLS } from 'src/constants';
 
 const isolatedAssetZod = zod.object({
   dataType: zod.string(),
@@ -28,14 +26,16 @@ const isolatedAssetKeyType = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da2
  * @returns list of isolated assets coin types
  */
 export const getIsolatedAssets = async (
-  query: ScallopQuery
+  query: ScallopQuery,
+  useOnChainQuery: boolean = false
 ): Promise<string[]> => {
-  if (SUPPORT_POOLS.every((t) => !!POOL_ADDRESSES[t])) {
-    return SUPPORT_POOLS.filter(
-      (t): t is typeof t & { coinType: string; isolatedAssetKey: string } =>
-        !!POOL_ADDRESSES[t]?.isolatedAssetKey && !!POOL_ADDRESSES[t]?.coinType
-    ).map((t) => POOL_ADDRESSES[t as SupportPoolCoins]?.coinType!);
+  if (!useOnChainQuery) {
+    return query.utils
+      .getSupportedPoolAddresses()
+      .filter((t) => !!t.isolatedAssetKey)
+      .map((t) => t.coinName);
   }
+
   try {
     const marketObject = query.address.get('core.market');
     const isolatedAssets: string[] = [];
@@ -86,10 +86,11 @@ export const getIsolatedAssets = async (
  */
 export const isIsolatedAsset = async (
   utils: ScallopUtils,
-  coinName: SupportPoolCoins
+  coinName: string
 ): Promise<boolean> => {
-  if (POOL_ADDRESSES[coinName]) {
-    return !!POOL_ADDRESSES[coinName].isolatedAssetKey;
+  const assetInPoolAddresses = utils.constants.poolAddresses[coinName];
+  if (assetInPoolAddresses) {
+    return assetInPoolAddresses.isIsolated;
   }
 
   const marketObject = utils.address.get('core.market');

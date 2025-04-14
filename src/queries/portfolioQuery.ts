@@ -1,14 +1,8 @@
 import BigNumber from 'bignumber.js';
-import {
-  SUPPORT_COLLATERALS,
-  SUPPORT_POOLS,
-  SUPPORT_SPOOLS,
-} from 'src/constants';
 import { minBigNumber, estimatedFactor } from 'src/utils';
 import type { ScallopQuery } from 'src/models';
 import type {
   Market,
-  SupportPoolCoins,
   MarketPool,
   Spool,
   StakeAccount,
@@ -16,16 +10,10 @@ import type {
   Lending,
   ObligationAccounts,
   ObligationAccount,
-  SupportStakeMarketCoins,
-  SupportCollateralCoins,
   CoinAmounts,
   CoinPrices,
-  SupportMarketCoins,
   TotalValueLocked,
-  SupportBorrowIncentiveCoins,
-  ObligationBorrowIcentiveReward,
-  SupportBorrowIncentiveRewardCoins,
-  SupportAssetCoins,
+  ObligationBorrowIncentiveReward,
   MarketPools,
   MarketCollaterals,
 } from 'src/types';
@@ -44,7 +32,7 @@ import { normalizeStructTag, SUI_TYPE_ARG } from '@scallop-io/sui-kit';
  */
 export const getLendings = async (
   query: ScallopQuery,
-  poolCoinNames: SupportPoolCoins[] = [...SUPPORT_POOLS],
+  poolCoinNames: string[] = [...query.constants.whitelist.lending],
   ownerAddress?: string,
   marketPools?: MarketPools,
   coinPrices?: CoinPrices,
@@ -54,8 +42,8 @@ export const getLendings = async (
     query.utils.parseMarketCoinName(poolCoinName)
   );
   const stakeMarketCoinNames = marketCoinNames.filter((marketCoinName) =>
-    (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName)
-  ) as SupportStakeMarketCoins[];
+    query.constants.whitelist.spool.has(marketCoinName)
+  ) as string[];
 
   coinPrices = coinPrices ?? (await query.utils.getCoinPrices());
   marketPools =
@@ -123,7 +111,7 @@ export const getLendings = async (
  */
 export const getLending = async (
   query: ScallopQuery,
-  poolCoinName: SupportPoolCoins,
+  poolCoinName: string,
   ownerAddress?: string,
   indexer: boolean = false,
   marketPool?: MarketPool,
@@ -149,9 +137,8 @@ export const getLending = async (
     throw new Error(`Failed to fetch marketPool for ${poolCoinName}`);
 
   spool =
-    (spool ??
-    (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName))
-      ? await query.getSpool(marketCoinName as SupportStakeMarketCoins, {
+    (spool ?? query.constants.whitelist.spool.has(marketCoinName))
+      ? await query.getSpool(marketCoinName as string, {
           indexer,
           marketPool,
           coinPrices: {
@@ -159,16 +146,10 @@ export const getLending = async (
           },
         })
       : undefined;
-  // some pool does not have spool
-  // if (!spool) throw new Error(`Failed to fetch spool for ${poolCoinName}`);
 
   stakeAccounts =
-    stakeAccounts ||
-    (SUPPORT_SPOOLS as readonly SupportMarketCoins[]).includes(marketCoinName)
-      ? await query.getStakeAccounts(
-          marketCoinName as SupportStakeMarketCoins,
-          ownerAddress
-        )
+    stakeAccounts || query.constants.whitelist.spool.has(marketCoinName)
+      ? await query.getStakeAccounts(marketCoinName as string, ownerAddress)
       : [];
   coinAmount =
     coinAmount || (await query.getCoinAmount(poolCoinName, ownerAddress));
@@ -375,18 +356,15 @@ export const getObligationAccount = async (
   coinPrices?: CoinPrices,
   coinAmounts?: CoinAmounts
 ) => {
-  const coinNames: SupportAssetCoins[] = Array.from(
-    new Set([...SUPPORT_POOLS, ...SUPPORT_COLLATERALS])
-  );
-  const collateralAssetCoinNames = [
-    ...SUPPORT_COLLATERALS,
-  ] as SupportCollateralCoins[];
-
   market = market ?? (await query.getMarketPools(undefined, { indexer }));
   coinPrices =
     coinPrices ?? (await query.getAllCoinPrices({ marketPools: market.pools }));
   coinAmounts =
-    coinAmounts ?? (await query.getCoinAmounts(coinNames, ownerAddress));
+    coinAmounts ??
+    (await query.getCoinAmounts(
+      Array.from(query.constants.whitelist.lending),
+      ownerAddress
+    ));
 
   const [obligationQuery, borrowIncentivePools, borrowIncentiveAccounts] =
     await Promise.all([
@@ -410,12 +388,13 @@ export const getObligationAccount = async (
   let totalBorrowedValue = BigNumber(0);
   let totalBorrowedValueWithWeight = BigNumber(0);
 
-  for (const assetCoinName of collateralAssetCoinNames) {
+  for (const assetCoinName of Array.from(
+    query.constants.whitelist.collateral
+  )) {
     const collateral = obligationQuery?.collaterals.find((collateral) => {
-      const collateralCoinName =
-        query.utils.parseCoinNameFromType<SupportCollateralCoins>(
-          collateral.type.name
-        );
+      const collateralCoinName = query.utils.parseCoinNameFromType(
+        collateral.type.name
+      );
       return assetCoinName === collateralCoinName;
     });
 
@@ -435,13 +414,11 @@ export const getObligationAccount = async (
         marketCollateral.liquidationFactor
       );
 
-      const poolSizeAmount = BigNumber(marketCollateral.maxDepositAmount).minus(
-        marketCollateral.depositAmount
-      );
-      const availableDepositAmount = minBigNumber(
-        BigNumber(coinAmount),
-        poolSizeAmount
-      );
+      // const poolSizeAmount = BigNumber(marketCollateral.maxDepositAmount).minus(
+      //   marketCollateral.depositAmount
+      // );
+
+      const availableDepositAmount = BigNumber(coinAmount);
       const availableDepositCoin = availableDepositAmount.shiftedBy(
         -1 * coinDecimal
       );
@@ -476,15 +453,17 @@ export const getObligationAccount = async (
     }
   }
 
-  const borrowAssetCoinNames: SupportPoolCoins[] = [
-    ...new Set([...Object.values(market.pools).map((pool) => pool.coinName)]),
+  const borrowAssetCoinNames: string[] = [
+    ...new Set([
+      ...Object.values(market.pools)
+        .filter((t) => !!t)
+        .map((pool) => pool.coinName),
+    ]),
   ];
 
   for (const assetCoinName of borrowAssetCoinNames) {
     const debt = obligationQuery?.debts.find((debt) => {
-      const poolCoinName = query.utils.parseCoinNameFromType<SupportPoolCoins>(
-        debt.type.name
-      );
+      const poolCoinName = query.utils.parseCoinNameFromType(debt.type.name);
       return assetCoinName === poolCoinName;
     });
 
@@ -548,17 +527,18 @@ export const getObligationAccount = async (
   for (const [poolCoinName, borrowIncentiveAccount] of Object.entries(
     borrowIncentiveAccounts
   )) {
-    const coinName = poolCoinName as SupportBorrowIncentiveCoins;
+    if (!borrowIncentiveAccount) continue;
+
+    const coinName = poolCoinName as string;
     const borrowIncentivePool = borrowIncentivePools[coinName];
     if (borrowIncentivePool) {
-      const rewards: ObligationBorrowIcentiveReward[] = [];
+      const rewards: ObligationBorrowIncentiveReward[] = [];
       Object.entries(borrowIncentiveAccount.pointList).forEach(
         ([key, accountPoint]) => {
           const poolPoint =
             borrowIncentivePool.points[
               query.utils.parseSCoinTypeNameToMarketCoinName(key)
             ];
-
           if (accountPoint && poolPoint) {
             let availableClaimAmount = BigNumber(0);
             let availableClaimCoin = BigNumber(0);
@@ -601,11 +581,6 @@ export const getObligationAccount = async (
                   .toNumber()
               : 1;
 
-            // console.log({
-            //   availableClaimAmount: availableClaimAmount.toString(),
-            //   coinName: poolPoint.coinName,
-            //   coinType: poolPoint.coinType,
-            // });
             if (availableClaimAmount.isGreaterThanOrEqualTo(0)) {
               rewards.push({
                 coinName: poolPoint.coinName,
@@ -613,6 +588,7 @@ export const getObligationAccount = async (
                 symbol: poolPoint.symbol,
                 coinDecimal: poolPoint.coinDecimal,
                 coinPrice: poolPoint.coinPrice,
+                weightedBorrowAmount: accountBorrowedAmount.toNumber(),
                 availableClaimAmount: availableClaimAmount.toNumber(),
                 availableClaimCoin: availableClaimCoin.toNumber(),
                 boostValue,
@@ -625,9 +601,7 @@ export const getObligationAccount = async (
       if (
         Object.keys(borrowIncentivePool.points).some((coinName: any) => {
           const rewardApr =
-            borrowIncentivePool.points[
-              coinName as SupportBorrowIncentiveRewardCoins
-            ]?.rewardApr;
+            borrowIncentivePool.points[coinName as string]?.rewardApr;
           return (
             rewardApr !== Infinity &&
             typeof rewardApr == 'number' &&
@@ -708,8 +682,8 @@ export const getObligationAccount = async (
   for (const [collateralCoinName, obligationCollateral] of Object.entries(
     obligationAccount.collaterals
   )) {
-    const marketCollateral =
-      market.collaterals[collateralCoinName as SupportCollateralCoins];
+    if (!obligationCollateral) continue;
+    const marketCollateral = market.collaterals[collateralCoinName as string];
     if (marketCollateral) {
       let estimatedAvailableWithdrawAmount = BigNumber(
         obligationAccount.totalAvailableCollateralValue
@@ -748,7 +722,8 @@ export const getObligationAccount = async (
   for (const [poolCoinName, obligationDebt] of Object.entries(
     obligationAccount.debts
   )) {
-    const marketPool = market.pools[poolCoinName as SupportPoolCoins];
+    if (!obligationDebt) continue;
+    const marketPool = market.pools[poolCoinName as string];
     if (marketPool) {
       const estimatedRequiredRepayAmount = BigNumber(
         obligationDebt.requiredRepayAmount
@@ -766,7 +741,8 @@ export const getObligationAccount = async (
         .shiftedBy(marketPool.coinDecimal)
         .dividedBy(marketPool.coinPrice);
       estimatedAvailableBorrowAmount =
-        obligationAccount.totalAvailableCollateralValue !== 0
+        obligationAccount.totalAvailableCollateralValue !== 0 &&
+        BigNumber(marketPool.maxBorrowCoin).isGreaterThan(marketPool.borrowCoin)
           ? minBigNumber(
               estimatedAvailableBorrowAmount
                 // Note: reduced chance of failure when calculations are inaccurate
@@ -837,6 +813,7 @@ export const getTotalValueLocked = async (
   }
 
   for (const pool of Object.values(market.pools)) {
+    if (!pool) continue;
     supplyLendingValue = supplyLendingValue.plus(
       BigNumber(pool.supplyCoin).multipliedBy(pool.coinPrice)
     );
@@ -847,6 +824,7 @@ export const getTotalValueLocked = async (
 
   // console.dir(market.collaterals, { depth: null });
   for (const collateral of Object.values(market.collaterals)) {
+    if (!collateral) continue;
     supplyCollateralValue = supplyCollateralValue.plus(
       BigNumber(collateral.depositCoin).multipliedBy(collateral.coinPrice)
     );
@@ -874,7 +852,7 @@ export const getUserPortfolio = async (
   walletAddress: string,
   indexer: boolean = false
 ) => {
-  const coinPrices = await query.utils.getCoinPrices();
+  const coinPrices = await query.getAllCoinPrices({ indexer });
   const market = await query.getMarketPools(undefined, { indexer, coinPrices });
 
   const [lendings, obligationAccounts, borrowIncentivePools, veScas] =
@@ -898,7 +876,9 @@ export const getUserPortfolio = async (
 
   // get pending rewards (spool and borrow incentive)
   const parsedLendings = Object.values(lendings)
-    .filter((t) => t.availableWithdrawCoin > 0)
+    .filter(
+      (t): t is NonNullable<typeof t> => !!t && t.availableWithdrawCoin > 0
+    )
     .map((lending) => ({
       suppliedCoin: lending.availableWithdrawCoin,
       suppliedValue: lending.suppliedValue,
@@ -916,7 +896,7 @@ export const getUserPortfolio = async (
   const parsedObligationAccounts = Object.values(obligationAccounts)
     .filter(
       (t): t is NonNullable<typeof t> =>
-        !!t && t.totalBorrowedValueWithWeight > 0
+        !!t && (t.totalBorrowedValueWithWeight > 0 || t.totalDepositedValue > 0)
     )
     .map((obligationAccount) => {
       return {
@@ -928,8 +908,25 @@ export const getUserPortfolio = async (
           obligationAccount.totalAvailableCollateralValue,
         totalUnhealthyCollateralInUsd:
           obligationAccount.totalUnhealthyCollateralValue,
+        collaterals: Object.values(obligationAccount.collaterals)
+          .filter(
+            (collateral): collateral is NonNullable<typeof collateral> =>
+              !!collateral && collateral.depositedCoin > 0
+          )
+          .map((collateral) => ({
+            coinName: collateral.coinName,
+            symbol: collateral.symbol,
+            coinDecimals: collateral.coinDecimal,
+            coinType: collateral.coinType,
+            coinPrice: collateral.coinPrice,
+            depositedCoin: collateral.depositedCoin,
+            depositedValueInUsd: collateral.depositedValue,
+          })),
         borrowedPools: Object.values(obligationAccount.debts)
-          .filter((debt) => debt.borrowedCoin > 0)
+          .filter(
+            (debt): debt is NonNullable<typeof debt> =>
+              !!debt && debt.borrowedCoin > 0
+          )
           .map((debt) => ({
             coinName: debt.coinName,
             symbol: debt.symbol,
@@ -943,7 +940,9 @@ export const getUserPortfolio = async (
             incentiveInfos: Object.values(
               borrowIncentivePools[debt.coinName]?.points ?? {}
             )
-              .filter((t) => isFinite(t.rewardApr))
+              .filter(
+                (t): t is NonNullable<typeof t> => !!t && isFinite(t.rewardApr)
+              )
               .map((t) => ({
                 coinName: t.coinName,
                 symbol: t.symbol,
@@ -954,18 +953,23 @@ export const getUserPortfolio = async (
       };
     });
 
+  const LENDING_SPOOL_REWARD_COIN_NAME = 'sui' as const;
+  const LENDING_SPOOL_REWARD_COIN_SYMBOL = 'SUI' as const;
   const pendingLendingRewards = Object.values(lendings).reduce(
     (acc, reward) => {
-      if (reward.availableClaimCoin === 0) return acc;
-      if (!acc[reward.symbol]) {
-        acc[reward.symbol] = {
-          symbol: reward.symbol,
-          coinType: normalizeStructTag(SUI_TYPE_ARG), // @TODO: for now lending reward is all in SUI
-          coinPrice: reward.coinPrice,
-          pendingRewardInCoin: reward.availableClaimCoin,
-        };
-      } else {
-        acc[reward.symbol].pendingRewardInCoin += reward.availableClaimCoin;
+      if (reward) {
+        if (reward.availableClaimCoin === 0) return acc;
+        if (!acc[LENDING_SPOOL_REWARD_COIN_NAME]) {
+          acc[LENDING_SPOOL_REWARD_COIN_NAME] = {
+            symbol: LENDING_SPOOL_REWARD_COIN_SYMBOL,
+            coinType: normalizeStructTag(SUI_TYPE_ARG), // @TODO: for now lending reward is all in SUI
+            coinPrice: coinPrices[LENDING_SPOOL_REWARD_COIN_NAME] ?? 0,
+            pendingRewardInCoin: reward.availableClaimCoin,
+          };
+        } else {
+          acc[LENDING_SPOOL_REWARD_COIN_NAME].pendingRewardInCoin +=
+            reward.availableClaimCoin;
+        }
       }
       return acc;
     },
@@ -985,7 +989,7 @@ export const getUserPortfolio = async (
     .reduce(
       (acc, curr) => {
         Object.values(curr.borrowIncentives).forEach((incentive) => {
-          incentive.rewards.forEach((reward) => {
+          incentive?.rewards.forEach((reward) => {
             if (reward.availableClaimCoin === 0) return acc;
             if (!acc[reward.coinName]) {
               acc[reward.coinName] = {
@@ -1053,10 +1057,10 @@ export const getUserPortfolio = async (
     borrowings: parsedObligationAccounts,
     pendingRewards: {
       lendings: Object.entries(pendingLendingRewards).reduce(
-        (acc, [key, value]) => {
+        (acc, [_, value]) => {
           acc.push({
             ...value,
-            coinName: key,
+            coinName: 'sui',
             pendingRewardInUsd: value.coinPrice * value.pendingRewardInCoin,
           });
           return acc;

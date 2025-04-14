@@ -1,8 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 import { describe, it, expect } from 'vitest';
-import { assetCoins } from 'src/';
 import type { Transaction } from '@scallop-io/sui-kit';
-import type { SupportStakeMarketCoins } from 'src/';
 import { scallopSDK } from './scallopSdk';
 
 const ENABLE_LOG = false;
@@ -288,9 +286,9 @@ describe('Test Scallop Client - Other Method', async () => {
 
   it('Should supply and stake successful', async () => {
     const sender = client.walletAddress;
-    const coinName = assetCoins.sui;
-    const stakeMarketCoinName =
-      utils.parseMarketCoinName<SupportStakeMarketCoins>(coinName); // sSui.
+    const coinName = utils.constants.coinTypes.sui;
+    if (!coinName) throw new Error('Coin name not found');
+    const stakeMarketCoinName = utils.parseMarketCoinName<string>(coinName); // sSui.
 
     const stakeAccounts = await query.getStakeAccounts(stakeMarketCoinName);
 
@@ -331,9 +329,9 @@ describe('Test Scallop Client - Other Method', async () => {
 
   it('Should withdraw and unstake successful', async () => {
     const sender = client.walletAddress;
-    const coinName = assetCoins.sui;
-    const stakeMarketCoinName =
-      utils.parseMarketCoinName<SupportStakeMarketCoins>(coinName); // sSui.
+    const coinName = utils.constants.coinTypes.sui;
+    if (!coinName) throw new Error('Coin name not found');
+    const stakeMarketCoinName = utils.parseMarketCoinName<string>(coinName); // sSui.
 
     const marketPool = await query.getMarketPool(coinName);
     const stakeAccounts = await query.getStakeAccounts(stakeMarketCoinName);
@@ -409,7 +407,7 @@ describe('Test Scallop Client - Other Method', async () => {
         txBlock.transferObjects(txObjects, sender);
         transactionBlock = txBlock.txBlock;
       } else {
-        // dereactly witdhdraw.
+        // directly witdhdraw.
         transactionBlock = await client.withdraw(
           coinName,
           withdrawAmountWithDecimals,

@@ -9,11 +9,13 @@ import type { SuiObjectArg, SuiTxArg } from '@scallop-io/sui-kit';
 
 export const queryKeys = {
   api: {
-    getAddresses: (addressesId?: string) => [
+    getAddresses: (addressId?: string) => [
       'api',
       'getAddresses',
-      { addressesId },
+      { addressId },
     ],
+    getWhiteList: () => ['api', 'getWhiteList'],
+    getPoolAddresses: () => ['api', 'getPoolAddresses'],
     getMarket: () => ['api', 'getMarket'],
     getSpools: () => ['api', 'getSpools'],
     getBorrowIncentivePool: () => ['api', 'getBorrowIncentivePools'],
