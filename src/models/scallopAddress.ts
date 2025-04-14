@@ -335,6 +335,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     table: '',
     treasury: '',
     config: '',
+    subsTable: '',
+    subsTableId: '',
+    subsWhitelist: '',
   },
   referral: {
     id: '',
