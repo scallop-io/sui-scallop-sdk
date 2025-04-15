@@ -75,14 +75,14 @@ export const isInSubsTable = async (
 ) => {
   const [builder, veScaKey, tableId] = params;
   try {
-    const _resp = await builder.cache.queryGetDynamicFieldObject({
+    const resp = await builder.cache.queryGetDynamicFieldObject({
       parentId: tableId,
       name: {
         type: '0x2::object::ID',
         value: veScaKey,
       },
     });
-    return true;
+    return !!resp?.data;
   } catch (e) {
     console.error(e);
     return false;
@@ -433,9 +433,8 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       }
 
       const newVeScaKey = txBlock.splitVeSca(veScaKey, splitAmount);
-      // txBlock.addMergeSplitSub(newVeScaKey);
       if (transferVeScaKey) {
-        txBlock.transferObjects(newVeScaKey, requireSender(txBlock));
+        txBlock.transferObjects([newVeScaKey], requireSender(txBlock));
         return;
       } else {
         return newVeScaKey as QuickMethodReturnType<S>;
@@ -447,14 +446,16 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         isInSubsTable(
           builder,
           targetKey,
-          builder.address.get('vesca.subsTable')
+          builder.address.get('vesca.subsTableId')
         ),
         isInSubsTable(
           builder,
           sourceKey,
-          builder.address.get('vesca.subsTable')
+          builder.address.get('vesca.subsTableId')
         ),
       ]);
+
+      console.log({ isTargetInSubTable, isSourceInSubTable });
 
       if (isTargetInSubTable || isSourceInSubTable) {
         throw new Error(
