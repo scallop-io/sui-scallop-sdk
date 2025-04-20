@@ -426,7 +426,16 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         veScaKey,
         builder.address.get('vesca.subsTable')
       );
-      if (isKeyInSubTable) {
+
+      const unstakeObligationBeforeStake =
+        !!txBlock.txBlock.blockData.transactions.find(
+          (txn) =>
+            txn.kind === 'MoveCall' &&
+            txn.target ===
+              `${builder.address.get('borrowIncentive.id')}::user::unstake_v2`
+        );
+
+      if (isKeyInSubTable && !unstakeObligationBeforeStake) {
         throw new Error(
           'Key cannot be in the subs table, please call unsubscribe vesca or unstake obligation first'
         );
@@ -455,9 +464,18 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         ),
       ]);
 
-      console.log({ isTargetInSubTable, isSourceInSubTable });
+      const unstakeObligationBeforeStake =
+        !!txBlock.txBlock.blockData.transactions.find(
+          (txn) =>
+            txn.kind === 'MoveCall' &&
+            txn.target ===
+              `${builder.address.get('borrowIncentive.id')}::user::unstake_v2`
+        );
 
-      if (isTargetInSubTable || isSourceInSubTable) {
+      if (
+        (isTargetInSubTable || isSourceInSubTable) &&
+        !unstakeObligationBeforeStake
+      ) {
         throw new Error(
           'Both target and source cannot be in the subs table. Please call unsubscribe vesca or unstake obligation first'
         );

@@ -224,7 +224,9 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
               (txn.target ===
                 `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
                 txn.target ===
-                  `${builder.address.get('borrowIncentive.id')}::user::unstake_v2`)
+                  `${builder.address.get('borrowIncentive.id')}::user::unstake_v2` ||
+                txn.target ===
+                  `${builder.address.get('borrowIncentive.id')}::user::unstake`)
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
@@ -254,7 +256,9 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
               (txn.target ===
                 `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
                 txn.target ===
-                  `${builder.address.get('borrowIncentive.id')}::user::unstake_v2`)
+                  `${builder.address.get('borrowIncentive.id')}::user::unstake_v2` ||
+                txn.target ===
+                  `${builder.address.get('borrowIncentive.id')}::user::unstake`)
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
