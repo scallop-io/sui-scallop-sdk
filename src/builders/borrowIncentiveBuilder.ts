@@ -183,6 +183,8 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
             borrowIncentiveIds.incentiveAccounts,
             obligation,
             veScaKey,
+            builder.address.get('vesca.subsTable'),
+            builder.address.get('vesca.subsWhitelist'),
             clockObjectRef,
           ]
         );
