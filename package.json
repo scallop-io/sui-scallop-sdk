@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-scallop-sdk",
-  "version": "2.0.13-merge-split-ve-sca-alpha.4",
+  "version": "2.0.13-merge-split-ve-sca-alpha.5",
   "description": "Typescript sdk for interacting with Scallop contract on SUI",
   "keywords": [
     "sui",
