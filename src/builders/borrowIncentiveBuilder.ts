@@ -176,7 +176,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
       deactivateBoost: (obligation, veScaKey) => {
         builder.moveCall(
           txBlock,
-          `${borrowIncentiveIds.borrowIncentivePkg}::user::deactivate_boost`,
+          `${borrowIncentiveIds.borrowIncentivePkg}::user::deactivate_boost_v2`,
           [
             borrowIncentiveIds.config,
             borrowIncentiveIds.incentivePools,
