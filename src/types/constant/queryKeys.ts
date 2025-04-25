@@ -39,7 +39,7 @@ export namespace QueryKeys {
       vescaAmountArgs?: (string | SuiObjectData | SuiTxArg)[];
     };
     export type GetAllCoinBalances = BaseType & {
-      owner?: string;
+      activeAddress?: string;
     };
     export type GetNormalizedMoveFunction = BaseType & {
       target?: string;
