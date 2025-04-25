@@ -16,20 +16,10 @@ export const queryKeys = {
   },
 
   rpc: {
-    getInspectTxn: ({
-      args,
-      queryTarget,
-      typeArgs,
-      node,
-    }: QueryKeys.RPC.GetInspectTxn) => [
+    getInspectTxn: (props?: QueryKeys.RPC.GetInspectTxn) => [
       'rpc',
       'getInspectTxn',
-      {
-        queryTarget,
-        args: JSON.stringify(args),
-        typeArgs: !typeArgs ? undefined : JSON.stringify(typeArgs),
-        node,
-      },
+      props,
     ],
     getObject: (props?: QueryKeys.RPC.GetObject) => ['rpc', 'getObject', props],
     getObjects: (props?: QueryKeys.RPC.GetObjects) => [

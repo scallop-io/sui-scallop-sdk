@@ -431,7 +431,7 @@ export class ScallopCache {
   ): Promise<{ [k: string]: CoinBalance }> {
     return this.queryClient.fetchQuery({
       queryKey: queryKeys.rpc.getAllCoinBalances({
-        owner,
+        activeAddress: owner,
         node: this.suiKit.suiInteractor.fullNodes[0],
       }),
       queryFn: async () => {
