@@ -15,7 +15,7 @@ export namespace QueryKeys {
   }
   export namespace RPC {
     type BaseType = {
-      node: string;
+      node?: string;
     };
 
     export type GetInspectTxn = BaseType & {
