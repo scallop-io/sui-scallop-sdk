@@ -212,7 +212,12 @@ export class ScallopCache {
     txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
 
     const query = await this.queryClient.fetchQuery({
-      queryKey: queryKeys.rpc.getInspectTxn(queryTarget, args, typeArgs),
+      queryKey: queryKeys.rpc.getInspectTxn({
+        queryTarget,
+        args,
+        typeArgs,
+        node: this.suiKit.suiInteractor.fullNodes[0],
+      }),
       queryFn: async () => {
         return await this.limiter.execute(() =>
           this.suiKit.inspectTxn(txBlock)
@@ -225,7 +230,10 @@ export class ScallopCache {
   private async queryGetNormalizedMoveFunction(target: string) {
     const { address, module, name } = parseStructTag(target);
     return this.queryClient.fetchQuery({
-      queryKey: queryKeys.rpc.getNormalizedMoveFunction(target),
+      queryKey: queryKeys.rpc.getNormalizedMoveFunction({
+        target,
+        node: this.suiKit.suiInteractor.fullNodes[0],
+      }),
       queryFn: async () => {
         return await this.limiter.execute(() =>
           this.client.getNormalizedMoveFunction({
@@ -255,7 +263,11 @@ export class ScallopCache {
       showType: true,
     };
     return this.queryClient.fetchQuery({
-      queryKey: queryKeys.rpc.getObject(objectId, options),
+      queryKey: queryKeys.rpc.getObject({
+        objectId,
+        options,
+        node: this.suiKit.suiInteractor.fullNodes[0],
+      }),
       queryFn: async () => {
         return await this.limiter.execute(() =>
           this.client.getObject({
@@ -281,7 +293,10 @@ export class ScallopCache {
     };
 
     return this.queryClient.fetchQuery({
-      queryKey: queryKeys.rpc.getObjects(objectIds),
+      queryKey: queryKeys.rpc.getObjects({
+        objectIds,
+        node: this.suiKit.suiInteractor.fullNodes[0],
+      }),
       queryFn: async () => {
         const results = await this.limiter.execute(() =>
           this.suiKit.getObjects(objectIds, options)
@@ -289,7 +304,10 @@ export class ScallopCache {
         if (results) {
           results.forEach((result) => {
             // fetch previous data
-            const queryKey = queryKeys.rpc.getObject(result.objectId);
+            const queryKey = queryKeys.rpc.getObject({
+              objectId: result.objectId,
+              node: this.suiKit.suiInteractor.fullNodes[0],
+            });
             const prevDatas =
               this.queryClient.getQueriesData<SuiObjectResponse>({
                 exact: false,
@@ -317,7 +335,10 @@ export class ScallopCache {
   public async queryGetOwnedObjects(input: GetOwnedObjectsParams) {
     // @TODO: This query need its own separate rate limiter (as owned objects can theoretically be infinite), need a better way to handle this
     return this.queryClient.fetchQuery({
-      queryKey: queryKeys.rpc.getOwnedObjects(input),
+      queryKey: queryKeys.rpc.getOwnedObjects({
+        ...input,
+        node: this.suiKit.suiInteractor.fullNodes[0],
+      }),
       queryFn: async () => {
         const results = await this.limiter.execute(() =>
           this.client.getOwnedObjects(input)
@@ -332,7 +353,10 @@ export class ScallopCache {
             )
             .forEach((result) => {
               // fetch previous data
-              const queryKey = queryKeys.rpc.getObject(result.data.objectId);
+              const queryKey = queryKeys.rpc.getObject({
+                objectId: result.data.objectId,
+                node: this.suiKit.suiInteractor.fullNodes[0],
+              });
               const prevDatas =
                 this.queryClient.getQueriesData<SuiObjectResponse>({
                   exact: false,
@@ -356,7 +380,10 @@ export class ScallopCache {
     input: GetDynamicFieldsParams
   ): Promise<DynamicFieldPage | null> {
     return this.queryClient.fetchQuery({
-      queryKey: queryKeys.rpc.getDynamicFields(input),
+      queryKey: queryKeys.rpc.getDynamicFields({
+        ...input,
+        node: this.suiKit.suiInteractor.fullNodes[0],
+      }),
       queryFn: async () => {
         return await this.limiter.execute(() =>
           this.client.getDynamicFields(input)
@@ -369,13 +396,19 @@ export class ScallopCache {
     input: GetDynamicFieldObjectParams
   ): Promise<SuiObjectResponse | null> {
     return this.queryClient.fetchQuery({
-      queryKey: queryKeys.rpc.getDynamicFieldObject(input),
+      queryKey: queryKeys.rpc.getDynamicFieldObject({
+        ...input,
+        node: this.suiKit.suiInteractor.fullNodes[0],
+      }),
       queryFn: async () => {
         const result = await this.limiter.execute(() =>
           this.client.getDynamicFieldObject(input)
         );
         if (result?.data) {
-          const queryKey = queryKeys.rpc.getObject(result.data.objectId);
+          const queryKey = queryKeys.rpc.getObject({
+            objectId: result.data.objectId,
+            node: this.suiKit.suiInteractor.fullNodes[0],
+          });
           const prevDatas = this.queryClient.getQueriesData<SuiObjectResponse>({
             exact: false,
             queryKey,
@@ -397,7 +430,10 @@ export class ScallopCache {
     owner: string
   ): Promise<{ [k: string]: CoinBalance }> {
     return this.queryClient.fetchQuery({
-      queryKey: queryKeys.rpc.getAllCoinBalances(owner),
+      queryKey: queryKeys.rpc.getAllCoinBalances({
+        owner,
+        node: this.suiKit.suiInteractor.fullNodes[0],
+      }),
       queryFn: async () => {
         const allBalances = await this.limiter.execute(() =>
           this.client.getAllBalances({ owner })
