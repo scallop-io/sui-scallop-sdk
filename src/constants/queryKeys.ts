@@ -1,18 +1,11 @@
-import type {
-  GetDynamicFieldObjectParams,
-  GetDynamicFieldsParams,
-  GetOwnedObjectsParams,
-  SuiObjectData,
-  SuiObjectDataOptions,
-} from '@mysten/sui/client';
-import type { SuiObjectArg, SuiTxArg } from '@scallop-io/sui-kit';
+import { QueryKeys } from 'src/types/constant/queryKeys';
 
 export const queryKeys = {
   api: {
-    getAddresses: (addressId?: string) => [
+    getAddresses: (props?: QueryKeys.API.GetAddresses) => [
       'api',
       'getAddresses',
-      { addressId },
+      props,
     ],
     getWhiteList: () => ['api', 'getWhiteList'],
     getPoolAddresses: () => ['api', 'getPoolAddresses'],
@@ -23,79 +16,71 @@ export const queryKeys = {
   },
 
   rpc: {
-    getInspectTxn: (
-      queryTarget?: string,
-      args?: SuiObjectArg[],
-      typeArgs?: any[]
-    ) => [
+    getInspectTxn: ({
+      args,
+      queryTarget,
+      typeArgs,
+      node,
+    }: QueryKeys.RPC.GetInspectTxn) => [
       'rpc',
       'getInspectTxn',
       {
         queryTarget,
         args: JSON.stringify(args),
         typeArgs: !typeArgs ? undefined : JSON.stringify(typeArgs),
+        node,
       },
     ],
-    getObject: (objectId?: string, options?: SuiObjectDataOptions) => [
-      'rpc',
-      'getObject',
-      { objectId, options },
-    ],
-    getObjects: (objectIds?: string[]) => [
+    getObject: (props?: QueryKeys.RPC.GetObject) => ['rpc', 'getObject', props],
+    getObjects: (props?: QueryKeys.RPC.GetObjects) => [
       'rpc',
       'getObjects',
-      {
-        objectIds: JSON.stringify(objectIds ?? undefined),
-      },
+      props,
     ],
-    getOwnedObjects: (input?: Partial<GetOwnedObjectsParams>) => [
+    getOwnedObjects: (props?: QueryKeys.RPC.GetOwnedObjects) => [
       'rpc',
       'getOwnedObjects',
       {
-        walletAddress: input?.owner,
-        cursor: input?.cursor ?? undefined,
-        options: input?.options ?? undefined,
-        filter: JSON.stringify(input?.filter ?? undefined),
-        limit: input?.limit ?? undefined,
+        ...props,
+        filter: JSON.stringify(props?.filter ?? undefined),
       },
     ],
-    getDynamicFields: (input?: Partial<GetDynamicFieldsParams>) => [
+    getDynamicFields: (props?: QueryKeys.RPC.GetDynamicFields) => [
       'rpc',
       'getDynamicFields',
-      {
-        parentId: input?.parentId,
-        cursor: input?.cursor ?? undefined,
-        limit: input?.limit ?? undefined,
-      },
+      props,
     ],
-    getDynamicFieldObject: (input?: Partial<GetDynamicFieldObjectParams>) => [
+    getDynamicFieldObject: (props?: QueryKeys.RPC.GetDynamicFieldObject) => [
       'rpc',
       'getDynamicFieldObject',
-      {
-        parentId: input?.parentId,
-        name: JSON.stringify(input?.name ?? undefined),
-      },
+      props,
     ],
     getTotalVeScaTreasuryAmount: (
-      refreshArgs?: any[],
-      vescaAmountArgs?: (string | SuiObjectData | SuiTxArg)[]
+      props?: QueryKeys.RPC.getTotalVeScaTreasuryAmount
     ) => [
       'rpc',
       'getTotalVeScaTreasuryAmount',
       {
-        refreshArgs: JSON.stringify(refreshArgs),
-        vescaAmountArgs: JSON.stringify(vescaAmountArgs),
+        ...props,
+        refreshArgs: props?.refreshArgs
+          ? JSON.stringify(props?.refreshArgs)
+          : undefined,
+        vescaAmountArgs: props?.vescaAmountArgs
+          ? JSON.stringify(props?.vescaAmountArgs)
+          : undefined,
       },
     ],
 
-    getAllCoinBalances: (owner?: string) => [
+    getAllCoinBalances: (props?: QueryKeys.RPC.GetAllCoinBalances) => [
       'rpc',
       'getAllCoinBalances',
-      { owner },
+      props,
     ],
 
-    getNormalizedMoveFunction: (target?: string) => {
-      return ['rpc', 'getNormalizedMoveCall', target];
+    getNormalizedMoveFunction: (
+      props?: QueryKeys.RPC.GetNormalizedMoveFunction
+    ) => {
+      return ['rpc', 'getNormalizedMoveCall', props];
     },
   },
   oracle: {

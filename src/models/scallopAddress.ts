@@ -657,7 +657,7 @@ export class ScallopAddress {
     const addressId = id || this._id || undefined;
     if (addressId !== undefined) {
       const response = await this.cache.queryClient.fetchQuery({
-        queryKey: queryKeys.api.getAddresses(addressId),
+        queryKey: queryKeys.api.getAddresses({ addressId }),
         queryFn: async () => {
           return await this._requestClient.get(`/addresses/${addressId}`, {
             headers: {
