@@ -107,8 +107,7 @@ const createVeScasForMergeSplit = async () => {
   if (coins.length > 1) {
     tx.mergeCoins(merged, coins.slice(1));
   }
-  const [scaCoin1] = tx.splitCoins(merged, [lockAmount]);
-  const [scaCoin2] = tx.splitCoins(merged, [lockAmount]);
+  const [scaCoin1, scaCoin2] = tx.splitCoins(merged, [lockAmount, lockAmount]);
 
   const veScaKey1 = tx.lockSca(scaCoin1, newUnlockAt);
   const veScaKey2 = tx.lockSca(scaCoin2, newUnlockAt);
@@ -964,12 +963,14 @@ describe('Test Scallop VeSca Builder', () => {
   });
 
   it('"mergeVeSca" should succeed', async () => {
+    console.log('Hadir');
     const {
       tx,
       veScaKey1: targetKey,
       veScaKey2: sourceKey,
     } = await createVeScasForMergeSplit();
     tx.mergeVeSca(targetKey, sourceKey);
+    console.log({ targetKey, sourceKey });
     const mergeVeScaResult = await scallopBuilder.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('MergeVeScaResult:', mergeVeScaResult.effects.status.error);
