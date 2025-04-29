@@ -1,8 +1,8 @@
 import { SuiObjectData } from '@mysten/sui/client';
-import type { ScallopAddress, ScallopQuery } from '../models';
+import { ScallopConstants } from 'src/models';
+import type { ScallopQuery, ScallopSuiKit } from 'src/models';
 import type { CoinPrices, MarketPools, OptionalKeys } from '../types';
 import BigNumber from 'bignumber.js';
-import { ScallopConstants } from 'src/models/scallopConstants';
 
 /**
  * Get price from pyth fee object.
@@ -13,19 +13,21 @@ import { ScallopConstants } from 'src/models/scallopConstants';
  */
 export const getPythPrice = async (
   {
-    address,
+    constants,
+    scallopSuiKit,
   }: {
-    address: ScallopAddress;
+    constants: ScallopConstants;
+    scallopSuiKit: ScallopSuiKit;
   },
   assetCoinName: string,
   priceFeedObject?: SuiObjectData | null
 ) => {
-  const pythFeedObjectId = address.get(
+  const pythFeedObjectId = constants.get(
     `core.coins.${assetCoinName}.oracle.pyth.feedObject`
   );
   priceFeedObject =
     priceFeedObject ||
-    (await address.cache.queryGetObject(pythFeedObjectId))?.data;
+    (await scallopSuiKit.queryGetObject(pythFeedObjectId))?.data;
 
   if (priceFeedObject) {
     const priceFeedPoolObject = priceFeedObject;
@@ -65,14 +67,16 @@ export const getPythPrice = async (
 export const getPythPrices = async (
   {
     constants,
+    scallopSuiKit,
   }: {
     constants: ScallopConstants;
+    scallopSuiKit: ScallopSuiKit;
   },
   assetCoinNames: string[]
 ) => {
   const pythPriceFeedIds = assetCoinNames.reduce(
     (prev, assetCoinName) => {
-      const pythPriceFeed = constants.address.get(
+      const pythPriceFeed = constants.get(
         `core.coins.${assetCoinName}.oracle.pyth.feedObject`
       );
       if (pythPriceFeed) {
@@ -88,7 +92,7 @@ export const getPythPrices = async (
   );
 
   // Fetch multiple objects at once to save rpc calls
-  const priceFeedObjects = await constants.address.cache.queryGetObjects(
+  const priceFeedObjects = await scallopSuiKit.queryGetObjects(
     Object.keys(pythPriceFeedIds)
   );
 
@@ -108,7 +112,10 @@ export const getPythPrices = async (
         async ([assetCoinName, priceFeedObject]) => ({
           coinName: assetCoinName,
           price: await getPythPrice(
-            constants,
+            {
+              constants,
+              scallopSuiKit,
+            },
             assetCoinName as string,
             priceFeedObject
           ),
@@ -145,7 +152,7 @@ export const getAllCoinPrices = async (
   }
 
   const sCoinPrices: OptionalKeys<Record<string, number>> = {};
-  query.constants.whitelist.scoin.forEach((sCoinName) => {
+  query.address.getWhitelist('scoin').forEach((sCoinName) => {
     const coinName = query.utils.parseCoinName(sCoinName);
     sCoinPrices[sCoinName] = BigNumber(coinPrices[coinName] ?? 0)
       .multipliedBy(marketPools[coinName]?.conversionRate ?? 1)

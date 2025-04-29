@@ -16,7 +16,7 @@ const generateSCoinNormalMethod: GenerateSCoinNormalMethod = ({
   txBlock,
 }) => {
   const sCoinPkgIds: sCoinPkgIds = {
-    pkgId: builder.address.get('scoin.id'),
+    pkgId: builder.constants.get('scoin.id'),
   };
 
   return {

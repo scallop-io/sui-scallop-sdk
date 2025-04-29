@@ -47,10 +47,7 @@ const requireObligationInfo = async (
     obligationKey &&
     typeof obligationId === 'string'
   ) {
-    const obligationLocked = await getObligationLocked(
-      builder.cache,
-      obligationId
-    );
+    const obligationLocked = await getObligationLocked(builder, obligationId);
     return { obligationId, obligationKey, obligationLocked };
   }
   const sender = requireSender(txBlock);
@@ -82,20 +79,22 @@ const requireObligationInfo = async (
 const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
   ({ builder, txBlock }) => {
     const borrowIncentiveIds: BorrowIncentiveIds = {
-      borrowIncentivePkg: builder.address.get('borrowIncentive.id'),
-      query: builder.address.get('borrowIncentive.query'),
-      config: builder.address.get('borrowIncentive.config'),
-      incentivePools: builder.address.get('borrowIncentive.incentivePools'),
-      incentiveAccounts: builder.address.get(
+      borrowIncentivePkg: builder.constants.get('borrowIncentive.id'),
+      query: builder.constants.get('borrowIncentive.query'),
+      config: builder.constants.get('borrowIncentive.config'),
+      incentivePools: builder.constants.get('borrowIncentive.incentivePools'),
+      incentiveAccounts: builder.constants.get(
         'borrowIncentive.incentiveAccounts'
       ),
-      obligationAccessStore: builder.address.get('core.obligationAccessStore'),
+      obligationAccessStore: builder.constants.get(
+        'core.obligationAccessStore'
+      ),
     };
 
     const veScaIds: Omit<VescaIds, 'pkgId'> = {
-      table: builder.address.get('vesca.table'),
-      treasury: builder.address.get('vesca.treasury'),
-      config: builder.address.get('vesca.config'),
+      table: builder.constants.get('vesca.table'),
+      treasury: builder.constants.get('vesca.treasury'),
+      config: builder.constants.get('vesca.config'),
     };
 
     const clockObjectRef = txBlock.sharedObjectRef({
@@ -221,7 +220,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
               (txn.target ===
                 `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
                 txn.target ===
-                  `${builder.address.get('borrowIncentive.id')}::user::unstake`)
+                  `${builder.constants.get('borrowIncentive.id')}::user::unstake`)
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {
@@ -251,7 +250,7 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
               (txn.target ===
                 `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
                 txn.target ===
-                  `${builder.address.get('borrowIncentive.id')}::user::unstake`)
+                  `${builder.constants.get('borrowIncentive.id')}::user::unstake`)
           );
 
         if (!obligationLocked || unstakeObligationBeforeStake) {

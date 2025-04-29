@@ -27,10 +27,10 @@ const supplyLimitKeyType = `0x6e641f0dca8aedab3101d047e96439178f16301bf0b57fe874
 export const getSupplyLimit = async (utils: ScallopUtils, poolName: string) => {
   try {
     const poolCoinType = utils.parseCoinType(poolName).slice(2);
-    const marketObject = utils.address.get('core.market');
+    const marketObject = utils.constants.get('core.market');
     if (!marketObject) return null;
 
-    const object = await utils.cache.queryGetDynamicFieldObject({
+    const object = await utils.scallopSuiKit.queryGetDynamicFieldObject({
       parentId: marketObject,
       name: {
         type: supplyLimitKeyType,

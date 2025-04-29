@@ -1,5 +1,5 @@
 import { SuiObjectResponse } from '@mysten/sui/client';
-import { ScallopAddress, ScallopUtils } from 'src/models';
+import { ScallopConstants, ScallopSuiKit, ScallopUtils } from 'src/models';
 import { SupportOracleType, xOracleRuleType } from 'src/types';
 
 /**
@@ -7,24 +7,30 @@ import { SupportOracleType, xOracleRuleType } from 'src/types';
  * @param query
  * @returns Primary and Secondary price update policy table object
  */
-export const getPriceUpdatePolicies = async (
-  address: ScallopAddress
-): Promise<{
+export const getPriceUpdatePolicies = async ({
+  constants,
+  scallopSuiKit,
+}: {
+  constants: ScallopConstants;
+  scallopSuiKit: ScallopSuiKit;
+}): Promise<{
   primary: SuiObjectResponse | null;
   secondary: SuiObjectResponse | null;
 }> => {
-  const priceUpdatePolicyRulesKeyType = `${address.get('core.packages.xOracle.object')}::price_update_policy::PriceUpdatePolicyRulesKey`;
+  const priceUpdatePolicyRulesKeyType = `${constants.get('core.packages.xOracle.object')}::price_update_policy::PriceUpdatePolicyRulesKey`;
   const [primaryPriceUpdatePolicyTable, secondaryPriceUpdatePolicyTable] =
     await Promise.all([
-      address.cache.queryGetDynamicFieldObject({
-        parentId: address.get('core.oracles.primaryPriceUpdatePolicyObject'),
+      scallopSuiKit.queryGetDynamicFieldObject({
+        parentId: constants.get('core.oracles.primaryPriceUpdatePolicyObject'),
         name: {
           type: priceUpdatePolicyRulesKeyType,
           value: { dummy_field: false },
         },
       }),
-      address.cache.queryGetDynamicFieldObject({
-        parentId: address.get('core.oracles.secondaryPriceUpdatePolicyObject'),
+      scallopSuiKit.queryGetDynamicFieldObject({
+        parentId: constants.get(
+          'core.oracles.secondaryPriceUpdatePolicyObject'
+        ),
         name: {
           type: priceUpdatePolicyRulesKeyType,
           value: { dummy_field: false },
@@ -44,34 +50,35 @@ export const getAssetOracles = async (
 ): Promise<Record<string, string[]> | null> => {
   if (
     ruleType === 'primary' &&
-    !utils.address.get('core.oracles.primaryPriceUpdatePolicyVecsetId')
+    !utils.constants.get('core.oracles.primaryPriceUpdatePolicyVecsetId')
   ) {
     console.error('Primary price update policy vecset id is not set');
     return null;
   }
   if (
     ruleType === 'secondary' &&
-    !utils.address.get('core.oracles.secondaryPriceUpdatePolicyVecsetId')
+    !utils.constants.get('core.oracles.secondaryPriceUpdatePolicyVecsetId')
   ) {
     console.error('Secondary price update policy vecset id is not set');
     return null;
   }
 
   const ruleTypeNameToOracleType: Record<string, SupportOracleType> = {
-    [`${utils.address.get('core.packages.pyth.object')}::rule::Rule`]: 'pyth',
-    [`${utils.address.get('core.packages.supra.object')}::rule::Rule`]: 'supra',
-    [`${utils.address.get('core.packages.switchboard.object')}::rule::Rule`]:
+    [`${utils.constants.get('core.packages.pyth.object')}::rule::Rule`]: 'pyth',
+    [`${utils.constants.get('core.packages.supra.object')}::rule::Rule`]:
+      'supra',
+    [`${utils.constants.get('core.packages.switchboard.object')}::rule::Rule`]:
       'switchboard',
   };
 
   const assetOracles = {} as Record<string, SupportOracleType[]>;
   let cursor = null;
   do {
-    const response = await utils.cache.queryGetDynamicFields({
+    const response = await utils.scallopSuiKit.queryGetDynamicFields({
       parentId:
         ruleType === 'primary'
-          ? utils.address.get('core.oracles.primaryPriceUpdatePolicyVecsetId')
-          : utils.address.get(
+          ? utils.constants.get('core.oracles.primaryPriceUpdatePolicyVecsetId')
+          : utils.constants.get(
               'core.oracles.secondaryPriceUpdatePolicyVecsetId'
             ),
       cursor,
@@ -85,7 +92,8 @@ export const getAssetOracles = async (
     const objectIds = data.map((dynamicField) => dynamicField.objectId);
 
     // batch fetch object responses
-    const objectResponses = await utils.cache.queryGetObjects(objectIds);
+    const objectResponses =
+      await utils.scallopSuiKit.queryGetObjects(objectIds);
     objectResponses.forEach((object) => {
       if (!object.content || object.content.dataType !== 'moveObject') return;
       const fields = object.content.fields as any;

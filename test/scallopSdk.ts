@@ -12,4 +12,12 @@ export const scallopSDK = new Scallop({
   networkType: NETWORK,
   forcePoolAddressInterface: POOL_ADDRESSES,
   forceWhitelistInterface: WHITELIST,
+  queryClientConfig: {
+    defaultOptions: {
+      queries: {
+        staleTime: Infinity,
+        gcTime: Infinity,
+      },
+    },
+  },
 });

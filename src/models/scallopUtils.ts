@@ -1,121 +1,98 @@
 import {
-  SUI_TYPE_ARG,
   normalizeStructTag,
   parseStructTag,
-} from '@mysten/sui/utils';
-import { SuiKit } from '@scallop-io/sui-kit';
-import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
-import { ScallopAddress } from './scallopAddress';
-import { UNLOCK_ROUND_DURATION, MAX_LOCK_DURATION } from '../constants';
-import { getPythPrices, queryObligation } from '../queries';
-import { parseDataFromPythPriceFeed, findClosestUnlockRound } from '../utils';
-import { ScallopCache } from './scallopCache';
-import type {
-  ScallopUtilsParams,
-  CoinPrices,
-  CoinWrappedType,
-  ScallopUtilsInstanceParams,
-  PoolAddress,
-} from '../types';
-import { queryKeys } from 'src/constants';
-import type { SuiObjectArg, SuiTxBlock } from '@scallop-io/sui-kit';
-import { newSuiKit } from './suiKit';
-import { ScallopConstants } from './scallopConstants';
+  SUI_TYPE_ARG,
+  SuiObjectArg,
+  SuiTxBlock,
+  Transaction,
+} from '@scallop-io/sui-kit';
+import ScallopConstants, { ScallopConstantsParams } from './scallopConstants';
+import { CoinPrices, CoinWrappedType, PoolAddress } from 'src/types';
+import { findClosestUnlockRound } from 'src/utils';
+import {
+  MAX_LOCK_DURATION,
+  queryKeys,
+  UNLOCK_ROUND_DURATION,
+} from 'src/constants';
+import { PriceFeed, SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
+import ScallopSuiKit, { ScallopSuiKitParams } from './scallopSuiKit';
+import { SuiObjectData } from '@mysten/sui/dist/cjs/client';
+import { queryObligation } from 'src/queries';
+import { ScallopUtilsInterface } from './interface';
 
-const PYTH_ENDPOINTS: {
-  [k in 'mainnet']: string[];
-} = {
-  mainnet: ['https://hermes.pyth.network', 'https://scallop.rpc.p2p.world'],
-};
+export type ScallopUtilsParams = {
+  pythEndpoints?: string[];
+  scallopSuiKit?: ScallopSuiKit;
+  scallopConstants?: ScallopConstants;
+} & ScallopSuiKitParams &
+  ScallopConstantsParams;
 
-/**
- * @description
- * Integrates some helper functions frequently used in interactions with the Scallop contract.
- *
- * @example
- * ```typescript
- * const scallopUtils  = new ScallopUtils(<parameters>);
- * await scallopUtils.init();
- * scallopUtils.<utils functions>();
- * await scallopUtils.<utils functions>();
- * ```
- */
-export class ScallopUtils {
-  public readonly params: ScallopUtilsParams;
+class ScallopUtils implements ScallopUtilsInterface {
+  public pythEndpoints: string[];
+  public readonly scallopSuiKit: ScallopSuiKit;
+  public readonly constants: ScallopConstants;
 
-  public suiKit: SuiKit;
-  public address: ScallopAddress;
-  public cache: ScallopCache;
-  public constants: ScallopConstants;
-  public walletAddress: string;
-
-  public constructor(
-    params: ScallopUtilsParams,
-    instance?: ScallopUtilsInstanceParams
-  ) {
-    this.params = {
-      pythEndpoints: params.pythEndpoints ?? PYTH_ENDPOINTS['mainnet'],
-      ...params,
-    };
-    this.walletAddress =
-      params.walletAddress ?? instance?.suiKit?.currentAddress() ?? '';
-
-    this.suiKit =
-      instance?.suiKit ??
-      instance?.constants?.cache.suiKit ??
-      newSuiKit(params);
-
-    this.cache =
-      instance?.constants?.cache ??
-      instance?.cache ??
-      new ScallopCache(this.params, {
-        suiKit: this.suiKit,
+  constructor(params: ScallopUtilsParams = {}) {
+    this.constants = params.scallopConstants ?? new ScallopConstants(params);
+    this.scallopSuiKit =
+      params.scallopSuiKit ??
+      new ScallopSuiKit({
+        queryClient: this.constants.queryClient,
+        ...params,
       });
 
-    this.address =
-      instance?.constants?.address ??
-      new ScallopAddress(this.params, {
-        cache: this.cache,
-      });
-
-    this.constants =
-      instance?.constants ??
-      new ScallopConstants(this.params, {
-        address: this.address,
-      });
+    this.pythEndpoints = params.pythEndpoints ?? [
+      'https://hermes.pyth.network',
+      'https://scallop.rpc.p2p.world',
+    ];
   }
 
-  get whitelist() {
-    return this.constants.whitelist;
+  get walletAddress() {
+    return this.scallopSuiKit.walletAddress;
+  }
+
+  get suiKit() {
+    return this.scallopSuiKit.suiKit;
+  }
+
+  get queryClient() {
+    return this.constants.queryClient;
+  }
+
+  // For backward compatibility with older sdk version
+  get address() {
+    return this.constants;
   }
 
   // -------------- TYPE GUARDS --------------
-  public isSuiBridgeAsset(coinName: any) {
-    return this.constants.whitelist.suiBridge.has(coinName);
+  isSuiBridgeAsset(coinName: any) {
+    return this.address.getWhitelist('suiBridge').has(coinName);
   }
 
-  public isWormholeAsset(coinName: any) {
-    return this.constants.whitelist.wormhole.has(coinName);
+  isWormholeAsset(coinName: any) {
+    return this.address.getWhitelist('wormhole').has(coinName);
   }
 
-  public isMarketCoin(coinName: string) {
+  isMarketCoin(coinName: string) {
     const assetCoinName = coinName.slice(1).toLowerCase() as string;
     return (
       coinName.charAt(0).toLowerCase() === 's' &&
-      this.whitelist.lending.has(assetCoinName)
+      this.address.getWhitelist('lending').has(assetCoinName)
     );
   }
 
+  async init({ force = false }: { force?: boolean } = {}) {
+    await this.constants.init({ force });
+  }
+
   /**
-   * Request the scallop API to initialize data.
+   * Convert market coin name to coin name.
    *
-   * @param force - Whether to force initialization.
-   * @param address - ScallopAddress instance.
+   * @param marketCoinName - Specific support market coin name.
+   * @return Coin Name.
    */
-  public async init(force: boolean = false) {
-    if (force || !this.constants.isInitialized) {
-      await this.constants.init();
-    }
+  parseCoinName<T extends string>(marketCoinName: string) {
+    return marketCoinName.slice(1) as T;
   }
 
   /**
@@ -124,7 +101,7 @@ export class ScallopUtils {
    * @param coinName - Specific support coin name.
    * @return Symbol string.
    */
-  public parseSymbol(coinName: string) {
+  parseSymbol(coinName: string) {
     return this.isMarketCoin(coinName)
       ? (this.constants.poolAddresses[this.parseCoinName(coinName)]
           ?.sCoinSymbol ?? '')
@@ -142,7 +119,7 @@ export class ScallopUtils {
    * @param coinName - Specific support coin name.
    * @return Coin type.
    */
-  public parseCoinType(coinName: string, useOldMarketCoin: boolean = false) {
+  parseCoinType(coinName: string, useOldMarketCoin: boolean = false) {
     if (useOldMarketCoin) {
       return this.constants.coinNameToOldMarketCoinTypeMap[coinName] ?? '';
     }
@@ -155,13 +132,16 @@ export class ScallopUtils {
    * @param coinName - Specific support coin name.
    * @return sCoin name.
    */
-  public parseSCoinName<T extends string>(coinName: string) {
+  parseSCoinName<T extends string>(coinName: string) {
     // need more check because swapt has no sCoin type
-    if (this.isMarketCoin(coinName) && this.whitelist.scoin.has(coinName)) {
+    if (
+      this.isMarketCoin(coinName) &&
+      this.address.getWhitelist('scoin').has(coinName)
+    ) {
       return coinName as T;
     } else {
       const marketCoinName = `s${coinName}`;
-      if (this.whitelist.scoin.has(marketCoinName)) {
+      if (this.address.getWhitelist('scoin').has(marketCoinName)) {
         return marketCoinName as T;
       }
       return undefined;
@@ -175,8 +155,8 @@ export class ScallopUtils {
    * if no `scallop_...` is encountered, return coinName
    * @return sCoin name
    */
-  public parseSCoinTypeNameToMarketCoinName(coinName: string) {
-    return this.constants.sCoinRawNameToScoinNameMap[coinName] ?? coinName;
+  parseSCoinTypeNameToMarketCoinName(coinName: string) {
+    return this.constants.scoinRawNameToSCoinNameMap[coinName] ?? coinName;
   }
 
   /**
@@ -184,7 +164,7 @@ export class ScallopUtils {
    * @param sCoinName
    * @returns sCoin type
    */
-  public parseSCoinType(sCoinName: string) {
+  parseSCoinType(sCoinName: string) {
     return this.constants.sCoinTypes[sCoinName] ?? '';
   }
 
@@ -193,8 +173,8 @@ export class ScallopUtils {
    * @param sCoinType
    * @returns sCoin name
    */
-  public parseSCoinNameFromType(sCoinType: string) {
-    return this.constants.sCoinTypeToSCoinNameMap[sCoinType];
+  parseSCoinNameFromType(sCoinType: string) {
+    return this.constants.scoinTypeToSCoinNameMap[sCoinType];
   }
 
   /**
@@ -202,7 +182,7 @@ export class ScallopUtils {
    * @param sCoinName
    * @returns coin type
    */
-  public parseUnderlyingSCoinType(sCoinName: string) {
+  parseUnderlyingSCoinType(sCoinName: string) {
     const coinName = this.parseCoinName(sCoinName);
     return this.parseCoinType(coinName);
   }
@@ -212,8 +192,8 @@ export class ScallopUtils {
    * @param sCoinName
    * @returns sCoin treasury id
    */
-  public getSCoinTreasury(sCoinName: string) {
-    return this.address.get(`scoin.coins.${sCoinName}.treasury`);
+  getSCoinTreasury(sCoinName: string) {
+    return this.constants.get(`scoin.coins.${sCoinName}.treasury`);
   }
 
   /**
@@ -223,12 +203,62 @@ export class ScallopUtils {
    * @param coinName - Specific support coin name.
    * @return Market coin type.
    */
-  public parseMarketCoinType(coinName: string) {
+  parseMarketCoinType(coinName: string) {
     const coinType = this.parseCoinType(
       this.isMarketCoin(coinName) ? this.parseCoinName(coinName) : coinName,
       true
     );
     return coinType;
+  }
+
+  /**
+   * Convert coin name to market coin name.
+   *
+   * @param coinName - Specific support coin name.
+   * @return Market coin name.
+   */
+  parseMarketCoinName<T extends string>(coinName: string) {
+    return `s${coinName}` as T;
+  }
+
+  /**
+   * Get reward type of spool.
+   *
+   * @param stakeMarketCoinName - Support stake market coin.
+   * @return Spool reward coin name.
+   */
+  getSpoolRewardCoinName = () => {
+    return 'sui'; // No further plan to incentivize other spools
+  };
+
+  /**
+   * Get coin decimal.
+   *
+   * return Coin decimal.
+   */
+  getCoinDecimal(coinName: string) {
+    return this.constants.coinDecimals[coinName] ?? 0;
+  }
+
+  /**
+   * Get coin wrapped type.
+   *
+   * return Coin wrapped type.
+   */
+  getCoinWrappedType(assetCoinName: string): CoinWrappedType {
+    if (this.isSuiBridgeAsset(assetCoinName)) {
+      return {
+        from: 'Sui Bridge',
+        type: 'Asset from Sui Bridge',
+      };
+    } else if (this.isWormholeAsset(assetCoinName)) {
+      return {
+        from: 'Wormhole',
+        type: 'Portal from Ethereum',
+      };
+    }
+
+    return undefined;
   }
 
   /**
@@ -259,70 +289,10 @@ export class ScallopUtils {
     }
     const assetCoinName =
       this.constants.coinTypeToCoinNameMap[coinType] ||
-      this.constants.sCoinTypeToSCoinNameMap[coinType] ||
+      this.constants.scoinTypeToSCoinNameMap[coinType] ||
       parseStructTag(coinType).name.toLowerCase();
 
     return assetCoinName;
-  }
-
-  /**
-   * Convert market coin name to coin name.
-   *
-   * @param marketCoinName - Specific support market coin name.
-   * @return Coin Name.
-   */
-  public parseCoinName<T extends string>(marketCoinName: string) {
-    return marketCoinName.slice(1) as T;
-  }
-
-  /**
-   * Convert coin name to market coin name.
-   *
-   * @param coinName - Specific support coin name.
-   * @return Market coin name.
-   */
-  public parseMarketCoinName<T extends string>(coinName: string) {
-    return `s${coinName}` as T;
-  }
-
-  /**
-   * Get reward type of spool.
-   *
-   * @param stakeMarketCoinName - Support stake market coin.
-   * @return Spool reward coin name.
-   */
-  public getSpoolRewardCoinName = () => {
-    return 'sui'; // No further plan to incentivize other spools
-  };
-
-  /**
-   * Get coin decimal.
-   *
-   * return Coin decimal.
-   */
-  public getCoinDecimal(coinName: string) {
-    return this.constants.coinDecimals[coinName] ?? 0;
-  }
-
-  /**
-   * Get coin wrapped type.
-   *
-   * return Coin wrapped type.
-   */
-  public getCoinWrappedType(assetCoinName: string): CoinWrappedType {
-    if (this.isSuiBridgeAsset(assetCoinName)) {
-      return {
-        from: 'Sui Bridge',
-        type: 'Asset from Sui Bridge',
-      };
-    } else if (this.isWormholeAsset(assetCoinName)) {
-      return {
-        from: 'Wormhole',
-        type: 'Portal from Ethereum',
-      };
-    }
-
-    return undefined;
   }
 
   /**
@@ -354,8 +324,8 @@ export class ScallopUtils {
    * @param coinType
    * @param sender
    */
-  public async mergeSimilarCoins(
-    txBlock: SuiTxBlock,
+  async mergeSimilarCoins(
+    txBlock: SuiTxBlock | Transaction,
     dest: SuiObjectArg,
     coinType: string,
     sender: string = this.walletAddress
@@ -369,7 +339,10 @@ export class ScallopUtils {
       );
 
       if (existingCoins.length > 0) {
-        txBlock.mergeCoins(dest, existingCoins.slice(0, 500));
+        txBlock.mergeCoins(
+          dest as any,
+          existingCoins.slice(0, 500).map(txBlock.objectRef) as any
+        );
       }
     } catch (_e) {
       // ignore
@@ -386,7 +359,7 @@ export class ScallopUtils {
    * @param obligationId - The obligation id.
    * @return Asset coin Names.
    */
-  public async getObligationCoinNames(obligationId: SuiObjectArg) {
+  async getObligationCoinNames(obligationId: SuiObjectArg) {
     const obligation = await queryObligation(this, obligationId);
     if (!obligation) return undefined;
 
@@ -405,6 +378,130 @@ export class ScallopUtils {
     return obligationCoinNames;
   }
 
+  private parseDataFromPythPriceFeed(feed: PriceFeed) {
+    const assetCoinNames = [
+      ...this.address.getWhitelist('lending'),
+    ] as string[];
+    const assetCoinName = assetCoinNames.find((assetCoinName) => {
+      return (
+        this.constants.get(`core.coins.${assetCoinName}.oracle.pyth.feed`) ===
+        feed.id
+      );
+    });
+
+    if (assetCoinName) {
+      const parsedPrice = feed.getEmaPriceUnchecked();
+
+      return {
+        coinName: assetCoinName,
+        price: parsedPrice.getPriceAsNumberUnchecked(),
+        publishTime: Number(parsedPrice.publishTime) * 10 ** 3,
+      };
+    } else {
+      throw new Error(`Invalid feed id: ${feed.id}`);
+    }
+  }
+
+  async getPythPrice(
+    assetCoinName: string,
+    priceFeedObject?: SuiObjectData | null
+  ) {
+    const pythFeedObjectId = this.constants.get(
+      `core.coins.${assetCoinName}.oracle.pyth.feedObject`
+    );
+    priceFeedObject =
+      priceFeedObject ||
+      (await this.scallopSuiKit.queryGetObject(pythFeedObjectId))?.data;
+
+    if (priceFeedObject) {
+      const priceFeedPoolObject = priceFeedObject;
+      if (
+        priceFeedPoolObject.content &&
+        'fields' in priceFeedPoolObject.content
+      ) {
+        const fields = priceFeedPoolObject.content.fields as any;
+        const expoMagnitude = Number(
+          fields.price_info.fields.price_feed.fields.price.fields.expo.fields
+            .magnitude
+        );
+        const expoNegative = Number(
+          fields.price_info.fields.price_feed.fields.price.fields.expo.fields
+            .negative
+        );
+        const priceMagnitude = Number(
+          fields.price_info.fields.price_feed.fields.price.fields.price.fields
+            .magnitude
+        );
+        const priceNegative = Number(
+          fields.price_info.fields.price_feed.fields.price.fields.price.fields
+            .negative
+        );
+
+        return (
+          priceMagnitude *
+          10 ** ((expoNegative ? -1 : 1) * expoMagnitude) *
+          (priceNegative ? -1 : 1)
+        );
+      }
+    }
+
+    return 0;
+  }
+
+  async getPythPrices(assetCoinNames: string[]) {
+    const pythPriceFeedIds = assetCoinNames.reduce(
+      (prev, assetCoinName) => {
+        const pythPriceFeed = this.constants.get(
+          `core.coins.${assetCoinName}.oracle.pyth.feedObject`
+        );
+        if (pythPriceFeed) {
+          if (!prev[pythPriceFeed]) {
+            prev[pythPriceFeed] = [assetCoinName];
+          } else {
+            prev[pythPriceFeed].push(assetCoinName);
+          }
+        }
+        return prev;
+      },
+      {} as Record<string, string[]>
+    );
+
+    // Fetch multiple objects at once to save rpc calls
+    const priceFeedObjects = await this.scallopSuiKit.queryGetObjects(
+      Object.keys(pythPriceFeedIds)
+    );
+
+    const assetToPriceFeedMapping = priceFeedObjects.reduce(
+      (prev, priceFeedObject) => {
+        pythPriceFeedIds[priceFeedObject.objectId].forEach((assetCoinName) => {
+          prev[assetCoinName] = priceFeedObject;
+        });
+        return prev;
+      },
+      {} as Record<string, SuiObjectData>
+    );
+
+    return (
+      await Promise.all(
+        Object.entries(assetToPriceFeedMapping).map(
+          async ([assetCoinName, priceFeedObject]) => ({
+            coinName: assetCoinName,
+            price: await this.getPythPrice(
+              assetCoinName as string,
+              priceFeedObject
+            ),
+          })
+        )
+      )
+    ).reduce(
+      (prev, curr) => {
+        prev[curr.coinName as string] = curr.price;
+        return prev;
+      },
+      {} as Record<string, number>
+    );
+  }
+
   /**
    * Get asset coin price.
    *
@@ -417,25 +514,24 @@ export class ScallopUtils {
    * @param assetCoinNames - Specific an array of support asset coin name.
    * @return  Asset coin price.
    */
-  public async getCoinPrices(
+  async getCoinPrices(
     coinNames: string[] = [
       ...new Set([
-        ...this.constants.whitelist.lending,
-        ...this.constants.whitelist.collateral,
+        ...this.address.getWhitelist('lending'),
+        ...this.address.getWhitelist('collateral'),
       ]),
     ] as string[]
   ) {
     let coinPrices: CoinPrices = {};
 
-    const endpoints = this.params.pythEndpoints ?? PYTH_ENDPOINTS['mainnet'];
-
+    const endpoints = this.pythEndpoints;
     const failedRequests: Set<string> = new Set(coinNames);
 
     for (const endpoint of endpoints) {
       const priceIdPairs = Array.from(failedRequests.values()).reduce(
         (acc, coinName) => {
           const priceId =
-            this.address.get(`core.coins.${coinName}.oracle.pyth.feed`) ??
+            this.constants.get(`core.coins.${coinName}.oracle.pyth.feed`) ??
             this.constants.poolAddresses[coinName]?.pythFeed;
           acc.push([coinName, priceId]);
           return acc;
@@ -450,7 +546,7 @@ export class ScallopUtils {
       });
 
       try {
-        const feeds = await this.cache.queryClient.fetchQuery({
+        const feeds = await this.queryClient.fetchQuery({
           queryKey: queryKeys.oracle.getPythLatestPriceFeeds(),
           queryFn: async () => {
             return await pythConnection.getLatestPriceFeeds(priceIds);
@@ -461,7 +557,7 @@ export class ScallopUtils {
         if (feeds) {
           feeds.forEach((feed, idx) => {
             const coinName = priceIdPairs[idx][0] as string;
-            const data = parseDataFromPythPriceFeed(feed, this.constants);
+            const data = this.parseDataFromPythPriceFeed(feed);
             coinPrices[coinName as string] = data.price;
             failedRequests.delete(coinName as string); // remove success price feed to prevent duplicate request on the next endpoint
           });
@@ -475,7 +571,7 @@ export class ScallopUtils {
     if (failedRequests.size > 0) {
       coinPrices = {
         ...coinPrices,
-        ...(await getPythPrices(this, Array.from(failedRequests.values()))),
+        ...(await this.getPythPrices(Array.from(failedRequests.values()))),
       };
       failedRequests.clear();
     }
@@ -556,8 +652,10 @@ export class ScallopUtils {
       ? Object.values(this.constants.poolAddresses).filter(
           (poolAddress): poolAddress is PoolAddress =>
             poolAddress !== undefined &&
-            this.constants.whitelist.lending.has(poolAddress.coinName)
+            this.address.getWhitelist('lending').has(poolAddress.coinName)
         )
       : [];
   }
 }
+
+export default ScallopUtils;

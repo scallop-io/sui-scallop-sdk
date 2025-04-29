@@ -11,17 +11,17 @@ export const updatePythPriceFeeds = async (
   txBlock: SuiKitTxBlock
 ) => {
   const pythClient = new SuiPythClient(
-    builder.suiKit.client(),
-    builder.address.get('core.oracles.pyth.state'),
-    builder.address.get('core.oracles.pyth.wormholeState')
+    builder.suiKit.client,
+    builder.constants.get('core.oracles.pyth.state'),
+    builder.constants.get('core.oracles.pyth.wormholeState')
   );
   const priceIds = assetCoinNames.map((assetCoinName) =>
-    builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`)
+    builder.constants.get(`core.coins.${assetCoinName}.oracle.pyth.feed`)
   );
 
   // iterate through the endpoints
-  const endpoints = builder.params.pythEndpoints ?? [
-    ...builder.constants.whitelist.pythEndpoints,
+  const endpoints = builder.utils.pythEndpoints ?? [
+    ...builder.address.getWhitelist('pythEndpoints'),
   ];
   for (const endpoint of endpoints) {
     try {

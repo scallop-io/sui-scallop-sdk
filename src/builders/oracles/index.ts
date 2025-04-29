@@ -21,16 +21,15 @@ import { updatePythPriceFeeds } from './pyth';
 export const updateOracles = async (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
-  assetCoinNames: string[] = [...builder.constants.whitelist.lending],
+  assetCoinNames: string[] = [...builder.address.getWhitelist('lending')],
   options: {
     usePythPullModel: boolean;
     useOnChainXOracleList: boolean;
   } = { usePythPullModel: true, useOnChainXOracleList: true }
 ) => {
-  const usePythPullModel =
-    builder.params.usePythPullModel ?? options.usePythPullModel;
+  const usePythPullModel = builder.usePythPullModel ?? options.usePythPullModel;
   const useOnChainXOracleList =
-    builder.params.useOnChainXOracleList ?? options.useOnChainXOracleList;
+    builder.useOnChainXOracleList ?? options.useOnChainXOracleList;
 
   const xOracleList = useOnChainXOracleList
     ? await builder.query.getAssetOracles()
@@ -90,18 +89,18 @@ const updateOracle = (
   updatePrice(
     txBlock,
     rules,
-    builder.address.get('core.packages.xOracle.id'),
-    builder.address.get('core.oracles.xOracle'),
-    builder.address.get('core.packages.pyth.id'),
-    builder.address.get('core.oracles.pyth.registry'),
-    builder.address.get('core.oracles.pyth.state'),
-    builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feedObject`),
-    builder.address.get('core.packages.switchboard.id'),
-    builder.address.get('core.oracles.switchboard.registry'),
-    builder.address.get(`core.coins.${assetCoinName}.oracle.switchboard`),
-    builder.address.get('core.packages.supra.id'),
-    builder.address.get('core.oracles.supra.registry'),
-    builder.address.get(`core.oracles.supra.holder`),
+    builder.constants.get('core.packages.xOracle.id'),
+    builder.constants.get('core.oracles.xOracle'),
+    builder.constants.get('core.packages.pyth.id'),
+    builder.constants.get('core.oracles.pyth.registry'),
+    builder.constants.get('core.oracles.pyth.state'),
+    builder.constants.get(`core.coins.${assetCoinName}.oracle.pyth.feedObject`),
+    builder.constants.get('core.packages.switchboard.id'),
+    builder.constants.get('core.oracles.switchboard.registry'),
+    builder.constants.get(`core.coins.${assetCoinName}.oracle.switchboard`),
+    builder.constants.get('core.packages.supra.id'),
+    builder.constants.get('core.oracles.supra.registry'),
+    builder.constants.get(`core.oracles.supra.holder`),
     coinType
   );
 };

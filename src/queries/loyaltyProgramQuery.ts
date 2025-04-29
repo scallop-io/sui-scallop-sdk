@@ -33,10 +33,10 @@ export const getLoyaltyProgramInformations = async (
   query: ScallopQuery,
   veScaKey?: string | SuiObjectData
 ): Promise<LoyaltyProgramInfo | null> => {
-  const rewardPool = query.address.get('loyaltyProgram.rewardPool');
+  const rewardPool = query.constants.get('loyaltyProgram.rewardPool');
 
   // get fields from rewardPool object
-  const rewardPoolObject = await query.cache.queryGetObject(rewardPool);
+  const rewardPoolObject = await query.scallopSuiKit.queryGetObject(rewardPool);
 
   if (rewardPoolObject?.data?.content?.dataType !== 'moveObject') return null;
   const rewardPoolFields = rewardPoolObject.data.content.fields;
@@ -54,17 +54,19 @@ export const getLoyaltyProgramInformations = async (
   veScaKey = veScaKey ?? (await query.getVeScas())[0]?.keyObject;
   if (!veScaKey) return result;
 
-  const userRewardTableId = query.address.get(
+  const userRewardTableId = query.constants.get(
     'loyaltyProgram.userRewardTableId'
   );
 
-  const userRewardObject = await query.cache.queryGetDynamicFieldObject({
-    parentId: userRewardTableId,
-    name: {
-      type: '0x2::object::ID',
-      value: typeof veScaKey === 'string' ? veScaKey : veScaKey.objectId,
-    },
-  });
+  const userRewardObject = await query.scallopSuiKit.queryGetDynamicFieldObject(
+    {
+      parentId: userRewardTableId,
+      name: {
+        type: '0x2::object::ID',
+        value: typeof veScaKey === 'string' ? veScaKey : veScaKey.objectId,
+      },
+    }
+  );
 
   if (userRewardObject?.data?.content?.dataType !== 'moveObject') return result;
   const userRewardFields = userRewardObject.data.content.fields;

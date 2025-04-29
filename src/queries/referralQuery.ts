@@ -1,4 +1,4 @@
-import { ScallopAddress } from 'src/models';
+import type { ScallopConstants, ScallopSuiKit } from 'src/models';
 
 /**
  * Query the veScaKeyId from the referral bindings table using the borrower address
@@ -6,11 +6,17 @@ import { ScallopAddress } from 'src/models';
  * @returns
  */
 export const queryVeScaKeyIdFromReferralBindings = async (
-  address: ScallopAddress,
+  {
+    constants,
+    scallopSuiKit,
+  }: {
+    constants: ScallopConstants;
+    scallopSuiKit: ScallopSuiKit;
+  },
   refereeAddress: string
 ): Promise<string | null> => {
-  const referralBindingTableId = address.get('referral.bindingTableId');
-  const referralBindResponse = await address.cache.queryGetDynamicFieldObject({
+  const referralBindingTableId = constants.get('referral.bindingTableId');
+  const referralBindResponse = await scallopSuiKit.queryGetDynamicFieldObject({
     parentId: referralBindingTableId,
     name: {
       type: 'address',

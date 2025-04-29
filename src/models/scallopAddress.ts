@@ -1,15 +1,15 @@
-import { API_BASE_URL, USE_TEST_ADDRESS } from '../constants';
-import { type NetworkType } from '@scallop-io/sui-kit';
-import type {
-  ScallopAddressParams,
-  AddressesInterface,
-  AddressStringPath,
-  ScallopAddressInstanceParams,
-} from '../types';
-import { ScallopCache } from './scallopCache';
-import axios, { AxiosInstance } from 'axios';
-import { TEST_ADDRESSES } from 'src/constants/testAddress';
-import { queryKeys } from 'src/constants';
+import { NetworkType } from '@scallop-io/sui-kit';
+import { API_BASE_URL, queryKeys } from 'src/constants';
+import { AddressesInterface, AddressStringPath } from 'src/types';
+import ScallopAxios, { ScallopAxiosParams } from './scallopAxios';
+
+export type ScallopAddressParams = {
+  addressId?: string;
+  addressApiUrl?: string;
+  auth?: string;
+  network?: NetworkType;
+  forceAddressesInterface?: Partial<Record<NetworkType, AddressesInterface>>;
+} & ScallopAxiosParams;
 
 const EMPTY_ADDRESSES: AddressesInterface = {
   core: {
@@ -416,72 +416,67 @@ const EMPTY_ADDRESSES: AddressesInterface = {
   },
 };
 
-/**
- * @description
- * It provides methods for managing addresses.
- *
- * @example
- * ```typescript
- * const scallopAddress = new ScallopAddress(<parameters>);
- * scallopAddress.<address functions>();
- * await scallopAddress.<address async functions>();
- * ```
- */
+class ScallopAddress {
+  private currentAddresses?: AddressesInterface;
+  private addressId?: string;
+  private network: NetworkType;
+  private auth: string;
 
-export class ScallopAddress {
-  private readonly _auth?: string;
-  private readonly _requestClient: AxiosInstance;
+  public readonly scallopAxios: ScallopAxios;
+  private readonly addressMap = new Map<NetworkType, AddressesInterface>();
+  private readonly defaultParamValues = {
+    addressId: '67c44a103fe1b8c454eb9699',
+    network: 'mainnet' as NetworkType,
+  } as const;
 
-  private _id?: string;
-  private _network: NetworkType;
-  private _currentAddresses?: AddressesInterface;
-  private _addressesMap: Map<NetworkType, AddressesInterface>;
-  public cache: ScallopCache;
-
-  public constructor(
-    params: ScallopAddressParams,
-    instance?: ScallopAddressInstanceParams
-  ) {
-    const { addressId, auth, network, forceAddressesInterface } = params;
-    this.cache = instance?.cache ?? new ScallopCache(params);
-
-    this._requestClient = axios.create({
-      baseURL: API_BASE_URL,
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      timeout: 8000,
+  constructor(params: ScallopAddressParams = {}) {
+    this.scallopAxios = new ScallopAxios({
+      ...this.defaultParamValues,
+      baseUrl: params.addressApiUrl || API_BASE_URL,
+      ...params,
     });
-    if (auth) this._auth = auth;
 
-    this._id = addressId;
-    this._network = network ?? 'mainnet';
-    this._addressesMap = USE_TEST_ADDRESS
-      ? new Map([['mainnet', TEST_ADDRESSES]])
-      : new Map();
-    if (USE_TEST_ADDRESS) this._currentAddresses = TEST_ADDRESSES;
+    this.network = params.network ?? 'mainnet';
+    this.addressId = params.addressId ?? this.defaultParamValues.addressId;
+    this.auth = params.auth ?? '';
 
-    // Set the addresses from the forceInterface if it is provided.
-    if (forceAddressesInterface) {
-      for (const [network, addresses] of Object.entries<AddressesInterface>(
-        forceAddressesInterface
-      )) {
-        if (['localnet', 'devnet', 'testnet', 'mainnet'].includes(network)) {
-          if (network === this._network) this._currentAddresses = addresses;
-          this._addressesMap.set(network as NetworkType, addresses);
-        }
-      }
+    if (params.forceAddressesInterface) {
+      this.initializeForcedAddresses(params.forceAddressesInterface);
     }
   }
 
-  /**
-   * Get addresses API id.
-   *
-   * @return The addresses API id.
-   */
-  public getId() {
-    return this._id || undefined;
+  private initializeForcedAddresses(
+    forcedAddresses: Partial<Record<NetworkType, AddressesInterface>>
+  ): void {
+    const validNetworks: NetworkType[] = [
+      'localnet',
+      'devnet',
+      'testnet',
+      'mainnet',
+    ];
+
+    Object.entries(forcedAddresses).forEach(([network, addresses]) => {
+      if (validNetworks.includes(network as NetworkType)) {
+        const typedNetwork = network as NetworkType;
+        this.addressMap.set(typedNetwork, addresses);
+
+        if (typedNetwork === this.network) {
+          this.currentAddresses = addresses;
+        }
+      }
+    });
+  }
+
+  get axiosClient() {
+    return this.scallopAxios;
+  }
+
+  get queryClient() {
+    return this.axiosClient.queryClient;
+  }
+
+  getId() {
+    return this.addressId;
   }
 
   /**
@@ -491,7 +486,7 @@ export class ScallopAddress {
    * @return The address at the provided path.
    */
   public get(path: AddressStringPath) {
-    if (this._currentAddresses) {
+    if (this.currentAddresses) {
       const value = path
         .split('.')
         .reduce(
@@ -499,7 +494,7 @@ export class ScallopAddress {
             typeof nestedAddressObj === 'object'
               ? nestedAddressObj[key]
               : nestedAddressObj,
-          this._currentAddresses
+          this.currentAddresses
         );
       return value || undefined;
     } else {
@@ -515,7 +510,7 @@ export class ScallopAddress {
    * @return The addresses.
    */
   public set(path: AddressStringPath, address: string) {
-    if (this._currentAddresses) {
+    if (this.currentAddresses) {
       const keys = path.split('.');
       keys.reduce((nestedAddressObj: any, key: string, index) => {
         if (index === keys.length - 1) {
@@ -523,9 +518,9 @@ export class ScallopAddress {
         } else {
           return nestedAddressObj[key];
         }
-      }, this._currentAddresses);
+      }, this.currentAddresses);
     }
-    return this._currentAddresses;
+    return this.currentAddresses;
   }
 
   /**
@@ -536,11 +531,11 @@ export class ScallopAddress {
    * @return Current addresses.
    */
   public switchCurrentAddresses(network: NetworkType) {
-    if (this._addressesMap.has(network)) {
-      this._currentAddresses = this._addressesMap.get(network);
-      this._network = network;
+    if (this.addressMap.has(network)) {
+      this.currentAddresses = this.addressMap.get(network);
+      this.network = network;
     }
-    return this._currentAddresses;
+    return this.currentAddresses;
   }
 
   /**
@@ -551,9 +546,9 @@ export class ScallopAddress {
    */
   public getAddresses(network?: NetworkType) {
     if (network) {
-      return this._addressesMap.get(network);
+      return this.addressMap.get(network);
     } else {
-      return this._currentAddresses ?? this._addressesMap.get(this._network);
+      return this.currentAddresses ?? this.addressMap.get(this.network);
     }
   }
 
@@ -566,9 +561,9 @@ export class ScallopAddress {
    * @return The addresses.
    */
   public setAddresses(addresses: AddressesInterface, network?: NetworkType) {
-    const targetNetwork = network || this._network;
-    if (targetNetwork === this._network) this._currentAddresses = addresses;
-    this._addressesMap.set(targetNetwork, addresses);
+    const targetNetwork = network || this.network;
+    if (targetNetwork === this.network) this.currentAddresses = addresses;
+    this.addressMap.set(targetNetwork, addresses);
   }
 
   /**
@@ -577,7 +572,7 @@ export class ScallopAddress {
    * @return All addresses.
    */
   public getAllAddresses() {
-    return Object.fromEntries(this._addressesMap);
+    return Object.fromEntries(this.addressMap);
   }
 
   /**
@@ -606,24 +601,24 @@ export class ScallopAddress {
     memo?: string | undefined;
   }) {
     const { addresses, network, auth, memo } = params ?? {};
-    const apiKey = auth || this._auth || undefined;
-    const targetNetwork = network || this._network;
+    const apiKey = auth || this.auth || undefined;
+    const targetNetwork = network || this.network;
     const targetAddresses =
       addresses ||
-      this._currentAddresses ||
-      this._addressesMap.get(targetNetwork) ||
+      this.currentAddresses ||
+      this.addressMap.get(targetNetwork) ||
       EMPTY_ADDRESSES;
 
     if (apiKey !== undefined) {
-      this._addressesMap.clear();
+      this.addressMap.clear();
       this.setAddresses(targetAddresses, targetNetwork);
-      const response = await this._requestClient.post(
+      const response = await this.axiosClient.post(
         `/addresses`,
-        JSON.stringify({ ...Object.fromEntries(this._addressesMap), memo }),
+        JSON.stringify({ ...Object.fromEntries(this.addressMap), memo }),
         {
           headers: {
             'Content-Type': 'application/json',
-            'api-key': auth || this._auth,
+            'api-key': auth || this.auth,
           },
         }
       );
@@ -633,11 +628,11 @@ export class ScallopAddress {
           response.data
         )) {
           if (['localnet', 'devnet', 'testnet', 'mainnet'].includes(network)) {
-            if (network === this._network) this._currentAddresses = addresses;
-            this._addressesMap.set(network as NetworkType, addresses);
+            if (network === this.network) this.currentAddresses = addresses;
+            this.addressMap.set(network as NetworkType, addresses);
           }
         }
-        this._id = response.data.id;
+        this.addressId = response.data.id;
         return this.getAllAddresses();
       } else {
         throw Error('Failed to create addresses.');
@@ -654,29 +649,23 @@ export class ScallopAddress {
    * @return All addresses.
    */
   public async read(id?: string) {
-    const addressId = id || this._id || undefined;
+    const addressId = id || this.addressId || undefined;
     if (addressId !== undefined) {
-      const response = await this.cache.queryClient.fetchQuery({
-        queryKey: queryKeys.api.getAddresses(addressId),
-        queryFn: async () => {
-          return await this._requestClient.get(`/addresses/${addressId}`, {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-        },
-      });
+      const response = await this.axiosClient.get(
+        `/addresses/${addressId}`,
+        queryKeys.api.getAddresses(addressId) as string[]
+      );
 
       if (response.status === 200) {
         for (const [network, addresses] of Object.entries<AddressesInterface>(
           response.data
         )) {
           if (['localnet', 'devnet', 'testnet', 'mainnet'].includes(network)) {
-            if (network === this._network) this._currentAddresses = addresses;
-            this._addressesMap.set(network as NetworkType, addresses);
+            if (network === this.network) this.currentAddresses = addresses;
+            this.addressMap.set(network as NetworkType, addresses);
           }
         }
-        this._id = response.data.id;
+        this.addressId = response.data.id;
         return this.getAllAddresses();
       } else {
         throw Error('Failed to create addresses.');
@@ -714,29 +703,29 @@ export class ScallopAddress {
     memo?: string | undefined;
   }) {
     const { id, addresses, network, auth, memo } = params ?? {};
-    const apiKey = auth || this._auth || undefined;
-    const targetId = id || this._id || undefined;
-    const targetNetwork = network || this._network;
+    const apiKey = auth || this.auth || undefined;
+    const targetId = id || this.addressId || undefined;
+    const targetNetwork = network || this.network;
     const targetAddresses =
       addresses ||
-      this._currentAddresses ||
-      this._addressesMap.get(targetNetwork) ||
+      this.currentAddresses ||
+      this.addressMap.get(targetNetwork) ||
       EMPTY_ADDRESSES;
 
     if (targetId === undefined)
       throw Error('Require specific addresses id to be updated.');
     if (apiKey !== undefined) {
-      if (id !== this._id) {
-        this._addressesMap.clear();
+      if (id !== this.addressId) {
+        this.addressMap.clear();
       }
       this.setAddresses(targetAddresses, targetNetwork);
-      const response = await this._requestClient.put(
+      const response = await this.axiosClient.put(
         `/addresses/${targetId}`,
-        JSON.stringify({ ...Object.fromEntries(this._addressesMap), memo }),
+        JSON.stringify({ ...Object.fromEntries(this.addressMap), memo }),
         {
           headers: {
             'Content-Type': 'application/json',
-            'api-key': auth || this._auth,
+            'api-key': auth || this.auth,
           },
         }
       );
@@ -746,11 +735,11 @@ export class ScallopAddress {
           response.data
         )) {
           if (['localnet', 'devnet', 'testnet', 'mainnet'].includes(network)) {
-            if (network === this._network) this._currentAddresses = addresses;
-            this._addressesMap.set(network as NetworkType, addresses);
+            if (network === this.network) this.currentAddresses = addresses;
+            this.addressMap.set(network as NetworkType, addresses);
           }
         }
-        this._id = response.data.id;
+        this.addressId = response.data.id;
         return this.getAllAddresses();
       } else {
         throw Error('Failed to update addresses.');
@@ -768,26 +757,23 @@ export class ScallopAddress {
    * @param auth - The authentication API key.
    */
   public async delete(id?: string, auth?: string) {
-    const apiKey = auth || this._auth || undefined;
-    const targetId = id || this._id || undefined;
+    const apiKey = auth || this.auth || undefined;
+    const targetId = id || this.addressId || undefined;
 
     if (targetId === undefined)
       throw Error('Require specific addresses id to be deleted.');
     if (apiKey !== undefined) {
-      const response = await this._requestClient.delete(
-        `/addresses/${targetId}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'api-key': auth || this._auth,
-          },
-        }
-      );
+      const response = await this.axiosClient.delete(`/addresses/${targetId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': auth || this.auth,
+        },
+      });
 
       if (response.status === 200) {
-        this._id = undefined;
-        this._currentAddresses = undefined;
-        this._addressesMap.clear();
+        this.addressId = undefined;
+        this.currentAddresses = undefined;
+        this.addressMap.clear();
       } else {
         throw Error('Failed to delete addresses.');
       }
@@ -796,3 +782,5 @@ export class ScallopAddress {
     }
   }
 }
+
+export default ScallopAddress;

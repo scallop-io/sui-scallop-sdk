@@ -20,7 +20,6 @@ import type {
   SpoolData,
   OriginSpoolData,
 } from '../types';
-import { queryMultipleObjects } from './objectsQuery';
 
 const queryRequiredSpoolObjects = async (
   query: ScallopQuery,
@@ -63,9 +62,9 @@ const queryRequiredSpoolObjects = async (
   // Phase 2: Parallel queries with pre-collected keys
   const [spoolObjects, spoolRewardObjects, sCoinTreasuryObjects] =
     await Promise.all([
-      queryMultipleObjects(query.cache, keyCollections.spool),
-      queryMultipleObjects(query.cache, keyCollections.spoolReward),
-      queryMultipleObjects(query.cache, keyCollections.sCoinTreasury),
+      query.scallopSuiKit.queryGetObjects(keyCollections.spool),
+      query.scallopSuiKit.queryGetObjects(keyCollections.spoolReward),
+      query.scallopSuiKit.queryGetObjects(keyCollections.sCoinTreasury),
     ]);
 
   // Phase 3: Create lookup maps
@@ -139,7 +138,7 @@ const parseSpoolObjects = ({
  */
 export const getSpools = async (
   query: ScallopQuery,
-  stakeMarketCoinNames: string[] = [...query.constants.whitelist.spool],
+  stakeMarketCoinNames: string[] = [...query.address.getWhitelist('spool')],
   indexer: boolean = false,
   marketPools?: MarketPools,
   coinPrices?: CoinPrices
@@ -315,15 +314,15 @@ export const getStakeAccounts = async (
   },
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || utils.suiKit.currentAddress();
-  const spoolObjectId = utils.address.get('spool.object');
+  const owner = ownerAddress || utils.suiKit.currentAddress;
+  const spoolObjectId = utils.constants.get('spool.object');
   const stakeAccountType = `${spoolObjectId}::spool_account::SpoolAccount`;
   const stakeObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
   do {
     const paginatedStakeObjectsResponse =
-      await utils.cache.queryGetOwnedObjects({
+      await utils.scallopSuiKit.queryGetOwnedObjects({
         owner,
         filter: { StructType: stakeAccountType },
         options: {
@@ -348,7 +347,7 @@ export const getStakeAccounts = async (
   } while (hasNextPage);
 
   const stakeAccounts: StakeAccounts = [
-    ...utils.constants.whitelist.spool,
+    ...utils.address.getWhitelist('spool'),
   ].reduce((acc, stakeName) => {
     acc[stakeName] = [];
     return acc;
@@ -443,9 +442,10 @@ export const getStakePool = async (
   },
   marketCoinName: string
 ) => {
-  const poolId = utils.address.get(`spool.pools.${marketCoinName}.id`);
+  const poolId = utils.constants.get(`spool.pools.${marketCoinName}.id`);
   let stakePool: StakePool | undefined = undefined;
-  const stakePoolObjectResponse = await utils.cache.queryGetObject(poolId);
+  const stakePoolObjectResponse =
+    await utils.scallopSuiKit.queryGetObject(poolId);
   if (stakePoolObjectResponse?.data) {
     const stakePoolObject = stakePoolObjectResponse.data;
     const id = stakePoolObject.objectId;
@@ -500,12 +500,12 @@ export const getStakeRewardPool = async (
   },
   marketCoinName: string
 ) => {
-  const poolId = utils.address.get(
+  const poolId = utils.constants.get(
     `spool.pools.${marketCoinName}.rewardPoolId`
   );
   let stakeRewardPool: StakeRewardPool | undefined = undefined;
   const stakeRewardPoolObjectResponse =
-    await utils.cache.queryGetObject(poolId);
+    await utils.scallopSuiKit.queryGetObject(poolId);
 
   if (stakeRewardPoolObjectResponse?.data) {
     const stakeRewardPoolObject = stakeRewardPoolObjectResponse.data;

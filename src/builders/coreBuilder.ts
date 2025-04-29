@@ -66,14 +66,14 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
   txBlock,
 }) => {
   const coreIds: CoreIds = {
-    protocolPkg: builder.address.get('core.packages.protocol.id'),
-    market: builder.address.get('core.market'),
-    version: builder.address.get('core.version'),
-    coinDecimalsRegistry: builder.address.get('core.coinDecimalsRegistry'),
-    xOracle: builder.address.get('core.oracles.xOracle'),
+    protocolPkg: builder.constants.get('core.packages.protocol.id'),
+    market: builder.constants.get('core.market'),
+    version: builder.constants.get('core.version'),
+    coinDecimalsRegistry: builder.constants.get('core.coinDecimalsRegistry'),
+    xOracle: builder.constants.get('core.oracles.xOracle'),
   };
 
-  const referralPkgId = builder.address.get('referral.id');
+  const referralPkgId = builder.constants.get('referral.id');
   const referralWitnessType = `${referralPkgId}::scallop_referral_program::REFERRAL_WITNESS`;
   const clockObjectRef = txBlock.sharedObjectRef({
     objectId: SUI_CLOCK_OBJECT_ID,

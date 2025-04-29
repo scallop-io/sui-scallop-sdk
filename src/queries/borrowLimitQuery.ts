@@ -28,10 +28,10 @@ const borrowLimitKeyType = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da26c
 export const getBorrowLimit = async (utils: ScallopUtils, poolName: string) => {
   try {
     const poolCoinType = utils.parseCoinType(poolName).slice(2);
-    const marketObject = utils.address.get('core.market');
+    const marketObject = utils.constants.get('core.market');
     if (!marketObject) return null;
 
-    const object = await utils.cache.queryGetDynamicFieldObject({
+    const object = await utils.scallopSuiKit.queryGetDynamicFieldObject({
       parentId: marketObject,
       name: {
         type: borrowLimitKeyType,
