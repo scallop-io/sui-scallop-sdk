@@ -6,6 +6,7 @@ import { ScallopConstants, Whitelist } from 'src';
 let scallopConstants: ScallopConstants;
 beforeAll(async () => {
   scallopConstants = await scallopSDK.getScallopConstants();
+  await scallopConstants.init();
 });
 
 describe('Test Scallop Constants API Fetch', () => {
@@ -18,15 +19,17 @@ describe('Test Scallop Constants API Fetch', () => {
 describe('Test Scallop Constants Values Overide', () => {
   it('Should override whitelist', async () => {
     await scallopConstants.init({
-      forceWhitelistInterface: {} as Whitelist,
+      constantsParams: { forceWhitelistInterface: {} as Whitelist },
     });
 
-    expect(Object.values(scallopConstants.whitelist).length === 0).toBe(true);
+    expect(Object.values(scallopConstants.whitelist.lending).length === 0).toBe(
+      true
+    );
   });
 
   it('Should override pool addresses', async () => {
     await scallopConstants.init({
-      forcePoolAddressInterface: {},
+      constantsParams: { forcePoolAddressInterface: {} },
     });
 
     expect(Object.values(scallopConstants.poolAddresses).length === 0).toBe(

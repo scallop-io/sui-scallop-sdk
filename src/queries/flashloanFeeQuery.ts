@@ -1,18 +1,24 @@
 import { SuiObjectData } from '@mysten/sui/client';
-import { ScallopUtils } from 'src/models';
-import { ScallopConstants } from 'src/models/scallopConstants';
+import { ScallopSuiKit } from 'src/models';
+import ScallopConstants from 'src/models/scallopConstants';
 
 const FLASHLOAN_FEES_TABLE_ID =
   '0x00481a93b819d744a7d79ecdc6c62c74f2f7cb4779316c4df640415817ac61bb' as const;
 
 export const queryFlashLoanFees = async (
-  utils: ScallopUtils,
+  {
+    constants,
+    scallopSuiKit,
+  }: {
+    constants: ScallopConstants;
+    scallopSuiKit: ScallopSuiKit;
+  },
   assetNames: string[],
   feeRate: number
 ) => {
   const assetNamesSet = new Set(assetNames);
   const assetTypeMap = Object.fromEntries(
-    Object.entries(utils.constants.coinTypeToCoinNameMap).filter(([_, value]) =>
+    Object.entries(constants.coinTypeToCoinNameMap).filter(([_, value]) =>
       assetNamesSet.has(value!)
     )
   );
@@ -21,7 +27,7 @@ export const queryFlashLoanFees = async (
   let nextPage: boolean = false;
   const flashloanFeeObjects: SuiObjectData[] = [];
   do {
-    const resp = await utils.cache.queryGetDynamicFields({
+    const resp = await scallopSuiKit.queryGetDynamicFields({
       parentId: FLASHLOAN_FEES_TABLE_ID,
       limit: 10,
       cursor,
@@ -39,7 +45,7 @@ export const queryFlashLoanFees = async (
         .map((field) => field.objectId) ?? [];
 
     flashloanFeeObjects.push(
-      ...(await utils.cache.queryGetObjects(dynamicFieldObjectIds))
+      ...(await scallopSuiKit.queryGetObjects(dynamicFieldObjectIds))
     );
     nextPage = hasNextPage;
     cursor = nextCursor;
