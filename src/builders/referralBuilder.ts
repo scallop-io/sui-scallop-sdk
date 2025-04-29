@@ -20,17 +20,17 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
   txBlock,
 }) => {
   const referralIds: ReferralIds = {
-    referralPgkId: builder.address.get('referral.id'),
-    referralBindings: builder.address.get('referral.referralBindings'),
-    referralRevenuePool: builder.address.get('referral.referralRevenuePool'),
-    authorizedWitnessList: builder.address.get(
+    referralPgkId: builder.constants.get('referral.id'),
+    referralBindings: builder.constants.get('referral.referralBindings'),
+    referralRevenuePool: builder.constants.get('referral.referralRevenuePool'),
+    authorizedWitnessList: builder.constants.get(
       'referral.authorizedWitnessList'
     ),
-    referralTiers: builder.address.get('referral.referralTiers'),
-    version: builder.address.get('referral.version'),
+    referralTiers: builder.constants.get('referral.referralTiers'),
+    version: builder.constants.get('referral.version'),
   };
 
-  const veScaTable = builder.address.get('vesca.table');
+  const veScaTable = builder.constants.get('vesca.table');
   const clockObjectRef = txBlock.sharedObjectRef({
     objectId: SUI_CLOCK_OBJECT_ID,
     mutable: false,
@@ -105,7 +105,7 @@ const generateReferralQuickMethod: GenerateReferralQuickMethod = ({
   return {
     claimReferralRevenueQuick: async (
       veScaKey: SuiObjectArg,
-      coinNames: string[] = [...builder.constants.whitelist.lending]
+      coinNames: string[] = [...builder.address.getWhitelist('lending')]
     ) => {
       const sender = requireSender(txBlock);
       const objToTransfer: SuiObjectArg[] = [];

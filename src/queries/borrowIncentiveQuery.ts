@@ -3,8 +3,13 @@ import {
   parseOriginBorrowIncentivePoolData,
   parseOriginBorrowIncentiveAccountData,
   calculateBorrowIncentivePoolPointData,
-} from '../utils';
-import type { ScallopAddress, ScallopQuery, ScallopUtils } from '../models';
+} from 'src/utils';
+import type {
+  ScallopConstants,
+  ScallopQuery,
+  ScallopSuiKit,
+  ScallopUtils,
+} from 'src/models';
 import type {
   BorrowIncentivePoolsQueryInterface,
   BorrowIncentivePools,
@@ -14,7 +19,7 @@ import type {
   OptionalKeys,
   CoinPrices,
   MarketPools,
-} from '../types';
+} from 'src/types';
 import BigNumber from 'bignumber.js';
 import { SuiObjectRef } from '@mysten/sui/client';
 
@@ -23,13 +28,19 @@ import { SuiObjectRef } from '@mysten/sui/client';
  * @param address
  * @returns
  */
-export const queryBorrowIncentivePools = async (address: ScallopAddress) => {
-  const queryPkgId = address.get('borrowIncentive.query');
-  const incentivePoolsId = address.get('borrowIncentive.incentivePools');
+export const queryBorrowIncentivePools = async ({
+  constants,
+  scallopSuiKit,
+}: {
+  constants: ScallopConstants;
+  scallopSuiKit: ScallopSuiKit;
+}) => {
+  const queryPkgId = constants.get('borrowIncentive.query');
+  const incentivePoolsId = constants.get('borrowIncentive.incentivePools');
 
   const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
   const args = [incentivePoolsId];
-  const queryResult = await address.cache.queryInspectTxn({
+  const queryResult = await scallopSuiKit.queryInspectTxn({
     queryTarget,
     args,
   });
@@ -49,7 +60,9 @@ export const queryBorrowIncentivePools = async (address: ScallopAddress) => {
  */
 export const getBorrowIncentivePools = async (
   query: ScallopQuery,
-  borrowIncentiveCoinNames: string[] = [...query.constants.whitelist.lending],
+  borrowIncentiveCoinNames: string[] = [
+    ...query.address.getWhitelist('lending'),
+  ],
   indexer: boolean = false,
   marketPools?: MarketPools,
   coinPrices?: CoinPrices
@@ -60,9 +73,7 @@ export const getBorrowIncentivePools = async (
     (await query.getMarketPools(undefined, { coinPrices, indexer })).pools;
   coinPrices = coinPrices ?? (await query.getAllCoinPrices({ marketPools }));
 
-  const borrowIncentivePoolsQueryData = await queryBorrowIncentivePools(
-    query.address
-  );
+  const borrowIncentivePoolsQueryData = await queryBorrowIncentivePools(query);
 
   for (const pool of borrowIncentivePoolsQueryData?.incentive_pools ?? []) {
     const borrowIncentivePoolPoints: OptionalKeys<
@@ -152,22 +163,23 @@ export const getBorrowIncentivePools = async (
  * @return Borrow incentive accounts data.
  */
 export const queryBorrowIncentiveAccounts = async (
-  {
-    utils,
-  }: {
-    utils: ScallopUtils;
-  },
+  { utils }: { utils: ScallopUtils },
   obligationId: string | SuiObjectRef,
-  borrowIncentiveCoinNames: string[] = [...utils.constants.whitelist.lending]
+  borrowIncentiveCoinNames: string[] = [
+    ...utils.address.getWhitelist('lending'),
+  ]
 ) => {
-  const queryPkgId = utils.address.get('borrowIncentive.query');
-  const incentiveAccountsId = utils.address.get(
+  const queryPkgId = utils.constants.get('borrowIncentive.query');
+  const incentiveAccountsId = utils.constants.get(
     'borrowIncentive.incentiveAccounts'
   );
   const queryTarget = `${queryPkgId}::incentive_account_query::incentive_account_data`;
   const args = [incentiveAccountsId, obligationId];
 
-  const queryResult = await utils.cache.queryInspectTxn({ queryTarget, args });
+  const queryResult = await utils.scallopSuiKit.queryInspectTxn({
+    queryTarget,
+    args,
+  });
   const borrowIncentiveAccountsQueryData = queryResult?.events[0]
     ?.parsedJson as BorrowIncentiveAccountsQueryInterface | undefined;
 
@@ -202,19 +214,21 @@ export const queryBorrowIncentiveAccounts = async (
  */
 export const getBindedObligationId = async (
   {
-    address,
+    constants,
+    scallopSuiKit,
   }: {
-    address: ScallopAddress;
+    constants: ScallopConstants;
+    scallopSuiKit: ScallopSuiKit;
   },
   veScaKeyId: string
 ): Promise<string | null> => {
-  const borrowIncentiveObjectId = address.get('borrowIncentive.object');
-  const incentivePoolsId = address.get('borrowIncentive.incentivePools');
-  const veScaObjId = address.get('vesca.object');
+  const borrowIncentiveObjectId = constants.get('borrowIncentive.object');
+  const incentivePoolsId = constants.get('borrowIncentive.incentivePools');
+  const veScaObjId = constants.get('vesca.object');
 
   // get incentive pools
   const incentivePoolsResponse =
-    await address.cache.queryGetObject(incentivePoolsId);
+    await scallopSuiKit.queryGetObject(incentivePoolsId);
 
   if (incentivePoolsResponse?.data?.content?.dataType !== 'moveObject')
     return null;
@@ -224,7 +238,7 @@ export const getBindedObligationId = async (
 
   // check if veSca is inside the bind table
   const keyType = `${borrowIncentiveObjectId}::typed_id::TypedID<${veScaObjId}::ve_sca::VeScaKey>`;
-  const veScaBindTableResponse = await address.cache.queryGetDynamicFieldObject(
+  const veScaBindTableResponse = await scallopSuiKit.queryGetDynamicFieldObject(
     {
       parentId: veScaBindTableId,
       name: {
@@ -246,19 +260,23 @@ export const getBindedObligationId = async (
 
 export const getBindedVeScaKey = async (
   {
-    address,
+    constants,
+    scallopSuiKit,
   }: {
-    address: ScallopAddress;
+    constants: ScallopConstants;
+    scallopSuiKit: ScallopSuiKit;
   },
   obligationId: string
 ): Promise<string | null> => {
-  const borrowIncentiveObjectId = address.get('borrowIncentive.object');
-  const incentiveAccountsId = address.get('borrowIncentive.incentiveAccounts');
-  const corePkg = address.get('core.object');
+  const borrowIncentiveObjectId = constants.get('borrowIncentive.object');
+  const incentiveAccountsId = constants.get(
+    'borrowIncentive.incentiveAccounts'
+  );
+  const corePkg = constants.get('core.object');
 
   // get IncentiveAccounts object
   const incentiveAccountsObject =
-    await address.cache.queryGetObject(incentiveAccountsId);
+    await scallopSuiKit.queryGetObject(incentiveAccountsId);
   if (incentiveAccountsObject?.data?.content?.dataType !== 'moveObject')
     return null;
   const incentiveAccountsTableId = (
@@ -266,7 +284,7 @@ export const getBindedVeScaKey = async (
   ).accounts.fields.id.id;
 
   // Search in the table
-  const bindedIncentiveAcc = await address.cache.queryGetDynamicFieldObject({
+  const bindedIncentiveAcc = await scallopSuiKit.queryGetDynamicFieldObject({
     parentId: incentiveAccountsTableId,
     name: {
       type: `${borrowIncentiveObjectId}::typed_id::TypedID<${corePkg}::obligation::Obligation>`,

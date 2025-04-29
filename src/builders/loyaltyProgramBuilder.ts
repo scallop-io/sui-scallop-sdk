@@ -14,9 +14,9 @@ import { requireSender } from 'src/utils';
 const generateLoyaltyProgramNormalMethod: GenerateLoyaltyProgramNormalMethod =
   ({ builder, txBlock }) => {
     const loyaltyProgramIds: LoyaltyProgramIds = {
-      loyaltyProgramPkgId: builder.address.get('loyaltyProgram.id'),
-      rewardPool: builder.address.get('loyaltyProgram.rewardPool'),
-      userRewardTableId: builder.address.get(
+      loyaltyProgramPkgId: builder.constants.get('loyaltyProgram.id'),
+      rewardPool: builder.constants.get('loyaltyProgram.rewardPool'),
+      userRewardTableId: builder.constants.get(
         'loyaltyProgram.userRewardTableId'
       ),
     };

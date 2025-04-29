@@ -122,7 +122,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
   txBlock,
 }) => {
   const spoolIds: SpoolIds = {
-    spoolPkg: builder.address.get('spool.id'),
+    spoolPkg: builder.constants.get('spool.id'),
   };
   const clockObjectRef = txBlock.sharedObjectRef({
     objectId: SUI_CLOCK_OBJECT_ID,
@@ -134,7 +134,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
     createStakeAccount: (stakeMarketCoinName) => {
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
-      const stakePoolId = builder.address.get(
+      const stakePoolId = builder.constants.get(
         `spool.pools.${stakeMarketCoinName}.id`
       );
       return builder.moveCall(
@@ -147,7 +147,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
     stake: (stakeAccount, coin, stakeMarketCoinName) => {
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
-      const stakePoolId = builder.address.get(
+      const stakePoolId = builder.constants.get(
         `spool.pools.${stakeMarketCoinName}.id`
       );
       builder.moveCall(
@@ -160,7 +160,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
     unstake: (stakeAccount, amount, stakeMarketCoinName) => {
       const marketCoinType =
         builder.utils.parseMarketCoinType(stakeMarketCoinName);
-      const stakePoolId = builder.address.get(
+      const stakePoolId = builder.constants.get(
         `spool.pools.${stakeMarketCoinName}.id`
       );
       return builder.moveCall(
@@ -171,10 +171,10 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
       );
     },
     claim: (stakeAccount, stakeMarketCoinName) => {
-      const stakePoolId = builder.address.get(
+      const stakePoolId = builder.constants.get(
         `spool.pools.${stakeMarketCoinName}.id`
       ) as string;
-      const rewardPoolId = builder.address.get(
+      const rewardPoolId = builder.constants.get(
         `spool.pools.${stakeMarketCoinName}.rewardPoolId`
       ) as string;
       const marketCoinType =

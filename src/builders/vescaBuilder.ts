@@ -82,10 +82,10 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
   txBlock,
 }) => {
   const veScaIds: VescaIds = {
-    pkgId: builder.address.get('vesca.id'),
-    table: builder.address.get('vesca.table'),
-    treasury: builder.address.get('vesca.treasury'),
-    config: builder.address.get('vesca.config'),
+    pkgId: builder.constants.get('vesca.id'),
+    table: builder.constants.get('vesca.table'),
+    treasury: builder.constants.get('vesca.treasury'),
+    config: builder.constants.get('vesca.config'),
   };
   const clockObjectRef = txBlock.sharedObjectRef({
     objectId: SUI_CLOCK_OBJECT_ID,

@@ -18,7 +18,6 @@ import type {
   MarketCollaterals,
 } from '../types';
 import { SuiObjectRef } from '@mysten/sui/client';
-import { queryMultipleObjects } from './objectsQuery';
 import { normalizeStructTag, SUI_TYPE_ARG } from '@scallop-io/sui-kit';
 
 /**
@@ -32,7 +31,7 @@ import { normalizeStructTag, SUI_TYPE_ARG } from '@scallop-io/sui-kit';
  */
 export const getLendings = async (
   query: ScallopQuery,
-  poolCoinNames: string[] = [...query.constants.whitelist.lending],
+  poolCoinNames: string[] = [...query.address.getWhitelist('lending')],
   ownerAddress?: string,
   marketPools?: MarketPools,
   coinPrices?: CoinPrices,
@@ -42,7 +41,7 @@ export const getLendings = async (
     query.utils.parseMarketCoinName(poolCoinName)
   );
   const stakeMarketCoinNames = marketCoinNames.filter((marketCoinName) =>
-    query.constants.whitelist.spool.has(marketCoinName)
+    query.address.getWhitelist('spool').has(marketCoinName)
   ) as string[];
 
   coinPrices = coinPrices ?? (await query.utils.getCoinPrices());
@@ -67,6 +66,7 @@ export const getLendings = async (
   ]);
 
   const lendings: Lendings = {};
+
   await Promise.allSettled(
     poolCoinNames.map(async (poolCoinName) => {
       const stakeMarketCoinName = stakeMarketCoinNames.find(
@@ -137,7 +137,7 @@ export const getLending = async (
     throw new Error(`Failed to fetch marketPool for ${poolCoinName}`);
 
   spool =
-    (spool ?? query.constants.whitelist.spool.has(marketCoinName))
+    (spool ?? query.address.getWhitelist('spool').has(marketCoinName))
       ? await query.getSpool(marketCoinName as string, {
           indexer,
           marketPool,
@@ -148,7 +148,7 @@ export const getLending = async (
       : undefined;
 
   stakeAccounts =
-    stakeAccounts || query.constants.whitelist.spool.has(marketCoinName)
+    stakeAccounts || query.address.getWhitelist('spool').has(marketCoinName)
       ? await query.getStakeAccounts(marketCoinName as string, ownerAddress)
       : [];
   coinAmount =
@@ -317,8 +317,7 @@ export const getObligationAccounts = async (
     query.getObligations(ownerAddress),
   ]);
 
-  const obligationObjects = await queryMultipleObjects(
-    query.cache,
+  const obligationObjects = await query.scallopSuiKit.queryGetObjects(
     obligations.map((obligation) => obligation.id)
   );
   const obligationAccounts: ObligationAccounts = {};
@@ -362,7 +361,7 @@ export const getObligationAccount = async (
   coinAmounts =
     coinAmounts ??
     (await query.getCoinAmounts(
-      Array.from(query.constants.whitelist.lending),
+      Array.from(query.address.getWhitelist('lending')),
       ownerAddress
     ));
 
@@ -389,7 +388,7 @@ export const getObligationAccount = async (
   let totalBorrowedValueWithWeight = BigNumber(0);
 
   for (const assetCoinName of Array.from(
-    query.constants.whitelist.collateral
+    query.address.getWhitelist('collateral')
   )) {
     const collateral = obligationQuery?.collaterals.find((collateral) => {
       const collateralCoinName = query.utils.parseCoinNameFromType(

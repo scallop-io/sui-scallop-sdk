@@ -1,54 +1,27 @@
-import axios, { AxiosInstance } from 'axios';
-import { SDK_API_BASE_URL } from '../constants';
-import type {
-  Market,
-  MarketPools,
-  MarketPool,
-  MarketCollaterals,
-  MarketCollateral,
-  Spools,
-  Spool,
-  BorrowIncentivePools,
+import {
   BorrowIncentivePool,
-  TotalValueLocked,
   BorrowIncentivePoolPoints,
-  ScallopIndexerInstanceParams,
-  ScallopIndexerParams,
-} from '../types';
-import { ScallopCache } from './scallopCache';
-import { queryKeys } from 'src/constants';
+  BorrowIncentivePools,
+  Market,
+  MarketCollateral,
+  MarketCollaterals,
+  MarketPool,
+  MarketPools,
+  Spool,
+  Spools,
+  TotalValueLocked,
+} from 'src/types';
+import ScallopAxios, { ScallopAxiosParams } from './scallopAxios';
+import { queryKeys, SDK_API_BASE_URL } from 'src/constants';
 
-/**
- * @description
- * It provides methods to obtain sdk index data from mainnet.
- *
- *
- * @example
- * ```typescript
- * const scallopIndexer = new scallopIndexer(<parameters>);
- * scallopIndexer.<indexer functions>();
- * await scallopIndexer.<indexer async functions>();
- * ```
- */
-export class ScallopIndexer {
-  private readonly cache: ScallopCache;
-  public readonly params: ScallopIndexerParams;
-  private readonly _requestClient: AxiosInstance;
+export type ScallopIndexerParams = {
+  indexerApiUrl?: string;
+} & ScallopAxiosParams;
 
-  public constructor(
-    params: ScallopIndexerParams,
-    instance?: ScallopIndexerInstanceParams
-  ) {
-    this.params = params;
-    this.cache = instance?.cache ?? new ScallopCache(this.params);
-    this._requestClient = axios.create({
-      baseURL: params.indexerApiUrl ?? SDK_API_BASE_URL,
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      timeout: 30000,
-    });
+class ScallopIndexer extends ScallopAxios {
+  constructor(params: ScallopIndexerParams = {}) {
+    params.baseUrl = params.indexerApiUrl ?? SDK_API_BASE_URL;
+    super(params);
   }
 
   /**
@@ -57,15 +30,10 @@ export class ScallopIndexer {
    * @return Market data.
    */
   public async getMarket(): Promise<Pick<Market, 'pools' | 'collaterals'>> {
-    const response = await this.cache.queryClient.fetchQuery({
-      queryKey: queryKeys.api.getMarket(),
-      queryFn: async () => {
-        return await this._requestClient.get<{
-          pools: MarketPool[];
-          collaterals: MarketCollateral[];
-        }>(`/api/market/migrate`);
-      },
-    });
+    const response = await this.get<{
+      pools: MarketPool[];
+      collaterals: MarketCollateral[];
+    }>('/api/market/migrate', queryKeys.api.getMarket());
 
     if (response.status === 200) {
       return {
@@ -133,14 +101,9 @@ export class ScallopIndexer {
    * @return Spools data.
    */
   public async getSpools(): Promise<Required<Spools>> {
-    const response = await this.cache.queryClient.fetchQuery({
-      queryKey: queryKeys.api.getSpools(),
-      queryFn: async () => {
-        return await this._requestClient.get<{
-          spools: Spool[];
-        }>(`/api/spools/migrate`);
-      },
-    });
+    const response = await this.get<{
+      spools: Spool[];
+    }>('/api/spools/migrate', queryKeys.api.getSpools());
 
     if (response.status === 200) {
       return response.data.spools.reduce((spools, spool) => {
@@ -169,14 +132,12 @@ export class ScallopIndexer {
   public async getBorrowIncentivePools(): Promise<
     Required<BorrowIncentivePools>
   > {
-    const response = await this.cache.queryClient.fetchQuery({
-      queryKey: queryKeys.api.getBorrowIncentivePool(),
-      queryFn: async () => {
-        return await this._requestClient.get<{
-          borrowIncentivePools: BorrowIncentivePool[];
-        }>(`/api/borrowIncentivePools/migrate`);
-      },
-    });
+    const response = await this.get<{
+      borrowIncentivePools: BorrowIncentivePool[];
+    }>(
+      '/api/borrowIncentivePools/migrate',
+      queryKeys.api.getBorrowIncentivePool()
+    );
 
     if (response.status === 200) {
       return response.data.borrowIncentivePools.reduce(
@@ -228,18 +189,13 @@ export class ScallopIndexer {
       supplyValueChangeRatio: number;
     }
   > {
-    const response = await this.cache.queryClient.fetchQuery({
-      queryKey: queryKeys.api.getTotalValueLocked(),
-      queryFn: async () => {
-        return await this._requestClient.get<
-          TotalValueLocked & {
-            totalValueChangeRatio: number;
-            borrowValueChangeRatio: number;
-            supplyValueChangeRatio: number;
-          }
-        >(`/api/market/tvl`);
-      },
-    });
+    const response = await this.get<
+      TotalValueLocked & {
+        totalValueChangeRatio: number;
+        borrowValueChangeRatio: number;
+        supplyValueChangeRatio: number;
+      }
+    >(`/api/market/tvl`, queryKeys.api.getTotalValueLocked());
 
     if (response.status === 200) {
       return response.data;
@@ -268,3 +224,5 @@ export class ScallopIndexer {
     );
   }
 }
+
+export default ScallopIndexer;

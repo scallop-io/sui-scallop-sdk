@@ -23,21 +23,22 @@ export const getVescaKeys = async (
   utils: ScallopUtils,
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || utils.suiKit.currentAddress();
-  const veScaObjId = utils.address.get('vesca.object');
+  const owner = ownerAddress || utils.suiKit.currentAddress;
+  const veScaObjId = utils.constants.get('vesca.object');
   const veScaKeyType = `${veScaObjId}::ve_sca::VeScaKey`;
   const keyObjectsResponse: SuiObjectResponse[] = [];
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
   do {
-    const paginatedKeyObjectsResponse = await utils.cache.queryGetOwnedObjects({
-      owner,
-      filter: {
-        StructType: veScaKeyType,
-      },
-      cursor: nextCursor,
-      limit: 10,
-    });
+    const paginatedKeyObjectsResponse =
+      await utils.scallopSuiKit.queryGetOwnedObjects({
+        owner,
+        filter: {
+          StructType: veScaKeyType,
+        },
+        cursor: nextCursor,
+        limit: 10,
+      });
     if (!paginatedKeyObjectsResponse) continue;
 
     keyObjectsResponse.push(...paginatedKeyObjectsResponse.data);
@@ -115,7 +116,7 @@ export const getVeSca = async (
   utils: ScallopUtils,
   veScaKey: string | SuiObjectData
 ) => {
-  const tableId = utils.address.get(`vesca.tableId`);
+  const tableId = utils.constants.get(`vesca.tableId`);
 
   if (!veScaKey) return undefined;
   if (typeof veScaKey === 'object') {
@@ -125,7 +126,7 @@ export const getVeSca = async (
   let vesca: Vesca | undefined = undefined;
 
   const veScaDynamicFieldObjectResponse =
-    await utils.cache.queryGetDynamicFieldObject({
+    await utils.scallopSuiKit.queryGetDynamicFieldObject({
       parentId: tableId,
       name: {
         type: '0x2::object::ID',
@@ -179,9 +180,9 @@ const getTotalVeScaTreasuryAmount = async (
   utils: ScallopUtils,
   veScaTreasury: SuiObjectData
 ): Promise<string> => {
-  const veScaPkgId = utils.address.get('vesca.id');
-  const veScaConfig = utils.address.get('vesca.config');
-  veScaTreasury = veScaTreasury ?? utils.address.get('vesca.treasury');
+  const veScaPkgId = utils.constants.get('vesca.id');
+  const veScaConfig = utils.constants.get('vesca.config');
+  veScaTreasury = veScaTreasury ?? utils.constants.get('vesca.treasury');
 
   const txb = new SuiTxBlock();
   const clockObjectRef = txb.sharedObjectRef({
@@ -202,7 +203,7 @@ const getTotalVeScaTreasuryAmount = async (
   const resolvedRefreshArgs = await Promise.all(
     refreshArgs.map(async (arg) => {
       if (typeof arg === 'string') {
-        return (await utils.cache.queryGetObject(arg))?.data;
+        return (await utils.scallopSuiKit.queryGetObject(arg))?.data;
       }
       return arg;
     })
@@ -211,7 +212,7 @@ const getTotalVeScaTreasuryAmount = async (
   const resolvedVeScaAmountArgs = await Promise.all(
     veScaAmountArgs.map(async (arg) => {
       if (typeof arg === 'string') {
-        return (await utils.cache.queryGetObject(arg))?.data;
+        return (await utils.scallopSuiKit.queryGetObject(arg))?.data;
       }
       return arg;
     })
@@ -222,20 +223,21 @@ const getTotalVeScaTreasuryAmount = async (
   txb.moveCall(veScaAmountQueryTarget, resolvedVeScaAmountArgs);
 
   const txBytes = await txb.txBlock.build({
-    client: utils.suiKit.client(),
+    client: utils.suiKit.client,
     onlyTransactionKind: true,
   });
 
   // return result
-  const res = await utils.cache.queryClient.fetchQuery<DevInspectResults>({
-    queryKey: queryKeys.rpc.getTotalVeScaTreasuryAmount(
-      refreshArgs,
-      veScaAmountArgs
-    ),
-    queryFn: async () => {
-      return await utils.suiKit.inspectTxn(txBytes);
-    },
-  });
+  const res =
+    await utils.scallopSuiKit.queryClient.fetchQuery<DevInspectResults>({
+      queryKey: queryKeys.rpc.getTotalVeScaTreasuryAmount(
+        refreshArgs,
+        veScaAmountArgs
+      ),
+      queryFn: async () => {
+        return await utils.suiKit.inspectTxn(txBytes);
+      },
+    });
 
   const results = res.results;
   if (results && results[1]?.returnValues) {
@@ -256,8 +258,9 @@ const getTotalVeScaTreasuryAmount = async (
 export const getVeScaTreasuryInfo = async (
   utils: ScallopUtils
 ): Promise<VeScaTreasuryInfo | null> => {
-  const veScaTreasuryId = utils.address.get('vesca.treasury');
-  const veScaTreasury = await utils.cache.queryGetObject(veScaTreasuryId);
+  const veScaTreasuryId = utils.constants.get('vesca.treasury');
+  const veScaTreasury =
+    await utils.scallopSuiKit.queryGetObject(veScaTreasuryId);
 
   if (!veScaTreasury || veScaTreasury.data?.content?.dataType !== 'moveObject')
     return null;

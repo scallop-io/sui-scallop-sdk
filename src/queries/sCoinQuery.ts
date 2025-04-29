@@ -18,7 +18,7 @@ export const getSCoinTotalSupply = async (
   },
   sCoinName: string
 ): Promise<sCoinBalance> => {
-  const sCoinPkgId = utils.address.get('scoin.id');
+  const sCoinPkgId = utils.constants.get('scoin.id');
   // get treasury
   const args = [utils.getSCoinTreasury(sCoinName)];
   const typeArgs = [
@@ -26,7 +26,7 @@ export const getSCoinTotalSupply = async (
     utils.parseUnderlyingSCoinType(sCoinName),
   ];
   const queryTarget = `${sCoinPkgId}::s_coin_converter::total_supply`;
-  const queryResults = await utils.cache.queryInspectTxn({
+  const queryResults = await utils.scallopSuiKit.queryInspectTxn({
     queryTarget,
     args,
     typeArgs,
@@ -59,10 +59,10 @@ export const getSCoinAmounts = async (
   }: {
     utils: ScallopUtils;
   },
-  sCoinNames: string[] = [...utils.constants.whitelist.scoin],
+  sCoinNames: string[] = [...utils.address.getWhitelist('scoin')],
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || utils.suiKit.currentAddress();
+  const owner = ownerAddress || utils.suiKit.currentAddress;
   const sCoins = {} as OptionalKeys<Record<string, number>>;
 
   await Promise.allSettled(
@@ -92,9 +92,9 @@ export const getSCoinAmount = async (
   sCoinName: string,
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || utils.suiKit.currentAddress();
+  const owner = ownerAddress || utils.suiKit.currentAddress;
   const sCoinType = utils.parseSCoinType(sCoinName);
-  const coinBalance = await utils.cache.queryGetCoinBalance({
+  const coinBalance = await utils.scallopSuiKit.queryGetCoinBalance({
     owner,
     coinType: sCoinType,
   });
@@ -109,10 +109,10 @@ const checkAssetParams = (
   if (fromSCoin === toSCoin)
     throw new Error('fromAsset and toAsset must be different');
 
-  if (!utils.constants.whitelist.scoin.has(fromSCoin))
+  if (!utils.address.getWhitelist('scoin').has(fromSCoin))
     throw new Error('fromAsset is not supported');
 
-  if (!utils.constants.whitelist.scoin.has(toSCoin)) {
+  if (!utils.address.getWhitelist('scoin').has(toSCoin)) {
     throw new Error('toAsset is not supported');
   }
 };

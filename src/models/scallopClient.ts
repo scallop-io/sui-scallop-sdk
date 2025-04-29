@@ -1,26 +1,30 @@
-import { normalizeSuiAddress } from '@mysten/sui/utils';
-import { SuiKit } from '@scallop-io/sui-kit';
-import { ScallopAddress } from './scallopAddress';
-import { ScallopUtils } from './scallopUtils';
-import { ScallopBuilder } from './scallopBuilder';
-import { ScallopQuery } from './scallopQuery';
+import ScallopBuilder, { ScallopBuilderParams } from './scallopBuilder';
 import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
 import type {
+  Transaction,
   TransactionObjectArgument,
   TransactionResult,
 } from '@mysten/sui/transactions';
-import { ScallopCache } from './scallopCache';
 import { requireSender } from 'src/utils';
-import type { SuiObjectArg } from '@scallop-io/sui-kit';
-import type {
-  ScallopClientFnReturnType,
-  ScallopClientParams,
-  ScallopTxBlock,
-  ScallopClientVeScaReturnType,
-  ScallopClientInstanceParams,
-} from '../types';
-import { newSuiKit } from './suiKit';
-import { ScallopConstants } from './scallopConstants';
+import type { NetworkType, SuiObjectArg } from '@scallop-io/sui-kit';
+import type { ScallopTxBlock } from '../types';
+import { ScallopClientInterface } from './interface';
+
+export type ScallopClientParams = {
+  networkType?: NetworkType;
+  builder?: ScallopBuilder;
+} & ScallopBuilderParams;
+
+type ScallopClientFnReturnType<T extends boolean> = T extends true
+  ? SuiTransactionBlockResponse
+  : Transaction;
+
+type ScallopClientVeScaReturnType<T extends boolean> = T extends true
+  ? SuiTransactionBlockResponse
+  : {
+      tx: Transaction;
+      scaCoin: TransactionResult;
+    };
 
 /**
  * @description
@@ -34,65 +38,37 @@ import { ScallopConstants } from './scallopConstants';
  * await scallopClient.<client async functions>();
  * ```
  */
-export class ScallopClient {
-  public readonly params: ScallopClientParams;
+class ScallopClient implements ScallopClientInterface {
+  public readonly builder: ScallopBuilder;
+  public networkType: NetworkType;
 
-  public suiKit: SuiKit;
-  public address: ScallopAddress;
-  public constants: ScallopConstants;
-  public builder: ScallopBuilder;
-  public query: ScallopQuery;
-  public utils: ScallopUtils;
-  public cache: ScallopCache;
-  public walletAddress: string;
+  public constructor(params: ScallopClientParams) {
+    this.builder = params.builder ?? new ScallopBuilder(params);
+    this.networkType = params.networkType ?? 'mainnet';
+  }
 
-  public constructor(
-    params: ScallopClientParams,
-    instance?: ScallopClientInstanceParams
-  ) {
-    this.params = params;
-    this.suiKit =
-      instance?.suiKit ?? instance?.builder?.suiKit ?? newSuiKit(params);
-    this.walletAddress = normalizeSuiAddress(
-      params?.walletAddress ?? this.suiKit.currentAddress()
-    );
+  get query() {
+    return this.builder.query;
+  }
 
-    this.cache =
-      instance?.builder?.cache ??
-      instance?.cache ??
-      new ScallopCache(this.params, {
-        suiKit: this.suiKit,
-      });
+  get utils() {
+    return this.query.utils;
+  }
 
-    this.address =
-      instance?.builder?.address ??
-      new ScallopAddress(this.params, {
-        cache: this.cache,
-      });
+  get constants() {
+    return this.utils.constants;
+  }
 
-    this.constants =
-      instance?.builder?.constants ??
-      new ScallopConstants(this.params, {
-        address: this.address,
-      });
+  get walletAddress() {
+    return this.utils.walletAddress;
+  }
 
-    this.utils =
-      instance?.builder?.utils ??
-      new ScallopUtils(this.params, {
-        constants: this.constants,
-      });
+  get scallopSuiKit() {
+    return this.utils.scallopSuiKit;
+  }
 
-    this.query =
-      instance?.builder?.query ??
-      new ScallopQuery(this.params, {
-        utils: this.utils,
-      });
-
-    this.builder =
-      instance?.builder ??
-      new ScallopBuilder(this.params, {
-        query: this.query,
-      });
+  get address() {
+    return this.builder.address;
   }
 
   /**
@@ -101,13 +77,7 @@ export class ScallopClient {
    * @param force - Whether to force initialization.
    */
   public async init(force: boolean = false) {
-    if (force || !this.constants.isInitialized) {
-      await this.constants.init();
-    }
-
     await this.builder.init(force);
-    await this.query.init(force);
-    await this.utils.init(force);
   }
 
   /* ==================== Query Method ==================== */
@@ -224,7 +194,7 @@ export class ScallopClient {
     const txBlock = this.builder.createTxBlock();
     txBlock.openObligationEntry();
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -280,7 +250,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -320,7 +290,7 @@ export class ScallopClient {
     txBlock.transferObjects([collateralCoin], sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -361,7 +331,7 @@ export class ScallopClient {
     txBlock.transferObjects([sCoin], sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -421,7 +391,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -462,7 +432,7 @@ export class ScallopClient {
     txBlock.transferObjects([coin], sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -493,7 +463,9 @@ export class ScallopClient {
     const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
-    const availableStake = this.constants.whitelist.lending.has(poolCoinName);
+    const availableStake = this.constants
+      .getWhitelist('lending')
+      .has(poolCoinName);
     if (sign && availableStake) {
       await txBlock.unstakeObligationQuick(obligationId, obligationKey);
     }
@@ -509,7 +481,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -539,7 +511,9 @@ export class ScallopClient {
     const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
-    const availableStake = this.constants.whitelist.lending.has(poolCoinName);
+    const availableStake = this.constants
+      .getWhitelist('lending')
+      .has(poolCoinName);
     if (sign && availableStake) {
       await txBlock.unstakeObligationQuick(obligationId, obligationKey);
     }
@@ -549,7 +523,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -601,7 +575,7 @@ export class ScallopClient {
     txBlock.repayFlashLoan(await callback(txBlock, coin), loan, poolCoinName);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -639,7 +613,7 @@ export class ScallopClient {
     txBlock.transferObjects([stakeAccount], sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -691,7 +665,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -754,7 +728,7 @@ export class ScallopClient {
     txBlock.transferObjects([sCoin], sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -817,7 +791,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -861,7 +835,7 @@ export class ScallopClient {
     txBlock.transferObjects(rewardCoins, sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -893,7 +867,7 @@ export class ScallopClient {
     await txBlock.stakeObligationWithVeScaQuick(obligationId, obligationKeyId);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -923,7 +897,7 @@ export class ScallopClient {
     await txBlock.unstakeObligationQuick(obligationId, obligationKeyId);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -986,7 +960,7 @@ export class ScallopClient {
     );
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -1009,7 +983,7 @@ export class ScallopClient {
     txBlock.setSender(sender);
 
     const toTransfer: SuiObjectArg[] = [];
-    for (const sCoinName of this.constants.whitelist.scoin) {
+    for (const sCoinName of this.address.getWhitelist('scoin')) {
       /**
        * First check marketCoin inside mini wallet
        * Then check stakedMarketCoin inside spool
@@ -1040,7 +1014,7 @@ export class ScallopClient {
       // if market coin found, mint sCoin
       if (includeStakePool) {
         // check for staked market coin in spool
-        if (this.constants.whitelist.spool.has(sCoinName as string)) {
+        if (this.address.getWhitelist('spool').has(sCoinName as string)) {
           try {
             const sCoin = await txBlock.unstakeQuick(
               Number.MAX_SAFE_INTEGER,
@@ -1078,7 +1052,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -1136,7 +1110,7 @@ export class ScallopClient {
     await this.utils.mergeSimilarCoins(tx, scaCoins[0], 'sca', sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         tx
       )) as ScallopClientVeScaReturnType<S>;
     } else {
@@ -1177,9 +1151,7 @@ export class ScallopClient {
     sign: S = true as S,
     receiveAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const isTestnet = this.params.networkType
-      ? this.params.networkType === 'testnet'
-      : false;
+    const isTestnet = this.networkType === 'testnet';
 
     if (!isTestnet) {
       throw new Error('Only be used on the test network.');
@@ -1187,14 +1159,16 @@ export class ScallopClient {
 
     const txBlock = this.builder.createTxBlock();
     const recipient = receiveAddress ?? this.walletAddress;
-    const packageId = this.address.get('core.packages.testCoin.id');
-    const treasuryId = this.address.get(`core.coins.${assetCoinName}.treasury`);
+    const packageId = this.constants.get('core.packages.testCoin.id');
+    const treasuryId = this.constants.get(
+      `core.coins.${assetCoinName}.treasury`
+    );
     const target = `${packageId}::${assetCoinName}::mint`;
     const coin = txBlock.moveCall(target, [treasuryId, amount]);
     txBlock.transferObjects([coin], recipient);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -1202,3 +1176,5 @@ export class ScallopClient {
     }
   }
 }
+
+export default ScallopClient;

@@ -3,7 +3,7 @@ import { ScallopQuery } from 'src/models';
 export const getOnDemandAggObjectIds = async (
   query: ScallopQuery,
   coinNames: string[],
-  switchboardRegistryTableId: string = query.address.get(
+  switchboardRegistryTableId: string = query.constants.get(
     'core.oracles.switchboard.registryTableId'
   )
 ): Promise<string[]> => {
@@ -14,7 +14,7 @@ export const getOnDemandAggObjectIds = async (
 
   // Check if Aggregator is already registered in Address API
   const registeredAggs = coinNames.map((coinName, idx) => {
-    const registeredAgg = query.utils.address.get(
+    const registeredAgg = query.utils.constants.get(
       `core.coins.${coinName}.oracle.switchboard`
     );
     if (registeredAgg) {
@@ -47,7 +47,7 @@ export const getOnDemandAggObjectIds = async (
         },
       };
 
-      const resp = await query.cache.queryGetDynamicFieldObject({
+      const resp = await query.scallopSuiKit.queryGetDynamicFieldObject({
         parentId: switchboardRegistryTableId,
         name: dfName,
       });
