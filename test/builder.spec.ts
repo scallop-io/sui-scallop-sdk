@@ -105,11 +105,12 @@ beforeAll(async () => {
   try {
     const sCoinName = scallopBuilder.utils.parseSCoinName(COIN_NAME);
     if (!sCoinName) throw new Error(`No sCoin for ${COIN_NAME}`);
-    const sCoins = await scallopBuilder.suiKit.selectCoinsWithAmount(
-      COIN_AMOUNT,
-      sCoinName,
-      sender
-    );
+    const sCoins =
+      await scallopBuilder.scallopSuiKit.suiKit.selectCoinsWithAmount(
+        COIN_AMOUNT,
+        sCoinName,
+        sender
+      );
     hasSCoinInWallet = sCoins.length > 0;
   } catch (_e) {
     // no sCoin, just ignore
@@ -134,7 +135,8 @@ describe('Test Scallop Core Builder', () => {
   it('"openObligationEntry" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
     tx.openObligationEntry();
-    const openObligationResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const openObligationResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'OpenObligationResult:',
@@ -149,7 +151,8 @@ describe('Test Scallop Core Builder', () => {
     // Sender is required to invoke "addCollateralQuick".
     tx.setSender(sender);
     await tx.addCollateralQuick(10 ** 7, COLLATERAL_COIN_NAME);
-    const addCollateralQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const addCollateralQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'AddCollateralQuickResult:',
@@ -166,7 +169,7 @@ describe('Test Scallop Core Builder', () => {
     const coin = await tx.takeCollateralQuick(10 ** 7, COLLATERAL_COIN_NAME);
     tx.transferObjects([coin], sender);
     const takeCollateralQuickResult =
-      await scallopBuilder.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'TakeCollateralQuickResult:',
@@ -182,7 +185,8 @@ describe('Test Scallop Core Builder', () => {
     tx.setSender(sender);
     const marketCoin = await tx.depositQuick(10 ** 7, SUPPLY_COIN_NAME);
     tx.transferObjects([marketCoin], sender);
-    const depositQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const depositQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'DepositQuickResult:',
@@ -198,7 +202,8 @@ describe('Test Scallop Core Builder', () => {
     tx.setSender(sender);
     const coin = await tx.withdrawQuick(10 ** 7, SUPPLY_COIN_NAME);
     tx.transferObjects([coin], sender);
-    const withdrawQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const withdrawQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'WithdrawQuickResult:',
@@ -215,7 +220,8 @@ describe('Test Scallop Core Builder', () => {
     const borrowedCoin = await tx.borrowQuick(4 * 10 ** 7, BORROW_COIN_NAME);
     // Transfer borrowed coin to sender.
     tx.transferObjects([borrowedCoin], sender);
-    const borrowQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const borrowQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'BorrowQuickResult:',
@@ -230,7 +236,8 @@ describe('Test Scallop Core Builder', () => {
     // Sender is required to invoke "repayQuick".
     tx.setSender(sender);
     await tx.repayQuick(4 * 10 ** 7, BORROW_COIN_NAME);
-    const repayQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const repayQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('RepayQuickResult:', repayQuickResult.effects.status.error);
     }
@@ -258,7 +265,8 @@ describe('Test Scallop Core Builder', () => {
     tx.mergeCoins(coin, [takeCoin]);
     tx.transferObjects([leftCoin], sender);
     tx.repayFlashLoan(coin, loan, SUPPLY_COIN_NAME);
-    const borrowFlashLoanResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const borrowFlashLoanResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'BorrowFlashLoanResult:',
@@ -282,7 +290,8 @@ describe('Test Scallop Core Builder', () => {
     const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [10 ** 6]);
     const marketCoin = await tx.deposit(coin, SUPPLY_COIN_NAME);
     suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure.address(sender));
-    const txBlockResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const txBlockResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('TxBlockResult:', txBlockResult.effects.status.error);
     }
@@ -294,7 +303,8 @@ describe('Test Scallop Core Builder', () => {
     // Sender is required to invoke "updateAssetPricesQuick".
     tx.setSender(sender);
     await tx.updateAssetPricesQuick([SUPPLY_COIN_NAME]);
-    const updateAssetPricesResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const updateAssetPricesResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'UpdateAssetPricesResult:',
@@ -310,7 +320,8 @@ describe('Test Scallop Spool Builder', () => {
     const tx = scallopBuilder.createTxBlock();
     const stakeAccount = tx.createStakeAccount('ssui');
     tx.transferObjects([stakeAccount], sender);
-    const createStakeAccountResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const createStakeAccountResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'CreateStakeAccountResult:',
@@ -325,7 +336,8 @@ describe('Test Scallop Spool Builder', () => {
     // Sender is required to invoke "stakeQuick".
     tx.setSender(sender);
     await tx.stakeQuick(10 ** 6, 'ssui');
-    const stakeQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const stakeQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('StakeQuickResult:', stakeQuickResult.effects.status.error);
     }
@@ -339,7 +351,8 @@ describe('Test Scallop Spool Builder', () => {
     const marketCoin = await tx.unstakeQuick(10 ** 6, 'ssui');
     expect(marketCoin).not.toBeUndefined();
     tx.transferObjects([marketCoin], sender);
-    const unstakeQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const unstakeQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'UnstakeQuickResult:',
@@ -355,7 +368,8 @@ describe('Test Scallop Spool Builder', () => {
     tx.setSender(sender);
     const rewardCoins = await tx.claimQuick('ssui');
     tx.transferObjects(rewardCoins, sender);
-    const claimQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const claimQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('ClaimQuickResult:', claimQuickResult.effects.status.error);
     }
@@ -370,7 +384,7 @@ describe('Test Scallop Borrow Incentive Builder', () => {
     tx.setSender(sender);
     await tx.stakeObligationQuick();
     const stakeObligationQuickResult =
-      await scallopBuilder.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'StakeObligationQuickResult:',
@@ -388,7 +402,7 @@ describe('Test Scallop Borrow Incentive Builder', () => {
     tx.setSender(sender);
     await tx.unstakeObligationQuick();
     const unstakeObligationQuickResult =
-      await scallopBuilder.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'UnstakeObligationQuickResult:',
@@ -407,7 +421,7 @@ describe('Test Scallop Borrow Incentive Builder', () => {
     const rewardCoin = await tx.claimBorrowIncentiveQuick('sui', 'sui');
     tx.transferObjects([rewardCoin], sender);
     const claimBorrowIncentiveQuickResult =
-      await scallopBuilder.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'ClaimBorrowIncentiveQuickResult:',
@@ -428,7 +442,7 @@ describe('Test Scallop Borrow Incentive Builder', () => {
       await tx.unstakeObligationQuick(id, keyId);
       await tx.stakeObligationWithVeScaQuick(id, keyId);
       const stakeObligationWithVeScaQuickResult =
-        await scallopBuilder.suiKit.inspectTxn(tx);
+        await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
       if (ENABLE_LOG) {
         console.info(
           'StakeObligationWithVeScaQuickResult:',
@@ -453,7 +467,7 @@ describe('Test Scallop Borrow Incentive Builder', () => {
         OTHER_VESCA_KEY // use someone's veScaKey
       );
       const stakeObligationWithVeScaQuickResult =
-        await scallopBuilder.suiKit.inspectTxn(tx);
+        await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
       if (ENABLE_LOG) {
         console.info(
           'StakeObligationWithVeScaQuickResult:',
@@ -474,7 +488,7 @@ describe('Test Scallop Borrow Incentive Builder', () => {
           await tx.unstakeObligationQuick(id, keyId);
           await tx.stakeObligationWithVeScaQuick(id, keyId, veScas[0].keyId);
           const stakeObligationWithVeScaQuickResult =
-            await scallopBuilder.suiKit.inspectTxn(tx);
+            await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
           if (ENABLE_LOG) {
             console.info(
               'StakeObligationWithVeScaQuickResult:',
@@ -492,7 +506,7 @@ describe('Test Scallop Borrow Incentive Builder', () => {
           await tx.unstakeObligationQuick(id, keyId);
           await tx.stakeObligationWithVeScaQuick(id, keyId, OTHER_VESCA_KEY);
           const stakeObligationWithVeScaQuickResult =
-            await scallopBuilder.suiKit.inspectTxn(tx);
+            await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
           if (ENABLE_LOG) {
             console.info(
               'StakeObligationWithVeScaQuickResult:',
@@ -509,7 +523,7 @@ describe('Test Scallop Borrow Incentive Builder', () => {
           tx.setSender(sender);
           tx.deactivateBoost(id, veScas[0].keyId);
           const stakeObligationWithVeScaQuickResult =
-            await scallopBuilder.suiKit.inspectTxn(tx);
+            await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
           if (ENABLE_LOG) {
             console.info(
               'StakeObligationWithVeScaQuickResult:',
@@ -529,7 +543,7 @@ describe('Test Scallop Borrow Incentive Builder', () => {
             await tx.unstakeObligationQuick(id, keyId);
             await tx.stakeObligationWithVeScaQuick(id, keyId, veScas[1].keyId);
             const stakeObligationWithVeScaQuickResult =
-              await scallopBuilder.suiKit.inspectTxn(tx);
+              await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
             if (ENABLE_LOG) {
               console.info(
                 'StakeObligationWithVeScaQuickResult:',
@@ -556,7 +570,8 @@ describe('Test Scallop VeSca Builder', () => {
       const lockPeriodInDays = 1; // lock for 1 day
 
       await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays);
-      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      const lockScaQuickResult =
+        await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
       if (ENABLE_LOG) {
         console.info(
           'LockScaQuickResult:',
@@ -609,7 +624,8 @@ describe('Test Scallop VeSca Builder', () => {
       const lockPeriodInDays = 1461; // lock for more than 1460 day
 
       await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays, false);
-      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      const lockScaQuickResult =
+        await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
       if (ENABLE_LOG) {
         console.info(
           'LockScaQuickResult:',
@@ -626,7 +642,8 @@ describe('Test Scallop VeSca Builder', () => {
       const lockPeriodInDays = 0.4;
 
       await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays, false);
-      const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      const lockScaQuickResult =
+        await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
       if (ENABLE_LOG) {
         console.info(
           'LockScaQuickResult:',
@@ -699,7 +716,8 @@ describe('Test Scallop VeSca Builder', () => {
     const lockAmount = 10 * 10 ** 9; // only extend 1 amount
 
     await tx.lockScaQuick(lockAmount, 0 || undefined, false);
-    const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const lockScaQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'LockScaQuickResult:',
@@ -716,7 +734,8 @@ describe('Test Scallop VeSca Builder', () => {
     const lockPeriodInDays = 1460; // extend for more than 1459 day
 
     await tx.lockScaQuick(0 || undefined, lockPeriodInDays, false);
-    const lockScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const lockScaQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'LockScaQuickResult:',
@@ -746,7 +765,7 @@ describe('Test Scallop VeSca Builder', () => {
     tx.extendLockAmountQuick(lockAmount);
 
     const extendLockPeriodQuickResult =
-      await scallopBuilder.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'ExtendLockPeriodQuickResult:',
@@ -766,7 +785,7 @@ describe('Test Scallop VeSca Builder', () => {
 
     await tx.extendLockAmountQuick(lockAmount, undefined, false);
     const extendLockAmountQuickResult =
-      await scallopBuilder.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'ExtendLockAmountQuickResult:',
@@ -810,7 +829,7 @@ describe('Test Scallop VeSca Builder', () => {
 
     await tx.extendLockPeriodQuick(lockPeriodInDays, veScaKey, false);
     const extendLockPeriodQuickResult =
-      await scallopBuilder.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'ExtendLockPeriodQuickResult:',
@@ -874,7 +893,7 @@ describe('Test Scallop VeSca Builder', () => {
       expiredVeScaKey
     );
     const renewExpiredVeScaQuickResult =
-      await scallopBuilder.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'RenewExpiredVeScaQuickResult:',
@@ -899,7 +918,7 @@ describe('Test Scallop VeSca Builder', () => {
     );
 
     const renewExpiredVeScaQuickResult =
-      await scallopBuilder.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'RenewExpiredVeScaQuickResult:',
@@ -916,7 +935,8 @@ describe('Test Scallop VeSca Builder', () => {
     tx.setSender(sender);
 
     await tx.redeemScaQuick(expiredVeScaKey);
-    const redeemScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const redeemScaQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'RedeemScaQuickResult:',
@@ -931,7 +951,8 @@ describe('Test Scallop VeSca Builder', () => {
     const tx = createExpiredEmptyVeScaTx();
 
     await tx.redeemScaQuick(expiredVeScaKey);
-    const redeemScaQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const redeemScaQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'RedeemScaQuickResult:',
@@ -949,7 +970,8 @@ describe('Test Scallop Referral Builder', () => {
     const tx = randomBuilder.createTxBlock();
     tx.bindToReferral(veScaReferral);
 
-    const bindReferralResult = await randomBuilder.suiKit.inspectTxn(tx);
+    const bindReferralResult =
+      await randomBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'BindReferralResult:',
@@ -964,7 +986,8 @@ describe('Test Scallop Referral Builder', () => {
     const tx = scallopBuilder.createTxBlock();
     tx.bindToReferral(veScaReferral);
 
-    const bindReferralResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const bindReferralResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'BindReferralResult:',
@@ -983,7 +1006,7 @@ describe('Test Scallop Referral Builder', () => {
     tx.burnReferralTicket(ticket, 'sui');
 
     const claimReferralTicketResult =
-      await scallopBuilder.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'ClaimReferralTicketResult:',
@@ -1003,7 +1026,8 @@ describe('Test Scallop Loyalty Program Builder', () => {
     // Sender is required to invoke "claimRevenueQuick".
     tx.setSender(sender);
     await tx.claimLoyaltyRevenueQuick();
-    const claimRevenueQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const claimRevenueQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'ClaimRevenueQuickResult:',
@@ -1024,7 +1048,8 @@ describe('Test sCoin Builder', () => {
     const sCoin = tx.mintSCoin('ssui', marketCoin);
     tx.transferObjects([sCoin], sender);
 
-    const mintSCoinResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const mintSCoinResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('mintSCoin:', mintSCoinResult.effects.status.error);
     }
@@ -1042,7 +1067,8 @@ describe('Test sCoin Builder', () => {
     const marketCoin = tx.burnSCoin('ssui', sCoin);
     tx.transferObjects([marketCoin], sender);
 
-    const burnSCoinResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const burnSCoinResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('burnSCoin:', burnSCoinResult.effects.status.error);
     }
@@ -1059,7 +1085,8 @@ describe('Test sCoin Builder', () => {
     );
     tx.transferObjects([sCoin], sender);
 
-    const mintSCoinQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const mintSCoinQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info(
         'mintSCoinQuick:',
@@ -1080,7 +1107,8 @@ describe('Test sCoin Builder', () => {
       const marketCoin = await tx.burnSCoinQuick(sCoinName, 1e4);
       tx.transferObjects([marketCoin], sender);
 
-      const burnSCoinQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
+      const burnSCoinQuickResult =
+        await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
       if (ENABLE_LOG) {
         console.info(
           'burnSCoinQuick:',
@@ -1100,12 +1128,13 @@ describe('Test XOracle V2', () => {
     const txb = new SuiTxBlock();
 
     await updateOracles(scallopBuilder, txb, coins);
-    const resp = await scallopBuilder.suiKit
-      .client()
-      .devInspectTransactionBlock({
-        transactionBlock: txb.txBlock,
-        sender: scallopBuilder.walletAddress,
-      });
+    const resp =
+      await scallopBuilder.scallopSuiKit.suiKit.client.devInspectTransactionBlock(
+        {
+          transactionBlock: txb.txBlock,
+          sender: scallopBuilder.walletAddress,
+        }
+      );
     expect(resp.effects?.status?.status).toEqual('success');
   });
 });
