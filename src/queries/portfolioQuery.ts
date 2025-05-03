@@ -18,7 +18,6 @@ import type {
   MarketCollaterals,
 } from '../types';
 import { SuiObjectRef } from '@mysten/sui/client';
-import { queryMultipleObjects } from './objectsQuery';
 import { normalizeStructTag, SUI_TYPE_ARG } from '@scallop-io/sui-kit';
 
 /**
@@ -67,6 +66,7 @@ export const getLendings = async (
   ]);
 
   const lendings: Lendings = {};
+
   await Promise.allSettled(
     poolCoinNames.map(async (poolCoinName) => {
       const stakeMarketCoinName = stakeMarketCoinNames.find(
@@ -317,8 +317,7 @@ export const getObligationAccounts = async (
     query.getObligations(ownerAddress),
   ]);
 
-  const obligationObjects = await queryMultipleObjects(
-    query.cache,
+  const obligationObjects = await query.scallopSuiKit.queryGetObjects(
     obligations.map((obligation) => obligation.id)
   );
   const obligationAccounts: ObligationAccounts = {};

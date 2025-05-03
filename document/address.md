@@ -1,4 +1,6 @@
-# Use Scallop Address
+# Use Scallop Address (DEPRECATED)
+
+#### Scallop Address class has been merged as a parent class for Scallop Constants. You can call all Scallop Address methods and access its properties from Scallop Constants.
 
 ## Read Addresses
 

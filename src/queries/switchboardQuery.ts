@@ -47,7 +47,7 @@ export const getOnDemandAggObjectIds = async (
         },
       };
 
-      const resp = await query.cache.queryGetDynamicFieldObject({
+      const resp = await query.scallopSuiKit.queryGetDynamicFieldObject({
         parentId: switchboardRegistryTableId,
         name: dfName,
       });

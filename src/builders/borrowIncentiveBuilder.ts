@@ -47,10 +47,7 @@ const requireObligationInfo = async (
     obligationKey &&
     typeof obligationId === 'string'
   ) {
-    const obligationLocked = await getObligationLocked(
-      builder.cache,
-      obligationId
-    );
+    const obligationLocked = await getObligationLocked(builder, obligationId);
     return { obligationId, obligationKey, obligationLocked };
   }
   const sender = requireSender(txBlock);
