@@ -75,7 +75,7 @@ export const isInSubsTable = async (
 ) => {
   const [builder, veScaKey, tableId] = params;
   try {
-    const resp = await builder.cache.queryGetDynamicFieldObject({
+    const resp = await builder.scallopSuiKit.queryGetDynamicFieldObject({
       parentId: tableId,
       name: {
         type: '0x2::object::ID',

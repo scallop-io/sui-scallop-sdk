@@ -1,26 +1,30 @@
-import { normalizeSuiAddress } from '@mysten/sui/utils';
-import { SuiKit } from '@scallop-io/sui-kit';
-import { ScallopAddress } from './scallopAddress';
-import { ScallopUtils } from './scallopUtils';
-import { ScallopBuilder } from './scallopBuilder';
-import { ScallopQuery } from './scallopQuery';
+import ScallopBuilder, { ScallopBuilderParams } from './scallopBuilder';
 import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
 import type {
+  Transaction,
   TransactionObjectArgument,
   TransactionResult,
 } from '@mysten/sui/transactions';
-import { ScallopCache } from './scallopCache';
 import { requireSender } from 'src/utils';
-import type { SuiObjectArg } from '@scallop-io/sui-kit';
-import type {
-  ScallopClientFnReturnType,
-  ScallopClientParams,
-  ScallopTxBlock,
-  ScallopClientVeScaReturnType,
-  ScallopClientInstanceParams,
-} from 'src/types';
-import { newSuiKit } from './suiKit';
-import { ScallopConstants } from './scallopConstants';
+import type { NetworkType, SuiObjectArg } from '@scallop-io/sui-kit';
+import type { ScallopTxBlock } from '../types';
+import { ScallopClientInterface } from './interface';
+
+export type ScallopClientParams = {
+  networkType?: NetworkType;
+  builder?: ScallopBuilder;
+} & ScallopBuilderParams;
+
+type ScallopClientFnReturnType<T extends boolean> = T extends true
+  ? SuiTransactionBlockResponse
+  : Transaction;
+
+type ScallopClientVeScaReturnType<T extends boolean> = T extends true
+  ? SuiTransactionBlockResponse
+  : {
+      tx: Transaction;
+      scaCoin: TransactionResult;
+    };
 
 /**
  * @description
@@ -34,65 +38,37 @@ import { ScallopConstants } from './scallopConstants';
  * await scallopClient.<client async functions>();
  * ```
  */
-export class ScallopClient {
-  public readonly params: ScallopClientParams;
+class ScallopClient implements ScallopClientInterface {
+  public readonly builder: ScallopBuilder;
+  public networkType: NetworkType;
 
-  public suiKit: SuiKit;
-  public address: ScallopAddress;
-  public constants: ScallopConstants;
-  public builder: ScallopBuilder;
-  public query: ScallopQuery;
-  public utils: ScallopUtils;
-  public cache: ScallopCache;
-  public walletAddress: string;
+  public constructor(params: ScallopClientParams) {
+    this.builder = params.builder ?? new ScallopBuilder(params);
+    this.networkType = params.networkType ?? 'mainnet';
+  }
 
-  public constructor(
-    params: ScallopClientParams,
-    instance?: ScallopClientInstanceParams
-  ) {
-    this.params = params;
-    this.suiKit =
-      instance?.suiKit ?? instance?.builder?.suiKit ?? newSuiKit(params);
-    this.walletAddress = normalizeSuiAddress(
-      params?.walletAddress ?? this.suiKit.currentAddress()
-    );
+  get query() {
+    return this.builder.query;
+  }
 
-    this.cache =
-      instance?.builder?.cache ??
-      instance?.cache ??
-      new ScallopCache(this.params, {
-        suiKit: this.suiKit,
-      });
+  get utils() {
+    return this.query.utils;
+  }
 
-    this.address =
-      instance?.builder?.address ??
-      new ScallopAddress(this.params, {
-        cache: this.cache,
-      });
+  get constants() {
+    return this.utils.constants;
+  }
 
-    this.constants =
-      instance?.builder?.constants ??
-      new ScallopConstants(this.params, {
-        address: this.address,
-      });
+  get walletAddress() {
+    return this.utils.walletAddress;
+  }
 
-    this.utils =
-      instance?.builder?.utils ??
-      new ScallopUtils(this.params, {
-        constants: this.constants,
-      });
+  get scallopSuiKit() {
+    return this.utils.scallopSuiKit;
+  }
 
-    this.query =
-      instance?.builder?.query ??
-      new ScallopQuery(this.params, {
-        utils: this.utils,
-      });
-
-    this.builder =
-      instance?.builder ??
-      new ScallopBuilder(this.params, {
-        query: this.query,
-      });
+  get address() {
+    return this.builder.address;
   }
 
   /**
@@ -100,14 +76,8 @@ export class ScallopClient {
    *
    * @param force - Whether to force initialization.
    */
-  public async init(force: boolean = false) {
-    if (force || !this.constants.isInitialized) {
-      await this.constants.init();
-    }
-
+  async init(force: boolean = false) {
     await this.builder.init(force);
-    await this.query.init(force);
-    await this.utils.init(force);
   }
 
   /* ==================== Query Method ==================== */
@@ -120,7 +90,7 @@ export class ScallopClient {
    *
    * @return Market data.
    */
-  public async queryMarket() {
+  async queryMarket() {
     return await this.query.queryMarket();
   }
 
@@ -133,7 +103,7 @@ export class ScallopClient {
    * @param ownerAddress - The owner address.
    * @return Obligations data.
    */
-  public async getObligations(ownerAddress?: string) {
+  async getObligations(ownerAddress?: string) {
     const owner = ownerAddress ?? this.walletAddress;
     return await this.query.getObligations(owner);
   }
@@ -147,7 +117,7 @@ export class ScallopClient {
    * @param obligationId - The obligation id.
    * @return Obligation data.
    */
-  public async queryObligation(obligationId: string) {
+  async queryObligation(obligationId: string) {
     return await this.query.queryObligation(obligationId);
   }
 
@@ -214,17 +184,17 @@ export class ScallopClient {
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @return Transaction block response or transaction block.
    */
-  public async openObligation(): Promise<SuiTransactionBlockResponse>;
-  public async openObligation<S extends boolean>(
+  async openObligation(): Promise<SuiTransactionBlockResponse>;
+  async openObligation<S extends boolean>(
     sign?: S
   ): Promise<ScallopClientFnReturnType<S>>;
-  public async openObligation<S extends boolean>(
+  async openObligation<S extends boolean>(
     sign: S = true as S
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
     txBlock.openObligationEntry();
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -242,18 +212,18 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
-  public async depositCollateral(
+  async depositCollateral(
     collateralCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
-  public async depositCollateral<S extends boolean>(
+  async depositCollateral<S extends boolean>(
     collateralCoinName: string,
     amount: number,
     sign?: S,
     obligationId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
-  public async depositCollateral<S extends boolean>(
+  async depositCollateral<S extends boolean>(
     collateralCoinName: string,
     amount: number,
     sign: S = true as S,
@@ -280,7 +250,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -299,7 +269,7 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
-  public async withdrawCollateral<S extends boolean>(
+  async withdrawCollateral<S extends boolean>(
     collateralCoinName: string,
     amount: number,
     sign: S = true as S,
@@ -320,7 +290,7 @@ export class ScallopClient {
     txBlock.transferObjects([collateralCoin], sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -337,17 +307,17 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
-  public async deposit(
+  async deposit(
     poolCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
-  public async deposit<S extends boolean>(
+  async deposit<S extends boolean>(
     poolCoinName: string,
     amount: number,
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
-  public async deposit<S extends boolean>(
+  async deposit<S extends boolean>(
     poolCoinName: string,
     amount: number,
     sign: S = true as S,
@@ -361,7 +331,7 @@ export class ScallopClient {
     txBlock.transferObjects([sCoin], sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -379,18 +349,18 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
-  public async depositAndStake(
+  async depositAndStake(
     stakeCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
-  public async depositAndStake<S extends boolean>(
+  async depositAndStake<S extends boolean>(
     stakeCoinName: string,
     amount: number,
     sign?: S,
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
-  public async depositAndStake<S extends boolean>(
+  async depositAndStake<S extends boolean>(
     stakeCoinName: string,
     amount: number,
     sign: S = true as S,
@@ -421,7 +391,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -438,17 +408,17 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
-  public async withdraw(
+  async withdraw(
     poolCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
-  public async withdraw<S extends boolean>(
+  async withdraw<S extends boolean>(
     poolCoinName: string,
     amount: number,
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
-  public async withdraw<S extends boolean>(
+  async withdraw<S extends boolean>(
     poolCoinName: string,
     amount: number,
     sign: S = true as S,
@@ -462,7 +432,7 @@ export class ScallopClient {
     txBlock.transferObjects([coin], sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -481,7 +451,7 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
-  public async borrow<S extends boolean>(
+  async borrow<S extends boolean>(
     poolCoinName: string,
     amount: number,
     sign: S = true as S,
@@ -509,7 +479,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -527,7 +497,7 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
-  public async repay<S extends boolean>(
+  async repay<S extends boolean>(
     poolCoinName: string,
     amount: number,
     sign: S = true as S,
@@ -549,7 +519,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -566,7 +536,7 @@ export class ScallopClient {
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @return Transaction block response or transaction block.
    */
-  public async flashLoan(
+  async flashLoan(
     poolCoinName: string,
     amount: number,
     callback: (
@@ -574,7 +544,7 @@ export class ScallopClient {
       coin: TransactionObjectArgument | string
     ) => SuiObjectArg
   ): Promise<SuiTransactionBlockResponse>;
-  public async flashLoan<S extends boolean>(
+  async flashLoan<S extends boolean>(
     poolCoinName: string,
     amount: number,
     callback: (
@@ -584,7 +554,7 @@ export class ScallopClient {
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
-  public async flashLoan<S extends boolean>(
+  async flashLoan<S extends boolean>(
     poolCoinName: string,
     amount: number,
     callback: (
@@ -601,7 +571,7 @@ export class ScallopClient {
     txBlock.repayFlashLoan(await callback(txBlock, coin), loan, poolCoinName);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -618,15 +588,15 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
-  public async createStakeAccount(
+  async createStakeAccount(
     marketCoinName: string
   ): Promise<SuiTransactionBlockResponse>;
-  public async createStakeAccount<S extends boolean>(
+  async createStakeAccount<S extends boolean>(
     marketCoinName: string,
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
-  public async createStakeAccount<S extends boolean>(
+  async createStakeAccount<S extends boolean>(
     marketCoinName: string,
     sign: S = true as S,
     walletAddress?: string
@@ -639,7 +609,7 @@ export class ScallopClient {
     txBlock.transferObjects([stakeAccount], sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -657,18 +627,18 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
-  public async stake(
+  async stake(
     stakeMarketCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
-  public async stake<S extends boolean>(
+  async stake<S extends boolean>(
     stakeMarketCoinName: string,
     amount: number,
     sign?: S,
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
-  public async stake<S extends boolean>(
+  async stake<S extends boolean>(
     stakeMarketCoinName: string,
     amount: number,
     sign: S = true as S,
@@ -691,7 +661,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -709,18 +679,18 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
-  public async unstake(
+  async unstake(
     stakeMarketCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
-  public async unstake<S extends boolean>(
+  async unstake<S extends boolean>(
     stakeMarketCoinName: string,
     amount: number,
     sign?: S,
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
-  public async unstake<S extends boolean>(
+  async unstake<S extends boolean>(
     stakeMarketCoinName: string,
     amount: number,
     sign: S = true as S,
@@ -754,7 +724,7 @@ export class ScallopClient {
     txBlock.transferObjects([sCoin], sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -772,18 +742,18 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
-  public async unstakeAndWithdraw(
+  async unstakeAndWithdraw(
     stakeMarketCoinName: string,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
-  public async unstakeAndWithdraw<S extends boolean>(
+  async unstakeAndWithdraw<S extends boolean>(
     stakeMarketCoinName: string,
     amount: number,
     sign?: S,
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
-  public async unstakeAndWithdraw<S extends boolean>(
+  async unstakeAndWithdraw<S extends boolean>(
     stakeMarketCoinName: string,
     amount: number,
     sign: S = true as S,
@@ -817,7 +787,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -835,16 +805,16 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block.
    */
-  public async claim(
+  async claim(
     stakeMarketCoinName: string
   ): Promise<SuiTransactionBlockResponse>;
-  public async claim<S extends boolean>(
+  async claim<S extends boolean>(
     stakeMarketCoinName: string,
     sign?: S,
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
-  public async claim<S extends boolean>(
+  async claim<S extends boolean>(
     stakeMarketCoinName: string,
     sign: S = true as S,
     stakeAccountId?: string,
@@ -861,7 +831,7 @@ export class ScallopClient {
     txBlock.transferObjects(rewardCoins, sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -880,7 +850,7 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block
    */
-  public async stakeObligation<S extends boolean>(
+  async stakeObligation<S extends boolean>(
     obligationId: string,
     obligationKeyId: string,
     sign: S = true as S,
@@ -893,7 +863,7 @@ export class ScallopClient {
     await txBlock.stakeObligationWithVeScaQuick(obligationId, obligationKeyId);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -910,7 +880,7 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block
    */
-  public async unstakeObligation<S extends boolean>(
+  async unstakeObligation<S extends boolean>(
     obligationId: string,
     obligationKeyId: string,
     sign: S = true as S,
@@ -923,7 +893,7 @@ export class ScallopClient {
     await txBlock.unstakeObligationQuick(obligationId, obligationKeyId);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -941,7 +911,7 @@ export class ScallopClient {
    * @param walletAddress - The wallet address of the owner.
    * @return Transaction block response or transaction block
    */
-  public async claimBorrowIncentive<S extends boolean>(
+  async claimBorrowIncentive<S extends boolean>(
     obligationId: string,
     obligationKeyId: string,
     sign: S = true as S,
@@ -986,7 +956,7 @@ export class ScallopClient {
     );
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -999,7 +969,7 @@ export class ScallopClient {
    * Function to migrate all market coin in user wallet into sCoin
    * @returns Transaction response
    */
-  public async migrateAllMarketCoin<S extends boolean>(
+  async migrateAllMarketCoin<S extends boolean>(
     includeStakePool: boolean = true,
     sign: S = true as S,
     walletAddress?: string
@@ -1078,7 +1048,7 @@ export class ScallopClient {
     }
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -1090,12 +1060,12 @@ export class ScallopClient {
   /**
    * Claim unlocked SCA from all veSCA accounts.
    */
-  public async claimAllUnlockedSca(): Promise<SuiTransactionBlockResponse>;
-  public async claimAllUnlockedSca<S extends boolean>(
+  async claimAllUnlockedSca(): Promise<SuiTransactionBlockResponse>;
+  async claimAllUnlockedSca<S extends boolean>(
     sign?: S,
     walletAddress?: string
   ): Promise<ScallopClientVeScaReturnType<S>>;
-  public async claimAllUnlockedSca<S extends boolean>(
+  async claimAllUnlockedSca<S extends boolean>(
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientVeScaReturnType<S>> {
@@ -1136,7 +1106,7 @@ export class ScallopClient {
     await this.utils.mergeSimilarCoins(tx, scaCoins[0], 'sca', sender);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         tx
       )) as ScallopClientVeScaReturnType<S>;
     } else {
@@ -1161,25 +1131,23 @@ export class ScallopClient {
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @return Transaction block response or transaction block.
    */
-  public async mintTestCoin(
+  async mintTestCoin(
     assetCoinName: Exclude<string, 'sui'>,
     amount: number
   ): Promise<SuiTransactionBlockResponse>;
-  public async mintTestCoin<S extends boolean>(
+  async mintTestCoin<S extends boolean>(
     assetCoinName: Exclude<string, 'sui'>,
     amount: number,
     sign?: S,
     receiveAddress?: string
   ): Promise<ScallopClientFnReturnType<S>>;
-  public async mintTestCoin<S extends boolean>(
+  async mintTestCoin<S extends boolean>(
     assetCoinName: Exclude<string, 'sui'>,
     amount: number,
     sign: S = true as S,
     receiveAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const isTestnet = this.params.networkType
-      ? this.params.networkType === 'testnet'
-      : false;
+    const isTestnet = this.networkType === 'testnet';
 
     if (!isTestnet) {
       throw new Error('Only be used on the test network.');
@@ -1194,7 +1162,7 @@ export class ScallopClient {
     txBlock.transferObjects([coin], recipient);
 
     if (sign) {
-      return (await this.suiKit.signAndSendTxn(
+      return (await this.scallopSuiKit.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -1202,3 +1170,5 @@ export class ScallopClient {
     }
   }
 }
+
+export default ScallopClient;

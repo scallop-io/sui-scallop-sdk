@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.12...v2.1.0) (2025-05-03)
+
+### ⚠ BREAKING CHANGES
+
+Starting from `v2.1.0`, `Scallop Address` class has been merged into `Scallop Constants` class as its superclass. All methods previously available in `Scallop Address` can now be accessed directly from `Scallop Constants` class.
+
+- Refactor classes structure ([923f5ff](https://github.com/scallop-io/sui-scallop-sdk/pull/258/commits/923f5ff1c5d5b5927c813859cc78b6a58c7001dd))
+
+- Remove unused packages and upgrade `@mysten/sui` package ([e150a17](https://github.com/scallop-io/sui-scallop-sdk/pull/258/commits/e150a17c4c4bccf830bd14a7a540d79400c53e80))
+
 ### [2.0.12](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.11...v2.0.12) (2025-04-01)
 
 ### Features

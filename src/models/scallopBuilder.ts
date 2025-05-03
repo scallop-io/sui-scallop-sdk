@@ -1,9 +1,5 @@
-import { normalizeSuiAddress } from '@mysten/sui/utils';
-import { SuiKit } from '@scallop-io/sui-kit';
 import { newScallopTxBlock } from '../builders';
-import { ScallopAddress } from './scallopAddress';
-import { ScallopQuery } from './scallopQuery';
-import { ScallopUtils } from './scallopUtils';
+import ScallopQuery, { ScallopQueryParams } from './scallopQuery';
 import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
 import type {
   Transaction,
@@ -16,15 +12,14 @@ import type {
   SuiTxArg,
   SuiVecTxArg,
 } from '@scallop-io/sui-kit';
-import type {
-  ScallopBuilderParams,
-  ScallopTxBlock,
-  ScallopBuilderInstanceParams,
-  SelectCoinReturnType,
-} from 'src/types';
-import { ScallopCache } from './scallopCache';
-import { newSuiKit } from './suiKit';
-import { ScallopConstants } from './scallopConstants';
+import type { ScallopTxBlock, SelectCoinReturnType } from '../types';
+import { ScallopBuilderInterface } from './interface';
+
+export type ScallopBuilderParams = {
+  query?: ScallopQuery;
+  usePythPullModel?: boolean;
+  useOnChainXOracleList?: boolean;
+} & ScallopQueryParams;
 
 /**
  * @description
@@ -37,74 +32,47 @@ import { ScallopConstants } from './scallopConstants';
  * const txBlock = scallopBuilder.<builder functions>();
  * ```
  */
-export class ScallopBuilder {
-  public readonly params: ScallopBuilderParams;
-  public readonly isTestnet: boolean;
+class ScallopBuilder implements ScallopBuilderInterface {
+  public readonly query: ScallopQuery;
+  public readonly usePythPullModel: boolean;
+  public readonly useOnChainXOracleList: boolean;
 
-  public suiKit: SuiKit;
-  public address: ScallopAddress;
-  public constants: ScallopConstants;
-  public query: ScallopQuery;
-  public utils: ScallopUtils;
-  public walletAddress: string;
-  public cache: ScallopCache;
+  public constructor(params: ScallopBuilderParams) {
+    this.query = params.query ?? new ScallopQuery(params);
+    this.usePythPullModel = params.usePythPullModel ?? true;
+    this.useOnChainXOracleList = params.useOnChainXOracleList ?? true;
+  }
 
-  public constructor(
-    params: ScallopBuilderParams,
-    instance?: ScallopBuilderInstanceParams
-  ) {
-    this.suiKit = instance?.suiKit ?? newSuiKit(params);
+  get utils() {
+    return this.query.utils;
+  }
 
-    this.params = params;
-    this.walletAddress = normalizeSuiAddress(
-      params?.walletAddress ?? this.suiKit.currentAddress()
-    );
+  get constants() {
+    return this.utils.constants;
+  }
 
-    this.cache =
-      instance?.query?.cache ??
-      new ScallopCache(this.params, {
-        suiKit: this.suiKit,
-      });
+  get walletAddress() {
+    return this.utils.walletAddress;
+  }
 
-    this.address =
-      instance?.query?.address ??
-      new ScallopAddress(this.params, {
-        cache: this.cache,
-      });
+  get scallopSuiKit() {
+    return this.utils.scallopSuiKit;
+  }
 
-    this.constants =
-      instance?.query?.constants ??
-      new ScallopConstants(this.params, {
-        address: this.address,
-      });
+  get suiKit() {
+    return this.scallopSuiKit.suiKit;
+  }
 
-    this.utils =
-      instance?.query?.utils ??
-      new ScallopUtils(this.params, {
-        constants: this.constants,
-      });
-
-    this.query =
-      instance?.query ??
-      new ScallopQuery(this.params, {
-        utils: this.utils,
-      });
-
-    this.isTestnet = params.networkType
-      ? params.networkType === 'testnet'
-      : false;
+  get address() {
+    return this.utils.address;
   }
 
   /**
    * Request the scallop API to initialize data.
    *
    * @param force - Whether to force initialization.
-   * @param address - ScallopAddress instance.
    */
-  public async init(force: boolean = false) {
-    if (force || !this.constants.isInitialized) {
-      await this.constants.init();
-    }
+  async init(force: boolean = false) {
     await this.query.init(force);
   }
 
@@ -114,7 +82,7 @@ export class ScallopBuilder {
    * @param txBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
    * @return Scallop txBlock.
    */
-  public createTxBlock(txBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction) {
+  createTxBlock(txBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction) {
     return newScallopTxBlock(this, txBlock);
   }
 
@@ -127,7 +95,7 @@ export class ScallopBuilder {
    * @param sender - Sender address.
    * @return Take coin and left coin.
    */
-  public async selectCoin<T extends string>(
+  async selectCoin<T extends string>(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
     assetCoinName: T,
     amount: number,
@@ -153,7 +121,7 @@ export class ScallopBuilder {
    * @param sender - Sender address.
    * @return Take coin and left coin.
    */
-  public async selectMarketCoin(
+  async selectMarketCoin(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
     marketCoinName: string,
     amount: number,
@@ -181,7 +149,7 @@ export class ScallopBuilder {
    * @param sender - Sender address.
    * @return Take coin and left coin.
    */
-  public async selectSCoin(
+  async selectSCoin(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
     sCoinName: string,
     amount: number,
@@ -207,7 +175,7 @@ export class ScallopBuilder {
   /**
    * Select sCoin or market coin automatically. Prioritize sCoin first
    */
-  public async selectSCoinOrMarketCoin(
+  async selectSCoinOrMarketCoin(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
     sCoinName: string,
     amount: number,
@@ -282,10 +250,10 @@ export class ScallopBuilder {
    *
    * @param txBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
    */
-  public async signAndSendTxBlock(
+  async signAndSendTxBlock(
     txBlock: ScallopTxBlock | SuiKitTxBlock | Transaction
   ) {
-    return (await this.suiKit.signAndSendTxn(
+    return (await this.scallopSuiKit.suiKit.signAndSendTxn(
       txBlock
     )) as SuiTransactionBlockResponse;
   }
@@ -299,3 +267,5 @@ export class ScallopBuilder {
     return txb.moveCall(target, args, typeArgs);
   }
 }
+
+export default ScallopBuilder;

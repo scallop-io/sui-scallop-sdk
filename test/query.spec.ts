@@ -16,16 +16,7 @@ let sender: string;
 
 beforeAll(async () => {
   console.log('start beforeAll');
-  scallopQuery = await scallopSDK.createScallopQuery({
-    cacheOptions: {
-      defaultOptions: {
-        queries: {
-          staleTime: Infinity,
-          gcTime: Infinity,
-        },
-      },
-    },
-  });
+  scallopQuery = await scallopSDK.createScallopQuery();
   obligationId = await scallopQuery.getBindedObligationId(VE_SCA_KEY);
   sender = scallopQuery.walletAddress;
   console.log('end beforeAll');
