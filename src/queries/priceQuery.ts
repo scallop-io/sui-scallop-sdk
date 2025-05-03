@@ -1,8 +1,7 @@
 import { SuiObjectData } from '@mysten/sui/client';
-import type { ScallopAddress, ScallopQuery } from '../models';
+import type { ScallopAddress, ScallopQuery, ScallopSuiKit } from 'src/models';
 import type { CoinPrices, MarketPools, OptionalKeys } from '../types';
 import BigNumber from 'bignumber.js';
-import { ScallopConstants } from 'src/models/scallopConstants';
 
 /**
  * Get price from pyth fee object.
@@ -14,8 +13,10 @@ import { ScallopConstants } from 'src/models/scallopConstants';
 export const getPythPrice = async (
   {
     address,
+    scallopSuiKit,
   }: {
     address: ScallopAddress;
+    scallopSuiKit: ScallopSuiKit;
   },
   assetCoinName: string,
   priceFeedObject?: SuiObjectData | null
@@ -25,7 +26,7 @@ export const getPythPrice = async (
   );
   priceFeedObject =
     priceFeedObject ||
-    (await address.cache.queryGetObject(pythFeedObjectId))?.data;
+    (await scallopSuiKit.queryGetObject(pythFeedObjectId))?.data;
 
   if (priceFeedObject) {
     const priceFeedPoolObject = priceFeedObject;
@@ -64,15 +65,17 @@ export const getPythPrice = async (
 
 export const getPythPrices = async (
   {
-    constants,
+    address,
+    scallopSuiKit,
   }: {
-    constants: ScallopConstants;
+    address: ScallopAddress;
+    scallopSuiKit: ScallopSuiKit;
   },
   assetCoinNames: string[]
 ) => {
   const pythPriceFeedIds = assetCoinNames.reduce(
     (prev, assetCoinName) => {
-      const pythPriceFeed = constants.address.get(
+      const pythPriceFeed = address.get(
         `core.coins.${assetCoinName}.oracle.pyth.feedObject`
       );
       if (pythPriceFeed) {
@@ -88,7 +91,7 @@ export const getPythPrices = async (
   );
 
   // Fetch multiple objects at once to save rpc calls
-  const priceFeedObjects = await constants.address.cache.queryGetObjects(
+  const priceFeedObjects = await scallopSuiKit.queryGetObjects(
     Object.keys(pythPriceFeedIds)
   );
 
@@ -108,7 +111,10 @@ export const getPythPrices = async (
         async ([assetCoinName, priceFeedObject]) => ({
           coinName: assetCoinName,
           price: await getPythPrice(
-            constants,
+            {
+              address,
+              scallopSuiKit,
+            },
             assetCoinName as string,
             priceFeedObject
           ),
