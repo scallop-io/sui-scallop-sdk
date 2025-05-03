@@ -61,7 +61,7 @@
   "dependencies": {
     "@mysten/sui": "1.28.2",
     "@pythnetwork/pyth-sui-js": "2.1.0",
-    "@scallop-io/sui-kit": "1.4.0-alpha.3",
+    "@scallop-io/sui-kit": "1.4.0",
     "@tanstack/query-core": "5.51.15",
     "axios": "^1.9.0",
     "bignumber.js": "^9.1.2",
@@ -96,7 +96,7 @@
   },
   "peerDependencies": {
     "@mysten/sui": "1.28.2",
-    "@scallop-io/sui-kit": "1.4.0-alpha.3",
+    "@scallop-io/sui-kit": "1.4.0",
     "bn.js": "^5.2.1"
   },
   "lint-staged": {

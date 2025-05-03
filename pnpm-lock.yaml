@@ -15,8 +15,8 @@ importers:
         specifier: 2.1.0
         version: 2.1.0(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)
       '@scallop-io/sui-kit':
-        specifier: 1.4.0-alpha.3
-        version: 1.4.0-alpha.3(typescript@5.5.4)
+        specifier: 1.4.0
+        version: 1.4.0(typescript@5.5.4)
       '@tanstack/query-core':
         specifier: 5.51.15
         version: 5.51.15
@@ -805,8 +805,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@scallop-io/sui-kit@1.4.0-alpha.3':
-    resolution: {integrity: sha512-zTiAZadS7KZaWoq8eurTStku08IBgzalCR6XUjCVTFoj2JnaiDksnt1sqnw442jc1Dt2wzA2vuUjbKdhZr7S1A==}
+  '@scallop-io/sui-kit@1.4.0':
+    resolution: {integrity: sha512-e0Pf6iFPWFuuEUeiMdsN7yShJ9TqMGAENMlVy9Dds6KameRTIFTFdCw8jChAplVKI9PP1YEOQZKiCVv6PF0PSA==}
     engines: {node: '>=16'}
 
   '@scure/base@1.2.5':
@@ -3831,7 +3831,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.19.0':
     optional: true
 
-  '@scallop-io/sui-kit@1.4.0-alpha.3(typescript@5.5.4)':
+  '@scallop-io/sui-kit@1.4.0(typescript@5.5.4)':
     dependencies:
       '@mysten/bcs': 1.6.0
       '@mysten/sui': 1.28.2(typescript@5.5.4)
