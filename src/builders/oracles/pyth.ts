@@ -11,7 +11,7 @@ export const updatePythPriceFeeds = async (
   txBlock: SuiKitTxBlock
 ) => {
   const pythClient = new SuiPythClient(
-    builder.suiKit.client(),
+    builder.suiKit.client,
     builder.address.get('core.oracles.pyth.state'),
     builder.address.get('core.oracles.pyth.wormholeState')
   );
@@ -20,7 +20,7 @@ export const updatePythPriceFeeds = async (
   );
 
   // iterate through the endpoints
-  const endpoints = builder.params.pythEndpoints ?? [
+  const endpoints = builder.utils.pythEndpoints ?? [
     ...builder.constants.whitelist.pythEndpoints,
   ];
   for (const endpoint of endpoints) {

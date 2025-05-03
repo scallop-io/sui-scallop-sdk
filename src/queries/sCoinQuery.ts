@@ -26,7 +26,7 @@ export const getSCoinTotalSupply = async (
     utils.parseUnderlyingSCoinType(sCoinName),
   ];
   const queryTarget = `${sCoinPkgId}::s_coin_converter::total_supply`;
-  const queryResults = await utils.cache.queryInspectTxn({
+  const queryResults = await utils.scallopSuiKit.queryInspectTxn({
     queryTarget,
     args,
     typeArgs,
@@ -62,7 +62,7 @@ export const getSCoinAmounts = async (
   sCoinNames: string[] = [...utils.constants.whitelist.scoin],
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || utils.suiKit.currentAddress();
+  const owner = ownerAddress || utils.suiKit.currentAddress;
   const sCoins = {} as OptionalKeys<Record<string, number>>;
 
   await Promise.allSettled(
@@ -92,9 +92,9 @@ export const getSCoinAmount = async (
   sCoinName: string,
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || utils.suiKit.currentAddress();
+  const owner = ownerAddress || utils.suiKit.currentAddress;
   const sCoinType = utils.parseSCoinType(sCoinName);
-  const coinBalance = await utils.cache.queryGetCoinBalance({
+  const coinBalance = await utils.scallopSuiKit.queryGetCoinBalance({
     owner,
     coinType: sCoinType,
   });

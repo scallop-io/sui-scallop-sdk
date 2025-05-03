@@ -1,37 +1,5 @@
-import type { PriceFeed } from '@pythnetwork/pyth-sui-js';
 import { MAX_LOCK_DURATION } from 'src/constants';
-import { ScallopConstants } from 'src/models/scallopConstants';
-
-/**
- * Parse price from pyth price feed.
- *
- * @param feed  - Price feed object from pyth.
- * @param address - Scallop address instance.
- * @return Price Data inclue coin name, price, and publish time.
- */
-export const parseDataFromPythPriceFeed = (
-  feed: PriceFeed,
-  constants: ScallopConstants
-) => {
-  const assetCoinNames = [...constants.whitelist.lending] as string[];
-  const assetCoinName = assetCoinNames.find((assetCoinName) => {
-    return (
-      constants.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`) ===
-      feed.id
-    );
-  });
-  if (assetCoinName) {
-    const price = feed.price.price * 10 ** feed.price.expo;
-
-    return {
-      coinName: assetCoinName,
-      price,
-      publishTime: Number(feed.price.publishTime) * 10 ** 3,
-    };
-  } else {
-    throw new Error(`Invalid feed id: ${feed.id}`);
-  }
-};
+// import { ScallopConstants } from 'src/models/scallopConstants';
 
 /**
  * Find the closest unlock round timestamp (12AM) to the given unlock at timestamp in seconds.

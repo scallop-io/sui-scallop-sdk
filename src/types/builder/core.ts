@@ -4,8 +4,8 @@ import type {
   SuiTxArg,
 } from '@scallop-io/sui-kit';
 import type { Argument, TransactionResult } from '@mysten/sui/transactions';
-import type { ScallopBuilder } from '../../models';
 import { SuiTxBlockWithSpool } from '.';
+import { ScallopBuilder } from 'src/models';
 
 export type CoreIds = {
   protocolPkg: string;

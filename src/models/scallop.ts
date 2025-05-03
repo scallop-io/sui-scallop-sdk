@@ -1,23 +1,4 @@
-import { SuiKit } from '@scallop-io/sui-kit';
-import { ScallopAddress } from './scallopAddress';
-import { ScallopClient } from './scallopClient';
-import { ScallopBuilder } from './scallopBuilder';
-import { ScallopQuery } from './scallopQuery';
-import { ScallopUtils } from './scallopUtils';
-import type {
-  ScallopBuilderParams,
-  ScallopClientParams,
-  ScallopConstantsParams,
-  ScallopParams,
-  ScallopQueryParams,
-  ScallopUtilsParams,
-} from '../types/';
-import { ScallopIndexer } from './scallopIndexer';
-import { ScallopCache } from './scallopCache';
-import { QueryClientConfig } from '@tanstack/query-core';
-import { newSuiKit } from './suiKit';
-import { ScallopConstants } from './scallopConstants';
-import type { QueryClient } from '@tanstack/query-core';
+import ScallopClient, { ScallopClientParams } from './scallopClient';
 
 /**
  * @argument params - The parameters for the Scallop instance.
@@ -36,65 +17,28 @@ import type { QueryClient } from '@tanstack/query-core';
  * const scallopUtils= await sdk.createScallopUtils();
  * ```
  */
-export class Scallop {
-  public params: ScallopParams;
-  public suiKit: SuiKit;
-  public cache: ScallopCache;
 
-  private address: ScallopAddress;
-  private constants: ScallopConstants;
-
-  public constructor(
-    params: ScallopParams,
-    cacheOptions?: QueryClientConfig,
-    queryClient?: QueryClient
-  ) {
-    this.params = params;
-    this.suiKit = newSuiKit(params);
-    this.cache = new ScallopCache(
-      {
-        ...this.params,
-        cacheOptions,
-      },
-      {
-        suiKit: this.suiKit,
-        queryClient,
-      }
-    );
-
-    this.address = new ScallopAddress(params, {
-      cache: this.cache,
-    });
-    this.constants = new ScallopConstants(params, { address: this.address });
+export type ScallopParams = {
+  client?: ScallopClient;
+} & ScallopClientParams;
+class Scallop {
+  public readonly client: ScallopClient;
+  public constructor(params: ScallopParams) {
+    this.client = params.client ?? new ScallopClient(params);
   }
 
-  private async initConstants(params?: Partial<ScallopConstantsParams>) {
-    if (!this.constants.isInitialized) await this.constants.init(params);
+  async init(force: boolean = false) {
+    await this.client.init(force);
   }
 
   /**
-   * Get a scallop address instance that already has read addresses.
+   * Create a scallop client instance that already has initial data.
    *
-   * @param id - The API id of the addresses.
-   * @return Scallop Address.
+   * @return Scallop Client.
    */
-  public async getScallopAddress(id: string = this.params.addressId) {
-    await this.address.read(id);
-
-    return this.address;
-  }
-
-  /**
-   * Get a scallop constants instance that already has initial data.
-   * @returns Scallop Constants
-   */
-  public async getScallopConstants(params?: Partial<ScallopConstantsParams>) {
-    await this.initConstants({
-      ...this.params,
-      ...params,
-    });
-
-    return this.constants;
+  async createScallopClient() {
+    await this.init();
+    return this.client;
   }
 
   /**
@@ -102,36 +46,9 @@ export class Scallop {
    *
    * @return Scallop Builder.
    */
-  public async createScallopBuilder(params?: Partial<ScallopBuilderParams>) {
-    await this.initConstants(params);
-    const builderParams = {
-      ...this.params,
-      ...params,
-    };
-    const scallopBuilder = new ScallopBuilder(builderParams, {
-      query: await this.createScallopQuery(builderParams),
-    });
-
-    return scallopBuilder;
-  }
-
-  /**
-   * Create a scallop client instance that already has initial data.
-   *
-   * @param walletAddress - When user cannot provide a secret key or mnemonic, the scallop client cannot directly derive the address of the transaction the user wants to sign. This argument specifies the wallet address for signing the transaction.
-   * @return Scallop Client.
-   */
-  public async createScallopClient(params?: Partial<ScallopClientParams>) {
-    await this.initConstants(params);
-    const clientParams = {
-      ...this.params,
-      ...params,
-    };
-    const scallopClient = new ScallopClient(clientParams, {
-      builder: await this.createScallopBuilder(clientParams),
-    });
-
-    return scallopClient;
+  async createScallopBuilder() {
+    await this.init();
+    return this.client.builder;
   }
 
   /**
@@ -139,31 +56,9 @@ export class Scallop {
    *
    * @return Scallop Query.
    */
-  public async createScallopQuery(params?: Partial<ScallopQueryParams>) {
-    await this.initConstants(params);
-    const queryParams = {
-      ...this.params,
-      ...params,
-    };
-
-    const scallopQuery = new ScallopQuery(queryParams, {
-      utils: await this.createScallopUtils(queryParams),
-    });
-
-    return scallopQuery;
-  }
-
-  /**
-   * Create a scallop indexer instance.
-   *
-   * @return Scallop Indexer.
-   */
-  public async createScallopIndexer() {
-    const scallopIndexer = new ScallopIndexer(this.params, {
-      cache: this.cache,
-    });
-
-    return scallopIndexer;
+  async createScallopQuery() {
+    await this.init();
+    return this.client.query;
   }
 
   /**
@@ -171,19 +66,29 @@ export class Scallop {
    *
    * @return Scallop Utils.
    */
-  public async createScallopUtils(params?: Partial<ScallopUtilsParams>) {
-    await this.initConstants(params);
-    const scallopUtils = new ScallopUtils(
-      {
-        ...this.params,
-        ...params,
-      },
-      {
-        constants: this.constants,
-        suiKit: this.suiKit,
-      }
-    );
+  async createScallopUtils() {
+    await this.init();
+    return this.client.utils;
+  }
 
-    return scallopUtils;
+  /**
+   * Create a scallop indexer instance.
+   *
+   * @return Scallop Indexer.
+   */
+  async createScallopIndexer() {
+    await this.init();
+    return this.client.query.indexer;
+  }
+
+  /**
+   * Get a scallop constants instance that already has initial data.
+   * @returns Scallop Constants
+   */
+  async getScallopConstants() {
+    await this.init();
+    return this.client.constants;
   }
 }
+
+export default Scallop;

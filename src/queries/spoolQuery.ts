@@ -20,7 +20,6 @@ import type {
   SpoolData,
   OriginSpoolData,
 } from '../types';
-import { queryMultipleObjects } from './objectsQuery';
 
 const queryRequiredSpoolObjects = async (
   query: ScallopQuery,
@@ -63,9 +62,9 @@ const queryRequiredSpoolObjects = async (
   // Phase 2: Parallel queries with pre-collected keys
   const [spoolObjects, spoolRewardObjects, sCoinTreasuryObjects] =
     await Promise.all([
-      queryMultipleObjects(query.cache, keyCollections.spool),
-      queryMultipleObjects(query.cache, keyCollections.spoolReward),
-      queryMultipleObjects(query.cache, keyCollections.sCoinTreasury),
+      query.scallopSuiKit.queryGetObjects(keyCollections.spool),
+      query.scallopSuiKit.queryGetObjects(keyCollections.spoolReward),
+      query.scallopSuiKit.queryGetObjects(keyCollections.sCoinTreasury),
     ]);
 
   // Phase 3: Create lookup maps
@@ -315,7 +314,7 @@ export const getStakeAccounts = async (
   },
   ownerAddress?: string
 ) => {
-  const owner = ownerAddress || utils.suiKit.currentAddress();
+  const owner = ownerAddress || utils.suiKit.currentAddress;
   const spoolObjectId = utils.address.get('spool.object');
   const stakeAccountType = `${spoolObjectId}::spool_account::SpoolAccount`;
   const stakeObjectsResponse: SuiObjectResponse[] = [];
@@ -323,7 +322,7 @@ export const getStakeAccounts = async (
   let nextCursor: string | null | undefined = null;
   do {
     const paginatedStakeObjectsResponse =
-      await utils.cache.queryGetOwnedObjects({
+      await utils.scallopSuiKit.queryGetOwnedObjects({
         owner,
         filter: { StructType: stakeAccountType },
         options: {
@@ -445,7 +444,8 @@ export const getStakePool = async (
 ) => {
   const poolId = utils.address.get(`spool.pools.${marketCoinName}.id`);
   let stakePool: StakePool | undefined = undefined;
-  const stakePoolObjectResponse = await utils.cache.queryGetObject(poolId);
+  const stakePoolObjectResponse =
+    await utils.scallopSuiKit.queryGetObject(poolId);
   if (stakePoolObjectResponse?.data) {
     const stakePoolObject = stakePoolObjectResponse.data;
     const id = stakePoolObject.objectId;
@@ -505,7 +505,7 @@ export const getStakeRewardPool = async (
   );
   let stakeRewardPool: StakeRewardPool | undefined = undefined;
   const stakeRewardPoolObjectResponse =
-    await utils.cache.queryGetObject(poolId);
+    await utils.scallopSuiKit.queryGetObject(poolId);
 
   if (stakeRewardPoolObjectResponse?.data) {
     const stakeRewardPoolObject = stakeRewardPoolObjectResponse.data;
