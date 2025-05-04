@@ -821,7 +821,6 @@ export const getTotalValueLocked = async (
     );
   }
 
-  // console.dir(market.collaterals, { depth: null });
   for (const collateral of Object.values(market.collaterals)) {
     if (!collateral) continue;
     supplyCollateralValue = supplyCollateralValue.plus(
