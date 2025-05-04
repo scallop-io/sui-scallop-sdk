@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.0...v2.1.1) (2025-05-04)
+
+### Bugfixes
+
+- Minor bugfix ([f6579de](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/f6579deefc33ef6e472b99dda0a5f01125ae5a29))
+
 ### [2.1.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.12...v2.1.0) (2025-05-03)
 
 ### ⚠ BREAKING CHANGES
