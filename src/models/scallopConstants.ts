@@ -28,7 +28,7 @@ export type ScallopConstantsParams = {
   poolAddressesApiUrl?: string;
   whitelistApiUrl?: string;
   forcePoolAddressInterface?: Record<string, PoolAddress>;
-  forceWhitelistInterface?: Whitelist;
+  forceWhitelistInterface?: Whitelist | Record<string, any>;
 } & ScallopAddressParams;
 
 const DEFAULT_WHITELIST = {
@@ -47,6 +47,18 @@ const DEFAULT_WHITELIST = {
   deprecated: new Set(),
   emerging: new Set(),
 } as Whitelist;
+
+const parseWhitelistParams = (params: Record<string, any> | Whitelist) => {
+  return Object.entries(params)
+    .filter(
+      ([_, value]) => !!value && (Array.isArray(value) || value instanceof Set)
+    )
+    .reduce((acc, [key, value]) => {
+      acc[key as keyof typeof DEFAULT_WHITELIST] =
+        value instanceof Set ? value : new Set(value);
+      return acc;
+    }, {} as Whitelist);
+};
 
 class ScallopConstants extends ScallopAddress {
   private _poolAddresses: Record<string, PoolAddress | undefined> = {};
@@ -144,7 +156,7 @@ class ScallopConstants extends ScallopAddress {
     networkType?: NetworkType;
   } = {}) {
     const addresses = this.getAddresses(networkType);
-    return !addresses || isEmptyObject(addresses);
+    return !!addresses && !isEmptyObject(addresses);
   }
 
   parseToOldMarketCoin(coinType: string) {
@@ -174,10 +186,13 @@ class ScallopConstants extends ScallopAddress {
     }
 
     if (constantsParams.forceWhitelistInterface) {
-      this._whitelist = constantsParams.forceWhitelistInterface;
+      this._whitelist = parseWhitelistParams(
+        constantsParams.forceWhitelistInterface
+      );
     }
 
     if (this.isInitialized && !force) {
+      this.initConstants();
       return;
     }
 
