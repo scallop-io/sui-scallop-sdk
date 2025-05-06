@@ -264,6 +264,9 @@ class ScallopSuiKit extends ScallopQueryClient {
         queryKey,
       });
       prevDatas.forEach(([key, prevData]) => {
+        if (!prevData) {
+          prevData = { data: prevData };
+        }
         this.queryClient.setQueryData(
           key,
           deepMergeObject(prevData, { data: result, error: null }),
