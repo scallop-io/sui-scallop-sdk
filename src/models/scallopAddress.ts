@@ -358,6 +358,12 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     rewardPool: '',
     userRewardTableId: '',
   },
+  veScaLoyaltyProgram: {
+    id: '',
+    object: '',
+    veScaRewardPool: '',
+    veScaRewardTableId: '',
+  },
   scoin: {
     id: '',
     coins: {
