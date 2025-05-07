@@ -6,6 +6,7 @@ export type LoyaltyProgramInfo = {
 
 export type VeScaLoyaltyProgramInfo = {
   pendingVeScaReward: number;
+  pendingScaReward: number;
   totalPoolReward: number;
   isClaimEnabled: boolean;
 };
