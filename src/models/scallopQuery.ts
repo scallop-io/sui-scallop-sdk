@@ -49,6 +49,7 @@ import {
   getTotalValueLocked,
   getUserPortfolio,
   getVeSca,
+  getVeScaLoyaltyProgramInformations,
   getVeScas,
   getVeScaTreasuryInfo,
   isIsolatedAsset,
@@ -684,11 +685,20 @@ class ScallopQuery implements ScallopQueryInterface {
 
   /**
    * Get user's veSCA loyalty program informations
-   * @param walletAddress
+   * @param veScaKey
    * @returns Loyalty program information
    */
   async getLoyaltyProgramInfos(veScaKey?: string | SuiObjectData) {
     return await getLoyaltyProgramInformations(this, veScaKey);
+  }
+
+  /**
+   * Get user's veSCA rewards informations from loyalty program
+   * @param veScaKey
+   * @returns Loyalty program information
+   */
+  async getVeScaLoyaltyProgramInfos(veScaKey?: string | SuiObjectData) {
+    return await getVeScaLoyaltyProgramInformations(this, veScaKey);
   }
 
   /**

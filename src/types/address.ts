@@ -127,9 +127,17 @@ export interface AddressesInterface {
   };
   loyaltyProgram: {
     id: string;
+    adminCap?: string;
     object: string;
     rewardPool: string;
     userRewardTableId: string;
+  };
+  veScaLoyaltyProgram: {
+    id: string;
+    adminCap?: string;
+    object: string;
+    veScaRewardPool: string;
+    veScaRewardTableId: string;
   };
   scoin: {
     id: string;

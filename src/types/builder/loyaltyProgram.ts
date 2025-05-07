@@ -5,18 +5,14 @@ import {
 } from '@scallop-io/sui-kit';
 import { type ScallopBuilder } from 'src/models';
 
-export type LoyaltyProgramIds = {
-  loyaltyProgramPkgId: string;
-  rewardPool: string;
-  userRewardTableId: string;
-};
-
 export type LoyaltyProgramNormalMethods = {
   claimLoyaltyRevenue: (veScaKey: SuiObjectArg) => TransactionResult;
+  claimVeScaLoyaltyReward: (veScaKey: SuiObjectArg) => TransactionResult;
 };
 
 export type LoyaltyProgramQuickMethods = {
   claimLoyaltyRevenueQuick: (veScaKey?: SuiObjectArg) => Promise<void>;
+  claimVeScaLoyaltyRewardQuick: (veScaKey?: SuiObjectArg) => Promise<void>;
 };
 
 export type SuiTxBlockWithLoyaltyProgramNormalMethods = SuiKitTxBlock &
