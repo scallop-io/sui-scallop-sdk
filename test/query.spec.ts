@@ -426,6 +426,7 @@ describe('Test Loyalty Program Query', () => {
 
   it(`Should get veSCA loyalty program information from a veSCA key`, async () => {
     const veScaLoyaltyProgramInfoZod = zod.object({
+      pendingScaReward: zod.optional(zod.number()),
       pendingVeScaReward: zod.optional(zod.number()),
       totalPoolReward: zod.number(),
       isClaimEnabled: zod.boolean(),

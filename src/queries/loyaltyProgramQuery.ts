@@ -1,5 +1,6 @@
 import { SuiObjectData } from '@mysten/sui/client';
 import BigNumber from 'bignumber.js';
+import { MAX_LOCK_DURATION } from 'src/constants';
 import { ScallopQuery } from 'src/models';
 import { LoyaltyProgramInfo, VeScaLoyaltyProgramInfo } from 'src/types';
 import { z as zod } from 'zod';
@@ -121,13 +122,15 @@ export const getVeScaLoyaltyProgramInformations = async (
 
   const result: VeScaLoyaltyProgramInfo = {
     pendingVeScaReward: 0,
+    pendingScaReward: 0,
     totalPoolReward: 0,
     isClaimEnabled,
   };
 
+  let reserveVeSca;
   // calculate totalPoolreward from reserveVeScaKey
   if (reserveVeScaKey) {
-    const reserveVeSca = await query.getVeSca(reserveVeScaKey);
+    reserveVeSca = await query.getVeSca(reserveVeScaKey);
     result.totalPoolReward = reserveVeSca?.currentVeScaBalance ?? 0;
   }
 
@@ -151,8 +154,18 @@ export const getVeScaLoyaltyProgramInformations = async (
 
   if (userRewardObject?.data?.content?.dataType !== 'moveObject') return result;
   const userRewardFields = userRewardObject.data.content.fields;
-  result.pendingVeScaReward = userVeScaRewardFieldsZod.parse(
+  result.pendingScaReward = userVeScaRewardFieldsZod.parse(
     userRewardFields
   ) as UserVeScaRewardFields;
+
+  const remainingLockPeriodInMilliseconds = Math.max(
+    (reserveVeSca?.unlockAt ?? 0) - Date.now(),
+    0
+  );
+
+  result.pendingVeScaReward =
+    result.pendingScaReward *
+    (Math.floor(remainingLockPeriodInMilliseconds / 1000) / MAX_LOCK_DURATION);
+
   return result;
 };
