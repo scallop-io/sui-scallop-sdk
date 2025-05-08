@@ -248,9 +248,14 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
   txBlock,
 }) => {
   return {
-    lockScaQuick: async (amountOrCoin, lockPeriodInDays, autoCheck = true) => {
+    lockScaQuick: async (
+      amountOrCoin,
+      lockPeriodInDays,
+      veScaKey,
+      autoCheck = true
+    ) => {
       const sender = requireSender(txBlock);
-      const veSca = await requireVeSca(builder, txBlock);
+      const veSca = await requireVeSca(builder, txBlock, veScaKey);
 
       let scaCoin: TransactionObjectArgument | SuiObjectArg | undefined =
         undefined;

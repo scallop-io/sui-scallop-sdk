@@ -308,15 +308,15 @@ export const TEST_ADDRESSES: AddressesInterface = {
       '0x574a11f8a0fbaa05b8f559cb65634e8eb20f26b1ec29e7d58de9167f3cedd0f7',
   },
   veScaLoyaltyProgram: {
-    id: '0x7e95dc10fb96ffb2341f664926417b0fb261c9f3dc417344d2a3b11a2f5bb812',
+    id: '0xbee5585c16275e582ad595f0bb0c0895ea97fb3f06e7a47779c98effcf756df7',
     object:
-      '0x7e95dc10fb96ffb2341f664926417b0fb261c9f3dc417344d2a3b11a2f5bb812',
+      '0xbee5585c16275e582ad595f0bb0c0895ea97fb3f06e7a47779c98effcf756df7',
     adminCap:
-      '0x4fc52ce8aab57eaa154d9ee42e9d8ecb7add6176d19ff65ebac59bf196b12de8',
+      '0xcf17d2d40926226695cbf18ae11d792c74c0dc5419e8259bfa415c3c629a28a9',
     veScaRewardPool:
-      '0x59025ec74adfcde1e0d793ff432fa0281f47fe4239aa8811430f10307292eca4',
+      '0x8fbcc04c1dc1e0f71c6bbec61761beb2aba07e070751b3e43eeee05ccaca97d5',
     veScaRewardTableId:
-      '0xbfa64d2dcd45c9dee92b8c0e052954c05bd687b4e3b132ace9c1f6d6cf619eba',
+      '0x51a7c365d58435562a2d72de2c8b78679bc81c345222ef1d9e0fbeca1e365f14',
   },
   scoin: {
     id: '0x826a4934bee9487e558eed603cf42f30cdc4321d6f31083930791b95f903b9f9',
