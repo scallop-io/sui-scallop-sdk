@@ -28,6 +28,7 @@ import type {
   SuiTxBlockWithVeScaNormalMethods,
   VeScaTxBlock,
 } from 'src/types';
+import { SuiObjectData } from '@mysten/sui/client';
 
 /**
  * Check and get veSCA data from transaction block.
@@ -46,11 +47,11 @@ export const requireVeSca = async (
   ...params: [
     builder: ScallopBuilder,
     SuiTxBlock: SuiTxBlock,
-    veScaKey?: SuiObjectArg,
+    veScaKey?: SuiObjectData,
   ]
 ) => {
   const [builder, txBlock, veScaKey] = params;
-  if (params.length === 3 && veScaKey && typeof veScaKey === 'string') {
+  if (params.length === 3 && veScaKey && typeof veScaKey !== 'undefined') {
     const veSca = await getVeSca(builder.utils, veScaKey);
 
     if (!veSca) {
@@ -67,7 +68,13 @@ export const requireVeSca = async (
   }
 
   // return veSCA with the same veScaKey or the highest veSCA balance
-  return veScaKey ? veScas.find(({ keyId }) => veScaKey === keyId) : veScas[0];
+  return veScaKey
+    ? veScas.find(
+        ({ keyId }) =>
+          (typeof veScaKey === 'string' ? veScaKey : veScaKey.objectId) ===
+          keyId
+      )
+    : veScas[0];
 };
 
 export const isInSubsTable = async (
@@ -290,9 +297,9 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           veSca?.unlockAt
         );
 
-      const isInitialLock = !veSca?.unlockAt;
+      const isInitialLock = !veSca;
       const isLockExpired =
-        !isInitialLock && veSca.unlockAt * 1000 <= new Date().getTime();
+        !isInitialLock && veSca.unlockAt <= new Date().getTime();
       if (isInitialLock || isLockExpired) {
         if (scaCoin) {
           if (isInitialLock) {
