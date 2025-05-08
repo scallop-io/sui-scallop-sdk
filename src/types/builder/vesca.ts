@@ -53,6 +53,7 @@ export type VeScaQuickMethods = {
   lockScaQuick(
     amountOrCoin?: SuiObjectArg | number,
     lockPeriodInDays?: number,
+    veScaKey?: SuiObjectArg,
     autoCheck?: boolean
   ): Promise<void>;
   extendLockPeriodQuick: (

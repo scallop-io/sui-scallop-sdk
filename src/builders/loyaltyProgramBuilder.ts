@@ -1,5 +1,9 @@
 import { Transaction } from '@mysten/sui/transactions';
-import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
+import {
+  normalizeSuiAddress,
+  MOVE_STDLIB_ADDRESS,
+  SuiTxBlock as SuiKitTxBlock,
+} from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models';
 import {
   GenerateLoyaltyProgramNormalMethod,
@@ -18,6 +22,7 @@ const generateLoyaltyProgramNormalMethod: GenerateLoyaltyProgramNormalMethod =
     };
 
     const veScaProgramIds = {
+      object: builder.address.get('vesca.object'),
       protocolConfig: builder.address.get('vesca.config'),
       veScaTable: builder.address.get('vesca.table'),
       subsTable: builder.address.get('vesca.subsTable'),
@@ -39,7 +44,7 @@ const generateLoyaltyProgramNormalMethod: GenerateLoyaltyProgramNormalMethod =
         );
       },
       claimVeScaLoyaltyReward: (veScaKey) => {
-        return builder.moveCall(
+        const optionVeScaKey = builder.moveCall(
           txBlock,
           `${veScaLoyaltyProgramIds.pkgId}::ve_sca_reward::redeem_reward`,
           [
@@ -50,6 +55,17 @@ const generateLoyaltyProgramNormalMethod: GenerateLoyaltyProgramNormalMethod =
             veScaProgramIds.subsTable,
           ]
         );
+
+        // Extract from option
+        const veScaKeyType = `${veScaProgramIds.object}::ve_sca::VeScaKey`;
+        const rewardVeScaKey = builder.moveCall(
+          txBlock,
+          `${normalizeSuiAddress(MOVE_STDLIB_ADDRESS)}::option::destroy_some`,
+          [optionVeScaKey],
+          [veScaKeyType]
+        );
+
+        return rewardVeScaKey;
       },
     };
   };
