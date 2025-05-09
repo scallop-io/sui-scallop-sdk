@@ -247,6 +247,7 @@ const queryRequiredMarketObjects = async (
     borrowFeeKey?: string;
     supplyLimitKey?: string;
     borrowLimitKey?: string;
+    isolatedAssetKey?: string;
   };
 
   const keyCollections: Record<keyof KeyType, string[]> = {
@@ -258,6 +259,7 @@ const queryRequiredMarketObjects = async (
     borrowFeeKey: [],
     supplyLimitKey: [],
     borrowLimitKey: [],
+    isolatedAssetKey: [],
   };
 
   const taskMap = new Map<string, KeyType>();
@@ -274,6 +276,7 @@ const queryRequiredMarketObjects = async (
       borrowFeeKey: poolData?.borrowFeeKey,
       supplyLimitKey: poolData?.supplyLimitKey,
       borrowLimitKey: poolData?.borrowLimitKey,
+      isolatedAssetKey: poolData?.isolatedAssetKey,
     };
 
     // Add to key collections
@@ -311,6 +314,7 @@ const queryRequiredMarketObjects = async (
     borrowFeeKey: new Map<string, SuiObjectData>(),
     supplyLimitKey: new Map<string, SuiObjectData>(),
     borrowLimitKey: new Map<string, SuiObjectData>(),
+    isolatedAssetKey: new Map<string, SuiObjectData>(),
     isIsolated: new Map<string, boolean>(),
   } as Record<keyof KeyType, Map<string, SuiObjectData>>;
 
@@ -349,7 +353,10 @@ const queryRequiredMarketObjects = async (
       borrowLimitKey: task.borrowLimitKey
         ? resultMaps.borrowLimitKey.get(task.borrowLimitKey)
         : undefined,
-      isolatedAssetKey: utils.constants.poolAddresses[poolCoinName]?.isIsolated,
+      isolatedAssetKey: task.isolatedAssetKey
+        ? resultMaps.isolatedAssetKey.get(task.isolatedAssetKey)
+        : undefined,
+      isIsolated: utils.constants.poolAddresses[poolCoinName]?.isIsolated,
     };
   }
 
@@ -553,6 +560,7 @@ export const getMarketPool = async (
     borrowFeeKey: SuiObjectData;
     supplyLimitKey: SuiObjectData;
     borrowLimitKey: SuiObjectData;
+    isolatedAssetKey?: SuiObjectData;
     isIsolated: boolean;
   }
 ): Promise<

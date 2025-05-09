@@ -776,8 +776,8 @@ class ScallopQuery implements ScallopQueryInterface {
   /**
    * Get list of isolated assets
    */
-  async getIsolatedAssets() {
-    return await getIsolatedAssets(this);
+  async getIsolatedAssets(useOnChainQuery: boolean = false) {
+    return await getIsolatedAssets(this, useOnChainQuery);
   }
 
   /**

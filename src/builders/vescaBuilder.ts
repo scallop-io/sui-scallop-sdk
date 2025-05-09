@@ -473,13 +473,6 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         isInSubsTable(builder, sourceKey, table),
       ]);
 
-      console.log({
-        targetKey,
-        sourceKey,
-        isTargetInSubTable,
-        isSourceInSubTable,
-      });
-
       const unstakeObligationBeforeStake =
         !!txBlock.txBlock.blockData.transactions.find(
           (txn) =>
