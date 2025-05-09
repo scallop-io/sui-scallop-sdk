@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.2...v2.1.3) (2025-05-08)
+
+### Bugfixes
+
+- Fix lock sca logic bug ([39572fb](https://github.com/scallop-io/sui-scallop-sdk/pull/257/commits/39572fb8a2cd54202382d6f0b36e191954073623))
+
+### Features
+
+Add support for merging and splitting veSCA keys.
+
 ### [2.1.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.1...v2.1.2) (2025-05-06)
 
 ### Bugfixes

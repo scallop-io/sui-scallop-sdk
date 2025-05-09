@@ -5,9 +5,9 @@ import {
   parseOriginSpoolRewardPoolData,
   calculateSpoolRewardPoolData,
   parseObjectAs,
-} from '../utils';
+} from 'src/utils';
 import type { SuiObjectData, SuiObjectResponse } from '@mysten/sui/client';
-import type { ScallopQuery, ScallopUtils } from '../models';
+import type { ScallopQuery, ScallopUtils } from 'src/models';
 import type {
   Spools,
   Spool,

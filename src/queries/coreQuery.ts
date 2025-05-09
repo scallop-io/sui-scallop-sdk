@@ -5,7 +5,7 @@ import {
   parseOriginMarketCollateralData,
   calculateMarketCollateralData,
   parseObjectAs,
-} from '../utils';
+} from 'src/utils';
 import type {
   SuiObjectResponse,
   SuiObjectData,
@@ -32,7 +32,7 @@ import {
   BorrowFee,
   BorrowDynamic,
   OriginMarketCollateralData,
-} from '../types';
+} from 'src/types';
 import BigNumber from 'bignumber.js';
 import { getSupplyLimit } from './supplyLimitQuery';
 import { isIsolatedAsset } from './isolatedAssetQuery';

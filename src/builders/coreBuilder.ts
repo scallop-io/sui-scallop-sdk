@@ -5,7 +5,7 @@ import { getObligations } from '../queries';
 import { updateOracles } from './oracles';
 import { requireSender } from '../utils';
 import type { SuiObjectArg, TransactionResult } from '@scallop-io/sui-kit';
-import type { ScallopBuilder } from '../models';
+import type { ScallopBuilder } from 'src/models';
 import type {
   CoreIds,
   GenerateCoreNormalMethod,
@@ -15,7 +15,7 @@ import type {
   ScallopTxBlock,
   NestedResult,
   SuiTxBlockWithSpool,
-} from '../types';
+} from 'src/types';
 
 /**
  * Check and get Obligation information from transaction block.
