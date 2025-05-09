@@ -2,9 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.4...v2.1.5) (2025-05-09)
+
+- Minor fix ([b37a733](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/b37a733c0f19e27bca8120e96ac8d04d8978ccda))
+
 ### [2.1.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.3...v2.1.4) (2025-05-09)
 
-- Use now price instead of time-weighted price for Pyth price
+- Use now price instead of time-weighted price for Pyth price ([aaed310](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/aaed310cc22a5d328af926e88fbec1110e52022d))
 
 ### [2.1.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.2...v2.1.3) (2025-05-09)
 
