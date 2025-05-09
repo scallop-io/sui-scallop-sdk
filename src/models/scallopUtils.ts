@@ -388,8 +388,7 @@ class ScallopUtils implements ScallopUtilsInterface {
     });
 
     if (assetCoinName) {
-      const parsedPrice = feed.getEmaPriceUnchecked();
-
+      const parsedPrice = feed.getPriceUnchecked();
       return {
         coinName: assetCoinName,
         price: parsedPrice.getPriceAsNumberUnchecked(),
