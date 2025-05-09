@@ -89,7 +89,11 @@ export const isInSubsTable = async (
         value: veScaKey,
       },
     });
-    return !!resp?.data;
+
+    if (!resp?.data) return false;
+
+    const contents = (resp.data.content as any).fields.value.fields.contents;
+    return Array.isArray(contents) && contents.length > 0;
   } catch (e) {
     console.error(e);
     return false;
@@ -463,18 +467,18 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
     },
     mergeVeScaQuick: async (targetKey: string, sourceKey: string) => {
       // check targetKey and sourceKey
+      const table = builder.address.get('vesca.subsTableId');
       const [isTargetInSubTable, isSourceInSubTable] = await Promise.all([
-        isInSubsTable(
-          builder,
-          targetKey,
-          builder.address.get('vesca.subsTableId')
-        ),
-        isInSubsTable(
-          builder,
-          sourceKey,
-          builder.address.get('vesca.subsTableId')
-        ),
+        isInSubsTable(builder, targetKey, table),
+        isInSubsTable(builder, sourceKey, table),
       ]);
+
+      console.log({
+        targetKey,
+        sourceKey,
+        isTargetInSubTable,
+        isSourceInSubTable,
+      });
 
       const unstakeObligationBeforeStake =
         !!txBlock.txBlock.blockData.transactions.find(
