@@ -2,13 +2,6 @@ import { SuiTxBlock as SuiKitTxBlock, SuiObjectArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
 import { ScallopBuilder } from 'src/models';
 
-export type VescaIds = {
-  pkgId: string;
-  table: string;
-  treasury: string;
-  config: string;
-};
-
 export type VeScaNormalMethods = {
   lockSca: (
     scaCoin: SuiObjectArg,
@@ -26,9 +19,17 @@ export type VeScaNormalMethods = {
   ) => void;
   redeemSca: (veScaKey: SuiObjectArg) => TransactionResult;
   mintEmptyVeSca: () => TransactionResult;
+  splitVeSca: (
+    veScaKey: SuiObjectArg,
+    splitAmount: string
+  ) => TransactionResult;
+  mergeVeSca: (
+    targetVeScaKey: SuiObjectArg,
+    sourceVeScaKey: SuiObjectArg
+  ) => void;
 };
 
-export type RedeemScaQuickReturnType<T extends boolean> = T extends true
+export type QuickMethodReturnType<T extends boolean> = T extends true
   ? void
   : TransactionResult | undefined;
 
@@ -52,6 +53,7 @@ export type VeScaQuickMethods = {
   lockScaQuick(
     amountOrCoin?: SuiObjectArg | number,
     lockPeriodInDays?: number,
+    veScaKey?: SuiObjectArg,
     autoCheck?: boolean
   ): Promise<void>;
   extendLockPeriodQuick: (
@@ -71,9 +73,18 @@ export type VeScaQuickMethods = {
     autoCheck?: boolean
   ) => Promise<void>;
   redeemScaQuick: <T extends boolean>(
-    veSCaKey?: SuiObjectArg,
+    veScaKey?: SuiObjectArg,
     transferSca?: T
-  ) => Promise<RedeemScaQuickReturnType<T>>;
+  ) => Promise<QuickMethodReturnType<T>>;
+  splitVeScaQuick: <T extends boolean>(
+    splitAmount: string,
+    veScaKey: string,
+    transferVeScaKey?: T
+  ) => Promise<QuickMethodReturnType<T>>;
+  mergeVeScaQuick: (
+    targetVeScaKey: string,
+    sourceVeScaKey: string
+  ) => Promise<void>;
 };
 
 export type SuiTxBlockWithVeScaNormalMethods = SuiKitTxBlock &

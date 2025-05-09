@@ -111,7 +111,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
-- Compatability with @mysten/sui Transaction.
+- Compatibility with @mysten/sui Transaction.
 
   Scallop Transaction Builder contains a `Transaction` instance from `@mysten/sui`.
   So you can use both `Transaction` and `ScallopTransactionBlock` at the same time to build your transaction.
@@ -259,6 +259,26 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   scallopTxBlock.setSender(sender);
 
   await scallopTxBlock.redeemScaQuick();
+  ```
+
+- Merge veSCA
+
+  ```typescript
+  const targetKey = ... // objectId
+  const sourceKey = ... // objectId
+  const scallopTxBlock = scallopBuilder.createBlock();
+
+  await scallopTxBlock.mergeVeScaQuick(targetKey, fromKey);
+  ```
+
+- Split veSCA
+
+  ```typescript
+  const veScaKey = ... // objectId
+  const splitAmount = 10 ** 9; // split amount 1 SCA
+
+  // set third param to true to transfer the splitted veScaKey to sender
+  await scallopTxBlock.splitVeScaQuick(splitAmount, veScaKey, true);
   ```
 
 - Convert market coin to new sCoin

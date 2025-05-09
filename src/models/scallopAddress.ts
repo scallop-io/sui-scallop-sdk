@@ -335,6 +335,9 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     table: '',
     treasury: '',
     config: '',
+    subsTable: '',
+    subsTableId: '',
+    subsWhitelist: '',
   },
   referral: {
     id: '',
@@ -354,6 +357,12 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     object: '',
     rewardPool: '',
     userRewardTableId: '',
+  },
+  veScaLoyaltyProgram: {
+    id: '',
+    object: '',
+    veScaRewardPool: '',
+    veScaRewardTableId: '',
   },
   scoin: {
     id: '',

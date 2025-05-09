@@ -423,6 +423,25 @@ describe('Test Loyalty Program Query', () => {
       true
     );
   });
+
+  it(`Should get veSCA loyalty program information from a veSCA key`, async () => {
+    const veScaLoyaltyProgramInfoZod = zod.object({
+      pendingScaReward: zod.optional(zod.number()),
+      pendingVeScaReward: zod.optional(zod.number()),
+      totalPoolReward: zod.number(),
+      isClaimEnabled: zod.boolean(),
+    });
+
+    const veScaLoyaltyProgramInfo =
+      await scallopQuery.getVeScaLoyaltyProgramInfos(VE_SCA_KEY);
+    if (ENABLE_LOG) {
+      console.info('VeSca Loyalty Program Info:', veScaLoyaltyProgramInfo);
+    }
+    expect(!!veScaLoyaltyProgramInfo).toBe(true);
+    expect(
+      veScaLoyaltyProgramInfoZod.safeParse(veScaLoyaltyProgramInfo).success
+    ).toBe(true);
+  });
 });
 
 describe('Test sCoin Query', () => {
