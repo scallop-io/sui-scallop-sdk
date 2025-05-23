@@ -50,7 +50,7 @@ describe('Test Scallop Constants default values', () => {
       defaultValues: {
         poolAddresses: POOL_ADDRESSES,
         whitelist: WHITELIST,
-        address: { mainnet: TEST_ADDRESSES },
+        addresses: { mainnet: TEST_ADDRESSES },
       },
     });
 
@@ -67,8 +67,6 @@ describe('Test Scallop Constants default values', () => {
     expect(Object.values(localScallopConstants.poolAddresses).length > 0).toBe(
       true
     );
-    expect(
-      Object.values(localScallopConstants.getAddresses() ?? {}).length > 0
-    ).toBe(true);
+    expect(localScallopConstants.getAddresses()?.core.version).not.toBe('');
   });
 });

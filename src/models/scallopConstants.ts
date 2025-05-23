@@ -1,9 +1,7 @@
-import { AddressesInterface, PoolAddress, Whitelist } from 'src/types';
+import { PoolAddress, Whitelist } from 'src/types';
 import ScallopAddress, { ScallopAddressParams } from './scallopAddress';
 import { NetworkType, parseStructTag } from '@scallop-io/sui-kit';
-import ScallopAxios from './scallopAxios';
 import { queryKeys } from 'src/constants';
-import { QueryKey } from '@tanstack/query-core';
 
 const isEmptyObject = (obj: object) => {
   return Object.keys(obj).length === 0;
@@ -30,7 +28,6 @@ export type ScallopConstantsParams = {
   forcePoolAddressInterface?: Record<string, PoolAddress>;
   forceWhitelistInterface?: Whitelist | Record<string, any>;
   defaultValues?: {
-    address?: Partial<Record<NetworkType, AddressesInterface>>;
     poolAddresses?: Record<string, PoolAddress>;
     whitelist?: Whitelist | Record<string, any>;
   };
@@ -106,11 +103,8 @@ class ScallopConstants extends ScallopAddress {
    */
   public supportedBorrowIncentiveRewards: Set<CoinName> = new Set();
 
-  private scallopConstantAxios: ScallopAxios;
-
   constructor(public readonly params: ScallopConstantsParams = {}) {
     super(params);
-    this.scallopConstantAxios = new ScallopAxios();
   }
 
   get protocolObjectId() {
@@ -327,23 +321,6 @@ class ScallopConstants extends ScallopAddress {
         .map((t) => (t.sCoinName ? [t.coinName, t.sCoinName] : [t.coinName]))
         .flat(),
     ]);
-  }
-
-  private async readApi<T>({
-    url,
-    queryKey,
-  }: {
-    url: string;
-    queryKey: QueryKey;
-  }) {
-    const resp = await this.scallopConstantAxios.get<T>(url, queryKey);
-    if (resp.status === 200) {
-      return resp.data as T;
-    } else {
-      throw Error(
-        `Error: ${resp.status}; Failed to read ${url} ${resp.statusText}`
-      );
-    }
   }
 
   async readWhiteList() {
