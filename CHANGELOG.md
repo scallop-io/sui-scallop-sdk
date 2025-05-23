@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.6...v2.1.7) (2025-05-23)
+
+- Add default values for addresses, pool addresses and whitelist API ([b17eb59](https://github.com/scallop-io/sui-scallop-sdk/pull/260/commits/b17eb596a67124d6102c2ee848b65ad6390b98b7))([62aeef1](https://github.com/scallop-io/sui-scallop-sdk/pull/260/commits/62aeef1b0618ab516befc4832da463f4d11b5384))([8a85667](https://github.com/scallop-io/sui-scallop-sdk/pull/260/commits/8a8566791d9063e31b01406ae5a4ac4dfc3603ea))
+
 ### [2.1.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.5...v2.1.6) (2025-05-09)
 
 - Minor fix ([1464074](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/1464074dce10fa69421c4f7f301f2b04d7f9aed0))

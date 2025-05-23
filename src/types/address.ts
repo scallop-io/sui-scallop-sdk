@@ -1,6 +1,7 @@
 import { _SUPPORT_ORACLES, SupportOracleType } from './constant/xOracle';
 
 export interface AddressesInterface {
+  id?: string;
   core: {
     version: string;
     versionCap: string;
