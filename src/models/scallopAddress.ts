@@ -2,6 +2,7 @@ import { NetworkType } from '@scallop-io/sui-kit';
 import { API_BASE_URL, queryKeys } from 'src/constants';
 import { AddressesInterface, AddressStringPath } from 'src/types';
 import ScallopAxios, { ScallopAxiosParams } from './scallopAxios';
+import { QueryKey } from '@tanstack/query-core';
 
 export type ScallopAddressParams = {
   addressId?: string;
@@ -9,6 +10,9 @@ export type ScallopAddressParams = {
   auth?: string;
   network?: NetworkType;
   forceAddressesInterface?: Partial<Record<NetworkType, AddressesInterface>>;
+  defaultValues?: {
+    addresses?: Partial<Record<NetworkType, AddressesInterface>>;
+  };
 } & ScallopAxiosParams;
 
 const EMPTY_ADDRESSES: AddressesInterface = {
@@ -438,7 +442,7 @@ class ScallopAddress {
     network: 'mainnet' as NetworkType,
   } as const;
 
-  constructor(params: ScallopAddressParams = {}) {
+  constructor(public readonly params: ScallopAddressParams = {}) {
     this.scallopAxios = new ScallopAxios({
       ...this.defaultParamValues,
       baseUrl: params.addressApiUrl || API_BASE_URL,
@@ -482,6 +486,10 @@ class ScallopAddress {
 
   get queryClient() {
     return this.axiosClient.queryClient;
+  }
+
+  get defaultValues() {
+    return this.params.defaultValues;
   }
 
   getId() {
@@ -651,6 +659,23 @@ class ScallopAddress {
     }
   }
 
+  protected async readApi<T>({
+    url,
+    queryKey,
+  }: {
+    url: string;
+    queryKey: QueryKey;
+  }) {
+    const resp = await this.axiosClient.get<T>(url, queryKey);
+    if (resp.status === 200) {
+      return resp.data as T;
+    } else {
+      throw Error(
+        `Error: ${resp.status}; Failed to read ${url} ${resp.statusText}`
+      );
+    }
+  }
+
   /**
    * Read and synchronizes all addresses from the API into instance.
    *
@@ -660,25 +685,35 @@ class ScallopAddress {
   async read(id?: string) {
     const addressId = id || this.addressId || undefined;
     if (addressId !== undefined) {
-      const response = await this.axiosClient.get(
-        `/addresses/${addressId}`,
-        queryKeys.api.getAddresses({ addressId }) as string[]
-      );
-
-      if (response.status === 200) {
-        for (const [network, addresses] of Object.entries<AddressesInterface>(
-          response.data
-        )) {
-          if (['localnet', 'devnet', 'testnet', 'mainnet'].includes(network)) {
-            if (network === this.network) this.currentAddresses = addresses;
-            this.addressMap.set(network as NetworkType, addresses);
-          }
+      const response = await (async () => {
+        try {
+          return this.readApi<
+            Record<NetworkType, AddressesInterface> & { id?: string }
+          >({
+            url: `/addresses/${addressId}`,
+            queryKey: queryKeys.api.getAddresses({ addressId }) as string[],
+          });
+        } catch (e) {
+          console.error(e);
+          return {
+            id: '',
+            mainnet: this.defaultValues?.addresses?.mainnet ?? EMPTY_ADDRESSES,
+          };
         }
-        this.addressId = response.data.id;
-        return this.getAllAddresses();
-      } else {
-        throw Error('Failed to create addresses.');
+      })();
+
+      const isNetworkValid = (network: string): network is NetworkType =>
+        ['localnet', 'devnet', 'testnet', 'mainnet'].includes(network);
+
+      for (const [network, addresses] of Object.entries(response)) {
+        if (isNetworkValid(network) && typeof addresses === 'object') {
+          if (network === this.network) this.currentAddresses = addresses;
+
+          this.addressMap.set(network, addresses);
+        }
       }
+      this.addressId = response.id;
+      return this.getAllAddresses();
     } else {
       throw Error('Please provide API addresses id.');
     }
