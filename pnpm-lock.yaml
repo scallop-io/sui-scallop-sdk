@@ -18,8 +18,8 @@ importers:
         specifier: 1.4.0
         version: 1.4.0(typescript@5.5.4)
       '@tanstack/query-core':
-        specifier: 5.51.15
-        version: 5.51.15
+        specifier: 5.59.16
+        version: 5.59.16
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -821,8 +821,8 @@ packages:
   '@shikijs/core@1.11.1':
     resolution: {integrity: sha512-Qsn8h15SWgv5TDRoDmiHNzdQO2BxDe86Yq6vIHf5T0cCvmfmccJKIzHtep8bQO9HMBZYCtCBzaXdd1MnxZBPSg==}
 
-  '@tanstack/query-core@5.51.15':
-    resolution: {integrity: sha512-xyobHDJ0yhPE3+UkSQ2/4X1fLSg7ICJI5J1JyU9yf7F3deQfEwSImCDrB1WSRrauJkMtXW7YIEcC0oA6ZZWt5A==}
+  '@tanstack/query-core@5.59.16':
+    resolution: {integrity: sha512-crHn+G3ltqb5JG0oUv6q+PMz1m1YkjpASrXTU+sYWW9pLk0t2GybUHNRqYPZWhxgjPaVGC4yp92gSFEJgYEsPw==}
 
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
@@ -3860,7 +3860,7 @@ snapshots:
     dependencies:
       '@types/hast': 3.0.4
 
-  '@tanstack/query-core@5.51.15': {}
+  '@tanstack/query-core@5.59.16': {}
 
   '@types/estree@1.0.5': {}
 
