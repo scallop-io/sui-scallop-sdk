@@ -326,7 +326,7 @@ class ScallopConstants extends ScallopAddress {
   async readWhiteList() {
     const response = await (async () => {
       try {
-        return this.readApi<Record<keyof Whitelist, string[]>>({
+        return await this.readApi<Record<keyof Whitelist, string[]>>({
           url:
             this.params.whitelistApiUrl ??
             `https://sui.apis.scallop.io/pool/whitelist`,
