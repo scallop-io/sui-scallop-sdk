@@ -687,7 +687,7 @@ class ScallopAddress {
     if (addressId !== undefined) {
       const response = await (async () => {
         try {
-          return this.readApi<
+          return await this.readApi<
             Record<NetworkType, AddressesInterface> & { id?: string }
           >({
             url: `/addresses/${addressId}`,
