@@ -1,15 +1,19 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { scallopSDK } from './scallopSdk';
+import { ScallopUtils } from 'src';
 
 const ENABLE_LOG = false;
+let scallopUtils: ScallopUtils;
+let SUPPORT_POOLS: string[] = [];
+let SUPPORT_SCOIN: string[] = [];
 
-describe('Test Scallop Utils', async () => {
-  const scallopUtils = await scallopSDK.createScallopUtils();
-  const address = await scallopSDK.getScallopAddress();
-  const SUPPORT_POOLS = [...scallopUtils.constants.whitelist.lending];
-  const SUPPORT_SCOIN = [...scallopUtils.constants.whitelist.scoin];
-  // const client = await scallopSDK.createScallopClient();
+beforeAll(async () => {
+  scallopUtils = await scallopSDK.createScallopUtils();
+  SUPPORT_POOLS = [...scallopUtils.constants.whitelist.lending];
+  SUPPORT_SCOIN = [...scallopUtils.constants.whitelist.scoin];
+});
 
+describe('Test Scallop Utils', () => {
   it.skip('Should parse to symbol from coin and market coin name', () => {
     const expectedCoinSymbols = new Set([
       'USDC', // native USDC
@@ -69,17 +73,17 @@ describe('Test Scallop Utils', async () => {
     const afsuiCoinType = scallopUtils.parseCoinType('afsui');
     const vsuiCoinType = scallopUtils.parseCoinType('vsui');
 
-    const suiAssertCoinType = `${address.get('core.coins.sui.id')}::sui::SUI`;
-    const usdcAssertCoinType = `${address.get(
+    const suiAssertCoinType = `${scallopUtils.address.get('core.coins.sui.id')}::sui::SUI`;
+    const usdcAssertCoinType = `${scallopUtils.address.get(
       'core.coins.wusdc.id'
     )}::coin::COIN`;
-    const usdtAssertCoinType = `${address.get(
+    const usdtAssertCoinType = `${scallopUtils.address.get(
       'core.coins.wusdt.id'
     )}::coin::COIN`;
-    const afsuiAssertCoinType = `${address.get(
+    const afsuiAssertCoinType = `${scallopUtils.address.get(
       'core.coins.afsui.id'
     )}::afsui::AFSUI`;
-    const vsuiAssertCoinType = `${address.get(
+    const vsuiAssertCoinType = `${scallopUtils.address.get(
       'core.coins.vsui.id'
     )}::cert::CERT`;
     if (ENABLE_LOG) {
@@ -102,16 +106,16 @@ describe('Test Scallop Utils', async () => {
     const usdtMarketCoinType = scallopUtils.parseMarketCoinType('swusdt');
     const vsuiMarketCoinType = scallopUtils.parseMarketCoinType('svsui');
 
-    const suiAssertMarketCoinType = `${scallopUtils.constants.protocolObjectId}::reserve::MarketCoin<${address.get(
+    const suiAssertMarketCoinType = `${scallopUtils.constants.protocolObjectId}::reserve::MarketCoin<${scallopUtils.address.get(
       'core.coins.sui.id'
     )}::sui::SUI>`;
-    const usdcAssertMarketCoinType = `${scallopUtils.constants.protocolObjectId}::reserve::MarketCoin<${address.get(
+    const usdcAssertMarketCoinType = `${scallopUtils.constants.protocolObjectId}::reserve::MarketCoin<${scallopUtils.address.get(
       'core.coins.wusdc.id'
     )}::coin::COIN>`;
-    const usdtAssertMarketCoinType = `${scallopUtils.constants.protocolObjectId}::reserve::MarketCoin<${address.get(
+    const usdtAssertMarketCoinType = `${scallopUtils.constants.protocolObjectId}::reserve::MarketCoin<${scallopUtils.address.get(
       'core.coins.wusdt.id'
     )}::coin::COIN>`;
-    const vsuiAssertMarketCoinType = `${scallopUtils.constants.protocolObjectId}::reserve::MarketCoin<${address.get(
+    const vsuiAssertMarketCoinType = `${scallopUtils.constants.protocolObjectId}::reserve::MarketCoin<${scallopUtils.address.get(
       'core.coins.vsui.id'
     )}::cert::CERT>`;
     if (ENABLE_LOG) {
@@ -130,7 +134,9 @@ describe('Test Scallop Utils', async () => {
     SUPPORT_SCOIN.forEach((t) => {
       const scoinType = scallopUtils.parseSCoinType(t);
 
-      expect(scoinType).toBe(address.get(`scoin.coins.${t}.coinType`));
+      expect(scoinType).toBe(
+        scallopUtils.address.get(`scoin.coins.${t}.coinType`)
+      );
     });
   });
 

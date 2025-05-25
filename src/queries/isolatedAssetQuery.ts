@@ -53,7 +53,7 @@ export const getIsolatedAssets = async (
     };
 
     do {
-      const response = await query.cache.queryGetDynamicFields({
+      const response = await query.scallopSuiKit.queryGetDynamicFields({
         parentId: marketObject,
         cursor: nextCursor,
         limit: 10,
@@ -90,12 +90,12 @@ export const isIsolatedAsset = async (
 ): Promise<boolean> => {
   const assetInPoolAddresses = utils.constants.poolAddresses[coinName];
   if (assetInPoolAddresses) {
-    return !!assetInPoolAddresses.isolatedAssetKey;
+    return assetInPoolAddresses.isIsolated;
   }
 
   const marketObject = utils.address.get('core.market');
   // check if the coin type is in the list
-  const cachedData = utils.address.cache.queryClient.getQueryData<string[]>([
+  const cachedData = utils.queryClient.getQueryData<string[]>([
     'getDynamicFields',
     marketObject,
   ]);
@@ -107,7 +107,7 @@ export const isIsolatedAsset = async (
   // fetch dynamic field object
   const coinType = utils.parseCoinType(coinName).slice(2);
 
-  const object = await utils.cache.queryGetDynamicFieldObject({
+  const object = await utils.scallopSuiKit.queryGetDynamicFieldObject({
     parentId: marketObject,
     name: {
       type: isolatedAssetKeyType,

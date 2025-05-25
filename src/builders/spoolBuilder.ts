@@ -5,7 +5,7 @@ import { getStakeAccounts } from '../queries/spoolQuery';
 import { requireSender } from '../utils';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import type { ScallopBuilder } from '../models';
+import type { ScallopBuilder } from 'src/models';
 import type {
   SpoolIds,
   GenerateSpoolNormalMethod,
@@ -14,7 +14,7 @@ import type {
   SpoolTxBlock,
   ScallopTxBlock,
   SuiTxBlockWithSCoin,
-} from '../types';
+} from 'src/types';
 
 /**
  * Check and get stake account id from transaction block.

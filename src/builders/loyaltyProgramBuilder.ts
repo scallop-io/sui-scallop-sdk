@@ -4,7 +4,6 @@ import { ScallopBuilder } from 'src/models';
 import {
   GenerateLoyaltyProgramNormalMethod,
   GenerateLoyaltyProgramQuickMethod,
-  LoyaltyProgramIds,
   LoyaltyProgramTxBlock,
   ScallopTxBlock,
   SuiTxBlockWithLoyaltyProgramNormalMethods,
@@ -13,11 +12,22 @@ import { requireSender } from 'src/utils';
 
 const generateLoyaltyProgramNormalMethod: GenerateLoyaltyProgramNormalMethod =
   ({ builder, txBlock }) => {
-    const loyaltyProgramIds: LoyaltyProgramIds = {
-      loyaltyProgramPkgId: builder.address.get('loyaltyProgram.id'),
-      rewardPool: builder.address.get('loyaltyProgram.rewardPool'),
-      userRewardTableId: builder.address.get(
-        'loyaltyProgram.userRewardTableId'
+    const loyaltyProgramIds = {
+      pkgId: builder.address.get('loyaltyProgram.id'),
+      scaRewardPool: builder.address.get('loyaltyProgram.rewardPool'),
+    };
+
+    const veScaProgramIds = {
+      object: builder.address.get('vesca.object'),
+      protocolConfig: builder.address.get('vesca.config'),
+      veScaTable: builder.address.get('vesca.table'),
+      subsTable: builder.address.get('vesca.subsTable'),
+    };
+
+    const veScaLoyaltyProgramIds = {
+      pkgId: builder.address.get('veScaLoyaltyProgram.id'),
+      veScaRewardPool: builder.address.get(
+        'veScaLoyaltyProgram.veScaRewardPool'
       ),
     };
 
@@ -25,8 +35,21 @@ const generateLoyaltyProgramNormalMethod: GenerateLoyaltyProgramNormalMethod =
       claimLoyaltyRevenue: (veScaKey) => {
         return builder.moveCall(
           txBlock,
-          `${loyaltyProgramIds.loyaltyProgramPkgId}::reward_pool::redeem_reward`,
-          [loyaltyProgramIds.rewardPool, veScaKey]
+          `${loyaltyProgramIds.pkgId}::reward_pool::redeem_reward`,
+          [loyaltyProgramIds.scaRewardPool, veScaKey]
+        );
+      },
+      claimVeScaLoyaltyReward: (veScaKey) => {
+        return builder.moveCall(
+          txBlock,
+          `${veScaLoyaltyProgramIds.pkgId}::ve_sca_reward::redeem_reward`,
+          [
+            veScaLoyaltyProgramIds.veScaRewardPool,
+            veScaKey,
+            veScaProgramIds.protocolConfig,
+            veScaProgramIds.veScaTable,
+            veScaProgramIds.subsTable,
+          ]
         );
       },
     };
@@ -56,6 +79,17 @@ const generateLoyaltyProgramQuickMethod: GenerateLoyaltyProgramQuickMethod = ({
         requireSender(txBlock)
       );
       txBlock.transferObjects([rewardCoin], sender);
+    },
+    claimVeScaLoyaltyRewardQuick: async (veScaKey) => {
+      veScaKey = veScaKey ?? (await builder.query.getVeScas())[0]?.keyObject;
+      const sender = requireSender(txBlock);
+      if (!veScaKey) throw new Error(`No veScaKey found for user ${sender}`);
+
+      // claim the pending reward
+      const rewardVeScaKey = txBlock.claimVeScaLoyaltyReward(veScaKey);
+
+      // transfer the reward veSca key to the sender
+      txBlock.transferObjects([rewardVeScaKey], sender);
     },
   };
 };

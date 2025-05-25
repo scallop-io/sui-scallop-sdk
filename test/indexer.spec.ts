@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { describe, it, expect } from 'vitest';
-import { ScallopIndexer } from '../src';
+import { ScallopIndexer } from 'src/';
 
 dotenv.config();
 

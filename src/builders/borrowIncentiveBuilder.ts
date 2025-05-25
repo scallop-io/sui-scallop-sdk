@@ -3,8 +3,8 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   SUI_CLOCK_OBJECT_ID,
 } from '@scallop-io/sui-kit';
-import { getObligations, getObligationLocked } from '../queries';
-import { requireSender } from '../utils';
+import { getObligations, getObligationLocked } from 'src/queries';
+import { requireSender } from 'src/utils';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
 import type {
@@ -14,8 +14,7 @@ import type {
   SuiTxBlockWithBorrowIncentiveNormalMethods,
   BorrowIncentiveTxBlock,
   ScallopTxBlock,
-  VescaIds,
-} from '../types';
+} from 'src/types';
 import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants';
 
 /**
@@ -47,10 +46,7 @@ const requireObligationInfo = async (
     obligationKey &&
     typeof obligationId === 'string'
   ) {
-    const obligationLocked = await getObligationLocked(
-      builder.cache,
-      obligationId
-    );
+    const obligationLocked = await getObligationLocked(builder, obligationId);
     return { obligationId, obligationKey, obligationLocked };
   }
   const sender = requireSender(txBlock);
@@ -92,7 +88,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
       obligationAccessStore: builder.address.get('core.obligationAccessStore'),
     };
 
-    const veScaIds: Omit<VescaIds, 'pkgId'> = {
+    const veScaIds = {
       table: builder.address.get('vesca.table'),
       treasury: builder.address.get('vesca.treasury'),
       config: builder.address.get('vesca.config'),
@@ -123,7 +119,7 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
       stakeObligationWithVesca: (obligationId, obligationKey, veScaKey) => {
         builder.moveCall(
           txBlock,
-          `${borrowIncentiveIds.borrowIncentivePkg}::user::stake_with_ve_sca`,
+          `${borrowIncentiveIds.borrowIncentivePkg}::user::stake_with_ve_sca_v2`,
           [
             borrowIncentiveIds.config,
             borrowIncentiveIds.incentivePools,
@@ -135,6 +131,8 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
             veScaIds.treasury,
             veScaIds.table,
             veScaKey,
+            builder.address.get('vesca.subsTable'),
+            builder.address.get('vesca.subsWhitelist'),
             clockObjectRef,
           ],
           []
@@ -143,13 +141,15 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
       unstakeObligation: (obligationId, obligationKey) => {
         builder.moveCall(
           txBlock,
-          `${borrowIncentiveIds.borrowIncentivePkg}::user::unstake`,
+          `${borrowIncentiveIds.borrowIncentivePkg}::user::unstake_v2`,
           [
             borrowIncentiveIds.config,
             borrowIncentiveIds.incentivePools,
             borrowIncentiveIds.incentiveAccounts,
             obligationKey,
             obligationId,
+            builder.address.get('vesca.subsTable'),
+            builder.address.get('vesca.subsWhitelist'),
             clockObjectRef,
           ]
         );
@@ -173,13 +173,15 @@ const generateBorrowIncentiveNormalMethod: GenerateBorrowIncentiveNormalMethod =
       deactivateBoost: (obligation, veScaKey) => {
         builder.moveCall(
           txBlock,
-          `${borrowIncentiveIds.borrowIncentivePkg}::user::deactivate_boost`,
+          `${borrowIncentiveIds.borrowIncentivePkg}::user::deactivate_boost_v2`,
           [
             borrowIncentiveIds.config,
             borrowIncentiveIds.incentivePools,
             borrowIncentiveIds.incentiveAccounts,
             obligation,
             veScaKey,
+            builder.address.get('vesca.subsTable'),
+            builder.address.get('vesca.subsWhitelist'),
             clockObjectRef,
           ]
         );
@@ -221,6 +223,8 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
               (txn.target ===
                 `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
                 txn.target ===
+                  `${builder.address.get('borrowIncentive.id')}::user::unstake_v2` ||
+                txn.target ===
                   `${builder.address.get('borrowIncentive.id')}::user::unstake`)
           );
 
@@ -250,6 +254,8 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
               txn.kind === 'MoveCall' &&
               (txn.target ===
                 `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
+                txn.target ===
+                  `${builder.address.get('borrowIncentive.id')}::user::unstake_v2` ||
                 txn.target ===
                   `${builder.address.get('borrowIncentive.id')}::user::unstake`)
           );

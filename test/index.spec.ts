@@ -74,7 +74,7 @@ describe('Test Scallop Client - Spool Method', async () => {
 
   // it('Should create stake account success', async () => {
   //   const txb = await client.createStakeAccount('ssui', false);
-  //   const createStakeAccountResult = await client.suiKit.inspectTxn(txb);
+  //   const createStakeAccountResult = await client.scallopSuiKit.suiKit.inspectTxn(txb);
   //   if (ENABLE_LOG) {
   //     console.info('CreateStakeAccountResult:', createStakeAccountResult);
   //   }
@@ -99,7 +99,8 @@ describe('Test Scallop Client - Spool Method', async () => {
 
   it('Should unstake and withdraw asset success', async () => {
     const txb = await client.unstakeAndWithdraw('ssui', 5 * 10 ** 7, false);
-    const unstakeAndWithdrawResult = await client.suiKit.signAndSendTxn(txb);
+    const unstakeAndWithdrawResult =
+      await client.scallopSuiKit.suiKit.signAndSendTxn(txb);
     console.dir(txb.blockData, { depth: null });
     if (ENABLE_LOG) {
       console.info('UnstakeAndWithdrawResult:', unstakeAndWithdrawResult);
@@ -320,7 +321,7 @@ describe('Test Scallop Client - Other Method', async () => {
     }
     const transactionBlock = txBlock.txBlock;
     const supplyAndStakeResult =
-      await builder.suiKit.inspectTxn(transactionBlock);
+      await builder.scallopSuiKit.suiKit.inspectTxn(transactionBlock);
     if (ENABLE_LOG) {
       console.info('Supply And Stake Result:', transactionBlock);
     }
@@ -416,7 +417,7 @@ describe('Test Scallop Client - Other Method', async () => {
         );
       }
       const withdrawAndUnstakeResult =
-        await builder.suiKit.inspectTxn(transactionBlock);
+        await builder.scallopSuiKit.suiKit.inspectTxn(transactionBlock);
       if (ENABLE_LOG) {
         console.info('Withdraw And Unstake Result:', withdrawAndUnstakeResult);
       }
@@ -442,7 +443,7 @@ describe('Test Scallop Client - Migrate sCoin method', async () => {
 
   it('Should migrate all market coin into sCoin successfully', async () => {
     const txb = await client.migrateAllMarketCoin(false, false);
-    const migrateResult = await client.suiKit.inspectTxn(txb);
+    const migrateResult = await client.scallopSuiKit.suiKit.inspectTxn(txb);
     if (ENABLE_LOG) {
       console.info('Migrate result:', migrateResult);
     }
@@ -459,7 +460,7 @@ describe('Test Scallop Client - VeSCA Method', async () => {
     // assuming you have veSCA with unlocked SCA.
     const { tx, scaCoin } = await client.claimAllUnlockedSca(false);
     tx.transferObjects([scaCoin], client.walletAddress);
-    const { effects } = await client.suiKit.inspectTxn(tx);
+    const { effects } = await client.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
       console.info('Claim unlocked SCA result:', effects.status.error);
     }
