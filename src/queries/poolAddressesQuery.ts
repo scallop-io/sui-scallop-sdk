@@ -1,4 +1,4 @@
-import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import { getFullnodeUrl, SuiClient, SuiParsedData } from '@mysten/sui/client';
 import { AddressesInterface, OptionalKeys, PoolAddress } from 'src/types';
 
 const RPC_PROVIDERS = [
@@ -60,6 +60,31 @@ const queryFlashloanFeeObjectIds = async (
   } while (nextPage);
 
   return flashloanFeeObjectIds;
+};
+
+type FetchDynamicObjectReturnType<T extends boolean> = T extends true
+  ? string | undefined
+  : (SuiParsedData & { dataType: 'moveObject' }) | null | undefined;
+
+const fetchDynamicObject = async <S extends boolean>(
+  parentId: string,
+  type: string,
+  value: any,
+  returnObjId: S = true as S
+): Promise<FetchDynamicObjectReturnType<S>> => {
+  const res = (
+    await tryRequest(async (client) => {
+      return await client.getDynamicFieldObject({
+        parentId,
+        name: {
+          type,
+          value,
+        },
+      });
+    })
+  ).data;
+  if (returnObjId) return res?.objectId as FetchDynamicObjectReturnType<S>;
+  else return res?.content as FetchDynamicObjectReturnType<S>;
 };
 
 export const getPoolAddresses = async (
@@ -133,23 +158,6 @@ export const getPoolAddresses = async (
   const SUPPLY_LIMIT_TYPE = `0x6e641f0dca8aedab3101d047e96439178f16301bf0b57fe8745086ff1195eb3e::market_dynamic_keys::SupplyLimitKey`;
   const BORROW_LIMIT_TYPE = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da26c7221b220f01af6::market_dynamic_keys::BorrowLimitKey`; // prod
   const ISOLATED_ASSET_KEY = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da26c7221b220f01af6::market_dynamic_keys::IsolatedAssetKey`;
-  const fetchDynamicObject = async (
-    parentId: string,
-    type: string,
-    value: any
-  ) => {
-    return (
-      await tryRequest(async (client) => {
-        return await client.getDynamicFieldObject({
-          parentId,
-          name: {
-            type,
-            value,
-          },
-        });
-      })
-    ).data?.objectId;
-  };
 
   // query flashloan fee objects first
   const flashloanFeeObjectIds = await tryRequest(async (client) => {
@@ -163,25 +171,50 @@ export const getPoolAddresses = async (
     coinTypesPairs.map(async ([coinName, coinType]) => {
       const coinTypeKey = coinType.slice(2);
       const addresses = await Promise.all([
-        fetchDynamicObject(balanceSheetParentId, ADDRESS_TYPE, {
-          name: coinTypeKey,
-        }),
-        fetchDynamicObject(collateralStatsParentId, ADDRESS_TYPE, {
-          name: coinTypeKey,
-        }),
-        fetchDynamicObject(borrowDynamicsParentid, ADDRESS_TYPE, {
-          name: coinTypeKey,
-        }),
-        fetchDynamicObject(interestModelParentId, ADDRESS_TYPE, {
-          name: coinTypeKey,
-        }),
-        fetchDynamicObject(riskModelParentId, ADDRESS_TYPE, {
-          name: coinTypeKey,
-        }),
-        fetchDynamicObject(marketId, BORROW_FEE_TYPE, coinTypeKey),
-        fetchDynamicObject(marketId, SUPPLY_LIMIT_TYPE, coinTypeKey),
-        fetchDynamicObject(marketId, BORROW_LIMIT_TYPE, coinTypeKey),
-        fetchDynamicObject(marketId, ISOLATED_ASSET_KEY, coinTypeKey),
+        fetchDynamicObject(
+          balanceSheetParentId,
+          ADDRESS_TYPE,
+          {
+            name: coinTypeKey,
+          },
+          true
+        ),
+        fetchDynamicObject(
+          collateralStatsParentId,
+          ADDRESS_TYPE,
+          {
+            name: coinTypeKey,
+          },
+          true
+        ),
+        fetchDynamicObject(
+          borrowDynamicsParentid,
+          ADDRESS_TYPE,
+          {
+            name: coinTypeKey,
+          },
+          true
+        ),
+        fetchDynamicObject(
+          interestModelParentId,
+          ADDRESS_TYPE,
+          {
+            name: coinTypeKey,
+          },
+          true
+        ),
+        fetchDynamicObject(
+          riskModelParentId,
+          ADDRESS_TYPE,
+          {
+            name: coinTypeKey,
+          },
+          true
+        ),
+        fetchDynamicObject(marketId, BORROW_FEE_TYPE, coinTypeKey, true),
+        fetchDynamicObject(marketId, SUPPLY_LIMIT_TYPE, coinTypeKey, true),
+        fetchDynamicObject(marketId, BORROW_LIMIT_TYPE, coinTypeKey, true),
+        fetchDynamicObject(marketId, ISOLATED_ASSET_KEY, coinTypeKey, false),
       ]);
 
       // @ts-ignore
@@ -263,7 +296,8 @@ export const getPoolAddresses = async (
         borrowFeeKey: addresses[5] ?? '',
         supplyLimitKey: addresses[6] ?? '',
         borrowLimitKey: addresses[7] ?? '',
-        isolatedAssetKey: addresses[8] ?? '',
+        isolatedAssetKey: (addresses[8]?.fields as any)?.id.id ?? '',
+        isIsolated: (addresses[8]?.fields as any)?.value ?? false,
         ...spoolData,
         ...sCoinData,
         sCoinName,

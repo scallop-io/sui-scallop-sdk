@@ -4,6 +4,7 @@ export type PoolAddress = {
   coinType: string;
   coinMetadataId: string;
   decimals: number;
+  isIsolated: boolean;
   // optional keys
   pythFeed?: string;
   pythFeedObjectId?: string;
@@ -22,7 +23,7 @@ export type PoolAddress = {
   sCoinSymbol?: string;
   sCoinMetadataId?: string;
   sCoinTreasury?: string;
-  isolatedAssetKey?: string;
+  isolatedAssetKey: string;
   spool?: string;
   spoolReward?: string;
   spoolName?: string;
@@ -42,6 +43,7 @@ export type Whitelist = {
   rewardsAsPoint: Set<string>;
   pythEndpoints: Set<string>;
   deprecated: Set<string>;
+  emerging: Set<string>;
 };
 
 export type CoinWrappedType =

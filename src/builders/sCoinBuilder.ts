@@ -61,7 +61,7 @@ const generateSCoinQuickMethod: GenerateSCoinQuickMethod = ({
       );
 
       txBlock.transferObjects([leftCoin], sender);
-      return await txBlock.mintSCoin(marketCoinName, takeCoin);
+      return txBlock.mintSCoin(marketCoinName, takeCoin);
     },
     burnSCoinQuick: async (sCoinName, amount) => {
       const sender = requireSender(txBlock);
@@ -73,7 +73,7 @@ const generateSCoinQuickMethod: GenerateSCoinQuickMethod = ({
       );
 
       txBlock.transferObjects([leftCoin], sender);
-      return await txBlock.burnSCoin(sCoinName, takeCoin);
+      return txBlock.burnSCoin(sCoinName, takeCoin);
     },
   };
 };

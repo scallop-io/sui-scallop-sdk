@@ -1,6 +1,7 @@
 import { _SUPPORT_ORACLES, SupportOracleType } from './constant/xOracle';
 
 export interface AddressesInterface {
+  id?: string;
   core: {
     version: string;
     versionCap: string;
@@ -108,6 +109,9 @@ export interface AddressesInterface {
     table: string;
     treasury: string;
     config: string;
+    subsTable: string;
+    subsTableId: string;
+    subsWhitelist: string;
   };
   referral: {
     id: string;
@@ -124,9 +128,17 @@ export interface AddressesInterface {
   };
   loyaltyProgram: {
     id: string;
+    adminCap?: string;
     object: string;
     rewardPool: string;
     userRewardTableId: string;
+  };
+  veScaLoyaltyProgram: {
+    id: string;
+    adminCap?: string;
+    object: string;
+    veScaRewardPool: string;
+    veScaRewardTableId: string;
   };
   scoin: {
     id: string;

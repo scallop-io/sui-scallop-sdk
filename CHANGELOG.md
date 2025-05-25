@@ -2,10 +2,133 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.6...v2.1.7) (2025-05-23)
+
+- Add default values for addresses, pool addresses and whitelist API ([b17eb59](https://github.com/scallop-io/sui-scallop-sdk/pull/260/commits/b17eb596a67124d6102c2ee848b65ad6390b98b7))([62aeef1](https://github.com/scallop-io/sui-scallop-sdk/pull/260/commits/62aeef1b0618ab516befc4832da463f4d11b5384))([8a85667](https://github.com/scallop-io/sui-scallop-sdk/pull/260/commits/8a8566791d9063e31b01406ae5a4ac4dfc3603ea))
+
+### [2.1.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.5...v2.1.6) (2025-05-09)
+
+- Minor fix ([1464074](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/1464074dce10fa69421c4f7f301f2b04d7f9aed0))
+
+### [2.1.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.4...v2.1.5) (2025-05-09)
+
+- Minor fix ([b37a733](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/b37a733c0f19e27bca8120e96ac8d04d8978ccda))
+
+### [2.1.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.3...v2.1.4) (2025-05-09)
+
+- Use now price instead of time-weighted price for Pyth price ([aaed310](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/aaed310cc22a5d328af926e88fbec1110e52022d))
+
+### [2.1.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.2...v2.1.3) (2025-05-09)
+
+### Bugfixes
+
+- Fix lock sca logic bug ([39572fb](https://github.com/scallop-io/sui-scallop-sdk/pull/257/commits/39572fb8a2cd54202382d6f0b36e191954073623))
+
+### Features
+
+Add support for merging and splitting veSCA keys.
+
+### [2.1.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.1...v2.1.2) (2025-05-06)
+
+### Bugfixes
+
+- Minor bugfix ([51a58a9](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/51a58a9bc0548a133ff50f4da989a057390cd59d))
+
+### [2.1.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.0...v2.1.1) (2025-05-04)
+
+### Bugfixes
+
+- Minor bugfix ([f6579de](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/f6579deefc33ef6e472b99dda0a5f01125ae5a29))
+
+### [2.1.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.12...v2.1.0) (2025-05-03)
+
 ### ⚠ BREAKING CHANGES
 
-Starting from `v2.0.0`, Scallop SDK will use API for dynamic asset listing. Most of the constants in the SDK is replaced with
-the new `ScallopConstants` class.
+Starting from `v2.1.0`, `Scallop Address` class has been merged into `Scallop Constants` class as its superclass. All methods previously available in `Scallop Address` can now be accessed directly from `Scallop Constants` class.
+
+- Refactor classes structure ([923f5ff](https://github.com/scallop-io/sui-scallop-sdk/pull/258/commits/923f5ff1c5d5b5927c813859cc78b6a58c7001dd))
+
+- Remove unused packages and upgrade `@mysten/sui` package ([e150a17](https://github.com/scallop-io/sui-scallop-sdk/pull/258/commits/e150a17c4c4bccf830bd14a7a540d79400c53e80))
+
+### [2.0.12](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.11...v2.0.12) (2025-04-01)
+
+### Features
+
+- Add more strict rate limiter class in `ScallopCache`([c3eddb4](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/c3eddb44e721b336c2307c7cf362ef79ad1d5ce0))
+
+### [2.0.11](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.10...v2.0.11) (2025-03-31)
+
+### Bugfixes
+
+- Handle boolean values when parsing pool addresses values ([b713bb1](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/b713bb13d5aff02390cd8f80d8e520199197e9e2))
+
+### [2.0.10](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.9...v2.0.10) (2025-03-31)
+
+### Features
+
+- Add `isIsolated` to `PoolAddress` interface to ensure backward compatibility ([e62bc06](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/e62bc06637f6c1c992ad1687eb51e69903bb3262))
+
+### [2.0.9](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.8...v2.0.9) (2025-03-31)
+
+### Features
+
+- Add `emerging` to whitelist ([6900254](https://github.com/scallop-io/sui-scallop-sdk/pull/254/commits/6900254ce902351d730460ad3f9bec91f65d9262))
+
+### [2.0.8](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.7...v2.0.8) (2025-03-31)
+
+### Bugfixes
+
+- Add `walletAddress` as parameter ([535e381](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/535e3819e727b5407dbaf86bd233a951268342e2))
+
+### [2.0.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.6...v2.0.7) (2025-03-26)
+
+### Bugfixes
+
+- minor bug fixes ([aa59980](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/aa59980ab65032ce7d4892990ad941fa0c6f3959))
+
+### [2.0.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.5...v2.0.6) (2025-03-23)
+
+### Features
+
+- add `selectSCoinOrMarketCoin` function and use it on `withdrawQuick` ([e888676](https://github.com/scallop-io/sui-scallop-sdk/commit/e8886766ab865331e9a9467f27653c79c85413ac))
+
+### Bugfixes
+
+- fix `coinNameToOldMarketCoinTypeMap` logic ([0384be0](https://github.com/scallop-io/sui-scallop-sdk/commit/0384be08d764c9d3a5a0f9c41ea83d0a887385ff))
+- scallop cache init param ([87b4869](https://github.com/scallop-io/sui-scallop-sdk/commit/87b4869f063887168c9a1cbe35e95d8f95d5ae12))
+
+### [2.0.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.4...v2.0.5) (2025-03-21)
+
+### Features
+
+- fix lending pending rewards ([d084e41](https://github.com/scallop-io/sui-scallop-sdk/pull/249/commits/d084e41749085c63cba04df9bf31a41b0ad6af45))
+
+### [2.0.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.3...v2.0.4) (2025-03-20)
+
+### Features
+
+- add collateral details in portfolio query ([eef0a2e](https://github.com/scallop-io/sui-scallop-sdk/commit/eef0a2e9c73e97d62e56622575efdda0be49320f))
+
+### [2.0.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.2...v2.0.3) (2025-03-20)
+
+### Bug Fixes
+
+- update filter logic in getUserPortfolio to include accounts with positive totalDepositedValue ([9163326](https://github.com/scallop-io/sui-scallop-sdk/commit/916332600d51b9d3507586ca5b08fb425f6b864c))
+
+- make suiKit params optional ([c79890c](https://github.com/scallop-io/sui-scallop-sdk/pull/247/commits/c79890cc8d6a808e6b836dda37020187ba916476))
+
+### [2.0.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.1...v2.0.2) (2025-03-19)
+
+### [2.0.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.0.0...v2.0.1) (2025-03-18)
+
+### Features
+
+- Add `getScallopConstants` method ([972250c](https://github.com/scallop-io/sui-scallop-sdk/pull/244/commits/972250ccfd633c4e92dd341b3ed0496c55dd88ad))
+- Update README and add documentation for `ScallopConstants` ([51bfaf8](https://github.com/scallop-io/sui-scallop-sdk/pull/244/commits/51bfaf82a4d0be326f57f5506ebef51d04177019))
+
+### ⚠ BREAKING CHANGES
+
+Starting from `v2.0.0`, all constants in the Scallop SDK will be replaced by the `ScallopConstants` class. This class dynamically fetches necessary data from the API, allowing assets to be added or removed without requiring an SDK upgrade for each new pool.
 
 ### [2.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v1.5.3...v2.0.0) (2025-03-17)
 
