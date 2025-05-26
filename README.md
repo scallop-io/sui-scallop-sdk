@@ -10,6 +10,9 @@
     <a href="https://github.com/scallop-io/sui-scallop-sdk/blob/main/LICENSE">
         <img alt="GitHub licence" src="https://img.shields.io/github/license/scallop-io/sui-scallop-sdk?logoColor=blue">
     </a>
+  <a href="https://x.com/Scallop_io">
+        <img alt="Twitter" src="https://img.shields.io/twitter/follow/Scallop_io">
+    </a>
 </p>
 
 # The Typescript SDK for interacting with the Scallop lending protocol on the SUI network
