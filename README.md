@@ -113,7 +113,7 @@ Below we will give a brief introduction to these instances respectively, and int
 - [Use Scallop Builder](./document/builder.md)
 - [Use Scallop Utils](./document/utils.md)
 - [Use Scallop Indexer](./document/indexer.md)
-- [Use Scallop Indexer](./document/constants.md)
+- [Use Scallop Constants](./document/constants.md)
 
 For the original codes, please refer to `test` folder.
 
@@ -128,8 +128,13 @@ You need to set up the `.env` file before testing. (Reference `.env.example`)
   pnpm run test:unit test/query.spec.ts
   pnpm run test:unit test/utils.spec.ts
   pnpm run test:unit test/indexer.spec.ts
+  pnpm run test:unit test/constants.spec.ts
+  pnpm run test:unit test/rate-limiter.spec.ts
   ```
 
 ## License
 
 [APACHE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
+
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/scallop-io/sui-scallop-sdk)

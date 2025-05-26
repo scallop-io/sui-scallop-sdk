@@ -34,6 +34,21 @@ const scallopConstants = new ScallopConstants(
 await scallopConstants.init();
 ```
 
+- Setting default values
+
+```typescript
+const scallopConstants = new ScallopConstants(
+  addressId: '67c44a103fe1b8c454eb9699',
+  defaultValues: {
+    poolAddresses: [DEFAULT_POOL_ADDRESSES],
+    whitelist: [DEFEAULT_WHITELIST],
+    addresses: [DEFAULT_ADDRESSES]
+  }
+)
+
+await scallopConstants.init();
+```
+
 - Get Whitelist
 
 ```typescript
