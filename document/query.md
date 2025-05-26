@@ -302,7 +302,7 @@
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
-  const oracles = await scallopSDK.getAssetOracles();
+  const oracles = await scallopQuery.getAssetOracles();
   /**
    * return
    *  {
@@ -315,4 +315,11 @@
    *    ...
    *  }
    */
+  ```
+
+- Get primary and secondary price update policy objects
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const { primary, secondary } = await scallopQuery.getPriceUpdatePolicies();
   ```
