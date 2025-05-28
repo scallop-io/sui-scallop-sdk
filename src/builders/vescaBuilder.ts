@@ -490,6 +490,28 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         );
       }
 
+      const [sourceVesca, targetVesca] = await Promise.all([
+        getVeSca(builder.utils, sourceKey),
+        getVeSca(builder.utils, targetKey),
+      ]);
+
+      if (!sourceVesca || !targetVesca) {
+        throw new Error('Source or target veSCA not found');
+      }
+
+      // Extend lock period to the max of both veSca
+      if (sourceVesca.unlockAt < targetVesca.unlockAt) {
+        txBlock.extendLockPeriod(
+          sourceVesca.keyId,
+          targetVesca.unlockAt / 1000
+        );
+      } else if (sourceVesca.unlockAt > targetVesca.unlockAt) {
+        txBlock.extendLockPeriod(
+          targetVesca.keyId,
+          sourceVesca.unlockAt / 1000
+        );
+      }
+
       return txBlock.mergeVeSca(targetKey, sourceKey);
     },
   };
