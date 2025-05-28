@@ -2,19 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [2.1.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.6...v2.1.7) (2025-05-23)
+### [2.1.8](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.7...v2.1.8) (2025-05-29)
+
+### Features
+
+- Extend vesca to the max unlock period from both veSCA before merging ([ce320ee](https://github.com/scallop-io/sui-scallop-sdk/pull/262/commits/ce320eed1b02b72b0b30b7ccb600a71552f17bbc))
+
+### [2.1.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.6...v2.1.7) (2025-05-23)
+
+### Features
 
 - Add default values for addresses, pool addresses and whitelist API ([b17eb59](https://github.com/scallop-io/sui-scallop-sdk/pull/260/commits/b17eb596a67124d6102c2ee848b65ad6390b98b7))([62aeef1](https://github.com/scallop-io/sui-scallop-sdk/pull/260/commits/62aeef1b0618ab516befc4832da463f4d11b5384))([8a85667](https://github.com/scallop-io/sui-scallop-sdk/pull/260/commits/8a8566791d9063e31b01406ae5a4ac4dfc3603ea))
 
 ### [2.1.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.5...v2.1.6) (2025-05-09)
 
+### Bugfixes
+
 - Minor fix ([1464074](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/1464074dce10fa69421c4f7f301f2b04d7f9aed0))
 
 ### [2.1.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.4...v2.1.5) (2025-05-09)
 
+### Bugfixes
+
 - Minor fix ([b37a733](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/b37a733c0f19e27bca8120e96ac8d04d8978ccda))
 
 ### [2.1.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.3...v2.1.4) (2025-05-09)
+
+### Features
 
 - Use now price instead of time-weighted price for Pyth price ([aaed310](https://github.com/scallop-io/sui-scallop-sdk/pull/245/commits/aaed310cc22a5d328af926e88fbec1110e52022d))
 
