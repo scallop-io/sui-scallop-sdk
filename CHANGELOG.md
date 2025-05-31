@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.9](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.8...v2.1.9) (2025-05-31)
+
+### Features
+
+- Add support for multiple urls ([72dd179](https://github.com/scallop-io/sui-scallop-sdk/pull/263/commits/72dd17942b11d3b104db0d6ed04d703c2020c3f9))
+
 ### [2.1.8](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.7...v2.1.8) (2025-05-29)
 
 ### Features
