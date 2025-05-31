@@ -2,6 +2,7 @@ import { PoolAddress, Whitelist } from 'src/types';
 import ScallopAddress, { ScallopAddressParams } from './scallopAddress';
 import { NetworkType, parseStructTag } from '@scallop-io/sui-kit';
 import { queryKeys } from 'src/constants';
+import { parseUrl } from 'src/utils';
 
 const isEmptyObject = (obj: object) => {
   return Object.keys(obj).length === 0;
@@ -23,8 +24,10 @@ type SCoinRawName = string;
 type SCoinName = string;
 
 export type ScallopConstantsParams = {
-  poolAddressesApiUrl?: string;
-  whitelistApiUrl?: string;
+  urls?: {
+    poolAddresses?: string[];
+    whitelist?: string[];
+  };
   forcePoolAddressInterface?: Record<string, PoolAddress>;
   forceWhitelistInterface?: Whitelist | Record<string, any>;
   defaultValues?: {
@@ -325,17 +328,22 @@ class ScallopConstants extends ScallopAddress {
 
   async readWhiteList() {
     const response = await (async () => {
-      try {
-        return await this.readApi<Record<keyof Whitelist, string[]>>({
-          url:
-            this.params.whitelistApiUrl ??
-            `https://sui.apis.scallop.io/pool/whitelist`,
-          queryKey: queryKeys.api.getWhiteList(),
-        });
-      } catch (e) {
-        console.error(e);
-        return this.defaultValues?.whitelist ?? DEFAULT_WHITELIST;
+      const urls = (
+        this.params.urls?.whitelist ?? [
+          `https://sui.apis.scallop.io/pool/whitelist`,
+        ]
+      ).map(parseUrl);
+      for (const url of urls) {
+        try {
+          return await this.readApi<Record<keyof Whitelist, string[]>>({
+            url,
+            queryKey: queryKeys.api.getWhiteList(),
+          });
+        } catch (e) {
+          console.error(`${e}`); // Trying next url in the list
+        }
       }
+      return this.defaultValues?.whitelist ?? DEFAULT_WHITELIST;
     })();
 
     return Object.fromEntries(
@@ -349,17 +357,22 @@ class ScallopConstants extends ScallopAddress {
   }
 
   async readPoolAddresses() {
-    try {
-      return await this.readApi<Record<string, PoolAddress>>({
-        url:
-          this.params.poolAddressesApiUrl ??
-          `https://sui.apis.scallop.io/pool/addresses`,
-        queryKey: queryKeys.api.getPoolAddresses(),
-      });
-    } catch (e) {
-      console.error(e);
-      return this.defaultValues?.poolAddresses ?? {};
+    const urls = (
+      this.params.urls?.poolAddresses ?? [
+        `https://sui.apis.scallop.io/pool/addresses`,
+      ]
+    ).map(parseUrl);
+    for (const url of urls) {
+      try {
+        return await this.readApi<Record<string, PoolAddress>>({
+          url,
+          queryKey: queryKeys.api.getPoolAddresses(),
+        });
+      } catch (e) {
+        console.error(`${e}`); // Trying next url in the list
+      }
     }
+    return this.defaultValues?.poolAddresses ?? {};
   }
 }
 
