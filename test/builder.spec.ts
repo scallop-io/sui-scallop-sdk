@@ -62,11 +62,11 @@ const createNotExpiredVeScaTx = async () => {
 
   const lockPeriodInDays = 7; // lock for 1 day
   const lockAmount = 10 * 10 ** 9;
-  await tx.renewExpiredVeScaQuick(
-    lockAmount,
+  await tx.renewExpiredVeScaQuick({
+    scaAmount: lockAmount,
     lockPeriodInDays,
-    expiredVeScaKey
-  );
+    veScaKey: expiredVeScaKey,
+  });
   return tx;
 };
 
@@ -590,7 +590,7 @@ describe('Test Scallop VeSca Builder', () => {
 
       const lockPeriodInDays = 1; // lock for 1 day
 
-      await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays);
+      await tx.lockScaQuick({ amountOrCoin: 10 * 10 ** 9, lockPeriodInDays });
       const lockScaQuickResult =
         await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
       if (ENABLE_LOG) {
@@ -610,7 +610,7 @@ describe('Test Scallop VeSca Builder', () => {
       const lockPeriodInDays = 1461;
 
       await expect(
-        tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays)
+        tx.lockScaQuick({ amountOrCoin: 10 * 10 ** 9, lockPeriodInDays })
       ).rejects.toThrow(
         Error(`Maximum lock period is ~4 years (${MAX_LOCK_ROUNDS - 1} days)`)
       );
@@ -622,7 +622,9 @@ describe('Test Scallop VeSca Builder', () => {
 
       const lockAmount = 1 * 10 ** 9; // lock less than 10 amount
 
-      await expect(tx.lockScaQuick(lockAmount, 1)).rejects.toThrow(
+      await expect(
+        tx.lockScaQuick({ amountOrCoin: lockAmount, lockPeriodInDays: 1 })
+      ).rejects.toThrow(
         Error('Minimum lock amount for initial lock is 10 SCA')
       );
     });
@@ -633,7 +635,9 @@ describe('Test Scallop VeSca Builder', () => {
 
       const lockAmount = 10 * 10 ** 9;
 
-      await expect(tx.lockScaQuick(lockAmount)).rejects.toThrow(
+      await expect(
+        tx.lockScaQuick({ amountOrCoin: lockAmount })
+      ).rejects.toThrow(
         Error('SCA amount and lock period is required for initial lock')
       );
     });
@@ -644,7 +648,11 @@ describe('Test Scallop VeSca Builder', () => {
 
       const lockPeriodInDays = 1461; // lock for more than 1460 day
 
-      await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays, false);
+      await tx.lockScaQuick({
+        amountOrCoin: 10 * 10 ** 9,
+        lockPeriodInDays,
+        autoCheck: false,
+      });
       const lockScaQuickResult =
         await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
       if (ENABLE_LOG) {
@@ -662,7 +670,11 @@ describe('Test Scallop VeSca Builder', () => {
 
       const lockPeriodInDays = 0.4;
 
-      await tx.lockScaQuick(10 * 10 ** 9, lockPeriodInDays, false);
+      await tx.lockScaQuick({
+        amountOrCoin: 10 * 10 ** 9,
+        lockPeriodInDays,
+        autoCheck: false,
+      });
       const lockScaQuickResult =
         await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
       if (ENABLE_LOG) {
@@ -684,9 +696,9 @@ describe('Test Scallop VeSca Builder', () => {
 
       const lockAmount = 0.5 * 10 ** 9; // lock less than 1 amount
 
-      await expect(tx.lockScaQuick(lockAmount, 1)).rejects.toThrow(
-        Error('Minimum top up amount is 1 SCA')
-      );
+      await expect(
+        tx.lockScaQuick({ amountOrCoin: lockAmount, lockPeriodInDays: 1 })
+      ).rejects.toThrow(Error('Minimum top up amount is 1 SCA'));
     });
 
     it('"lockScaQuick" extend lock period that results in lock period > 1460 days should throw error', async () => {
@@ -705,7 +717,7 @@ describe('Test Scallop VeSca Builder', () => {
           UNLOCK_ROUND_DURATION
       );
       await expect(
-        tx.lockScaQuick(lockAmount, lockPeriodInDays)
+        tx.lockScaQuick({ amountOrCoin: lockAmount, lockPeriodInDays })
       ).rejects.toThrowError(
         Error(
           `Cannot extend lock period by ${lockPeriodInDays} days, maximum lock period is ~4 years (${MAX_LOCK_ROUNDS} days), remaining lock period is ${
@@ -723,7 +735,7 @@ describe('Test Scallop VeSca Builder', () => {
       const lockPeriodInDays = 0.5; // extend for more than 1459 day
 
       await expect(
-        tx.lockScaQuick(lockAmount, lockPeriodInDays)
+        tx.lockScaQuick({ amountOrCoin: lockAmount, lockPeriodInDays })
       ).rejects.toThrow(Error('Minimum lock period is 1 day'));
     });
   }
@@ -736,7 +748,10 @@ describe('Test Scallop VeSca Builder', () => {
 
     const lockAmount = 10 * 10 ** 9; // only extend 1 amount
 
-    await tx.lockScaQuick(lockAmount, 0 || undefined, false);
+    await tx.lockScaQuick({
+      amountOrCoin: lockAmount,
+      autoCheck: false,
+    });
     const lockScaQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
@@ -754,7 +769,7 @@ describe('Test Scallop VeSca Builder', () => {
 
     const lockPeriodInDays = 1460; // extend for more than 1459 day
 
-    await tx.lockScaQuick(0 || undefined, lockPeriodInDays, false);
+    await tx.lockScaQuick({ lockPeriodInDays, autoCheck: false });
     const lockScaQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
@@ -774,7 +789,7 @@ describe('Test Scallop VeSca Builder', () => {
 
     await expect(
       // tx.extendLockAmountQuick(lockAmount, expiredVeScaKey)
-      tx.extendLockAmountQuick(lockAmount)
+      tx.extendLockAmountQuick({ scaAmount: lockAmount })
     ).rejects.toThrow(Error('Minimum top up amount is 1 SCA'));
   });
 
@@ -783,7 +798,7 @@ describe('Test Scallop VeSca Builder', () => {
     tx.setSender(sender);
 
     const lockAmount = 1 * 10 ** 9; // lock less than 1 amount
-    tx.extendLockAmountQuick(lockAmount);
+    tx.extendLockAmountQuick({ scaAmount: lockAmount });
 
     const extendLockPeriodQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
@@ -804,7 +819,7 @@ describe('Test Scallop VeSca Builder', () => {
 
     const lockAmount = 1 * 10 ** 9; // only extend 1 amount
 
-    await tx.extendLockAmountQuick(lockAmount, undefined, false);
+    await tx.extendLockAmountQuick({ scaAmount: lockAmount, autoCheck: false });
     const extendLockAmountQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
@@ -824,7 +839,10 @@ describe('Test Scallop VeSca Builder', () => {
 
     const lockAmount = 1 * 10 ** 9; // only extend 1 amount
     await expect(
-      tx.extendLockAmountQuick(lockAmount, expiredVeScaKey)
+      tx.extendLockAmountQuick({
+        scaAmount: lockAmount,
+        veScaKey: expiredVeScaKey,
+      })
     ).rejects.toThrow(
       Error('veSca is expired, use renewExpiredVeScaQuick instead')
     );
@@ -837,28 +855,9 @@ describe('Test Scallop VeSca Builder', () => {
     const lockPeriodInDays = 0; // extend for less than 1 day
 
     await expect(
-      tx.extendLockPeriodQuick(lockPeriodInDays, expiredVeScaKey)
+      tx.extendLockPeriodQuick({ lockPeriodInDays, veScaKey: expiredVeScaKey })
     ).rejects.toThrow(
       Error('veSca is expired, use renewExpiredVeScaQuick instead')
-    );
-  });
-
-  it('"extendLockPeriodQuick" extend lock without auto check should success', async () => {
-    const { tx, veScaKey } = await createNewVeScaTx();
-
-    const lockPeriodInDays = 1460; // extend for more than 1459 day
-
-    await tx.extendLockPeriodQuick(lockPeriodInDays, veScaKey, false);
-    const extendLockPeriodQuickResult =
-      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
-    if (ENABLE_LOG) {
-      console.info(
-        'ExtendLockPeriodQuickResult:',
-        extendLockPeriodQuickResult.effects.status.error
-      );
-    }
-    expect(extendLockPeriodQuickResult.effects?.status.status).toEqual(
-      'success'
     );
   });
 
@@ -869,7 +868,7 @@ describe('Test Scallop VeSca Builder', () => {
     const lockPeriodInDays = 7;
 
     await expect(
-      tx.extendLockPeriodQuick(lockPeriodInDays, expiredVeScaKey)
+      tx.extendLockPeriodQuick({ lockPeriodInDays, veScaKey: expiredVeScaKey })
     ).rejects.toThrow(
       Error('veSca is expired, use renewExpiredVeScaQuick instead')
     );
@@ -880,9 +879,13 @@ describe('Test Scallop VeSca Builder', () => {
     tx.setSender(sender);
 
     const lockAmount = 1e9;
-    const lockPeriod = 1;
+    const lockPeriodInDays = 1;
     await expect(
-      tx.renewExpiredVeScaQuick(lockAmount, lockPeriod, expiredVeScaKey)
+      tx.renewExpiredVeScaQuick({
+        scaAmount: lockAmount,
+        lockPeriodInDays,
+        veScaKey: expiredVeScaKey,
+      })
     ).rejects.toThrow(
       Error('Minimum lock amount for renewing expired vesca 10 SCA')
     );
@@ -893,9 +896,13 @@ describe('Test Scallop VeSca Builder', () => {
     tx.setSender(sender);
 
     const lockAmount = 10e9;
-    const lockPeriod = MAX_LOCK_ROUNDS + 1;
+    const lockPeriodInDays = MAX_LOCK_ROUNDS + 1;
     await expect(
-      tx.renewExpiredVeScaQuick(lockAmount, lockPeriod, expiredVeScaKey)
+      tx.renewExpiredVeScaQuick({
+        scaAmount: lockAmount,
+        lockPeriodInDays,
+        veScaKey: expiredVeScaKey,
+      })
     ).rejects.toThrow(
       Error(`Maximum lock period is ~4 years (${MAX_LOCK_ROUNDS - 1} days)`)
     );
@@ -908,11 +915,11 @@ describe('Test Scallop VeSca Builder', () => {
     const lockAmount = 10 * 10 ** 9;
     const lockPeriodInDays = 1;
 
-    await tx.renewExpiredVeScaQuick(
-      lockAmount,
+    await tx.renewExpiredVeScaQuick({
+      scaAmount: lockAmount,
       lockPeriodInDays,
-      expiredVeScaKey
-    );
+      veScaKey: expiredVeScaKey,
+    });
     const renewExpiredVeScaQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
@@ -932,11 +939,11 @@ describe('Test Scallop VeSca Builder', () => {
     const lockAmount = 10 * 10 ** 9;
     const lockPeriodInDays = 1;
 
-    await tx.renewExpiredVeScaQuick(
-      lockAmount,
+    await tx.renewExpiredVeScaQuick({
+      scaAmount: lockAmount,
       lockPeriodInDays,
-      expiredVeScaKey
-    );
+      veScaKey: expiredVeScaKey,
+    });
 
     const renewExpiredVeScaQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
@@ -955,7 +962,7 @@ describe('Test Scallop VeSca Builder', () => {
     const tx = scallopBuilder.createTxBlock();
     tx.setSender(sender);
 
-    await tx.redeemScaQuick(expiredVeScaKey);
+    await tx.redeemScaQuick({ veScaKey: expiredVeScaKey });
     const redeemScaQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
@@ -971,7 +978,7 @@ describe('Test Scallop VeSca Builder', () => {
   it('"redeemScaQuick" should fail', async () => {
     const tx = createExpiredEmptyVeScaTx();
 
-    await tx.redeemScaQuick(expiredVeScaKey);
+    await tx.redeemScaQuick({ veScaKey: expiredVeScaKey });
     const redeemScaQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {

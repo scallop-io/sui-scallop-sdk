@@ -47,7 +47,7 @@ export const requireVeSca = async (
   ...params: [
     builder: ScallopBuilder,
     SuiTxBlock: SuiTxBlock,
-    veScaKey?: SuiObjectData,
+    veScaKey?: SuiObjectData | string,
   ]
 ) => {
   const [builder, txBlock, veScaKey] = params;
@@ -259,12 +259,12 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
   txBlock,
 }) => {
   return {
-    lockScaQuick: async (
+    lockScaQuick: async ({
       amountOrCoin,
       lockPeriodInDays,
+      autoCheck = true,
       veScaKey,
-      autoCheck = true
-    ) => {
+    }) => {
       const sender = requireSender(txBlock);
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
 
@@ -334,11 +334,11 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         txBlock.transferObjects(transferObjects, sender);
       }
     },
-    extendLockPeriodQuick: async (
-      lockPeriodInDays: number,
-      veScaKey?: SuiObjectArg,
-      autoCheck = true
-    ) => {
+    extendLockPeriodQuick: async ({
+      lockPeriodInDays,
+      veScaKey,
+      autoCheck = true,
+    }) => {
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
       const newUnlockAt = builder.utils.getUnlockAt(
         lockPeriodInDays,
@@ -352,11 +352,11 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         txBlock.extendLockPeriod(veSca.keyId, newUnlockAt);
       }
     },
-    extendLockAmountQuick: async (
-      scaAmount: number,
-      veScaKey?: SuiObjectArg,
-      autoCheck = true
-    ) => {
+    extendLockAmountQuick: async ({
+      scaAmount,
+      veScaKey,
+      autoCheck = true,
+    }) => {
       const sender = requireSender(txBlock);
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
 
@@ -377,12 +377,12 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         txBlock.transferObjects([leftCoin], sender);
       }
     },
-    renewExpiredVeScaQuick: async (
-      scaAmount: number,
-      lockPeriodInDays: number,
-      veScaKey?: SuiObjectArg,
-      autoCheck = true
-    ) => {
+    renewExpiredVeScaQuick: async ({
+      scaAmount,
+      lockPeriodInDays,
+      veScaKey,
+      autoCheck = true,
+    }) => {
       const sender = requireSender(txBlock);
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
 
@@ -414,10 +414,13 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         txBlock.transferObjects(transferObjects, sender);
       }
     },
-    redeemScaQuick: async <S extends boolean>(
-      veScaKey?: SuiObjectArg,
-      transferSca: S = true as S
-    ) => {
+    redeemScaQuick: async <T extends boolean>({
+      veScaKey,
+      transferSca,
+    }: {
+      veScaKey?: SuiObjectData | string;
+      transferSca?: T;
+    }) => {
       const sender = requireSender(txBlock);
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
 
@@ -429,14 +432,18 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           txBlock.transferObjects([sca], sender);
           return;
         }
-        return sca as QuickMethodReturnType<S>;
+        return sca as QuickMethodReturnType<T>;
       }
     },
-    splitVeScaQuick: async <S extends boolean>(
-      splitAmount: string,
-      veScaKey: string,
-      transferVeScaKey: S = true as S
-    ) => {
+    splitVeScaQuick: async <S extends boolean>({
+      splitAmount,
+      veScaKey,
+      transferVeScaKey = true as S,
+    }: {
+      splitAmount: string;
+      veScaKey: string;
+      transferVeScaKey?: S;
+    }) => {
       const isKeyInSubTable = await isInSubsTable(
         builder,
         veScaKey,
@@ -465,12 +472,12 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         return newVeScaKey as QuickMethodReturnType<S>;
       }
     },
-    mergeVeScaQuick: async (targetKey: string, sourceKey: string) => {
+    mergeVeScaQuick: async ({ targetVeScaKey, sourceVeScaKey }) => {
       // check targetKey and sourceKey
       const table = builder.address.get('vesca.subsTableId');
       const [isTargetInSubTable, isSourceInSubTable] = await Promise.all([
-        isInSubsTable(builder, targetKey, table),
-        isInSubsTable(builder, sourceKey, table),
+        isInSubsTable(builder, targetVeScaKey, table),
+        isInSubsTable(builder, sourceVeScaKey, table),
       ]);
 
       const unstakeObligationBeforeStake =
@@ -491,8 +498,8 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       }
 
       const [sourceVesca, targetVesca] = await Promise.all([
-        getVeSca(builder.utils, sourceKey),
-        getVeSca(builder.utils, targetKey),
+        getVeSca(builder.utils, sourceVeScaKey),
+        getVeSca(builder.utils, targetVeScaKey),
       ]);
 
       if (!sourceVesca || !targetVesca) {
@@ -512,7 +519,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         );
       }
 
-      return txBlock.mergeVeSca(targetKey, sourceKey);
+      return txBlock.mergeVeSca(targetVeScaKey, sourceVeScaKey);
     },
   };
 };
