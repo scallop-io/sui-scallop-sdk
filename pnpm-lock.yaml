@@ -10,13 +10,13 @@ importers:
     dependencies:
       '@mysten/sui':
         specifier: 1.28.2
-        version: 1.28.2(typescript@5.8.3)
+        version: 1.28.2(typescript@5.5.4)
       '@pythnetwork/pyth-sui-js':
         specifier: 2.1.0
-        version: 2.1.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)
+        version: 2.1.0(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)
       '@scallop-io/sui-kit':
         specifier: 1.4.1
-        version: 1.4.1(typescript@5.8.3)
+        version: 1.4.1(typescript@5.5.4)
       '@tanstack/query-core':
         specifier: 5.59.16
         version: 5.59.16
@@ -35,13 +35,13 @@ importers:
     devDependencies:
       '@commitlint/cli':
         specifier: ^18.2.0
-        version: 18.6.1(@types/node@20.14.12)(typescript@5.8.3)
+        version: 18.6.1(@types/node@20.14.12)(typescript@5.5.4)
       '@commitlint/config-conventional':
         specifier: ^18.1.0
         version: 18.6.3
       '@commitlint/prompt-cli':
         specifier: ^18.2.0
-        version: 18.6.1(@types/node@20.14.12)(typescript@5.8.3)
+        version: 18.6.1(@types/node@20.14.12)(typescript@5.5.4)
       '@mysten/bcs':
         specifier: ^1.6.1
         version: 1.6.1
@@ -59,10 +59,10 @@ importers:
         version: 20.14.12
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.11.0
-        version: 8.11.0(@typescript-eslint/parser@8.10.0(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3)
+        version: 8.11.0(@typescript-eslint/parser@8.10.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
       '@typescript-eslint/parser':
         specifier: 8.10.0
-        version: 8.10.0(eslint@8.57.0)(typescript@5.8.3)
+        version: 8.10.0(eslint@8.57.0)(typescript@5.5.4)
       '@vitest/expect':
         specifier: ^3.1.1
         version: 3.1.1
@@ -86,7 +86,7 @@ importers:
         version: 5.2.1(eslint-config-prettier@9.1.0(eslint@8.57.0))(eslint@8.57.0)(prettier@3.3.3)
       graphql-config:
         specifier: ^5.0.3
-        version: 5.0.3(@types/node@20.14.12)(bufferutil@4.0.9)(graphql@16.9.0)(typescript@5.8.3)(utf-8-validate@5.0.10)
+        version: 5.0.3(@types/node@20.14.12)(bufferutil@4.0.9)(graphql@16.9.0)(typescript@5.5.4)(utf-8-validate@5.0.10)
       husky:
         specifier: ^8.0.3
         version: 8.0.3
@@ -104,16 +104,16 @@ importers:
         version: 4.2.0
       tsup:
         specifier: ^7.2.0
-        version: 7.3.0(postcss@8.5.4)(typescript@5.8.3)
+        version: 7.3.0(postcss@8.5.4)(typescript@5.5.4)
       typedoc:
         specifier: ^0.26.3
-        version: 0.26.5(typescript@5.8.3)
+        version: 0.26.5(typescript@5.5.4)
       typescript:
-        specifier: 5.8.3
-        version: 5.8.3
+        specifier: 5.5.4
+        version: 5.5.4
       valibot:
         specifier: ^1.1.0
-        version: 1.1.0(typescript@5.8.3)
+        version: 1.1.0(typescript@5.5.4)
       vite:
         specifier: ^6.3.5
         version: 6.3.5(@types/node@20.14.12)(jiti@1.21.6)(yaml@2.4.5)
@@ -3109,8 +3109,8 @@ packages:
     peerDependencies:
       typescript: 4.6.x || 4.7.x || 4.8.x || 4.9.x || 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x || 5.5.x
 
-  typescript@5.8.3:
-    resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
+  typescript@5.5.4:
+    resolution: {integrity: sha512-Mtq29sKDAEYP7aljRgtPOpTvOfbwRWlS6dPRzwjdE+C0R4brX/GUyhHSecbHMFLNBLcJIPt9nl9yG5TZ1weH+Q==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -3341,11 +3341,11 @@ snapshots:
     optionalDependencies:
       graphql: 16.9.0
 
-  '@0no-co/graphqlsp@1.12.16(graphql@16.9.0)(typescript@5.8.3)':
+  '@0no-co/graphqlsp@1.12.16(graphql@16.9.0)(typescript@5.5.4)':
     dependencies:
-      '@gql.tada/internal': 1.0.8(graphql@16.9.0)(typescript@5.8.3)
+      '@gql.tada/internal': 1.0.8(graphql@16.9.0)(typescript@5.5.4)
       graphql: 16.9.0
-      typescript: 5.8.3
+      typescript: 5.5.4
 
   '@ardatan/sync-fetch@0.0.1':
     dependencies:
@@ -3371,11 +3371,11 @@ snapshots:
     dependencies:
       regenerator-runtime: 0.14.1
 
-  '@commitlint/cli@18.6.1(@types/node@20.14.12)(typescript@5.8.3)':
+  '@commitlint/cli@18.6.1(@types/node@20.14.12)(typescript@5.5.4)':
     dependencies:
       '@commitlint/format': 18.6.1
       '@commitlint/lint': 18.6.1
-      '@commitlint/load': 18.6.1(@types/node@20.14.12)(typescript@5.8.3)
+      '@commitlint/load': 18.6.1(@types/node@20.14.12)(typescript@5.5.4)
       '@commitlint/read': 18.6.1
       '@commitlint/types': 18.6.1
       execa: 5.1.1
@@ -3425,15 +3425,15 @@ snapshots:
       '@commitlint/rules': 18.6.1
       '@commitlint/types': 18.6.1
 
-  '@commitlint/load@18.6.1(@types/node@20.14.12)(typescript@5.8.3)':
+  '@commitlint/load@18.6.1(@types/node@20.14.12)(typescript@5.5.4)':
     dependencies:
       '@commitlint/config-validator': 18.6.1
       '@commitlint/execute-rule': 18.6.1
       '@commitlint/resolve-extends': 18.6.1
       '@commitlint/types': 18.6.1
       chalk: 4.1.2
-      cosmiconfig: 8.3.6(typescript@5.8.3)
-      cosmiconfig-typescript-loader: 5.0.0(@types/node@20.14.12)(cosmiconfig@8.3.6(typescript@5.8.3))(typescript@5.8.3)
+      cosmiconfig: 8.3.6(typescript@5.5.4)
+      cosmiconfig-typescript-loader: 5.0.0(@types/node@20.14.12)(cosmiconfig@8.3.6(typescript@5.5.4))(typescript@5.5.4)
       lodash.isplainobject: 4.0.6
       lodash.merge: 4.6.2
       lodash.uniq: 4.5.0
@@ -3450,19 +3450,19 @@ snapshots:
       conventional-changelog-angular: 7.0.0
       conventional-commits-parser: 5.0.0
 
-  '@commitlint/prompt-cli@18.6.1(@types/node@20.14.12)(typescript@5.8.3)':
+  '@commitlint/prompt-cli@18.6.1(@types/node@20.14.12)(typescript@5.5.4)':
     dependencies:
-      '@commitlint/prompt': 18.6.1(@types/node@20.14.12)(typescript@5.8.3)
+      '@commitlint/prompt': 18.6.1(@types/node@20.14.12)(typescript@5.5.4)
       execa: 5.1.1
       inquirer: 6.5.2
     transitivePeerDependencies:
       - '@types/node'
       - typescript
 
-  '@commitlint/prompt@18.6.1(@types/node@20.14.12)(typescript@5.8.3)':
+  '@commitlint/prompt@18.6.1(@types/node@20.14.12)(typescript@5.5.4)':
     dependencies:
       '@commitlint/ensure': 18.6.1
-      '@commitlint/load': 18.6.1(@types/node@20.14.12)(typescript@5.8.3)
+      '@commitlint/load': 18.6.1(@types/node@20.14.12)(typescript@5.5.4)
       '@commitlint/types': 18.6.1
       chalk: 4.1.2
       inquirer: 6.5.2
@@ -3671,18 +3671,18 @@ snapshots:
 
   '@eslint/js@8.57.0': {}
 
-  '@gql.tada/cli-utils@1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.9.0)(typescript@5.8.3))(graphql@16.9.0)(typescript@5.8.3)':
+  '@gql.tada/cli-utils@1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.9.0)(typescript@5.5.4))(graphql@16.9.0)(typescript@5.5.4)':
     dependencies:
-      '@0no-co/graphqlsp': 1.12.16(graphql@16.9.0)(typescript@5.8.3)
-      '@gql.tada/internal': 1.0.8(graphql@16.9.0)(typescript@5.8.3)
+      '@0no-co/graphqlsp': 1.12.16(graphql@16.9.0)(typescript@5.5.4)
+      '@gql.tada/internal': 1.0.8(graphql@16.9.0)(typescript@5.5.4)
       graphql: 16.9.0
-      typescript: 5.8.3
+      typescript: 5.5.4
 
-  '@gql.tada/internal@1.0.8(graphql@16.9.0)(typescript@5.8.3)':
+  '@gql.tada/internal@1.0.8(graphql@16.9.0)(typescript@5.5.4)':
     dependencies:
       '@0no-co/graphql.web': 1.0.7(graphql@16.9.0)
       graphql: 16.9.0
-      typescript: 5.8.3
+      typescript: 5.5.4
 
   '@graphql-tools/batch-execute@9.0.4(graphql@16.9.0)':
     dependencies:
@@ -3889,7 +3889,7 @@ snapshots:
       '@mysten/utils': 0.0.0
       '@scure/base': 1.2.5
 
-  '@mysten/sui@1.28.2(typescript@5.8.3)':
+  '@mysten/sui@1.28.2(typescript@5.5.4)':
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.9.0)
       '@mysten/bcs': 1.6.0
@@ -3899,7 +3899,7 @@ snapshots:
       '@scure/base': 1.2.5
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      gql.tada: 1.8.10(graphql@16.9.0)(typescript@5.8.3)
+      gql.tada: 1.8.10(graphql@16.9.0)(typescript@5.5.4)
       graphql: 16.9.0
       poseidon-lite: 0.2.1
       valibot: 0.36.0
@@ -3953,9 +3953,9 @@ snapshots:
     dependencies:
       bn.js: 5.2.1
 
-  '@pythnetwork/pyth-sui-js@2.1.0(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@5.0.10)':
+  '@pythnetwork/pyth-sui-js@2.1.0(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)':
     dependencies:
-      '@mysten/sui': 1.28.2(typescript@5.8.3)
+      '@mysten/sui': 1.28.2(typescript@5.5.4)
       '@pythnetwork/price-service-client': 1.9.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       buffer: 6.0.3
     transitivePeerDependencies:
@@ -4076,10 +4076,10 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.41.1':
     optional: true
 
-  '@scallop-io/sui-kit@1.4.1(typescript@5.8.3)':
+  '@scallop-io/sui-kit@1.4.1(typescript@5.5.4)':
     dependencies:
       '@mysten/bcs': 1.6.1
-      '@mysten/sui': 1.28.2(typescript@5.8.3)
+      '@mysten/sui': 1.28.2(typescript@5.5.4)
       '@scure/bip39': 1.6.0
       assert: 2.1.0
       bech32: 2.0.0
@@ -4129,34 +4129,34 @@ snapshots:
     dependencies:
       '@types/node': 20.14.12
 
-  '@typescript-eslint/eslint-plugin@8.11.0(@typescript-eslint/parser@8.10.0(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3)':
+  '@typescript-eslint/eslint-plugin@8.11.0(@typescript-eslint/parser@8.10.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)':
     dependencies:
       '@eslint-community/regexpp': 4.11.0
-      '@typescript-eslint/parser': 8.10.0(eslint@8.57.0)(typescript@5.8.3)
+      '@typescript-eslint/parser': 8.10.0(eslint@8.57.0)(typescript@5.5.4)
       '@typescript-eslint/scope-manager': 8.11.0
-      '@typescript-eslint/type-utils': 8.11.0(eslint@8.57.0)(typescript@5.8.3)
-      '@typescript-eslint/utils': 8.11.0(eslint@8.57.0)(typescript@5.8.3)
+      '@typescript-eslint/type-utils': 8.11.0(eslint@8.57.0)(typescript@5.5.4)
+      '@typescript-eslint/utils': 8.11.0(eslint@8.57.0)(typescript@5.5.4)
       '@typescript-eslint/visitor-keys': 8.11.0
       eslint: 8.57.0
       graphemer: 1.4.0
       ignore: 5.3.1
       natural-compare: 1.4.0
-      ts-api-utils: 1.3.0(typescript@5.8.3)
+      ts-api-utils: 1.3.0(typescript@5.5.4)
     optionalDependencies:
-      typescript: 5.8.3
+      typescript: 5.5.4
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/parser@8.10.0(eslint@8.57.0)(typescript@5.8.3)':
+  '@typescript-eslint/parser@8.10.0(eslint@8.57.0)(typescript@5.5.4)':
     dependencies:
       '@typescript-eslint/scope-manager': 8.10.0
       '@typescript-eslint/types': 8.10.0
-      '@typescript-eslint/typescript-estree': 8.10.0(typescript@5.8.3)
+      '@typescript-eslint/typescript-estree': 8.10.0(typescript@5.5.4)
       '@typescript-eslint/visitor-keys': 8.10.0
       debug: 4.3.5
       eslint: 8.57.0
     optionalDependencies:
-      typescript: 5.8.3
+      typescript: 5.5.4
     transitivePeerDependencies:
       - supports-color
 
@@ -4170,14 +4170,14 @@ snapshots:
       '@typescript-eslint/types': 8.11.0
       '@typescript-eslint/visitor-keys': 8.11.0
 
-  '@typescript-eslint/type-utils@8.11.0(eslint@8.57.0)(typescript@5.8.3)':
+  '@typescript-eslint/type-utils@8.11.0(eslint@8.57.0)(typescript@5.5.4)':
     dependencies:
-      '@typescript-eslint/typescript-estree': 8.11.0(typescript@5.8.3)
-      '@typescript-eslint/utils': 8.11.0(eslint@8.57.0)(typescript@5.8.3)
+      '@typescript-eslint/typescript-estree': 8.11.0(typescript@5.5.4)
+      '@typescript-eslint/utils': 8.11.0(eslint@8.57.0)(typescript@5.5.4)
       debug: 4.3.5
-      ts-api-utils: 1.3.0(typescript@5.8.3)
+      ts-api-utils: 1.3.0(typescript@5.5.4)
     optionalDependencies:
-      typescript: 5.8.3
+      typescript: 5.5.4
     transitivePeerDependencies:
       - eslint
       - supports-color
@@ -4186,7 +4186,7 @@ snapshots:
 
   '@typescript-eslint/types@8.11.0': {}
 
-  '@typescript-eslint/typescript-estree@8.10.0(typescript@5.8.3)':
+  '@typescript-eslint/typescript-estree@8.10.0(typescript@5.5.4)':
     dependencies:
       '@typescript-eslint/types': 8.10.0
       '@typescript-eslint/visitor-keys': 8.10.0
@@ -4195,13 +4195,13 @@ snapshots:
       is-glob: 4.0.3
       minimatch: 9.0.5
       semver: 7.6.3
-      ts-api-utils: 1.3.0(typescript@5.8.3)
+      ts-api-utils: 1.3.0(typescript@5.5.4)
     optionalDependencies:
-      typescript: 5.8.3
+      typescript: 5.5.4
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/typescript-estree@8.11.0(typescript@5.8.3)':
+  '@typescript-eslint/typescript-estree@8.11.0(typescript@5.5.4)':
     dependencies:
       '@typescript-eslint/types': 8.11.0
       '@typescript-eslint/visitor-keys': 8.11.0
@@ -4210,18 +4210,18 @@ snapshots:
       is-glob: 4.0.3
       minimatch: 9.0.5
       semver: 7.6.3
-      ts-api-utils: 1.3.0(typescript@5.8.3)
+      ts-api-utils: 1.3.0(typescript@5.5.4)
     optionalDependencies:
-      typescript: 5.8.3
+      typescript: 5.5.4
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/utils@8.11.0(eslint@8.57.0)(typescript@5.8.3)':
+  '@typescript-eslint/utils@8.11.0(eslint@8.57.0)(typescript@5.5.4)':
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.57.0)
       '@typescript-eslint/scope-manager': 8.11.0
       '@typescript-eslint/types': 8.11.0
-      '@typescript-eslint/typescript-estree': 8.11.0(typescript@5.8.3)
+      '@typescript-eslint/typescript-estree': 8.11.0(typescript@5.5.4)
       eslint: 8.57.0
     transitivePeerDependencies:
       - supports-color
@@ -4691,21 +4691,21 @@ snapshots:
 
   core-util-is@1.0.3: {}
 
-  cosmiconfig-typescript-loader@5.0.0(@types/node@20.14.12)(cosmiconfig@8.3.6(typescript@5.8.3))(typescript@5.8.3):
+  cosmiconfig-typescript-loader@5.0.0(@types/node@20.14.12)(cosmiconfig@8.3.6(typescript@5.5.4))(typescript@5.5.4):
     dependencies:
       '@types/node': 20.14.12
-      cosmiconfig: 8.3.6(typescript@5.8.3)
+      cosmiconfig: 8.3.6(typescript@5.5.4)
       jiti: 1.21.6
-      typescript: 5.8.3
+      typescript: 5.5.4
 
-  cosmiconfig@8.3.6(typescript@5.8.3):
+  cosmiconfig@8.3.6(typescript@5.5.4):
     dependencies:
       import-fresh: 3.3.0
       js-yaml: 4.1.0
       parse-json: 5.2.0
       path-type: 4.0.0
     optionalDependencies:
-      typescript: 5.8.3
+      typescript: 5.5.4
 
   cross-inspect@1.0.0:
     dependencies:
@@ -5190,13 +5190,13 @@ snapshots:
 
   gopd@1.2.0: {}
 
-  gql.tada@1.8.10(graphql@16.9.0)(typescript@5.8.3):
+  gql.tada@1.8.10(graphql@16.9.0)(typescript@5.5.4):
     dependencies:
       '@0no-co/graphql.web': 1.0.7(graphql@16.9.0)
-      '@0no-co/graphqlsp': 1.12.16(graphql@16.9.0)(typescript@5.8.3)
-      '@gql.tada/cli-utils': 1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.9.0)(typescript@5.8.3))(graphql@16.9.0)(typescript@5.8.3)
-      '@gql.tada/internal': 1.0.8(graphql@16.9.0)(typescript@5.8.3)
-      typescript: 5.8.3
+      '@0no-co/graphqlsp': 1.12.16(graphql@16.9.0)(typescript@5.5.4)
+      '@gql.tada/cli-utils': 1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.9.0)(typescript@5.5.4))(graphql@16.9.0)(typescript@5.5.4)
+      '@gql.tada/internal': 1.0.8(graphql@16.9.0)(typescript@5.5.4)
+      typescript: 5.5.4
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
       - '@gql.tada/vue-support'
@@ -5206,7 +5206,7 @@ snapshots:
 
   graphemer@1.4.0: {}
 
-  graphql-config@5.0.3(@types/node@20.14.12)(bufferutil@4.0.9)(graphql@16.9.0)(typescript@5.8.3)(utf-8-validate@5.0.10):
+  graphql-config@5.0.3(@types/node@20.14.12)(bufferutil@4.0.9)(graphql@16.9.0)(typescript@5.5.4)(utf-8-validate@5.0.10):
     dependencies:
       '@graphql-tools/graphql-file-loader': 8.0.1(graphql@16.9.0)
       '@graphql-tools/json-file-loader': 8.0.1(graphql@16.9.0)
@@ -5214,7 +5214,7 @@ snapshots:
       '@graphql-tools/merge': 9.0.4(graphql@16.9.0)
       '@graphql-tools/url-loader': 8.0.2(@types/node@20.14.12)(bufferutil@4.0.9)(graphql@16.9.0)(utf-8-validate@5.0.10)
       '@graphql-tools/utils': 10.3.2(graphql@16.9.0)
-      cosmiconfig: 8.3.6(typescript@5.8.3)
+      cosmiconfig: 8.3.6(typescript@5.5.4)
       graphql: 16.9.0
       jiti: 1.21.6
       minimatch: 4.2.3
@@ -6282,9 +6282,9 @@ snapshots:
 
   trim-newlines@3.0.1: {}
 
-  ts-api-utils@1.3.0(typescript@5.8.3):
+  ts-api-utils@1.3.0(typescript@5.5.4):
     dependencies:
-      typescript: 5.8.3
+      typescript: 5.5.4
 
   ts-interface-checker@0.1.13: {}
 
@@ -6300,7 +6300,7 @@ snapshots:
 
   tslib@2.6.3: {}
 
-  tsup@7.3.0(postcss@8.5.4)(typescript@5.8.3):
+  tsup@7.3.0(postcss@8.5.4)(typescript@5.5.4):
     dependencies:
       bundle-require: 4.2.1(esbuild@0.19.12)
       cac: 6.7.14
@@ -6318,7 +6318,7 @@ snapshots:
       tree-kill: 1.2.2
     optionalDependencies:
       postcss: 8.5.4
-      typescript: 5.8.3
+      typescript: 5.5.4
     transitivePeerDependencies:
       - supports-color
       - ts-node
@@ -6337,16 +6337,16 @@ snapshots:
 
   typedarray@0.0.6: {}
 
-  typedoc@0.26.5(typescript@5.8.3):
+  typedoc@0.26.5(typescript@5.5.4):
     dependencies:
       lunr: 2.3.9
       markdown-it: 14.1.0
       minimatch: 9.0.5
       shiki: 1.11.1
-      typescript: 5.8.3
+      typescript: 5.5.4
       yaml: 2.4.5
 
-  typescript@5.8.3: {}
+  typescript@5.5.4: {}
 
   uc.micro@2.1.0: {}
 
@@ -6382,9 +6382,9 @@ snapshots:
 
   valibot@0.36.0: {}
 
-  valibot@1.1.0(typescript@5.8.3):
+  valibot@1.1.0(typescript@5.5.4):
     optionalDependencies:
-      typescript: 5.8.3
+      typescript: 5.5.4
 
   validate-npm-package-license@3.0.4:
     dependencies:
