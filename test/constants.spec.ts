@@ -70,3 +70,29 @@ describe('Test Scallop Constants default values', () => {
     expect(localScallopConstants.getAddresses()?.core.version).not.toBe('');
   });
 });
+
+describe('Test Scallop Constants url list', () => {
+  it('Should try all the available urls on error', async () => {
+    const localScallopConstants = new ScallopConstants({
+      addressId: '67c44a103fe1b8c454eb9699',
+      axiosTimeout: 500,
+      urls: {
+        poolAddresses: [
+          'https://suis.apis.scallop.io/pool/addresses', // not working url
+          'https://backup.sui.apis.scallop.io/pool/addresses',
+        ],
+        whitelist: [
+          'https://suis.apis.scallop.io/pool/whitelist', // not working url
+          'https://backup.sui.apis.scallop.io/pool/whitelist',
+        ],
+        addresses: [
+          'https://suis.apis.scallop.io', // not working url
+          'https://backup.sui.apis.scallop.io',
+        ],
+      },
+    });
+
+    await localScallopConstants.init();
+    expect(localScallopConstants.whitelist.lending.size > 0).toBe(true);
+  });
+});

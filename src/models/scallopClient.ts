@@ -1085,9 +1085,12 @@ class ScallopClient implements ScallopClientInterface {
     tx.setSender(sender);
 
     await Promise.all(
-      veScaKeys.map(async (key) => {
+      veScaKeys.map(async (veScaKey) => {
         try {
-          const scaCoin = await tx.redeemScaQuick(key, false);
+          const scaCoin = await tx.redeemScaQuick({
+            veScaKey,
+            transferSca: false,
+          });
           if (!scaCoin) return;
           scaCoins.push(scaCoin);
         } catch (_e) {
