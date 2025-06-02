@@ -18,6 +18,7 @@ import { ScallopBuilderInterface } from './interface';
 export type ScallopBuilderParams = {
   query?: ScallopQuery;
   usePythPullModel?: boolean;
+  sponsoredFeeds?: string[];
   useOnChainXOracleList?: boolean;
 } & ScallopQueryParams;
 
@@ -36,11 +37,13 @@ class ScallopBuilder implements ScallopBuilderInterface {
   public readonly query: ScallopQuery;
   public readonly usePythPullModel: boolean;
   public readonly useOnChainXOracleList: boolean;
+  public readonly sponsoredFeeds: string[];
 
   public constructor(params: ScallopBuilderParams) {
     this.query = params.query ?? new ScallopQuery(params);
     this.usePythPullModel = params.usePythPullModel ?? true;
     this.useOnChainXOracleList = params.useOnChainXOracleList ?? true;
+    this.sponsoredFeeds = params.sponsoredFeeds ?? [];
   }
 
   get utils() {
