@@ -47,16 +47,29 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
   const scallopSDK = new Scallop({
       addressId: '67c44a103fe1b8c454eb9699',
       networkType: 'mainnet',
+      secretKey: [secretKey]
       ...
   });
 
-  const scallopAddress = await scallopSDK.getScallopAddress(...);
-  const scallopConstants = await scallopSDK.getScallopConstants(...);
-  const scallopQuery = await scallopSDK.createScallopQuery(...);
-  const scallopBuilder = await scallopSDK.createScallopBuilder(...);
-  const scallopUtils = await scallopSDK.createScallopUtils(...);
-  const scallopClient = await scallopSDK.createScallopClient(...);
+  const scallopAddress = await scallopSDK.getScallopAddress();
+  const scallopConstants = await scallopSDK.getScallopConstants();
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const scallopUtils = await scallopSDK.createScallopUtils();
+  const scallopClient = await scallopSDK.createScallopClient();
   const scallopIndexer = await scallopSDK.createScallopIndexer();
+
+  // Or with single init
+  await scallopSDK.init();
+  const scallopClient = scallopSDK.client;
+  const {
+    query,
+    builder,
+    constants,
+    address,
+    indexer
+  } = scallopClient;
+  const { indexer } = query;
 
   // Or, you can choose to import the class directly to create an instance.
   import {
@@ -113,7 +126,7 @@ Below we will give a brief introduction to these instances respectively, and int
 - [Use Scallop Builder](./document/builder.md)
 - [Use Scallop Utils](./document/utils.md)
 - [Use Scallop Indexer](./document/indexer.md)
-- [Use Scallop Indexer](./document/constants.md)
+- [Use Scallop Constants](./document/constants.md)
 
 For the original codes, please refer to `test` folder.
 
@@ -128,8 +141,13 @@ You need to set up the `.env` file before testing. (Reference `.env.example`)
   pnpm run test:unit test/query.spec.ts
   pnpm run test:unit test/utils.spec.ts
   pnpm run test:unit test/indexer.spec.ts
+  pnpm run test:unit test/constants.spec.ts
+  pnpm run test:unit test/rate-limiter.spec.ts
   ```
 
 ## License
 
 [APACHE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
+
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/scallop-io/sui-scallop-sdk)
