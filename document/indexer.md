@@ -20,6 +20,3 @@
   const tvl = await scallopIndexer.getTotalValueLocked();
   ```
 
-```
-
-```
