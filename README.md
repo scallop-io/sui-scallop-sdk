@@ -90,15 +90,15 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
     addressId: '67c44a103fe1b8c454eb9699',
     ...
   );
-  const ScallopQuery = new ScallopQuery(
+  const scallopQuery = new ScallopQuery(
     addressId: '67c44a103fe1b8c454eb9699',
     ...
   );
-  const ScallopBuilder = new ScallopBuilder(
+  const scallopBuilder = new ScallopBuilder(
     addressId: '67c44a103fe1b8c454eb9699',
     ...
   );
-  const ScallopUtils = new ScallopUtils(
+  const scallopUtils = new ScallopUtils(
     addressId: '67c44a103fe1b8c454eb9699',
     ...
   );
@@ -106,13 +106,14 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
     addressId: '67c44a103fe1b8c454eb9699',
     ...
   );
-  const ScallopIndexer = new ScallopIndexer();
+  const scallopIndexer = new ScallopIndexer();
+
   // Remember to initialize the instance before using it
   await scallopAddress.read();
   await scallopConstants.init();
-  await ScallopQuery.init();
-  await ScallopBuilder.init();
-  await ScallopUtils.init();
+  await scallopQuery.init();
+  await scallopBuilder.init();
+  await scallopUtils.init();
   await scallopClient.init();
   ```
 
