@@ -47,16 +47,29 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
   const scallopSDK = new Scallop({
       addressId: '67c44a103fe1b8c454eb9699',
       networkType: 'mainnet',
+      secretKey: [secretKey]
       ...
   });
 
-  const scallopAddress = await scallopSDK.getScallopAddress(...);
-  const scallopConstants = await scallopSDK.getScallopConstants(...);
-  const scallopQuery = await scallopSDK.createScallopQuery(...);
-  const scallopBuilder = await scallopSDK.createScallopBuilder(...);
-  const scallopUtils = await scallopSDK.createScallopUtils(...);
-  const scallopClient = await scallopSDK.createScallopClient(...);
+  const scallopAddress = await scallopSDK.getScallopAddress();
+  const scallopConstants = await scallopSDK.getScallopConstants();
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const scallopBuilder = await scallopSDK.createScallopBuilder();
+  const scallopUtils = await scallopSDK.createScallopUtils();
+  const scallopClient = await scallopSDK.createScallopClient();
   const scallopIndexer = await scallopSDK.createScallopIndexer();
+
+  // Or with single init
+  await scallopSDK.init();
+  const scallopClient = scallopSDK.client;
+  const {
+    query,
+    builder,
+    constants,
+    address,
+    indexer
+  } = scallopClient;
+  const { indexer } = query;
 
   // Or, you can choose to import the class directly to create an instance.
   import {
