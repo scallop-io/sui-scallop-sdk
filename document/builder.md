@@ -214,7 +214,10 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
 
   const scaAmount = 3;
   const extendPeriodInDays = 2;
-  await scallopTxBlock.lockScaQuick(scaAmount, extendPeriodInDays);
+  await scallopTxBlock.lockScaQuick({
+    amountOrCoin: scaAmount,
+    lockPeriodInDays: extendPeriodInDays
+  });
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
@@ -225,7 +228,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   scallopTxBlock.setSender(sender);
 
   const extendPeriodInDays = 2;
-  await scallopTxBlock.extendLockPeriodQuick(extendPeriodInDays);
+  await scallopTxBlock.extendLockPeriodQuick({ lockPeriodInDays: extendPeriodInDays });
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
@@ -236,7 +239,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   scallopTxBlock.setSender(sender);
 
   const scaAmount = 3;
-  await scallopTxBlock.extendLockAmountQuick(scaAmount);
+  await scallopTxBlock.extendLockAmountQuick({ scaAmount });
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
@@ -248,27 +251,28 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
 
   const scaAmount = 10; // Minimum renew amount is 10 SCA
   const extendPeriodInDays = 7; // Minimum extend period is 1 day
-  await scallopTxBlock.renewExpiredVeScaQuick(scaAmount, extendPeriodInDays);
+  await scallopTxBlock.renewExpiredVeScaQuick({ scaAmount, lockPeriodInDays: extendPeriodInDays });
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
 - Claim unlocked SCA from expired veSCA
 
   ```typescript
+  const veScaKey = ...;
   const scallopTxBlock = scallopBuilder.createTxBlock();
   scallopTxBlock.setSender(sender);
 
-  await scallopTxBlock.redeemScaQuick();
+  await scallopTxBlock.redeemScaQuick({ veScaKey });
   ```
 
 - Merge veSCA
 
   ```typescript
-  const targetKey = ... // objectId
-  const sourceKey = ... // objectId
+  const targetVeScaKey = ... // objectId
+  const sourceVeScaKey = ... // objectId
   const scallopTxBlock = scallopBuilder.createBlock();
 
-  await scallopTxBlock.mergeVeScaQuick(targetKey, fromKey);
+  await scallopTxBlock.mergeVeScaQuick({ targetVeScaKey, sourceVeScaKey });
   ```
 
 - Split veSCA
@@ -278,7 +282,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   const splitAmount = 10 ** 9; // split amount 1 SCA
 
   // set third param to true to transfer the splitted veScaKey to sender
-  await scallopTxBlock.splitVeScaQuick(splitAmount, veScaKey, true);
+  await scallopTxBlock.splitVeScaQuick({ splitAmount, veScaKey, transferVeScaKey: true });
   ```
 
 - Convert market coin to new sCoin
