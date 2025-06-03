@@ -163,7 +163,13 @@ class ScallopSuiKit extends ScallopQueryClient {
   }
 
   get currentFullNode() {
-    return this.suiKit.suiInteractor.currentFullNode;
+    try {
+      // return current fullnode from SuiKit
+      return this.suiKit.suiInteractor.currentFullNode;
+    } catch (_) {
+      // SuiKit is initialized with custom sui clients, so no fullnodes can be read
+      return '';
+    }
   }
 
   signAndSendTxn(
