@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.0...v2.2.1) (2025-06-05)
+
+### Features
+
+- Add `sponsoredFeeds` to `ScallopBuilderParams` ([8d9557a](https://github.com/scallop-io/sui-scallop-sdk/pull/265/commits/8d9557ace7b7511e27c99898d2ec27ff0c01ab19))
+
 ### [2.2.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.1.9...v2.2.0) (2025-06-01)
 
 ### ⚠ BREAKING CHANGES
