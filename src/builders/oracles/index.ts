@@ -25,8 +25,24 @@ export const updateOracles = async (
   options: {
     usePythPullModel: boolean;
     useOnChainXOracleList: boolean;
-  } = { usePythPullModel: true, useOnChainXOracleList: true }
+    sponsoredFeeds: string[];
+  } = {
+    usePythPullModel: true,
+    useOnChainXOracleList: true,
+    sponsoredFeeds: [],
+  }
 ) => {
+  const sponsoredFeeds = new Set(
+    builder.sponsoredFeeds ?? options.sponsoredFeeds
+  );
+
+  // Validate the sponsoredFeeds content.
+  sponsoredFeeds.forEach((feed) => {
+    if (!builder.constants.whitelist.lending.has(feed)) {
+      throw new Error(`${feed} is not valid feed`);
+    }
+  });
+
   const usePythPullModel = builder.usePythPullModel ?? options.usePythPullModel;
   const useOnChainXOracleList =
     builder.useOnChainXOracleList ?? options.useOnChainXOracleList;
@@ -55,17 +71,32 @@ export const updateOracles = async (
     );
   };
 
-  // Handle Pyth price feed
-  if (flattenedRules.has('pyth') && usePythPullModel) {
-    const pythAssetCoinNames = assetCoinNames.filter((assetCoinName) =>
-      filterAssetCoinNames(assetCoinName, 'pyth')
-    );
-    if (pythAssetCoinNames.length > 0)
-      await updatePythPriceFeeds(builder, assetCoinNames, txBlock);
+  const updateAssetCoinNames = [...new Set(assetCoinNames)];
+  const pythAssetCoinNames = updateAssetCoinNames.filter((assetCoinName) =>
+    filterAssetCoinNames(assetCoinName, 'pyth')
+  );
+
+  if (flattenedRules.has('pyth')) {
+    const needToUpdatePythPriceFeeds: string[] = [];
+    for (const pythAssetCoinName of pythAssetCoinNames) {
+      /**
+       * Check if the Pyth pull model is not used but the feed is not sponsored.
+       * This is used to determine if we should update the Pyth price feeds.
+       */
+      const notUsingPullAndNotSponsored =
+        !usePythPullModel && !sponsoredFeeds.has(pythAssetCoinName);
+
+      if (usePythPullModel || notUsingPullAndNotSponsored) {
+        needToUpdatePythPriceFeeds.push(pythAssetCoinName);
+      }
+    }
+
+    if (needToUpdatePythPriceFeeds.length > 0) {
+      await updatePythPriceFeeds(builder, needToUpdatePythPriceFeeds, txBlock);
+    }
   }
 
   // Remove duplicate coin names.
-  const updateAssetCoinNames = [...new Set(assetCoinNames)];
   for (const assetCoinName of updateAssetCoinNames) {
     updateOracle(builder, txBlock, assetCoinName, xOracleList[assetCoinName]);
   }
