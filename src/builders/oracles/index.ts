@@ -83,10 +83,10 @@ export const updateOracles = async (
        * Check if the Pyth pull model is not used but the feed is not sponsored.
        * This is used to determine if we should update the Pyth price feeds.
        */
-      const notUsingPullButNotSponsored =
+      const notUsingPullAndNotSponsored =
         !usePythPullModel && !sponsoredFeeds.has(pythAssetCoinName);
 
-      if (usePythPullModel || notUsingPullButNotSponsored) {
+      if (usePythPullModel || notUsingPullAndNotSponsored) {
         needToUpdatePythPriceFeeds.push(pythAssetCoinName);
       }
     }
