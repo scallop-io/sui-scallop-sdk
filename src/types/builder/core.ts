@@ -99,14 +99,16 @@ export type CoreQuickMethods = {
     amount: number,
     poolCoinName: string,
     obligationId?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligationKey?: SuiObjectArg,
+    isSponsoredTx?: boolean
   ) => Promise<TransactionResult>;
   borrowWithReferralQuick: (
     amount: number,
     poolCoinName: string,
     borrowReferral: SuiObjectArg,
     obligationId?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligationKey?: SuiObjectArg,
+    isSponsoredTx?: boolean
   ) => Promise<TransactionResult>;
   depositQuick: (
     amount: number,

@@ -22,19 +22,21 @@ export const updateOracles = async (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
   assetCoinNames: string[] = [...builder.constants.whitelist.lending],
-  options: {
-    usePythPullModel: boolean;
-    useOnChainXOracleList: boolean;
-    sponsoredFeeds: string[];
-  } = {
-    usePythPullModel: true,
-    useOnChainXOracleList: true,
-    sponsoredFeeds: [],
+  options?: {
+    usePythPullModel?: boolean;
+    useOnChainXOracleList?: boolean;
+    sponsoredFeeds?: string[];
+    isSponsoredTx?: boolean;
   }
 ) => {
+  const usePythPullModel =
+    options?.usePythPullModel ?? builder.usePythPullModel;
+  const useOnChainXOracleList =
+    options?.useOnChainXOracleList ?? builder.useOnChainXOracleList;
   const sponsoredFeeds = new Set(
-    builder.sponsoredFeeds ?? options.sponsoredFeeds
+    options?.sponsoredFeeds ?? builder.sponsoredFeeds
   );
+  const isSponsoredTx = options?.isSponsoredTx ?? false;
 
   // Validate the sponsoredFeeds content.
   sponsoredFeeds.forEach((feed) => {
@@ -42,10 +44,6 @@ export const updateOracles = async (
       throw new Error(`${feed} is not valid feed`);
     }
   });
-
-  const usePythPullModel = builder.usePythPullModel ?? options.usePythPullModel;
-  const useOnChainXOracleList =
-    builder.useOnChainXOracleList ?? options.useOnChainXOracleList;
 
   const xOracleList = useOnChainXOracleList
     ? await builder.query.getAssetOracles()
@@ -92,7 +90,12 @@ export const updateOracles = async (
     }
 
     if (needToUpdatePythPriceFeeds.length > 0) {
-      await updatePythPriceFeeds(builder, needToUpdatePythPriceFeeds, txBlock);
+      await updatePythPriceFeeds(
+        builder,
+        needToUpdatePythPriceFeeds,
+        txBlock,
+        isSponsoredTx
+      );
     }
   }
 

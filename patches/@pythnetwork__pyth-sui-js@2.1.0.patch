@@ -1,5 +1,5 @@
 diff --git a/lib/client.d.ts b/lib/client.d.ts
-index c9f3fbf504b90b88b560e0d9adeac9a7f30803d2..154a199617ec7a901aa7bfa897f4d1bf83cf2ae9 100644
+index c9f3fbf504b90b88b560e0d9adeac9a7f30803d2..2372b01a5f2fbc30c5e30f6a3b635b4935b5bf5b 100644
 --- a/lib/client.d.ts
 +++ b/lib/client.d.ts
 @@ -1,70 +1,93 @@
@@ -91,9 +91,9 @@ index c9f3fbf504b90b88b560e0d9adeac9a7f30803d2..154a199617ec7a901aa7bfa897f4d1bf
 +    provider: SuiClient,
 +    pythStateId: ObjectId,
 +    wormholeStateId: ObjectId,
-+    scallopParams: {
++    params: {
 +      addressId?: string;
-+      defaultPackageId?: ObjectId;
++      defaultPackageId: ObjectId;
 +      gasStationId: ObjectId;
 +    }
 +  );
@@ -129,7 +129,7 @@ index c9f3fbf504b90b88b560e0d9adeac9a7f30803d2..154a199617ec7a901aa7bfa897f4d1bf
 +    tx: Transaction,
 +    updates: Buffer[],
 +    feedIds: HexString[],
-+    isSponsoredTx?: boolean
++    isSponsored?: boolean,
 +  ): Promise<ObjectId[]>;
 +  createPriceFeed(tx: Transaction, updates: Buffer[]): Promise<void>;
 +  /**
@@ -162,10 +162,10 @@ index c9f3fbf504b90b88b560e0d9adeac9a7f30803d2..154a199617ec7a901aa7bfa897f4d1bf
  }
  //# sourceMappingURL=client.d.ts.map
 diff --git a/lib/client.js b/lib/client.js
-index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..b9abb49be580ae5f45e89faec1a8f99e60550a2b 100644
+index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..1caeaed706b7cc9b37089c4f5e23c2809b0556eb 100644
 --- a/lib/client.js
 +++ b/lib/client.js
-@@ -1,260 +1,363 @@
+@@ -1,260 +1,358 @@
 -"use strict";
 -Object.defineProperty(exports, "__esModule", { value: true });
 +'use strict';
@@ -178,7 +178,6 @@ index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..b9abb49be580ae5f45e89faec1a8f99e
 +const bcs_1 = require('@mysten/sui/bcs');
 +const buffer_1 = require('buffer');
  const MAX_ARGUMENT_SIZE = 16 * 1024;
-+// const SCALLOP_API_URL = 'https://sui.apis.scallop.io/';
  class SuiPythClient {
 -    provider;
 -    pythStateId;
@@ -377,7 +376,65 @@ index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..b9abb49be580ae5f45e89faec1a8f99e
 -        }
 -        const vaa = this.extractVaaBytesFromAccumulatorMessage(updates[0]);
 -        const verifiedVaas = await this.verifyVaas([vaa], tx);
--        [priceUpdatesHotPotato] = tx.moveCall({
++    return verifiedVaas;
++  }
++  /**
++   * Adds the necessary commands for updating the pyth price feeds to the transaction block.
++   * @param tx transaction block to add commands to
++   * @param updates array of price feed updates received from the price service
++   * @param feedIds array of feed ids to update (in hex format)
++   */
++  async updatePriceFeeds(tx, updates, feedIds, isSponsoredTx = false) {
++    console.log('start 1');
++    const packageId = await this.getPythPackageId();
++    let priceUpdatesHotPotato;
++    if (updates.length > 1) {
++      throw new Error(
++        'SDK does not support sending multiple accumulator messages in a single transaction'
++      );
++    }
++    const vaa = this.extractVaaBytesFromAccumulatorMessage(updates[0]);
++    const verifiedVaas = await this.verifyVaas([vaa], tx);
++    [priceUpdatesHotPotato] = tx.moveCall({
++      target: `${packageId}::pyth::create_authenticated_price_infos_using_accumulator`,
++      arguments: [
++        tx.object(this.pythStateId),
++        tx.pure(
++          bcs_1.bcs
++            .vector(bcs_1.bcs.U8)
++            .serialize(Array.from(updates[0]), {
++              maxSize: MAX_ARGUMENT_SIZE,
++            })
++            .toBytes()
++        ),
++        verifiedVaas[0],
++        tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
++      ],
++    });
++
++    const priceInfoObjects = [];
++    const baseUpdateFee = await this.getBaseUpdateFee();
++
++    // Fetch all priceInfoObjects
++    for (let i = 0; i < feedIds.length; i++) {
++      const feedId = feedIds[i];
++      const priceInfoObjectId = await this.getPriceFeedObjectId(feedId);
++      if (!priceInfoObjectId) {
++        throw new Error(
++          `Price feed ${feedId} not found, please create it first`
++        );
++      }
++      priceInfoObjects.push(priceInfoObjectId);
++    }
++
++    if (!isSponsoredTx) {
++      const coins = tx.splitCoins(
++        tx.gas,
++        feedIds.map(() => tx.pure.u64(baseUpdateFee))
++      );
++      for (let coinId = 0; coinId < feedIds.length; coinId++) {
++        const priceInfoObjectId = priceInfoObjects[coinId];
+         [priceUpdatesHotPotato] = tx.moveCall({
 -            target: `${packageId}::pyth::create_authenticated_price_infos_using_accumulator`,
 -            arguments: [
 -                tx.object(this.pythStateId),
@@ -417,24 +474,17 @@ index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..b9abb49be580ae5f45e89faec1a8f99e
 -            target: `${packageId}::hot_potato_vector::destroy`,
 -            arguments: [priceUpdatesHotPotato],
 -            typeArguments: [`${packageId}::price_info::PriceInfo`],
--        });
++          target: `${packageId}::pyth::update_single_price_feed`,
++          arguments: [
++            tx.object(this.pythStateId),
++            priceUpdatesHotPotato,
++            tx.object(priceInfoObjectId),
++            coins[coinId],
++            tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
++          ],
+         });
 -        return priceInfoObjects;
-+    return verifiedVaas;
-+  }
-+  /**
-+   * Adds the necessary commands for updating the pyth price feeds to the transaction block.
-+   * @param tx transaction block to add commands to
-+   * @param updates array of price feed updates received from the price service
-+   * @param feedIds array of feed ids to update (in hex format)
-+   */
-+  async updatePriceFeeds(tx, updates, feedIds, isSponsoredTx = false) {
-+    const packageId = await this.getPythPackageId();
-+    let priceUpdatesHotPotato;
-+    if (updates.length > 1) {
-+      throw new Error(
-+        'SDK does not support sending multiple accumulator messages in a single transaction'
-+      );
-     }
+-    }
 -    async createPriceFeed(tx, updates) {
 -        const packageId = await this.getPythPackageId();
 -        if (updates.length > 1) {
@@ -455,74 +505,23 @@ index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..b9abb49be580ae5f45e89faec1a8f99e
 -                verifiedVaas[0],
 -                tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
 -            ],
-+    const vaa = this.extractVaaBytesFromAccumulatorMessage(updates[0]);
-+    const verifiedVaas = await this.verifyVaas([vaa], tx);
-+    [priceUpdatesHotPotato] = tx.moveCall({
-+      target: `${packageId}::pyth::create_authenticated_price_infos_using_accumulator`,
-+      arguments: [
-+        tx.object(this.pythStateId),
-+        tx.pure(
-+          bcs_1.bcs
-+            .vector(bcs_1.bcs.U8)
-+            .serialize(Array.from(updates[0]), {
-+              maxSize: MAX_ARGUMENT_SIZE,
-+            })
-+            .toBytes()
-+        ),
-+        verifiedVaas[0],
-+        tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
-+      ],
-+    });
-+    const priceInfoObjects = [];
-+    const baseUpdateFee = await this.getBaseUpdateFee();
-+
-+    // Fetch all priceInfoObjects
-+    for (const feedId of feedIds) {
-+      const priceInfoObjectId = await this.getPriceFeedObjectId(feedId);
-+      if (!priceInfoObjectId) {
-+        throw new Error(
-+          `Price feed ${feedId} not found, please create it first`
-+        );
 +      }
-+      priceInfoObjects.push(priceInfoObjectId);
-+    }
++    } else {
++      const packageId = await this.#getScallopPythSponsorPackageId();
 +
-+    if (!isSponsoredTx) {
-+      const coins = tx.splitCoins(
-+        tx.gas,
-+        feedIds.map(() => tx.pure.u64(baseUpdateFee))
-+      );
-+      let coinId = 0;
-+      for (const priceInfoObjectId of priceInfoObjects) {
-+        priceInfoObjects.push(priceInfoObjectId);
++      for (let i = 0; i < priceInfoObjects.length; i++) {
++        const priceInfoObjectId = priceInfoObjects[i];
 +        [priceUpdatesHotPotato] = tx.moveCall({
-+          target: `${packageId}::pyth::update_single_price_feed`,
++          target: `${packageId}::pyth_sponsor::update_single_price_feed_with_sponsor`,
 +          arguments: [
 +            tx.object(this.pythStateId),
 +            priceUpdatesHotPotato,
 +            tx.object(priceInfoObjectId),
-+            coins[coinId],
++            tx.object(this.gasStationId),
 +            tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
 +          ],
          });
-+        coinId++;
 +      }
-+    } else {
-+      const packageId = await this.#getScallopPythSponsorPackageId();
-+      const priceInfoObjectVector = tx.makeMoveVec({
-+        elements: priceInfoObjects.map((obj) => tx.object(obj)),
-+      });
-+      [priceUpdatesHotPotato] = tx.moveCall({
-+        target: `${packageId}::pyth_sponsor::sponsor_pyth_tx`,
-+        arguments: [
-+          tx.object(this.pythStateId),
-+          priceUpdatesHotPotato,
-+          priceInfoObjectVector,
-+          tx.object(this.gasStationId),
-+          tx.pure.u64(baseUpdateFee),
-+          tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
-+        ],
-+      });
      }
 -    /**
 -     * Get the packageId for the wormhole package if not already cached
@@ -641,7 +640,6 @@ index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..b9abb49be580ae5f45e89faec1a8f99e
 -        return this.priceTableInfo;
 +    return this.pythPackageId;
 +  }
-+
 +  // async #fetchScallopPythSponsorPackageId() {
 +  //   try {
 +  //     const response = await fetch(
@@ -666,10 +664,6 @@ index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..b9abb49be580ae5f45e89faec1a8f99e
 +  //     return this.defaultScallopPythSponsorPackageId;
 +  //   }
 +  // }
-+
-+  /**
-+   * Get the packageId for Scallop sponsored pyth tx wrapper if not already cached
-+   */
 +  async #getScallopPythSponsorPackageId() {
 +    return this.defaultScallopPythSponsorPackageId;
 +    // if (!this.scallopPythSponsorPackageId) {
