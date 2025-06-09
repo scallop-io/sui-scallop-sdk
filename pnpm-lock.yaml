@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@pythnetwork/pyth-sui-js@2.1.0':
+    hash: 5cbjw5lzee75mtblawfsmmfs5u
+    path: patches/@pythnetwork__pyth-sui-js@2.1.0.patch
+
 importers:
 
   .:
@@ -13,7 +18,7 @@ importers:
         version: 1.28.2(typescript@5.5.4)
       '@pythnetwork/pyth-sui-js':
         specifier: 2.1.0
-        version: 2.1.0(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)
+        version: 2.1.0(patch_hash=5cbjw5lzee75mtblawfsmmfs5u)(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)
       '@scallop-io/sui-kit':
         specifier: 1.4.1
         version: 1.4.1(typescript@5.5.4)
@@ -3953,7 +3958,7 @@ snapshots:
     dependencies:
       bn.js: 5.2.1
 
-  '@pythnetwork/pyth-sui-js@2.1.0(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)':
+  '@pythnetwork/pyth-sui-js@2.1.0(patch_hash=5cbjw5lzee75mtblawfsmmfs5u)(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)':
     dependencies:
       '@mysten/sui': 1.28.2(typescript@5.5.4)
       '@pythnetwork/price-service-client': 1.9.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)

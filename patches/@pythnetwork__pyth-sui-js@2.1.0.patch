@@ -1,0 +1,773 @@
+diff --git a/lib/client.d.ts b/lib/client.d.ts
+index c9f3fbf504b90b88b560e0d9adeac9a7f30803d2..154a199617ec7a901aa7bfa897f4d1bf83cf2ae9 100644
+--- a/lib/client.d.ts
++++ b/lib/client.d.ts
+@@ -1,70 +1,93 @@
+ /// <reference types="node" />
+-import { SuiClient } from "@mysten/sui/client";
+-import { Transaction } from "@mysten/sui/transactions";
+-import { HexString } from "@pythnetwork/price-service-client";
+-import { Buffer } from "buffer";
++import { SuiClient } from '@mysten/sui/client';
++import { Transaction } from '@mysten/sui/transactions';
++import { HexString } from '@pythnetwork/price-service-client';
++import { Buffer } from 'buffer';
+ export type ObjectId = string;
+ export declare class SuiPythClient {
+-    provider: SuiClient;
+-    pythStateId: ObjectId;
+-    wormholeStateId: ObjectId;
+-    private pythPackageId;
+-    private wormholePackageId;
+-    private priceTableInfo;
+-    private priceFeedObjectIdCache;
+-    private baseUpdateFee;
+-    constructor(provider: SuiClient, pythStateId: ObjectId, wormholeStateId: ObjectId);
+-    getBaseUpdateFee(): Promise<number>;
+-    /**
+-     * getPackageId returns the latest package id that the object belongs to. Use this to
+-     * fetch the latest package id for a given object id and handle package upgrades automatically.
+-     * @param objectId
+-     * @returns package id
+-     */
+-    getPackageId(objectId: ObjectId): Promise<ObjectId>;
+-    /**
+-     * Adds the commands for calling wormhole and verifying the vaas and returns the verified vaas.
+-     * @param vaas array of vaas to verify
+-     * @param tx transaction block to add commands to
+-     */
+-    verifyVaas(vaas: Buffer[], tx: Transaction): Promise<{
+-        $kind: "NestedResult";
+-        NestedResult: [number, number];
+-    }[]>;
+-    /**
+-     * Adds the necessary commands for updating the pyth price feeds to the transaction block.
+-     * @param tx transaction block to add commands to
+-     * @param updates array of price feed updates received from the price service
+-     * @param feedIds array of feed ids to update (in hex format)
+-     */
+-    updatePriceFeeds(tx: Transaction, updates: Buffer[], feedIds: HexString[]): Promise<ObjectId[]>;
+-    createPriceFeed(tx: Transaction, updates: Buffer[]): Promise<void>;
+-    /**
+-     * Get the packageId for the wormhole package if not already cached
+-     */
+-    getWormholePackageId(): Promise<string>;
+-    /**
+-     * Get the packageId for the pyth package if not already cached
+-     */
+-    getPythPackageId(): Promise<string>;
+-    /**
+-     * Get the priceFeedObjectId for a given feedId if not already cached
+-     * @param feedId
+-     */
+-    getPriceFeedObjectId(feedId: HexString): Promise<ObjectId | undefined>;
+-    /**
+-     * Fetches the price table object id for the current state id if not cached
+-     * @returns price table object id
+-     */
+-    getPriceTableInfo(): Promise<{
+-        id: ObjectId;
+-        fieldType: ObjectId;
+-    }>;
+-    /**
+-     * Obtains the vaa bytes embedded in an accumulator message.
+-     * @param accumulatorMessage - the accumulator price update message
+-     * @returns vaa bytes as a uint8 array
+-     */
+-    extractVaaBytesFromAccumulatorMessage(accumulatorMessage: Buffer): Buffer;
++  provider: SuiClient;
++  pythStateId: ObjectId;
++  wormholeStateId: ObjectId;
++  private pythPackageId;
++  private wormholePackageId;
++  private priceTableInfo;
++  private priceFeedObjectIdCache;
++  private baseUpdateFee;
++  private scallopPythSponsorPackageId;
++  private defaultScallopPythSponsorPackageId;
++  private gasStationId;
++  private addressId;
++  constructor(
++    provider: SuiClient,
++    pythStateId: ObjectId,
++    wormholeStateId: ObjectId,
++    scallopParams: {
++      addressId?: string;
++      defaultPackageId?: ObjectId;
++      gasStationId: ObjectId;
++    }
++  );
++  getBaseUpdateFee(): Promise<number>;
++  /**
++   * getPackageId returns the latest package id that the object belongs to. Use this to
++   * fetch the latest package id for a given object id and handle package upgrades automatically.
++   * @param objectId
++   * @returns package id
++   */
++  getPackageId(objectId: ObjectId): Promise<ObjectId>;
++  /**
++   * Adds the commands for calling wormhole and verifying the vaas and returns the verified vaas.
++   * @param vaas array of vaas to verify
++   * @param tx transaction block to add commands to
++   */
++  verifyVaas(
++    vaas: Buffer[],
++    tx: Transaction
++  ): Promise<
++    {
++      $kind: 'NestedResult';
++      NestedResult: [number, number];
++    }[]
++  >;
++  /**
++   * Adds the necessary commands for updating the pyth price feeds to the transaction block.
++   * @param tx transaction block to add commands to
++   * @param updates array of price feed updates received from the price service
++   * @param feedIds array of feed ids to update (in hex format)
++   */
++  updatePriceFeeds(
++    tx: Transaction,
++    updates: Buffer[],
++    feedIds: HexString[],
++    isSponsoredTx?: boolean
++  ): Promise<ObjectId[]>;
++  createPriceFeed(tx: Transaction, updates: Buffer[]): Promise<void>;
++  /**
++   * Get the packageId for the wormhole package if not already cached
++   */
++  getWormholePackageId(): Promise<string>;
++  /**
++   * Get the packageId for the pyth package if not already cached
++   */
++  getPythPackageId(): Promise<string>;
++  /**
++   * Get the priceFeedObjectId for a given feedId if not already cached
++   * @param feedId
++   */
++  getPriceFeedObjectId(feedId: HexString): Promise<ObjectId | undefined>;
++  /**
++   * Fetches the price table object id for the current state id if not cached
++   * @returns price table object id
++   */
++  getPriceTableInfo(): Promise<{
++    id: ObjectId;
++    fieldType: ObjectId;
++  }>;
++  /**
++   * Obtains the vaa bytes embedded in an accumulator message.
++   * @param accumulatorMessage - the accumulator price update message
++   * @returns vaa bytes as a uint8 array
++   */
++  extractVaaBytesFromAccumulatorMessage(accumulatorMessage: Buffer): Buffer;
+ }
+ //# sourceMappingURL=client.d.ts.map
+diff --git a/lib/client.js b/lib/client.js
+index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..b9abb49be580ae5f45e89faec1a8f99e60550a2b 100644
+--- a/lib/client.js
++++ b/lib/client.js
+@@ -1,260 +1,363 @@
+-"use strict";
+-Object.defineProperty(exports, "__esModule", { value: true });
++'use strict';
++Object.defineProperty(exports, '__esModule', { value: true });
+ exports.SuiPythClient = void 0;
+-const utils_1 = require("@mysten/sui/utils");
+-const bcs_1 = require("@mysten/sui/bcs");
+-const buffer_1 = require("buffer");
++const utils_1 = require('@mysten/sui/utils');
++const bcs_1 = require('@mysten/sui/bcs');
++const buffer_1 = require('buffer');
+ const MAX_ARGUMENT_SIZE = 16 * 1024;
++// const SCALLOP_API_URL = 'https://sui.apis.scallop.io/';
+ class SuiPythClient {
+-    provider;
+-    pythStateId;
+-    wormholeStateId;
+-    pythPackageId;
+-    wormholePackageId;
+-    priceTableInfo;
+-    priceFeedObjectIdCache = new Map();
+-    baseUpdateFee;
+-    constructor(provider, pythStateId, wormholeStateId) {
+-        this.provider = provider;
+-        this.pythStateId = pythStateId;
+-        this.wormholeStateId = wormholeStateId;
+-        this.pythPackageId = undefined;
+-        this.wormholePackageId = undefined;
++  provider;
++  pythStateId;
++  wormholeStateId;
++  pythPackageId;
++  wormholePackageId;
++  priceTableInfo;
++  priceFeedObjectIdCache = new Map();
++  baseUpdateFee;
++  scallopPythSponsorPackageId;
++  defaultScallopPythSponsorPackageId;
++  gasStationId;
++  addressId;
++  constructor(
++    provider,
++    pythStateId,
++    wormholeStateId,
++    {
++      addressId = '67c44a103fe1b8c454eb9699',
++      defaultPackageId = '',
++      gasStationId = '',
+     }
+-    async getBaseUpdateFee() {
+-        if (this.baseUpdateFee === undefined) {
+-            const result = await this.provider.getObject({
+-                id: this.pythStateId,
+-                options: { showContent: true },
+-            });
+-            if (!result.data ||
+-                !result.data.content ||
+-                result.data.content.dataType !== "moveObject")
+-                throw new Error("Unable to fetch pyth state object");
+-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+-            // @ts-ignore
+-            this.baseUpdateFee = result.data.content.fields.base_update_fee;
+-        }
+-        return this.baseUpdateFee;
++  ) {
++    this.provider = provider;
++    this.pythStateId = pythStateId;
++    this.wormholeStateId = wormholeStateId;
++    this.pythPackageId = undefined;
++    this.wormholePackageId = undefined;
++    this.addressId = addressId;
++    this.defaultScallopPythSponsorPackageId = defaultPackageId;
++    this.gasStationId = gasStationId;
++  }
++  async getBaseUpdateFee() {
++    if (this.baseUpdateFee === undefined) {
++      const result = await this.provider.getObject({
++        id: this.pythStateId,
++        options: { showContent: true },
++      });
++      if (
++        !result.data ||
++        !result.data.content ||
++        result.data.content.dataType !== 'moveObject'
++      )
++        throw new Error('Unable to fetch pyth state object');
++      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
++      // @ts-ignore
++      this.baseUpdateFee = result.data.content.fields.base_update_fee;
+     }
+-    /**
+-     * getPackageId returns the latest package id that the object belongs to. Use this to
+-     * fetch the latest package id for a given object id and handle package upgrades automatically.
+-     * @param objectId
+-     * @returns package id
+-     */
+-    async getPackageId(objectId) {
+-        const state = await this.provider
+-            .getObject({
+-            id: objectId,
+-            options: {
+-                showContent: true,
+-            },
+-        })
+-            .then((result) => {
+-            if (result.data?.content?.dataType == "moveObject") {
+-                return result.data.content.fields;
+-            }
+-            console.log(result.data?.content);
+-            throw new Error(`Cannot fetch package id for object ${objectId}`);
+-        });
+-        if ("upgrade_cap" in state) {
+-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+-            // @ts-ignore
+-            return state.upgrade_cap.fields.package;
++    return this.baseUpdateFee;
++  }
++  /**
++   * getPackageId returns the latest package id that the object belongs to. Use this to
++   * fetch the latest package id for a given object id and handle package upgrades automatically.
++   * @param objectId
++   * @returns package id
++   */
++  async getPackageId(objectId) {
++    const state = await this.provider
++      .getObject({
++        id: objectId,
++        options: {
++          showContent: true,
++        },
++      })
++      .then((result) => {
++        if (result.data?.content?.dataType == 'moveObject') {
++          return result.data.content.fields;
+         }
+-        throw new Error("upgrade_cap not found");
++        console.log(result.data?.content);
++        throw new Error(`Cannot fetch package id for object ${objectId}`);
++      });
++    if ('upgrade_cap' in state) {
++      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
++      // @ts-ignore
++      return state.upgrade_cap.fields.package;
+     }
+-    /**
+-     * Adds the commands for calling wormhole and verifying the vaas and returns the verified vaas.
+-     * @param vaas array of vaas to verify
+-     * @param tx transaction block to add commands to
+-     */
+-    async verifyVaas(vaas, tx) {
+-        const wormholePackageId = await this.getWormholePackageId();
+-        const verifiedVaas = [];
+-        for (const vaa of vaas) {
+-            const [verifiedVaa] = tx.moveCall({
+-                target: `${wormholePackageId}::vaa::parse_and_verify`,
+-                arguments: [
+-                    tx.object(this.wormholeStateId),
+-                    tx.pure(bcs_1.bcs
+-                        .vector(bcs_1.bcs.U8)
+-                        .serialize(Array.from(vaa), {
+-                        maxSize: MAX_ARGUMENT_SIZE,
+-                    })
+-                        .toBytes()),
+-                    tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
+-                ],
+-            });
+-            verifiedVaas.push(verifiedVaa);
+-        }
+-        return verifiedVaas;
++    throw new Error('upgrade_cap not found');
++  }
++  /**
++   * Adds the commands for calling wormhole and verifying the vaas and returns the verified vaas.
++   * @param vaas array of vaas to verify
++   * @param tx transaction block to add commands to
++   */
++  async verifyVaas(vaas, tx) {
++    const wormholePackageId = await this.getWormholePackageId();
++    const verifiedVaas = [];
++    for (const vaa of vaas) {
++      const [verifiedVaa] = tx.moveCall({
++        target: `${wormholePackageId}::vaa::parse_and_verify`,
++        arguments: [
++          tx.object(this.wormholeStateId),
++          tx.pure(
++            bcs_1.bcs
++              .vector(bcs_1.bcs.U8)
++              .serialize(Array.from(vaa), {
++                maxSize: MAX_ARGUMENT_SIZE,
++              })
++              .toBytes()
++          ),
++          tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
++        ],
++      });
++      verifiedVaas.push(verifiedVaa);
+     }
+-    /**
+-     * Adds the necessary commands for updating the pyth price feeds to the transaction block.
+-     * @param tx transaction block to add commands to
+-     * @param updates array of price feed updates received from the price service
+-     * @param feedIds array of feed ids to update (in hex format)
+-     */
+-    async updatePriceFeeds(tx, updates, feedIds) {
+-        const packageId = await this.getPythPackageId();
+-        let priceUpdatesHotPotato;
+-        if (updates.length > 1) {
+-            throw new Error("SDK does not support sending multiple accumulator messages in a single transaction");
+-        }
+-        const vaa = this.extractVaaBytesFromAccumulatorMessage(updates[0]);
+-        const verifiedVaas = await this.verifyVaas([vaa], tx);
+-        [priceUpdatesHotPotato] = tx.moveCall({
+-            target: `${packageId}::pyth::create_authenticated_price_infos_using_accumulator`,
+-            arguments: [
+-                tx.object(this.pythStateId),
+-                tx.pure(bcs_1.bcs
+-                    .vector(bcs_1.bcs.U8)
+-                    .serialize(Array.from(updates[0]), {
+-                    maxSize: MAX_ARGUMENT_SIZE,
+-                })
+-                    .toBytes()),
+-                verifiedVaas[0],
+-                tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
+-            ],
+-        });
+-        const priceInfoObjects = [];
+-        const baseUpdateFee = await this.getBaseUpdateFee();
+-        const coins = tx.splitCoins(tx.gas, feedIds.map(() => tx.pure.u64(baseUpdateFee)));
+-        let coinId = 0;
+-        for (const feedId of feedIds) {
+-            const priceInfoObjectId = await this.getPriceFeedObjectId(feedId);
+-            if (!priceInfoObjectId) {
+-                throw new Error(`Price feed ${feedId} not found, please create it first`);
+-            }
+-            priceInfoObjects.push(priceInfoObjectId);
+-            [priceUpdatesHotPotato] = tx.moveCall({
+-                target: `${packageId}::pyth::update_single_price_feed`,
+-                arguments: [
+-                    tx.object(this.pythStateId),
+-                    priceUpdatesHotPotato,
+-                    tx.object(priceInfoObjectId),
+-                    coins[coinId],
+-                    tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
+-                ],
+-            });
+-            coinId++;
+-        }
+-        tx.moveCall({
+-            target: `${packageId}::hot_potato_vector::destroy`,
+-            arguments: [priceUpdatesHotPotato],
+-            typeArguments: [`${packageId}::price_info::PriceInfo`],
+-        });
+-        return priceInfoObjects;
++    return verifiedVaas;
++  }
++  /**
++   * Adds the necessary commands for updating the pyth price feeds to the transaction block.
++   * @param tx transaction block to add commands to
++   * @param updates array of price feed updates received from the price service
++   * @param feedIds array of feed ids to update (in hex format)
++   */
++  async updatePriceFeeds(tx, updates, feedIds, isSponsoredTx = false) {
++    const packageId = await this.getPythPackageId();
++    let priceUpdatesHotPotato;
++    if (updates.length > 1) {
++      throw new Error(
++        'SDK does not support sending multiple accumulator messages in a single transaction'
++      );
+     }
+-    async createPriceFeed(tx, updates) {
+-        const packageId = await this.getPythPackageId();
+-        if (updates.length > 1) {
+-            throw new Error("SDK does not support sending multiple accumulator messages in a single transaction");
+-        }
+-        const vaa = this.extractVaaBytesFromAccumulatorMessage(updates[0]);
+-        const verifiedVaas = await this.verifyVaas([vaa], tx);
+-        tx.moveCall({
+-            target: `${packageId}::pyth::create_price_feeds_using_accumulator`,
+-            arguments: [
+-                tx.object(this.pythStateId),
+-                tx.pure(bcs_1.bcs
+-                    .vector(bcs_1.bcs.U8)
+-                    .serialize(Array.from(updates[0]), {
+-                    maxSize: MAX_ARGUMENT_SIZE,
+-                })
+-                    .toBytes()),
+-                verifiedVaas[0],
+-                tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
+-            ],
++    const vaa = this.extractVaaBytesFromAccumulatorMessage(updates[0]);
++    const verifiedVaas = await this.verifyVaas([vaa], tx);
++    [priceUpdatesHotPotato] = tx.moveCall({
++      target: `${packageId}::pyth::create_authenticated_price_infos_using_accumulator`,
++      arguments: [
++        tx.object(this.pythStateId),
++        tx.pure(
++          bcs_1.bcs
++            .vector(bcs_1.bcs.U8)
++            .serialize(Array.from(updates[0]), {
++              maxSize: MAX_ARGUMENT_SIZE,
++            })
++            .toBytes()
++        ),
++        verifiedVaas[0],
++        tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
++      ],
++    });
++    const priceInfoObjects = [];
++    const baseUpdateFee = await this.getBaseUpdateFee();
++
++    // Fetch all priceInfoObjects
++    for (const feedId of feedIds) {
++      const priceInfoObjectId = await this.getPriceFeedObjectId(feedId);
++      if (!priceInfoObjectId) {
++        throw new Error(
++          `Price feed ${feedId} not found, please create it first`
++        );
++      }
++      priceInfoObjects.push(priceInfoObjectId);
++    }
++
++    if (!isSponsoredTx) {
++      const coins = tx.splitCoins(
++        tx.gas,
++        feedIds.map(() => tx.pure.u64(baseUpdateFee))
++      );
++      let coinId = 0;
++      for (const priceInfoObjectId of priceInfoObjects) {
++        priceInfoObjects.push(priceInfoObjectId);
++        [priceUpdatesHotPotato] = tx.moveCall({
++          target: `${packageId}::pyth::update_single_price_feed`,
++          arguments: [
++            tx.object(this.pythStateId),
++            priceUpdatesHotPotato,
++            tx.object(priceInfoObjectId),
++            coins[coinId],
++            tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
++          ],
+         });
++        coinId++;
++      }
++    } else {
++      const packageId = await this.#getScallopPythSponsorPackageId();
++      const priceInfoObjectVector = tx.makeMoveVec({
++        elements: priceInfoObjects.map((obj) => tx.object(obj)),
++      });
++      [priceUpdatesHotPotato] = tx.moveCall({
++        target: `${packageId}::pyth_sponsor::sponsor_pyth_tx`,
++        arguments: [
++          tx.object(this.pythStateId),
++          priceUpdatesHotPotato,
++          priceInfoObjectVector,
++          tx.object(this.gasStationId),
++          tx.pure.u64(baseUpdateFee),
++          tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
++        ],
++      });
+     }
+-    /**
+-     * Get the packageId for the wormhole package if not already cached
+-     */
+-    async getWormholePackageId() {
+-        if (!this.wormholePackageId) {
+-            this.wormholePackageId = await this.getPackageId(this.wormholeStateId);
+-        }
+-        return this.wormholePackageId;
++    tx.moveCall({
++      target: `${packageId}::hot_potato_vector::destroy`,
++      arguments: [priceUpdatesHotPotato],
++      typeArguments: [`${packageId}::price_info::PriceInfo`],
++    });
++    return priceInfoObjects;
++  }
++  async createPriceFeed(tx, updates) {
++    const packageId = await this.getPythPackageId();
++    if (updates.length > 1) {
++      throw new Error(
++        'SDK does not support sending multiple accumulator messages in a single transaction'
++      );
+     }
+-    /**
+-     * Get the packageId for the pyth package if not already cached
+-     */
+-    async getPythPackageId() {
+-        if (!this.pythPackageId) {
+-            this.pythPackageId = await this.getPackageId(this.pythStateId);
+-        }
+-        return this.pythPackageId;
++    const vaa = this.extractVaaBytesFromAccumulatorMessage(updates[0]);
++    const verifiedVaas = await this.verifyVaas([vaa], tx);
++    tx.moveCall({
++      target: `${packageId}::pyth::create_price_feeds_using_accumulator`,
++      arguments: [
++        tx.object(this.pythStateId),
++        tx.pure(
++          bcs_1.bcs
++            .vector(bcs_1.bcs.U8)
++            .serialize(Array.from(updates[0]), {
++              maxSize: MAX_ARGUMENT_SIZE,
++            })
++            .toBytes()
++        ),
++        verifiedVaas[0],
++        tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
++      ],
++    });
++  }
++  /**
++   * Get the packageId for the wormhole package if not already cached
++   */
++  async getWormholePackageId() {
++    if (!this.wormholePackageId) {
++      this.wormholePackageId = await this.getPackageId(this.wormholeStateId);
+     }
+-    /**
+-     * Get the priceFeedObjectId for a given feedId if not already cached
+-     * @param feedId
+-     */
+-    async getPriceFeedObjectId(feedId) {
+-        const normalizedFeedId = feedId.replace("0x", "");
+-        if (!this.priceFeedObjectIdCache.has(normalizedFeedId)) {
+-            const { id: tableId, fieldType } = await this.getPriceTableInfo();
+-            const result = await this.provider.getDynamicFieldObject({
+-                parentId: tableId,
+-                name: {
+-                    type: `${fieldType}::price_identifier::PriceIdentifier`,
+-                    value: {
+-                        bytes: Array.from(buffer_1.Buffer.from(normalizedFeedId, "hex")),
+-                    },
+-                },
+-            });
+-            if (!result.data || !result.data.content) {
+-                return undefined;
+-            }
+-            if (result.data.content.dataType !== "moveObject") {
+-                throw new Error("Price feed type mismatch");
+-            }
+-            this.priceFeedObjectIdCache.set(normalizedFeedId, 
+-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+-            // @ts-ignore
+-            result.data.content.fields.value);
+-        }
+-        return this.priceFeedObjectIdCache.get(normalizedFeedId);
++    return this.wormholePackageId;
++  }
++  /**
++   * Get the packageId for the pyth package if not already cached
++   */
++  async getPythPackageId() {
++    if (!this.pythPackageId) {
++      this.pythPackageId = await this.getPackageId(this.pythStateId);
+     }
+-    /**
+-     * Fetches the price table object id for the current state id if not cached
+-     * @returns price table object id
+-     */
+-    async getPriceTableInfo() {
+-        if (this.priceTableInfo === undefined) {
+-            const result = await this.provider.getDynamicFieldObject({
+-                parentId: this.pythStateId,
+-                name: {
+-                    type: "vector<u8>",
+-                    value: "price_info",
+-                },
+-            });
+-            if (!result.data || !result.data.type) {
+-                throw new Error("Price Table not found, contract may not be initialized");
+-            }
+-            let type = result.data.type.replace("0x2::table::Table<", "");
+-            type = type.replace("::price_identifier::PriceIdentifier, 0x2::object::ID>", "");
+-            this.priceTableInfo = { id: result.data.objectId, fieldType: type };
+-        }
+-        return this.priceTableInfo;
++    return this.pythPackageId;
++  }
++
++  // async #fetchScallopPythSponsorPackageId() {
++  //   try {
++  //     const response = await fetch(
++  //       `${SCALLOP_API_URL}/address/${this.addressId}`,
++  //       { signal: AbortSignal.timeout(2000) }
++  //     );
++
++  //     if (!response.ok) {
++  //       throw new Error(
++  //         `Failed to fetch scallop pyth sponsor package id: ${response.statusText}`
++  //       );
++  //     }
++
++  //     const data = await response.json();
++  //     if (!data?.pythSponsoredTx?.id) {
++  //       throw new Error('No scallop pyth sponsor package id found');
++  //     }
++
++  //     return data.pythSponsoredTx.id;
++  //   } catch (e) {
++  //     console.error(e);
++  //     return this.defaultScallopPythSponsorPackageId;
++  //   }
++  // }
++
++  /**
++   * Get the packageId for Scallop sponsored pyth tx wrapper if not already cached
++   */
++  async #getScallopPythSponsorPackageId() {
++    return this.defaultScallopPythSponsorPackageId;
++    // if (!this.scallopPythSponsorPackageId) {
++    //   this.scallopPythSponsorPackageId =
++    //     await this.#fetchScallopPythSponsorPackageId();
++    // }
++    // return this.scallopPythSponsorPackageId;
++  }
++  /**
++   * Get the priceFeedObjectId for a given feedId if not already cached
++   * @param feedId
++   */
++  async getPriceFeedObjectId(feedId) {
++    const normalizedFeedId = feedId.replace('0x', '');
++    if (!this.priceFeedObjectIdCache.has(normalizedFeedId)) {
++      const { id: tableId, fieldType } = await this.getPriceTableInfo();
++      const result = await this.provider.getDynamicFieldObject({
++        parentId: tableId,
++        name: {
++          type: `${fieldType}::price_identifier::PriceIdentifier`,
++          value: {
++            bytes: Array.from(buffer_1.Buffer.from(normalizedFeedId, 'hex')),
++          },
++        },
++      });
++      if (!result.data || !result.data.content) {
++        return undefined;
++      }
++      if (result.data.content.dataType !== 'moveObject') {
++        throw new Error('Price feed type mismatch');
++      }
++      this.priceFeedObjectIdCache.set(
++        normalizedFeedId,
++        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
++        // @ts-ignore
++        result.data.content.fields.value
++      );
+     }
+-    /**
+-     * Obtains the vaa bytes embedded in an accumulator message.
+-     * @param accumulatorMessage - the accumulator price update message
+-     * @returns vaa bytes as a uint8 array
+-     */
+-    extractVaaBytesFromAccumulatorMessage(accumulatorMessage) {
+-        // the first 6 bytes in the accumulator message encode the header, major, and minor bytes
+-        // we ignore them, since we are only interested in the VAA bytes
+-        const trailingPayloadSize = accumulatorMessage.readUint8(6);
+-        const vaaSizeOffset = 7 + // header bytes (header(4) + major(1) + minor(1) + trailing payload size(1))
+-            trailingPayloadSize + // trailing payload (variable number of bytes)
+-            1; // proof_type (1 byte)
+-        const vaaSize = accumulatorMessage.readUint16BE(vaaSizeOffset);
+-        const vaaOffset = vaaSizeOffset + 2;
+-        return accumulatorMessage.subarray(vaaOffset, vaaOffset + vaaSize);
++    return this.priceFeedObjectIdCache.get(normalizedFeedId);
++  }
++  /**
++   * Fetches the price table object id for the current state id if not cached
++   * @returns price table object id
++   */
++  async getPriceTableInfo() {
++    if (this.priceTableInfo === undefined) {
++      const result = await this.provider.getDynamicFieldObject({
++        parentId: this.pythStateId,
++        name: {
++          type: 'vector<u8>',
++          value: 'price_info',
++        },
++      });
++      if (!result.data || !result.data.type) {
++        throw new Error(
++          'Price Table not found, contract may not be initialized'
++        );
++      }
++      let type = result.data.type.replace('0x2::table::Table<', '');
++      type = type.replace(
++        '::price_identifier::PriceIdentifier, 0x2::object::ID>',
++        ''
++      );
++      this.priceTableInfo = { id: result.data.objectId, fieldType: type };
+     }
++    return this.priceTableInfo;
++  }
++  /**
++   * Obtains the vaa bytes embedded in an accumulator message.
++   * @param accumulatorMessage - the accumulator price update message
++   * @returns vaa bytes as a uint8 array
++   */
++  extractVaaBytesFromAccumulatorMessage(accumulatorMessage) {
++    // the first 6 bytes in the accumulator message encode the header, major, and minor bytes
++    // we ignore them, since we are only interested in the VAA bytes
++    const trailingPayloadSize = accumulatorMessage.readUint8(6);
++    const vaaSizeOffset =
++      7 + // header bytes (header(4) + major(1) + minor(1) + trailing payload size(1))
++      trailingPayloadSize + // trailing payload (variable number of bytes)
++      1; // proof_type (1 byte)
++    const vaaSize = accumulatorMessage.readUint16BE(vaaSizeOffset);
++    const vaaOffset = vaaSizeOffset + 2;
++    return accumulatorMessage.subarray(vaaOffset, vaaOffset + vaaSize);
++  }
+ }
+ exports.SuiPythClient = SuiPythClient;

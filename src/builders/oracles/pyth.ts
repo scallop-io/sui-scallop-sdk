@@ -13,7 +13,13 @@ export const updatePythPriceFeeds = async (
   const pythClient = new SuiPythClient(
     builder.suiKit.client,
     builder.address.get('core.oracles.pyth.state'),
-    builder.address.get('core.oracles.pyth.wormholeState')
+    builder.address.get('core.oracles.pyth.wormholeState'),
+    {
+      defaultPackageId:
+        '0x8ac386d3a3b4d90865b69ed73150680673b66169ba6fb15e841eb7d4720ef642',
+      gasStationId:
+        '0xecaef0fd26e1e5e12d0e459ca821b3441f91587c3f319100b93258223f508ed6',
+    }
   );
   const priceIds = assetCoinNames.map((assetCoinName) =>
     builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`)

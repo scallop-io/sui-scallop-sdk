@@ -163,5 +163,10 @@
         }
       ]
     }
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@pythnetwork/pyth-sui-js@2.1.0": "patches/@pythnetwork__pyth-sui-js@2.1.0.patch"
+    }
   }
 }
