@@ -150,5 +150,4 @@ You need to set up the `.env` file before testing. (Reference `.env.example`)
 
 [APACHE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/scallop-io/sui-scallop-sdk)

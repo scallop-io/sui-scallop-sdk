@@ -382,32 +382,12 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       if (!marketCoin) throw new Error(`No market coin for ${poolCoinName}`);
       return txBlock.withdraw(marketCoin, poolCoinName);
     },
-    borrowQuick: async (amount, poolCoinName, obligationId, obligationKey) => {
-      const obligationInfo = await requireObligationInfo(
-        builder,
-        txBlock,
-        obligationId,
-        obligationKey
-      );
-      const obligationCoinNames =
-        (await builder.utils.getObligationCoinNames(
-          obligationInfo.obligationId
-        )) ?? [];
-      const updateCoinNames = [...obligationCoinNames, poolCoinName];
-      await updateOracles(builder, txBlock, updateCoinNames);
-      return txBlock.borrow(
-        obligationInfo.obligationId,
-        obligationInfo.obligationKey as SuiObjectArg,
-        amount,
-        poolCoinName
-      );
-    },
-    borrowWithReferralQuick: async (
+    borrowQuick: async (
       amount,
       poolCoinName,
-      borrowReferral,
       obligationId,
-      obligationKey
+      obligationKey,
+      isSponsoredTx = false
     ) => {
       const obligationInfo = await requireObligationInfo(
         builder,
@@ -420,7 +400,36 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
           obligationInfo.obligationId
         )) ?? [];
       const updateCoinNames = [...obligationCoinNames, poolCoinName];
-      await updateOracles(builder, txBlock, updateCoinNames);
+      await updateOracles(builder, txBlock, updateCoinNames, { isSponsoredTx });
+      return txBlock.borrow(
+        obligationInfo.obligationId,
+        obligationInfo.obligationKey as SuiObjectArg,
+        amount,
+        poolCoinName
+      );
+    },
+    borrowWithReferralQuick: async (
+      amount,
+      poolCoinName,
+      borrowReferral,
+      obligationId,
+      obligationKey,
+      isSponsoredTx = false
+    ) => {
+      const obligationInfo = await requireObligationInfo(
+        builder,
+        txBlock,
+        obligationId,
+        obligationKey
+      );
+      const obligationCoinNames =
+        (await builder.utils.getObligationCoinNames(
+          obligationInfo.obligationId
+        )) ?? [];
+      const updateCoinNames = [...obligationCoinNames, poolCoinName];
+      await updateOracles(builder, txBlock, updateCoinNames, {
+        isSponsoredTx,
+      });
       return txBlock.borrowWithReferral(
         obligationInfo.obligationId,
         obligationInfo.obligationKey as SuiObjectArg,

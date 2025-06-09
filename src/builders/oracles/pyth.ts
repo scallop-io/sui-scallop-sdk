@@ -8,7 +8,8 @@ import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 export const updatePythPriceFeeds = async (
   builder: ScallopBuilder,
   assetCoinNames: string[],
-  txBlock: SuiKitTxBlock
+  txBlock: SuiKitTxBlock,
+  isSponsoredTx: boolean = false
 ) => {
   const pythClient = new SuiPythClient(
     builder.suiKit.client,
@@ -16,9 +17,9 @@ export const updatePythPriceFeeds = async (
     builder.address.get('core.oracles.pyth.wormholeState'),
     {
       defaultPackageId:
-        '0x8ac386d3a3b4d90865b69ed73150680673b66169ba6fb15e841eb7d4720ef642',
+        '0xa6f9bec2f9748656b6af8aafb5d7bc1a0d5faf25ac9645fc7f447822cd509325',
       gasStationId:
-        '0xecaef0fd26e1e5e12d0e459ca821b3441f91587c3f319100b93258223f508ed6',
+        '0xa8b8dcc9880166edb57b53e05f8df7364d31b5d9b7d107fd27f0b69cf338b687',
     }
   );
   const priceIds = assetCoinNames.map((assetCoinName) =>
@@ -35,9 +36,10 @@ export const updatePythPriceFeeds = async (
       const priceUpdateData =
         await pythConnection.getPriceFeedsUpdateData(priceIds);
       await pythClient.updatePriceFeeds(
-        txBlock.txBlock, // convert txBlock to TransactionBlock because pyth sdk not support new @mysten/sui yet
+        txBlock.txBlock,
         priceUpdateData,
-        priceIds
+        priceIds,
+        isSponsoredTx
       );
 
       break;
