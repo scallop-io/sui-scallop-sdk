@@ -19,4 +19,3 @@
     await scallopIndexer.getBorrowIncentivePool('sui');
   const tvl = await scallopIndexer.getTotalValueLocked();
   ```
-
