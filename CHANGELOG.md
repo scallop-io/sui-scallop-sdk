@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.1...v2.2.2) (2025-06-11)
+
+### Bugfixes
+
+- Fix `requireObligationInfo` logic ([8fcf920](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/8fcf92062686f1f628c8cc070f6149b45f8ed36f))
+
 ### [2.2.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.0...v2.2.1) (2025-06-05)
 
 ### Features
