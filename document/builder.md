@@ -216,7 +216,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   const extendPeriodInDays = 2;
   await scallopTxBlock.lockScaQuick({
     amountOrCoin: scaAmount,
-    lockPeriodInDays: extendPeriodInDays
+    lockPeriodInDays: extendPeriodInDays,
   });
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
@@ -228,7 +228,9 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   scallopTxBlock.setSender(sender);
 
   const extendPeriodInDays = 2;
-  await scallopTxBlock.extendLockPeriodQuick({ lockPeriodInDays: extendPeriodInDays });
+  await scallopTxBlock.extendLockPeriodQuick({
+    lockPeriodInDays: extendPeriodInDays,
+  });
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
@@ -251,7 +253,10 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
 
   const scaAmount = 10; // Minimum renew amount is 10 SCA
   const extendPeriodInDays = 7; // Minimum extend period is 1 day
-  await scallopTxBlock.renewExpiredVeScaQuick({ scaAmount, lockPeriodInDays: extendPeriodInDays });
+  await scallopTxBlock.renewExpiredVeScaQuick({
+    scaAmount,
+    lockPeriodInDays: extendPeriodInDays,
+  });
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
