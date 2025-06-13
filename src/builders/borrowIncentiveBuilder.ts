@@ -55,11 +55,16 @@ const requireObligationInfo = async (
     throw new Error(`No obligation found for sender ${sender}`);
   }
 
-  const selectedObligation =
-    obligations.find(
-      (obligation) =>
-        obligation.id === obligationId || obligation.keyId === obligationKey
-    ) ?? obligations[0];
+  const selectedObligation = obligations.find(
+    (obligation) =>
+      obligation.id === obligationId || obligation.keyId === obligationKey
+  );
+
+  if (!selectedObligation) {
+    throw new Error(
+      `No obligation found for sender ${sender} with id ${obligationId} or key ${obligationKey}`
+    );
+  }
 
   return {
     obligationId: selectedObligation.id,
