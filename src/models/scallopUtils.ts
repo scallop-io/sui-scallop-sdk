@@ -43,7 +43,6 @@ class ScallopUtils implements ScallopUtilsInterface {
 
     this.pythEndpoints = params.pythEndpoints ?? [
       'https://hermes.pyth.network',
-      'https://scallop.rpc.p2p.world',
     ];
   }
 

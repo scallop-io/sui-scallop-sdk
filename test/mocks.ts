@@ -2203,10 +2203,7 @@ export const WHITELIST = {
   suiBridge: ['sbeth', 'sbusdt', 'sbwbtc'],
   wormhole: ['wusdc', 'wusdt', 'weth', 'wbtc', 'wapt', 'wsol'],
   oracles: ['pyth', 'supra', 'switchboard'],
-  pythEndpoints: [
-    'https://hermes.pyth.network',
-    'https://scallop.rpc.p2p.world',
-  ],
+  pythEndpoints: ['https://hermes.pyth.network'],
   deprecated: ['wapt', 'wusdc', 'wusdt', 'weth', 'wbtc', 'vsui'],
   borrowIncentiveRewards: ['mpoints'],
   rewardsAsPoint: ['mpoints'],
