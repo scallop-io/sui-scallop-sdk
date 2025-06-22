@@ -2,15 +2,18 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import {
   MAX_LOCK_ROUNDS,
   Obligation,
+  POOL_ADDRESSES,
   SCA_COIN_TYPE,
   Scallop,
   ScallopBuilder,
   UNLOCK_ROUND_DURATION,
   Vesca,
+  WHITELIST,
 } from '../src';
 import { SuiTxBlock, Transaction } from '@scallop-io/sui-kit';
 import { scallopSDK } from './scallopSdk';
 import { updateOracles } from 'src/builders/oracles';
+import { ADDRESS_INTERFACE } from './mocks';
 
 const ENABLE_LOG = false;
 const COIN_NAME = 'sui';
@@ -403,7 +406,7 @@ describe('Test Scallop Borrow Incentive Builder', () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "stakeObligationQuick".
     tx.setSender(sender);
-    await tx.stakeObligationQuick();
+    await tx.stakeObligationQuick(obligations[0].id);
     const stakeObligationQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
@@ -421,7 +424,7 @@ describe('Test Scallop Borrow Incentive Builder', () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "unstakeObligationQuick".
     tx.setSender(sender);
-    await tx.unstakeObligationQuick();
+    await tx.unstakeObligationQuick(obligations[0].id);
     const unstakeObligationQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     if (ENABLE_LOG) {
@@ -439,7 +442,10 @@ describe('Test Scallop Borrow Incentive Builder', () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "claimQuick".
     tx.setSender(sender);
-    const rewardCoin = await tx.claimBorrowIncentiveQuick('sui', 'sui');
+    const rewardCoin = await tx.claimBorrowIncentiveQuick(
+      'sui',
+      obligations[0].id
+    );
     tx.transferObjects([rewardCoin], sender);
     const claimBorrowIncentiveQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
@@ -1177,7 +1183,6 @@ describe('Test sCoin Builder', () => {
 
 describe('Test XOracle V2', () => {
   // console.info('\x1b[32mAddresses Id: \x1b[33m', TEST_ADDRESSES_ID);
-
   it('Should updates oracles success', async () => {
     const coins = ['sui', 'sca', 'usdc', 'deep', 'fud'] as string[];
     const txb = new SuiTxBlock();
@@ -1191,5 +1196,50 @@ describe('Test XOracle V2', () => {
         }
       );
     expect(resp.effects?.status?.status).toEqual('success');
+  });
+});
+
+describe('Test pyth sponsored feeds', () => {
+  const createTestEnv = async (
+    coins: string[] = [],
+    sponsoredFeeds: string[] = []
+  ) => {
+    const scallopBuilder = new ScallopBuilder({
+      addressId: '67c44a103fe1b8c454eb9699',
+      sponsoredFeeds,
+      usePythPullModel: false,
+      forceAddressesInterface: ADDRESS_INTERFACE,
+      forcePoolAddressInterface: POOL_ADDRESSES,
+      forceWhitelistInterface: WHITELIST,
+    });
+
+    await scallopBuilder.init();
+    const txb = new SuiTxBlock();
+
+    await updateOracles(scallopBuilder, txb, coins);
+
+    return { txb };
+  };
+
+  const findPythUpdatePriceMovecall = (txb: SuiTxBlock) => {
+    const movecallTarget = `pyth::update_single_price_feed`;
+    const pythUpdatePriceMovecall = txb.txBlock.blockData.transactions.find(
+      (t) => t.kind === 'MoveCall' && t.target.includes(movecallTarget)
+    );
+    return pythUpdatePriceMovecall;
+  };
+
+  it('Should use sponsored feeds from oracle', async () => {
+    const { txb } = await createTestEnv(['sui'], ['sui']);
+    const targetMoveCall = findPythUpdatePriceMovecall(txb);
+    // There should be no price feed movecall
+    expect(targetMoveCall).not.toBeDefined();
+  });
+
+  it('Should force using pull model if asset is not sponsored', async () => {
+    const { txb } = await createTestEnv(['sui'], ['sca']); // no sponsored
+    const targetMoveCall = findPythUpdatePriceMovecall(txb);
+    // There should be update price feed movecall
+    expect(targetMoveCall).toBeDefined();
   });
 });
