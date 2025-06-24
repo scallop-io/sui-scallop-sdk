@@ -1,4 +1,6 @@
-export const ADDRESS_INTERFACE = {
+import { AddressesInterface } from 'src/types/address';
+
+export const ADDRESS_INTERFACE: { mainnet: AddressesInterface } = {
   mainnet: {
     core: {
       version:
@@ -524,6 +526,13 @@ export const ADDRESS_INTERFACE = {
             '0x5306f64e312b581766351c07af79c72fcb1cd25147157fdc2f8ad76de9a3fb6a',
           wormholeState:
             '0xaeab97f96cf9877fee2883315d459552b2b921edc16d7ceac6eab944dd88919c',
+          lst: {
+            afsui: {
+              safeId: '',
+              stakedSuiVaultId: '',
+              configId: '',
+            },
+          },
         },
       },
       packages: {
@@ -562,15 +571,27 @@ export const ADDRESS_INTERFACE = {
           upgradeCap:
             '0x14220f035f4cfc2ce442c30703fb44d24f00846eb7077907a231a56051a1d9b2',
         },
-        supra: { id: '', upgradeCap: '' },
+        supra: {
+          id: '',
+          upgradeCap: '',
+        },
         pyth: {
           id: '0x1cf913c825c202cbbb71c378edccb9c04723fa07a73b88677b2ef89c6e203a85',
           object:
             '0x1cf913c825c202cbbb71c378edccb9c04723fa07a73b88677b2ef89c6e203a85',
           upgradeCap:
             '0xb1f167889643ff766df31745b6e93b92462d8165b0a4f1b095499e15180370f7',
+          lst: {
+            afsui: {
+              id: '',
+              object: '',
+            },
+          },
         },
-        switchboard: { id: '', upgradeCap: '' },
+        switchboard: {
+          id: '',
+          upgradeCap: '',
+        },
         xOracle: {
           id: '0x897ebc619bdb4c3d9e8d86fb85b86cfd5d861b1696d26175c55ed14903a372f6',
           object:
@@ -634,8 +655,8 @@ export const ADDRESS_INTERFACE = {
             '0xbca914adce058ad0902c7f3cfcd698392a475f00dcfdc3f76001d0370b98777a',
         },
       },
-      version: '',
-      versionCap: '',
+      // version: '',
+      // versionCap: '',
       config: '',
     },
     borrowIncentive: {
@@ -652,8 +673,8 @@ export const ADDRESS_INTERFACE = {
         '0xc4701fdbc1c92f9a636d334d66012b3027659e9fb8aff27279a82edfb6b77d02',
       config:
         '0xdf5d04b4691cc67e82fd4db8394d89ff44823a9de29716c924f74bb4f11cc1f7',
-      version: '',
-      versionCap: '',
+      // version: '',
+      // versionCap: '',
     },
     vesca: {
       id: '0x18ff254b07856588796b3a97e447a1e504c48f58b309437cd8f2c397ecc2fc21',

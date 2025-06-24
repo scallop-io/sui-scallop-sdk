@@ -1,5 +1,54 @@
-import { _SUPPORT_ORACLES, SupportOracleType } from './constant/xOracle';
+import { SUPPORT_ORACLE_LST, SUPPORT_ORACLES } from 'src/constants/xoracle';
+import { SupportOracleType, SupportedOracleSuiLst } from './constant/xOracle';
+import { PackageName } from './constant/package';
 
+export type BasePackage = {
+  id: string;
+  object?: string;
+  upgradeCap?: string;
+};
+
+export type OracleLstPackage = {
+  [K in SupportedOracleSuiLst]: BasePackage;
+};
+
+type OraclePackage<T> = BasePackage & T extends SupportOracleLst
+  ? BasePackage & {
+      lst: OracleLstPackage;
+    }
+  : BasePackage;
+
+type Packages<
+  T extends SupportOracleType | PackageName = SupportOracleType | PackageName,
+> = T extends SupportOracleType
+  ? Record<T, OraclePackage<T>>
+  : T extends PackageName
+    ? Record<T, BasePackage>
+    : never;
+
+export type SupportOracleLst = (typeof SUPPORT_ORACLE_LST)[number];
+
+export type OracleLstConfig<T extends SupportedOracleSuiLst> = T extends 'afsui'
+  ? Record<
+      T,
+      {
+        stakedSuiVaultId: string;
+        safeId: string;
+        configId: string;
+      }
+    >
+  : never;
+
+export type OracleLst<
+  T extends SupportOracleLst,
+  U extends SupportedOracleSuiLst = SupportedOracleSuiLst,
+> = T extends 'pyth' ? OracleLstConfig<U> : undefined;
+
+type MaybeWithOracleLst<T, U> = T extends SupportOracleLst
+  ? U & {
+      lst: OracleLst<T>;
+    }
+  : U;
 export interface AddressesInterface {
   id?: string;
   core: {
@@ -21,11 +70,11 @@ export interface AddressesInterface {
           symbol: string;
           decimals: number;
           oracle: {
-            [K in SupportOracleType]: K extends (typeof _SUPPORT_ORACLES)[0]
+            [K in SupportOracleType]: K extends (typeof SUPPORT_ORACLES)[0]
               ? string
-              : K extends (typeof _SUPPORT_ORACLES)[1]
+              : K extends (typeof SUPPORT_ORACLES)[1]
                 ? string
-                : K extends (typeof _SUPPORT_ORACLES)[2]
+                : K extends (typeof SUPPORT_ORACLES)[2]
                   ? {
                       feed: string;
                       feedObject: string;
@@ -36,27 +85,36 @@ export interface AddressesInterface {
       >
     >;
     oracles: {
-      [K in SupportOracleType]: K extends (typeof _SUPPORT_ORACLES)[0]
-        ? {
-            registry: string;
-            registryCap: string;
-            holder: string;
-          }
-        : K extends (typeof _SUPPORT_ORACLES)[1]
-          ? {
+      [K in SupportOracleType]: K extends (typeof SUPPORT_ORACLES)[0]
+        ? MaybeWithOracleLst<
+            K,
+            {
               registry: string;
               registryCap: string;
-              registryTableId: string;
-              state: string;
+              holder: string;
             }
-          : K extends (typeof _SUPPORT_ORACLES)[2]
-            ? {
+          >
+        : K extends (typeof SUPPORT_ORACLES)[1]
+          ? MaybeWithOracleLst<
+              K,
+              {
                 registry: string;
                 registryCap: string;
+                registryTableId: string;
                 state: string;
-                wormhole: string;
-                wormholeState: string;
               }
+            >
+          : K extends (typeof SUPPORT_ORACLES)[2]
+            ? MaybeWithOracleLst<
+                K,
+                {
+                  registry: string;
+                  registryCap: string;
+                  state: string;
+                  wormhole: string;
+                  wormholeState: string;
+                }
+              >
             : never;
     } & {
       xOracle: string;
@@ -66,16 +124,7 @@ export interface AddressesInterface {
       primaryPriceUpdatePolicyVecsetId: string;
       secondaryPriceUpdatePolicyVecsetId: string;
     };
-    packages: Partial<
-      Record<
-        string,
-        {
-          id: string;
-          object?: string;
-          upgradeCap: string;
-        }
-      >
-    >;
+    packages: Packages;
   };
   spool: {
     id: string;
@@ -156,23 +205,12 @@ export interface AddressesInterface {
   };
 }
 
-type AddressPathsProps<T> = T extends string
-  ? []
-  : {
-      [K in Extract<keyof T, string>]: [K, ...AddressPathsProps<T[K]>];
-    }[Extract<keyof T, string>];
+type Paths<T> = T extends object
+  ? {
+      [K in Extract<keyof T, string>]: T[K] extends object // if T[K] is itself an object, emit K *and* K.<deep>
+        ? K | `${K}.${Paths<T[K]>}`
+        : K;
+    }[Extract<keyof T, string>]
+  : never;
 
-type Join<T extends string[], D extends string> = T extends []
-  ? never
-  : T extends [infer F]
-    ? F
-    : T extends [infer F, ...infer R]
-      ? F extends string
-        ? `${F}${D}${Join<Extract<R, string[]>, D>}`
-        : never
-      : string;
-
-export type AddressStringPath = Join<
-  AddressPathsProps<AddressesInterface>,
-  '.'
->;
+export type AddressStringPath = Paths<AddressesInterface>;
