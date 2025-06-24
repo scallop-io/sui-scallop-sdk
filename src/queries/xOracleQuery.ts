@@ -61,11 +61,28 @@ export const getAssetOracles = async (
     return null;
   }
 
+  const createRuleType = (objectId: string): string => {
+    return `${objectId}::rule::Rule`;
+  };
+
+  const pythLstRuleTypeNameToOracleType: Record<string, SupportOracleType> =
+    Object.values<{
+      object: string;
+    }>(utils.address.get('core.packages.pyth.lst') ?? {}).reduce(
+      (acc, curr) => {
+        acc[createRuleType(curr.object)] = 'pyth';
+        return acc;
+      },
+      {} as Record<string, SupportOracleType>
+    );
+
   const ruleTypeNameToOracleType: Record<string, SupportOracleType> = {
-    [`${utils.address.get('core.packages.pyth.object')}::rule::Rule`]: 'pyth',
-    [`${utils.address.get('core.packages.supra.object')}::rule::Rule`]: 'supra',
-    [`${utils.address.get('core.packages.switchboard.object')}::rule::Rule`]:
+    [createRuleType(utils.address.get('core.packages.pyth.object'))]: 'pyth',
+    // include the pyth lst type
+    [createRuleType(utils.address.get('core.packages.supra.object'))]: 'supra',
+    [createRuleType(utils.address.get('core.packages.switchboard.object'))]:
       'switchboard',
+    ...pythLstRuleTypeNameToOracleType,
   };
 
   const assetOracles = {} as Record<string, SupportOracleType[]>;

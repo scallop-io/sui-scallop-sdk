@@ -1,6 +1,12 @@
-import { xOracleListType } from 'src/types';
+export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
+export const X_ORACLE_RULES = ['primary', 'secondary'] as const;
+export const SUPPORT_ORACLE_LST = ['pyth'] as const;
+export const SUPPORT_SUI_LST = ['afsui'] as const;
 
-export const xOracleList: xOracleListType = {
+export const X_ORACLE_LIST: Record<
+  string,
+  Record<(typeof X_ORACLE_RULES)[number], (typeof SUPPORT_ORACLES)[number][]>
+> = {
   usdc: { primary: ['pyth'], secondary: [] },
   sbeth: { primary: ['pyth'], secondary: [] },
   sbusdt: { primary: ['pyth'], secondary: [] },

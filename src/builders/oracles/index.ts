@@ -1,10 +1,18 @@
-import { updatePythPriceFeeds } from './pyth';
-import { xOracleList as X_ORACLE_LIST } from 'src/constants';
-import { PriceUpdater } from './priceUpdater';
+import { X_ORACLE_LIST } from 'src/constants/xoracle';
+import { createXOracleUpdater, IXOracleUpdater } from './xOracleUpdater';
+import {
+  createPackageRegistry,
+  XOraclePackageRegistry,
+} from './oraclePackageRegistry';
+import {
+  createPriceFeedUpdater,
+  PriceFeedUpdateOptions,
+} from './priceFeedUpdater';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import type { ScallopBuilder, ScallopUtils } from 'src/models';
-import type { SupportOracleType, xOracleRules } from 'src/types';
-import { OracleConfig } from './oracleConfig';
+import type { ScallopBuilder } from 'src/models';
+import type { SupportOracleType, xOracleRuleType } from 'src/types';
+import { PriceUpdateRequester } from './priceUpdateRequester';
+import { UnsupportedOracleError } from './error';
 
 /**
  * Update the price of the oracle for multiple coin.
@@ -18,107 +26,126 @@ export const updateOracles = async (
   builder: ScallopBuilder,
   txBlock: SuiKitTxBlock,
   assetCoinNames: string[] = [...builder.constants.whitelist.lending],
-  options: {
-    usePythPullModel: boolean;
-    useOnChainXOracleList: boolean;
-    sponsoredFeeds: string[];
-  } = {
-    usePythPullModel: true,
-    useOnChainXOracleList: true,
-    sponsoredFeeds: [],
-  }
+  options: Partial<PriceFeedUpdateOptions> = {}
 ) => {
-  const sponsoredFeeds = new Set(
-    builder.sponsoredFeeds ?? options.sponsoredFeeds
+  // Validate the options
+  assetCoinNames = [...new Set(assetCoinNames)]; // Remove duplicates
+  const mergedOptions = {
+    usePythPullModel: builder.usePythPullModel,
+    useOnChainXOracleList: builder.useOnChainXOracleList,
+    pythSponsoredFeeds: builder.pythSponsoredFeeds,
+    ...options,
+  } as PriceFeedUpdateOptions;
+
+  // Retrieve the xOracle list from the builder or use the default one.
+  const xOracleList = mergedOptions.useOnChainXOracleList
+    ? await builder.query.getAssetOracles()
+    : X_ORACLE_LIST; // Record<coinName, Record<xOracleRuleType, SupportOracleType[]>>
+
+  const xOracleListAsSet = Object.entries(xOracleList).reduce(
+    (acc, [coinName, { primary, secondary }]) => {
+      acc[coinName] = {
+        primary: new Set(primary),
+        secondary: new Set(secondary),
+      };
+      return acc;
+    },
+    {} as Record<string, Record<xOracleRuleType, Set<SupportOracleType>>>
   );
 
-  // Validate the sponsoredFeeds content.
-  sponsoredFeeds.forEach((feed) => {
-    if (!builder.constants.whitelist.lending.has(feed)) {
-      throw new Error(`${feed} is not valid feed`);
-    }
-  });
-
-  const usePythPullModel = builder.usePythPullModel ?? options.usePythPullModel;
-  const useOnChainXOracleList =
-    builder.useOnChainXOracleList ?? options.useOnChainXOracleList;
-
-  const xOracleList = useOnChainXOracleList
-    ? await builder.query.getAssetOracles()
-    : X_ORACLE_LIST;
-
-  // const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
-  const flattenedRules = new Set(
+  // Get all oracle types no duplicates from all rules (primary and secondary).
+  const oracleTypesSet = new Set(
     Object.values(xOracleList).flatMap(({ primary, secondary }) => [
       ...primary,
       ...secondary,
     ])
   );
 
-  const filterAssetCoinNames = (
+  const getRuleType = (
     assetCoinName: string,
-    rule: SupportOracleType
+    oracleType: SupportOracleType
   ) => {
-    const assetXOracle = xOracleList[assetCoinName];
-    return (
-      assetXOracle &&
-      (assetXOracle.primary.includes(rule) ||
-        assetXOracle.secondary.includes(rule))
-    );
+    const ruleSet = xOracleListAsSet[assetCoinName];
+    if (!ruleSet)
+      return {
+        isPrimary: false,
+        isSecondary: false,
+      };
+
+    const { primary, secondary } = ruleSet;
+    const isPrimary = primary.has(oracleType);
+    const isSecondary = secondary.has(oracleType);
+
+    return {
+      isPrimary,
+      isSecondary,
+    };
   };
 
-  const updateAssetCoinNames = [...new Set(assetCoinNames)];
-  const pythAssetCoinNames = updateAssetCoinNames.filter((assetCoinName) =>
-    filterAssetCoinNames(assetCoinName, 'pyth')
-  );
+  // Create a package registry for xOracle
+  const xOraclePackageRegistry = new XOraclePackageRegistry(builder.utils);
 
-  if (flattenedRules.has('pyth')) {
-    const needToUpdatePythPriceFeeds: string[] = [];
-    for (const pythAssetCoinName of pythAssetCoinNames) {
-      /**
-       * Check if the Pyth pull model is not used but the feed is not sponsored.
-       * This is used to determine if we should update the Pyth price feeds.
-       */
-      const notUsingPullAndNotSponsored =
-        !usePythPullModel && !sponsoredFeeds.has(pythAssetCoinName);
+  // Create xOracle updater for each oracle type
+  const xOracleUpdaters: Partial<Record<SupportOracleType, IXOracleUpdater>> =
+    {};
 
-      if (usePythPullModel || notUsingPullAndNotSponsored) {
-        needToUpdatePythPriceFeeds.push(pythAssetCoinName);
-      }
+  // Iterate through oracle set
+  for (const oracleType of oracleTypesSet) {
+    const filteredAssetCoinNames = assetCoinNames.filter((assetCoinName) => {
+      const { isPrimary, isSecondary } = getRuleType(assetCoinName, oracleType);
+      if (!isPrimary && !isSecondary) return false;
+      return true;
+    });
+
+    if (filteredAssetCoinNames.length > 0) {
+      // Update all necessary price feeds
+      await createPriceFeedUpdater(
+        oracleType,
+        txBlock,
+        builder,
+        filteredAssetCoinNames,
+        mergedOptions
+      ).updatePriceFeeds();
     }
 
-    if (needToUpdatePythPriceFeeds.length > 0) {
-      await updatePythPriceFeeds(builder, needToUpdatePythPriceFeeds, txBlock);
-    }
+    // Create the xOracle updater for the current oracle type
+    xOracleUpdaters[oracleType] = createXOracleUpdater(
+      txBlock,
+      createPackageRegistry(oracleType, xOraclePackageRegistry)
+    );
   }
 
-  // Remove duplicate coin names.
-  for (const assetCoinName of updateAssetCoinNames) {
-    updateOracle(builder, txBlock, assetCoinName, xOracleList[assetCoinName]);
-  }
-};
-
-/**
- * Update the price of the oracle for specific coin.
- * @param utils - Scallop util instance
- * @param txBlock - TxBlock created by SuiKit.
- * @param assetCoinName - Specific support asset coin name.
- * @param rules - Oracle rules
- */
-const updateOracle = (
-  { utils }: { utils: ScallopUtils },
-  txBlock: SuiKitTxBlock,
-  assetCoinName: string,
-  rules: xOracleRules
-) => {
-  const coinType = utils.parseCoinType(assetCoinName);
-  const config = new OracleConfig(
-    utils.address,
-    assetCoinName,
-    coinType,
-    rules
-  );
-  new PriceUpdater(config, {
+  // Create a price update requester
+  const priceUpdateRequester = new PriceUpdateRequester(
     txBlock,
-  }).updatePrice();
+    xOraclePackageRegistry
+  );
+
+  for (const assetCoinName of assetCoinNames) {
+    const rules = xOracleList[assetCoinName];
+
+    // build the price update request for the asset coin
+    // Each coin name has its own price update request
+    const updateRequest = priceUpdateRequester.buildRequest(assetCoinName);
+
+    // Iterate through each rule and update the xOracle for each oracle type
+    Object.keys(rules).forEach((rule) => {
+      const oracles = rules[rule as xOracleRuleType];
+      oracles.forEach((oracleType) => {
+        const updater = xOracleUpdaters[oracleType];
+        if (!updater) {
+          // Should never happen if ORACLE_TYPES is the source of truth
+          throw new UnsupportedOracleError(oracleType);
+        }
+        updater.updateXOracle(
+          assetCoinName,
+          rule as xOracleRuleType,
+          updateRequest
+        );
+      });
+    });
+
+    // Confirm the price update request for all oracles
+    priceUpdateRequester.confirmRequest(assetCoinName, updateRequest);
+  }
 };
