@@ -1,19 +1,15 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import {
-  MAX_LOCK_ROUNDS,
-  Obligation,
-  POOL_ADDRESSES,
-  SCA_COIN_TYPE,
-  Scallop,
-  ScallopBuilder,
-  UNLOCK_ROUND_DURATION,
-  Vesca,
-  WHITELIST,
-} from '../src';
 import { SuiTxBlock, Transaction } from '@scallop-io/sui-kit';
 import { scallopSDK } from './scallopSdk';
 import { updateOracles } from 'src/builders/oracles';
-import { ADDRESS_INTERFACE } from './mocks';
+import { ADDRESS_INTERFACE, POOL_ADDRESSES, WHITELIST } from './mocks';
+import { Scallop, ScallopBuilder } from 'src/models';
+import { Obligation, Vesca } from 'src/types';
+import {
+  SCA_COIN_TYPE,
+  MAX_LOCK_ROUNDS,
+  UNLOCK_ROUND_DURATION,
+} from 'src/constants';
 
 const ENABLE_LOG = false;
 const COIN_NAME = 'sui';
@@ -1202,11 +1198,11 @@ describe('Test XOracle V2', () => {
 describe('Test pyth sponsored feeds', () => {
   const createTestEnv = async (
     coins: string[] = [],
-    sponsoredFeeds: string[] = []
+    pythSponsoredFeeds: string[] = []
   ) => {
     const scallopBuilder = new ScallopBuilder({
       addressId: '67c44a103fe1b8c454eb9699',
-      sponsoredFeeds,
+      pythSponsoredFeeds,
       usePythPullModel: false,
       forceAddressesInterface: ADDRESS_INTERFACE,
       forcePoolAddressInterface: POOL_ADDRESSES,

@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { NetworkType } from '@scallop-io/sui-kit';
-import { Scallop } from 'src';
+import { Scallop } from 'src/models';
 import { ADDRESS_INTERFACE, POOL_ADDRESSES, WHITELIST } from './mocks';
 dotenv.config();
 
@@ -12,6 +12,26 @@ export const scallopSDK = new Scallop({
   forceAddressesInterface: ADDRESS_INTERFACE,
   forcePoolAddressInterface: POOL_ADDRESSES,
   forceWhitelistInterface: WHITELIST,
+  usePythPullModel: false,
+  pythSponsoredFeeds: [
+    'wbtc',
+    'sbwbtc',
+    'sui',
+    'afsui',
+    'vsui',
+    'hasui',
+    'wsol',
+    'wapt',
+    'deep',
+    'usdc',
+    'wusdc',
+    'wusdt',
+    'sbusdt',
+    'sca',
+    'fud',
+    'cetus',
+    'haedal',
+  ],
   queryClientConfig: {
     defaultOptions: {
       queries: {

@@ -1,12 +1,8 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import {
-  POOL_ADDRESSES,
-  ScallopConstants,
-  TEST_ADDRESSES,
-  WHITELIST,
-  Whitelist,
-} from 'src';
+import { POOL_ADDRESSES, TEST_ADDRESSES, WHITELIST } from 'src/constants';
 import { scallopSDK } from './scallopSdk';
+import { ScallopConstants } from 'src/models';
+import { Whitelist } from 'src/types';
 
 // const ENABLE_LOG = false;
 let scallopConstants: ScallopConstants;
