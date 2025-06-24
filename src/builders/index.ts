@@ -4,11 +4,11 @@ import { newCoreTxBlock } from './coreBuilder';
 import { newSpoolTxBlock } from './spoolBuilder';
 import { newBorrowIncentiveTxBlock } from './borrowIncentiveBuilder';
 import { newVeScaTxBlock } from './vescaBuilder';
-import type { ScallopBuilder } from 'src/models';
-import type { ScallopTxBlock } from 'src/types';
 import { newReferralTxBlock } from './referralBuilder';
 import { newLoyaltyProgramTxBlock } from './loyaltyProgramBuilder';
 import { newSCoinTxBlock } from './sCoinBuilder';
+import { ScallopTxBlock } from 'src/types/builder';
+import type { ScallopBuilder } from 'src/models';
 
 /**
  * Create a new ScallopTxBlock instance.

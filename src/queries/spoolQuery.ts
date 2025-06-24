@@ -8,18 +8,18 @@ import {
 } from 'src/utils';
 import type { SuiObjectData, SuiObjectResponse } from '@mysten/sui/client';
 import type { ScallopQuery, ScallopUtils } from 'src/models';
-import type {
-  Spools,
-  Spool,
-  StakePool,
-  StakeRewardPool,
-  StakeAccounts,
-  CoinPrices,
-  MarketPools,
+import { CoinPrices } from 'src/types';
+import {
+  OriginSpoolData,
   OriginSpoolRewardPoolData,
   SpoolData,
-  OriginSpoolData,
-} from '../types';
+  MarketPools,
+  Spools,
+  Spool,
+  StakeAccounts,
+  StakePool,
+  StakeRewardPool,
+} from 'src/types/query';
 
 const queryRequiredSpoolObjects = async (
   query: ScallopQuery,

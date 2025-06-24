@@ -2,65 +2,82 @@ import ScallopUtils, { ScallopUtilsParams } from './scallopUtils';
 import ScallopIndexer, { ScallopIndexerParams } from './scallopIndexer';
 import { withIndexerFallback } from 'src/utils';
 import {
-  CoinPrices,
   MarketCollaterals,
   MarketPool,
   MarketPools,
   StakePools,
   StakeRewardPools,
-  SupportOracleType,
-  xOracleRules,
-} from 'src/types';
+} from 'src/types/query';
+import { SuiObjectRef, SuiObjectData } from '@mysten/sui/dist/cjs/client';
+import { SuiObjectArg } from '@scallop-io/sui-kit';
+import { ScallopQueryInterface } from './interface';
 import {
-  getAllCoinPrices,
-  getAssetOracles,
+  getBorrowIncentivePools,
+  queryBorrowIncentiveAccounts,
   getBindedObligationId,
   getBindedVeScaKey,
-  getBorrowIncentivePools,
-  getBorrowLimit,
-  getCoinAmount,
-  getCoinAmounts,
-  getFlashLoanFees,
-  getIsolatedAssets,
-  getLending,
-  getLendings,
-  getLoyaltyProgramInformations,
-  getMarketCoinAmount,
-  getMarketCoinAmounts,
-  getMarketCollateral,
-  getMarketCollaterals,
+} from 'src/queries/borrowIncentiveQuery';
+import { getBorrowLimit } from 'src/queries/borrowLimitQuery';
+import {
+  queryMarket,
   getMarketPools,
-  getObligationAccounts,
+  getMarketCollaterals,
+  getMarketCollateral,
   getObligations,
-  getOnDemandAggObjectIds,
-  getPoolAddresses,
-  getPriceUpdatePolicies,
+  queryObligation,
+  getCoinAmounts,
+  getCoinAmount,
+  getMarketCoinAmounts,
+  getMarketCoinAmount,
+  getFlashLoanFees,
+} from 'src/queries/coreQuery';
+import {
+  getIsolatedAssets,
+  isIsolatedAsset,
+} from 'src/queries/isolatedAssetQuery';
+import {
+  getLoyaltyProgramInformations,
+  getVeScaLoyaltyProgramInformations,
+} from 'src/queries/loyaltyProgramQuery';
+import { getPoolAddresses } from 'src/queries/poolAddressesQuery';
+import {
+  getLendings,
+  getLending,
+  getObligationAccounts,
+  getTotalValueLocked,
+  getUserPortfolio,
+} from 'src/queries/portfolioQuery';
+import {
   getPythPrice,
   getPythPrices,
-  getSCoinAmount,
-  getSCoinAmounts,
-  getSCoinSwapRate,
+  getAllCoinPrices,
+} from 'src/queries/priceQuery';
+import { queryVeScaKeyIdFromReferralBindings } from 'src/queries/referralQuery';
+import {
   getSCoinTotalSupply,
+  getSCoinAmounts,
+  getSCoinAmount,
+  getSCoinSwapRate,
+} from 'src/queries/sCoinQuery';
+import {
   getSpools,
   getStakeAccounts,
   getStakePool,
   getStakeRewardPool,
-  getSupplyLimit,
-  getTotalValueLocked,
-  getUserPortfolio,
+} from 'src/queries/spoolQuery';
+import { getSupplyLimit } from 'src/queries/supplyLimitQuery';
+import { getOnDemandAggObjectIds } from 'src/queries/switchboardQuery';
+import {
   getVeSca,
-  getVeScaLoyaltyProgramInformations,
   getVeScas,
   getVeScaTreasuryInfo,
-  isIsolatedAsset,
-  queryBorrowIncentiveAccounts,
-  queryMarket,
-  queryObligation,
-  queryVeScaKeyIdFromReferralBindings,
-} from 'src/queries';
-import { SuiObjectRef, SuiObjectData } from '@mysten/sui/dist/cjs/client';
-import { SuiObjectArg } from '@scallop-io/sui-kit';
-import { ScallopQueryInterface } from './interface';
+} from 'src/queries/vescaQuery';
+import {
+  getPriceUpdatePolicies,
+  getAssetOracles,
+} from 'src/queries/xOracleQuery';
+import { CoinPrices } from 'src/types/utils';
+import { SupportOracleType, xOracleRules } from 'src/types/constant';
 
 export type ScallopQueryParams = {
   indexer?: ScallopIndexer;
@@ -851,7 +868,6 @@ class ScallopQuery implements ScallopQueryInterface {
 
   /**
    * Return the supported primary and secondary oracles for all supported pool assets
-   * @returns
    */
   async getAssetOracles() {
     const [primary, secondary] = await Promise.all([

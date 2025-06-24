@@ -1,4 +1,4 @@
-import { MAX_LOCK_DURATION } from 'src/constants';
+import { MAX_LOCK_DURATION } from 'src/constants/vesca';
 // import { ScallopConstants } from 'src/models/scallopConstants';
 
 /**

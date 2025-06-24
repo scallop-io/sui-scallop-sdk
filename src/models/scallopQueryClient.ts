@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
 
 export type ScallopQueryClientParams = {
   queryClient?: QueryClient;

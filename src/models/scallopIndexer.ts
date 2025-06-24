@@ -10,9 +10,10 @@ import {
   Spool,
   Spools,
   TotalValueLocked,
-} from 'src/types';
+} from 'src/types/query';
 import ScallopAxios, { ScallopAxiosParams } from './scallopAxios';
-import { queryKeys, SDK_API_BASE_URL } from 'src/constants';
+import { SDK_API_BASE_URL } from 'src/constants/api';
+import { queryKeys } from 'src/constants/queryKeys';
 
 export type ScallopIndexerParams = {
   indexerApiUrl?: string;

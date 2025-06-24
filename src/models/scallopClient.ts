@@ -7,8 +7,8 @@ import type {
 } from '@mysten/sui/transactions';
 import { requireSender } from 'src/utils';
 import type { NetworkType, SuiObjectArg } from '@scallop-io/sui-kit';
-import type { ScallopTxBlock } from '../types';
 import { ScallopClientInterface } from './interface';
+import { ScallopTxBlock } from 'src/types/builder';
 
 export type ScallopClientParams = {
   networkType?: NetworkType;

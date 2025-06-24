@@ -16,12 +16,11 @@ import type {
   BorrowIncentiveAccountsQueryInterface,
   BorrowIncentiveAccounts,
   BorrowIncentivePoolPoints,
-  OptionalKeys,
-  CoinPrices,
   MarketPools,
-} from 'src/types';
+} from 'src/types/query';
 import BigNumber from 'bignumber.js';
 import { SuiObjectRef } from '@mysten/sui/client';
+import { CoinPrices, OptionalKeys } from 'src/types/utils';
 
 /**
  * Query borrow incentive pools data using moveCall

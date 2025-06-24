@@ -26,13 +26,11 @@ import {
   BalanceSheet,
   RiskModel,
   CollateralStat,
-  OptionalKeys,
-  CoinPrices,
   OriginMarketPoolData,
   BorrowFee,
   BorrowDynamic,
   OriginMarketCollateralData,
-} from 'src/types';
+} from 'src/types/query';
 import BigNumber from 'bignumber.js';
 import { getSupplyLimit } from './supplyLimitQuery';
 import { isIsolatedAsset } from './isolatedAssetQuery';
@@ -45,6 +43,7 @@ import {
   ScallopIndexer,
   ScallopAddress,
 } from 'src/models';
+import { CoinPrices, OptionalKeys } from 'src/types';
 
 /**
  * Query market data.

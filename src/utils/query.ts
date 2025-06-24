@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js';
 import { normalizeStructTag } from '@mysten/sui/utils';
 import type { ScallopUtils } from '../models';
-import type {
+import {
   OriginMarketPoolData,
   ParsedMarketPoolData,
   CalculatedMarketPoolData,
@@ -14,16 +14,16 @@ import type {
   OriginSpoolRewardPoolData,
   ParsedSpoolRewardPoolData,
   CalculatedSpoolRewardPoolData,
-  OriginBorrowIncentivePoolData,
-  ParsedBorrowIncentivePoolData,
-  OriginBorrowIncentiveAccountData,
-  ParsedBorrowIncentiveAccountData,
   OriginBorrowIncentivePoolPointData,
   ParsedBorrowIncentivePoolPointData,
+  OriginBorrowIncentivePoolData,
+  ParsedBorrowIncentivePoolData,
   CalculatedBorrowIncentivePoolPointData,
   OriginBorrowIncentiveAccountPoolData,
   ParsedBorrowIncentiveAccountPoolData,
-} from '../types';
+  OriginBorrowIncentiveAccountData,
+  ParsedBorrowIncentiveAccountData,
+} from 'src/types/query';
 
 /**
  *  Parse origin market pool data to a more readable format.

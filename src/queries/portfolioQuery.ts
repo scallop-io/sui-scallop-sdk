@@ -1,24 +1,24 @@
 import BigNumber from 'bignumber.js';
 import { minBigNumber, estimatedFactor } from 'src/utils';
 import type { ScallopQuery } from 'src/models';
-import type {
-  Market,
-  MarketPool,
-  Spool,
-  StakeAccount,
-  Lendings,
-  Lending,
-  ObligationAccounts,
-  ObligationAccount,
-  CoinAmounts,
-  CoinPrices,
-  TotalValueLocked,
-  ObligationBorrowIncentiveReward,
-  MarketPools,
-  MarketCollaterals,
-} from 'src/types';
 import { SuiObjectRef } from '@mysten/sui/client';
 import { normalizeStructTag, SUI_TYPE_ARG } from '@scallop-io/sui-kit';
+import {
+  CoinAmounts,
+  Lending,
+  Lendings,
+  Market,
+  MarketCollaterals,
+  MarketPool,
+  MarketPools,
+  ObligationAccount,
+  ObligationAccounts,
+  ObligationBorrowIncentiveReward,
+  Spool,
+  StakeAccount,
+  TotalValueLocked,
+} from 'src/types/query';
+import { CoinPrices } from 'src/types/utils';
 
 /**
  * Get user lending infomation for specific pools.

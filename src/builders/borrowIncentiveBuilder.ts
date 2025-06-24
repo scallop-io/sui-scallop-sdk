@@ -3,7 +3,6 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   SUI_CLOCK_OBJECT_ID,
 } from '@scallop-io/sui-kit';
-import { getObligations, getObligationLocked } from 'src/queries';
 import { requireSender } from 'src/utils';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
@@ -15,7 +14,8 @@ import type {
   BorrowIncentiveTxBlock,
   ScallopTxBlock,
 } from 'src/types';
-import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants';
+import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants/common';
+import { getObligationLocked, getObligations } from 'src/queries/coreQuery';
 
 /**
  * Check and get Obligation information from transaction block.

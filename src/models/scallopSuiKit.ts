@@ -8,7 +8,7 @@ import {
   SuiTxBlock,
   Transaction,
 } from '@scallop-io/sui-kit';
-import { queryKeys } from 'src/constants';
+import { queryKeys } from 'src/constants/queryKeys';
 import {
   CoinBalance,
   DevInspectResults,

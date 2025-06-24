@@ -1,6 +1,7 @@
 import { NetworkType } from '@scallop-io/sui-kit';
-import { API_BASE_URL, queryKeys } from 'src/constants';
-import { AddressesInterface, AddressStringPath } from 'src/types';
+import { API_BASE_URL } from 'src/constants/api';
+import { queryKeys } from 'src/constants/queryKeys';
+import { AddressesInterface, AddressStringPath } from 'src/types/address';
 import ScallopAxios, { ScallopAxiosParams } from './scallopAxios';
 import { QueryKey } from '@tanstack/query-core';
 import { AxiosRequestConfig } from 'axios';
@@ -242,6 +243,13 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         state: '',
         wormhole: '',
         wormholeState: '',
+        lst: {
+          afsui: {
+            safeId: '',
+            stakedSuiVaultId: '',
+            configId: '',
+          },
+        },
       },
     },
     packages: {
@@ -273,12 +281,24 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         id: '',
         upgradeCap: '',
       },
-      supra: { id: '', upgradeCap: '' },
-      pyth: {
+      supra: {
         id: '',
         upgradeCap: '',
       },
-      switchboard: { id: '', upgradeCap: '' },
+      pyth: {
+        id: '',
+        upgradeCap: '',
+        lst: {
+          afsui: {
+            id: '',
+            object: '',
+          },
+        },
+      },
+      switchboard: {
+        id: '',
+        upgradeCap: '',
+      },
       xOracle: {
         id: '',
         upgradeCap: '',

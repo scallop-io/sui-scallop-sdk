@@ -2,7 +2,7 @@ import { bcs } from '@mysten/sui/bcs';
 import assert from 'assert';
 import BigNumber from 'bignumber.js';
 import { ScallopQuery, ScallopUtils } from 'src/models';
-import { OptionalKeys, sCoinBalance } from 'src/types';
+import { OptionalKeys } from 'src/types';
 
 /**
  * Get total supply of sCoin
@@ -17,7 +17,7 @@ export const getSCoinTotalSupply = async (
     utils: ScallopUtils;
   },
   sCoinName: string
-): Promise<sCoinBalance> => {
+): Promise<number> => {
   const sCoinPkgId = utils.address.get('scoin.id');
   // get treasury
   const args = [utils.getSCoinTreasury(sCoinName)];

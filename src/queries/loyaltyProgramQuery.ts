@@ -1,6 +1,6 @@
 import { SuiObjectData } from '@mysten/sui/client';
 import BigNumber from 'bignumber.js';
-import { MAX_LOCK_DURATION } from 'src/constants';
+import { MAX_LOCK_DURATION } from 'src/constants/vesca';
 import { ScallopQuery } from 'src/models';
 import { LoyaltyProgramInfo, VeScaLoyaltyProgramInfo } from 'src/types';
 import { z as zod } from 'zod';

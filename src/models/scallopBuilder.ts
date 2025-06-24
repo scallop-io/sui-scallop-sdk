@@ -12,13 +12,13 @@ import type {
   SuiTxArg,
   SuiVecTxArg,
 } from '@scallop-io/sui-kit';
-import type { ScallopTxBlock, SelectCoinReturnType } from '../types';
 import { ScallopBuilderInterface } from './interface';
+import { ScallopTxBlock, SelectCoinReturnType } from 'src/types/builder';
 
 export type ScallopBuilderParams = {
   query?: ScallopQuery;
   usePythPullModel?: boolean;
-  sponsoredFeeds?: string[];
+  pythSponsoredFeeds?: string[];
   useOnChainXOracleList?: boolean;
 } & ScallopQueryParams;
 
@@ -37,13 +37,13 @@ class ScallopBuilder implements ScallopBuilderInterface {
   public readonly query: ScallopQuery;
   public readonly usePythPullModel: boolean;
   public readonly useOnChainXOracleList: boolean;
-  public readonly sponsoredFeeds: string[];
+  public readonly pythSponsoredFeeds: string[];
 
   public constructor(params: ScallopBuilderParams) {
     this.query = params.query ?? new ScallopQuery(params);
     this.usePythPullModel = params.usePythPullModel ?? true;
     this.useOnChainXOracleList = params.useOnChainXOracleList ?? true;
-    this.sponsoredFeeds = params.sponsoredFeeds ?? [];
+    this.pythSponsoredFeeds = [...new Set(params.pythSponsoredFeeds ?? [])];
   }
 
   get utils() {

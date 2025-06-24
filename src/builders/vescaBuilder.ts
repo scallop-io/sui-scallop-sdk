@@ -4,9 +4,9 @@ import {
   Transaction,
   SuiTxBlock as SuiKitTxBlock,
 } from '@scallop-io/sui-kit';
-import { SCA_COIN_TYPE } from 'src/constants';
+import { SCA_COIN_TYPE } from 'src/constants/common';
 import { ScallopBuilder } from 'src/models';
-import { getVeSca, getVeScas } from 'src/queries';
+import { getVeSca, getVeScas } from 'src/queries/vescaQuery';
 import {
   requireSender,
   checkLockSca,
