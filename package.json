@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-scallop-sdk",
-  "version": "2.2.2",
+  "version": "2.2.2-lst-x-oracle-alpha.1",
   "description": "Typescript sdk for interacting with Scallop contract on SUI",
   "keywords": [
     "sui",
@@ -22,15 +22,27 @@
   "engines": {
     "node": ">=18.15.0"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/models/index.js",
+  "module": "./dist/models/index.mjs",
+  "types": "./dist/models/index.d.ts",
   "exports": {
-    ".": {
-      "source": "./src/index.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+    "./models": {
+      "source": "./src/models/index.ts",
+      "import": "./dist/models/index.mjs",
+      "require": "./dist/models/index.js",
+      "default": "./dist/models/index.js"
+    },
+    "./types": {
+      "source": "./src/types/index.ts",
+      "import": "./dist/types/index.mjs",
+      "require": "./dist/types/index.js",
+      "default": "./dist/types/index.js"
+    },
+    "./constants": {
+      "source": "./src/constants/index.ts",
+      "import": "./dist/constants/index.mjs",
+      "require": "./dist/constants/index.js",
+      "default": "./dist/constants/index.js"
     }
   },
   "files": [
@@ -40,8 +52,8 @@
   "scripts": {
     "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
     "build": "pnpm run build:tsup",
-    "build:tsup": "tsup ./src/index.ts --format esm,cjs --splitting --minify --treeshake --dts",
-    "watch:tsup": "tsup ./src/index.ts --format esm,cjs --clean --splitting --watch",
+    "build:tsup": "tsup ./src/models/index.ts ./src/constants/index.ts ./src/types/index.ts --format esm,cjs --clean --splitting --minify --treeshake --dts",
+    "watch:tsup": "tsup ./src/models/index.ts ./src/constants/index.ts ./src/types/index.ts --format esm,cjs --clean --splitting --watch",
     "watch:types": "tsc --watch",
     "watch": "pnpm run clean & pnpm run watch:types & pnpm run watch:tsup",
     "test": "pnpm test:typecheck && pnpm test:unit",
