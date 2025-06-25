@@ -411,11 +411,11 @@ export const TEST_ADDRESSES: AddressesInterface = {
       },
       safsui: {
         coinType:
-          '0x00671b1fa2a124f5be8bdae8b91ee711462c5d9e31bda232e70fd9607b523c88::scallop_af_sui::SCALLOP_AF_SUI',
+          '0xe66ae8fd59e37f78e355dafb130b7c167ca4ec8792a424031a1a1eac96244ada::scallop_af_sui::SCALLOP_AF_SUI',
         treasury:
-          '0x55f4dfe9e40bc4cc11c70fcb1f3daefa2bdc330567c58d4f0792fbd9f9175a62',
+          '0xc57357a64593aa54bc23d7936129119b86876a200107481578f304762217061a',
         metaData:
-          '0xfd81c4d1b4d9d1b8c522e91121d22e94759386b29eafe1cc3888ca0ebe369b9e',
+          '0x42179b69f82ea26e3763345ee0fb1cea8b1bd355168b3241ceb727ec82bb0688',
         symbol: 'safSUI',
       },
       susdc: {
@@ -817,11 +817,11 @@ export const POOL_ADDRESSES = {
     spoolReward:
       '0x89255a2f86ed7fbfef35ab8b7be48cc7667015975be2685dd9a55a9a64baf76e',
     sCoinType:
-      '0x00671b1fa2a124f5be8bdae8b91ee711462c5d9e31bda232e70fd9607b523c88::scallop_af_sui::SCALLOP_AF_SUI',
+      '0xe66ae8fd59e37f78e355dafb130b7c167ca4ec8792a424031a1a1eac96244ada::scallop_af_sui::SCALLOP_AF_SUI',
     sCoinTreasury:
-      '0x55f4dfe9e40bc4cc11c70fcb1f3daefa2bdc330567c58d4f0792fbd9f9175a62',
+      '0xc57357a64593aa54bc23d7936129119b86876a200107481578f304762217061a',
     sCoinMetadataId:
-      '0xfd81c4d1b4d9d1b8c522e91121d22e94759386b29eafe1cc3888ca0ebe369b9e',
+      '0x42179b69f82ea26e3763345ee0fb1cea8b1bd355168b3241ceb727ec82bb0688',
     sCoinSymbol: 'safSUI',
     sCoinName: 'safsui',
     coinMetadataId:
