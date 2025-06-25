@@ -12,8 +12,8 @@ import type {
   SuiTxArg,
   SuiVecTxArg,
 } from '@scallop-io/sui-kit';
+import type { ScallopTxBlock, SelectCoinReturnType } from 'src/types';
 import { ScallopBuilderInterface } from './interface';
-import { ScallopTxBlock, SelectCoinReturnType } from 'src/types/builder';
 
 export type ScallopBuilderParams = {
   query?: ScallopQuery;

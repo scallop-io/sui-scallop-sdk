@@ -1,9 +1,9 @@
-import ScallopAddress from './scallopAddress';
-import ScallopBuilder from './scallopBuilder';
-import ScallopConstants from './scallopConstants';
-import ScallopQuery from './scallopQuery';
-import ScallopSuiKit from './scallopSuiKit';
-import ScallopUtils from './scallopUtils';
+import type { default as ScallopAddress } from './scallopAddress';
+import type { default as ScallopBuilder } from './scallopBuilder';
+import type { default as ScallopConstants } from './scallopConstants';
+import type { default as ScallopQuery } from './scallopQuery';
+import type { default as ScallopSuiKit } from './scallopSuiKit';
+import type { default as ScallopUtils } from './scallopUtils';
 
 interface ScallopBaseInterface {
   scallopSuiKit: ScallopSuiKit;

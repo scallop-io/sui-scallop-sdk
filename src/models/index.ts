@@ -1,3 +1,4 @@
+// export type * from './interface';
 export { default as Scallop } from './scallop';
 export { default as ScallopClient } from './scallopClient';
 export { default as ScallopBuilder } from './scallopBuilder';
@@ -6,6 +7,6 @@ export { default as ScallopAxios } from './scallopAxios';
 export { default as ScallopConstants } from './scallopConstants';
 export { default as ScallopIndexer } from './scallopIndexer';
 export { default as ScallopQuery } from './scallopQuery';
-export { default as ScallopQueryClient } from '../models/scallopQueryClient';
+export { default as ScallopQueryClient } from './scallopQueryClient';
 export { default as ScallopUtils } from './scallopUtils';
 export { default as ScallopSuiKit } from './scallopSuiKit';
