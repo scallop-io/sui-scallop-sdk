@@ -13,7 +13,7 @@ import {
   ReferralTxBlock,
   SuiTxBlockWithReferralNormalMethods,
 } from 'src/types/builder/referral';
-import { requireSender } from 'src/utils';
+import { requireSender } from './utils';
 
 const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
   builder,

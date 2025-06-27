@@ -3,7 +3,7 @@ import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { getObligations } from 'src/queries/coreQuery';
 import { updateOracles } from './oracles';
-import { requireSender } from '../utils';
+import { requireSender } from './utils';
 import type { SuiObjectArg, TransactionResult } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
 import type {

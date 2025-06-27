@@ -14,7 +14,7 @@ import {
   checkExtendLockAmount,
   checkRenewExpiredVeSca,
   checkVesca,
-} from 'src/utils';
+} from './utils';
 import type {
   TransactionObjectArgument,
   SuiObjectArg,

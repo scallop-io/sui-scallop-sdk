@@ -3,7 +3,7 @@ import {
   parseOriginBorrowIncentivePoolData,
   parseOriginBorrowIncentiveAccountData,
   calculateBorrowIncentivePoolPointData,
-} from 'src/utils';
+} from './utils';
 import type {
   ScallopAddress,
   ScallopQuery,
@@ -20,7 +20,7 @@ import type {
 } from 'src/types/query';
 import BigNumber from 'bignumber.js';
 import { SuiObjectRef } from '@mysten/sui/client';
-import { CoinPrices, OptionalKeys } from 'src/types/utils';
+import { CoinPrices, OptionalKeys } from 'src/types/util';
 
 /**
  * Query borrow incentive pools data using moveCall

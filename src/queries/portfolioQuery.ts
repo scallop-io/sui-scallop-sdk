@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { minBigNumber, estimatedFactor } from 'src/utils';
+import { minBigNumber, estimatedFactor } from './utils';
 import type { ScallopQuery } from 'src/models';
 import { SuiObjectRef } from '@mysten/sui/client';
 import { normalizeStructTag, SUI_TYPE_ARG } from '@scallop-io/sui-kit';
@@ -18,7 +18,7 @@ import {
   StakeAccount,
   TotalValueLocked,
 } from 'src/types/query';
-import { CoinPrices } from 'src/types/utils';
+import { CoinPrices } from 'src/types/util';
 
 /**
  * Get user lending infomation for specific pools.

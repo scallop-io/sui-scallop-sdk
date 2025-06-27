@@ -5,7 +5,7 @@ import {
   parseOriginMarketCollateralData,
   calculateMarketCollateralData,
   parseObjectAs,
-} from 'src/utils';
+} from './utils';
 import type {
   SuiObjectResponse,
   SuiObjectData,

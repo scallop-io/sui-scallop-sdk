@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { normalizeStructTag } from '@mysten/sui/utils';
-import type { ScallopUtils } from '../models';
+import type { ScallopUtils } from 'src/models';
 import {
   OriginMarketPoolData,
   ParsedMarketPoolData,
@@ -24,6 +24,7 @@ import {
   OriginBorrowIncentiveAccountData,
   ParsedBorrowIncentiveAccountData,
 } from 'src/types/query';
+import { SuiObjectData } from '@mysten/sui/client';
 
 /**
  *  Parse origin market pool data to a more readable format.
@@ -641,4 +642,21 @@ export const estimatedFactor = (
   adjustFactor = type === 'increase' ? 1 - adjustFactor : 1 + adjustFactor;
 
   return adjustFactor;
+};
+
+export const parseObjectAs = <T>(object: SuiObjectData): T => {
+  if (!(object && object.content && 'fields' in object.content))
+    throw new Error(`Failed to parse object ${object}`);
+
+  const fields = object.content.fields as any;
+
+  if (typeof fields === 'object' && 'value' in fields) {
+    const value = fields.value;
+    if (typeof value === 'object' && 'fields' in value)
+      return value.fields as T;
+    return value as T;
+  } else if (typeof fields === 'object') {
+    return fields as T;
+  }
+  return fields as T;
 };

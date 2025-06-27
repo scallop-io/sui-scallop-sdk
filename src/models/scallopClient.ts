@@ -5,7 +5,7 @@ import type {
   TransactionObjectArgument,
   TransactionResult,
 } from '@mysten/sui/transactions';
-import { requireSender } from 'src/utils';
+import { requireSender } from './utils';
 import type { NetworkType, SuiObjectArg } from '@scallop-io/sui-kit';
 import { ScallopClientInterface } from './interface';
 import { ScallopTxBlock } from 'src/types/builder';

@@ -27,37 +27,10 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "source": "./src/index.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./constants": {
-      "import": "./dist/constants/index.mjs",
-      "require": "./dist/constants/index.js",
-      "types": "./dist/constants/index.d.ts"
-    },
-    "./models": {
-      "import": "./dist/models/index.mjs",
-      "require": "./dist/models/index.js",
-      "types": "./dist/models/index.d.ts"
-    },
-    "./types": {
-      "import": "./dist/types/index.mjs",
-      "require": "./dist/types/index.js",
-      "types": "./dist/types/index.d.ts"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "constants": [
-        "dist/constants/index.d.ts"
-      ],
-      "models": [
-        "dist/models/index.d.ts"
-      ],
-      "types": [
-        "dist/types/index.d.ts"
-      ]
+      "default": "./dist/index.js"
     }
   },
   "files": [
@@ -66,10 +39,8 @@
   ],
   "scripts": {
     "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
-    "build": "pnpm run build:tsup",
-    "build:tsup": "tsup src/index.ts src/constants/index.ts src/models/index.ts src/types/index.ts  --format esm,cjs --clean --splitting --minify --treeshake --dts",
-    "watch:tsup": "tsup ./src/index.ts --format esm,cjs --clean --splitting --watch",
-    "watch:types": "tsc --watch",
+    "build": "pnpm run clean && pnpm run build:tsup",
+    "build:tsup": "tsup ./src/index.ts --format esm,cjs --dts --splitting --minify --treeshake",
     "watch": "pnpm run clean & pnpm run watch:types & pnpm run watch:tsup",
     "test": "pnpm test:typecheck && pnpm test:unit",
     "test:typecheck": "tsc -p ./test",
@@ -118,7 +89,7 @@
     "prettier": "^3.0.3",
     "standard-version": "^9.5.0",
     "tsconfig-paths": "^4.2.0",
-    "tsup": "^7.2.0",
+    "tsup": "^8.5.0",
     "typedoc": "^0.26.3",
     "typescript": "5.5.4",
     "valibot": "^1.1.0",

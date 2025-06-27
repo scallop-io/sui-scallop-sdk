@@ -449,7 +449,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
   },
 };
 
-export const WHITELIST = {
+export const TEST_WHITELIST = {
   lending: new Set([
     'usdc',
     // 'sbeth',
@@ -584,7 +584,7 @@ export const WHITELIST = {
   emerging: new Set(['wal', 'deep', 'sca', 'cetus']),
 };
 
-export const POOL_ADDRESSES = {
+export const TEST_POOL_ADDRESSES = {
   usdc: {
     coinName: 'usdc',
     symbol: 'USDC',

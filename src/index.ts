@@ -1,3 +1,12 @@
-export type * from './constants';
-export type * from './models';
-export type * from './types';
+export * from './constants';
+export {
+  Scallop,
+  ScallopConstants,
+  ScallopAddress,
+  ScallopBuilder,
+  ScallopQuery,
+  ScallopSuiKit,
+  ScallopClient,
+  ScallopIndexer,
+  ScallopUtils,
+} from './models';

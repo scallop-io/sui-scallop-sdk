@@ -1,7 +1,6 @@
 export * from './api';
 export * from './cache';
 export * from './common';
-export * from './package';
 export * from './queryKeys';
 export * from './rpc';
 export * from './testAddress';

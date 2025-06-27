@@ -1,6 +1,6 @@
 import ScallopUtils, { ScallopUtilsParams } from './scallopUtils';
 import ScallopIndexer, { ScallopIndexerParams } from './scallopIndexer';
-import { withIndexerFallback } from 'src/utils';
+import { withIndexerFallback } from './utils';
 import {
   MarketCollaterals,
   MarketPool,
@@ -76,7 +76,7 @@ import {
   getPriceUpdatePolicies,
   getAssetOracles,
 } from 'src/queries/xOracleQuery';
-import { CoinPrices } from 'src/types/utils';
+import { CoinPrices } from 'src/types/util';
 import { SupportOracleType, xOracleRules } from 'src/types/constant';
 
 export type ScallopQueryParams = {

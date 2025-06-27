@@ -5,7 +5,7 @@ import {
   parseOriginSpoolRewardPoolData,
   calculateSpoolRewardPoolData,
   parseObjectAs,
-} from 'src/utils';
+} from './utils';
 import type { SuiObjectData, SuiObjectResponse } from '@mysten/sui/client';
 import type { ScallopQuery, ScallopUtils } from 'src/models';
 import { CoinPrices } from 'src/types';

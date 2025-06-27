@@ -18,7 +18,7 @@ import ScallopClient, { ScallopClientParams } from './scallopClient';
  * ```
  */
 
-export type ScallopParams = {
+type ScallopParams = {
   client?: ScallopClient;
 } & ScallopClientParams;
 class Scallop {

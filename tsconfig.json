@@ -6,10 +6,6 @@
     "target": "ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
     "baseUrl": ".",
-    "paths": {
-      "@scallop-io/sui-scallop-sdk": ["src/index.ts"],
-      "@scallop-io/sui-scallop-sdk/*": ["src/*"]
-    },
     "downlevelIteration": true,
     "rootDir": "src",
     "outDir": "dist",

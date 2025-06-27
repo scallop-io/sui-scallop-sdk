@@ -3,7 +3,7 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   SUI_CLOCK_OBJECT_ID,
 } from '@scallop-io/sui-kit';
-import { requireSender } from 'src/utils';
+import { requireSender } from './utils';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
 import type {

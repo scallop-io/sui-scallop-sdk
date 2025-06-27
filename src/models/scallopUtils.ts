@@ -7,7 +7,7 @@ import {
   Transaction,
 } from '@scallop-io/sui-kit';
 import ScallopConstants, { ScallopConstantsParams } from './scallopConstants';
-import { findClosestUnlockRound } from 'src/utils';
+import { findClosestUnlockRound } from './utils';
 import { PriceFeed, SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import ScallopSuiKit, { ScallopSuiKitParams } from './scallopSuiKit';
 import { SuiObjectData } from '@mysten/sui/dist/cjs/client';
@@ -16,7 +16,7 @@ import { ScallopUtilsInterface } from './interface';
 import { MAX_LOCK_DURATION, UNLOCK_ROUND_DURATION } from 'src/constants/vesca';
 import { queryKeys } from 'src/constants/queryKeys';
 import { CoinWrappedType, PoolAddress } from 'src/types/constant';
-import { CoinPrices } from 'src/types/utils';
+import { CoinPrices } from 'src/types/util';
 
 export type ScallopUtilsParams = {
   pythEndpoints?: string[];

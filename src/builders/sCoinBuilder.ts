@@ -9,7 +9,7 @@ import {
   SuiTxBlockWithSCoinNormalMethods,
   sCoinPkgIds,
 } from 'src/types';
-import { requireSender } from 'src/utils';
+import { requireSender } from './utils';
 
 const generateSCoinNormalMethod: GenerateSCoinNormalMethod = ({
   builder,
