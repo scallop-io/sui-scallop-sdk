@@ -1,5 +1,5 @@
 import { ScallopBuilder } from 'src/models';
-import { ScallopTxBlock } from 'src/types';
+import { ScallopTxBlock } from 'src/types/builder';
 import {
   SUI_CLOCK_OBJECT_ID,
   SuiTxBlock as SuiKitTxBlock,

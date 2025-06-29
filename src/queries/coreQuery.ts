@@ -43,7 +43,7 @@ import {
   ScallopIndexer,
   ScallopAddress,
 } from 'src/models';
-import { CoinPrices, OptionalKeys } from 'src/types';
+import { CoinPrices, OptionalKeys } from 'src/types/util';
 
 /**
  * Query market data.

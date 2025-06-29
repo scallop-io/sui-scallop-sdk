@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { VeScaTreasuryFields, VeScaTreasuryInfo, Vesca } from 'src/types';
+import { VeScaTreasuryFields, VeScaTreasuryInfo, Vesca } from 'src/types/query';
 import {
   type SuiObjectResponse,
   type SuiObjectData,

@@ -4,7 +4,7 @@ import {
 } from '@pythnetwork/pyth-sui-js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models';
-import { SupportOracleType } from 'src/types';
+import { SupportOracleType } from 'src/types/constant';
 
 type PythPriceFeedUpdateOptions = {
   usePythPullModel: boolean;

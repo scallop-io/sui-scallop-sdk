@@ -13,7 +13,7 @@ import type {
   SuiTxBlockWithBorrowIncentiveNormalMethods,
   BorrowIncentiveTxBlock,
   ScallopTxBlock,
-} from 'src/types';
+} from 'src/types/builder';
 import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants/common';
 import { getObligationLocked, getObligations } from 'src/queries/coreQuery';
 

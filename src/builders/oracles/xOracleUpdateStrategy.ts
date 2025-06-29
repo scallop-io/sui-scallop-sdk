@@ -8,7 +8,7 @@ import {
   SupportedOracleSuiLst,
   SupportOracleType,
   xOracleRuleType,
-} from 'src/types';
+} from 'src/types/constant';
 import { UnsupportedLstOracleError } from './error';
 
 export interface IXOracleUpdateStrategy<

@@ -8,7 +8,7 @@ import {
   ScallopTxBlock,
   SuiTxBlockWithSCoinNormalMethods,
   sCoinPkgIds,
-} from 'src/types';
+} from 'src/types/builder';
 import { requireSender } from './utils';
 
 const generateSCoinNormalMethod: GenerateSCoinNormalMethod = ({

@@ -20,15 +20,15 @@ import type {
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
 import type {
-  AddressesInterface,
   GenerateVeScaNormalMethod,
   GenerateVeScaQuickMethod,
   QuickMethodReturnType,
   ScallopTxBlock,
   SuiTxBlockWithVeScaNormalMethods,
   VeScaTxBlock,
-} from 'src/types';
+} from 'src/types/builder';
 import { SuiObjectData } from '@mysten/sui/client';
+import { AddressesInterface } from 'src/types/address';
 
 /**
  * Check and get veSCA data from transaction block.

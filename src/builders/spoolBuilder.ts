@@ -14,7 +14,7 @@ import type {
   SpoolTxBlock,
   ScallopTxBlock,
   SuiTxBlockWithSCoin,
-} from 'src/types';
+} from 'src/types/builder';
 
 /**
  * Check and get stake account id from transaction block.

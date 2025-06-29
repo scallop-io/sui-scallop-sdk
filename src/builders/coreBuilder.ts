@@ -15,7 +15,7 @@ import type {
   ScallopTxBlock,
   NestedResult,
   SuiTxBlockWithSpool,
-} from 'src/types';
+} from 'src/types/builder';
 
 /**
  * Check and get Obligation information from transaction block.

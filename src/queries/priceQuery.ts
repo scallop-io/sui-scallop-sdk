@@ -1,6 +1,7 @@
 import { SuiObjectData } from '@mysten/sui/client';
 import type { ScallopAddress, ScallopQuery, ScallopSuiKit } from 'src/models';
-import type { CoinPrices, MarketPools, OptionalKeys } from '../types';
+import type { MarketPools } from 'src/types/query';
+import type { CoinPrices } from 'src/types/util';
 import BigNumber from 'bignumber.js';
 
 /**
@@ -150,7 +151,7 @@ export const getAllCoinPrices = async (
     throw new Error(`Failed to fetch market pool for getAllCoinPrices`);
   }
 
-  const sCoinPrices: OptionalKeys<Record<string, number>> = {};
+  const sCoinPrices: CoinPrices = {};
   query.constants.whitelist.scoin.forEach((sCoinName) => {
     const coinName = query.utils.parseCoinName(sCoinName);
     sCoinPrices[sCoinName] = BigNumber(coinPrices[coinName] ?? 0)

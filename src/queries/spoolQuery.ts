@@ -8,7 +8,6 @@ import {
 } from './utils';
 import type { SuiObjectData, SuiObjectResponse } from '@mysten/sui/client';
 import type { ScallopQuery, ScallopUtils } from 'src/models';
-import { CoinPrices } from 'src/types';
 import {
   OriginSpoolData,
   OriginSpoolRewardPoolData,
@@ -20,6 +19,7 @@ import {
   StakePool,
   StakeRewardPool,
 } from 'src/types/query';
+import { CoinPrices } from 'src/types/util';
 
 const queryRequiredSpoolObjects = async (
   query: ScallopQuery,
@@ -164,11 +164,11 @@ export const getSpools = async (
       if (!stakeMarketCoinNames.includes(spool.marketCoinName)) return;
       const coinName = query.utils.parseCoinName(spool.marketCoinName);
       const rewardCoinName = query.utils.getSpoolRewardCoinName();
-      spool.coinPrice = coinPrices[coinName] ?? spool.coinPrice;
+      spool.coinPrice = coinPrices?.[coinName] ?? spool.coinPrice;
       spool.marketCoinPrice =
-        coinPrices[spool.marketCoinName] ?? spool.marketCoinPrice;
+        coinPrices?.[spool.marketCoinName] ?? spool.marketCoinPrice;
       spool.rewardCoinPrice =
-        coinPrices[rewardCoinName] ?? spool.rewardCoinPrice;
+        coinPrices?.[rewardCoinName] ?? spool.rewardCoinPrice;
       spools[spool.marketCoinName] = spool;
     };
     Object.values(spoolsIndexer)

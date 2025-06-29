@@ -10,7 +10,7 @@ import {
 } from './priceFeedUpdater';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
-import type { SupportOracleType, xOracleRuleType } from 'src/types';
+import type { SupportOracleType, xOracleRuleType } from 'src/types/constant';
 import { PriceUpdateRequester } from './priceUpdateRequester';
 import { UnsupportedOracleError } from './error';
 

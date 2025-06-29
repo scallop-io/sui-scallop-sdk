@@ -4,7 +4,7 @@ import { scallopSDK } from './scallopSdk';
 import { updateOracles } from 'src/builders/oracles';
 import { ADDRESS_INTERFACE, POOL_ADDRESSES, WHITELIST } from './mocks';
 import { Scallop, ScallopBuilder } from 'src/models';
-import { Obligation, Vesca } from 'src/types';
+import { Obligation, Vesca } from 'src/types/query';
 import {
   SCA_COIN_TYPE,
   MAX_LOCK_ROUNDS,

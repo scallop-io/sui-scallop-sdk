@@ -5,11 +5,10 @@ import {
   BasePackage,
   OracleLst,
   OracleLstConfig,
-  SupportedOracleSuiLst,
   SupportOracleLst,
-  SupportOracleType,
-} from 'src/types';
+} from 'src/types/address';
 import { UnsupportedOracleError } from './error';
+import { SupportedOracleSuiLst, SupportOracleType } from 'src/types/constant';
 
 export type XOraclePackages = {
   xOraclePackageId: string;

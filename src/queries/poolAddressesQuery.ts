@@ -1,5 +1,7 @@
 import { getFullnodeUrl, SuiClient, SuiParsedData } from '@mysten/sui/client';
-import { AddressesInterface, OptionalKeys, PoolAddress } from 'src/types';
+import { AddressesInterface } from 'src/types/address';
+import { PoolAddress } from 'src/types/constant';
+import { OptionalKeys } from 'src/types/util';
 
 const RPC_PROVIDERS = [
   getFullnodeUrl('mainnet'),

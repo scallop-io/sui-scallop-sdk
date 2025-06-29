@@ -1,5 +1,5 @@
 import { SuiTxBlock, TransactionArgument } from '@scallop-io/sui-kit';
-import { SupportOracleType, xOracleRuleType } from 'src/types';
+import { SupportOracleType, xOracleRuleType } from 'src/types/constant';
 import { SUPPORT_SUI_LST } from 'src/constants/xoracle';
 import { IOraclePackageRegistry } from './oraclePackageRegistry';
 import {

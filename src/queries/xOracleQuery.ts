@@ -1,6 +1,6 @@
 import { SuiObjectResponse } from '@mysten/sui/client';
 import { ScallopAddress, ScallopSuiKit, ScallopUtils } from 'src/models';
-import { SupportOracleType, xOracleRuleType } from 'src/types';
+import { SupportOracleType, xOracleRuleType } from 'src/types/constant';
 
 /**
  * Query the price update policy table ids. Usually the value for these table will be constant.

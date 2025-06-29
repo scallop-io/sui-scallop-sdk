@@ -1,8 +1,12 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { POOL_ADDRESSES, TEST_ADDRESSES, WHITELIST } from 'src/constants';
+import {
+  TEST_POOL_ADDRESSES,
+  TEST_ADDRESSES,
+  TEST_WHITELIST,
+} from 'src/constants';
 import { scallopSDK } from './scallopSdk';
 import { ScallopConstants } from 'src/models';
-import { Whitelist } from 'src/types';
+import { Whitelist } from 'src/types/constant';
 
 // const ENABLE_LOG = false;
 let scallopConstants: ScallopConstants;
@@ -44,8 +48,8 @@ describe('Test Scallop Constants default values', () => {
     const localScallopConstants = new ScallopConstants({
       addressId: '67c44a103fe1b8c454eb9699',
       defaultValues: {
-        poolAddresses: POOL_ADDRESSES,
-        whitelist: WHITELIST,
+        poolAddresses: TEST_POOL_ADDRESSES,
+        whitelist: TEST_WHITELIST,
         addresses: { mainnet: TEST_ADDRESSES },
       },
     });

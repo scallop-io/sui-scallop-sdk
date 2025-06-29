@@ -2,7 +2,7 @@ import { bcs } from '@mysten/sui/bcs';
 import assert from 'assert';
 import BigNumber from 'bignumber.js';
 import { ScallopQuery, ScallopUtils } from 'src/models';
-import { OptionalKeys } from 'src/types';
+import { OptionalKeys } from 'src/types/util';
 
 /**
  * Get total supply of sCoin
