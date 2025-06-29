@@ -10,3 +10,4 @@ export {
   ScallopIndexer,
   ScallopUtils,
 } from './models';
+export * from './types';

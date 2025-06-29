@@ -16,12 +16,16 @@ export type CoreIds = {
 };
 
 export type NestedResult = Extract<Argument, { $kind: 'NestedResult' }>;
-type Obligation = NestedResult;
-type ObligationKey = NestedResult;
-type ObligationHotPotato = NestedResult;
+type ResultAsObligation = NestedResult;
+type ResultAsObligationKey = NestedResult;
+type ResultAsObligationHotPotato = NestedResult;
 
 export type CoreNormalMethods = {
-  openObligation: () => [Obligation, ObligationKey, ObligationHotPotato];
+  openObligation: () => [
+    ResultAsObligation,
+    ResultAsObligationKey,
+    ResultAsObligationHotPotato,
+  ];
   returnObligation: (
     obligation: SuiObjectArg,
     obligationHotPotato: SuiObjectArg
