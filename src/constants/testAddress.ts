@@ -69,9 +69,9 @@ export const TEST_ADDRESSES: AddressesInterface = {
           supra: '',
           switchboard: '',
           pyth: {
-            feed: '23d7315113f5b1d3ba7a83604c44b94d79f4fd69af77f804fc7f920a6dc65744',
+            feed: '17cd845b16e874485b2684f8b8d1517d744105dbb904eec30222717f4bc9ee0d',
             feedObject:
-              '0x801dbc2f0053d34734814b2d6df491ce7807a725fe9a01ad74a07e9c51396c37',
+              '0xd779885c5246357e24cbde7348f2d81f756d9650975c02d81346b15d8b557ebf',
           },
         },
       },
