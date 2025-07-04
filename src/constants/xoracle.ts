@@ -1,7 +1,7 @@
 export const SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
 export const X_ORACLE_RULES = ['primary', 'secondary'] as const;
 export const SUPPORT_ORACLE_LST = ['pyth'] as const;
-export const SUPPORT_SUI_LST = ['afsui'] as const;
+export const SUPPORT_SUI_LST = ['afsui', 'hasui'] as const;
 
 export const X_ORACLE_LIST: Record<
   string,

@@ -3,12 +3,11 @@ import {
   SuiTxBlock,
   TransactionArgument,
 } from '@scallop-io/sui-kit';
-import { IOraclePackageRegistry } from './oraclePackageRegistry';
 import {
-  SupportedOracleSuiLst,
-  SupportOracleType,
-  xOracleRuleType,
-} from 'src/types/constant';
+  IOraclePackageRegistry,
+  PythLstPackages,
+} from './oraclePackageRegistry';
+import { SupportOracleType, xOracleRuleType } from 'src/types/constant';
 import { UnsupportedLstOracleError } from './error';
 
 export interface IXOracleUpdateStrategy<
@@ -83,9 +82,10 @@ export class PythDefaultUpdateStrategy extends BaseUpdateStrategy<'pyth'> {
     );
   }
 }
-export class PythSuiLstUpdateStrategy extends BaseUpdateStrategy<
+
+export class PythAfSuiUpdateStrategy extends BaseUpdateStrategy<
   'pyth',
-  SupportedOracleSuiLst
+  'afsui'
 > {
   readonly oracleType = 'pyth';
   constructor(protected readonly registry: IOraclePackageRegistry<'pyth'>) {
@@ -95,15 +95,18 @@ export class PythSuiLstUpdateStrategy extends BaseUpdateStrategy<
   updatePrice(
     tx: SuiTxBlock,
     request: TransactionArgument,
-    coinName: SupportedOracleSuiLst,
+    coinName: 'afsui',
     rule: xOracleRuleType
   ): void {
     const { lst, pythFeedObjectId, pythStateId } =
       this.registry.getPackages(coinName);
-    if (!lst[coinName]) {
+    if (!lst) {
       throw new UnsupportedLstOracleError(coinName, this.oracleType);
     }
-    const { id, configId, stakedSuiVaultId, safeId } = lst[coinName];
+    const { id, configId, stakedSuiVaultId, safeId } = lst as PythLstPackages<
+      typeof coinName
+    >;
+
     tx.moveCall(`${id}::rule::set_price_as_${rule}`, [
       request,
       pythStateId,
@@ -111,6 +114,39 @@ export class PythSuiLstUpdateStrategy extends BaseUpdateStrategy<
       configId,
       stakedSuiVaultId,
       safeId,
+      tx.sharedObjectRef(this.clockObject),
+    ]);
+  }
+}
+
+export class PythHaSuiUpdateStrategy extends BaseUpdateStrategy<
+  'pyth',
+  'hasui'
+> {
+  readonly oracleType = 'pyth';
+  constructor(protected readonly registry: IOraclePackageRegistry<'pyth'>) {
+    super(registry);
+  }
+
+  updatePrice(
+    tx: SuiTxBlock,
+    request: TransactionArgument,
+    coinName: 'hasui',
+    rule: xOracleRuleType
+  ): void {
+    const { lst, pythFeedObjectId, pythStateId } =
+      this.registry.getPackages(coinName);
+    if (!lst) {
+      throw new UnsupportedLstOracleError(coinName, this.oracleType);
+    }
+    const { id, staking, configId } = lst as PythLstPackages<typeof coinName>;
+
+    tx.moveCall(`${id}::rule::set_price_as_${rule}`, [
+      request,
+      pythStateId,
+      pythFeedObjectId,
+      configId,
+      staking,
       tx.sharedObjectRef(this.clockObject),
     ]);
   }

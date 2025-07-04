@@ -586,6 +586,10 @@ export const ADDRESS_INTERFACE: { mainnet: AddressesInterface } = {
               id: '',
               object: '',
             },
+            hasui: {
+              id: '',
+              object: '',
+            },
           },
         },
         switchboard: {

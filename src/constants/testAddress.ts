@@ -75,6 +75,25 @@ export const TEST_ADDRESSES: AddressesInterface = {
           },
         },
       },
+      hasui: {
+        id: '0xbde4ba4c2e274a60ce15c1cfff9e5c42e41654ac8b6d906a57efa4bd3c29f47d',
+        metaData:
+          '0x2c5f33af93f6511df699aaaa5822d823aac6ed99d4a0de2a4a50b3afa0172e24',
+        treasury: '',
+        coinType:
+          '0xbde4ba4c2e274a60ce15c1cfff9e5c42e41654ac8b6d906a57efa4bd3c29f47d::hasui::HASUI',
+        symbol: 'haSUI',
+        decimals: 9,
+        oracle: {
+          supra: '',
+          switchboard: '',
+          pyth: {
+            feed: '6120ffcf96395c70aa77e72dcb900bf9d40dccab228efca59a17b90ce423d5e8',
+            feedObject:
+              '0x4c1d831576b60fec657e0c310943eff8c1f28197c552e57d1fefdc55edddb263',
+          },
+        },
+      },
       sca: {
         id: '0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6',
         metaData:
@@ -179,6 +198,12 @@ export const TEST_ADDRESSES: AddressesInterface = {
             configId:
               '0x67103edaadcd38b76f5df76d99adcad989260a5f16bfd411a67efbf858b2f7a2',
           },
+          hasui: {
+            configId:
+              '0x5d14712cfd47fcb9e414c15a14273f9d2188dbb918239db75ee2769b5136f821',
+            staking:
+              '0x47b224762220393057ebf4f70501b6e657c3e56684737568439a04f80849b2ca',
+          },
         },
       },
     },
@@ -233,6 +258,11 @@ export const TEST_ADDRESSES: AddressesInterface = {
             id: '0xd45b20f4bbc7ab4b2b3874a4fa38aa440505d8010bba052df914892537e6b418',
             object:
               '0xd45b20f4bbc7ab4b2b3874a4fa38aa440505d8010bba052df914892537e6b418',
+          },
+          hasui: {
+            id: '0xac62b68b386dab503a6ef64c97e55dffac34c8f908373025751a111b72b767dc',
+            object:
+              '0xac62b68b386dab503a6ef64c97e55dffac34c8f908373025751a111b72b767dc',
           },
         },
       },
@@ -418,6 +448,15 @@ export const TEST_ADDRESSES: AddressesInterface = {
           '0x42179b69f82ea26e3763345ee0fb1cea8b1bd355168b3241ceb727ec82bb0688',
         symbol: 'safSUI',
       },
+      shasui: {
+        coinType:
+          '0xbd01338d893255e7e53a41b1c021438d31f348c074809027fcad259e348529b5::scallop_ha_sui::SCALLOP_HA_SUI',
+        treasury:
+          '0xb987e7a4cd3c16247f422599882093375201487c46ece80f980a30227a385e75',
+        metaData:
+          '0x94a1bb23c6272d01f03bb5dec2a1915a41f154d14548157a099d5630197ce30d',
+        symbol: 'shaSUI',
+      },
       susdc: {
         coinType:
           '0x55ed015f9f006c0c96ad36ebe3b3570d088e8498f52defea48e5634c110e485c::scallop_usdc::SCALLOP_USDC',
@@ -464,7 +503,7 @@ export const TEST_WHITELIST = {
     // 'wsol',
     // 'cetus',
     'afsui',
-    // 'hasui',
+    'hasui',
     // 'vsui',
     'sca',
     'fud',
@@ -490,7 +529,7 @@ export const TEST_WHITELIST = {
     // 'wsol',
     // 'cetus',
     'afsui',
-    // 'hasui',
+    'hasui',
     // 'vsui',
     'sca',
     // 'fdusd',
@@ -512,7 +551,7 @@ export const TEST_WHITELIST = {
     // 'wsol',
     // 'cetus',
     'afsui',
-    // 'hasui',
+    'hasui',
     // 'vsui',
     'sca',
     'fud',
@@ -558,7 +597,7 @@ export const TEST_WHITELIST = {
     // 'swusdc',
     // 'swusdt',
     'safsui',
-    // 'shasui',
+    'shasui',
     // 'svsui',
     // 'sweth',
     'ssca',
@@ -836,5 +875,50 @@ export const TEST_POOL_ADDRESSES = {
       '0x801dbc2f0053d34734814b2d6df491ce7807a725fe9a01ad74a07e9c51396c37',
     flashloanFeeObject:
       '0xac87fde83d434554ec300c1334c9a622aa5b59e82a04334dc99e1cc1f75d4eae',
+  },
+  hasui: {
+    coinName: 'hasui',
+    symbol: 'haSUI',
+    lendingPoolAddress:
+      '0x7a7ca5e75f453de923284a54764819f27486bd7f6fd45147116bfc239ba8fb4d',
+    collateralPoolAddress:
+      '0xe1ad830b29eab6b72f11d7016ff87db4f3996f68a81ea621ec37f0b7df9a7ce5',
+    borrowDynamic:
+      '0x3545546a7fa2100bca3bab8739c11890a6ccce2cb2584c204a064e35005314b5',
+    interestModel:
+      '0xa280d2976e3475bebebb65e433f1998867916d1b51139bf90312c4434e8d9875',
+    riskModel:
+      '0x5b35d4a369961ff5de98ca1830d92b66d91b3651421ba9202e95329dc80493d6',
+    borrowFeeKey:
+      '0xef885c382d461c4fb14d1f3b3758c380c78a1a4b2a3d2fafe6e8649a60fdd7ab',
+    supplyLimitKey:
+      '0xc7385b1703693cbbc9c97227fe3fd5c91d7afda00e0da69d942c3260d78e45e0',
+    borrowLimitKey:
+      '0x65333e606eead786a999c8267bc9886b0fdbc298a8a8635a48a9c9b8838d9395',
+    isolatedAssetKey: '',
+    isIsolated: false,
+    spool: '0xa6148bc1b623e936d39a952ceb5bea79e8b37228a8f595067bf1852efd3c34aa',
+    spoolReward:
+      '0x6f3563644d3e2ef13176dbf9d865bd93479df60ccbe07b7e66db57f6309f5a66',
+    sCoinType:
+      '0xbd01338d893255e7e53a41b1c021438d31f348c074809027fcad259e348529b5::scallop_ha_sui::SCALLOP_HA_SUI',
+    sCoinTreasury:
+      '0xb987e7a4cd3c16247f422599882093375201487c46ece80f980a30227a385e75',
+    sCoinMetadataId:
+      '0x94a1bb23c6272d01f03bb5dec2a1915a41f154d14548157a099d5630197ce30d',
+    sCoinSymbol: 'shaSUI',
+    sCoinName: 'shasui',
+    coinMetadataId:
+      '0x2c5f33af93f6511df699aaaa5822d823aac6ed99d4a0de2a4a50b3afa0172e24',
+    coinType:
+      '0xbde4ba4c2e274a60ce15c1cfff9e5c42e41654ac8b6d906a57efa4bd3c29f47d::hasui::HASUI',
+    spoolName: 'shasui',
+    decimals: 9,
+    pythFeed:
+      '6120ffcf96395c70aa77e72dcb900bf9d40dccab228efca59a17b90ce423d5e8',
+    pythFeedObjectId:
+      '0x4c1d831576b60fec657e0c310943eff8c1f28197c552e57d1fefdc55edddb263',
+    flashloanFeeObject:
+      '0xb9f505d532de1d6c9f3a8522a2d16f2958b75c0ed939d4f80b96f584a2a8ed5e',
   },
 };

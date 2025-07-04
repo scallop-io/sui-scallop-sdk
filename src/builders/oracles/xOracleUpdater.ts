@@ -4,12 +4,13 @@ import { SUPPORT_SUI_LST } from 'src/constants/xoracle';
 import { IOraclePackageRegistry } from './oraclePackageRegistry';
 import {
   IXOracleUpdateStrategy,
+  PythAfSuiUpdateStrategy,
   PythDefaultUpdateStrategy,
-  PythSuiLstUpdateStrategy,
+  PythHaSuiUpdateStrategy,
   SupraDefaultUpdateStrategy,
   SwitchboardDefaultUpdateStrategy,
 } from './xOracleUpdateStrategy';
-import { UnsupportedLstOracleError } from './error';
+import { UnsupportedOracleError } from './error';
 
 export interface IXOracleUpdater<
   T extends SupportOracleType = SupportOracleType,
@@ -53,7 +54,8 @@ class PythXOracleUpdater extends BaseXOracleUpdater<'pyth'> {
   constructor(tx: SuiTxBlock, registry: IOraclePackageRegistry<'pyth'>) {
     super(tx, registry, {
       default: new PythDefaultUpdateStrategy(registry),
-      sui_lst: new PythSuiLstUpdateStrategy(registry),
+      afsui: new PythAfSuiUpdateStrategy(registry),
+      hasui: new PythHaSuiUpdateStrategy(registry),
     });
   }
 
@@ -61,23 +63,8 @@ class PythXOracleUpdater extends BaseXOracleUpdater<'pyth'> {
     coinName: string
   ): IXOracleUpdateStrategy<typeof this.oracleName> {
     // decide which key to look up in this.strategies
-    let key: string;
-
-    if (this.SUPPORT_SUI_LST_SET.has(coinName)) {
-      key = 'sui_lst';
-    }
-    // else if (this.WALRUS_LST_SET.has(coinName)) {
-    //   key = 'walrus_lst';
-    // }
-    else {
-      key = 'default';
-    }
-
-    const strat = this.strategies.get(key);
-    if (!strat) {
-      // guard if you forgot to register default or list strategies
-      throw new UnsupportedLstOracleError(coinName, this.oracleName);
-    }
+    const strat =
+      this.strategies.get(coinName) ?? this.strategies.get('default');
 
     return strat as IXOracleUpdateStrategy<typeof this.oracleName>;
   }
@@ -107,7 +94,10 @@ class SupraXOracleUpdater extends BaseXOracleUpdater<'supra'> {
     request: TransactionArgument
   ): void {
     const stragtegy = this.strategies.get('default');
-    stragtegy?.updatePrice(this.tx, request, coinName, rule);
+    if (!stragtegy) {
+      throw new UnsupportedOracleError(this.oracleName);
+    }
+    stragtegy.updatePrice(this.tx, request, coinName, rule);
   }
 }
 
@@ -126,7 +116,10 @@ class SwitchboardXOracleUpdater extends BaseXOracleUpdater<'switchboard'> {
     request: TransactionArgument
   ): void {
     const stragtegy = this.strategies.get('default');
-    stragtegy?.updatePrice(this.tx, request, coinName, rule);
+    if (!stragtegy) {
+      throw new UnsupportedOracleError(this.oracleName);
+    }
+    stragtegy.updatePrice(this.tx, request, coinName, rule);
   }
 }
 

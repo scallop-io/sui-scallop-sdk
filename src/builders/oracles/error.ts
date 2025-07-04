@@ -8,13 +8,6 @@ class UnsupportedOracleError extends Error {
   }
 }
 
-class UnsupportedLstUpdateError extends Error {
-  constructor(lst: string) {
-    super(`Unsupported LST update for: ${lst}`);
-    this.name = 'UnsupportedLstUpdateError';
-  }
-}
-
 class UnsupportedLstOracleError extends Error {
   constructor(lst: string, oracle: string) {
     super(`Unsupported LST oracle update for: ${lst} with oracle: ${oracle}`);
@@ -22,8 +15,4 @@ class UnsupportedLstOracleError extends Error {
   }
 }
 
-export {
-  UnsupportedOracleError,
-  UnsupportedLstUpdateError,
-  UnsupportedLstOracleError,
-};
+export { UnsupportedOracleError, UnsupportedLstOracleError };

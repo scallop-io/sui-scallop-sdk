@@ -28,21 +28,34 @@ type Packages<
 
 export type SupportOracleLst = (typeof SUPPORT_ORACLE_LST)[number];
 
-export type OracleLstConfig<T extends SupportedOracleSuiLst> = T extends 'afsui'
-  ? Record<
-      T,
+type PythOracleLstConfigItem<T extends SupportedOracleSuiLst, U> = Record<
+  T,
+  { configId: string } & U
+>;
+
+export type PythOracleLstConfig<
+  T extends SupportedOracleSuiLst = SupportedOracleSuiLst,
+> = T extends 'afsui'
+  ? PythOracleLstConfigItem<
+      'afsui',
       {
         stakedSuiVaultId: string;
         safeId: string;
         configId: string;
       }
     >
-  : never;
+  : T extends 'hasui'
+    ? PythOracleLstConfigItem<
+        'hasui',
+        {
+          staking: string;
+        }
+      >
+    : never;
 
-export type OracleLst<
-  T extends SupportOracleLst,
-  U extends SupportedOracleSuiLst = SupportedOracleSuiLst,
-> = T extends 'pyth' ? OracleLstConfig<U> : undefined;
+export type OracleLst<T extends SupportOracleLst> = T extends 'pyth'
+  ? PythOracleLstConfig
+  : never;
 
 type MaybeWithOracleLst<T, U> = T extends SupportOracleLst
   ? U & {

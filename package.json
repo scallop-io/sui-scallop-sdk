@@ -40,6 +40,8 @@
   "scripts": {
     "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
     "build": "pnpm run clean && pnpm run build:tsup",
+    "build-sourcemap": "pnpm run clean && pnpm run build:sourcemap",
+    "build:sourcemap": "tsup ./src/index.ts --format esm,cjs --dts --sourcemap",
     "build:tsup": "tsup ./src/index.ts --format esm,cjs --dts --splitting --minify --treeshake",
     "watch": "pnpm run clean & pnpm run watch:types & pnpm run watch:tsup",
     "test": "pnpm test:typecheck && pnpm test:unit",

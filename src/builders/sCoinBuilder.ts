@@ -36,10 +36,6 @@ const generateSCoinNormalMethod: GenerateSCoinNormalMethod = ({
       const sCoinType = builder.utils.parseSCoinType(sCoinName);
       if (!sCoinType) throw new Error(`Invalid sCoin name: ${sCoinName}`);
 
-      console.log({
-        sCoinName,
-        treasury: builder.utils.getSCoinTreasury(sCoinName),
-      });
       return builder.moveCall(
         txBlock,
         `${sCoinPkgIds.pkgId}::s_coin_converter::burn_s_coin`,

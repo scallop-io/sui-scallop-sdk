@@ -249,6 +249,10 @@ const EMPTY_ADDRESSES: AddressesInterface = {
             stakedSuiVaultId: '',
             configId: '',
           },
+          hasui: {
+            configId: '',
+            staking: '',
+          },
         },
       },
     },
@@ -290,6 +294,10 @@ const EMPTY_ADDRESSES: AddressesInterface = {
         upgradeCap: '',
         lst: {
           afsui: {
+            id: '',
+            object: '',
+          },
+          hasui: {
             id: '',
             object: '',
           },

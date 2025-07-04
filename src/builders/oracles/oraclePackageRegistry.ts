@@ -3,27 +3,29 @@ import { ScallopUtils } from 'src/models';
 import {
   AddressStringPath,
   BasePackage,
-  OracleLst,
-  OracleLstConfig,
+  PythOracleLstConfig,
   SupportOracleLst,
 } from 'src/types/address';
 import { UnsupportedOracleError } from './error';
 import { SupportedOracleSuiLst, SupportOracleType } from 'src/types/constant';
+import { SUPPORT_SUI_LST } from 'src/constants';
 
 export type XOraclePackages = {
   xOraclePackageId: string;
   xOracleId: TransactionArgument | string;
 };
 
-type LstPackages<
-  T extends SupportOracleLst,
-  U extends SupportedOracleSuiLst = SupportedOracleSuiLst,
-> = {
-  [K in U]: OracleLst<T, U>[K] & BasePackage;
-};
+type RecordValueType<T> = T extends Record<any, infer V> ? V : never;
+
+export type PythLstPackages<T extends SupportedOracleSuiLst> = RecordValueType<
+  PythOracleLstConfig<T>
+> &
+  BasePackage;
 
 type MaybeWithLstPackage<T, U> = T extends SupportOracleLst
-  ? U & { lst: LstPackages<T> }
+  ? T extends 'pyth'
+    ? U & { lst: PythLstPackages<SupportedOracleSuiLst> }
+    : never
   : U;
 
 type PythStaticPackages = {
@@ -62,18 +64,24 @@ export type SupraPackages = {
   supraRegistryId: TransactionArgument | string;
 };
 
-export type OraclePackages<T extends SupportOracleType> = T extends 'pyth'
-  ? PythPackages
-  : T extends 'switchboard'
-    ? SwitchboardPackages
-    : T extends 'supra'
-      ? SupraPackages
-      : never;
+export type OraclePackages<T extends SupportOracleType = SupportOracleType> =
+  T extends 'pyth'
+    ? PythPackages
+    : T extends 'switchboard'
+      ? SwitchboardPackages
+      : T extends 'supra'
+        ? SupraPackages
+        : never;
 
-type getLstPackagesReturnType<T> = T extends SupportOracleLst
-  ? LstPackages<T, SupportedOracleSuiLst>
-  : never;
+type getLstPackagesReturnType<
+  T extends SupportOracleType,
+  U extends SupportedOracleSuiLst = SupportedOracleSuiLst,
+> = T extends 'pyth' ? PythLstPackages<U> : never;
 
+const PYTH_LST_PATHS: Record<SupportedOracleSuiLst, AddressStringPath> = {
+  afsui: 'core.oracles.pyth.lst.afsui',
+  hasui: 'core.oracles.pyth.lst.hasui',
+};
 export interface IOraclePackageRegistry<
   T extends SupportOracleType = SupportOracleType,
 > {
@@ -160,10 +168,10 @@ class PythPackageRegistry
   }
 
   private getLstOracleConfigPackages(coinName: SupportedOracleSuiLst) {
-    const oracleLstConfig = this.xOraclePackageRegistry.getAddressPath(
-      `core.oracles.pyth.lst.${coinName}`
-    ) as OracleLstConfig<typeof coinName>[typeof coinName];
-    return oracleLstConfig;
+    const path = PYTH_LST_PATHS[coinName];
+    if (path) {
+      return this.xOraclePackageRegistry.getAddressPath(path);
+    }
   }
 
   getLstPackages(coinName: SupportedOracleSuiLst) {
@@ -172,22 +180,28 @@ class PythPackageRegistry
     ) as BasePackage;
 
     // get the oracle config for the coin
-    const oracleLstConfig = this.getLstOracleConfigPackages(coinName);
+    const oracleLstConfig = this.getLstOracleConfigPackages(coinName) ?? {};
+
     return {
-      [coinName]: {
-        ...lstPackages,
-        ...oracleLstConfig,
-      },
+      ...lstPackages,
+      ...oracleLstConfig,
     };
   }
 
-  getPackages(coinName: string): OraclePackages<'pyth'> {
+  private resolvePythFeedForSuiLst(coinName: string) {
+    if (SUPPORT_SUI_LST.includes(coinName as any)) {
+      return 'sui';
+    }
+    return coinName;
+  }
+
+  getPackages(coinName: string) {
     const lstPackages = this.getLstPackages(coinName as SupportedOracleSuiLst);
 
     return {
       ...this.getStaticPackages,
       pythFeedObjectId: this.xOraclePackageRegistry.getAddressPath(
-        `core.coins.${coinName}.oracle.pyth.feedObject`
+        `core.coins.${this.resolvePythFeedForSuiLst(coinName)}.oracle.pyth.feedObject`
       ),
       lst: lstPackages,
     };
@@ -218,7 +232,7 @@ class SupraPackageRegistry extends BasePackageRegistry {
       supraHolderId: this.xOraclePackageRegistry.getAddressPath(
         'core.oracles.supra.holder'
       ),
-    } as OraclePackages<typeof this.oracleName>;
+    };
   }
 }
 
