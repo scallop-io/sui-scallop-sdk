@@ -122,7 +122,8 @@ export type CoreQuickMethods = {
   repayQuick: (
     amount: number,
     poolCoinName: string,
-    obligationId?: SuiObjectArg
+    obligationId?: SuiObjectArg,
+    isSponsoredTx?: boolean
   ) => Promise<void>;
   updateAssetPricesQuick: (assetCoinNames?: string[]) => Promise<void>;
 };

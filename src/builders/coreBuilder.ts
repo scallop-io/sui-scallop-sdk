@@ -438,7 +438,12 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         poolCoinName
       );
     },
-    repayQuick: async (amount, poolCoinName, obligationId) => {
+    repayQuick: async (
+      amount,
+      poolCoinName,
+      obligationId,
+      isSponsoredTx = false
+    ) => {
       const sender = requireSender(txBlock);
       const obligationInfo = await requireObligationInfo(
         builder,
@@ -446,27 +451,15 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationId
       );
 
-      if (poolCoinName === 'sui') {
-        const [suiCoin] = txBlock.splitSUIFromGas([amount]);
-        return txBlock.repay(
-          obligationInfo.obligationId,
-          suiCoin,
-          poolCoinName
-        );
-      } else {
-        const { leftCoin, takeCoin } = await builder.selectCoin(
-          txBlock,
-          poolCoinName,
-          amount,
-          sender
-        );
-        txBlock.transferObjects([leftCoin], sender);
-        return txBlock.repay(
-          obligationInfo.obligationId,
-          takeCoin,
-          poolCoinName
-        );
-      }
+      const { leftCoin, takeCoin } = await builder.selectCoin(
+        txBlock,
+        poolCoinName,
+        amount,
+        sender,
+        isSponsoredTx
+      );
+      if (leftCoin) txBlock.transferObjects([leftCoin], sender);
+      return txBlock.repay(obligationInfo.obligationId, takeCoin, poolCoinName);
     },
     updateAssetPricesQuick: async (assetCoinNames) => {
       return await updateOracles(builder, txBlock, assetCoinNames);
