@@ -1,5 +1,5 @@
 diff --git a/lib/client.d.ts b/lib/client.d.ts
-index c9f3fbf504b90b88b560e0d9adeac9a7f30803d2..2372b01a5f2fbc30c5e30f6a3b635b4935b5bf5b 100644
+index c9f3fbf504b90b88b560e0d9adeac9a7f30803d2..3d9d569d6af85d035eef79328409498b51194c7a 100644
 --- a/lib/client.d.ts
 +++ b/lib/client.d.ts
 @@ -1,70 +1,93 @@
@@ -91,7 +91,7 @@ index c9f3fbf504b90b88b560e0d9adeac9a7f30803d2..2372b01a5f2fbc30c5e30f6a3b635b49
 +    provider: SuiClient,
 +    pythStateId: ObjectId,
 +    wormholeStateId: ObjectId,
-+    params: {
++    params?: {
 +      addressId?: string;
 +      defaultPackageId: ObjectId;
 +      gasStationId: ObjectId;
@@ -161,11 +161,12 @@ index c9f3fbf504b90b88b560e0d9adeac9a7f30803d2..2372b01a5f2fbc30c5e30f6a3b635b49
 +  extractVaaBytesFromAccumulatorMessage(accumulatorMessage: Buffer): Buffer;
  }
  //# sourceMappingURL=client.d.ts.map
+\ No newline at end of file
 diff --git a/lib/client.js b/lib/client.js
-index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..1caeaed706b7cc9b37089c4f5e23c2809b0556eb 100644
+index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..695fff464ccaa6871281bb1bfa94da358fb20a20 100644
 --- a/lib/client.js
 +++ b/lib/client.js
-@@ -1,260 +1,358 @@
+@@ -1,260 +1,357 @@
 -"use strict";
 -Object.defineProperty(exports, "__esModule", { value: true });
 +'use strict';
@@ -213,22 +214,7 @@ index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..1caeaed706b7cc9b37089c4f5e23c280
 +      addressId = '67c44a103fe1b8c454eb9699',
 +      defaultPackageId = '',
 +      gasStationId = '',
-     }
--    async getBaseUpdateFee() {
--        if (this.baseUpdateFee === undefined) {
--            const result = await this.provider.getObject({
--                id: this.pythStateId,
--                options: { showContent: true },
--            });
--            if (!result.data ||
--                !result.data.content ||
--                result.data.content.dataType !== "moveObject")
--                throw new Error("Unable to fetch pyth state object");
--            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
--            // @ts-ignore
--            this.baseUpdateFee = result.data.content.fields.base_update_fee;
--        }
--        return this.baseUpdateFee;
++    } = {}
 +  ) {
 +    this.provider = provider;
 +    this.pythStateId = pythStateId;
@@ -255,6 +241,48 @@ index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..1caeaed706b7cc9b37089c4f5e23c280
 +      // @ts-ignore
 +      this.baseUpdateFee = result.data.content.fields.base_update_fee;
      }
+-    async getBaseUpdateFee() {
+-        if (this.baseUpdateFee === undefined) {
+-            const result = await this.provider.getObject({
+-                id: this.pythStateId,
+-                options: { showContent: true },
+-            });
+-            if (!result.data ||
+-                !result.data.content ||
+-                result.data.content.dataType !== "moveObject")
+-                throw new Error("Unable to fetch pyth state object");
+-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+-            // @ts-ignore
+-            this.baseUpdateFee = result.data.content.fields.base_update_fee;
++    return this.baseUpdateFee;
++  }
++  /**
++   * getPackageId returns the latest package id that the object belongs to. Use this to
++   * fetch the latest package id for a given object id and handle package upgrades automatically.
++   * @param objectId
++   * @returns package id
++   */
++  async getPackageId(objectId) {
++    const state = await this.provider
++      .getObject({
++        id: objectId,
++        options: {
++          showContent: true,
++        },
++      })
++      .then((result) => {
++        if (result.data?.content?.dataType == 'moveObject') {
++          return result.data.content.fields;
+         }
+-        return this.baseUpdateFee;
++        console.log(result.data?.content);
++        throw new Error(`Cannot fetch package id for object ${objectId}`);
++      });
++    if ('upgrade_cap' in state) {
++      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
++      // @ts-ignore
++      return state.upgrade_cap.fields.package;
+     }
 -    /**
 -     * getPackageId returns the latest package id that the object belongs to. Use this to
 -     * fetch the latest package id for a given object id and handle package upgrades automatically.
@@ -280,60 +308,8 @@ index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..1caeaed706b7cc9b37089c4f5e23c280
 -            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 -            // @ts-ignore
 -            return state.upgrade_cap.fields.package;
-+    return this.baseUpdateFee;
-+  }
-+  /**
-+   * getPackageId returns the latest package id that the object belongs to. Use this to
-+   * fetch the latest package id for a given object id and handle package upgrades automatically.
-+   * @param objectId
-+   * @returns package id
-+   */
-+  async getPackageId(objectId) {
-+    const state = await this.provider
-+      .getObject({
-+        id: objectId,
-+        options: {
-+          showContent: true,
-+        },
-+      })
-+      .then((result) => {
-+        if (result.data?.content?.dataType == 'moveObject') {
-+          return result.data.content.fields;
-         }
--        throw new Error("upgrade_cap not found");
-+        console.log(result.data?.content);
-+        throw new Error(`Cannot fetch package id for object ${objectId}`);
-+      });
-+    if ('upgrade_cap' in state) {
-+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-+      // @ts-ignore
-+      return state.upgrade_cap.fields.package;
-     }
--    /**
--     * Adds the commands for calling wormhole and verifying the vaas and returns the verified vaas.
--     * @param vaas array of vaas to verify
--     * @param tx transaction block to add commands to
--     */
--    async verifyVaas(vaas, tx) {
--        const wormholePackageId = await this.getWormholePackageId();
--        const verifiedVaas = [];
--        for (const vaa of vaas) {
--            const [verifiedVaa] = tx.moveCall({
--                target: `${wormholePackageId}::vaa::parse_and_verify`,
--                arguments: [
--                    tx.object(this.wormholeStateId),
--                    tx.pure(bcs_1.bcs
--                        .vector(bcs_1.bcs.U8)
--                        .serialize(Array.from(vaa), {
--                        maxSize: MAX_ARGUMENT_SIZE,
--                    })
--                        .toBytes()),
--                    tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
--                ],
--            });
--            verifiedVaas.push(verifiedVaa);
 -        }
--        return verifiedVaas;
+-        throw new Error("upgrade_cap not found");
 +    throw new Error('upgrade_cap not found');
 +  }
 +  /**
@@ -363,6 +339,47 @@ index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..1caeaed706b7cc9b37089c4f5e23c280
 +      verifiedVaas.push(verifiedVaa);
      }
 -    /**
+-     * Adds the commands for calling wormhole and verifying the vaas and returns the verified vaas.
+-     * @param vaas array of vaas to verify
+-     * @param tx transaction block to add commands to
+-     */
+-    async verifyVaas(vaas, tx) {
+-        const wormholePackageId = await this.getWormholePackageId();
+-        const verifiedVaas = [];
+-        for (const vaa of vaas) {
+-            const [verifiedVaa] = tx.moveCall({
+-                target: `${wormholePackageId}::vaa::parse_and_verify`,
+-                arguments: [
+-                    tx.object(this.wormholeStateId),
+-                    tx.pure(bcs_1.bcs
+-                        .vector(bcs_1.bcs.U8)
+-                        .serialize(Array.from(vaa), {
+-                        maxSize: MAX_ARGUMENT_SIZE,
+-                    })
+-                        .toBytes()),
+-                    tx.object(utils_1.SUI_CLOCK_OBJECT_ID),
+-                ],
+-            });
+-            verifiedVaas.push(verifiedVaa);
+-        }
+-        return verifiedVaas;
++    return verifiedVaas;
++  }
++  /**
++   * Adds the necessary commands for updating the pyth price feeds to the transaction block.
++   * @param tx transaction block to add commands to
++   * @param updates array of price feed updates received from the price service
++   * @param feedIds array of feed ids to update (in hex format)
++   */
++  async updatePriceFeeds(tx, updates, feedIds, isSponsoredTx = false) {
++    const packageId = await this.getPythPackageId();
++    let priceUpdatesHotPotato;
++    if (updates.length > 1) {
++      throw new Error(
++        'SDK does not support sending multiple accumulator messages in a single transaction'
++      );
+     }
+-    /**
 -     * Adds the necessary commands for updating the pyth price feeds to the transaction block.
 -     * @param tx transaction block to add commands to
 -     * @param updates array of price feed updates received from the price service
@@ -376,23 +393,6 @@ index 0fa560e352fbb83701e19d3bdc3a256e60fcf82c..1caeaed706b7cc9b37089c4f5e23c280
 -        }
 -        const vaa = this.extractVaaBytesFromAccumulatorMessage(updates[0]);
 -        const verifiedVaas = await this.verifyVaas([vaa], tx);
-+    return verifiedVaas;
-+  }
-+  /**
-+   * Adds the necessary commands for updating the pyth price feeds to the transaction block.
-+   * @param tx transaction block to add commands to
-+   * @param updates array of price feed updates received from the price service
-+   * @param feedIds array of feed ids to update (in hex format)
-+   */
-+  async updatePriceFeeds(tx, updates, feedIds, isSponsoredTx = false) {
-+    console.log('start 1');
-+    const packageId = await this.getPythPackageId();
-+    let priceUpdatesHotPotato;
-+    if (updates.length > 1) {
-+      throw new Error(
-+        'SDK does not support sending multiple accumulator messages in a single transaction'
-+      );
-+    }
 +    const vaa = this.extractVaaBytesFromAccumulatorMessage(updates[0]);
 +    const verifiedVaas = await this.verifyVaas([vaa], tx);
 +    [priceUpdatesHotPotato] = tx.moveCall({
