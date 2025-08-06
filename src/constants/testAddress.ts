@@ -534,10 +534,7 @@ export const WHITELIST = {
   suiBridge: new Set(['sbeth', 'sbusdt', 'sbwbtc']),
   wormhole: new Set(['wusdc', 'wusdt', 'weth', 'wbtc', 'wapt', 'wsol']),
   oracles: new Set(['pyth', 'supra', 'switchboard']),
-  pythEndpoints: new Set([
-    'https://hermes.pyth.network',
-    'https://scallop.rpc.p2p.world',
-  ]),
+  pythEndpoints: new Set(['https://hermes.pyth.network']),
   deprecated: new Set(['wapt', 'wusdc', 'wusdt', 'weth', 'wbtc']),
   borrowIncentiveRewards: new Set(['mpoints']),
   rewardsAsPoint: new Set(['mpoints']),
