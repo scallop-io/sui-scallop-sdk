@@ -1,9 +1,82 @@
 import {
+  HexString,
   SuiPriceServiceConnection,
   SuiPythClient,
 } from '@pythnetwork/pyth-sui-js';
 import { ScallopBuilder } from 'src/models';
-import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
+import {
+  SUI_CLOCK_OBJECT_ID,
+  type SuiTxBlock as SuiKitTxBlock,
+  type Transaction,
+} from '@scallop-io/sui-kit';
+import { SuiClient } from '@mysten/sui/client';
+
+type ObjectId = string;
+class ScallopPythClient extends SuiPythClient {
+  constructor(
+    provider: SuiClient,
+    pythStateId: ObjectId,
+    wormholeStateId: ObjectId,
+    private params: {
+      // addressId?: string;
+      defaultPackageId: ObjectId;
+      gasStationId: ObjectId;
+    }
+  ) {
+    super(provider, pythStateId, wormholeStateId);
+  }
+
+  async updatePriceFeedsWithSponsoredBaseUpdateFee(
+    tx: Transaction,
+    updates: Buffer[],
+    feedIds: HexString[]
+  ) {
+    if (!this.params) throw new Error('Please provide params');
+    const { defaultPackageId: scallopSponsorPackage, gasStationId } =
+      this.params;
+    const packageId = await this.getPythPackageId();
+    let priceUpdatesHotPotato = await this.verifyVaasAndGetHotPotato(
+      tx,
+      updates,
+      packageId
+    );
+
+    const priceInfoObjects = [];
+    for (const feedId of feedIds) {
+      const priceInfoObjectId = await this.getPriceFeedObjectId(feedId);
+      if (!priceInfoObjectId) {
+        throw new Error(`Price feed object not found for ID: ${feedId}`);
+      }
+      priceInfoObjects.push(priceInfoObjectId);
+    }
+
+    const clockObjectRef = tx.sharedObjectRef({
+      objectId: SUI_CLOCK_OBJECT_ID,
+      mutable: false,
+      initialSharedVersion: '1',
+    });
+
+    for (let i = 0; i < priceInfoObjects.length; i++) {
+      const priceInfoObjectId = priceInfoObjects[i];
+      [priceUpdatesHotPotato] = tx.moveCall({
+        target: `${scallopSponsorPackage}::pyth_sponsor::update_single_price_feed_with_sponsor`,
+        arguments: [
+          tx.object(this.pythStateId),
+          priceUpdatesHotPotato,
+          tx.object(priceInfoObjectId),
+          tx.object(gasStationId),
+          clockObjectRef,
+        ],
+      });
+    }
+
+    tx.moveCall({
+      target: `${packageId}::hot_potato_vector::destroy`,
+      arguments: [priceUpdatesHotPotato],
+      typeArguments: [`${packageId}::price_info::PriceInfo`],
+    });
+  }
+}
 
 export const updatePythPriceFeeds = async (
   builder: ScallopBuilder,
@@ -11,7 +84,7 @@ export const updatePythPriceFeeds = async (
   txBlock: SuiKitTxBlock,
   isSponsoredTx: boolean = false
 ) => {
-  const pythClient = new SuiPythClient(
+  const pythClient = new ScallopPythClient(
     builder.suiKit.client,
     builder.address.get('core.oracles.pyth.state'),
     builder.address.get('core.oracles.pyth.wormholeState'),
@@ -30,19 +103,30 @@ export const updatePythPriceFeeds = async (
   const endpoints = builder.utils.pythEndpoints ?? [
     ...builder.constants.whitelist.pythEndpoints,
   ];
+
+  // get feed object ids
   for (const endpoint of endpoints) {
     try {
       const pythConnection = new SuiPriceServiceConnection(endpoint);
       const priceUpdateData =
         await pythConnection.getPriceFeedsUpdateData(priceIds);
-      await pythClient.updatePriceFeeds(
-        txBlock.txBlock,
-        priceUpdateData,
-        priceIds,
-        isSponsoredTx
-      );
 
-      break;
+      if (isSponsoredTx) {
+        // Use gas station to sponsor the baseFeeUpdate
+        await pythClient.updatePriceFeedsWithSponsoredBaseUpdateFee(
+          txBlock.txBlock,
+          priceUpdateData,
+          priceIds
+        );
+      } else {
+        await pythClient.updatePriceFeeds(
+          txBlock.txBlock,
+          priceUpdateData,
+          priceIds
+        );
+      }
+
+      return;
     } catch (e) {
       console.warn(
         `Failed to update price feeds with endpoint ${endpoint}: ${e}`
