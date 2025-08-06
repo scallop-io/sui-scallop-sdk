@@ -313,7 +313,8 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       amount,
       collateralCoinName,
       obligationId,
-      obligationKey
+      obligationKey,
+      isSponsoredTx = false
     ) => {
       const obligationInfo = await requireObligationInfo(
         builder,
@@ -324,7 +325,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       const updateCoinNames = await builder.utils.getObligationCoinNames(
         obligationInfo.obligationId
       );
-      await updateOracles(builder, txBlock, updateCoinNames);
+      await updateOracles(builder, txBlock, updateCoinNames, { isSponsoredTx });
       return txBlock.takeCollateral(
         obligationInfo.obligationId,
         obligationInfo.obligationKey as SuiObjectArg,
