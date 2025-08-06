@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-scallop-sdk",
-  "version": "2.2.3-pyth-sponsored-transaction-alpha.2",
+  "version": "2.2.3-pyth-sponsored-transaction-alpha.3",
   "description": "Typescript sdk for interacting with Scallop contract on SUI",
   "keywords": [
     "sui",
@@ -40,6 +40,7 @@
   "scripts": {
     "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
     "build": "pnpm run build:tsup",
+    "build:sourcemap": "tsup ./src/index.ts --format esm,cjs --sourcemap --dts",
     "build:tsup": "tsup ./src/index.ts --format esm,cjs --splitting --minify --treeshake --dts",
     "watch:tsup": "tsup ./src/index.ts --format esm,cjs --clean --splitting --watch",
     "watch:types": "tsc --watch",
@@ -60,7 +61,7 @@
   },
   "dependencies": {
     "@mysten/sui": "1.28.2",
-    "@pythnetwork/pyth-sui-js": "2.1.0",
+    "@pythnetwork/pyth-sui-js": "2.2.0",
     "@scallop-io/sui-kit": "1.4.1",
     "@tanstack/query-core": "5.59.16",
     "axios": "^1.9.0",
@@ -162,11 +163,6 @@
           "caughtErrorsIgnorePattern": "^_"
         }
       ]
-    }
-  },
-  "pnpm": {
-    "patchedDependencies": {
-      "@pythnetwork/pyth-sui-js@2.1.0": "patches/@pythnetwork__pyth-sui-js@2.1.0.patch"
     }
   }
 }
