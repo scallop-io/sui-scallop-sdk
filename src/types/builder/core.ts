@@ -93,7 +93,8 @@ export type CoreQuickMethods = {
     amount: number,
     collateralCoinName: string,
     obligationId?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligationKey?: SuiObjectArg,
+    isSponsoredTx?: boolean
   ) => Promise<TransactionResult>;
   borrowQuick: (
     amount: number,
