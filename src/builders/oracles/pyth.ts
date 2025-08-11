@@ -99,12 +99,11 @@ export const updatePythPriceFeeds = async (
     builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`)
   );
 
-  // iterate through the endpoints
   const endpoints = builder.utils.pythEndpoints ?? [
     ...builder.constants.whitelist.pythEndpoints,
   ];
 
-  // get feed object ids
+  // iterate through the endpoints
   for (const endpoint of endpoints) {
     try {
       const pythConnection = new SuiPriceServiceConnection(endpoint);
