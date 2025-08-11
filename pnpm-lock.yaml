@@ -12,8 +12,8 @@ importers:
         specifier: 1.28.2
         version: 1.28.2(typescript@5.5.4)
       '@pythnetwork/pyth-sui-js':
-        specifier: 2.1.0
-        version: 2.1.0(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)
+        specifier: 2.2.0
+        version: 2.2.0(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)
       '@scallop-io/sui-kit':
         specifier: 1.4.1
         version: 1.4.1(typescript@5.5.4)
@@ -746,8 +746,8 @@ packages:
   '@pythnetwork/price-service-sdk@1.8.0':
     resolution: {integrity: sha512-tFZ1thj3Zja06DzPIX2dEWSi7kIfIyqreoywvw5NQ3Z1pl5OJHQGMEhxt6Li3UCGSp2ooYZS9wl8/8XfrfrNSA==}
 
-  '@pythnetwork/pyth-sui-js@2.1.0':
-    resolution: {integrity: sha512-oSfpqtLATTEVaac/YbaRQBvOI7DM+Qds5O0GJjEcky7UQRtz/tlU9tjQ6VRn3vm8IXw8P1mKzJcaTIO134X9Sw==}
+  '@pythnetwork/pyth-sui-js@2.2.0':
+    resolution: {integrity: sha512-BH9oLZchSPXOBK1cmvT4foFELaOcAJJ6lAYXarnVeuBNZxTULBKPYLHuljbz0mqxrKZIVVT6FqqML2A78SlTSg==}
 
   '@repeaterjs/repeater@3.0.6':
     resolution: {integrity: sha512-Javneu5lsuhwNCryN+pXH93VPQ8g0dBX7wItHFgYiwQmzE1sVdg5tWHiOgHywzL2W21XQopa7IwIEnNbmeUJYA==}
@@ -3953,7 +3953,7 @@ snapshots:
     dependencies:
       bn.js: 5.2.1
 
-  '@pythnetwork/pyth-sui-js@2.1.0(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)':
+  '@pythnetwork/pyth-sui-js@2.2.0(bufferutil@4.0.9)(typescript@5.5.4)(utf-8-validate@5.0.10)':
     dependencies:
       '@mysten/sui': 1.28.2(typescript@5.5.4)
       '@pythnetwork/price-service-client': 1.9.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
