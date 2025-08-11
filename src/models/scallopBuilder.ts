@@ -96,6 +96,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
    * @param assetCoinName - Specific support asset coin name.
    * @param amount - Amount of coins to be selected.
    * @param sender - Sender address.
+   * @param isSponsored - Whether the transaction is a sponsored transaction.
    * @return Take coin and left coin.
    */
   async selectCoin(
