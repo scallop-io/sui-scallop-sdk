@@ -12,7 +12,7 @@ import type {
   SuiTxArg,
   SuiVecTxArg,
 } from '@scallop-io/sui-kit';
-import type { ScallopTxBlock, SelectCoinReturnType } from '../types';
+import type { ScallopTxBlock } from '../types';
 import { ScallopBuilderInterface } from './interface';
 
 export type ScallopBuilderParams = {
@@ -96,22 +96,25 @@ class ScallopBuilder implements ScallopBuilderInterface {
    * @param assetCoinName - Specific support asset coin name.
    * @param amount - Amount of coins to be selected.
    * @param sender - Sender address.
+   * @param isSponsored - Whether the transaction is a sponsored transaction.
    * @return Take coin and left coin.
    */
-  async selectCoin<T extends string>(
+  async selectCoin(
     txBlock: ScallopTxBlock | SuiKitTxBlock,
-    assetCoinName: T,
+    assetCoinName: string,
     amount: number,
-    sender: string = this.walletAddress
-  ): Promise<SelectCoinReturnType<T>> {
-    if (assetCoinName === 'sui') {
+    sender: string = this.walletAddress,
+    isSponsored: boolean = false
+  ) {
+    if (assetCoinName === 'sui' && !isSponsored) {
       const [takeCoin] = txBlock.splitSUIFromGas([amount]);
-      return { takeCoin } as SelectCoinReturnType<T>;
+      return { takeCoin };
     } else {
       const coinType = this.utils.parseCoinType(assetCoinName);
       const coins = await this.utils.selectCoins(amount, coinType, sender);
       const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
-      return { takeCoin, leftCoin } as SelectCoinReturnType<T>;
+
+      return { takeCoin, leftCoin };
     }
   }
 

@@ -93,20 +93,38 @@ export type CoreQuickMethods = {
     amount: number,
     collateralCoinName: string,
     obligationId?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligationKey?: SuiObjectArg,
+    updateOracleOptions?: {
+      usePythPullModel?: boolean;
+      useOnChainXOracleList?: boolean;
+      sponsoredFeeds?: string[];
+      isSponsoredTx?: boolean;
+    }
   ) => Promise<TransactionResult>;
   borrowQuick: (
     amount: number,
     poolCoinName: string,
     obligationId?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligationKey?: SuiObjectArg,
+    updateOracleOptions?: {
+      usePythPullModel?: boolean;
+      useOnChainXOracleList?: boolean;
+      sponsoredFeeds?: string[];
+      isSponsoredTx?: boolean;
+    }
   ) => Promise<TransactionResult>;
   borrowWithReferralQuick: (
     amount: number,
     poolCoinName: string,
     borrowReferral: SuiObjectArg,
     obligationId?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligationKey?: SuiObjectArg,
+    updateOracleOptions?: {
+      usePythPullModel?: boolean;
+      useOnChainXOracleList?: boolean;
+      sponsoredFeeds?: string[];
+      isSponsoredTx?: boolean;
+    }
   ) => Promise<TransactionResult>;
   depositQuick: (
     amount: number,
@@ -120,9 +138,18 @@ export type CoreQuickMethods = {
   repayQuick: (
     amount: number,
     poolCoinName: string,
-    obligationId?: SuiObjectArg
+    obligationId?: SuiObjectArg,
+    isSponsoredTx?: boolean
   ) => Promise<void>;
-  updateAssetPricesQuick: (assetCoinNames?: string[]) => Promise<void>;
+  updateAssetPricesQuick: (
+    assetCoinNames?: string[],
+    updateOracleOptions?: {
+      usePythPullModel?: boolean;
+      useOnChainXOracleList?: boolean;
+      sponsoredFeeds?: string[];
+      isSponsoredTx?: boolean;
+    }
+  ) => Promise<void>;
 };
 
 export type SuiTxBlockWithCoreNormalMethods = SuiKitTxBlock &

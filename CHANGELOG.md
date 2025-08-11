@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.2...v2.2.3) (2025-08-12)
+
+### Features
+
+Support handling coins for Pyth’s `baseFeeUpdate` in sponsored transactions. Supported actions include `collateral deposit/withdraw` and `debt borrow/repay`.
+
+- Extend `SuiPythClass` to support sponsored `baseFeeUpdate` ([09acfee](https://github.com/scallop-io/sui-scallop-sdk/pull/268/commits/09acfee77a8b6ee141b47bace4a41e73146a75fb))
+
 ### [2.2.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.1...v2.2.2) (2025-06-11)
 
 ### Bugfixes

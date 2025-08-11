@@ -31,6 +31,7 @@ class ScallopUtils implements ScallopUtilsInterface {
   public pythEndpoints: string[];
   public readonly scallopSuiKit: ScallopSuiKit;
   public readonly constants: ScallopConstants;
+  public readonly timeout: number;
 
   constructor(params: ScallopUtilsParams = {}) {
     this.constants = params.scallopConstants ?? new ScallopConstants(params);
@@ -44,6 +45,8 @@ class ScallopUtils implements ScallopUtilsInterface {
     this.pythEndpoints = params.pythEndpoints ?? [
       'https://hermes.pyth.network',
     ];
+
+    this.timeout = params.axiosTimeout ?? 4000;
   }
 
   get walletAddress() {
@@ -538,7 +541,7 @@ class ScallopUtils implements ScallopUtilsInterface {
 
       const priceIds = priceIdPairs.map(([_, priceId]) => priceId);
       const pythConnection = new SuiPriceServiceConnection(endpoint, {
-        timeout: 4000,
+        timeout: this.timeout,
       });
 
       try {
