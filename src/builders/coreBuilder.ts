@@ -314,7 +314,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       collateralCoinName,
       obligationId,
       obligationKey,
-      isSponsoredTx = false
+      updateOracleOptions
     ) => {
       const obligationInfo = await requireObligationInfo(
         builder,
@@ -325,7 +325,12 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       const updateCoinNames = await builder.utils.getObligationCoinNames(
         obligationInfo.obligationId
       );
-      await updateOracles(builder, txBlock, updateCoinNames, { isSponsoredTx });
+      await updateOracles(
+        builder,
+        txBlock,
+        updateCoinNames,
+        updateOracleOptions
+      );
       return txBlock.takeCollateral(
         obligationInfo.obligationId,
         obligationInfo.obligationKey as SuiObjectArg,
@@ -388,7 +393,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       poolCoinName,
       obligationId,
       obligationKey,
-      isSponsoredTx = false
+      updateOracleOptions
     ) => {
       const obligationInfo = await requireObligationInfo(
         builder,
@@ -401,7 +406,12 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
           obligationInfo.obligationId
         )) ?? [];
       const updateCoinNames = [...obligationCoinNames, poolCoinName];
-      await updateOracles(builder, txBlock, updateCoinNames, { isSponsoredTx });
+      await updateOracles(
+        builder,
+        txBlock,
+        updateCoinNames,
+        updateOracleOptions
+      );
       return txBlock.borrow(
         obligationInfo.obligationId,
         obligationInfo.obligationKey as SuiObjectArg,
@@ -415,7 +425,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       borrowReferral,
       obligationId,
       obligationKey,
-      isSponsoredTx = false
+      updateOracleOptions
     ) => {
       const obligationInfo = await requireObligationInfo(
         builder,
@@ -428,9 +438,12 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
           obligationInfo.obligationId
         )) ?? [];
       const updateCoinNames = [...obligationCoinNames, poolCoinName];
-      await updateOracles(builder, txBlock, updateCoinNames, {
-        isSponsoredTx,
-      });
+      await updateOracles(
+        builder,
+        txBlock,
+        updateCoinNames,
+        updateOracleOptions
+      );
       return txBlock.borrowWithReferral(
         obligationInfo.obligationId,
         obligationInfo.obligationKey as SuiObjectArg,
@@ -462,8 +475,13 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       if (leftCoin) txBlock.transferObjects([leftCoin], sender);
       return txBlock.repay(obligationInfo.obligationId, takeCoin, poolCoinName);
     },
-    updateAssetPricesQuick: async (assetCoinNames) => {
-      return await updateOracles(builder, txBlock, assetCoinNames);
+    updateAssetPricesQuick: async (assetCoinNames, updateOracleOptions) => {
+      return await updateOracles(
+        builder,
+        txBlock,
+        assetCoinNames,
+        updateOracleOptions
+      );
     },
   };
 };
