@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.3...v2.2.4) (2025-08-14)
+
+### Bugfix
+
+- Handle sponsored tx on collateral deposit ([0fd0eb5](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/0fd0eb501df15fa9efecda484309035cea46c696))
+
 ### [2.2.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.2...v2.2.3) (2025-08-12)
 
 ### Features
