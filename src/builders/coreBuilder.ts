@@ -4,7 +4,7 @@ import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { getObligations } from '../queries';
 import { updateOracles } from './oracles';
 import { requireSender } from '../utils';
-import type { SuiObjectArg, TransactionResult } from '@scallop-io/sui-kit';
+import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
 import type {
   CoreIds,
@@ -287,7 +287,12 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
   txBlock,
 }) => {
   return {
-    addCollateralQuick: async (amount, collateralCoinName, obligationId) => {
+    addCollateralQuick: async (
+      amount,
+      collateralCoinName,
+      obligationId,
+      isSponsoredTx = false
+    ) => {
       const sender = requireSender(txBlock);
       const { obligationId: obligationArg } = await requireObligationInfo(
         builder,
@@ -295,19 +300,18 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationId
       );
 
-      if (collateralCoinName === 'sui') {
-        const [suiCoin] = txBlock.splitSUIFromGas([amount]);
-        txBlock.addCollateral(obligationArg, suiCoin, collateralCoinName);
-      } else {
-        const { leftCoin, takeCoin } = await builder.selectCoin(
-          txBlock,
-          collateralCoinName,
-          amount,
-          sender
-        );
-        txBlock.addCollateral(obligationArg, takeCoin, collateralCoinName);
+      const { takeCoin, leftCoin } = await builder.selectCoin(
+        txBlock,
+        collateralCoinName,
+        amount,
+        sender,
+        isSponsoredTx
+      );
+
+      if (leftCoin) {
         txBlock.transferObjects([leftCoin], sender);
       }
+      txBlock.addCollateral(obligationArg, takeCoin, collateralCoinName);
     },
     takeCollateralQuick: async (
       amount,
@@ -340,20 +344,16 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
     },
     depositQuick: async (amount, poolCoinName, returnSCoin = true) => {
       const sender = requireSender(txBlock);
-      let marketCoinDeposit: TransactionResult | undefined;
-      if (poolCoinName === 'sui') {
-        const [suiCoin] = txBlock.splitSUIFromGas([amount]);
-        marketCoinDeposit = txBlock.deposit(suiCoin, poolCoinName);
-      } else {
-        const { leftCoin, takeCoin } = await builder.selectCoin(
-          txBlock,
-          poolCoinName,
-          amount,
-          sender
-        );
+      const { leftCoin, takeCoin } = await builder.selectCoin(
+        txBlock,
+        poolCoinName,
+        amount,
+        sender
+      );
+      if (leftCoin) {
         txBlock.transferObjects([leftCoin], sender);
-        marketCoinDeposit = txBlock.deposit(takeCoin, poolCoinName);
       }
+      const marketCoinDeposit = txBlock.deposit(takeCoin, poolCoinName);
 
       // convert to sCoin
       return returnSCoin

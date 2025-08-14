@@ -111,16 +111,10 @@ const generateReferralQuickMethod: GenerateReferralQuickMethod = ({
       const objToTransfer: SuiObjectArg[] = [];
       for (const coinName of coinNames) {
         if (coinName === 'sui') {
-          const rewardCoin = await txBlock.claimReferralRevenue(
-            veScaKey,
-            coinName
-          );
+          const rewardCoin = txBlock.claimReferralRevenue(veScaKey, coinName);
           objToTransfer.push(rewardCoin);
         } else {
-          const rewardCoin = await txBlock.claimReferralRevenue(
-            veScaKey,
-            coinName
-          );
+          const rewardCoin = txBlock.claimReferralRevenue(veScaKey, coinName);
           try {
             // get the matching user coin if exists
             const coins = await builder.suiKit.suiInteractor.selectCoins(
