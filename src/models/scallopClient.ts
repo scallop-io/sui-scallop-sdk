@@ -222,7 +222,8 @@ class ScallopClient implements ScallopClientInterface {
     amount: number,
     sign?: S,
     obligationId?: string,
-    walletAddress?: string
+    walletAddress?: string,
+    isSponsoredTx?: boolean
   ): Promise<ScallopClientFnReturnType<S>>;
   async depositCollateral<S extends boolean>(
     collateralCoinName: string,
