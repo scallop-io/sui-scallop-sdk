@@ -210,6 +210,7 @@ class ScallopClient implements ScallopClientInterface {
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param obligationId - The obligation object.
    * @param walletAddress - The wallet address of the owner.
+   * @param isSponsoredTx - Whether the transaction is sponsored.
    * @return Transaction block response or transaction block.
    */
   async depositCollateral(
@@ -228,23 +229,30 @@ class ScallopClient implements ScallopClientInterface {
     amount: number,
     sign: S = true as S,
     obligationId?: string,
-    walletAddress?: string
+    walletAddress?: string,
+    isSponsoredTx?: boolean
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
     const sender = walletAddress ?? this.walletAddress;
     txBlock.setSender(sender);
 
-    const obligations = await this.query.getObligations(sender);
-    const specificObligationId = obligationId ?? obligations[0]?.id;
+    const specificObligationId =
+      obligationId ?? (await this.query.getObligations(sender))[0]?.id;
     if (specificObligationId) {
       await txBlock.addCollateralQuick(
         amount,
         collateralCoinName,
-        specificObligationId
+        specificObligationId,
+        isSponsoredTx
       );
     } else {
       const [obligation, obligationKey, hotPotato] = txBlock.openObligation();
-      await txBlock.addCollateralQuick(amount, collateralCoinName, obligation);
+      await txBlock.addCollateralQuick(
+        amount,
+        collateralCoinName,
+        obligation,
+        isSponsoredTx
+      );
       txBlock.returnObligation(obligation, hotPotato);
       txBlock.transferObjects([obligationKey], sender);
     }
@@ -267,6 +275,7 @@ class ScallopClient implements ScallopClientInterface {
    * @param obligationId - The obligation object.
    * @param obligationKey - The obligation key object to verifying obligation authority.
    * @param walletAddress - The wallet address of the owner.
+   * @param isSponsoredTx - Whether the transaction is sponsored.
    * @return Transaction block response or transaction block.
    */
   async withdrawCollateral<S extends boolean>(
@@ -275,7 +284,8 @@ class ScallopClient implements ScallopClientInterface {
     sign: S = true as S,
     obligationId: string,
     obligationKey: string,
-    walletAddress?: string
+    walletAddress?: string,
+    isSponsoredTx?: boolean
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
     const sender = walletAddress ?? this.walletAddress;
@@ -285,7 +295,8 @@ class ScallopClient implements ScallopClientInterface {
       amount,
       collateralCoinName,
       obligationId,
-      obligationKey
+      obligationKey,
+      { isSponsoredTx }
     );
     txBlock.transferObjects([collateralCoin], sender);
 
@@ -449,6 +460,7 @@ class ScallopClient implements ScallopClientInterface {
    * @param obligationId - The obligation object.
    * @param obligationKey - The obligation key object to verifying obligation authority.
    * @param walletAddress - The wallet address of the owner.
+   * @param isSponsoredTx - Whether the transaction is sponsored.
    * @return Transaction block response or transaction block.
    */
   async borrow<S extends boolean>(
@@ -457,7 +469,8 @@ class ScallopClient implements ScallopClientInterface {
     sign: S = true as S,
     obligationId: string,
     obligationKey: string,
-    walletAddress?: string
+    walletAddress?: string,
+    isSponsoredTx?: boolean
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
     const sender = walletAddress ?? this.walletAddress;
@@ -471,7 +484,8 @@ class ScallopClient implements ScallopClientInterface {
       amount,
       poolCoinName,
       obligationId,
-      obligationKey
+      obligationKey,
+      { isSponsoredTx }
     );
     txBlock.transferObjects([coin], sender);
     if (sign && availableStake) {
@@ -495,6 +509,7 @@ class ScallopClient implements ScallopClientInterface {
    * @param sign - Decide to directly sign the transaction or return the transaction block.
    * @param obligationId - The obligation object.
    * @param walletAddress - The wallet address of the owner.
+   * @param isSponsoredTx - Whether the transaction is sponsored.
    * @return Transaction block response or transaction block.
    */
   async repay<S extends boolean>(
@@ -503,7 +518,8 @@ class ScallopClient implements ScallopClientInterface {
     sign: S = true as S,
     obligationId: string,
     obligationKey: string,
-    walletAddress?: string
+    walletAddress?: string,
+    isSponsoredTx?: boolean
   ): Promise<ScallopClientFnReturnType<S>> {
     const txBlock = this.builder.createTxBlock();
     const sender = walletAddress ?? this.walletAddress;
@@ -513,7 +529,7 @@ class ScallopClient implements ScallopClientInterface {
     if (sign && availableStake) {
       await txBlock.unstakeObligationQuick(obligationId, obligationKey);
     }
-    await txBlock.repayQuick(amount, poolCoinName, obligationId);
+    await txBlock.repayQuick(amount, poolCoinName, obligationId, isSponsoredTx);
     if (sign && availableStake) {
       await txBlock.stakeObligationWithVeScaQuick(obligationId, obligationKey);
     }

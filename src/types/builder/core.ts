@@ -87,7 +87,8 @@ export type CoreQuickMethods = {
   addCollateralQuick: (
     amount: number,
     collateralCoinName: string,
-    obligationId?: SuiObjectArg
+    obligationId?: SuiObjectArg,
+    isSponsoredTx?: boolean
   ) => Promise<void>;
   takeCollateralQuick: (
     amount: number,
