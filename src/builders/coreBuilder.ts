@@ -342,13 +342,19 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         collateralCoinName
       );
     },
-    depositQuick: async (amount, poolCoinName, returnSCoin = true) => {
+    depositQuick: async (
+      amount,
+      poolCoinName,
+      returnSCoin = true,
+      isSponsoredTx = false
+    ) => {
       const sender = requireSender(txBlock);
       const { leftCoin, takeCoin } = await builder.selectCoin(
         txBlock,
         poolCoinName,
         amount,
-        sender
+        sender,
+        isSponsoredTx
       );
       if (leftCoin) {
         txBlock.transferObjects([leftCoin], sender);
