@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.5...v2.2.6) (2025-08-23)
+
+### Features
+
+- Support sponsored lending actions ([bfdb340](https://github.com/scallop-io/sui-scallop-sdk/pull/269/commits/bfdb34083bcd7bc2acf97c3db690597dca9a8e70))
+
 ### [2.2.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.4...v2.2.5) (2025-08-14)
 
 ### Bugfix
