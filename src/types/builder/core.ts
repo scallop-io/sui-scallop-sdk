@@ -130,7 +130,8 @@ export type CoreQuickMethods = {
   depositQuick: (
     amount: number,
     poolCoinName: string,
-    returnSCoin?: boolean
+    returnSCoin?: boolean,
+    isSponsoredTx?: boolean
   ) => Promise<TransactionResult>;
   withdrawQuick: (
     amount: number,
