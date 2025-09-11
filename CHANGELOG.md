@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.6...v2.2.7) (2025-09-12)
+
+### Features
+
+- Support querying obligation by obligation id without owner address ([27ca260](https://github.com/scallop-io/sui-scallop-sdk/pull/270/commits/27ca2605fc9a58d3bcac859f337931e8e6a6c660))
+
 ### [2.2.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.5...v2.2.6) (2025-08-23)
 
 ### Features

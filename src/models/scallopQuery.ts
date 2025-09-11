@@ -30,7 +30,9 @@ import {
   getMarketCollateral,
   getMarketCollaterals,
   getMarketPools,
+  getObligationAccount,
   getObligationAccounts,
+  getObligationAccountsByIds,
   getObligations,
   getOnDemandAggObjectIds,
   getPoolAddresses,
@@ -107,6 +109,14 @@ class ScallopQuery implements ScallopQueryInterface {
     this.getObligationAccounts = withIndexerFallback.call(
       this,
       this.getObligationAccounts
+    );
+    this.getObligationAccountsByIds = withIndexerFallback.call(
+      this,
+      this.getObligationAccountsByIds
+    );
+    this.getObligationAccountById = withIndexerFallback.call(
+      this,
+      this.getObligationAccountById
     );
     this.getObligationAccount = withIndexerFallback.call(
       this,
@@ -558,13 +568,13 @@ class ScallopQuery implements ScallopQueryInterface {
   }
 
   /**
-   * Get user all obligation accounts information.
+   * Get user all obligation accounts information from ownerAddress.
    *
    * @description
    * All collateral and borrowing information in all obligation accounts owned by the user.
    *
    * @param ownerAddress - The owner address.
-   * @param indexer - Whether to use indexer.
+   * @param args - Additional arguments.
    * @return All obligation accounts information.
    */
   async getObligationAccounts(
@@ -588,6 +598,68 @@ class ScallopQuery implements ScallopQueryInterface {
   }
 
   /**
+   * Get user all obligation accounts information from obligationIds.
+   *
+   * @description
+   * All collateral and borrowing information in all obligation accounts.
+   *
+   * @param obligationIds - Obligation IDs.
+   * @param args - Additional arguments.
+   * @return All obligation accounts information.
+   */
+  async getObligationAccountsByIds(
+    obligationIds: string[],
+    args?: {
+      market?: {
+        collaterals: MarketCollaterals;
+        pools: MarketPools;
+      };
+      coinPrices?: CoinPrices;
+      indexer?: boolean;
+    }
+  ) {
+    return await getObligationAccountsByIds(
+      this,
+      obligationIds,
+      args?.market,
+      args?.coinPrices,
+      args?.indexer
+    );
+  }
+
+  /**
+   * Get obligation account by id
+   *
+   * @description
+   * All collateral and borrowing information in obligation account.
+   *
+   * @param obligationId - Obligation ID.
+   * @param args - Additional arguments.
+   * @return All obligation accounts information.
+   */
+  async getObligationAccountById(
+    obligationId: string,
+    args?: {
+      market?: {
+        collaterals: MarketCollaterals;
+        pools: MarketPools;
+      };
+      coinPrices?: CoinPrices;
+      indexer?: boolean;
+    }
+  ) {
+    return await getObligationAccount(
+      this,
+      obligationId,
+      '',
+      args?.indexer,
+      args?.market,
+      args?.coinPrices,
+      {}
+    );
+  }
+
+  /**
    * Get obligation account information for specific id.
    *
    * @description
@@ -595,7 +667,7 @@ class ScallopQuery implements ScallopQueryInterface {
    *
    * @param obligationId - The obligation id.
    * @param ownerAddress - The owner address.
-   * @param indexer - Whether to use indexer.
+   * @param args - Additional arguments.
    * @return Borrowing and collateral information.
    */
   async getObligationAccount(
