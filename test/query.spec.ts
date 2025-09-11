@@ -302,6 +302,28 @@ describe('Test Portfolio Query', () => {
     expect(!!obligationAccount).toBe(true);
   });
 
+  it('Should get obligation account by ids', async () => {
+    const obligations = await scallopQuery.getObligationAccountsByIds([
+      '0x266b94734966d7fc2bbb83e6a2ae91caf534462d86f49d273a6ea8ffe3a7f7f3',
+    ]);
+
+    if (ENABLE_LOG) {
+      console.info('Obligations', obligations);
+    }
+    expect(obligations.length).toBeGreaterThan(0);
+  });
+
+  it('Should get obligation account by id', async () => {
+    const obligation = await scallopQuery.getObligationAccountById(
+      '0x266b94734966d7fc2bbb83e6a2ae91caf534462d86f49d273a6ea8ffe3a7f7f3'
+    );
+
+    if (ENABLE_LOG) {
+      console.info('Obligation', obligation);
+    }
+    expect(obligation).toBeDefined();
+  });
+
   it('Should get total value locked', async () => {
     const tvl = await scallopQuery.getTvl();
     if (ENABLE_LOG) {
