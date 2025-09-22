@@ -277,7 +277,29 @@ export type Market = {
   data?: MarketQueryInterface;
 };
 
-export type Obligation = { id: string; keyId: string; locked: boolean };
+export type Obligation = {
+  id: string;
+  keyId: string;
+  locked: boolean;
+  deposits?: Array<{
+    coinType: string;
+    amount: string;
+    coinName?: string;
+    symbol?: string;
+  }>;
+  borrows?: Array<{
+    coinType: string;
+    amount: string;
+    borrowIndex: string;
+    coinName?: string;
+    symbol?: string;
+  }>;
+  totalDepositValueInUSD?: number;
+  totalBorrowValueInUSD?: number;
+  totalCollateralValueInUSD?: number;
+  healthFactor?: number;
+  netAPY?: number;
+};
 
 /**
  * The query interface for `market_query::market_data` inspectTxn.

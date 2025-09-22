@@ -5,3 +5,4 @@ export type * from './portfolio';
 export type * from './sCoin';
 export type * from './spool';
 export type * from './vesca';
+export type * from './scallopQuery';
