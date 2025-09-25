@@ -293,6 +293,8 @@ export const getLending = async (
  *
  * @param query - The Scallop query instance.
  * @param ownerAddress - The owner address.
+ * @param market - The market data.
+ * @param coinPrices - The coin prices data.
  * @param indexer - Whether to use indexer.
  * @return All obligation accounts data.
  */
@@ -339,11 +341,61 @@ export const getObligationAccounts = async (
 };
 
 /**
+ * Get all obligation accounts data by ids.
+ *
+ * @param query - The Scallop query instance.
+ * @param obligationIds - Obligation account ids.
+ * @param market - The market data.
+ * @param coinPrices - The coin prices data.
+ * @param indexer - Whether to use indexer.
+ * @return All obligation accounts data.
+ */
+export const getObligationAccountsByIds = async (
+  query: ScallopQuery,
+  obligationIds: string[],
+  market?: {
+    pools: MarketPools;
+    collaterals: MarketCollaterals;
+  },
+  coinPrices?: CoinPrices,
+  indexer: boolean = false
+) => {
+  market = market ?? (await query.getMarketPools(undefined, { indexer }));
+  coinPrices =
+    coinPrices ??
+    (await query.getAllCoinPrices({
+      marketPools: market.pools,
+    }));
+
+  const obligationAccounts: ObligationAccount[] = [];
+  await Promise.allSettled(
+    obligationIds.map(async (obligationId) => {
+      const obligationAccount = await getObligationAccount(
+        query,
+        obligationId,
+        '',
+        indexer,
+        market,
+        coinPrices,
+        {}
+      );
+      if (obligationAccount) obligationAccounts.push(obligationAccount);
+    })
+  );
+
+  return obligationAccounts;
+};
+
+/**
  * Get obligation account data.
  *
  * @param query - The Scallop query instance.
  * @param obligation - The obligation id.
+ * @param ownerAddress - The owner address of the obligation.
  * @param indexer - Whether to use indexer.
+ * @param market - The market data.
+ * @param coinPrices - The coin prices data.
+ * @param coinAmounts - The coin amounts data.
  * @return Obligation account data.
  */
 export const getObligationAccount = async (
