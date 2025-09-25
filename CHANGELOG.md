@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.8](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.7...v2.2.8) (2025-09-12)
+
+### Features
+
+- Reorder market pools retrieval in `getTotalValueLocked` function ([4a73b66](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/4a73b66d8d8ff4278be0d89e678ade42c5080869))
+
 ### [2.2.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.6...v2.2.7) (2025-09-12)
 
 ### Features
