@@ -787,8 +787,6 @@ export const getTotalValueLocked = async (
   query: ScallopQuery,
   indexer: boolean = false
 ) => {
-  const market = await query.getMarketPools(undefined, { indexer });
-
   let supplyLendingValue = BigNumber(0);
   let supplyCollateralValue = BigNumber(0);
   let borrowValue = BigNumber(0);
@@ -810,6 +808,8 @@ export const getTotalValueLocked = async (
     };
     return tvl;
   }
+
+  const market = await query.getMarketPools(undefined, { indexer });
 
   for (const pool of Object.values(market.pools)) {
     if (!pool) continue;
