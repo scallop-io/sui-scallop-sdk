@@ -134,7 +134,7 @@ class ScallopIndexer extends ScallopAxios {
       borrowIncentivePools: BorrowIncentivePool[];
     }>(
       '/api/borrowIncentivePools/migrate',
-      queryKeys.api.getBorrowIncentivePool()
+      queryKeys.api.getBorrowIncentivePools()
     );
 
     if (response.status === 200) {
