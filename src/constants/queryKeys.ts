@@ -11,7 +11,7 @@ export const queryKeys = {
     getPoolAddresses: () => ['api', 'getPoolAddresses'],
     getMarket: () => ['api', 'getMarket'],
     getSpools: () => ['api', 'getSpools'],
-    getBorrowIncentivePool: () => ['api', 'getBorrowIncentivePools'],
+    getBorrowIncentivePools: () => ['api', 'getBorrowIncentivePools'],
     getTotalValueLocked: () => ['api', 'getTotalValueLocked'],
   },
 
