@@ -1,4 +1,4 @@
-import { RateLimiter } from 'src/models/scallopSuiKit';
+import { RateLimiter } from 'src/models/rateLimiter';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('RateLimiter', () => {
