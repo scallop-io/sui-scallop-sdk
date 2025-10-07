@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [2.2.9](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.7...v2.2.8) (2025-09-26)
+### [2.3.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.9...v2.3.0) (2025-10-07)
+
+### Features
+
+- Improve multi objects fetching to fetch 50 objects per call ([b011908](https://github.com/scallop-io/sui-scallop-sdk/commit/b011908f7578adb22da181cd27daca82fe20f906))
+
+### [2.2.9](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.8...v2.2.9) (2025-09-26)
 
 ### Bugfix
 
