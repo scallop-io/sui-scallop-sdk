@@ -293,6 +293,9 @@ export interface MarketQueryInterface {
     liquidationFactor: {
       value: string;
     };
+    // liquidationPenalty: {
+    //   value: string;
+    // };
     liquidationPanelty: {
       value: string;
     };

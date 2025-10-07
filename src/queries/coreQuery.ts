@@ -5,6 +5,7 @@ import {
   parseOriginMarketCollateralData,
   calculateMarketCollateralData,
   parseObjectAs,
+  partitionArray,
 } from 'src/utils';
 import type {
   SuiObjectResponse,
@@ -126,25 +127,7 @@ export const queryMarket = async (
     }
 
     const parsedMarketPoolData = parseOriginMarketPoolData({
-      type: pool.type,
-      maxBorrowRate: pool.maxBorrowRate,
-      interestRate: pool.interestRate,
-      interestRateScale: pool.interestRateScale,
-      borrowIndex: pool.borrowIndex,
-      lastUpdated: pool.lastUpdated,
-      cash: pool.cash,
-      debt: pool.debt,
-      marketCoinSupply: pool.marketCoinSupply,
-      reserve: pool.reserve,
-      reserveFactor: pool.reserveFactor,
-      borrowWeight: pool.borrowWeight,
-      borrowFeeRate: pool.borrowFeeRate,
-      baseBorrowRatePerSec: pool.baseBorrowRatePerSec,
-      borrowRateOnHighKink: pool.borrowRateOnHighKink,
-      borrowRateOnMidKink: pool.borrowRateOnMidKink,
-      highKink: pool.highKink,
-      midKink: pool.midKink,
-      minBorrowAmount: pool.minBorrowAmount,
+      ...pool,
       isIsolated: await isIsolatedAsset(utils, poolCoinName),
       supplyLimit: (await getSupplyLimit(utils, poolCoinName)) ?? '0',
       borrowLimit: (await getBorrowLimit(utils, poolCoinName)) ?? '0',
@@ -158,19 +141,12 @@ export const queryMarket = async (
     pools[poolCoinName] = {
       coinName: poolCoinName,
       symbol: utils.parseSymbol(poolCoinName),
-      coinType: coinType,
       marketCoinType: utils.parseMarketCoinType(poolCoinName),
       sCoinType:
         utils.parseSCoinType(utils.parseMarketCoinName(poolCoinName)) ?? '',
       coinWrappedType: utils.getCoinWrappedType(poolCoinName),
       coinPrice: coinPrice,
-      highKink: parsedMarketPoolData.highKink,
-      midKink: parsedMarketPoolData.midKink,
-      reserveFactor: parsedMarketPoolData.reserveFactor,
-      borrowWeight: parsedMarketPoolData.borrowWeight,
-      borrowFee: parsedMarketPoolData.borrowFee,
-      marketCoinSupplyAmount: parsedMarketPoolData.marketCoinSupplyAmount,
-      minBorrowAmount: parsedMarketPoolData.minBorrowAmount,
+      ...parsedMarketPoolData,
       ...calculatedMarketPoolData,
     };
   }
@@ -186,14 +162,8 @@ export const queryMarket = async (
     }
 
     const parsedMarketCollateralData = parseOriginMarketCollateralData({
-      type: collateral.type,
-      collateralFactor: collateral.collateralFactor,
-      liquidationFactor: collateral.liquidationFactor,
-      liquidationDiscount: collateral.liquidationDiscount,
+      ...collateral,
       liquidationPenalty: collateral.liquidationPanelty,
-      liquidationReserveFactor: collateral.liquidationReserveFactor,
-      maxCollateralAmount: collateral.maxCollateralAmount,
-      totalCollateralAmount: collateral.totalCollateralAmount,
       isIsolated: await isIsolatedAsset(utils, collateralCoinName),
     });
 
@@ -205,17 +175,10 @@ export const queryMarket = async (
     collaterals[collateralCoinName] = {
       coinName: collateralCoinName,
       symbol: utils.parseSymbol(collateralCoinName),
-      coinType: coinType,
       marketCoinType: utils.parseMarketCoinType(collateralCoinName),
       coinWrappedType: utils.getCoinWrappedType(collateralCoinName),
       coinPrice: coinPrice,
-      collateralFactor: parsedMarketCollateralData.collateralFactor,
-      liquidationFactor: parsedMarketCollateralData.liquidationFactor,
-      liquidationDiscount: parsedMarketCollateralData.liquidationDiscount,
-      liquidationPenalty: parsedMarketCollateralData.liquidationPenalty,
-      liquidationReserveFactor:
-        parsedMarketCollateralData.liquidationReserveFactor,
-
+      ...parsedMarketCollateralData,
       ...calculatedMarketCollateralData,
     };
   }
@@ -237,130 +200,84 @@ const queryRequiredMarketObjects = async (
   },
   poolCoinNames: string[]
 ) => {
-  // Phase 1: Single-pass data preparation with proper typing
-  type KeyType = {
-    balanceSheet?: string;
-    collateralStat?: string;
-    borrowDynamic?: string;
-    interestModel?: string;
-    riskModel?: string;
-    borrowFeeKey?: string;
-    supplyLimitKey?: string;
-    borrowLimitKey?: string;
-    isolatedAssetKey?: string;
-  };
+  const keyTypes = [
+    'lendingPoolAddress',
+    'collateralPoolAddress',
+    'borrowDynamic',
+    'interestModel',
+    'riskModel',
+    'borrowFeeKey',
+    'supplyLimitKey',
+    'borrowLimitKey',
+    'isolatedAssetKey',
+  ] as const;
 
-  const keyCollections: Record<keyof KeyType, string[]> = {
-    balanceSheet: [],
-    collateralStat: [],
-    borrowDynamic: [],
-    interestModel: [],
-    riskModel: [],
-    borrowFeeKey: [],
-    supplyLimitKey: [],
-    borrowLimitKey: [],
-    isolatedAssetKey: [],
-  };
+  const allObjectIds: string[] = [];
 
-  const taskMap = new Map<string, KeyType>();
-
-  // Single iteration to collect all keys and map tasks
+  // Get all object ids
   for (const poolCoinName of poolCoinNames) {
     const poolData = utils.constants.poolAddresses[poolCoinName];
-    const task: KeyType = {
-      balanceSheet: poolData?.lendingPoolAddress,
-      collateralStat: poolData?.collateralPoolAddress,
-      borrowDynamic: poolData?.borrowDynamic,
-      interestModel: poolData?.interestModel,
-      riskModel: poolData?.riskModel,
-      borrowFeeKey: poolData?.borrowFeeKey,
-      supplyLimitKey: poolData?.supplyLimitKey,
-      borrowLimitKey: poolData?.borrowLimitKey,
-      isolatedAssetKey: poolData?.isolatedAssetKey,
-    };
-
-    // Add to key collections
-    (Object.entries(task) as [keyof KeyType, string | undefined][]).forEach(
-      ([key, value]) => {
-        if (value) keyCollections[key].push(value);
+    for (const keyType of keyTypes) {
+      if (poolData?.[keyType] && poolData[keyType] !== '') {
+        allObjectIds.push(poolData[keyType]);
       }
-    );
-
-    taskMap.set(poolCoinName, task);
+    }
   }
 
-  // Phase 2: Parallel queries with pre-collected keys
-  const options = {
-    showContent: true,
-  };
-  const queryResults = await Promise.all([
-    scallopSuiKit.queryGetObjects(keyCollections.balanceSheet, options),
-    scallopSuiKit.queryGetObjects(keyCollections.collateralStat, options),
-    scallopSuiKit.queryGetObjects(keyCollections.borrowDynamic, options),
-    scallopSuiKit.queryGetObjects(keyCollections.interestModel, options),
-    scallopSuiKit.queryGetObjects(keyCollections.riskModel, options),
-    scallopSuiKit.queryGetObjects(keyCollections.borrowFeeKey, options),
-    scallopSuiKit.queryGetObjects(keyCollections.supplyLimitKey, options),
-    scallopSuiKit.queryGetObjects(keyCollections.borrowLimitKey, options),
-  ]);
+  const objectDatas: SuiObjectData[] = [];
+  const batches = partitionArray(allObjectIds, 50);
 
-  // Phase 3: Single-pass result mapping
-  const resultMaps = {
-    balanceSheet: new Map<string, SuiObjectData>(),
-    collateralStat: new Map<string, SuiObjectData>(),
-    borrowDynamic: new Map<string, SuiObjectData>(),
-    interestModel: new Map<string, SuiObjectData>(),
-    riskModel: new Map<string, SuiObjectData>(),
-    borrowFeeKey: new Map<string, SuiObjectData>(),
-    supplyLimitKey: new Map<string, SuiObjectData>(),
-    borrowLimitKey: new Map<string, SuiObjectData>(),
-    isolatedAssetKey: new Map<string, SuiObjectData>(),
-    isIsolated: new Map<string, boolean>(),
-  } as Record<keyof KeyType, Map<string, SuiObjectData>>;
-
-  queryResults.forEach((objects, index) => {
-    const keyType = Object.keys(resultMaps)[index] as keyof KeyType;
-    objects.forEach((obj) => {
-      resultMaps[keyType].set(obj.objectId, obj);
+  for (const batch of batches) {
+    const responses = await scallopSuiKit.queryGetObjects(batch, {
+      showContent: true,
     });
-  });
+    if (responses.length > 0) {
+      objectDatas.push(...responses);
+    }
+  }
 
-  // Phase 4: Efficient result construction
-  const result: Record<string, any> = {};
-  for (const [poolCoinName, task] of taskMap) {
-    result[poolCoinName] = {
-      balanceSheet: task.balanceSheet
-        ? resultMaps.balanceSheet.get(task.balanceSheet)
-        : undefined,
-      collateralStat: task.collateralStat
-        ? resultMaps.collateralStat.get(task.collateralStat)
-        : undefined,
-      borrowDynamic: task.borrowDynamic
-        ? resultMaps.borrowDynamic.get(task.borrowDynamic)
-        : undefined,
-      interestModel: task.interestModel
-        ? resultMaps.interestModel.get(task.interestModel)
-        : undefined,
-      riskModel: task.riskModel
-        ? resultMaps.riskModel.get(task.riskModel)
-        : undefined,
-      borrowFeeKey: task.borrowFeeKey
-        ? resultMaps.borrowFeeKey.get(task.borrowFeeKey)
-        : undefined,
-      supplyLimitKey: task.supplyLimitKey
-        ? resultMaps.supplyLimitKey.get(task.supplyLimitKey)
-        : undefined,
-      borrowLimitKey: task.borrowLimitKey
-        ? resultMaps.borrowLimitKey.get(task.borrowLimitKey)
-        : undefined,
-      isolatedAssetKey: task.isolatedAssetKey
-        ? resultMaps.isolatedAssetKey.get(task.isolatedAssetKey)
-        : undefined,
-      isIsolated: utils.constants.poolAddresses[poolCoinName]?.isIsolated,
+  // Transform into map
+  const objectDataMap = objectDatas.reduce(
+    (acc, obj) => {
+      acc[obj.objectId] = obj;
+      return acc;
+    },
+    {} as Record<string, SuiObjectData>
+  );
+
+  const _resultKeys = [
+    'balanceSheet',
+    'collateralStat',
+    'borrowDynamic',
+    'interestModel',
+    'riskModel',
+    'borrowFeeKey',
+    'supplyLimitKey',
+    'borrowLimitKey',
+    'isolatedAssetKey',
+  ] as const;
+
+  const results: Record<
+    string,
+    Record<(typeof _resultKeys)[number], SuiObjectData>
+  > = {};
+
+  for (const poolCoinName of poolCoinNames) {
+    const poolData = utils.constants.poolAddresses[poolCoinName];
+    results[poolCoinName] = {
+      balanceSheet: objectDataMap[poolData?.lendingPoolAddress ?? ''],
+      collateralStat: objectDataMap[poolData?.collateralPoolAddress ?? ''],
+      borrowDynamic: objectDataMap[poolData?.borrowDynamic ?? ''],
+      interestModel: objectDataMap[poolData?.interestModel ?? ''],
+      riskModel: objectDataMap[poolData?.riskModel ?? ''],
+      borrowFeeKey: objectDataMap[poolData?.borrowFeeKey ?? ''],
+      supplyLimitKey: objectDataMap[poolData?.supplyLimitKey ?? ''],
+      borrowLimitKey: objectDataMap[poolData?.borrowLimitKey ?? ''],
+      isolatedAssetKey: objectDataMap[poolData?.isolatedAssetKey ?? ''],
     };
   }
 
-  return result;
+  return results;
 };
 
 /**
@@ -450,29 +367,32 @@ export const getMarketPools = async (
   };
 };
 
-const parseMarketPoolObjects = ({
-  balanceSheet,
-  borrowDynamic,
-  collateralStat,
-  interestModel,
-  riskModel,
-  borrowFeeKey,
-  supplyLimitKey,
-  borrowLimitKey,
-  isIsolated,
-}: {
-  balanceSheet?: SuiObjectData;
-  borrowDynamic?: SuiObjectData;
-  collateralStat?: SuiObjectData;
-  interestModel?: SuiObjectData;
-  riskModel?: SuiObjectData;
-  borrowFeeKey?: SuiObjectData;
-  supplyLimitKey?: SuiObjectData;
-  borrowLimitKey?: SuiObjectData;
-  isIsolated: boolean;
-}): OriginMarketPoolData & {
-  parsedOriginMarketCollateral?: OriginMarketCollateralData;
-} => {
+const parseMarketPoolObjects = async (
+  utils: ScallopUtils,
+  {
+    balanceSheet,
+    borrowDynamic,
+    collateralStat,
+    interestModel,
+    riskModel,
+    borrowFeeKey,
+    supplyLimitKey,
+    borrowLimitKey,
+  }: {
+    balanceSheet?: SuiObjectData;
+    borrowDynamic?: SuiObjectData;
+    collateralStat?: SuiObjectData;
+    interestModel?: SuiObjectData;
+    riskModel?: SuiObjectData;
+    borrowFeeKey?: SuiObjectData;
+    supplyLimitKey?: SuiObjectData;
+    borrowLimitKey?: SuiObjectData;
+  }
+): Promise<
+  OriginMarketPoolData & {
+    parsedOriginMarketCollateral?: OriginMarketCollateralData;
+  }
+> => {
   if (!balanceSheet || !borrowDynamic || !interestModel) {
     throw new Error('Missing required market objects');
   }
@@ -495,11 +415,15 @@ const parseMarketPoolObjects = ({
     ? parseObjectAs<CollateralStat>(collateralStat)
     : undefined;
 
+  const isIsolated = await isIsolatedAsset(
+    utils,
+    utils.parseCoinNameFromType(`0x${_interestModel.type.fields.name}`)
+  );
+
   const parsedOriginMarketCollateral =
     _riskModel && _collateralStat
       ? {
           type: _interestModel.type.fields,
-          isIsolated: isIsolated,
           collateralFactor: _riskModel.collateral_factor.fields,
           liquidationFactor: _riskModel.liquidation_factor.fields,
           liquidationPenalty: _riskModel.liquidation_penalty.fields,
@@ -508,6 +432,7 @@ const parseMarketPoolObjects = ({
             _riskModel.liquidation_revenue_factor.fields,
           maxCollateralAmount: _riskModel.max_collateral_amount,
           totalCollateralAmount: _collateralStat.amount,
+          isIsolated,
         }
       : undefined;
 
@@ -531,9 +456,9 @@ const parseMarketPoolObjects = ({
     highKink: _interestModel.high_kink.fields,
     midKink: _interestModel.mid_kink.fields,
     minBorrowAmount: _interestModel.min_borrow_amount,
-    isIsolated,
     supplyLimit: _supplyLimit,
     borrowLimit: _borrowLimit,
+    isIsolated,
     parsedOriginMarketCollateral,
   };
 };
@@ -561,7 +486,6 @@ export const getMarketPool = async (
     supplyLimitKey: SuiObjectData;
     borrowLimitKey: SuiObjectData;
     isolatedAssetKey?: SuiObjectData;
-    isIsolated: boolean;
   }
 ): Promise<
   { marketPool: MarketPool; collateral?: MarketCollateral } | undefined
@@ -604,7 +528,10 @@ export const getMarketPool = async (
     throw new Error(
       `Failed to fetch required market objects for ${poolCoinName}`
     );
-  const parsedMarketPoolObjects = parseMarketPoolObjects(requiredObjects);
+  const parsedMarketPoolObjects = await parseMarketPoolObjects(
+    query.utils,
+    requiredObjects
+  );
   const parsedMarketPoolData = parseOriginMarketPoolData(
     parsedMarketPoolObjects
   );
