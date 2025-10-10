@@ -21,6 +21,8 @@ import {
   SuiObjectDataOptions,
   SuiObjectResponse,
 } from '@mysten/sui/client';
+import { SuiGraphQLClient } from '@mysten/sui/graphql';
+import { graphql } from '@mysten/sui/graphql/schemas/latest';
 import { newSuiKit } from 'src/models/suiKit';
 import { QueryKey } from '@tanstack/query-core';
 import ScallopQueryClient, {
@@ -41,6 +43,156 @@ export type ScallopSuiKitParams = {
   ScallopQueryClientParams;
 
 const DEFAULT_TOKENS_PER_INTERVAL = 10;
+
+// GraphQL queries
+const objectQuery = graphql(`
+  query getObject($objectId: SuiAddress!) {
+    object(address: $objectId) {
+      ... on MoveObject {
+        digest
+        type
+        owner {
+          AddressOwner
+          ObjectOwner
+          Shared {
+            initial_shared_version
+          }
+          Immutable
+        }
+        previousTransaction
+        storageRebate
+        version
+        fields
+        hasPublicTransfer
+      }
+    }
+  }
+`);
+
+const dynamicFieldsQuery = graphql(`
+  query getDynamicFields($parentId: SuiAddress!, $first: Int, $after: String) {
+    object(address: $parentId) {
+      ... on MoveObject {
+        dynamicFields(first: $first, after: $after) {
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+          nodes {
+            name {
+              ... on MoveValue {
+                json
+              }
+            }
+            objectId
+          }
+        }
+      }
+    }
+  }
+`);
+
+const dynamicFieldObjectQuery = graphql(`
+  query getDynamicFieldObject(
+    $parentId: SuiAddress!
+    $nameType: String!
+    $nameValue: String!
+  ) {
+    object(address: $parentId) {
+      ... on MoveObject {
+        dynamicField(name: { type: $nameType, value: $nameValue }) {
+          objectId
+          digest
+          type
+          owner {
+            AddressOwner
+            ObjectOwner
+            Shared {
+              initial_shared_version
+            }
+            Immutable
+          }
+          previousTransaction
+          storageRebate
+          content {
+            ... on MoveObject {
+              fields
+              hasPublicTransfer
+              version
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
+const ownedObjectsQuery = graphql(`
+  query getOwnedObjects(
+    $owner: SuiAddress!
+    $first: Int
+    $after: String
+    $structType: String
+  ) {
+    address(address: $owner) {
+      objects(first: $first, after: $after, filter: { type: $structType }) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          ... on MoveObject {
+            address
+            digest
+            type
+            owner {
+              AddressOwner
+              ObjectOwner
+              Shared {
+                initial_shared_version
+              }
+              Immutable
+            }
+            previousTransaction
+            storageRebate
+            version
+            fields
+            hasPublicTransfer
+          }
+        }
+      }
+    }
+  }
+`);
+
+const moveFunctionExistsQuery = graphql(`
+  query moveFunctionExists(
+    $package: SuiAddress!
+    $module: String!
+    $function: String!
+  ) {
+    package(address: $package) {
+      module(name: $module) {
+        function(name: $function) {
+          name
+        }
+      }
+    }
+  }
+`);
+
+const balancesQuery = graphql(`
+  query getBalances($owner: SuiAddress!) {
+    address(address: $owner) {
+      balances(first: 1000) {
+        nodes {
+          coinType
+          totalBalance
+        }
+      }
+    }
+  }
+`);
 
 const deepMergeObject = <T>(curr: T, update: T): T => {
   const result = { ...curr }; // Clone the current object to avoid mutation
@@ -123,6 +275,7 @@ export class RateLimiter {
 
 class ScallopSuiKit extends ScallopQueryClient {
   public readonly suiKit: SuiKit;
+  public readonly graphqlClient: SuiGraphQLClient;
   private _walletAddress: string;
   private _tokensPerSecond: number;
   private rateLimiter: RateLimiter;
@@ -131,6 +284,9 @@ class ScallopSuiKit extends ScallopQueryClient {
     super(params);
 
     this.suiKit = params.suiKit ?? newSuiKit(params);
+    this.graphqlClient = new SuiGraphQLClient({
+      url: 'https://graphql.mainnet.sui.io/graphql',
+    });
     this._tokensPerSecond =
       params.tokensPerSecond ?? DEFAULT_TOKENS_PER_INTERVAL;
     this.rateLimiter = new RateLimiter(this._tokensPerSecond);
@@ -193,13 +349,17 @@ class ScallopSuiKit extends ScallopQueryClient {
     const { address, module, name } = parseStructTag(target);
     return await this.callWithRateLimiter(
       queryKeys.rpc.getNormalizedMoveFunction({ target }),
-      () =>
-        this.client.getNormalizedMoveFunction({
-          // Wrapped in function
-          package: address,
-          module,
-          function: name,
-        })
+      async () => {
+        const result = await this.graphqlClient.query({
+          query: moveFunctionExistsQuery,
+          variables: { package: address, module, function: name },
+        });
+        const fn = (result.data as any)?.package?.module?.function;
+        if (fn && fn.name) {
+          return { name: fn.name } as any;
+        }
+        return null;
+      }
     );
   }
 
@@ -222,11 +382,37 @@ class ScallopSuiKit extends ScallopQueryClient {
         options,
         node: this.currentFullNode,
       }),
-      () =>
-        this.client.getObject({
-          id: objectId,
-          options,
-        })
+      async () => {
+        const result = await this.graphqlClient.query({
+          query: objectQuery,
+          variables: {
+            objectId,
+          },
+        });
+
+        const object = result.data?.object as any;
+        if (!object) {
+          return { data: null };
+        }
+
+        return {
+          data: {
+            objectId,
+            version: object.version,
+            digest: object.digest,
+            type: object.type,
+            owner: object.owner,
+            previousTransaction: object.previousTransaction || '',
+            storageRebate: object.storageRebate || '',
+            content: {
+              dataType: 'moveObject',
+              type: object.type,
+              hasPublicTransfer: object.hasPublicTransfer,
+              fields: object.fields,
+            },
+          },
+        } as SuiObjectResponse;
+      }
     );
   }
 
@@ -251,12 +437,37 @@ class ScallopSuiKit extends ScallopQueryClient {
         objectIds,
         node: this.currentFullNode,
       }),
-      () =>
-        this.suiKit.getObjects(objectIds, {
-          showOwner: options?.showOwner,
-          showContent: options?.showContent,
-          showType: options?.showType,
-        })
+      async () => {
+        const fetched = await Promise.all(
+          objectIds.map(async (objectId) => {
+            const result = await this.graphqlClient.query({
+              query: objectQuery,
+              variables: { objectId },
+            });
+            const object = result.data?.object as any;
+            if (!object) return null;
+
+            const mapped: SuiObjectData = {
+              objectId,
+              version: object.version || '',
+              digest: object.digest || '',
+              type: object.type || '',
+              owner: object.owner || null,
+              previousTransaction: object.previousTransaction || '',
+              storageRebate: object.storageRebate || '',
+              content: {
+                dataType: 'moveObject',
+                type: object.type || '',
+                hasPublicTransfer: object.hasPublicTransfer || false,
+                fields: object.fields || {},
+              },
+            } as SuiObjectData;
+            return mapped;
+          })
+        );
+
+        return fetched.filter((t): t is SuiObjectData => !!t);
+      }
     );
 
     results.forEach((result) => {
@@ -292,18 +503,62 @@ class ScallopSuiKit extends ScallopQueryClient {
     // @TODO: This query need its own separate rate limiter (as owned objects can theoretically be infinite), need a better way to handle this
     const results = await this.callWithRateLimiter(
       queryKeys.rpc.getOwnedObjects(input),
-      () => this.client.getOwnedObjects(input)
+      async () => {
+        const pageSize = input.limit ?? 50;
+        const variables: any = {
+          owner: input.owner,
+          first: pageSize,
+          after: input.cursor,
+          structType: (input as any).filter?.StructType,
+        };
+
+        const result = await this.graphqlClient.query({
+          query: ownedObjectsQuery,
+          variables,
+        });
+
+        const conn = (result.data as any)?.address?.objects;
+        if (!conn) return null;
+
+        const data: SuiObjectResponse[] = (conn.nodes || []).map(
+          (node: any) => {
+            if (!node) return { data: null } as SuiObjectResponse;
+            const obj: SuiObjectData = {
+              objectId: node.address || '',
+              version: node.version || '',
+              digest: node.digest || '',
+              type: node.type || '',
+              owner: node.owner || null,
+              previousTransaction: node.previousTransaction || '',
+              storageRebate: node.storageRebate || '',
+              content: {
+                dataType: 'moveObject',
+                type: node.type || '',
+                hasPublicTransfer: node.hasPublicTransfer || false,
+                fields: node.fields || {},
+              },
+            } as SuiObjectData;
+            return { data: obj } as SuiObjectResponse;
+          }
+        );
+
+        return {
+          data,
+          nextCursor: conn.pageInfo?.endCursor,
+          hasNextPage: conn.pageInfo?.hasNextPage,
+        } as any;
+      }
     );
 
     if (results && results.data.length > 0) {
       results.data
         .filter(
           (
-            result
+            result: any
           ): result is typeof result & NonNullable<{ data: SuiObjectData }> =>
             !!result.data
         )
-        .forEach((result) => {
+        .forEach((result: any) => {
           // fetch previous data
           const queryKey = queryKeys.rpc.getObject({
             objectId: result.data.objectId,
@@ -330,7 +585,34 @@ class ScallopSuiKit extends ScallopQueryClient {
   ): Promise<DynamicFieldPage | null> {
     return await this.callWithRateLimiter(
       queryKeys.rpc.getDynamicFields(input),
-      () => this.client.getDynamicFields(input)
+      async () => {
+        const result = await this.graphqlClient.query({
+          query: dynamicFieldsQuery,
+          variables: {
+            parentId: input.parentId,
+            first: input.limit || 50,
+            after: input.cursor,
+          },
+        });
+
+        const objectData = result.data?.object as any;
+        const dynamicFields = objectData?.dynamicFields;
+        if (!dynamicFields) {
+          return null;
+        }
+
+        return {
+          data: dynamicFields.nodes.map((node: any) => ({
+            objectId: node.objectId,
+            name: {
+              type: '0x1::string::String',
+              value: node.name?.json?.name || '',
+            },
+          })),
+          nextCursor: dynamicFields.pageInfo.endCursor,
+          hasNextPage: dynamicFields.pageInfo.hasNextPage,
+        } as DynamicFieldPage;
+      }
     );
   }
 
@@ -339,7 +621,44 @@ class ScallopSuiKit extends ScallopQueryClient {
   ): Promise<SuiObjectResponse | null> {
     const result = await this.callWithRateLimiter(
       queryKeys.rpc.getDynamicFieldObject(input),
-      () => this.client.getDynamicFieldObject(input)
+      async () => {
+        const result = await this.graphqlClient.query({
+          query: dynamicFieldObjectQuery,
+          variables: {
+            parentId: input.parentId,
+            nameType: input.name.type,
+            nameValue: JSON.stringify(input.name.value),
+          },
+        });
+
+        const objectData = result.data?.object as any;
+        const dynamicField = objectData?.dynamicField;
+        if (!dynamicField) {
+          return { data: null };
+        }
+
+        return {
+          data: {
+            objectId: dynamicField.objectId || '',
+            version:
+              dynamicField.content?.version || dynamicField.version || '',
+            digest: dynamicField.digest || '',
+            type: dynamicField.type || '',
+            owner: dynamicField.owner || null,
+            previousTransaction: dynamicField.previousTransaction || '',
+            storageRebate: dynamicField.storageRebate || '',
+            content: {
+              dataType: 'moveObject',
+              type: dynamicField.type || '',
+              hasPublicTransfer:
+                dynamicField.content?.hasPublicTransfer ||
+                dynamicField.hasPublicTransfer ||
+                false,
+              fields: dynamicField.content?.fields || dynamicField.fields || {},
+            },
+          },
+        } as SuiObjectResponse;
+      }
     );
 
     if (result?.data) {
@@ -371,14 +690,22 @@ class ScallopSuiKit extends ScallopQueryClient {
         node: this.currentFullNode,
       }),
       async () => {
-        const allBalances = await this.client.getAllBalances({ owner });
-        if (!allBalances) return {};
-
-        const balances = allBalances.reduce(
-          (acc, coinBalance) => {
-            if (coinBalance.totalBalance !== '0') {
-              acc[normalizeStructTag(coinBalance.coinType)] = coinBalance;
-            }
+        const result = await this.graphqlClient.query({
+          query: balancesQuery,
+          variables: { owner },
+        });
+        const nodes: any[] =
+          (result.data as any)?.address?.balances?.nodes ?? [];
+        const balances = nodes.reduce(
+          (acc, node) => {
+            if (!node || node.totalBalance === '0') return acc;
+            const entry: CoinBalance = {
+              coinType: node.coinType,
+              coinObjectCount: 0 as any,
+              totalBalance: String(node.totalBalance),
+              lockedBalance: undefined as any,
+            } as unknown as CoinBalance;
+            acc[normalizeStructTag(node.coinType)] = entry;
             return acc;
           },
           {} as { [k: string]: CoinBalance }

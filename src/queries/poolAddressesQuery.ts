@@ -1,25 +1,17 @@
-import { getFullnodeUrl, SuiClient, SuiParsedData } from '@mysten/sui/client';
+import { SuiParsedData } from '@mysten/sui/client';
+import { SuiGraphQLClient } from '@mysten/sui/graphql';
+import { graphql } from '@mysten/sui/graphql/schemas/latest';
 import { AddressesInterface, OptionalKeys, PoolAddress } from 'src/types';
 
 const RPC_PROVIDERS = [
-  getFullnodeUrl('mainnet'),
-  'https://sui-mainnet.public.blastapi.io',
-  'https://sui-mainnet-ca-2.cosmostation.io',
-  'https://sui-mainnet-eu-4.cosmostation.io',
-  'https://sui-mainnet-endpoint.blockvision.org',
-  'https://sui-rpc.publicnode.com',
-  'https://sui-mainnet-rpc.allthatnode.com',
-  'https://mainnet.suiet.app',
-  'https://mainnet.sui.rpcpool.com',
-  'https://sui1mainnet-rpc.chainode.tech',
-  'https://fullnode.mainnet.apis.scallop.io',
-  'https://sui-mainnet-us-2.cosmostation.io',
+  'https://graphql.mainnet.sui.io/graphql',
+  // Add additional RPC endpoints here for redundancy and failover support
 ];
 
-const tryRequest = async <T>(fn: (client: SuiClient) => T) => {
+const tryRequest = async <T>(fn: (client: SuiGraphQLClient) => T) => {
   for (const rpc of RPC_PROVIDERS) {
     try {
-      const res = await fn(new SuiClient({ url: rpc }));
+      const res = await fn(new SuiGraphQLClient({ url: rpc }));
       return res;
     } catch (e: any) {
       if (e.status !== 429) {
@@ -31,8 +23,32 @@ const tryRequest = async <T>(fn: (client: SuiClient) => T) => {
   throw new Error('Failed to fetch data');
 };
 
+// GraphQL query for dynamic fields
+const dynamicFieldsQuery = graphql(`
+  query getDynamicFields($parentId: SuiAddress!, $first: Int, $after: String) {
+    object(address: $parentId) {
+      ... on MoveObject {
+        dynamicFields(first: $first, after: $after) {
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+          nodes {
+            name {
+              ... on MoveValue {
+                json
+              }
+            }
+            objectId
+          }
+        }
+      }
+    }
+  }
+`);
+
 const queryFlashloanFeeObjectIds = async (
-  client: SuiClient,
+  client: SuiGraphQLClient,
   coinTypeMap: Set<string>, // set of coin types
   flashloanFeeTableId: string = '0x00481a93b819d744a7d79ecdc6c62c74f2f7cb4779316c4df640415817ac61bb'
 ) => {
@@ -41,26 +57,84 @@ const queryFlashloanFeeObjectIds = async (
   const flashloanFeeObjectIds: Record<string, string> = {}; // <coinType, flashloanFeeObjectId>
 
   do {
-    const resp = await client.getDynamicFields({
-      parentId: flashloanFeeTableId,
-      limit: 10,
-      cursor,
+    const resp = await client.query({
+      query: dynamicFieldsQuery,
+      variables: {
+        parentId: flashloanFeeTableId,
+        first: 10,
+        after: cursor,
+      },
     });
-    if (!resp) break;
-    const { data, hasNextPage, nextCursor } = resp;
+    if (!resp.data?.object) break;
+    const objectData = resp.data.object as any;
+    const dynamicFields = objectData.dynamicFields;
+    if (!dynamicFields) break;
+
     // get the dynamic object ids
-    data.forEach((field) => {
-      const assetType = `0x${(field.name.value as any).name as string}`;
-      if (coinTypeMap.has(assetType)) {
-        flashloanFeeObjectIds[assetType] = field.objectId;
+    dynamicFields.nodes.forEach((field: any) => {
+      if (field.name?.json) {
+        const assetType = `0x${field.name.json.name}`;
+        if (coinTypeMap.has(assetType)) {
+          flashloanFeeObjectIds[assetType] = field.objectId;
+        }
       }
     });
-    nextPage = hasNextPage;
-    cursor = nextCursor;
+    nextPage = dynamicFields.pageInfo.hasNextPage;
+    cursor = dynamicFields.pageInfo.endCursor;
   } while (nextPage);
 
   return flashloanFeeObjectIds;
 };
+
+// GraphQL query for dynamic field object
+const dynamicFieldObjectQuery = graphql(`
+  query getDynamicFieldObject(
+    $parentId: SuiAddress!
+    $nameType: String!
+    $nameValue: String!
+  ) {
+    object(address: $parentId) {
+      ... on MoveObject {
+        dynamicField(name: { type: $nameType, value: $nameValue }) {
+          objectId
+          content {
+            ... on MoveObject {
+              fields
+              hasPublicTransfer
+              version
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
+// GraphQL query for object
+const objectQuery = graphql(`
+  query getObject($objectId: SuiAddress!) {
+    object(address: $objectId) {
+      ... on MoveObject {
+        fields
+        hasPublicTransfer
+        version
+      }
+    }
+  }
+`);
+
+// GraphQL query for coin metadata
+const coinMetadataQuery = graphql(`
+  query getCoinMetadata($coinType: String!) {
+    coinMetadata(coinType: $coinType) {
+      decimals
+      name
+      symbol
+      description
+      iconUrl
+    }
+  }
+`);
 
 type FetchDynamicObjectReturnType<T extends boolean> = T extends true
   ? string | undefined
@@ -74,17 +148,24 @@ const fetchDynamicObject = async <S extends boolean>(
 ): Promise<FetchDynamicObjectReturnType<S>> => {
   const res = (
     await tryRequest(async (client) => {
-      return await client.getDynamicFieldObject({
-        parentId,
-        name: {
-          type,
-          value,
+      return await client.query({
+        query: dynamicFieldObjectQuery,
+        variables: {
+          parentId,
+          nameType: type,
+          nameValue: JSON.stringify(value),
         },
       });
     })
   ).data;
-  if (returnObjId) return res?.objectId as FetchDynamicObjectReturnType<S>;
-  else return res?.content as FetchDynamicObjectReturnType<S>;
+
+  const objectData = res?.object as any;
+  const dynamicField = objectData?.dynamicField;
+  if (!dynamicField) return undefined as FetchDynamicObjectReturnType<S>;
+
+  if (returnObjId)
+    return dynamicField.objectId as FetchDynamicObjectReturnType<S>;
+  else return dynamicField.content as FetchDynamicObjectReturnType<S>;
 };
 
 export const getPoolAddresses = async (
@@ -125,19 +206,18 @@ export const getPoolAddresses = async (
   const marketId = addressApiResponse.core.market;
   const marketObject = (
     await tryRequest(async (client) => {
-      return await client.getObject({
-        id: marketId,
-        options: {
-          showContent: true,
+      return await client.query({
+        query: objectQuery,
+        variables: {
+          objectId: marketId,
         },
       });
     })
-  ).data;
+  ).data?.object;
 
-  if (!(marketObject && marketObject.content?.dataType === 'moveObject'))
-    throw new Error(`Failed to fetch marketObject`);
+  if (!marketObject) throw new Error(`Failed to fetch marketObject`);
 
-  const fields = marketObject.content.fields as any;
+  const fields = (marketObject as any).fields as any;
 
   const balanceSheetParentId =
     fields.vault.fields.balance_sheets.fields.table.fields.id.id;
@@ -277,11 +357,16 @@ export const getPoolAddresses = async (
 
       const decimals =
         (
-          await tryRequest(async (client) => {
-            return await client.getCoinMetadata({
-              coinType: coinType,
-            });
-          })
+          (
+            await tryRequest(async (client) => {
+              return await client.query({
+                query: coinMetadataQuery,
+                variables: {
+                  coinType: coinType,
+                },
+              });
+            })
+          )?.data?.coinMetadata as any
         )?.decimals ?? 0;
       const spoolName = spoolData ? `s${coinName}` : undefined;
 
