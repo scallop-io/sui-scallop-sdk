@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.0...v2.3.1) (2025-10-23)
+
+### Changed
+
+- Update constructors to use default parameters ([d02f848](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/d02f848d58effbd4df8cfd01cd5195245b8dc12d))
+
+- Rename `network` into `networkType` ([726b47f](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/726b47fd82d62b25b81a4743b50e72ca03ca244e))
+
 ### [2.3.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.9...v2.3.0) (2025-10-07)
 
 ### Features
