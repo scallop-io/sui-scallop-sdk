@@ -15,7 +15,7 @@ describe('Test Scallop Address', () => {
   const scallopAddress = new ScallopAddress({
     addressId: TEST_ADDRESSES_ID,
     auth: process.env.API_KEY,
-    network: NETWORK,
+    networkType: NETWORK,
   });
   console.info('\x1b[32mAddresses Id: \x1b[33m', TEST_ADDRESSES_ID);
 
@@ -602,7 +602,7 @@ describe('Test Forced Scallop Address Interface', () => {
     `);
   const scallopAddress = new ScallopAddress({
     addressId: TEST_ADDRESSES_ID,
-    network: NETWORK,
+    networkType: NETWORK,
     forceAddressesInterface: {
       mainnet: testAddresses,
     },

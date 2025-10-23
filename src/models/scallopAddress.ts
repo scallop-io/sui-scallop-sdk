@@ -12,7 +12,7 @@ export type ScallopAddressParams = {
     addresses?: string[];
   };
   auth?: string;
-  network?: NetworkType;
+  networkType?: NetworkType;
   forceAddressesInterface?: Partial<Record<NetworkType, AddressesInterface>>;
   defaultValues?: {
     addresses?: Partial<Record<NetworkType, AddressesInterface>>;
@@ -452,7 +452,7 @@ class ScallopAddress {
       ...params,
     });
 
-    this.network = params.network ?? 'mainnet';
+    this.network = params.networkType ?? 'mainnet';
     this.addressId = params.addressId ?? this.defaultParamValues.addressId;
     this.auth = params.auth ?? '';
 

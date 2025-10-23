@@ -196,7 +196,7 @@ const generateSpoolNormalMethod: GenerateSpoolNormalMethod = ({
  *
  * @description
  * The quick methods are the same as the normal methods, but they will automatically
- * help users organize transaction blocks, include get stake account info, and transfer
+ * help users organize transaction blocks, including getting stake account info, and transferring
  * coins to the sender. So, they are all asynchronous methods.
  *
  * @param builder - Scallop builder instance.
@@ -273,7 +273,7 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
       for (const account of stakeAccounts) {
         if (account.staked === 0) continue;
         const amountToUnstake = Math.min(amount, account.staked);
-        const marketCoin = await txBlock.unstake(
+        const marketCoin = txBlock.unstake(
           account.id,
           amountToUnstake,
           stakeMarketCoinName
@@ -281,10 +281,7 @@ const generateSpoolQuickMethod: GenerateSpoolQuickMethod = ({
 
         // convert to new sCoin
         if (returnSCoin) {
-          const sCoin = await txBlock.mintSCoin(
-            stakeMarketCoinName,
-            marketCoin
-          );
+          const sCoin = txBlock.mintSCoin(stakeMarketCoinName, marketCoin);
           toTransfer.push(sCoin);
         } else {
           toTransfer.push(marketCoin);
