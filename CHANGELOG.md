@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file. See [standa
 
 - Rename `network` into `networkType` ([726b47f](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/726b47fd82d62b25b81a4743b50e72ca03ca244e))
 
+### Removed
+
+- Blast RPC endpoint
+
 ### [2.3.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.2.9...v2.3.0) (2025-10-07)
 
 ### Features
