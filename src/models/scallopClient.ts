@@ -42,7 +42,7 @@ class ScallopClient implements ScallopClientInterface {
   public readonly builder: ScallopBuilder;
   public networkType: NetworkType;
 
-  public constructor(params: ScallopClientParams) {
+  public constructor(params: ScallopClientParams = {}) {
     this.builder = params.builder ?? new ScallopBuilder(params);
     this.networkType = params.networkType ?? 'mainnet';
   }
@@ -84,9 +84,9 @@ class ScallopClient implements ScallopClientInterface {
 
   /**
    * Query market data.
-   *
+   * @deprecated use ScallopQuery instance instead
    * @description
-   * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
+   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
    * @return Market data.
    */
@@ -96,9 +96,9 @@ class ScallopClient implements ScallopClientInterface {
 
   /**
    * Get obligations data.
-   *
+   * @deprecated use ScallopQuery instance instead
    * @description
-   * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
+   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
    * @param ownerAddress - The owner address.
    * @return Obligations data.
@@ -110,9 +110,9 @@ class ScallopClient implements ScallopClientInterface {
 
   /**
    * Query obligation data.
-   *
+   * @deprecated use ScallopQuery instance instead
    * @description
-   * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
+   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
    * @param obligationId - The obligation id.
    * @return Obligation data.
@@ -123,9 +123,9 @@ class ScallopClient implements ScallopClientInterface {
 
   /**
    * Query all stake accounts data.
-   *
+   * @deprecated use ScallopQuery instance instead
    * @description
-   * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
+   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
    * @param ownerAddress - The owner address.
    * @return All stake accounts data.
@@ -137,9 +137,9 @@ class ScallopClient implements ScallopClientInterface {
 
   /**
    * Query stake account data.
-   *
+   * @deprecated use ScallopQuery instance instead
    * @description
-   * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
+   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
    * @param stakeMarketCoinName - Support stake market coin.
    * @param ownerAddress - The owner address.
@@ -152,9 +152,10 @@ class ScallopClient implements ScallopClientInterface {
 
   /**
    * Query stake pool data.
+   * @deprecated use ScallopQuery instance instead
    *
    * @description
-   * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
+   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
    * @param stakeMarketCoinName - Support stake market coin.
    * @return Stake pool data.
@@ -165,9 +166,10 @@ class ScallopClient implements ScallopClientInterface {
 
   /**
    * Query reward pool data.
+   * @deprecated use ScallopQuery instance instead
    *
    * @description
-   * This method might be @deprecated in the future, please use the {@link ScallopQuery} query instance instead.
+   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
    *
    * @param stakeMarketCoinName - Support stake market coin.
    * @return Reward pool data.
@@ -730,12 +732,7 @@ class ScallopClient implements ScallopClientInterface {
         throw new Error(`Invalid sCoin type: ${stakeMarketCoinName}`);
 
       // merge to existing sCoins if exist
-      await this.utils.mergeSimilarCoins(
-        txBlock,
-        sCoin,
-        sCoinType,
-        requireSender(txBlock)
-      );
+      await this.utils.mergeSimilarCoins(txBlock, sCoin, sCoinType, sender);
     }
 
     txBlock.transferObjects([sCoin], sender);
