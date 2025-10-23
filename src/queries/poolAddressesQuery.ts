@@ -3,7 +3,6 @@ import { AddressesInterface, OptionalKeys, PoolAddress } from 'src/types';
 
 const RPC_PROVIDERS = [
   getFullnodeUrl('mainnet'),
-  'https://sui-mainnet.public.blastapi.io',
   'https://sui-mainnet-ca-2.cosmostation.io',
   'https://sui-mainnet-eu-4.cosmostation.io',
   'https://sui-mainnet-endpoint.blockvision.org',
