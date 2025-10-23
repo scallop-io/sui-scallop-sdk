@@ -39,7 +39,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
   public readonly useOnChainXOracleList: boolean;
   public readonly sponsoredFeeds: string[];
 
-  public constructor(params: ScallopBuilderParams) {
+  public constructor(params: ScallopBuilderParams = {}) {
     this.query = params.query ?? new ScallopQuery(params);
     this.usePythPullModel = params.usePythPullModel ?? true;
     this.useOnChainXOracleList = params.useOnChainXOracleList ?? true;
@@ -112,9 +112,13 @@ class ScallopBuilder implements ScallopBuilderInterface {
     } else {
       const coinType = this.utils.parseCoinType(assetCoinName);
       const coins = await this.utils.selectCoins(amount, coinType, sender);
+      const totalAmount = coins.reduce((prev, coin) => {
+        prev += Number(coin.balance);
+        return prev;
+      }, 0);
       const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
 
-      return { takeCoin, leftCoin };
+      return { takeCoin, leftCoin, totalAmount };
     }
   }
 

@@ -23,7 +23,7 @@ export type ScallopParams = {
 } & ScallopClientParams;
 class Scallop {
   public readonly client: ScallopClient;
-  public constructor(params: ScallopParams) {
+  public constructor(params: ScallopParams = {}) {
     this.client = params.client ?? new ScallopClient(params);
   }
 

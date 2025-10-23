@@ -24,7 +24,7 @@ interface ScallopBuilderInterface extends ScallopQueryInterface {
   query: ScallopQuery;
 }
 
-interface ScallopClientInterface extends ScallopBaseInterface {
+interface ScallopClientInterface extends ScallopBuilderInterface {
   builder: ScallopBuilder;
 }
 

@@ -74,7 +74,7 @@ class ScallopQuery implements ScallopQueryInterface {
   public readonly indexer: ScallopIndexer;
   public readonly utils: ScallopUtils;
 
-  constructor(params: ScallopQueryParams) {
+  constructor(params: ScallopQueryParams = {}) {
     this.utils = params.utils ?? new ScallopUtils(params);
     this.indexer =
       params.indexer ??
