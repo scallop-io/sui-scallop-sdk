@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.1...v2.3.2) (2025-10-25)
+
+### Fixed
+
+- Ensure unique `priceIds` ([e14c8d0](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/e14c8d0fbaf1a43e557b97a84b6473865c2cafaa))
+
+### Changed
+
+- Update queryKeys ([985a0e8](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/985a0e862546acae825f0b3ac3195221d0542711))
+
 ### [2.3.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.0...v2.3.1) (2025-10-23)
 
 ### Changed
