@@ -521,25 +521,24 @@ class ScallopUtils implements ScallopUtilsInterface {
       ]),
     ] as string[]
   ) {
+    const priceIdsMap = new Map(
+      coinNames.map((coinName) => [
+        coinName,
+        this.address.get(`core.coins.${coinName}.oracle.pyth.feed`),
+      ])
+    );
+
+    const priceIds = Array.from(priceIdsMap.values());
+    const state = this.queryClient.getQueryState(
+      queryKeys.oracle.getCoinPrices(priceIds)
+    );
+
+    if (state && state && Date.now() - (state.dataUpdatedAt ?? 0) < 30_000) {
+      return state.data as CoinPrices;
+    }
+
     let coinPrices: CoinPrices = {};
-
-    const endpoints = this.pythEndpoints;
-    const failedRequests: Set<string> = new Set(coinNames);
-
-    for (const endpoint of endpoints) {
-      const priceIdPairs = Array.from(failedRequests.values()).reduce(
-        (acc, coinName) => {
-          const priceId =
-            this.address.get(`core.coins.${coinName}.oracle.pyth.feed`) ??
-            this.constants.poolAddresses[coinName]?.pythFeed;
-          acc.push([coinName, priceId]);
-          return acc;
-        },
-        [] as [string, string][]
-      );
-      if (priceIdPairs.length === 0) break;
-
-      const priceIds = priceIdPairs.map(([_, priceId]) => priceId);
+    for (const endpoint of this.pythEndpoints) {
       const pythConnection = new SuiPriceServiceConnection(endpoint, {
         timeout: this.timeout,
         httpRetries: 0,
@@ -547,38 +546,49 @@ class ScallopUtils implements ScallopUtilsInterface {
 
       try {
         const feeds = await this.queryClient.fetchQuery({
-          queryKey: queryKeys.oracle.getPythLatestPriceFeeds(priceIds),
+          queryKey: queryKeys.oracle.getPythLatestPriceFeeds(
+            priceIds,
+            endpoint
+          ),
           queryFn: async () => {
             return await pythConnection.getLatestPriceFeeds(priceIds);
           },
-          staleTime: 30000,
-          gcTime: 30000,
+          retry: false,
+          staleTime: 30_000,
+          gcTime: 30_000,
         });
-        if (feeds) {
-          feeds.forEach((feed, idx) => {
-            const coinName = priceIdPairs[idx][0] as string;
-            const data = this.parseDataFromPythPriceFeed(feed);
-            coinPrices[coinName as string] = data.price;
-            failedRequests.delete(coinName as string); // remove success price feed to prevent duplicate request on the next endpoint
-          });
-        }
+        if (!feeds) throw new Error('No feeds returned from pyth');
+
+        if (feeds.length !== priceIds.length)
+          throw new Error('Incomplete feeds returned from pyth');
+
+        feeds.forEach((feed, idx) => {
+          const coinName = coinNames[idx] as string;
+          const data = this.parseDataFromPythPriceFeed(feed);
+          coinPrices[coinName as string] = data.price;
+        });
+        this.queryClient.setQueryData(
+          queryKeys.oracle.getCoinPrices(priceIds),
+          coinPrices
+        );
       } catch (e: any) {
-        console.dir(e, { depth: null });
         if ('status' in e && e.status === 403) {
           console.log(`trying next pyth endpoint`);
           continue; // try next endpoint
         }
         console.error(e.message);
       }
-      if (failedRequests.size === 0) break;
     }
 
-    if (failedRequests.size > 0) {
+    if (Object.keys(coinPrices).length === 0) {
       coinPrices = {
         ...coinPrices,
-        ...(await this.getPythPrices(Array.from(failedRequests.values()))),
+        ...(await this.getPythPrices(Array.from(coinNames))),
       };
-      failedRequests.clear();
+      this.queryClient.setQueryData(
+        queryKeys.oracle.getCoinPrices(priceIds),
+        coinPrices
+      );
     }
 
     return coinPrices;
