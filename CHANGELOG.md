@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.3...v2.3.4) (2025-10-26)
+
+### Changed
+
+- Improve `getCoinPrices()` function with better cache and error handling ([132c9c0](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/132c9c0c4ce8d80b11f36540b5205e761ddc3788))
+
 ### [2.3.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.2...v2.3.3) (2025-10-25)
 
 ### Fixed
