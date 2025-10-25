@@ -4,7 +4,7 @@ import type {
   GetOwnedObjectsParams,
   SuiObjectData,
   SuiObjectDataOptions,
-} from '@mysten/sui/dist/cjs/client';
+} from '@mysten/sui/client';
 import type { SuiObjectArg, SuiTxArg } from '@scallop-io/sui-kit';
 
 export namespace QueryKeys {
