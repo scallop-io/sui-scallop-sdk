@@ -95,8 +95,12 @@ export const updatePythPriceFeeds = async (
         '0xa8b8dcc9880166edb57b53e05f8df7364d31b5d9b7d107fd27f0b69cf338b687',
     }
   );
-  const priceIds = assetCoinNames.map((assetCoinName) =>
-    builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`)
+  const priceIds = Array.from(
+    new Set(
+      assetCoinNames.map((assetCoinName) =>
+        builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`)
+      )
+    )
   );
 
   const endpoints = builder.utils.pythEndpoints ?? [
@@ -106,7 +110,11 @@ export const updatePythPriceFeeds = async (
   // iterate through the endpoints
   for (const endpoint of endpoints) {
     try {
-      const pythConnection = new SuiPriceServiceConnection(endpoint);
+      const pythConnection = new SuiPriceServiceConnection(endpoint, {
+        priceFeedRequestConfig: {
+          binary: true,
+        },
+      });
       const priceUpdateData =
         await pythConnection.getPriceFeedsUpdateData(priceIds);
 
