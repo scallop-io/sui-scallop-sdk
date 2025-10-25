@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.2...v2.3.3) (2025-10-25)
+
+### Fixed
+
+- Wrong import paths ([f770f67](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/f770f6761e675a46b276f95efbb37fd4e99525a8))
+
 ### [2.3.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.1...v2.3.2) (2025-10-25)
 
 ### Fixed
