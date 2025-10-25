@@ -16,7 +16,7 @@ import {
 } from 'src/constants';
 import { PriceFeed, SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import ScallopSuiKit, { ScallopSuiKitParams } from './scallopSuiKit';
-import { SuiObjectData } from '@mysten/sui/dist/cjs/client';
+import { SuiObjectData } from '@mysten/sui/client';
 import { queryObligation } from 'src/queries';
 import { ScallopUtilsInterface } from './interface';
 
@@ -563,6 +563,11 @@ class ScallopUtils implements ScallopUtilsInterface {
           });
         }
       } catch (e: any) {
+        console.dir(e, { depth: null });
+        if ('status' in e && e.status === 403) {
+          console.log(`trying next pyth endpoint`);
+          continue; // try next endpoint
+        }
         console.error(e.message);
       }
       if (failedRequests.size === 0) break;

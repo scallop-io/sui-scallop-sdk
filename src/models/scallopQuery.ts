@@ -60,7 +60,7 @@ import {
   queryObligation,
   queryVeScaKeyIdFromReferralBindings,
 } from 'src/queries';
-import { SuiObjectRef, SuiObjectData } from '@mysten/sui/dist/cjs/client';
+import { SuiObjectRef, SuiObjectData } from '@mysten/sui/client';
 import { SuiObjectArg } from '@scallop-io/sui-kit';
 import { ScallopQueryInterface } from './interface';
 
