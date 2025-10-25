@@ -542,11 +542,12 @@ class ScallopUtils implements ScallopUtilsInterface {
       const priceIds = priceIdPairs.map(([_, priceId]) => priceId);
       const pythConnection = new SuiPriceServiceConnection(endpoint, {
         timeout: this.timeout,
+        httpRetries: 0,
       });
 
       try {
         const feeds = await this.queryClient.fetchQuery({
-          queryKey: queryKeys.oracle.getPythLatestPriceFeeds(),
+          queryKey: queryKeys.oracle.getPythLatestPriceFeeds(priceIds),
           queryFn: async () => {
             return await pythConnection.getLatestPriceFeeds(priceIds);
           },
