@@ -505,7 +505,7 @@ class ScallopUtils implements ScallopUtilsInterface {
    * Get asset coin price.
    *
    * @description
-   * The strategy for obtaining the price is to get it through API first,
+   * The strategy for obtaining the price is to get it through pyth API first,
    * and then on-chain data if API cannot be retrieved.
    * Currently, we only support obtaining from pyth protocol, other
    * oracles will be supported in the future.
@@ -523,13 +523,20 @@ class ScallopUtils implements ScallopUtilsInterface {
     useOnChainObjects: boolean = false
   ) {
     const priceIdsMap = new Map(
-      coinNames.map((coinName) => [
-        coinName,
-        this.address.get(`core.coins.${coinName}.oracle.pyth.feed`),
-      ])
+      coinNames
+        .map((coinName) => {
+          const priceId = this.address.get(
+            `core.coins.${coinName}.oracle.pyth.feed`
+          );
+          return priceId
+            ? ([coinName, priceId] as [string, string])
+            : undefined;
+        })
+        .filter((entry): entry is [string, string] => !!entry)
     );
 
     const priceIds = Array.from(priceIdsMap.values());
+    const coinNamesMapped = Array.from(priceIdsMap.keys());
     const state = this.queryClient.getQueryState(
       queryKeys.oracle.getCoinPrices(priceIds)
     );
@@ -539,6 +546,7 @@ class ScallopUtils implements ScallopUtilsInterface {
     }
 
     let coinPrices: CoinPrices = {};
+
     if (!useOnChainObjects) {
       for (const endpoint of this.pythEndpoints) {
         const pythConnection = new SuiPriceServiceConnection(endpoint, {
@@ -565,7 +573,7 @@ class ScallopUtils implements ScallopUtilsInterface {
             throw new Error('Incomplete feeds returned from pyth');
 
           feeds.forEach((feed, idx) => {
-            const coinName = coinNames[idx] as string;
+            const coinName = coinNamesMapped[idx] as string;
             const data = this.parseDataFromPythPriceFeed(feed);
             coinPrices[coinName as string] = data.price;
           });
@@ -594,7 +602,13 @@ class ScallopUtils implements ScallopUtilsInterface {
       );
     }
 
-    return coinPrices;
+    return {
+      ...coinNames.reduce((prev, coinName) => {
+        prev[coinName as string] = coinPrices[coinName as string] || 0;
+        return prev;
+      }, {} as CoinPrices),
+      ...coinPrices,
+    };
   }
 
   /**
