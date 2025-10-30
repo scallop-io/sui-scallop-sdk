@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.4...v2.3.5) (2025-10-30)
+
+### Changed
+
+- Update `getPythLatestPriceFeeds` query key to accept endpoint as first parameter ([b2e0fa7](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/b2e0fa7fd2923c81cda8a91626cefdb6152bb311))
+
 ### [2.3.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.3...v2.3.4) (2025-10-26)
 
 ### Changed
