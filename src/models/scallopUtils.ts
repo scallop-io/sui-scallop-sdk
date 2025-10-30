@@ -547,8 +547,8 @@ class ScallopUtils implements ScallopUtilsInterface {
       try {
         const feeds = await this.queryClient.fetchQuery({
           queryKey: queryKeys.oracle.getPythLatestPriceFeeds(
-            priceIds,
-            endpoint
+            endpoint,
+            priceIds
           ),
           queryFn: async () => {
             return await pythConnection.getLatestPriceFeeds(priceIds);
