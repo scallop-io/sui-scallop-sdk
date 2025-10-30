@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.5...v2.3.6) (2025-10-31)
+
+### Changed
+
+- Allow using on-chain object directly for price fetch ([5489020](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/548902025b97fca7b1179d475b3210600e26f81c))
+
+- Filter undefined pyth feed to avoid error thrown by pyth endpoint ([1abd802](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/1abd802fd1afe3ab0298219cc9c1c798b89aed91))
+
+### Removed
+
+- logs ([3808f37](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/3808f37be6100c1d873b9c1df08422ac0b173b4a))
+
 ### [2.3.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.4...v2.3.5) (2025-10-30)
 
 ### Changed
