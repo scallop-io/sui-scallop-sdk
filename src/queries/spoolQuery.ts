@@ -42,8 +42,6 @@ const queryRequiredSpoolObjects = async (
   const objectDatas: SuiObjectData[] = [];
   const batches = partitionArray(allObjectIds, 50);
 
-  console.log('Fetching spool objects in batches:', batches.length);
-
   for (const batch of batches) {
     const responses = await query.scallopSuiKit.queryGetObjects(batch);
     if (responses.length > 0) {
