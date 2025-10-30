@@ -74,7 +74,7 @@ export const queryKeys = {
     },
   },
   oracle: {
-    getPythLatestPriceFeeds: (priceIds: string[], endpoint: string) => [
+    getPythLatestPriceFeeds: (endpoint?: string, priceIds?: string[]) => [
       'oracle',
       'getPythPriceIds',
       priceIds,
