@@ -408,7 +408,7 @@ describe('Test Scallop Core Builder', () => {
     const liquidationAmount = 10 ** 6;
 
     try {
-      const result = await tx.liquidateQuick(
+      const [extraDebtCoin, collateralCoin] = await tx.liquidateQuick(
         liquidationAmount,
         debtCoinName,
         collateralCoinName,
@@ -416,7 +416,7 @@ describe('Test Scallop Core Builder', () => {
         '1'
       );
 
-      tx.transferObjects([result], sender);
+      tx.transferObjects([extraDebtCoin, collateralCoin], sender);
 
       const liquidateQuickResult =
         await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
