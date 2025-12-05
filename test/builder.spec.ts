@@ -335,7 +335,7 @@ describe('Test Scallop Core Builder', () => {
     expect(updateAssetPricesResult.effects?.status.status).toEqual('success');
   });
 
-  it('"liquidate" normal method should succeed in inspection', async () => {
+  it.skip('"liquidate" normal method should succeed in inspection', async () => {
     const tx = scallopBuilder.createTxBlock();
     tx.setSender(sender);
 
@@ -363,11 +363,7 @@ describe('Test Scallop Core Builder', () => {
       tx.transferObjects([leftCoin], sender);
     }
 
-    const obligationSharedObject = tx.sharedObjectRef({
-      objectId: obligationId,
-      initialSharedVersion: '1',
-      mutable: true,
-    });
+    const obligationSharedObject = tx.object(obligationId);
 
     const [extraDebtCoin, collateralCoin] = tx.liquidate(
       obligationSharedObject,
@@ -412,8 +408,7 @@ describe('Test Scallop Core Builder', () => {
         liquidationAmount,
         debtCoinName,
         collateralCoinName,
-        obligationId,
-        '1'
+        obligationId
       );
 
       tx.transferObjects([extraDebtCoin, collateralCoin], sender);

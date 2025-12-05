@@ -271,7 +271,7 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
       const debtCoinType = builder.utils.parseCoinType(debtCoinName);
       const collateralCoinType =
         builder.utils.parseCoinType(collateralCoinName);
-      return builder.moveCall(
+      const [debtCoin, collateralCoin] = builder.moveCall(
         txBlock,
         `${coreIds.protocolPkg}::liquidate::liquidate`,
         [
@@ -285,6 +285,8 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         ],
         [debtCoinType, collateralCoinType]
       );
+
+      return [debtCoin, collateralCoin] as [NestedResult, NestedResult];
     },
   };
 };
@@ -513,13 +515,14 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       debtCoinName,
       collateralCoinName,
       obligationId,
-      obligationInitialSharedVersion = '1',
       updateOracleOptions
     ) => {
       const sender = requireSender(txBlock);
 
       // Update oracle prices for debt and collateral coins
-      const updateCoinNames = [debtCoinName, collateralCoinName];
+      const updateCoinNames =
+        await builder.utils.getObligationCoinNames(obligationId);
+
       await updateOracles(
         builder,
         txBlock,
@@ -543,11 +546,7 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       // Convert obligation to SharedObjectRef format
       const obligationSharedObject =
         typeof obligationId === 'string'
-          ? txBlock.sharedObjectRef({
-              objectId: obligationId,
-              initialSharedVersion: obligationInitialSharedVersion,
-              mutable: true,
-            })
+          ? txBlock.object(obligationId)
           : obligationId;
 
       // Execute liquidation
