@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.7](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.6...v2.3.7) (2025-12-06)
+
+### Bugfix
+
+- Fallback `coinPrice` to 0 ([faa0595](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/faa059555a1931968c0dcafe5dca7f4bf5b4dcf6))
+
 ### [2.3.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.5...v2.3.6) (2025-10-31)
 
 ### Changed
