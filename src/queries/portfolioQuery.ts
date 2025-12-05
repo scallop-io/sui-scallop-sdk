@@ -451,10 +451,10 @@ export const getObligationAccount = async (
 
     const marketCollateral = market.collaterals[assetCoinName];
     const coinDecimal = query.utils.getCoinDecimal(assetCoinName);
-    const coinPrice = coinPrices?.[assetCoinName];
+    const coinPrice = coinPrices?.[assetCoinName] ?? 0;
     const coinAmount = coinAmounts?.[assetCoinName] ?? 0;
 
-    if (marketCollateral && coinPrice) {
+    if (marketCollateral) {
       const depositedAmount = BigNumber(collateral?.amount ?? 0);
       const depositedCoin = depositedAmount.shiftedBy(-1 * coinDecimal);
       const depositedValue = depositedCoin.multipliedBy(coinPrice);
@@ -520,10 +520,10 @@ export const getObligationAccount = async (
 
     const marketPool = market.pools[assetCoinName];
     const coinDecimal = query.utils.getCoinDecimal(assetCoinName);
-    const coinPrice = coinPrices?.[assetCoinName];
+    const coinPrice = coinPrices?.[assetCoinName] ?? 0;
     const coinAmount = coinAmounts?.[assetCoinName] ?? 0;
 
-    if (marketPool && coinPrice) {
+    if (marketPool) {
       const increasedRate = debt?.borrowIndex
         ? marketPool.borrowIndex / Number(debt.borrowIndex) - 1
         : 0;
