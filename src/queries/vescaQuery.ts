@@ -191,13 +191,34 @@ const getTotalVeScaTreasuryAmount = async (
     initialSharedVersion: '1',
   });
 
+  const treasuryRef =
+    typeof veScaTreasury === 'string'
+      ? txb.sharedObjectRef({
+          objectId: veScaTreasury,
+          initialSharedVersion: '75353922',
+          mutable: true,
+        })
+      : txb.sharedObjectRef({
+          objectId: veScaTreasury.objectId,
+          initialSharedVersion: '75353922',
+          mutable: true,
+        });
+
   // refresh query
   const refreshQueryTarget = `${veScaPkgId}::treasury::refresh`;
-  const refreshArgs = [veScaConfig, veScaTreasury, clockObjectRef];
+  const refreshArgs = [
+    txb.sharedObjectRef({
+      objectId: veScaConfig,
+      initialSharedVersion: '75353922',
+      mutable: false,
+    }),
+    treasuryRef,
+    clockObjectRef,
+  ];
 
   // query total veSca amount
   const veScaAmountQueryTarget = `${veScaPkgId}::treasury::total_ve_sca_amount`;
-  const vescaAmountArgs = [veScaTreasury, clockObjectRef];
+  const vescaAmountArgs = [treasuryRef, clockObjectRef];
 
   // resolve each args
   const resolvedRefreshArgs = await Promise.all(
