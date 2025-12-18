@@ -963,7 +963,7 @@ export const queryObligation = async (
       mutable: true,
     }),
     txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(obligationId)),
+      ...(await getSharedObjectData(obligationId, scallopSuiKit.client)),
       mutable: true,
     }),
     {
