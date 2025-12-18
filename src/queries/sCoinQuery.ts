@@ -1,8 +1,10 @@
 import { bcs } from '@mysten/sui/bcs';
+import { SuiTxBlock } from '@scallop-io/sui-kit';
 import assert from 'assert';
 import BigNumber from 'bignumber.js';
 import { ScallopQuery, ScallopUtils } from 'src/models';
 import { OptionalKeys, sCoinBalance } from 'src/types';
+import { getSharedObjectData } from 'src/utils';
 
 /**
  * Get total supply of sCoin
@@ -18,9 +20,15 @@ export const getSCoinTotalSupply = async (
   },
   sCoinName: string
 ): Promise<sCoinBalance> => {
+  const txBlock = new SuiTxBlock();
   const sCoinPkgId = utils.address.get('scoin.id');
   // get treasury
-  const args = [utils.getSCoinTreasury(sCoinName)];
+  const args = [
+    txBlock.sharedObjectRef({
+      ...(await getSharedObjectData(utils.getSCoinTreasury(sCoinName))),
+      mutable: false,
+    }),
+  ];
   const typeArgs = [
     utils.parseSCoinType(sCoinName),
     utils.parseUnderlyingSCoinType(sCoinName),
@@ -30,6 +38,7 @@ export const getSCoinTotalSupply = async (
     queryTarget,
     args,
     typeArgs,
+    txBlock,
   });
   const results = queryResults?.results;
   if (results && results[0]?.returnValues) {

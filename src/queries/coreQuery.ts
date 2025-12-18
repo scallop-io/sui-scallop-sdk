@@ -12,7 +12,7 @@ import type {
   SuiObjectData,
   SuiParsedData,
 } from '@mysten/sui/client';
-import type { SuiObjectArg } from '@scallop-io/sui-kit';
+import { SuiTxBlock, type SuiObjectArg } from '@scallop-io/sui-kit';
 // import type { ScallopAddress, ScallopCache, ScallopQuery } from '../models';
 import {
   Market,
@@ -46,6 +46,7 @@ import {
   ScallopIndexer,
   ScallopAddress,
 } from 'src/models';
+import { getSharedObjectData } from 'src/utils/object';
 
 /**
  * Query market data.
@@ -103,14 +104,22 @@ export const queryMarket = async (
     };
   }
 
+  const txBlock = new SuiTxBlock();
   const packageId = utils.address.get('core.packages.query.id');
   const marketId = utils.address.get('core.market');
   const queryTarget = `${packageId}::market_query::market_data`;
-  const args = [marketId];
+  const args = [
+    txBlock.sharedObjectRef({
+      objectId: marketId,
+      initialSharedVersion: '7765848',
+      mutable: true,
+    }),
+  ];
 
   const queryResult = await utils.scallopSuiKit.queryInspectTxn({
     queryTarget,
     args,
+    txBlock,
   });
   const marketData = queryResult?.events[0]?.parsedJson as
     | MarketQueryInterface
@@ -936,15 +945,27 @@ export const queryObligation = async (
   },
   obligationId: SuiObjectArg
 ) => {
+  const txBlock = new SuiTxBlock();
   const packageId = address.get('core.packages.query.id');
   const version = address.get('core.version');
   const market = address.get('core.market');
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
 
   const args = [
-    version,
-    market,
-    obligationId,
+    txBlock.sharedObjectRef({
+      objectId: version,
+      initialSharedVersion: '7765848',
+      mutable: false,
+    }),
+    txBlock.sharedObjectRef({
+      objectId: market,
+      initialSharedVersion: '7765848',
+      mutable: true,
+    }),
+    txBlock.sharedObjectRef({
+      ...(await getSharedObjectData(obligationId)),
+      mutable: true,
+    }),
     {
       objectId: SUI_CLOCK_OBJECT_ID,
       mutable: false,
@@ -953,7 +974,7 @@ export const queryObligation = async (
   ];
 
   const queryResult = await scallopSuiKit.queryInspectTxn(
-    { queryTarget, args }
+    { queryTarget, args, txBlock }
     // txBlock
   );
   return queryResult?.events[0]?.parsedJson as

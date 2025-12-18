@@ -3,3 +3,4 @@ export * from './query';
 export * from './util';
 export * from './indexer';
 export * from './core';
+export * from './object';
