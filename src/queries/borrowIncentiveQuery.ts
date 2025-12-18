@@ -188,7 +188,7 @@ export const queryBorrowIncentiveAccounts = async (
       mutable: true,
     }),
     txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(obligationId)),
+      ...(await getSharedObjectData(obligationId, utils.scallopSuiKit.client)),
       mutable: true,
     }),
   ];

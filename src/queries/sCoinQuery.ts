@@ -25,7 +25,10 @@ export const getSCoinTotalSupply = async (
   // get treasury
   const args = [
     txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(utils.getSCoinTreasury(sCoinName))),
+      ...(await getSharedObjectData(
+        utils.getSCoinTreasury(sCoinName),
+        utils.scallopSuiKit.client
+      )),
       mutable: false,
     }),
   ];
