@@ -33,6 +33,7 @@ type QueryInspectTxnParams = {
   args: SuiObjectArg[];
   typeArgs?: any[];
   txBlock?: SuiTxBlock;
+  keys?: QueryKey;
 };
 
 export type ScallopSuiKitParams = {
@@ -354,6 +355,7 @@ class ScallopSuiKit extends ScallopQueryClient {
     args,
     typeArgs,
     txBlock = new SuiTxBlock(),
+    keys,
   }: QueryInspectTxnParams): Promise<DevInspectResults | null> {
     const resolvedQueryTarget =
       await this.queryGetNormalizedMoveFunction(queryTarget);
@@ -372,12 +374,15 @@ class ScallopSuiKit extends ScallopQueryClient {
     txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
 
     return await this.callWithRateLimiter(
-      queryKeys.rpc.getInspectTxn({
-        queryTarget,
-        args,
-        typeArgs,
-        node: this.currentFullNode,
-      }),
+      keys ??
+        queryKeys.rpc.getInspectTxn({
+          queryTarget,
+          args: args.map((arg) =>
+            typeof arg === 'object' && 'objectId' in arg ? arg.objectId : arg
+          ),
+          typeArgs,
+          node: this.currentFullNode,
+        }),
       () => this.suiKit.inspectTxn(txBlock)
     );
   }

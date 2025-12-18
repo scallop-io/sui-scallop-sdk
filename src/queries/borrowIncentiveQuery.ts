@@ -24,6 +24,7 @@ import type {
 import BigNumber from 'bignumber.js';
 import { SuiObjectRef } from '@mysten/sui/client';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
+import { queryKeys } from 'src/constants';
 
 /**
  * Query borrow incentive pools data using moveCall
@@ -53,6 +54,11 @@ export const queryBorrowIncentivePools = async ({
     queryTarget,
     args,
     txBlock,
+    keys: queryKeys.rpc.getInspectTxn({
+      queryTarget,
+      args: [incentivePoolsId],
+      node: scallopSuiKit.currentFullNode,
+    }),
   });
   const borrowIncentivePoolsQueryData = queryResult?.events[0].parsedJson as
     | BorrowIncentivePoolsQueryInterface
@@ -197,6 +203,11 @@ export const queryBorrowIncentiveAccounts = async (
     queryTarget,
     args,
     txBlock,
+    keys: queryKeys.rpc.getInspectTxn({
+      queryTarget,
+      args: [incentiveAccountsId, obligationId],
+      node: utils.scallopSuiKit.currentFullNode,
+    }),
   });
   const borrowIncentiveAccountsQueryData = queryResult?.events[0]
     ?.parsedJson as BorrowIncentiveAccountsQueryInterface | undefined;

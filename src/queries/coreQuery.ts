@@ -47,6 +47,7 @@ import {
   ScallopAddress,
 } from 'src/models';
 import { getSharedObjectData } from 'src/utils/object';
+import { queryKeys } from 'src/constants';
 
 /**
  * Query market data.
@@ -120,6 +121,11 @@ export const queryMarket = async (
     queryTarget,
     args,
     txBlock,
+    keys: queryKeys.rpc.getInspectTxn({
+      queryTarget,
+      args: [marketId],
+      node: utils.scallopSuiKit.currentFullNode,
+    }),
   });
   const marketData = queryResult?.events[0]?.parsedJson as
     | MarketQueryInterface
@@ -974,7 +980,16 @@ export const queryObligation = async (
   ];
 
   const queryResult = await scallopSuiKit.queryInspectTxn(
-    { queryTarget, args, txBlock }
+    {
+      queryTarget,
+      args,
+      txBlock,
+      keys: queryKeys.rpc.getInspectTxn({
+        queryTarget,
+        args: [version, market, obligationId],
+        node: scallopSuiKit.currentFullNode,
+      }),
+    }
     // txBlock
   );
   return queryResult?.events[0]?.parsedJson as
