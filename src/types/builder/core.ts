@@ -81,6 +81,12 @@ export type CoreNormalMethods = {
     loan: SuiObjectArg,
     poolCoinName: string
   ) => void;
+  liquidate: (
+    obligation: SuiObjectArg,
+    coin: SuiObjectArg,
+    debtCoinName: string,
+    collateralCoinName: string
+  ) => [NestedResult, NestedResult];
 };
 
 export type CoreQuickMethods = {
@@ -152,6 +158,18 @@ export type CoreQuickMethods = {
       isSponsoredTx?: boolean;
     }
   ) => Promise<void>;
+  liquidateQuick: (
+    amount: number,
+    debtCoinName: string,
+    collateralCoinName: string,
+    obligationId: SuiObjectArg,
+    updateOracleOptions?: {
+      usePythPullModel?: boolean;
+      useOnChainXOracleList?: boolean;
+      sponsoredFeeds?: string[];
+      isSponsoredTx?: boolean;
+    }
+  ) => Promise<[NestedResult, NestedResult]>;
 };
 
 export type SuiTxBlockWithCoreNormalMethods = SuiKitTxBlock &

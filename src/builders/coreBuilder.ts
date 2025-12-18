@@ -267,6 +267,27 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coinType]
       );
     },
+    liquidate: (obligation, coin, debtCoinName, collateralCoinName) => {
+      const debtCoinType = builder.utils.parseCoinType(debtCoinName);
+      const collateralCoinType =
+        builder.utils.parseCoinType(collateralCoinName);
+      const [debtCoin, collateralCoin] = builder.moveCall(
+        txBlock,
+        `${coreIds.protocolPkg}::liquidate::liquidate`,
+        [
+          coreIds.version,
+          obligation,
+          coreIds.market,
+          coin,
+          coreIds.coinDecimalsRegistry,
+          coreIds.xOracle,
+          clockObjectRef,
+        ],
+        [debtCoinType, collateralCoinType]
+      );
+
+      return [debtCoin, collateralCoin] as [NestedResult, NestedResult];
+    },
   };
 };
 
@@ -487,6 +508,53 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         txBlock,
         assetCoinNames,
         updateOracleOptions
+      );
+    },
+    liquidateQuick: async (
+      amount,
+      debtCoinName,
+      collateralCoinName,
+      obligationId,
+      updateOracleOptions
+    ) => {
+      const sender = requireSender(txBlock);
+
+      // Update oracle prices for debt and collateral coins
+      const updateCoinNames =
+        await builder.utils.getObligationCoinNames(obligationId);
+
+      await updateOracles(
+        builder,
+        txBlock,
+        updateCoinNames,
+        updateOracleOptions
+      );
+
+      // Select coins for liquidation
+      const { takeCoin, leftCoin } = await builder.selectCoin(
+        txBlock,
+        debtCoinName,
+        amount,
+        sender,
+        updateOracleOptions?.isSponsoredTx ?? false
+      );
+
+      if (leftCoin) {
+        txBlock.transferObjects([leftCoin], sender);
+      }
+
+      // Convert obligation to SharedObjectRef format
+      const obligationSharedObject =
+        typeof obligationId === 'string'
+          ? txBlock.object(obligationId)
+          : obligationId;
+
+      // Execute liquidation
+      return txBlock.liquidate(
+        obligationSharedObject,
+        takeCoin,
+        debtCoinName,
+        collateralCoinName
       );
     },
   };
