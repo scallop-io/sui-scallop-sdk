@@ -3,6 +3,7 @@ import {
   parseOriginBorrowIncentivePoolData,
   parseOriginBorrowIncentiveAccountData,
   calculateBorrowIncentivePoolPointData,
+  getSharedObjectData,
 } from 'src/utils';
 import type {
   ScallopAddress,
@@ -22,6 +23,7 @@ import type {
 } from 'src/types';
 import BigNumber from 'bignumber.js';
 import { SuiObjectRef } from '@mysten/sui/client';
+import { SuiTxBlock } from '@scallop-io/sui-kit';
 
 /**
  * Query borrow incentive pools data using moveCall
@@ -38,11 +40,19 @@ export const queryBorrowIncentivePools = async ({
   const queryPkgId = address.get('borrowIncentive.query');
   const incentivePoolsId = address.get('borrowIncentive.incentivePools');
 
+  const txBlock = new SuiTxBlock();
   const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
-  const args = [incentivePoolsId];
+  const args = [
+    txBlock.sharedObjectRef({
+      objectId: incentivePoolsId,
+      initialSharedVersion: '81234462',
+      mutable: true,
+    }),
+  ];
   const queryResult = await scallopSuiKit.queryInspectTxn({
     queryTarget,
     args,
+    txBlock,
   });
   const borrowIncentivePoolsQueryData = queryResult?.events[0].parsedJson as
     | BorrowIncentivePoolsQueryInterface
@@ -165,16 +175,28 @@ export const queryBorrowIncentiveAccounts = async (
   obligationId: string | SuiObjectRef,
   borrowIncentiveCoinNames: string[] = [...utils.constants.whitelist.lending]
 ) => {
+  const txBlock = new SuiTxBlock();
   const queryPkgId = utils.address.get('borrowIncentive.query');
   const incentiveAccountsId = utils.address.get(
     'borrowIncentive.incentiveAccounts'
   );
   const queryTarget = `${queryPkgId}::incentive_account_query::incentive_account_data`;
-  const args = [incentiveAccountsId, obligationId];
+  const args = [
+    txBlock.sharedObjectRef({
+      objectId: incentiveAccountsId,
+      initialSharedVersion: '81234462',
+      mutable: true,
+    }),
+    txBlock.sharedObjectRef({
+      ...(await getSharedObjectData(obligationId)),
+      mutable: true,
+    }),
+  ];
 
   const queryResult = await utils.scallopSuiKit.queryInspectTxn({
     queryTarget,
     args,
+    txBlock,
   });
   const borrowIncentiveAccountsQueryData = queryResult?.events[0]
     ?.parsedJson as BorrowIncentiveAccountsQueryInterface | undefined;

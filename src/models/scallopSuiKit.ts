@@ -32,6 +32,7 @@ type QueryInspectTxnParams = {
   queryTarget: string;
   args: SuiObjectArg[];
   typeArgs?: any[];
+  txBlock?: SuiTxBlock;
 };
 
 export type ScallopSuiKitParams = {
@@ -352,9 +353,8 @@ class ScallopSuiKit extends ScallopQueryClient {
     queryTarget,
     args,
     typeArgs,
+    txBlock = new SuiTxBlock(),
   }: QueryInspectTxnParams): Promise<DevInspectResults | null> {
-    const txBlock = new SuiTxBlock();
-
     const resolvedQueryTarget =
       await this.queryGetNormalizedMoveFunction(queryTarget);
     if (!resolvedQueryTarget) throw new Error('Invalid query target');
