@@ -96,6 +96,22 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   await txBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
+- Liquidate an underwater obligation position.
+
+  ```typescript
+  const scallopTxBlock = txBuilder.createTxBlock();
+  // Sender is required to invoke "liquidateQuick".
+  scallopTxBlock.setSender(sender);
+  const [extraDebtCoin, collateralCoin] = await scallopTxBlock.liquidateQuick(
+    10 ** 6,
+    'usdc',
+    'sui',
+    '0x...'
+  );
+  scallopTxBlock.transferObjects([extraDebtCoin, collateralCoin], sender);
+  await txBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
 - FlashLoan on Scallop.
 
   ```typescript
