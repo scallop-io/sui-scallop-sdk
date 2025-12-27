@@ -3,9 +3,9 @@
 ## Initialize class
 
 ```typescript
-const scallopConstants = new ScallopConstants(
-  addressId: '67c44a103fe1b8c454eb9699'
-);
+const scallopConstants = new ScallopConstants({
+  addressId: '67c44a103fe1b8c454eb9699',
+});
 
 await scallopConstants.init();
 ```
@@ -13,11 +13,11 @@ await scallopConstants.init();
 - Overriding Pool Addresses value
 
 ```typescript
-const CUSTOM_POOL_ADDRESSES = (...); // Record<string, PoolAddress>
-const scallopConstants = new ScallopConstants(
+const CUSTOM_POOL_ADDRESSES = {...}; // Record<string, PoolAddress>
+const scallopConstants = new ScallopConstants({
   addressId: '67c44a103fe1b8c454eb9699',
   forcePoolAddressInterface: CUSTOM_POOL_ADDRESSES,
-);
+});
 
 await scallopConstants.init();
 ```
@@ -25,11 +25,11 @@ await scallopConstants.init();
 - Overriding Whitelist value
 
 ```typescript
-const CUSTOM_WHITELIST = (...); // Whitelist
-const scallopConstants = new ScallopConstants(
+const CUSTOM_WHITELIST = {...}; // Whitelist
+const scallopConstants = new ScallopConstants({
   addressId: '67c44a103fe1b8c454eb9699',
   forceWhitelistInterface: CUSTOM_WHITELIST,
-);
+});
 
 await scallopConstants.init();
 ```
@@ -37,14 +37,14 @@ await scallopConstants.init();
 - Setting default values
 
 ```typescript
-const scallopConstants = new ScallopConstants(
+const scallopConstants = new ScallopConstants({
   addressId: '67c44a103fe1b8c454eb9699',
   defaultValues: {
     poolAddresses: [DEFAULT_POOL_ADDRESSES],
-    whitelist: [DEFEAULT_WHITELIST],
-    addresses: [DEFAULT_ADDRESSES]
-  }
-)
+    whitelist: [DEFAULT_WHITELIST],
+    addresses: [DEFAULT_ADDRESSES],
+  },
+});
 
 await scallopConstants.init();
 ```
