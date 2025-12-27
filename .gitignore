@@ -34,3 +34,9 @@ logs/
 # vscode settings
 settings.json
 misc/*
+
+# sui logs
+sui.log.*
+
+# claude settings
+.claude/
