@@ -1,5 +1,7 @@
 # Use Scallop Address (DEPRECATED)
 
+> **Note:** This class is deprecated. Please use `ScallopConstants` instead, which inherits all `ScallopAddress` methods and properties. See [constants.md](./constants.md) for usage.
+
 #### Scallop Address class has been merged as a parent class for Scallop Constants. You can call all Scallop Address methods and access its properties from Scallop Constants.
 
 ## Read Addresses

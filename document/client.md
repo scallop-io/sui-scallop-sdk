@@ -159,11 +159,11 @@ Methods for interacting with the spool contract.
 - Unstake Market Coin.
 
   ```typescript
-  // Untake to specific spool, currently support ssui, swusdc, and swusdt
+  // Unstake from specific spool, currently support ssui, swusdc, and swusdt
   const unstakeResult = await client.unstake('ssui', 10 ** 8);
   ```
 
-- Cliam Reward Coin.
+- Claim Reward Coin.
 
   ```typescript
   // Claim from the corresponding reward pool of specific spool.

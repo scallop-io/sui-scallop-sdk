@@ -213,9 +213,9 @@
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  const refereeAdress = '0x...';
+  const refereeAddress = '0x...';
   const referrerVeScaKey =
-    await scallopSDK.getVeScaKeyIdFromReferralBindings(refereeAddress); // return string or null
+    await scallopQuery.getVeScaKeyIdFromReferralBindings(refereeAddress); // return string or null
   ```
 
 ## veSCA Loyalty Program
