@@ -1,5 +1,29 @@
 # Use Scallop Utils
 
+## Type Guard Methods
+
+- Check if a coin is a Sui Bridge asset.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+  const isSuiBridge = scallopUtils.isSuiBridgeAsset('weth');
+  ```
+
+- Check if a coin is a Wormhole asset.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+  const isWormhole = scallopUtils.isWormholeAsset('wusdc');
+  ```
+
+- Check if a coin name is a market coin (sCoin).
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+  const isMarket = scallopUtils.isMarketCoin('ssui'); // true
+  const isNotMarket = scallopUtils.isMarketCoin('sui'); // false
+  ```
+
 ## Some common conversion methods for coin name supported by Scallop
 
 - It can parse to the symbol from coin and market coin (sCoin) name.
@@ -65,13 +89,67 @@
   const usdcMarketCoinName = scallopUtils.parseMarketCoinName('wusdc');
   ```
 
-## Some other useful methods supported by Scallop
+## sCoin Conversion Methods
 
-- It can using stake market coin name to get reward coin name.
+- Convert coin name to sCoin name.
 
   ```typescript
   const scallopUtils = await scallopSDK.createScallopUtils();
-  const rewardCoinName = scallopUtils.getRewardCoinName('swusdc');
+
+  const sCoinName = scallopUtils.parseSCoinName('sui'); // 'ssui'
+  const alreadySCoin = scallopUtils.parseSCoinName('ssui'); // 'ssui'
+  ```
+
+- Convert sCoin type name (e.g., `scallop_sui`) to market coin name.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+
+  const marketCoinName = scallopUtils.parseSCoinTypeNameToMarketCoinName('scallop_sui');
+  // Returns: 'ssui'
+  ```
+
+- Convert sCoin name to sCoin type.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+
+  const sCoinType = scallopUtils.parseSCoinType('ssui');
+  ```
+
+- Convert sCoin type to sCoin name.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+
+  const sCoinName = scallopUtils.parseSCoinNameFromType(sCoinType);
+  ```
+
+- Get the underlying coin type from sCoin name.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+
+  const underlyingType = scallopUtils.parseUnderlyingSCoinType('ssui');
+  // Returns the SUI coin type
+  ```
+
+- Get sCoin treasury ID from sCoin name.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+
+  const treasuryId = scallopUtils.getSCoinTreasury('ssui');
+  ```
+
+## Some other useful methods supported by Scallop
+
+- It can get the spool reward coin name (currently always returns 'sui').
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+  const rewardCoinName = scallopUtils.getSpoolRewardCoinName();
+  // Returns: 'sui'
   ```
 
 - It can using asset coin name to get wrapped coin type.
@@ -119,4 +197,57 @@
 
   const coinPrices = await scallopUtils.getCoinPrices();
   const usdcCoinPrice = (await scallopUtils.getCoinPrices(['wusdc']))['wusdc'];
+  ```
+
+- Get coin decimal for a specific coin.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+
+  const suiDecimal = scallopUtils.getCoinDecimal('sui'); // 9
+  const usdcDecimal = scallopUtils.getCoinDecimal('wusdc'); // 6
+  ```
+
+- Convert APR to APY.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+
+  // Default compound frequency is 365 (daily)
+  const apy = scallopUtils.parseAprToApy(0.05); // 5% APR to APY
+  const apyHourly = scallopUtils.parseAprToApy(0.05, 8760); // Hourly compounding
+  ```
+
+- Convert APY to APR.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+
+  const apr = scallopUtils.parseApyToApr(0.0513); // APY to APR
+  ```
+
+## veSCA Related Methods
+
+- Calculate unlock timestamp for veSCA lock period.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+
+  // Get unlock timestamp for new lock (extend by 30 days)
+  const unlockAt = scallopUtils.getUnlockAt(30);
+
+  // Extend existing lock period
+  const existingUnlockTimestamp = 1700000000000; // ms
+  const newUnlockAt = scallopUtils.getUnlockAt(30, existingUnlockTimestamp);
+  ```
+
+## Pool Information Methods
+
+- Get all supported pool addresses with detailed contract information.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+
+  const poolAddresses = scallopUtils.getSupportedPoolAddresses();
+  // Returns array of PoolAddress objects with coinName, symbol, coinType, etc.
   ```
