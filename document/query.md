@@ -191,9 +191,8 @@
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // get binded veScaKey
   const veScaKey = '0x...';
-  const obligationId = await scallopQuery.getBindedVeScaKey(veScaKey); // return type string or null
+  const obligationId = await scallopQuery.getBindedObligationId(veScaKey); // return string or null
   ```
 
 - Get Binded veSCA Key from an Obligation ID if it exists
@@ -201,9 +200,8 @@
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // get binded veScaKey
   const obligationId = '0x...';
-  const veScaKey = await scallopQuery.getBindedVeScaKey(obligationId); // return type string or null
+  const veScaKey = await scallopQuery.getBindedVeScaKey(obligationId); // return string or null
   ```
 
 ## Referral Query
