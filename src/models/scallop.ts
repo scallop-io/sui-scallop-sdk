@@ -10,11 +10,11 @@ import ScallopClient, { ScallopClientParams } from './scallopClient';
  * @example
  * ```typescript
  * const sdk = new Scallop(<parameters>);
- * const scallopAddress = await sdk.getScallopAddress();
+ * const scallopConstants = await sdk.getScallopConstants();
  * const scallopBuilder = await sdk.createScallopBuilder();
  * const scallopClient = await sdk.createScallopClient();
- * const scallopIndexer= await sdk.createScallopIndexer();
- * const scallopUtils= await sdk.createScallopUtils();
+ * const scallopIndexer = await sdk.createScallopIndexer();
+ * const scallopUtils = await sdk.createScallopUtils();
  * ```
  */
 
