@@ -51,8 +51,8 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
       ...
   });
 
-  const scallopAddress = await scallopSDK.getScallopAddress();
   const scallopConstants = await scallopSDK.getScallopConstants();
+  // Note: ScallopConstants inherits from ScallopAddress, so you can access addresses via scallopConstants
   const scallopQuery = await scallopSDK.createScallopQuery();
   const scallopBuilder = await scallopSDK.createScallopBuilder();
   const scallopUtils = await scallopSDK.createScallopUtils();
