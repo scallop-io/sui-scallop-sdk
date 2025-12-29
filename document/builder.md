@@ -24,7 +24,8 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   scallopTxBlock.openObligationEntry();
 
   // Simply Create an account, but the object returned by the instruction needs to be processed.
-  const [obligation, obligationKey, hotPotato] = scallopTxBlock.openObligation();
+  const [obligation, obligationKey, hotPotato] =
+    scallopTxBlock.openObligation();
   await scallopTxBlock.addCollateralQuick(amount, coinName, obligation);
   scallopTxBlock.returnObligation(obligation, hotPotato);
   scallopTxBlock.transferObjects([obligationKey], sender);
