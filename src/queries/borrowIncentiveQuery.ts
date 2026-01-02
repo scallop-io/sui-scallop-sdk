@@ -45,8 +45,7 @@ export const queryBorrowIncentivePools = async ({
   const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
   const args = [
     txBlock.sharedObjectRef({
-      objectId: incentivePoolsId,
-      initialSharedVersion: '81234462',
+      ...(await getSharedObjectData(incentivePoolsId, scallopSuiKit)),
       mutable: true,
     }),
   ];
@@ -189,12 +188,11 @@ export const queryBorrowIncentiveAccounts = async (
   const queryTarget = `${queryPkgId}::incentive_account_query::incentive_account_data`;
   const args = [
     txBlock.sharedObjectRef({
-      objectId: incentiveAccountsId,
-      initialSharedVersion: '81234462',
+      ...(await getSharedObjectData(incentiveAccountsId, utils.scallopSuiKit)),
       mutable: true,
     }),
     txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(obligationId, utils.scallopSuiKit.client)),
+      ...(await getSharedObjectData(obligationId, utils.scallopSuiKit)),
       mutable: true,
     }),
   ];

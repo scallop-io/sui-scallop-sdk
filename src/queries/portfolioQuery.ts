@@ -427,6 +427,12 @@ export const getObligationAccount = async (
       query.getBorrowIncentiveAccounts(obligation),
     ]);
 
+  console.log({
+    obligationQuery,
+    borrowIncentivePools,
+    borrowIncentiveAccounts,
+  });
+
   const collaterals: ObligationAccount['collaterals'] = {};
   const debts: ObligationAccount['debts'] = {};
   const borrowIncentives: ObligationAccount['borrowIncentives'] = {};
