@@ -111,8 +111,7 @@ export const queryMarket = async (
   const queryTarget = `${packageId}::market_query::market_data`;
   const args = [
     txBlock.sharedObjectRef({
-      objectId: marketId,
-      initialSharedVersion: '7765848',
+      ...(await getSharedObjectData(marketId, utils.scallopSuiKit)),
       mutable: true,
     }),
   ];
@@ -959,17 +958,15 @@ export const queryObligation = async (
 
   const args = [
     txBlock.sharedObjectRef({
-      objectId: version,
-      initialSharedVersion: '7765848',
+      ...(await getSharedObjectData(version, scallopSuiKit)),
       mutable: false,
     }),
     txBlock.sharedObjectRef({
-      objectId: market,
-      initialSharedVersion: '7765848',
+      ...(await getSharedObjectData(market, scallopSuiKit)),
       mutable: true,
     }),
     txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(obligationId, scallopSuiKit.client)),
+      ...(await getSharedObjectData(obligationId, scallopSuiKit)),
       mutable: true,
     }),
     {

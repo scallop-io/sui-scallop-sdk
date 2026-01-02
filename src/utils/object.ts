@@ -1,4 +1,5 @@
-import { getFullnodeUrl, SuiClient, SuiObjectData } from '@mysten/sui/client';
+import { SuiObjectData } from '@mysten/sui/client';
+import { ScallopSuiKit } from 'src/models';
 
 const parseObjectData = (data: SuiObjectData) => {
   if (
@@ -21,17 +22,12 @@ const parseObjectData = (data: SuiObjectData) => {
 
 export const getSharedObjectData = async (
   object: any,
-  client: SuiClient = new SuiClient({
-    url: getFullnodeUrl('mainnet'),
-  })
+  scallopSuiKit: ScallopSuiKit
 ) => {
   if (typeof object === 'string') {
-    const objectData = await client.getObject({
-      id: object,
-      options: {
-        showOwner: true,
-        showContent: false,
-      },
+    const objectData = await scallopSuiKit.queryGetObject(object, {
+      showOwner: true,
+      showContent: false,
     });
     return parseObjectData(objectData.data!);
   } else {

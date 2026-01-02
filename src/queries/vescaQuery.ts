@@ -12,6 +12,7 @@ import { bcs } from '@mysten/sui/bcs';
 import { z as zod } from 'zod';
 import { queryKeys } from 'src/constants';
 import assert from 'assert';
+import { getSharedObjectData } from 'src/utils';
 /**
  * Query all owned veSca key.
  *
@@ -191,25 +192,21 @@ const getTotalVeScaTreasuryAmount = async (
     initialSharedVersion: '1',
   });
 
-  const treasuryRef =
-    typeof veScaTreasury === 'string'
-      ? txb.sharedObjectRef({
-          objectId: veScaTreasury,
-          initialSharedVersion: '75353922',
-          mutable: true,
-        })
-      : txb.sharedObjectRef({
-          objectId: veScaTreasury.objectId,
-          initialSharedVersion: '75353922',
-          mutable: true,
-        });
+  const treasuryRef = txb.sharedObjectRef({
+    ...(await getSharedObjectData(
+      typeof veScaTreasury === 'string'
+        ? veScaTreasury
+        : veScaTreasury.objectId,
+      utils.scallopSuiKit
+    )),
+    mutable: true,
+  });
 
   // refresh query
   const refreshQueryTarget = `${veScaPkgId}::treasury::refresh`;
   const refreshArgs = [
     txb.sharedObjectRef({
-      objectId: veScaConfig,
-      initialSharedVersion: '75353922',
+      ...(await getSharedObjectData(veScaConfig, utils.scallopSuiKit)),
       mutable: false,
     }),
     treasuryRef,
