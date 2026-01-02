@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.10](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.9...v2.3.10) (2026-01-02)
+
+### Changed
+
+- Use `getSharedObjectData` instead of hardcoding the shared object version
+
 ### [2.3.9](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.8...v2.3.9) (2025-12-19)
 
 ### Fixed
