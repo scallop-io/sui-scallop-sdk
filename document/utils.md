@@ -105,7 +105,8 @@
   ```typescript
   const scallopUtils = await scallopSDK.createScallopUtils();
 
-  const marketCoinName = scallopUtils.parseSCoinTypeNameToMarketCoinName('scallop_sui');
+  const marketCoinName =
+    scallopUtils.parseSCoinTypeNameToMarketCoinName('scallop_sui');
   // Returns: 'ssui'
   ```
 
