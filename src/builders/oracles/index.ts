@@ -34,16 +34,20 @@ export const updateOracles = async (
   const useOnChainXOracleList =
     options?.useOnChainXOracleList ?? builder.useOnChainXOracleList;
   const sponsoredFeeds = new Set(
-    options?.sponsoredFeeds ?? builder.sponsoredFeeds
+    (options?.sponsoredFeeds ?? builder.sponsoredFeeds).filter((t) =>
+      // Ensure only valid feeds are included.
+      {
+        if (!builder.constants.whitelist.lending.has(t)) {
+          console.error(
+            `Sponsored feed ${t} is not in the whitelist lending assets.`
+          );
+          return false;
+        }
+        return true;
+      }
+    )
   );
   const isSponsoredTx = options?.isSponsoredTx ?? false;
-
-  // Validate the sponsoredFeeds content.
-  sponsoredFeeds.forEach((feed) => {
-    if (!builder.constants.whitelist.lending.has(feed)) {
-      throw new Error(`${feed} is not valid feed`);
-    }
-  });
 
   const xOracleList = useOnChainXOracleList
     ? await builder.query.getAssetOracles()
