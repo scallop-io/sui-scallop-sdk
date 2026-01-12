@@ -192,13 +192,18 @@ const getTotalVeScaTreasuryAmount = async (
     initialSharedVersion: '1',
   });
 
-  const treasuryRef = txb.sharedObjectRef({
-    ...(await getSharedObjectData(
+  const [treasuryVersion, veScaConfigVersion] = await Promise.all([
+    getSharedObjectData(
       typeof veScaTreasury === 'string'
         ? veScaTreasury
         : veScaTreasury.objectId,
       utils.scallopSuiKit
-    )),
+    ),
+    getSharedObjectData(veScaConfig, utils.scallopSuiKit),
+  ]);
+
+  const treasuryRef = txb.sharedObjectRef({
+    ...treasuryVersion,
     mutable: true,
   });
 
@@ -206,7 +211,7 @@ const getTotalVeScaTreasuryAmount = async (
   const refreshQueryTarget = `${veScaPkgId}::treasury::refresh`;
   const refreshArgs = [
     txb.sharedObjectRef({
-      ...(await getSharedObjectData(veScaConfig, utils.scallopSuiKit)),
+      ...veScaConfigVersion,
       mutable: false,
     }),
     treasuryRef,

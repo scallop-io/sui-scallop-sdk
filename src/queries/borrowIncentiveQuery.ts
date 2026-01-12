@@ -31,7 +31,7 @@ import { queryKeys } from 'src/constants';
  * @param address
  * @returns
  */
-export const queryBorrowIncentivePools = async ({
+const queryBorrowIncentivePools = async ({
   address,
   scallopSuiKit,
 }: {
@@ -135,17 +135,19 @@ export const getBorrowIncentivePools = async (
         poolCoinDecimal
       );
 
-      borrowIncentivePoolPoints[coinName as string] = {
-        symbol,
-        coinName: rewardCoinName,
-        coinType: rewardCoinType,
-        coinDecimal,
-        coinPrice: rewardCoinPrice,
-        points: poolPoint.points,
-        distributedPoint: poolPoint.distributedPoint,
-        weightedAmount: poolPoint.weightedAmount,
-        ...calculatedPoolPoint,
-      };
+      if (poolPoint.points > calculatedPoolPoint.accumulatedPoints) {
+        borrowIncentivePoolPoints[coinName as string] = {
+          symbol,
+          coinName: rewardCoinName,
+          coinType: rewardCoinType,
+          coinDecimal,
+          coinPrice: rewardCoinPrice,
+          points: poolPoint.points,
+          distributedPoint: poolPoint.distributedPoint,
+          weightedAmount: poolPoint.weightedAmount,
+          ...calculatedPoolPoint,
+        };
+      }
     }
 
     const stakedAmount = BigNumber(parsedBorrowIncentivePoolData.staked);
@@ -186,13 +188,18 @@ export const queryBorrowIncentiveAccounts = async (
     'borrowIncentive.incentiveAccounts'
   );
   const queryTarget = `${queryPkgId}::incentive_account_query::incentive_account_data`;
+  const [incentiveAccountVersion, obligationDataVersion] = await Promise.all([
+    getSharedObjectData(incentiveAccountsId, utils.scallopSuiKit),
+    getSharedObjectData(obligationId, utils.scallopSuiKit),
+  ]);
+
   const args = [
     txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(incentiveAccountsId, utils.scallopSuiKit)),
+      ...incentiveAccountVersion,
       mutable: true,
     }),
     txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(obligationId, utils.scallopSuiKit)),
+      ...obligationDataVersion,
       mutable: true,
     }),
   ];

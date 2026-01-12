@@ -37,8 +37,6 @@ import {
   getOnDemandAggObjectIds,
   getPoolAddresses,
   getPriceUpdatePolicies,
-  getPythPrice,
-  getPythPrices,
   getSCoinAmount,
   getSCoinAmounts,
   getSCoinSwapRate,
@@ -321,7 +319,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Asset coin price.
    */
   async getPriceFromPyth(assetCoinName: string) {
-    return await getPythPrice(this, assetCoinName);
+    return await this.utils.getPythPrice(assetCoinName);
   }
 
   /**
@@ -331,7 +329,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Array of asset coin prices.
    */
   async getPricesFromPyth(assetCoinNames: string[]) {
-    return await getPythPrices(this, assetCoinNames);
+    return await this.utils.getPythPrices(assetCoinNames);
   }
 
   /* ==================== Spool Query Methods ==================== */
@@ -855,8 +853,11 @@ class ScallopQuery implements ScallopQueryInterface {
   /**
    * Check if asset is an isolated asset
    */
-  async isIsolatedAsset(assetCoinName: string) {
-    return isIsolatedAsset(this.utils, assetCoinName);
+  async isIsolatedAsset(
+    assetCoinName: string,
+    useOnChainQuery: boolean = false
+  ) {
+    return isIsolatedAsset(this.utils, assetCoinName, useOnChainQuery);
   }
 
   /**
