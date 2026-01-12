@@ -483,13 +483,15 @@ class ScallopUtils implements ScallopUtilsInterface {
     return (
       await Promise.all(
         Object.entries(assetToPriceFeedMapping).map(
-          async ([assetCoinName, priceFeedObject]) => ({
-            coinName: assetCoinName,
-            price: await this.getPythPrice(
-              assetCoinName as string,
-              priceFeedObject
-            ),
-          })
+          async ([coinName, feed]) => {
+            try {
+              const price = await this.getPythPrice(coinName, feed);
+              return { coinName, price };
+            } catch (e) {
+              console.error(e);
+              return { coinName, price: 0 };
+            }
+          }
         )
       )
     ).reduce(

@@ -69,6 +69,7 @@ export type ObligationAccount = {
   totalRewardedPools: number;
   collaterals: OptionalKeys<Record<string, ObligationCollateral>>;
   debts: OptionalKeys<Record<string, ObligationDebt>>;
+  // @deprecated: incentive info moved to 'debts' field
   borrowIncentives: OptionalKeys<Record<string, ObligationBorrowIncentive>>;
 };
 
@@ -106,6 +107,12 @@ export type ObligationDebt = {
   availableBorrowCoin: number;
   availableRepayAmount: number;
   availableRepayCoin: number;
+  rewards: {
+    boostValue: number;
+    maxBoost: number;
+    baseRewardApr: number;
+    boostedRewardApr: number;
+  }[];
 };
 
 export type ObligationBorrowIncentiveReward = {
@@ -117,7 +124,10 @@ export type ObligationBorrowIncentiveReward = {
   weightedBorrowAmount: number;
   availableClaimCoin: number;
   availableClaimAmount: number;
+  baseRewardApr: number;
   boostValue: number;
+  boostedRewardApr: number;
+  maxBoost: number;
 };
 
 export type ObligationBorrowIncentive = {
