@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.12](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.11...v2.3.12) (2026-01-13)
+
+### Added
+
+- Added `boostValue`, `maxBoost`, `baseApr`, `boostedApr` information directly in `ObligationDebt` ([bfe3802](https://github.com/scallop-io/sui-scallop-sdk/pull/278/commits/bfe3802d6faf9e22d554a628e7c749cecea52c77))
+
+### Changed
+
+- Optimize shared objects version fetching using `Promise.all` ([c885a87](https://github.com/scallop-io/sui-scallop-sdk/pull/278/commits/c885a87d9571c6d590046ff4150131d058909fa5))
+
+### Removed
+
+- Duplicate implementation of `getPythPrice` and `getPythPrices` ([1f36c6e](https://github.com/scallop-io/sui-scallop-sdk/pull/278/commits/1f36c6e3990235d316d854681de9a182b6315565))
+
+
+### Deprecated 
+
+- `borrowIncentives` property will be deprecated from `type ObligationAccount` in the future versions.
+
 ### [2.3.11](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.10...v2.3.11) (2026-01-05)
 
 ### Changed
