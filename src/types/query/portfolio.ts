@@ -107,12 +107,7 @@ export type ObligationDebt = {
   availableBorrowCoin: number;
   availableRepayAmount: number;
   availableRepayCoin: number;
-  rewards: {
-    boostValue: number;
-    maxBoost: number;
-    baseRewardApr: number;
-    boostedRewardApr: number;
-  }[];
+  rewards: ObligationBorrowIncentiveReward[];
 };
 
 export type ObligationBorrowIncentiveReward = {
