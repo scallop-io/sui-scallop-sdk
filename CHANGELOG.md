@@ -16,8 +16,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 - Duplicate implementation of `getPythPrice` and `getPythPrices` ([1f36c6e](https://github.com/scallop-io/sui-scallop-sdk/pull/278/commits/1f36c6e3990235d316d854681de9a182b6315565))
 
-
-### Deprecated 
+### Deprecated
 
 - `borrowIncentives` property will be deprecated from `type ObligationAccount` in the future versions.
 
