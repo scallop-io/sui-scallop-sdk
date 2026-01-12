@@ -956,17 +956,23 @@ export const queryObligation = async (
   const market = address.get('core.market');
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
 
+  const [versionData, marketData, obligationData] = await Promise.all([
+    getSharedObjectData(version, scallopSuiKit),
+    getSharedObjectData(market, scallopSuiKit),
+    getSharedObjectData(obligationId, scallopSuiKit),
+  ]);
+
   const args = [
     txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(version, scallopSuiKit)),
+      ...versionData,
       mutable: false,
     }),
     txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(market, scallopSuiKit)),
+      ...marketData,
       mutable: true,
     }),
     txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(obligationId, scallopSuiKit)),
+      ...obligationData,
       mutable: true,
     }),
     {

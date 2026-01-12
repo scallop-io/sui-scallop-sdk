@@ -31,7 +31,7 @@ import { queryKeys } from 'src/constants';
  * @param address
  * @returns
  */
-export const queryBorrowIncentivePools = async ({
+const queryBorrowIncentivePools = async ({
   address,
   scallopSuiKit,
 }: {
@@ -186,13 +186,18 @@ export const queryBorrowIncentiveAccounts = async (
     'borrowIncentive.incentiveAccounts'
   );
   const queryTarget = `${queryPkgId}::incentive_account_query::incentive_account_data`;
+  const [incentiveAccountVersion, obligationDataVersion] = await Promise.all([
+    getSharedObjectData(incentiveAccountsId, utils.scallopSuiKit),
+    getSharedObjectData(obligationId, utils.scallopSuiKit),
+  ]);
+
   const args = [
     txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(incentiveAccountsId, utils.scallopSuiKit)),
+      ...incentiveAccountVersion,
       mutable: true,
     }),
     txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(obligationId, utils.scallopSuiKit)),
+      ...obligationDataVersion,
       mutable: true,
     }),
   ];
