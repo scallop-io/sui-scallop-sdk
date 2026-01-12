@@ -135,17 +135,19 @@ export const getBorrowIncentivePools = async (
         poolCoinDecimal
       );
 
-      borrowIncentivePoolPoints[coinName as string] = {
-        symbol,
-        coinName: rewardCoinName,
-        coinType: rewardCoinType,
-        coinDecimal,
-        coinPrice: rewardCoinPrice,
-        points: poolPoint.points,
-        distributedPoint: poolPoint.distributedPoint,
-        weightedAmount: poolPoint.weightedAmount,
-        ...calculatedPoolPoint,
-      };
+      if (poolPoint.points > calculatedPoolPoint.accumulatedPoints) {
+        borrowIncentivePoolPoints[coinName as string] = {
+          symbol,
+          coinName: rewardCoinName,
+          coinType: rewardCoinType,
+          coinDecimal,
+          coinPrice: rewardCoinPrice,
+          points: poolPoint.points,
+          distributedPoint: poolPoint.distributedPoint,
+          weightedAmount: poolPoint.weightedAmount,
+          ...calculatedPoolPoint,
+        };
+      }
     }
 
     const stakedAmount = BigNumber(parsedBorrowIncentivePoolData.staked);

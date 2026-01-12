@@ -81,15 +81,18 @@ export const getIsolatedAssets = async (
 
 /**
  * Check if the coin type is an isolated asset
+ * @param utils ScallopUtils
  * @param coinName coin name
+ * @param useOnChainQuery whether to use on-chain query
  * @returns true if the coin type is an isolated asset
  */
 export const isIsolatedAsset = async (
   utils: ScallopUtils,
-  coinName: string
+  coinName: string,
+  useOnChainQuery?: boolean
 ): Promise<boolean> => {
   const assetInPoolAddresses = utils.constants.poolAddresses[coinName];
-  if (assetInPoolAddresses) {
+  if (assetInPoolAddresses && !useOnChainQuery) {
     return assetInPoolAddresses.isIsolated;
   }
 
