@@ -518,12 +518,10 @@ describe('Test Isolated Assets', () => {
   });
 
   it('Should check if an asset is isolated', async () => {
-    const isolatedAssetNames = ['fud', 'blub', 'ns'] as string[];
+    const isolatedAssetNames = ['fud', 'ns', 'musd'] as string[];
     const isIsolated = (
       await Promise.all(
-        isolatedAssetNames.map(
-          async (asset) => await scallopQuery.isIsolatedAsset(asset)
-        )
+        isolatedAssetNames.map((asset) => scallopQuery.isIsolatedAsset(asset))
       )
     ).every((isIsolated) => isIsolated);
     expect(typeof isIsolated).toBe('boolean');
@@ -532,9 +530,7 @@ describe('Test Isolated Assets', () => {
     const notIsolatedAsset = ['sui', 'usdc'];
     const isNotIsolated = (
       await Promise.all(
-        notIsolatedAsset.map(
-          async (asset) => await scallopQuery.isIsolatedAsset(asset)
-        )
+        notIsolatedAsset.map((asset) => scallopQuery.isIsolatedAsset(asset))
       )
     ).every((isIsolated) => isIsolated === false);
     expect(isNotIsolated).toBe(true);

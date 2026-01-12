@@ -442,7 +442,7 @@ class ScallopAddress {
   public readonly scallopAxios: ScallopAxios;
   private readonly addressMap = new Map<NetworkType, AddressesInterface>();
   private readonly defaultParamValues = {
-    addressId: '67c44a103fe1b8c454eb9699',
+    addressId: '695fcdc084f790c04eb068dc',
     network: 'mainnet' as NetworkType,
   } as const;
 
