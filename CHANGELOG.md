@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.13](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.12...v2.3.13) (2026-01-13)
+
+### Changed
+
+- Change `ObligationDebt` reward type ([a7ac539](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/a7ac5393ba7bb20db37db327168d409d4cb7a0db))
+
 ### [2.3.12](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.11...v2.3.12) (2026-01-13)
 
 ### Added
