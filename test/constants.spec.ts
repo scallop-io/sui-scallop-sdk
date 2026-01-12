@@ -46,7 +46,7 @@ describe('Test Scallop Constants Values Overide', () => {
 describe('Test Scallop Constants default values', () => {
   it('Should use default values when readApi is not available', async () => {
     const localScallopConstants = new ScallopConstants({
-      addressId: '67c44a103fe1b8c454eb9699',
+      addressId: '695fcdc084f790c04eb068dc',
       defaultValues: {
         poolAddresses: POOL_ADDRESSES,
         whitelist: WHITELIST,
@@ -74,7 +74,7 @@ describe('Test Scallop Constants default values', () => {
 describe('Test Scallop Constants url list', () => {
   it('Should try all the available urls on error', async () => {
     const localScallopConstants = new ScallopConstants({
-      addressId: '67c44a103fe1b8c454eb9699',
+      addressId: '695fcdc084f790c04eb068dc',
       axiosTimeout: 500,
       urls: {
         poolAddresses: [

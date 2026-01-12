@@ -492,6 +492,80 @@ export const ADDRESS_INTERFACE = {
             },
           },
         },
+        wwal: {
+          id: '0xb1b0650a8862e30e3f604fd6c5838bc25464b8d3d827fbd58af7cb9685b832bf',
+          metaData:
+            '0xb99b3755f138d5a56b3bbc1b9cc19ed7da9be82c79844b39ff84d5c438ee5c40',
+          treasury: '',
+          coinType:
+            '0xb1b0650a8862e30e3f604fd6c5838bc25464b8d3d827fbd58af7cb9685b832bf::wwal::WWAL',
+          symbol: 'wWAL',
+          decimals: 9,
+          oracle: {
+            supra: '',
+            switchboard: '',
+            pyth: {
+              feed: 'eba0732395fae9dec4bae12e52760b35fc1c5671e2da8b449c9af4efe5d54341',
+              feedObject:
+                '0xeb7e669f74d976c0b99b6ef9801e3a77716a95f1a15754e0f1399ce3fb60973d',
+            },
+          },
+        },
+        hawal: {
+          id: '0x8b4d553839b219c3fd47608a0cc3d5fcc572cb25d41b7df3833208586a8d2470',
+          metaData:
+            '0x285c96e598e2861a898eff9331a5ffeb9e2199cdb02f6ba52f311b0fab5c47cf',
+          treasury: '',
+          coinType:
+            '0x8b4d553839b219c3fd47608a0cc3d5fcc572cb25d41b7df3833208586a8d2470::hawal::HAWAL',
+          symbol: 'haWAL',
+          decimals: 9,
+          oracle: {
+            supra: '',
+            switchboard: '',
+            pyth: {
+              feed: 'eba0732395fae9dec4bae12e52760b35fc1c5671e2da8b449c9af4efe5d54341',
+              feedObject:
+                '0xeb7e669f74d976c0b99b6ef9801e3a77716a95f1a15754e0f1399ce3fb60973d',
+            },
+          },
+        },
+        xbtc: {
+          id: '0x876a4b7bce8aeaef60464c11f4026903e9afacab79b9b142686158aa86560b50',
+          metaData:
+            '0x2d8943412f7570da1c4dcdb5283683d0946ae97362d0373bc9212f952327e112',
+          treasury: '',
+          coinType:
+            '0x876a4b7bce8aeaef60464c11f4026903e9afacab79b9b142686158aa86560b50::xbtc::XBTC',
+          symbol: 'xBTC',
+          decimals: 8,
+          oracle: {
+            supra: '',
+            switchboard: '',
+            pyth: {
+              feed: 'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43',
+              feedObject:
+                '0x9a62b4863bdeaabdc9500fce769cf7e72d5585eeb28a6d26e4cafadc13f76ab2',
+            },
+          },
+        },
+        // lofi: {
+        //   id: '0xf22da9a24ad027cccb5f2d496cbe91de953d363513db08a3a734d361c7c17503',
+        //   metaData: '0x57a2bf5e6887eca522fe6c3ff0d9d8dc116d072998a477c6c24fe6603107ebb8',
+        //   treasury: '',
+        //   coinType:
+        //     '0xf22da9a24ad027cccb5f2d496cbe91de953d363513db08a3a734d361c7c17503::LOFI::LOFI',
+        //   symbol: 'LOFI',
+        //   decimals: 9,
+        //   oracle: {
+        //     supra: '',
+        //     switchboard: '',
+        //     pyth: {
+        //       feed: '82eebc2c47490ba9c0f9bc35ea9fb57a7e2bbf69b84a04ea2a3525153b8090ea',
+        //       feedObject: '0xb65b2888e74b2be973616740da410670ecd6d1d1f4b5456acc7b04ece9c95559',
+        //     },
+        //   },
+        // },
       },
       oracles: {
         xOracle:
@@ -506,7 +580,11 @@ export const ADDRESS_INTERFACE = {
           '0xc22c9d691ee4c780de09db91d8b487d863211ebf08720772144bcf716318826c',
         secondaryPriceUpdatePolicyVecsetId:
           '0x3b184ff859f5de30eeaf186898e5224925be6bb6d2baa74347ef471a8cd1c0d3',
-        supra: { registry: '', registryCap: '', holder: '' },
+        supra: {
+          registry: '',
+          registryCap: '',
+          holder: '',
+        },
         switchboard: {
           registry: '',
           registryCap: '',
@@ -548,7 +626,7 @@ export const ADDRESS_INTERFACE = {
             '0x3f203f6fff6a69d151e4f1cd931f22b68c489ef2759765662fc7baf673943c9e',
         },
         protocol: {
-          id: '0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41',
+          id: '0xd384ded6b9e7f4d2c4c9007b0291ef88fbfed8e709bce83d2da69de2d79d013d',
           upgradeCap:
             '0x38527d154618d1fd5a644b90717fe07cf0e9f26b46b63e9568e611a3f86d5c1a',
         },
@@ -558,11 +636,14 @@ export const ADDRESS_INTERFACE = {
             '0x4a5e88a75039b00988f633f811f58117f31b8627a46bf822aa114d9010049449',
         },
         query: {
-          id: '0xbb6e3ffa494b543aa028cf8d3fb894be1a678b5fe710f7bb959df0e3c1acc0e8',
+          id: '0x7ed02e8bdd61179879854d7bcbaacacee86df22a23a5f45a4772dcb8b339632a',
           upgradeCap:
             '0x14220f035f4cfc2ce442c30703fb44d24f00846eb7077907a231a56051a1d9b2',
         },
-        supra: { id: '', upgradeCap: '' },
+        supra: {
+          id: '',
+          upgradeCap: '',
+        },
         pyth: {
           id: '0x1cf913c825c202cbbb71c378edccb9c04723fa07a73b88677b2ef89c6e203a85',
           object:
@@ -570,15 +651,21 @@ export const ADDRESS_INTERFACE = {
           upgradeCap:
             '0xb1f167889643ff766df31745b6e93b92462d8165b0a4f1b095499e15180370f7',
         },
-        switchboard: { id: '', upgradeCap: '' },
+        switchboard: {
+          id: '',
+          upgradeCap: '',
+        },
         xOracle: {
-          id: '0x897ebc619bdb4c3d9e8d86fb85b86cfd5d861b1696d26175c55ed14903a372f6',
+          id: '0xbf926dd6ecdd3bb5231659b739e20cf864dc12f13c5b4c8b939d00fa70350b3a',
           object:
             '0x897ebc619bdb4c3d9e8d86fb85b86cfd5d861b1696d26175c55ed14903a372f6',
           upgradeCap:
             '0x0f928a6b2e26b73330fecaf9b44acfc9800a4a9794d6415c2a3153bc70e3c1f0',
         },
-        testCoin: { id: '', upgradeCap: '' },
+        testCoin: {
+          id: '',
+          upgradeCap: '',
+        },
       },
     },
     spool: {
@@ -639,7 +726,7 @@ export const ADDRESS_INTERFACE = {
       config: '',
     },
     borrowIncentive: {
-      id: '0x35241d7ff3bf163c2fbd3c2b11fb5710d3946c56ccc9c80813a1f8c6f6acdd67',
+      id: '0xbfbfff53c7c0979c9c6896f33570f7c07d41c58850c7e46ba46b633788db7029',
       adminCap:
         '0xc486afa253646f4d381e81d7f1df8aa4723b845a6bb356f69bad635ffefffe2c',
       object:
@@ -677,7 +764,7 @@ export const ADDRESS_INTERFACE = {
         '0xaa0a920bf20b43aa1a8c19cf39df457a835ce98b2820a0d1090420a7e5ff66fe',
     },
     referral: {
-      id: '0x709ce9b97a63c6815c385ffd31c354dcd8f760984610581be23b838af4c6f60b',
+      id: '0xefcab8b04cb944f91cbbd8090f07587ad895393c4a61448a4ee7d1889cdce573',
       object:
         '0x5658d4bf5ddcba27e4337b4262108b3ad1716643cac8c2054ac341538adc72ec',
       adminCap:
@@ -700,7 +787,7 @@ export const ADDRESS_INTERFACE = {
         '0x1bd4b7285f72e11c316b828c7c47b3f4da18dcec9f9b3dba6d8629cbb6f93e5e',
     },
     loyaltyProgram: {
-      id: '0xab7c4e6d53ef862a1115d0c381fd33e05f9c206b79f322a54990b1e8c2fe3446',
+      id: '0x21d0ba130d0ce783fd6377dc5c88aabbe60e947e40a6c42fb52761569ae9a7d8',
       object:
         '0xab7c4e6d53ef862a1115d0c381fd33e05f9c206b79f322a54990b1e8c2fe3446',
       rewardPool:
@@ -709,7 +796,7 @@ export const ADDRESS_INTERFACE = {
         '0x574a11f8a0fbaa05b8f559cb65634e8eb20f26b1ec29e7d58de9167f3cedd0f7',
     },
     veScaLoyaltyProgram: {
-      id: '0x120dd97cb2be154d3c0e65e697594bf9cd4a7ce36f0eea0f1d70601f4a0b83eb',
+      id: '0xc23deff2b10e58ad7d11b14a748a5e9673c39af6a8695e23bafddab3a65d96e5',
       object:
         '0x120dd97cb2be154d3c0e65e697594bf9cd4a7ce36f0eea0f1d70601f4a0b83eb',
       adminCap:
@@ -938,6 +1025,40 @@ export const ADDRESS_INTERFACE = {
             '0xcc89fcc22f0d13de3688b94fa16d64a22079186a941914280c67101ff754263c',
           symbol: 'sHAEDAL',
         },
+        swwal: {
+          coinType:
+            '0x1af58255ce892974e6204b202a6d88fe7c0d00ee27ec9f7078ee827572a229bf::scallop_w_wal::SCALLOP_W_WAL',
+          treasury:
+            '0x890e4d1bedb4ba598877911ba05a7e33b6771bd75e86dae2d7f9275e166a7c89',
+          metaData:
+            '0xdbd98f9a9e615f640193493b0463c215df77b998a4552114fcd0fa91050f1d96',
+          symbol: 'swWAL',
+        },
+        shawal: {
+          coinType:
+            '0x7cb7cdf180891bc67a13f369a2ab8f5a05d018dc6cb1f60d04bcfca842c6fb3f::scallop_ha_wal::SCALLOP_HA_WAL',
+          treasury:
+            '0x2a82aad8fa1a493cc0f016d48b9c178148bf68d0bdb7d925abe33db4071373fd',
+          metaData:
+            '0xc751ad85f74617c8174c43538a6de44be8ef4d0115cc74ff38c7e477fa8f6cfb',
+          symbol: 'shaWAL',
+        },
+        sxbtc: {
+          coinType:
+            '0xa2859d61462635912553746e1b28a54e90b6ad6270f1e7c7db73761a9d6ba1e1::scallop_xbtc::SCALLOP_XBTC',
+          metaData:
+            '0x1e7b5559948164032f7b49b49d64866b37b874bac1044283611f84daee76dd82',
+          symbol: 'sxBTC',
+          treasury:
+            '0x089b41963032be029813a4a95907bfb035084f2e39cb2eabe263a0f7246e8573',
+        },
+        // slofi: {
+        //   coinType:
+        //     '0x7eb699b346f752cf50a348b015fcaafa00224f88b8c2391a7cba1153ccdb91f9::scallop_lofi::SCALLOP_LOFI',
+        //   metaData: '0xb55c74ac7302805a8c11a8c1328cae79d04c7484c5efd05b937ab9fd90602277',
+        //   symbol: 'sLOFI',
+        //   treasury: '0xd5057447ac659ab3c50fa9cf444ac87a8086f198070b2b47b1e72630d1315c23',
+        // },
       },
     },
   },
@@ -1821,7 +1942,7 @@ export const POOL_ADDRESSES = {
     spool: '',
     spoolName: 'sblub',
     spoolReward: '',
-    isIsolated: true,
+    isIsolated: false,
   },
   sca: {
     coinName: 'sca',
@@ -2033,7 +2154,8 @@ export const POOL_ADDRESSES = {
     symbol: 'HAEDAL',
     lendingPoolAddress:
       '0xcc5e913d291e870f3265fb8b260662d84fa2e578dc8b514dfacfbc4562298c0e',
-    collateralPoolAddress: '',
+    collateralPoolAddress:
+      '0x07f0cc9084c92c6040fb3845ee6ec566e482f0b0d02007fbe5cb64e211085298',
     borrowDynamic:
       '0x15fff8d3d331a53cc6e8461a66cb84343fceea790b135adb27e77345714bb151',
     interestModel:
@@ -2068,8 +2190,170 @@ export const POOL_ADDRESSES = {
       '0xab13a86fd1bad2850d23540a208ed3327885410f9d6f950f43ea7d0ea2db927b',
     isolatedAssetKey:
       '0xefcd73fbb3d9e0a5d66aca94798a7a1d9100586482643f9fdc00993c422176c3',
-    isIsolated: true,
+    isIsolated: false,
+    riskModel:
+      '0x6c4be92305a33e47b7d04b90e1d79eda95bfca4208ddbcdd4518bb0a01f85541',
   },
+  wwal: {
+    coinName: 'wwal',
+    symbol: 'wWAL',
+    lendingPoolAddress:
+      '0x34f5d1e516323bd7be77298e2c088fde49302c35bfb330330c0c3d9e45dd6e78',
+    collateralPoolAddress:
+      '0x03b102c78e21ef83e869adbc78c55f5427c798dc8c9f510a5d9ebc09a01089b0',
+    borrowDynamic:
+      '0x46d017d9a8c89ab86e78f3dbc76fe7d2980d866a4bf188c83fe00550bea8359e',
+    interestModel:
+      '0xd13c4ce18911767a49938c216cdf90433b1b240b3c14bb30c4fb20a07a71aee2',
+    riskModel:
+      '0xe8ddbc226b6310f9abe4ad0fdb0dd2c2b41a9b65c9e0f27552fcc58a71da8dc2',
+    borrowFeeKey:
+      '0x3ce3da475a49b7a725ec67f49a6176e76377b2a9f3ba60a1c3e48d02fad1926b',
+    supplyLimitKey:
+      '0x264fbd2f1489e2b73fb01322293c3dafb37e207b3a7252cdd7a14b9db998158d',
+    borrowLimitKey:
+      '0x3f84a90159156e559721462edcd34ae64d0bddcd59c99a277f015016acc1c0ba',
+    spool: '',
+    spoolReward: '',
+    coinMetadataId:
+      '0xb99b3755f138d5a56b3bbc1b9cc19ed7da9be82c79844b39ff84d5c438ee5c40',
+    sCoinType:
+      '0x1af58255ce892974e6204b202a6d88fe7c0d00ee27ec9f7078ee827572a229bf::scallop_w_wal::SCALLOP_W_WAL',
+    sCoinTreasury:
+      '0x890e4d1bedb4ba598877911ba05a7e33b6771bd75e86dae2d7f9275e166a7c89',
+    sCoinMetadataId:
+      '0xdbd98f9a9e615f640193493b0463c215df77b998a4552114fcd0fa91050f1d96',
+    sCoinSymbol: 'swWAL',
+    sCoinName: 'swwal',
+    coinType:
+      '0xb1b0650a8862e30e3f604fd6c5838bc25464b8d3d827fbd58af7cb9685b832bf::wwal::WWAL',
+    spoolName: 'swwal',
+    decimals: 9,
+    pythFeed:
+      'eba0732395fae9dec4bae12e52760b35fc1c5671e2da8b449c9af4efe5d54341',
+    pythFeedObjectId:
+      '0xeb7e669f74d976c0b99b6ef9801e3a77716a95f1a15754e0f1399ce3fb60973d',
+    flashloanFeeObject:
+      '0x1ddfa11a167384bce721508cca8a8d6592cae3252aca321704ad16a32f1c0db5',
+    isolatedAssetKey: '',
+    isIsolated: false,
+  },
+  hawal: {
+    coinName: 'hawal',
+    symbol: 'haWAL',
+    lendingPoolAddress:
+      '0x8d5188cd7c1fd1b88185c6d2a7eb7243c0861ae4387333f991e0f1096d1a44ff',
+    collateralPoolAddress:
+      '0xad83c135a74a02f3ed101faaa7ae06c5230035c64efa1c48144e72f4952b876b',
+    borrowDynamic:
+      '0x9f7cff0f048c3ec7817d631cf36b13c5121135a54822b87c0aad9928dead5d0a',
+    interestModel:
+      '0xf0d9245bc96f79014451db1db542b63bb930ce576fad7c5f55012b218a897bd8',
+    riskModel:
+      '0xd6adf0e5ae48fb32531705f07eaad946c39c6ebedca0b448172d7a7954d97897',
+    borrowFeeKey:
+      '0x69a7f5fa73e31708a6b970a2112b155e4c55b1ef69a11eb7d14cac7906e28417',
+    supplyLimitKey:
+      '0xa0ea57e05e8199f39fb307adb0e44ad24caec21d1f71ae7b05388f241d5b1e1e',
+    borrowLimitKey:
+      '0x982bcfea5a41390046ae2ca1ff7adfdd6472d768292a738237383b79cbc4ccf8',
+    spool: '',
+    spoolReward: '',
+    coinMetadataId:
+      '0x285c96e598e2861a898eff9331a5ffeb9e2199cdb02f6ba52f311b0fab5c47cf',
+    sCoinType:
+      '0x7cb7cdf180891bc67a13f369a2ab8f5a05d018dc6cb1f60d04bcfca842c6fb3f::scallop_ha_wal::SCALLOP_HA_WAL',
+    sCoinTreasury:
+      '0x2a82aad8fa1a493cc0f016d48b9c178148bf68d0bdb7d925abe33db4071373fd',
+    sCoinMetadataId:
+      '0xc751ad85f74617c8174c43538a6de44be8ef4d0115cc74ff38c7e477fa8f6cfb',
+    sCoinSymbol: 'shaWAL',
+    sCoinName: 'shawal',
+    coinType:
+      '0x8b4d553839b219c3fd47608a0cc3d5fcc572cb25d41b7df3833208586a8d2470::hawal::HAWAL',
+    spoolName: 'shawal',
+    decimals: 9,
+    pythFeed:
+      'eba0732395fae9dec4bae12e52760b35fc1c5671e2da8b449c9af4efe5d54341',
+    pythFeedObjectId:
+      '0xeb7e669f74d976c0b99b6ef9801e3a77716a95f1a15754e0f1399ce3fb60973d',
+    flashloanFeeObject:
+      '0x36501a7c2fc3429bfb3326b3f00675f308a369f77c7d73e722258f1be14b297e',
+    isolatedAssetKey: '',
+    isIsolated: false,
+  },
+  xbtc: {
+    coinName: 'xbtc',
+    symbol: 'xBTC',
+    lendingPoolAddress:
+      '0x40ff22f6abbf7bdb49cab47ef40ff30f3663a9b83bade9f6749b463cb2274ced',
+    collateralPoolAddress:
+      '0x9d2956b908e05e33fefd8754f40b5ce17acc4414852acfcb1d76e00b815f17b8',
+    borrowDynamic:
+      '0x319eaee0c1f0d5250f52164e991a5b5a820f38a0e95ac43994a6e5ac28e5d0ca',
+    interestModel:
+      '0x4ad160a821ef7a7b97ef6be8fb17bbb5582eb11f3c6f7a1cd59593d63f68c62e',
+    riskModel:
+      '0xbb3f70e4cce224f0310feef46b522e8355cff7d297af7d5490469fa2923e882a',
+    borrowFeeKey:
+      '0x6bcdd27d9a8741cc2e0a63ac63b2d39610ee12053a3928f44f1dfa0cef890f17',
+    supplyLimitKey:
+      '0xedddb02b350dd2aca337cab05dcbed36f58fc75270f337c8037c926d4fac95a9',
+    borrowLimitKey:
+      '0x3da00c90d2230c8421b47d149ddc3c137c2ae2dac610e9ff39428daca4fef75b',
+    isolatedAssetKey: '',
+    isIsolated: false,
+    spool: '',
+    spoolReward: '',
+    sCoinType:
+      '0xa2859d61462635912553746e1b28a54e90b6ad6270f1e7c7db73761a9d6ba1e1::scallop_xbtc::SCALLOP_XBTC',
+    sCoinTreasury:
+      '0x089b41963032be029813a4a95907bfb035084f2e39cb2eabe263a0f7246e8573',
+    sCoinMetadataId:
+      '0x1e7b5559948164032f7b49b49d64866b37b874bac1044283611f84daee76dd82',
+    sCoinSymbol: 'sxBTC',
+    sCoinName: 'sxbtc',
+    coinMetadataId:
+      '0x2d8943412f7570da1c4dcdb5283683d0946ae97362d0373bc9212f952327e112',
+    coinType:
+      '0x876a4b7bce8aeaef60464c11f4026903e9afacab79b9b142686158aa86560b50::xbtc::XBTC',
+    spoolName: 'sxbtc',
+    decimals: 8,
+    pythFeed:
+      'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43',
+    pythFeedObjectId:
+      '0x9a62b4863bdeaabdc9500fce769cf7e72d5585eeb28a6d26e4cafadc13f76ab2',
+    flashloanFeeObject:
+      '0xec9edb6fd55666069331b1ac43ecf1e94fb1a972c5124d82369967520007cb8e',
+  },
+  // lofi: {
+  //   coinName: 'lofi',
+  //   symbol: 'LOFI',
+  //   lendingPoolAddress: '0x186a998dd93384fad43711ab99417a4c0b5223a5c6759483c786397d43d60d79',
+  //   collateralPoolAddress: '',
+  //   borrowDynamic: '0x901b6ba37a43e51ac4a544c75a7fae890d9c2fc0d24d5e6ecb58ec86e4446cb4',
+  //   interestModel: '0x9aae55d520587530464520820e53be6b256c5b19108d62807b5dce626b8a90cd',
+  //   borrowFeeKey: '0x9bc2a2db2b5908cbd736e54233db674929cbce36753311db3298aa756e412cb3',
+  //   supplyLimitKey: '0x0d497d3680b2517ce37b3326cb874f5c2dab6007457fe86e2ccee2a891adcddb',
+  //   borrowLimitKey: '0x077722075b388c38f03b638831ae0619a4d277f8c95bbf925c87296753b01715',
+  //   isolatedAssetKey: '0x2553f563dca4e22c8e47223d97f53498b7ce4929452bb97637b119787c901528',
+  //   isIsolated: true,
+  //   spool: '',
+  //   spoolReward: '',
+  //   sCoinType:
+  //     '0x7eb699b346f752cf50a348b015fcaafa00224f88b8c2391a7cba1153ccdb91f9::scallop_lofi::SCALLOP_LOFI',
+  //   sCoinTreasury: '0xd5057447ac659ab3c50fa9cf444ac87a8086f198070b2b47b1e72630d1315c23',
+  //   sCoinMetadataId: '0xb55c74ac7302805a8c11a8c1328cae79d04c7484c5efd05b937ab9fd90602277',
+  //   sCoinSymbol: 'sLOFI',
+  //   sCoinName: 'slofi',
+  //   coinMetadataId: '0x57a2bf5e6887eca522fe6c3ff0d9d8dc116d072998a477c6c24fe6603107ebb8',
+  //   coinType: '0xf22da9a24ad027cccb5f2d496cbe91de953d363513db08a3a734d361c7c17503::LOFI::LOFI',
+  //   spoolName: 'slofi',
+  //   decimals: 9,
+  //   pythFeed: '82eebc2c47490ba9c0f9bc35ea9fb57a7e2bbf69b84a04ea2a3525153b8090ea',
+  //   pythFeedObjectId: '0xb65b2888e74b2be973616740da410670ecd6d1d1f4b5456acc7b04ece9c95559',
+  //   flashloanFeeObject: '0xe048cb922fc7234a3e1d4f2b2255b8bd0b990d0693db8100c0035a1dce1eebdc',
+  // },
 };
 
 export const WHITELIST = {
@@ -2099,6 +2383,10 @@ export const WHITELIST = {
     'usdy',
     'wal',
     'haedal',
+    'wwal',
+    'hawal',
+    'xbtc',
+    // 'lofi',
   ],
   collateral: [
     'usdc',
@@ -2121,6 +2409,10 @@ export const WHITELIST = {
     'usdy',
     'wal',
     'deep',
+    // 'haedal',
+    'wwal',
+    'hawal',
+    'xbtc',
   ],
   borrowing: [
     'usdc',
@@ -2148,6 +2440,10 @@ export const WHITELIST = {
     'usdy',
     'wal',
     'haedal',
+    'wwal',
+    'hawal',
+    'xbtc',
+    // 'lofi',
   ],
   packages: [
     'coinDecimalsRegistry',
@@ -2199,13 +2495,17 @@ export const WHITELIST = {
     'susdy',
     'swal',
     'shaedal',
+    'swwal',
+    'shawal',
+    'sxbtc',
+    // 'slofi',
   ],
   suiBridge: ['sbeth', 'sbusdt', 'sbwbtc'],
   wormhole: ['wusdc', 'wusdt', 'weth', 'wbtc', 'wapt', 'wsol'],
   oracles: ['pyth', 'supra', 'switchboard'],
   pythEndpoints: ['https://hermes.pyth.network'],
-  deprecated: ['wapt', 'wusdc', 'wusdt', 'weth', 'wbtc', 'vsui'],
+  deprecated: ['wapt', 'wusdc', 'wusdt', 'weth', 'wbtc', 'vsui', 'fud'],
   borrowIncentiveRewards: ['mpoints'],
   rewardsAsPoint: ['mpoints'],
-  emerging: ['wal', 'deep', 'sca', 'cetus'],
+  emerging: ['wal', 'deep', 'sca', 'cetus', 'haedal', 'blub', 'wwal', 'hawal'],
 };

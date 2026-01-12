@@ -45,7 +45,7 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
   ```typescript
   // Create an instance quickly through the`Scallop` class to construct other models.
   const scallopSDK = new Scallop({
-      addressId: '67c44a103fe1b8c454eb9699',
+      addressId: '695fcdc084f790c04eb068dc',
       networkType: 'mainnet',
       secretKey: [secretKey]
       ...
@@ -83,27 +83,27 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
   } from '@scallop-io/sui-scallop-sdk'
 
   const scallopAddress = new ScallopAddress(
-    addressId: '67c44a103fe1b8c454eb9699',
+    addressId: '695fcdc084f790c04eb068dc',
     ...
   );
   const scallopConstants = new ScallopConstants(
-    addressId: '67c44a103fe1b8c454eb9699',
+    addressId: '695fcdc084f790c04eb068dc',
     ...
   );
   const scallopQuery = new ScallopQuery(
-    addressId: '67c44a103fe1b8c454eb9699',
+    addressId: '695fcdc084f790c04eb068dc',
     ...
   );
   const scallopBuilder = new ScallopBuilder(
-    addressId: '67c44a103fe1b8c454eb9699',
+    addressId: '695fcdc084f790c04eb068dc',
     ...
   );
   const scallopUtils = new ScallopUtils(
-    addressId: '67c44a103fe1b8c454eb9699',
+    addressId: '695fcdc084f790c04eb068dc',
     ...
   );
   const scallopClient = new ScallopClient(
-    addressId: '67c44a103fe1b8c454eb9699',
+    addressId: '695fcdc084f790c04eb068dc',
     ...
   );
   const scallopIndexer = new ScallopIndexer();
