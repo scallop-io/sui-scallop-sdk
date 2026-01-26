@@ -38,6 +38,7 @@ export type Whitelist = {
   scoin: Set<string>;
   suiBridge: Set<string>;
   wormhole: Set<string>;
+  layerZero: Set<string>;
   oracles: Set<string>;
   borrowIncentiveRewards: Set<string>;
   rewardsAsPoint: Set<string>;
