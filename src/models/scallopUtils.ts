@@ -75,6 +75,10 @@ class ScallopUtils implements ScallopUtilsInterface {
     return this.constants.whitelist.wormhole.has(coinName);
   }
 
+  isLayerZeroAsset(coinName: any) {
+    return this.constants.whitelist.layerZero.has(coinName);
+  }
+
   isMarketCoin(coinName: string) {
     const assetCoinName = coinName.slice(1).toLowerCase() as string;
     return (
@@ -257,6 +261,11 @@ class ScallopUtils implements ScallopUtilsInterface {
       return {
         from: 'Wormhole',
         type: 'Portal from Ethereum',
+      };
+    } else if (this.isLayerZeroAsset(assetCoinName)) {
+      return {
+        from: 'LayerZero',
+        type: 'Ominchain Fungible Token from LayerZero',
       };
     }
 
