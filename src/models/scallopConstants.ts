@@ -47,11 +47,12 @@ const DEFAULT_WHITELIST = {
   rewardsAsPoint: new Set(),
   suiBridge: new Set(),
   wormhole: new Set(),
+  layerZero: new Set(),
   oracles: new Set(),
   pythEndpoints: new Set(),
   deprecated: new Set(),
   emerging: new Set(),
-} as Whitelist;
+} satisfies Whitelist;
 
 const parseWhitelistParams = (params: Record<string, any> | Whitelist) => {
   return Object.entries(params)

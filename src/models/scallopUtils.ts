@@ -67,15 +67,15 @@ class ScallopUtils implements ScallopUtilsInterface {
   }
 
   // -------------- TYPE GUARDS --------------
-  isSuiBridgeAsset(coinName: any) {
+  isSuiBridgeAsset(coinName: string) {
     return this.constants.whitelist.suiBridge.has(coinName);
   }
 
-  isWormholeAsset(coinName: any) {
+  isWormholeAsset(coinName: string) {
     return this.constants.whitelist.wormhole.has(coinName);
   }
 
-  isLayerZeroAsset(coinName: any) {
+  isLayerZeroAsset(coinName: string) {
     return this.constants.whitelist.layerZero.has(coinName);
   }
 
