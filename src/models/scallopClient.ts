@@ -281,12 +281,27 @@ class ScallopClient implements ScallopClientInterface {
    * @param isSponsoredTx - Whether the transaction is sponsored.
    * @return Transaction block response or transaction block.
    */
+  async withdrawCollateral(
+    collateralCoinName: string,
+    amount: number
+  ): Promise<SuiTransactionBlockResponse>;
+
+  async withdrawCollateral<S extends boolean>(
+    collateralCoinName: string,
+    amount: number,
+    sign?: S,
+    obligationId?: string,
+    obligationKey?: string,
+    walletAddress?: string,
+    isSponsoredTx?: boolean
+  ): Promise<ScallopClientFnReturnType<S>>;
+
   async withdrawCollateral<S extends boolean>(
     collateralCoinName: string,
     amount: number,
     sign: S = true as S,
-    obligationId: string,
-    obligationKey: string,
+    obligationId?: string,
+    obligationKey?: string,
     walletAddress?: string,
     isSponsoredTx?: boolean
   ): Promise<ScallopClientFnReturnType<S>> {
