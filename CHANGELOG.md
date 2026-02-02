@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.14](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.13...v2.3.14) (2026-02-02)
+
+### Added
+
+- New `layerZero` whitelist category ([55cdf77](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/55cdf7755ded6858eb7ce511f30a56acb4a97105))
+
+### Changed
+
+- Update `withdrawCollateral` method ([9b2e3af](https://github.com/scallop-io/sui-scallop-sdk/pull/266/commits/9b2e3af147a26e8ee0a94cd205c8d0845312ae02))
+
 ### [2.3.13](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.12...v2.3.13) (2026-01-13)
 
 ### Changed
