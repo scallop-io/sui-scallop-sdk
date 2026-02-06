@@ -1,5 +1,5 @@
 import { SuiKit, SuiKitParams } from '@scallop-io/sui-kit';
-import { RPC_PROVIDERS } from 'src/constants/rpc';
+import { RPC_PROVIDERS } from 'src/constants/rpc.js';
 
 export const newSuiKit = (params: Partial<SuiKitParams>) => {
   let initParams;

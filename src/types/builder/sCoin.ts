@@ -3,8 +3,8 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   TransactionResult,
 } from '@scallop-io/sui-kit';
-import { ScallopBuilder } from 'src/models';
-import { BaseScallopTxBlock } from '.';
+import { ScallopBuilder } from 'src/models/index.js';
+import { BaseScallopTxBlock } from './index.js';
 
 export type sCoinPkgIds = {
   pkgId: string;

@@ -1,4 +1,4 @@
-import { AddressesInterface } from 'src/types';
+import { AddressesInterface } from 'src/types/index.js';
 
 export const TEST_ADDRESSES: AddressesInterface = {
   core: {

@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { QueryKey } from '@tanstack/query-core';
 import ScallopQueryClient, {
   ScallopQueryClientParams,
-} from './scallopQueryClient';
+} from './scallopQueryClient.js';
 
 export type ScallopAxiosParams = {
   baseUrl?: string;

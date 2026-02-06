@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import { NetworkType } from '@scallop-io/sui-kit';
-import { Scallop } from 'src';
-import { ADDRESS_INTERFACE, POOL_ADDRESSES, WHITELIST } from './mocks';
+import { Scallop } from 'src/index.js';
+import { ADDRESS_INTERFACE, POOL_ADDRESSES, WHITELIST } from './mocks.js';
 dotenv.config();
 
 const NETWORK: NetworkType = 'mainnet';

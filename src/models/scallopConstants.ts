@@ -1,8 +1,8 @@
-import { PoolAddress, Whitelist } from 'src/types';
-import ScallopAddress, { ScallopAddressParams } from './scallopAddress';
+import { PoolAddress, Whitelist } from 'src/types/index.js';
+import ScallopAddress, { ScallopAddressParams } from './scallopAddress.js';
 import { NetworkType, parseStructTag } from '@scallop-io/sui-kit';
-import { queryKeys } from 'src/constants';
-import { parseUrl } from 'src/utils';
+import { queryKeys } from 'src/constants/index.js';
+import { parseUrl } from 'src/utils/index.js';
 
 const isEmptyObject = (obj: object) => {
   return Object.keys(obj).length === 0;

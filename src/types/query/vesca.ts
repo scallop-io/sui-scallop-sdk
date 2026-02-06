@@ -1,4 +1,8 @@
-import type { SuiObjectRef } from '@mysten/sui/client';
+type SuiObjectRef = {
+  objectId: string;
+  version: number | string;
+  digest: string;
+};
 
 export type Vesca = {
   id: string;

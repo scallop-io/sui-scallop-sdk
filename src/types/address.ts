@@ -1,4 +1,4 @@
-import { _SUPPORT_ORACLES, SupportOracleType } from './constant/xOracle';
+import { _SUPPORT_ORACLES, SupportOracleType } from './constant/xOracle.js';
 
 export interface AddressesInterface {
   id?: string;

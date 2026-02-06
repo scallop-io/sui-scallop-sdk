@@ -1,14 +1,14 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { ScallopBuilder } from 'src/models';
+import { ScallopBuilder } from 'src/models/index.js';
 import {
   GenerateLoyaltyProgramNormalMethod,
   GenerateLoyaltyProgramQuickMethod,
   LoyaltyProgramTxBlock,
   ScallopTxBlock,
   SuiTxBlockWithLoyaltyProgramNormalMethods,
-} from 'src/types';
-import { requireSender } from 'src/utils';
+} from 'src/types/index.js';
+import { requireSender } from 'src/utils/index.js';
 
 const generateLoyaltyProgramNormalMethod: GenerateLoyaltyProgramNormalMethod =
   ({ builder, txBlock }) => {
