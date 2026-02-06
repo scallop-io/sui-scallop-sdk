@@ -3,7 +3,7 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   TransactionResult,
 } from '@scallop-io/sui-kit';
-import { type ScallopBuilder } from 'src/models';
+import { type ScallopBuilder } from 'src/models/index.js';
 
 export type LoyaltyProgramNormalMethods = {
   claimLoyaltyRevenue: (veScaKey: SuiObjectArg) => TransactionResult;

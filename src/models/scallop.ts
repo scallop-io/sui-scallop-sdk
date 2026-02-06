@@ -1,4 +1,4 @@
-import ScallopClient, { ScallopClientParams } from './scallopClient';
+import ScallopClient, { ScallopClientParams } from './scallopClient.js';
 
 /**
  * @argument params - The parameters for the Scallop instance.

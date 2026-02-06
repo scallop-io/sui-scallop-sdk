@@ -1,6 +1,6 @@
-import { newScallopTxBlock } from '../builders';
-import ScallopQuery, { ScallopQueryParams } from './scallopQuery';
-import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
+import { newScallopTxBlock } from '../builders/index.js';
+import ScallopQuery, { ScallopQueryParams } from './scallopQuery.js';
+import type { SuiTransactionBlockResponse } from '@scallop-io/sui-kit';
 import type {
   Transaction,
   TransactionObjectArgument,
@@ -12,8 +12,8 @@ import type {
   SuiTxArg,
   SuiVecTxArg,
 } from '@scallop-io/sui-kit';
-import type { ScallopTxBlock } from '../types';
-import { ScallopBuilderInterface } from './interface';
+import type { ScallopTxBlock } from '../types/index.js';
+import { ScallopBuilderInterface } from './interface.js';
 
 export type ScallopBuilderParams = {
   query?: ScallopQuery;
@@ -274,7 +274,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
     args?: (SuiTxArg | SuiVecTxArg | SuiObjectArg | SuiAmountsArg)[],
     typeArgs?: string[]
   ) {
-    return txb.moveCall(target, args, typeArgs);
+    return txb.moveCall(target, args as any, typeArgs);
   }
 }
 

@@ -1,4 +1,4 @@
-import { getFullnodeUrl } from '@mysten/sui/client';
+import { getFullnodeUrl } from '@scallop-io/sui-kit';
 
 export const RPC_PROVIDERS = [
   getFullnodeUrl('mainnet'),

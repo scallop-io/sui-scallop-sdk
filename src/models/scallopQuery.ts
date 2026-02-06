@@ -1,6 +1,6 @@
-import ScallopUtils, { ScallopUtilsParams } from './scallopUtils';
-import ScallopIndexer, { ScallopIndexerParams } from './scallopIndexer';
-import { withIndexerFallback } from 'src/utils';
+import ScallopUtils, { ScallopUtilsParams } from './scallopUtils.js';
+import ScallopIndexer, { ScallopIndexerParams } from './scallopIndexer.js';
+import { withIndexerFallback } from 'src/utils/index.js';
 import {
   CoinPrices,
   MarketCollaterals,
@@ -10,7 +10,7 @@ import {
   StakeRewardPools,
   SupportOracleType,
   xOracleRules,
-} from 'src/types';
+} from 'src/types/index.js';
 import {
   getAllCoinPrices,
   getAssetOracles,
@@ -57,10 +57,16 @@ import {
   queryMarket,
   queryObligation,
   queryVeScaKeyIdFromReferralBindings,
-} from 'src/queries';
-import { SuiObjectRef, SuiObjectData } from '@mysten/sui/client';
+} from 'src/queries/index.js';
+type SuiObjectRef = {
+  objectId: string;
+  version: number | string;
+  digest: string;
+};
+import type { SuiClientTypes } from '@mysten/sui/client';
+type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
 import { SuiObjectArg } from '@scallop-io/sui-kit';
-import { ScallopQueryInterface } from './interface';
+import { ScallopQueryInterface } from './interface.js';
 
 export type ScallopQueryParams = {
   indexer?: ScallopIndexer;

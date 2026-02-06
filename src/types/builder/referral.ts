@@ -3,7 +3,7 @@ import {
   TransactionResult,
   SuiTxBlock as SuiKitTxBlock,
 } from '@scallop-io/sui-kit';
-import { ScallopBuilder } from 'src/models';
+import { ScallopBuilder } from 'src/models/index.js';
 
 export type ReferralIds = {
   referralPgkId: string;

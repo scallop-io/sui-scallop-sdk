@@ -16,21 +16,18 @@
     "url": "https://github.com/scallop-io/sui-scallop-sdk.git"
   },
   "license": "Apache-2.0",
+  "type": "module",
   "publishConfig": {
     "access": "public"
   },
   "engines": {
-    "node": ">=18.15.0"
+    "node": ">=22"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "source": "./src/index.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "files": [
@@ -40,9 +37,9 @@
   "scripts": {
     "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
     "build": "pnpm run build:tsup",
-    "build:sourcemap": "tsup ./src/index.ts --format esm,cjs --sourcemap --dts",
-    "build:tsup": "tsup ./src/index.ts --format esm,cjs --splitting --minify --treeshake --dts",
-    "watch:tsup": "tsup ./src/index.ts --format esm,cjs --clean --splitting --watch",
+    "build:sourcemap": "tsup ./src/index.ts --format esm --sourcemap --dts",
+    "build:tsup": "tsup ./src/index.ts --format esm --splitting --minify --treeshake --dts",
+    "watch:tsup": "tsup ./src/index.ts --format esm --clean --splitting --watch",
     "watch:types": "tsc --watch",
     "watch": "pnpm run clean & pnpm run watch:types & pnpm run watch:tsup",
     "test": "pnpm test:typecheck && pnpm test:unit",
@@ -60,9 +57,9 @@
     "doc": "typedoc --out docs src/index.ts"
   },
   "dependencies": {
-    "@mysten/sui": "1.28.2",
+    "@mysten/sui": "^2.0.0",
     "@pythnetwork/pyth-sui-js": "2.2.0",
-    "@scallop-io/sui-kit": "1.4.1",
+    "@scallop-io/sui-kit": "^2.0.0",
     "@tanstack/query-core": "5.59.16",
     "axios": "^1.9.0",
     "bignumber.js": "^9.1.2",
@@ -100,8 +97,8 @@
     "vitest": "^3.1.1"
   },
   "peerDependencies": {
-    "@mysten/sui": "1.28.2",
-    "@scallop-io/sui-kit": "1.4.1",
+    "@mysten/sui": "^2.0.0",
+    "@scallop-io/sui-kit": "^2.0.0",
     "bn.js": "^5.2.1"
   },
   "lint-staged": {

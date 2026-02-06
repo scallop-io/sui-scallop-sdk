@@ -1,4 +1,4 @@
-import { xOracleListType } from 'src/types';
+import { xOracleListType } from 'src/types/index.js';
 
 export const xOracleList: xOracleListType = {
   usdc: { primary: ['pyth'], secondary: [] },

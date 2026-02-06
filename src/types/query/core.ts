@@ -1,4 +1,4 @@
-import type { CoinWrappedType } from '../constant';
+import type { CoinWrappedType } from '../constant/index.js';
 
 type OptionalKeys<T> = {
   [K in keyof T]?: T[K];
