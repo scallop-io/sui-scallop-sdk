@@ -1,8 +1,12 @@
-import { SuiObjectData } from '@mysten/sui/client';
-import BigNumber from 'bignumber.js';
-import { MAX_LOCK_DURATION } from 'src/constants';
-import { ScallopQuery } from 'src/models';
-import { LoyaltyProgramInfo, VeScaLoyaltyProgramInfo } from 'src/types';
+import type { SuiClientTypes } from '@mysten/sui/client';
+type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
+import { BigNumber } from 'src/utils/index.js';
+import { MAX_LOCK_DURATION } from 'src/constants/index.js';
+import { ScallopQuery } from 'src/models/index.js';
+import {
+  LoyaltyProgramInfo,
+  VeScaLoyaltyProgramInfo,
+} from 'src/types/index.js';
 import { z as zod } from 'zod';
 
 const rewardPoolFieldsZod = zod
@@ -39,8 +43,9 @@ export const getLoyaltyProgramInformations = async (
   // get fields from rewardPool object
   const rewardPoolObject = await query.scallopSuiKit.queryGetObject(rewardPool);
 
-  if (rewardPoolObject?.data?.content?.dataType !== 'moveObject') return null;
-  const rewardPoolFields = rewardPoolObject.data.content.fields;
+  if ((rewardPoolObject as any)?.content?.dataType !== 'moveObject')
+    return null;
+  const rewardPoolFields = (rewardPoolObject as any).content.fields;
   const { isClaimEnabled, totalPoolReward } = rewardPoolFieldsZod.parse(
     rewardPoolFields
   ) as RewardPoolFields;
@@ -52,7 +57,7 @@ export const getLoyaltyProgramInformations = async (
   };
 
   // query the user pending reward if exist
-  veScaKey = veScaKey ?? (await query.getVeScas())[0]?.keyObject;
+  (veScaKey as any) = veScaKey ?? (await query.getVeScas())[0]?.keyObject;
   if (!veScaKey) return result;
 
   const userRewardTableId = query.address.get(
@@ -69,8 +74,9 @@ export const getLoyaltyProgramInformations = async (
     }
   );
 
-  if (userRewardObject?.data?.content?.dataType !== 'moveObject') return result;
-  const userRewardFields = userRewardObject.data.content.fields;
+  if ((userRewardObject as any)?.content?.dataType !== 'moveObject')
+    return result;
+  const userRewardFields = (userRewardObject as any).content.fields;
   result.pendingReward = userRewardFieldsZod.parse(
     userRewardFields
   ) as UserRewardFields;
@@ -114,8 +120,9 @@ export const getVeScaLoyaltyProgramInformations = async (
   // get fields from rewardPool object
   const rewardPoolObject = await query.scallopSuiKit.queryGetObject(rewardPool);
 
-  if (rewardPoolObject?.data?.content?.dataType !== 'moveObject') return null;
-  const rewardPoolFields = rewardPoolObject.data.content.fields;
+  if ((rewardPoolObject as any)?.content?.dataType !== 'moveObject')
+    return null;
+  const rewardPoolFields = (rewardPoolObject as any).content.fields;
   const { isClaimEnabled, reserveVeScaKey } = veScaRewardPoolFieldsZod.parse(
     rewardPoolFields
   ) as VeScaRewardPoolFields;
@@ -135,7 +142,7 @@ export const getVeScaLoyaltyProgramInformations = async (
   }
 
   // query the user pending reward if exist
-  veScaKey = veScaKey ?? (await query.getVeScas())[0]?.keyObject;
+  (veScaKey as any) = veScaKey ?? (await query.getVeScas())[0]?.keyObject;
   if (!veScaKey) return result;
 
   const veScaRewardTableId = query.address.get(
@@ -152,8 +159,9 @@ export const getVeScaLoyaltyProgramInformations = async (
     }
   );
 
-  if (userRewardObject?.data?.content?.dataType !== 'moveObject') return result;
-  const userRewardFields = userRewardObject.data.content.fields;
+  if ((userRewardObject as any)?.content?.dataType !== 'moveObject')
+    return result;
+  const userRewardFields = (userRewardObject as any).content.fields;
   result.pendingScaReward = userVeScaRewardFieldsZod.parse(
     userRewardFields
   ) as UserVeScaRewardFields;

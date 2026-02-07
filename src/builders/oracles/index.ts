@@ -1,14 +1,18 @@
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import type { TransactionArgument } from '@mysten/sui/transactions';
-import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import type { ScallopBuilder } from 'src/models';
+import type {
+  SuiTxBlock as SuiKitTxBlock,
+  SuiTxArg,
+  SuiVecTxArg,
+} from '@scallop-io/sui-kit';
+import type { ScallopBuilder } from 'src/models/index.js';
 import type {
   SupportOracleType,
   xOracleRules,
   xOracleRuleType,
-} from 'src/types';
-import { xOracleList as X_ORACLE_LIST } from 'src/constants';
-import { updatePythPriceFeeds } from './pyth';
+} from 'src/types/index.js';
+import { xOracleList as X_ORACLE_LIST } from 'src/constants/index.js';
+import { updatePythPriceFeeds } from './pyth.js';
 
 /**
  * Update the price of the oracle for multiple coin.
@@ -186,42 +190,44 @@ const updatePrice = (
     xOracleId,
     coinType
   );
-  Object.entries(rules).forEach(([type, rule]: [any, string[]]) => {
-    if (rule.includes('pyth')) {
-      updatePythPrice(
-        type,
-        txBlock,
-        pythPackageId,
-        request,
-        pythStateId,
-        pythFeedObjectId,
-        pythRegistryId,
-        coinType
-      );
+  (Object.entries(rules) as [xOracleRuleType, SupportOracleType[]][]).forEach(
+    ([type, rule]) => {
+      if (rule.includes('pyth')) {
+        updatePythPrice(
+          type,
+          txBlock,
+          pythPackageId,
+          request,
+          pythStateId,
+          pythFeedObjectId,
+          pythRegistryId,
+          coinType
+        );
+      }
+      if (rule.includes('supra')) {
+        updateSupraPrice(
+          type,
+          txBlock,
+          supraPackageId,
+          request,
+          supraHolderId,
+          supraRegistryId,
+          coinType
+        );
+      }
+      if (rule.includes('switchboard')) {
+        updateSwitchboardPrice(
+          type,
+          txBlock,
+          switchboardPackageId,
+          request,
+          switchboardAggregatorId,
+          switchboardRegistryId,
+          coinType
+        );
+      }
     }
-    if (rule.includes('supra')) {
-      updateSupraPrice(
-        type,
-        txBlock,
-        supraPackageId,
-        request,
-        supraHolderId,
-        supraRegistryId,
-        coinType
-      );
-    }
-    if (rule.includes('switchboard')) {
-      updateSwitchboardPrice(
-        type,
-        txBlock,
-        switchboardPackageId,
-        request,
-        switchboardAggregatorId,
-        switchboardRegistryId,
-        coinType
-      );
-    }
-  });
+  );
 
   confirmPriceUpdateRequest(
     txBlock,
@@ -250,7 +256,11 @@ const priceUpdateRequest = (
 ) => {
   const target = `${packageId}::x_oracle::price_update_request`;
   const typeArgs = [coinType];
-  return txBlock.moveCall(target, [xOracleId], typeArgs);
+  return txBlock.moveCall(
+    target,
+    [xOracleId] as (SuiTxArg | SuiVecTxArg)[],
+    typeArgs
+  );
 };
 
 /**
@@ -282,7 +292,7 @@ const confirmPriceUpdateRequest = (
         mutable: false,
         initialSharedVersion: '1',
       }),
-    ],
+    ] as (SuiTxArg | SuiVecTxArg)[],
     typeArgs
   );
   return txBlock;
@@ -320,7 +330,7 @@ const updateSupraPrice = (
         initialSharedVersion: '1',
         mutable: false,
       }),
-    ],
+    ] as (SuiTxArg | SuiVecTxArg)[],
     [coinType]
   );
 };
@@ -358,7 +368,7 @@ const updateSwitchboardPrice = (
         initialSharedVersion: '1',
         mutable: false,
       }),
-    ],
+    ] as (SuiTxArg | SuiVecTxArg)[],
     [coinType]
   );
 };
@@ -400,7 +410,7 @@ const updatePythPrice = (
         initialSharedVersion: '1',
         mutable: false,
       }),
-    ],
+    ] as (SuiTxArg | SuiVecTxArg)[],
     [coinType]
   );
 };

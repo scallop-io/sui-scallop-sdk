@@ -3,18 +3,18 @@ import {
   SuiPriceServiceConnection,
   SuiPythClient,
 } from '@pythnetwork/pyth-sui-js';
-import { ScallopBuilder } from 'src/models';
+import { ScallopBuilder } from 'src/models/index.js';
 import {
   SUI_CLOCK_OBJECT_ID,
   type SuiTxBlock as SuiKitTxBlock,
   type Transaction,
 } from '@scallop-io/sui-kit';
-import { SuiClient } from '@mysten/sui/client';
+import type { ClientWithCoreApi } from '@mysten/sui/client';
 
 type ObjectId = string;
 class ScallopPythClient extends SuiPythClient {
   constructor(
-    provider: SuiClient,
+    provider: ClientWithCoreApi,
     pythStateId: ObjectId,
     wormholeStateId: ObjectId,
     private params: {
