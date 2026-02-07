@@ -1,6 +1,6 @@
-import BigNumber from 'bignumber.js';
-import { minBigNumber, estimatedFactor } from 'src/utils';
-import type { ScallopQuery } from 'src/models';
+import { BigNumber } from 'src/utils/index.js';
+import { minBigNumber, estimatedFactor } from 'src/utils/index.js';
+import type { ScallopQuery } from 'src/models/index.js';
 import type {
   Market,
   MarketPool,
@@ -16,8 +16,8 @@ import type {
   ObligationBorrowIncentiveReward,
   MarketPools,
   MarketCollaterals,
-} from 'src/types';
-import { SuiObjectRef } from '@mysten/sui/client';
+  SuiObjectRef,
+} from 'src/types/index.js';
 import { normalizeStructTag, SUI_TYPE_ARG } from '@scallop-io/sui-kit';
 
 /**

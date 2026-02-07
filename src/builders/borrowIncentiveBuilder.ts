@@ -3,10 +3,10 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   SUI_CLOCK_OBJECT_ID,
 } from '@scallop-io/sui-kit';
-import { getObligations, getObligationLocked } from 'src/queries';
-import { requireSender } from 'src/utils';
+import { getObligations, getObligationLocked } from 'src/queries/index.js';
+import { requireSender, getMoveCallTarget } from 'src/utils/index.js';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
-import type { ScallopBuilder } from 'src/models';
+import type { ScallopBuilder } from 'src/models/index.js';
 import type {
   BorrowIncentiveIds,
   GenerateBorrowIncentiveNormalMethod,
@@ -14,8 +14,9 @@ import type {
   SuiTxBlockWithBorrowIncentiveNormalMethods,
   BorrowIncentiveTxBlock,
   ScallopTxBlock,
-} from 'src/types';
-import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants';
+  TransactionCommand,
+} from 'src/types/index.js';
+import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants/index.js';
 
 /**
  * Check and get Obligation information from transaction block.
@@ -221,15 +222,16 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           obligationKey
         );
 
-        const unstakeObligationBeforeStake =
-          !!txBlock.txBlock.blockData.transactions.find(
-            (txn) =>
-              txn.kind === 'MoveCall' &&
-              (txn.target ===
+        const unstakeObligationBeforeStake = !!txBlock.txBlock
+          .getData()
+          .commands.find(
+            (txn: TransactionCommand) =>
+              txn.$kind === 'MoveCall' &&
+              (getMoveCallTarget(txn) ===
                 `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
-                txn.target ===
+                getMoveCallTarget(txn) ===
                   `${builder.address.get('borrowIncentive.id')}::user::unstake_v2` ||
-                txn.target ===
+                getMoveCallTarget(txn) ===
                   `${builder.address.get('borrowIncentive.id')}::user::unstake`)
           );
 
@@ -253,15 +255,16 @@ const generateBorrowIncentiveQuickMethod: GenerateBorrowIncentiveQuickMethod =
           obligationKey
         );
 
-        const unstakeObligationBeforeStake =
-          !!txBlock.txBlock.blockData.transactions.find(
-            (txn) =>
-              txn.kind === 'MoveCall' &&
-              (txn.target ===
+        const unstakeObligationBeforeStake = !!txBlock.txBlock
+          .getData()
+          .commands.find(
+            (txn: TransactionCommand) =>
+              txn.$kind === 'MoveCall' &&
+              (getMoveCallTarget(txn) ===
                 `${OLD_BORROW_INCENTIVE_PROTOCOL_ID}::user::unstake` ||
-                txn.target ===
+                getMoveCallTarget(txn) ===
                   `${builder.address.get('borrowIncentive.id')}::user::unstake_v2` ||
-                txn.target ===
+                getMoveCallTarget(txn) ===
                   `${builder.address.get('borrowIncentive.id')}::user::unstake`)
           );
 

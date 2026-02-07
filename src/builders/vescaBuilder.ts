@@ -1,12 +1,12 @@
 import {
   SUI_CLOCK_OBJECT_ID,
   SuiTxBlock,
-  Transaction,
+  Transaction as SuiTransaction,
   SuiTxBlock as SuiKitTxBlock,
 } from '@scallop-io/sui-kit';
-import { SCA_COIN_TYPE } from 'src/constants';
-import { ScallopBuilder } from 'src/models';
-import { getVeSca, getVeScas } from 'src/queries';
+import { SCA_COIN_TYPE } from 'src/constants/index.js';
+import { ScallopBuilder } from 'src/models/index.js';
+import { getVeSca, getVeScas } from 'src/queries/index.js';
 import {
   requireSender,
   checkLockSca,
@@ -14,21 +14,26 @@ import {
   checkExtendLockAmount,
   checkRenewExpiredVeSca,
   checkVesca,
-} from 'src/utils';
+  getMoveCallTarget,
+} from 'src/utils/index.js';
 import type {
   TransactionObjectArgument,
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
 import type {
   AddressesInterface,
+  DynamicFieldResponseWithContents,
   GenerateVeScaNormalMethod,
   GenerateVeScaQuickMethod,
   QuickMethodReturnType,
   ScallopTxBlock,
   SuiTxBlockWithVeScaNormalMethods,
+  TransactionCommand,
   VeScaTxBlock,
-} from 'src/types';
-import { SuiObjectData } from '@mysten/sui/client';
+} from 'src/types/index.js';
+import type { SuiClientTypes } from '@mysten/sui/client';
+
+type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
 
 /**
  * Check and get veSCA data from transaction block.
@@ -82,17 +87,17 @@ export const isInSubsTable = async (
 ) => {
   const [builder, veScaKey, tableId] = params;
   try {
-    const resp = await builder.scallopSuiKit.queryGetDynamicFieldObject({
+    const resp = (await builder.scallopSuiKit.queryGetDynamicFieldObject({
       parentId: tableId,
       name: {
         type: '0x2::object::ID',
         value: veScaKey,
       },
-    });
+    })) as DynamicFieldResponseWithContents;
 
-    if (!resp?.data) return false;
+    if (!resp?.content) return false;
 
-    const contents = (resp.data.content as any).fields.value.fields.contents;
+    const contents = resp.content.fields?.value?.fields?.contents;
     return Array.isArray(contents) && contents.length > 0;
   } catch (e) {
     console.error(e);
@@ -450,11 +455,12 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         builder.address.get('vesca.subsTable')
       );
 
-      const unstakeObligationBeforeStake =
-        !!txBlock.txBlock.blockData.transactions.find(
-          (txn) =>
-            txn.kind === 'MoveCall' &&
-            txn.target ===
+      const unstakeObligationBeforeStake = !!txBlock.txBlock
+        .getData()
+        .commands.find(
+          (txn: TransactionCommand) =>
+            txn.$kind === 'MoveCall' &&
+            getMoveCallTarget(txn) ===
               `${builder.address.get('borrowIncentive.id')}::user::unstake_v2`
         );
 
@@ -480,11 +486,12 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         isInSubsTable(builder, sourceVeScaKey, table),
       ]);
 
-      const unstakeObligationBeforeStake =
-        !!txBlock.txBlock.blockData.transactions.find(
-          (txn) =>
-            txn.kind === 'MoveCall' &&
-            txn.target ===
+      const unstakeObligationBeforeStake = !!txBlock.txBlock
+        .getData()
+        .commands.find(
+          (txn: TransactionCommand) =>
+            txn.$kind === 'MoveCall' &&
+            getMoveCallTarget(txn) ===
               `${builder.address.get('borrowIncentive.id')}::user::unstake_v2`
         );
 
@@ -533,10 +540,10 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
  */
 export const newVeScaTxBlock = (
   builder: ScallopBuilder,
-  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
+  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | SuiTransaction
 ) => {
   const txBlock =
-    initTxBlock instanceof Transaction
+    initTxBlock instanceof SuiTransaction
       ? new SuiKitTxBlock(initTxBlock)
       : initTxBlock
         ? initTxBlock

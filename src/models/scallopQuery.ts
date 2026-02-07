@@ -9,6 +9,7 @@ import {
   StakePools,
   StakeRewardPools,
   SupportOracleType,
+  SuiObjectRef,
   xOracleRules,
 } from 'src/types/index.js';
 import {
@@ -58,11 +59,6 @@ import {
   queryObligation,
   queryVeScaKeyIdFromReferralBindings,
 } from 'src/queries/index.js';
-type SuiObjectRef = {
-  objectId: string;
-  version: number | string;
-  digest: string;
-};
 import type { SuiClientTypes } from '@mysten/sui/client';
 type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
 import { SuiObjectArg } from '@scallop-io/sui-kit';

@@ -6,19 +6,24 @@ import {
   SuiTxBlock,
   Transaction,
 } from '@scallop-io/sui-kit';
-import ScallopConstants, { ScallopConstantsParams } from './scallopConstants';
-import { CoinPrices, CoinWrappedType, PoolAddress } from 'src/types';
-import { findClosestUnlockRound } from 'src/utils';
+import ScallopConstants, {
+  ScallopConstantsParams,
+} from './scallopConstants.js';
+import { CoinPrices, CoinWrappedType, PoolAddress } from 'src/types/index.js';
+import { findClosestUnlockRound } from 'src/utils/index.js';
 import {
   MAX_LOCK_DURATION,
   queryKeys,
   UNLOCK_ROUND_DURATION,
-} from 'src/constants';
+} from 'src/constants/index.js';
 import { PriceFeed, SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
-import ScallopSuiKit, { ScallopSuiKitParams } from './scallopSuiKit';
-import { SuiObjectData } from '@mysten/sui/client';
-import { queryObligation } from 'src/queries';
-import { ScallopUtilsInterface } from './interface';
+import ScallopSuiKit, { ScallopSuiKitParams } from './scallopSuiKit.js';
+import type { SuiClientTypes } from '@mysten/sui/client';
+import { queryObligation } from 'src/queries/index.js';
+import { ScallopUtilsInterface } from './interface.js';
+
+// SDK v2 type alias
+type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
 
 export type ScallopUtilsParams = {
   pythEndpoints?: string[];
@@ -419,7 +424,7 @@ class ScallopUtils implements ScallopUtilsInterface {
     );
     priceFeedObject =
       priceFeedObject ||
-      (await this.scallopSuiKit.queryGetObject(pythFeedObjectId))?.data;
+      (await this.scallopSuiKit.queryGetObject(pythFeedObjectId))?.object;
 
     if (priceFeedObject) {
       const priceFeedPoolObject = priceFeedObject;
