@@ -1,4 +1,4 @@
-import { BigNumber } from 'src/utils/index.js';
+import { BigNumber } from 'bignumber.js';
 import type { ScallopQuery } from 'src/models/index.js';
 import type { CoinPrices, MarketPools, OptionalKeys } from '../types/index.js';
 

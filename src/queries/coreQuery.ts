@@ -30,7 +30,7 @@ import {
   BorrowDynamic,
   OriginMarketCollateralData,
 } from 'src/types/index.js';
-import { BigNumber } from 'src/utils/index.js';
+import { BigNumber } from 'bignumber.js';
 import { getSupplyLimit } from './supplyLimitQuery.js';
 import { isIsolatedAsset } from './isolatedAssetQuery.js';
 import { getBorrowLimit } from './borrowLimitQuery.js';
