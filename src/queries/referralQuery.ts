@@ -24,9 +24,11 @@ export const queryVeScaKeyIdFromReferralBindings = async (
     },
   });
 
-  if ((referralBindResponse as any).data?.content?.dataType !== 'moveObject')
-    return null;
+  const referralBindObject = referralBindResponse?.object;
+  const jsonData = referralBindObject?.json as any;
 
-  const fields = (referralBindResponse as any).data.content.fields as any;
+  if (jsonData?.dataType !== 'moveObject') return null;
+
+  const fields = jsonData.fields as any;
   return fields.value;
 };

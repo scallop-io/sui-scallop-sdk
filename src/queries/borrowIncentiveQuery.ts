@@ -20,7 +20,6 @@ import type {
   InspectTxnParsedJson,
   OptionalKeys,
   SuiObjectRef,
-  SuiObjectResponseWithMoveContent,
   CoinPrices,
   MarketPools,
 } from 'src/types/index.js';
@@ -267,11 +266,10 @@ export const getBindedObligationId = async (
   const incentivePoolsResponse =
     await scallopSuiKit.queryGetObject(incentivePoolsId);
 
-  const incentivePoolsData = (
-    incentivePoolsResponse as SuiObjectResponseWithMoveContent
-  )?.data?.content;
-  if (incentivePoolsData?.dataType !== 'moveObject') return null;
-  const incentivePoolFields = incentivePoolsData.fields as {
+  const incentivePoolsObject = incentivePoolsResponse?.object;
+  const incentivePoolsJson = incentivePoolsObject?.json as any;
+  if (incentivePoolsJson?.dataType !== 'moveObject') return null;
+  const incentivePoolFields = incentivePoolsJson.fields as {
     ve_sca_bind: { fields: { id: { id: string } } };
   };
   const veScaBindTableId = incentivePoolFields.ve_sca_bind.fields.id
@@ -289,11 +287,10 @@ export const getBindedObligationId = async (
     }
   );
 
-  const veScaBindData = (
-    veScaBindTableResponse as SuiObjectResponseWithMoveContent
-  )?.data?.content;
-  if (veScaBindData?.dataType !== 'moveObject') return null;
-  const veScaBindTableFields = veScaBindData.fields as {
+  const veScaBindObject = veScaBindTableResponse?.object;
+  const veScaBindJson = veScaBindObject?.json as any;
+  if (veScaBindJson?.dataType !== 'moveObject') return null;
+  const veScaBindTableFields = veScaBindJson.fields as {
     value: { fields: { id: string } };
   };
   const obligationId = veScaBindTableFields.value.fields.id;
@@ -316,13 +313,12 @@ export const getBindedVeScaKey = async (
   const corePkg = address.get('core.object');
 
   // get IncentiveAccounts object
-  const incentiveAccountsObject =
+  const incentiveAccountsResponse =
     await scallopSuiKit.queryGetObject(incentiveAccountsId);
-  const incentiveAccountsData = (
-    incentiveAccountsObject as SuiObjectResponseWithMoveContent
-  )?.data?.content;
-  if (incentiveAccountsData?.dataType !== 'moveObject') return null;
-  const incentiveAccountsFields = incentiveAccountsData.fields as {
+  const incentiveAccountsObject = incentiveAccountsResponse?.object;
+  const incentiveAccountsJson = incentiveAccountsObject?.json as any;
+  if (incentiveAccountsJson?.dataType !== 'moveObject') return null;
+  const incentiveAccountsFields = incentiveAccountsJson.fields as {
     accounts: { fields: { id: { id: string } } };
   };
   const incentiveAccountsTableId =
@@ -337,11 +333,10 @@ export const getBindedVeScaKey = async (
     },
   });
 
-  const bindedIncentiveAccData = (
-    bindedIncentiveAcc as SuiObjectResponseWithMoveContent
-  )?.data?.content;
-  if (bindedIncentiveAccData?.dataType !== 'moveObject') return null;
-  const bindedIncentiveAccFields = bindedIncentiveAccData.fields as {
+  const bindedIncentiveAccObject = bindedIncentiveAcc?.object;
+  const bindedIncentiveAccJson = bindedIncentiveAccObject?.json as any;
+  if (bindedIncentiveAccJson?.dataType !== 'moveObject') return null;
+  const bindedIncentiveAccFields = bindedIncentiveAccJson.fields as {
     value: {
       fields: { binded_ve_sca_key?: { fields: { id: string } } };
     };

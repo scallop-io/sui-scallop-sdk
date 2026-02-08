@@ -284,14 +284,12 @@ export const getVeScaTreasuryInfo = async (
   const veScaTreasury =
     await utils.scallopSuiKit.queryGetObject(veScaTreasuryId);
 
-  if (
-    !veScaTreasury ||
-    (veScaTreasury as any).data?.content?.dataType !== 'moveObject'
-  )
-    return null;
+  const veScaTreasuryObject = veScaTreasury?.object;
+  const jsonData = veScaTreasuryObject?.json as any;
 
-  const treasuryFields = (veScaTreasury as any).data.content
-    .fields as VeScaTreasuryFields;
+  if (!veScaTreasuryObject || jsonData?.dataType !== 'moveObject') return null;
+
+  const treasuryFields = jsonData.fields as VeScaTreasuryFields;
 
   const totalLockedSca = BigNumber(
     treasuryFields.unlock_schedule.fields.locked_sca_amount
@@ -299,7 +297,7 @@ export const getVeScaTreasuryInfo = async (
     .shiftedBy(-9)
     .toNumber();
   const totalVeSca = BigNumber(
-    (await getTotalVeScaTreasuryAmount(utils, (veScaTreasury as any).data)) ?? 0
+    (await getTotalVeScaTreasuryAmount(utils, veScaTreasuryObject)) ?? 0
   )
     .shiftedBy(-9)
     .toNumber();

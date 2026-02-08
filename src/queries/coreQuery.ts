@@ -756,18 +756,17 @@ export const getMarketCollateral = async (
       },
     });
 
-  const riskModelDynamicFieldObject = (
-    riskModelDynamicFieldObjectResponse as any
-  )?.data;
+  const riskModelDynamicFieldObject =
+    riskModelDynamicFieldObjectResponse?.object;
   if (
     !(
       riskModelDynamicFieldObject &&
-      riskModelDynamicFieldObject.content &&
-      'fields' in riskModelDynamicFieldObject.content
+      riskModelDynamicFieldObject.json &&
+      typeof riskModelDynamicFieldObject.json === 'object'
     )
   )
     throw new Error(
-      `Failed to fetch riskModelDynamicFieldObject for ${(riskModelDynamicFieldObjectResponse as any)?.error?.code.toString()}: `
+      `Failed to fetch riskModelDynamicFieldObject for ${collateralCoinName}`
     );
 
   const riskModel: RiskModel = (riskModelDynamicFieldObject.json.fields as any)
@@ -789,19 +788,18 @@ export const getMarketCollateral = async (
       },
     });
 
-  const collateralStatDynamicFieldObject = (
-    collateralStatDynamicFieldObjectResponse as any
-  )?.data;
+  const collateralStatDynamicFieldObject =
+    collateralStatDynamicFieldObjectResponse?.object;
 
   if (
     !(
       collateralStatDynamicFieldObject &&
-      collateralStatDynamicFieldObject.content &&
-      'fields' in collateralStatDynamicFieldObject.content
+      collateralStatDynamicFieldObject.json &&
+      typeof collateralStatDynamicFieldObject.json === 'object'
     )
   )
     throw new Error(
-      `Failed to fetch collateralStatDynamicFieldObject for ${collateralCoinName}: ${(collateralStatDynamicFieldObjectResponse as any)?.error?.code.toString()}`
+      `Failed to fetch collateralStatDynamicFieldObject for ${collateralCoinName}`
     );
 
   const collateralStat: CollateralStat = (
@@ -878,10 +876,9 @@ export const getObligations = async (
 
     if (!paginatedKeyObjectsResponse) break;
 
-    const objects = (paginatedKeyObjectsResponse as any).objects;
-    const hasNextPageResponse = (paginatedKeyObjectsResponse as any)
-      .hasNextPage;
-    const nextCursorResponse = (paginatedKeyObjectsResponse as any).nextCursor;
+    const objects = paginatedKeyObjectsResponse.objects;
+    const hasNextPageResponse = paginatedKeyObjectsResponse.hasNextPage;
+    const nextCursorResponse = paginatedKeyObjectsResponse.cursor;
 
     if (objects) keyObjectsResponse.push(...objects);
 

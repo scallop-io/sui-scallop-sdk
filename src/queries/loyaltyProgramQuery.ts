@@ -41,11 +41,13 @@ export const getLoyaltyProgramInformations = async (
   const rewardPool = query.address.get('loyaltyProgram.rewardPool');
 
   // get fields from rewardPool object
-  const rewardPoolObject = await query.scallopSuiKit.queryGetObject(rewardPool);
+  const rewardPoolResponse =
+    await query.scallopSuiKit.queryGetObject(rewardPool);
+  const rewardPoolObject = rewardPoolResponse?.object;
+  const jsonData = rewardPoolObject?.json as any;
 
-  if ((rewardPoolObject as any)?.content?.dataType !== 'moveObject')
-    return null;
-  const rewardPoolFields = (rewardPoolObject as any).content.fields;
+  if (jsonData?.dataType !== 'moveObject') return null;
+  const rewardPoolFields = jsonData.fields;
   const { isClaimEnabled, totalPoolReward } = rewardPoolFieldsZod.parse(
     rewardPoolFields
   ) as RewardPoolFields;
@@ -74,9 +76,11 @@ export const getLoyaltyProgramInformations = async (
     }
   );
 
-  if ((userRewardObject as any)?.content?.dataType !== 'moveObject')
-    return result;
-  const userRewardFields = (userRewardObject as any).content.fields;
+  const userRewardObjData = userRewardObject?.object;
+  const userRewardJson = userRewardObjData?.json as any;
+
+  if (userRewardJson?.dataType !== 'moveObject') return result;
+  const userRewardFields = userRewardJson.fields;
   result.pendingReward = userRewardFieldsZod.parse(
     userRewardFields
   ) as UserRewardFields;
@@ -118,11 +122,13 @@ export const getVeScaLoyaltyProgramInformations = async (
   const rewardPool = query.address.get('veScaLoyaltyProgram.veScaRewardPool');
 
   // get fields from rewardPool object
-  const rewardPoolObject = await query.scallopSuiKit.queryGetObject(rewardPool);
+  const rewardPoolResponse =
+    await query.scallopSuiKit.queryGetObject(rewardPool);
+  const rewardPoolObject = rewardPoolResponse?.object;
+  const jsonData = rewardPoolObject?.json as any;
 
-  if ((rewardPoolObject as any)?.content?.dataType !== 'moveObject')
-    return null;
-  const rewardPoolFields = (rewardPoolObject as any).content.fields;
+  if (jsonData?.dataType !== 'moveObject') return null;
+  const rewardPoolFields = jsonData.fields;
   const { isClaimEnabled, reserveVeScaKey } = veScaRewardPoolFieldsZod.parse(
     rewardPoolFields
   ) as VeScaRewardPoolFields;
@@ -159,9 +165,11 @@ export const getVeScaLoyaltyProgramInformations = async (
     }
   );
 
-  if ((userRewardObject as any)?.content?.dataType !== 'moveObject')
-    return result;
-  const userRewardFields = (userRewardObject as any).content.fields;
+  const userRewardObjData = userRewardObject?.object;
+  const userRewardJson = userRewardObjData?.json as any;
+
+  if (userRewardJson?.dataType !== 'moveObject') return result;
+  const userRewardFields = userRewardJson.fields;
   result.pendingScaReward = userVeScaRewardFieldsZod.parse(
     userRewardFields
   ) as UserVeScaRewardFields;
