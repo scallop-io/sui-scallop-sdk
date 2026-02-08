@@ -1,11 +1,11 @@
+import type { SuiObjectArg, SuiTxArg } from '@scallop-io/sui-kit';
 import type {
+  SuiObjectData,
+  SuiObjectDataOptions,
   GetDynamicFieldObjectParams,
   GetDynamicFieldsParams,
   GetOwnedObjectsParams,
-  SuiObjectData,
-  SuiObjectDataOptions,
-} from '@mysten/sui/client';
-import type { SuiObjectArg, SuiTxArg } from '@scallop-io/sui-kit';
+} from '../sui.js';
 
 export namespace QueryKeys {
   export namespace API {

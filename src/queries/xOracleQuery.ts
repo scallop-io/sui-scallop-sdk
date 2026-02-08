@@ -1,6 +1,13 @@
-import { SuiObjectResponse } from '@mysten/sui/client';
-import { ScallopAddress, ScallopSuiKit, ScallopUtils } from 'src/models';
-import { SupportOracleType, xOracleRuleType } from 'src/types';
+import {
+  ScallopAddress,
+  ScallopSuiKit,
+  ScallopUtils,
+} from 'src/models/index.js';
+import type {
+  SupportOracleType,
+  xOracleRuleType,
+  SuiObjectResponse,
+} from 'src/types/index.js';
 
 /**
  * Query the price update policy table ids. Usually the value for these table will be constant.
@@ -82,18 +89,22 @@ export const getAssetOracles = async (
       limit: 10,
     });
     if (!response) break;
-    const { data, hasNextPage, nextCursor } = response;
-    cursor = nextCursor;
+    const dynamicFields = response.dynamicFields;
+    const hasNextPage = response.hasNextPage;
+    cursor = response.cursor;
 
     // Group object ids
-    const objectIds = data.map((dynamicField) => dynamicField.objectId);
+    const objectIds = dynamicFields.map(
+      (dynamicField: any) => dynamicField.fieldId
+    );
 
     // batch fetch object responses
     const objectResponses =
       await utils.scallopSuiKit.queryGetObjects(objectIds);
     objectResponses.forEach((object) => {
-      if (!object.content || object.content.dataType !== 'moveObject') return;
-      const fields = object.content.fields as any;
+      const jsonData = object.json as any;
+      if (!jsonData || jsonData.dataType !== 'moveObject') return;
+      const fields = jsonData.fields;
       const typeName = (
         fields.name as { type: string; fields: { name: string } }
       ).fields.name;

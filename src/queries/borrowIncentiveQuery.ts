@@ -4,27 +4,29 @@ import {
   parseOriginBorrowIncentiveAccountData,
   calculateBorrowIncentivePoolPointData,
   getSharedObjectData,
-} from 'src/utils';
+} from 'src/utils/index.js';
 import type {
   ScallopAddress,
   ScallopQuery,
   ScallopSuiKit,
   ScallopUtils,
-} from 'src/models';
+} from 'src/models/index.js';
 import type {
   BorrowIncentivePoolsQueryInterface,
   BorrowIncentivePools,
   BorrowIncentiveAccountsQueryInterface,
   BorrowIncentiveAccounts,
   BorrowIncentivePoolPoints,
+  InspectTxnParsedJson,
   OptionalKeys,
+  SuiObjectRef,
+  SuiObjectResponseWithMoveContent,
   CoinPrices,
   MarketPools,
-} from 'src/types';
-import BigNumber from 'bignumber.js';
-import { SuiObjectRef } from '@mysten/sui/client';
+} from 'src/types/index.js';
+import { BigNumber } from 'src/utils/index.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
-import { queryKeys } from 'src/constants';
+import { queryKeys } from 'src/constants/index.js';
 
 /**
  * Query borrow incentive pools data using moveCall
@@ -59,9 +61,9 @@ const queryBorrowIncentivePools = async ({
       node: scallopSuiKit.currentFullNode,
     }),
   });
-  const borrowIncentivePoolsQueryData = queryResult?.events[0].parsedJson as
-    | BorrowIncentivePoolsQueryInterface
-    | undefined;
+  const borrowIncentivePoolsQueryData = (
+    queryResult as InspectTxnParsedJson<BorrowIncentivePoolsQueryInterface>
+  )?.Transaction?.events?.[0]?.parsedJson;
   return borrowIncentivePoolsQueryData;
 };
 
@@ -214,8 +216,9 @@ export const queryBorrowIncentiveAccounts = async (
       node: utils.scallopSuiKit.currentFullNode,
     }),
   });
-  const borrowIncentiveAccountsQueryData = queryResult?.events[0]
-    ?.parsedJson as BorrowIncentiveAccountsQueryInterface | undefined;
+  const borrowIncentiveAccountsQueryData = (
+    queryResult as InspectTxnParsedJson<BorrowIncentiveAccountsQueryInterface>
+  )?.Transaction?.events?.[0]?.parsedJson;
 
   const borrowIncentiveAccounts: BorrowIncentiveAccounts = Object.values(
     borrowIncentiveAccountsQueryData?.pool_records ?? []
@@ -264,9 +267,13 @@ export const getBindedObligationId = async (
   const incentivePoolsResponse =
     await scallopSuiKit.queryGetObject(incentivePoolsId);
 
-  if (incentivePoolsResponse?.data?.content?.dataType !== 'moveObject')
-    return null;
-  const incentivePoolFields = incentivePoolsResponse.data.content.fields as any;
+  const incentivePoolsData = (
+    incentivePoolsResponse as SuiObjectResponseWithMoveContent
+  )?.data?.content;
+  if (incentivePoolsData?.dataType !== 'moveObject') return null;
+  const incentivePoolFields = incentivePoolsData.fields as {
+    ve_sca_bind: { fields: { id: { id: string } } };
+  };
   const veScaBindTableId = incentivePoolFields.ve_sca_bind.fields.id
     .id as string;
 
@@ -282,12 +289,14 @@ export const getBindedObligationId = async (
     }
   );
 
-  if (veScaBindTableResponse?.data?.content?.dataType !== 'moveObject')
-    return null;
-  const veScaBindTableFields = veScaBindTableResponse.data.content
-    .fields as any;
-  // get obligationId pair
-  const obligationId = veScaBindTableFields.value.fields.id as string;
+  const veScaBindData = (
+    veScaBindTableResponse as SuiObjectResponseWithMoveContent
+  )?.data?.content;
+  if (veScaBindData?.dataType !== 'moveObject') return null;
+  const veScaBindTableFields = veScaBindData.fields as {
+    value: { fields: { id: string } };
+  };
+  const obligationId = veScaBindTableFields.value.fields.id;
 
   return obligationId;
 };
@@ -309,11 +318,15 @@ export const getBindedVeScaKey = async (
   // get IncentiveAccounts object
   const incentiveAccountsObject =
     await scallopSuiKit.queryGetObject(incentiveAccountsId);
-  if (incentiveAccountsObject?.data?.content?.dataType !== 'moveObject')
-    return null;
-  const incentiveAccountsTableId = (
-    incentiveAccountsObject.data.content.fields as any
-  ).accounts.fields.id.id;
+  const incentiveAccountsData = (
+    incentiveAccountsObject as SuiObjectResponseWithMoveContent
+  )?.data?.content;
+  if (incentiveAccountsData?.dataType !== 'moveObject') return null;
+  const incentiveAccountsFields = incentiveAccountsData.fields as {
+    accounts: { fields: { id: { id: string } } };
+  };
+  const incentiveAccountsTableId =
+    incentiveAccountsFields.accounts.fields.id.id;
 
   // Search in the table
   const bindedIncentiveAcc = await scallopSuiKit.queryGetDynamicFieldObject({
@@ -324,9 +337,15 @@ export const getBindedVeScaKey = async (
     },
   });
 
-  if (bindedIncentiveAcc?.data?.content?.dataType !== 'moveObject') return null;
-  const bindedIncentiveAccFields = bindedIncentiveAcc.data.content
-    .fields as any;
+  const bindedIncentiveAccData = (
+    bindedIncentiveAcc as SuiObjectResponseWithMoveContent
+  )?.data?.content;
+  if (bindedIncentiveAccData?.dataType !== 'moveObject') return null;
+  const bindedIncentiveAccFields = bindedIncentiveAccData.fields as {
+    value: {
+      fields: { binded_ve_sca_key?: { fields: { id: string } } };
+    };
+  };
 
   return (
     bindedIncentiveAccFields.value.fields.binded_ve_sca_key?.fields.id ?? null
