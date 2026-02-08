@@ -1025,7 +1025,9 @@ export const queryObligation = async (
     }
     // txBlock
   );
-  return (queryResult as any)?.Transaction?.events?.[0]?.parsedJson as
+  const tx = queryResult?.Transaction ?? queryResult?.FailedTransaction;
+  // SDK v2: parsedJson not in Event type but exists at runtime
+  return (tx?.events?.[0] as any)?.parsedJson as
     | ObligationQueryInterface
     | undefined;
 };

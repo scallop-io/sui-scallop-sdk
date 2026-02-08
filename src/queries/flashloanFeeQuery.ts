@@ -1,5 +1,4 @@
-import type { SuiClientTypes } from '@mysten/sui/client';
-type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
+import type { SuiObjectData } from 'src/types/index.js';
 import { ScallopSuiKit } from 'src/models/index.js';
 import ScallopConstants from 'src/models/scallopConstants.js';
 

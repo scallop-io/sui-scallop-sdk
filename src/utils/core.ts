@@ -1,5 +1,4 @@
-import { SuiClientTypes } from '@mysten/sui/client';
-type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
+import type { SuiObjectData } from 'src/types/index.js';
 
 export const parseObjectAs = <T>(object: SuiObjectData): T => {
   if (!(object && object.content && 'fields' in object.content))
