@@ -1,7 +1,17 @@
 import { SuiTxBlock as SuiKitTxBlock, SuiObjectArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import { ScallopBuilder } from 'src/models';
-import { SuiObjectData } from '@mysten/sui/client';
+import { ScallopBuilder } from 'src/models/index.js';
+import type { SuiClientTypes } from '@mysten/sui/client';
+type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
+
+/** Dynamic field response structure from queryGetDynamicFieldObject (subs table) */
+export type DynamicFieldResponseWithContents = {
+  content?: {
+    fields?: {
+      value?: { fields?: { contents?: unknown[] } };
+    };
+  };
+};
 
 export type VeScaNormalMethods = {
   lockSca: (

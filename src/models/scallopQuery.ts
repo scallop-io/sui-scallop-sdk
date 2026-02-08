@@ -902,7 +902,10 @@ class ScallopQuery implements ScallopQueryInterface {
    */
   async getPoolAddresses(apiAddressId = this.address.getId()) {
     if (!apiAddressId) throw new Error('apiAddressId is required');
-    return getPoolAddresses(apiAddressId);
+    return getPoolAddresses(
+      this.utils.scallopSuiKit.suiKit.client,
+      apiAddressId
+    );
   }
 
   /**

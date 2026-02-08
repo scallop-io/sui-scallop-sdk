@@ -1,3 +1,4 @@
+export * from './bignumber.js';
 export * from './builder.js';
 export * from './query.js';
 export * from './util.js';

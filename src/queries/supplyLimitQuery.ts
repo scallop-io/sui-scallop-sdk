@@ -1,4 +1,4 @@
-import { ScallopUtils } from 'src/models';
+import { ScallopUtils } from 'src/models/index.js';
 import { z as zod } from 'zod';
 
 const supplyLimitZod = zod.object({
@@ -38,9 +38,9 @@ export const getSupplyLimit = async (utils: ScallopUtils, poolName: string) => {
       },
     });
 
-    const parsedData = supplyLimitZod.safeParse(object?.data?.content);
+    const parsedData = supplyLimitZod.safeParse((object as any)?.data?.content);
     if (!parsedData.success) return '0';
-    return parsedData.data.fields.value;
+    return (parsedData as any).data.fields.value;
   } catch (e: any) {
     console.error(`Error in getSupplyLimit for ${poolName}: ${e.message}`);
     return '0';

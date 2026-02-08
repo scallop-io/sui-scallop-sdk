@@ -1,6 +1,6 @@
-import BigNumber from 'bignumber.js';
+import { BigNumber } from './bignumber.js';
 import { normalizeStructTag } from '@mysten/sui/utils';
-import type { ScallopUtils } from '../models';
+import type { ScallopUtils } from '../models/index.js';
 import type {
   OriginMarketPoolData,
   ParsedMarketPoolData,
@@ -23,7 +23,7 @@ import type {
   CalculatedBorrowIncentivePoolPointData,
   OriginBorrowIncentiveAccountPoolData,
   ParsedBorrowIncentiveAccountPoolData,
-} from '../types';
+} from '../types/index.js';
 
 /**
  *  Parse origin market pool data to a more readable format.
@@ -447,7 +447,10 @@ export const parseOriginBorrowIncentivePoolData = (
     maxStakes: Number(originBorrowIncentivePoolData.max_stakes),
     staked: Number(originBorrowIncentivePoolData.stakes),
     poolPoints: originBorrowIncentivePoolData.points.reduce(
-      (acc, point) => {
+      (
+        acc: Record<string, ParsedBorrowIncentivePoolPointData>,
+        point: OriginBorrowIncentivePoolPointData
+      ) => {
         const parsed = parseOriginBorrowIncentivesPoolPointData(point);
         const name = utils.parseCoinNameFromType(parsed.pointType) as string;
 
@@ -585,7 +588,10 @@ export const parseOriginBorrowIncentiveAccountData = (
     ),
     debtAmount: Number(originBorrowIncentiveAccountData.debt_amount),
     pointList: originBorrowIncentiveAccountData.points_list.reduce(
-      (acc, point) => {
+      (
+        acc: Record<string, ParsedBorrowIncentiveAccountPoolData>,
+        point: OriginBorrowIncentiveAccountPoolData
+      ) => {
         const parsed = parseOriginBorrowIncentiveAccountPoolPointData(point);
         const name = utils.parseCoinNameFromType(parsed.pointType);
         acc[name] = parsed;
@@ -596,20 +602,27 @@ export const parseOriginBorrowIncentiveAccountData = (
   };
 };
 
-export const minBigNumber = (...args: BigNumber.Value[]) => {
-  return BigNumber(
-    args.reduce((min, current) =>
-      new BigNumber(current).lt(min) ? current : min
-    )
-  );
+type BNValue = string | number | import('bignumber.js').BigNumber.Instance;
+type BN = import('bignumber.js').BigNumber;
+
+export const minBigNumber = (...args: BNValue[]): BN => {
+  if (args.length === 0) return BigNumber(0) as BN;
+  let result = BigNumber(args[0]) as BN;
+  for (let i = 1; i < args.length; i++) {
+    const curr = BigNumber(args[i]) as BN;
+    result = curr.lt(result) ? curr : result;
+  }
+  return result;
 };
 
-export const maxBigNumber = (...args: BigNumber.Value[]) => {
-  return BigNumber(
-    args.reduce((max, current) =>
-      new BigNumber(current).gt(max) ? current : max
-    )
-  );
+export const maxBigNumber = (...args: BNValue[]): BN => {
+  if (args.length === 0) return BigNumber(0) as BN;
+  let result = BigNumber(args[0]) as BN;
+  for (let i = 1; i < args.length; i++) {
+    const curr = BigNumber(args[i]) as BN;
+    result = curr.gt(result) ? curr : result;
+  }
+  return result;
 };
 
 /**

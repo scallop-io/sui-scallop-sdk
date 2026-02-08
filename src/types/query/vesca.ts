@@ -1,8 +1,4 @@
-type SuiObjectRef = {
-  objectId: string;
-  version: number | string;
-  digest: string;
-};
+import type { SuiObjectRef } from '../sui.js';
 
 export type Vesca = {
   id: string;
