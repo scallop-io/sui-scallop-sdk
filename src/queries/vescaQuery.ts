@@ -1,4 +1,4 @@
-import { BigNumber } from 'src/utils/index.js';
+import { BigNumber } from 'bignumber.js';
 import type {
   VeScaTreasuryFields,
   VeScaTreasuryInfo,

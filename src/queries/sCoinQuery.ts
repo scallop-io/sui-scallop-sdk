@@ -1,6 +1,6 @@
 import { bcs } from '@mysten/sui/bcs';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
-import { BigNumber } from 'src/utils/index.js';
+import { BigNumber } from 'bignumber.js';
 import { queryKeys } from 'src/constants/index.js';
 import { ScallopQuery, ScallopUtils } from 'src/models/index.js';
 import { OptionalKeys, sCoinBalance } from 'src/types/index.js';
