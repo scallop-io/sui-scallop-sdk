@@ -719,11 +719,7 @@ export const getMarketCollateral = async (
 
   const marketId = utils.address.get('core.market');
   const marketResponse = await scallopSuiKit.queryGetObject(marketId);
-  const marketData =
-    marketObject ??
-    (marketResponse && 'object' in marketResponse
-      ? marketResponse.object
-      : (marketResponse as { data?: SuiObjectData })?.data);
+  const marketData = marketObject ?? marketResponse?.object;
 
   const fields = marketData?.json;
   if (!(marketData && fields && typeof fields === 'object'))

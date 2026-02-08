@@ -18,12 +18,9 @@ import {
 } from 'src/constants/index.js';
 import { PriceFeed, SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import ScallopSuiKit, { ScallopSuiKitParams } from './scallopSuiKit.js';
-import type { SuiClientTypes } from '@mysten/sui/client';
 import { queryObligation } from 'src/queries/index.js';
 import { ScallopUtilsInterface } from './interface.js';
-
-// SDK v2 type alias
-type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
+import type { SuiObjectData } from 'src/types/index.js';
 
 export type ScallopUtilsParams = {
   pythEndpoints?: string[];
