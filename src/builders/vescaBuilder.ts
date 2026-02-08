@@ -31,9 +31,7 @@ import type {
   TransactionCommand,
   VeScaTxBlock,
 } from 'src/types/index.js';
-import type { SuiClientTypes } from '@mysten/sui/client';
-
-type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
+import type { SuiObjectData } from 'src/types/index.js';
 
 /**
  * Check and get veSCA data from transaction block.
