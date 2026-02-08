@@ -32,7 +32,10 @@ export const getSharedObjectData = async (
       json: true,
       content: false,
     });
-    return parseObjectData((objectData as any).data!);
+    if (!objectData?.object) {
+      throw new Error('Failed to get object data');
+    }
+    return parseObjectData(objectData.object);
   } else {
     return parseObjectData(object);
   }

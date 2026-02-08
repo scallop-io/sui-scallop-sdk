@@ -95,9 +95,9 @@ export const isInSubsTable = async (
       },
     })) as DynamicFieldResponseWithContents;
 
-    if (!resp?.content) return false;
+    if (!resp?.object?.json) return false;
 
-    const contents = resp.content.fields?.value?.fields?.contents;
+    const contents = resp.object.json.fields?.value?.fields?.contents;
     return Array.isArray(contents) && contents.length > 0;
   } catch (e) {
     console.error(e);
