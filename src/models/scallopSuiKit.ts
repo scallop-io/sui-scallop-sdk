@@ -324,33 +324,35 @@ class ScallopSuiKit extends ScallopQueryClient {
         node: this.currentFullNode,
       }),
       async () => {
-        // SDK v2: getAllBalances is removed, using listCoins instead
-        const allCoins = await this.client.core.listCoins({ owner });
-        // SDK v2 listCoins returns { objects: Coin[] } structure
-        const coinList = allCoins.objects || [];
-        if (!coinList.length) return {};
+        // SDK v2: getAllBalances → listBalances
+        const allBalances: { coinType: string; balance: string }[] = [];
+        let cursor: string | null = null;
+        do {
+          const result = await this.client.core.listBalances({
+            owner,
+            cursor,
+            limit: 100,
+          });
+          allBalances.push(...(result.balances ?? []));
+          cursor = result.hasNextPage ? result.cursor : null;
+        } while (cursor);
 
-        // Group coins by type and sum balances
-        const balances: { [k: string]: CoinBalance } = {};
-        for (const coin of coinList) {
-          const normalizedType = normalizeStructTag(coin.type);
-          if (!balances[normalizedType]) {
-            balances[normalizedType] = {
-              coinType: coin.type,
-              balance: '0',
-            };
-          }
-          const currentBalance = BigInt(balances[normalizedType].balance);
-          const coinBalance = BigInt(coin.balance);
-          balances[normalizedType].balance = (
-            currentBalance + coinBalance
-          ).toString();
-        }
+        if (!allBalances.length) return {};
 
-        // Filter out zero balances
-        return Object.fromEntries(
-          Object.entries(balances).filter(([_, bal]) => bal.balance !== '0')
+        const balances = allBalances.reduce(
+          (acc, coinBalance) => {
+            if (coinBalance.balance !== '0') {
+              acc[normalizeStructTag(coinBalance.coinType)] = {
+                coinType: coinBalance.coinType,
+                balance: coinBalance.balance,
+              };
+            }
+            return acc;
+          },
+          {} as { [k: string]: CoinBalance }
         );
+
+        return balances;
       }
     );
   }
