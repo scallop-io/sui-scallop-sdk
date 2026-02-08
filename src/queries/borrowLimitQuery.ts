@@ -1,5 +1,4 @@
 import { ScallopUtils } from 'src/models/index.js';
-import { SuiObjectResponseWithMoveContent } from 'src/types/sui.js';
 import { z as zod } from 'zod';
 
 const borrowLimitZod = zod.object({
@@ -40,9 +39,7 @@ export const getBorrowLimit = async (utils: ScallopUtils, poolName: string) => {
       },
     });
 
-    const parsedData = borrowLimitZod.safeParse(
-      (object as SuiObjectResponseWithMoveContent)?.data?.content
-    );
+    const parsedData = borrowLimitZod.safeParse(object?.object?.json);
     if (!parsedData.success) return '0';
 
     return parsedData.data.fields.value;

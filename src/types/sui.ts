@@ -28,21 +28,11 @@ export type SuiObjectRef = {
   digest: string;
 };
 
-/** Sui object response with move object content (queryGetObject / queryGetDynamicFieldObject) */
-export type SuiObjectResponseWithMoveContent = {
-  data?: {
-    content?: {
-      dataType?: string;
-      fields?: Record<string, unknown>;
-    };
-  };
-};
-
 /** Paginated objects response (listDynamicFields, getOwnedObjects, etc.) */
 export type PaginatedObjectsResponse<T = unknown> = {
   objects?: T[];
   hasNextPage?: boolean;
-  nextCursor?: string | null;
+  cursor?: string | null;
 };
 
 /** Extract parsedJson from queryInspectTxn result (Transaction.events[0].parsedJson) */

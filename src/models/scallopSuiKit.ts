@@ -18,6 +18,7 @@ import type {
   GetDynamicFieldObjectParams,
   GetDynamicFieldsParams,
   GetOwnedObjectsParams,
+  PaginatedObjectsResponse,
   SuiObjectData,
   SuiObjectDataOptions,
   SuiObjectResponse,
@@ -229,7 +230,9 @@ class ScallopSuiKit extends ScallopQueryClient {
    * @param input
    * @returns Promise<PaginatedObjectsResponse>
    */
-  async queryGetOwnedObjects(input: GetOwnedObjectsParams) {
+  async queryGetOwnedObjects(
+    input: GetOwnedObjectsParams
+  ): Promise<PaginatedObjectsResponse<SuiObjectData> | null> {
     // @TODO: This query need its own separate rate limiter (as owned objects can theoretically be infinite), need a better way to handle this
     const params = {
       ...input,
