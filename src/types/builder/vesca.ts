@@ -4,11 +4,13 @@ import { ScallopBuilder } from 'src/models/index.js';
 import type { SuiClientTypes } from '@mysten/sui/client';
 type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
 
-/** Dynamic field response structure from queryGetDynamicFieldObject (subs table) */
+/** Dynamic field response structure from queryGetDynamicFieldObject (subs table) - SDK v2 */
 export type DynamicFieldResponseWithContents = {
-  content?: {
-    fields?: {
-      value?: { fields?: { contents?: unknown[] } };
+  object?: {
+    json?: {
+      fields?: {
+        value?: { fields?: { contents?: unknown[] } };
+      };
     };
   };
 };
