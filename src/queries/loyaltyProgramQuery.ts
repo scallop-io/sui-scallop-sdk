@@ -1,5 +1,4 @@
-import type { SuiClientTypes } from '@mysten/sui/client';
-type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
+import type { SuiObjectData } from 'src/types/index.js';
 import { BigNumber } from 'src/utils/index.js';
 import { MAX_LOCK_DURATION } from 'src/constants/index.js';
 import { ScallopQuery } from 'src/models/index.js';

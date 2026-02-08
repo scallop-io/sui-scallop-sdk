@@ -8,6 +8,7 @@ import {
   MarketPools,
   StakePools,
   StakeRewardPools,
+  SuiObjectData,
   SupportOracleType,
   SuiObjectRef,
   xOracleRules,
@@ -59,8 +60,6 @@ import {
   queryObligation,
   queryVeScaKeyIdFromReferralBindings,
 } from 'src/queries/index.js';
-import type { SuiClientTypes } from '@mysten/sui/client';
-type SuiObjectData = SuiClientTypes.Object<{ content: true; json: true }>;
 import { SuiObjectArg } from '@scallop-io/sui-kit';
 import { ScallopQueryInterface } from './interface.js';
 
