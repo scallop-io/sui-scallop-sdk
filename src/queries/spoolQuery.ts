@@ -367,7 +367,7 @@ export const getStakeAccounts = async (
     if (id && stakeObject?.json?.dataType === 'moveObject') {
       const fields = stakeObject.json.fields as any;
       const stakePoolId = String(fields.spool_id);
-      const stakeType = String(fields.stake_type.fields.name);
+      const stakeType = String(fields.stake_type.name);
       const staked = Number(fields.stakes);
       const index = Number(fields.index);
       const points = Number(fields.points);
@@ -441,7 +441,7 @@ export const getStakePool = async (
       const pointPerPeriod = Number(fields.distributed_point_per_period);
       const period = Number(fields.point_distribution_time);
       const maxStake = Number(fields.max_stakes);
-      const stakeType = String(fields.stake_type.fields.name);
+      const stakeType = String(fields.stake_type.name);
       const totalStaked = Number(fields.stakes);
       const index = Number(fields.index);
       const createdAt = Number(fields.created_at);

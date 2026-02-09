@@ -244,7 +244,7 @@ export const parseOriginSpoolData = (
   originSpoolData: OriginSpoolData
 ): ParsedSpoolData => {
   return {
-    stakeType: normalizeStructTag(originSpoolData.stakeType.fields.name),
+    stakeType: normalizeStructTag(originSpoolData.stakeType.name),
     maxPoint: Number(originSpoolData.maxDistributedPoint),
     distributedPoint: Number(originSpoolData.distributedPoint),
     pointPerPeriod: Number(originSpoolData.distributedPointPerPeriod),
