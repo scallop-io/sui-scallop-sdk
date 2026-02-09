@@ -354,8 +354,7 @@ describe('Test Scallop Client - Other Method', async () => {
 
   it('Should supply and stake successful', async () => {
     const sender = client.walletAddress;
-    const coinName = utils.constants.coinTypes.sui;
-    if (!coinName) throw new Error('Coin name not found');
+    const coinName = 'sui';
     const stakeMarketCoinName = utils.parseMarketCoinName<string>(coinName); // sSui.
 
     const stakeAccounts = await query.getStakeAccounts(stakeMarketCoinName);
@@ -402,8 +401,7 @@ describe('Test Scallop Client - Other Method', async () => {
 
   it('Should withdraw and unstake successful', async () => {
     const sender = client.walletAddress;
-    const coinName = utils.constants.coinTypes.sui;
-    if (!coinName) throw new Error('Coin name not found');
+    const coinName = 'sui';
     const stakeMarketCoinName = utils.parseMarketCoinName<string>(coinName); // sSui.
 
     const marketPool = await query.getMarketPool(coinName);
