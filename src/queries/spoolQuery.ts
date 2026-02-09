@@ -315,9 +315,8 @@ export const getStakeAccounts = async (
       });
     if (!paginatedStakeObjectsResponse) break;
 
-    const objects = paginatedStakeObjectsResponse.objects;
-
-    if (objects) stakeObjectsResponse.push(...objects);
+    if (paginatedStakeObjectsResponse.objects)
+      stakeObjectsResponse.push(...paginatedStakeObjectsResponse.objects);
 
     if (
       paginatedStakeObjectsResponse.hasNextPage &&
@@ -365,9 +364,8 @@ export const getStakeAccounts = async (
   for (const stakeObject of stakeObjectsResponse) {
     const id = stakeObject?.objectId;
     const type = stakeObject?.type!;
-    const jsonData = stakeObject?.json as any;
-    if (id && jsonData && 'fields' in jsonData) {
-      const fields = jsonData.fields;
+    if (id && stakeObject?.json?.dataType === 'moveObject') {
+      const fields = stakeObject.json.fields as any;
       const stakePoolId = String(fields.spool_id);
       const stakeType = String(fields.stake_type.fields.name);
       const staked = Number(fields.stakes);
@@ -435,9 +433,9 @@ export const getStakePool = async (
     const stakePoolObject = stakePoolObjectResponse.object;
     const id = stakePoolObject.objectId;
     const type = stakePoolObject.type!;
-    const jsonData = stakePoolObject.json as any;
-    if (jsonData && 'fields' in jsonData) {
-      const fields = jsonData.fields;
+    const json = stakePoolObject.json as any;
+    if (json?.dataType === 'moveObject') {
+      const fields = json.fields;
       const maxPoint = Number(fields.max_distributed_point);
       const distributedPoint = Number(fields.distributed_point);
       const pointPerPeriod = Number(fields.distributed_point_per_period);
@@ -497,9 +495,9 @@ export const getStakeRewardPool = async (
     const stakeRewardPoolObject = stakeRewardPoolObjectResponse.object;
     const id = stakeRewardPoolObject.objectId;
     const type = stakeRewardPoolObject.type!;
-    const jsonData = stakeRewardPoolObject.json as any;
-    if (jsonData && 'fields' in jsonData) {
-      const rewardPoolFields = jsonData.fields;
+    const json = stakeRewardPoolObject.json as any;
+    if (json?.dataType === 'moveObject') {
+      const rewardPoolFields = json.fields;
       const stakePoolId = String(rewardPoolFields.spool_id);
       const ratioNumerator = Number(rewardPoolFields.exchange_rate_numerator);
       const ratioDenominator = Number(

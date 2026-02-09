@@ -100,17 +100,17 @@ export const getPoolAddresses = async (
   if (coinTypesPairs.length === 0) throw new Error('No coinTypesPairs');
 
   const marketId = addressApiResponse.core.market;
-  const marketObjectResp = await client.core.getObject({
-    objectId: marketId,
-    include: { content: true, json: true },
-  });
-  const marketObject = marketObjectResp?.object;
+  const marketObject = (
+    await client.core.getObject({
+      objectId: marketId,
+      include: { content: true, json: true },
+    })
+  )?.object;
 
-  const jsonData = marketObject?.json as any;
-  if (!(marketObject && jsonData?.dataType === 'moveObject'))
+  if (!(marketObject && marketObject.json?.dataType === 'moveObject'))
     throw new Error(`Failed to fetch marketObject`);
 
-  const fields = jsonData.fields;
+  const fields = marketObject.json.fields as any;
 
   const balanceSheetParentId =
     fields.vault.fields.balance_sheets.fields.table.fields.id.id;
@@ -275,10 +275,12 @@ export const getPoolAddresses = async (
         //@ts-ignore
         addressApiResponse.core.coins[coinName].oracle.pyth;
 
-      const coinMetadata = await client.core.getCoinMetadata({
-        coinType,
-      });
-      const decimals = (coinMetadata as any)?.decimals ?? 0;
+      const decimals =
+        (
+          await client.core.getCoinMetadata({
+            coinType,
+          })
+        )?.coinMetadata?.decimals ?? 0;
       const spoolName = spoolData ? `s${coinName}` : undefined;
 
       results[coinName] = {
