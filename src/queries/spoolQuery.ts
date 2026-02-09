@@ -364,14 +364,14 @@ export const getStakeAccounts = async (
   for (const stakeObject of stakeObjectsResponse) {
     const id = stakeObject?.objectId;
     const type = stakeObject?.type!;
-    if (id && stakeObject?.json?.dataType === 'moveObject') {
-      const fields = stakeObject.json.fields as any;
-      const stakePoolId = String(fields.spool_id);
-      const stakeType = String(fields.stake_type.name);
-      const staked = Number(fields.stakes);
-      const index = Number(fields.index);
-      const points = Number(fields.points);
-      const totalPoints = Number(fields.total_points);
+    if (id && stakeObject?.json) {
+      const json = stakeObject.json as any;
+      const stakePoolId = String(json.spool_id);
+      const stakeType = String(json.stake_type.name);
+      const staked = Number(json.stakes);
+      const index = Number(json.index);
+      const points = Number(json.points);
+      const totalPoints = Number(json.total_points);
 
       const stakeMarketCoinTypeMap: Record<string, StakeAccounts[string]> = {
         sweth: stakeAccounts.sweth,

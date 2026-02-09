@@ -849,6 +849,7 @@ export const getObligations = async (
           StructType: `${protocolObjectId}::obligation::ObligationKey`,
         },
         options: {
+          content: true,
           json: true,
         },
         cursor: nextCursor,
@@ -878,18 +879,17 @@ export const getObligations = async (
     keyObjects
       .map((ref) => ref.json)
       .filter(
-        (json): json is { dataType: 'moveObject'; fields: any } =>
-          json?.dataType === 'moveObject'
+        (json): json is { ownership: any } =>
+          json != null && 'ownership' in json
       )
-      .map((json) => (json.fields as any).ownership.fields.of)
+      .map((json) => (json as any).ownership.of)
   );
   await Promise.allSettled(
     keyObjects.map(async (ref, idx) => {
       const keyId = ref.objectId;
       const json = ref.json;
-      if (keyId && json && 'fields' in json) {
-        const fields = json.fields as any;
-        const obligationId = String(fields.ownership.fields.of);
+      if (keyId && json && 'ownership' in json) {
+        const obligationId = String((json as any).ownership.of);
         const locked = await getObligationLocked(
           utils,
           obligationsObjects[idx]

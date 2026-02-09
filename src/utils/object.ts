@@ -8,14 +8,16 @@ const parseObjectData = (data: SuiObjectData) => {
     'owner' in data &&
     data.owner &&
     typeof data.owner === 'object' &&
+    '$kind' in data.owner &&
+    (data.owner as any).$kind === 'Shared' &&
     'Shared' in data.owner &&
-    'initial_shared_version' in (data.owner as any).Shared!
+    'initialSharedVersion' in (data.owner as any).Shared
   ) {
     return {
       objectId: data.objectId,
       initialSharedVersion: (
         data.owner as any
-      ).Shared!.initial_shared_version.toString(),
+      ).Shared.initialSharedVersion.toString(),
     };
   }
 
