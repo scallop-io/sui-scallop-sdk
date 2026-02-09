@@ -1,7 +1,7 @@
 import {
   SUI_CLOCK_OBJECT_ID,
   SuiTxBlock,
-  Transaction as SuiTransaction,
+  Transaction,
   SuiTxBlock as SuiKitTxBlock,
 } from '@scallop-io/sui-kit';
 import { SCA_COIN_TYPE } from 'src/constants/index.js';
@@ -538,10 +538,10 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
  */
 export const newVeScaTxBlock = (
   builder: ScallopBuilder,
-  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | SuiTransaction
+  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ) => {
   const txBlock =
-    initTxBlock instanceof SuiTransaction
+    initTxBlock instanceof Transaction
       ? new SuiKitTxBlock(initTxBlock)
       : initTxBlock
         ? initTxBlock

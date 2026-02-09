@@ -324,18 +324,20 @@ class ScallopSuiKit extends ScallopQueryClient {
         node: this.currentFullNode,
       }),
       async () => {
-        // SDK v2: getAllBalances → listBalances
         const allBalances: { coinType: string; balance: string }[] = [];
         let cursor: string | null = null;
-        do {
+        let hasNextPage = true;
+
+        while (hasNextPage) {
           const result = await this.client.core.listBalances({
             owner,
             cursor,
             limit: 100,
           });
           allBalances.push(...(result.balances ?? []));
-          cursor = result.hasNextPage ? result.cursor : null;
-        } while (cursor);
+          hasNextPage = result.hasNextPage;
+          cursor = result.cursor;
+        }
 
         if (!allBalances.length) return {};
 
