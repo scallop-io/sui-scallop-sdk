@@ -1,10 +1,6 @@
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import type { TransactionArgument } from '@mysten/sui/transactions';
-import type {
-  SuiTxBlock as SuiKitTxBlock,
-  SuiTxArg,
-  SuiVecTxArg,
-} from '@scallop-io/sui-kit';
+import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models/index.js';
 import type {
   SupportOracleType,
@@ -132,17 +128,21 @@ const updateOracle = (
     txBlock,
     rules,
     builder.address.get('core.packages.xOracle.id'),
-    builder.address.get('core.oracles.xOracle'),
+    txBlock.object(builder.address.get('core.oracles.xOracle')),
     builder.address.get('core.packages.pyth.id'),
-    builder.address.get('core.oracles.pyth.registry'),
-    builder.address.get('core.oracles.pyth.state'),
-    builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feedObject`),
+    txBlock.object(builder.address.get('core.oracles.pyth.registry')),
+    txBlock.object(builder.address.get('core.oracles.pyth.state')),
+    txBlock.object(
+      builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feedObject`)
+    ),
     builder.address.get('core.packages.switchboard.id'),
-    builder.address.get('core.oracles.switchboard.registry'),
-    builder.address.get(`core.coins.${assetCoinName}.oracle.switchboard`),
+    txBlock.object(builder.address.get('core.oracles.switchboard.registry')),
+    txBlock.object(
+      builder.address.get(`core.coins.${assetCoinName}.oracle.switchboard`)
+    ),
     builder.address.get('core.packages.supra.id'),
-    builder.address.get('core.oracles.supra.registry'),
-    builder.address.get(`core.oracles.supra.holder`),
+    txBlock.object(builder.address.get('core.oracles.supra.registry')),
+    txBlock.object(builder.address.get(`core.oracles.supra.holder`)),
     coinType
   );
 };
@@ -171,17 +171,17 @@ const updatePrice = (
   txBlock: SuiKitTxBlock,
   rules: xOracleRules,
   xOraclePackageId: string,
-  xOracleId: TransactionArgument | string,
+  xOracleId: TransactionArgument,
   pythPackageId: string,
-  pythRegistryId: TransactionArgument | string,
-  pythStateId: TransactionArgument | string,
-  pythFeedObjectId: TransactionArgument | string,
+  pythRegistryId: TransactionArgument,
+  pythStateId: TransactionArgument,
+  pythFeedObjectId: TransactionArgument,
   switchboardPackageId: string,
-  switchboardRegistryId: TransactionArgument | string,
-  switchboardAggregatorId: TransactionArgument | string,
+  switchboardRegistryId: TransactionArgument,
+  switchboardAggregatorId: TransactionArgument,
   supraPackageId: string,
-  supraRegistryId: TransactionArgument | string,
-  supraHolderId: TransactionArgument | string,
+  supraRegistryId: TransactionArgument,
+  supraHolderId: TransactionArgument,
   coinType: string
 ) => {
   const request = priceUpdateRequest(
@@ -251,16 +251,12 @@ const updatePrice = (
 const priceUpdateRequest = (
   txBlock: SuiKitTxBlock,
   packageId: string,
-  xOracleId: TransactionArgument | string,
+  xOracleId: TransactionArgument,
   coinType: string
 ) => {
   const target = `${packageId}::x_oracle::price_update_request`;
   const typeArgs = [coinType];
-  return txBlock.moveCall(
-    target,
-    [xOracleId] as (SuiTxArg | SuiVecTxArg)[],
-    typeArgs
-  );
+  return txBlock.moveCall(target, [xOracleId], typeArgs);
 };
 
 /**
@@ -276,7 +272,7 @@ const priceUpdateRequest = (
 const confirmPriceUpdateRequest = (
   txBlock: SuiKitTxBlock,
   packageId: string,
-  xOracleId: TransactionArgument | string,
+  xOracleId: TransactionArgument,
   request: TransactionArgument,
   coinType: string
 ) => {
@@ -292,7 +288,7 @@ const confirmPriceUpdateRequest = (
         mutable: false,
         initialSharedVersion: '1',
       }),
-    ] as (SuiTxArg | SuiVecTxArg)[],
+    ],
     typeArgs
   );
   return txBlock;
@@ -315,8 +311,8 @@ const updateSupraPrice = (
   txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
-  holderId: TransactionArgument | string,
-  registryId: TransactionArgument | string,
+  holderId: TransactionArgument,
+  registryId: TransactionArgument,
   coinType: string
 ) => {
   txBlock.moveCall(
@@ -330,7 +326,7 @@ const updateSupraPrice = (
         initialSharedVersion: '1',
         mutable: false,
       }),
-    ] as (SuiTxArg | SuiVecTxArg)[],
+    ],
     [coinType]
   );
 };
@@ -352,8 +348,8 @@ const updateSwitchboardPrice = (
   txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
-  aggregatorId: TransactionArgument | string,
-  registryId: TransactionArgument | string,
+  aggregatorId: TransactionArgument,
+  registryId: TransactionArgument,
   coinType: string
 ) => {
   txBlock.moveCall(
@@ -368,7 +364,7 @@ const updateSwitchboardPrice = (
         initialSharedVersion: '1',
         mutable: false,
       }),
-    ] as (SuiTxArg | SuiVecTxArg)[],
+    ],
     [coinType]
   );
 };
@@ -393,9 +389,9 @@ const updatePythPrice = (
   txBlock: SuiKitTxBlock,
   packageId: string,
   request: TransactionArgument,
-  stateId: TransactionArgument | string,
-  feedObjectId: TransactionArgument | string,
-  registryId: TransactionArgument | string,
+  stateId: TransactionArgument,
+  feedObjectId: TransactionArgument,
+  registryId: TransactionArgument,
   coinType: string
 ) => {
   txBlock.moveCall(
@@ -410,7 +406,7 @@ const updatePythPrice = (
         initialSharedVersion: '1',
         mutable: false,
       }),
-    ] as (SuiTxArg | SuiVecTxArg)[],
+    ],
     [coinType]
   );
 };
