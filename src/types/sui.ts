@@ -77,16 +77,3 @@ export type DevInspectResults = SuiClientTypes.SimulateTransactionResult<{
 }>;
 export type DynamicFieldPage = SuiClientTypes.ListDynamicFieldsResponse;
 export type SuiObjectDataOptions = SuiClientTypes.ObjectInclude;
-
-// Dynamic field types
-export type DynamicFieldName = {
-  type: string;
-  value: any;
-};
-export type DynamicFieldInfo = {
-  name: DynamicFieldName;
-  objectType: string;
-  objectId: string;
-  version: string;
-  digest: string;
-};
