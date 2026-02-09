@@ -368,7 +368,8 @@ describe('Test Scallop Client - Other Method', async () => {
     // Supply.
     const marketCoin = await txBlock.depositQuick(
       supplyAmountWithDecimals,
-      coinName
+      coinName,
+      false // Return marketCoin instead of sCoin for staking
     );
 
     // And then Stake.
