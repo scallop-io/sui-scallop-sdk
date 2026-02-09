@@ -128,21 +128,21 @@ const updateOracle = (
     txBlock,
     rules,
     builder.address.get('core.packages.xOracle.id'),
-    txBlock.object(builder.address.get('core.oracles.xOracle')),
+    txBlock.object(builder.address.get('core.oracles.xOracle')!),
     builder.address.get('core.packages.pyth.id'),
-    txBlock.object(builder.address.get('core.oracles.pyth.registry')),
-    txBlock.object(builder.address.get('core.oracles.pyth.state')),
+    txBlock.object(builder.address.get('core.oracles.pyth.registry')!),
+    txBlock.object(builder.address.get('core.oracles.pyth.state')!),
     txBlock.object(
-      builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feedObject`)
+      builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feedObject`)!
     ),
     builder.address.get('core.packages.switchboard.id'),
-    txBlock.object(builder.address.get('core.oracles.switchboard.registry')),
+    txBlock.object(builder.address.get('core.oracles.switchboard.registry')!),
     txBlock.object(
-      builder.address.get(`core.coins.${assetCoinName}.oracle.switchboard`)
+      builder.address.get(`core.coins.${assetCoinName}.oracle.switchboard`)!
     ),
     builder.address.get('core.packages.supra.id'),
-    txBlock.object(builder.address.get('core.oracles.supra.registry')),
-    txBlock.object(builder.address.get(`core.oracles.supra.holder`)),
+    txBlock.object(builder.address.get('core.oracles.supra.registry')!),
+    txBlock.object(builder.address.get(`core.oracles.supra.holder`)!),
     coinType
   );
 };

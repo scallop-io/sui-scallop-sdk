@@ -425,11 +425,8 @@ class ScallopUtils implements ScallopUtilsInterface {
 
     if (priceFeedObject) {
       const priceFeedPoolObject = priceFeedObject;
-      if (
-        priceFeedPoolObject.content &&
-        'fields' in priceFeedPoolObject.content
-      ) {
-        const fields = priceFeedPoolObject.content.fields as any;
+      if (priceFeedPoolObject.json && 'fields' in priceFeedPoolObject.json) {
+        const fields = priceFeedPoolObject.json.fields as any;
         const expoMagnitude = Number(
           fields.price_info.fields.price_feed.fields.price.fields.expo.fields
             .magnitude
