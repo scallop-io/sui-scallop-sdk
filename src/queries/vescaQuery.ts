@@ -37,6 +37,10 @@ export const getVescaKeys = async (
         filter: {
           StructType: veScaKeyType,
         },
+        options: {
+          content: true,
+          json: true,
+        },
         cursor: nextCursor,
         limit: 10,
       });
