@@ -718,29 +718,17 @@ export const getMarketCollateral = async (
   // let collateralStat: CollateralStat | undefined;
 
   const marketId = utils.address.get('core.market');
-  const marketResponse = await scallopSuiKit.queryGetObject(marketId);
-  const marketData = marketObject ?? marketResponse?.object;
+  marketObject =
+    marketObject || (await scallopSuiKit.queryGetObject(marketId))?.object;
 
-  const fields = marketData?.json;
-  if (!(marketData && fields && typeof fields === 'object'))
+  if (!(marketObject && marketObject.json?.dataType === 'moveObject'))
     throw new Error(`Failed to fetch marketObject`);
 
-  const fieldsTyped = fields as Record<string, unknown>;
+  const fields = marketObject.json.fields as any;
   const coinType = utils.parseCoinType(collateralCoinName);
 
   // Get risk model.
-  type MarketFields = {
-    risk_models?: {
-      fields?: { table?: { fields?: { id?: { id?: string } } } };
-    };
-    collateral_stats?: {
-      fields?: { table?: { fields?: { id?: { id?: string } } } };
-    };
-  };
-  const marketFields = fieldsTyped as MarketFields;
-  const riskModelParentId =
-    marketFields.risk_models?.fields?.table?.fields?.id?.id;
-  if (!riskModelParentId) throw new Error('Missing risk_models in market');
+  const riskModelParentId = fields.risk_models.fields.table.fields.id.id;
   const riskModelDynamicFieldObjectResponse =
     await scallopSuiKit.queryGetDynamicFieldObject({
       parentId: riskModelParentId,
@@ -758,7 +746,7 @@ export const getMarketCollateral = async (
     !(
       riskModelDynamicFieldObject &&
       riskModelDynamicFieldObject.json &&
-      typeof riskModelDynamicFieldObject.json === 'object'
+      'fields' in riskModelDynamicFieldObject.json
     )
   )
     throw new Error(
@@ -770,9 +758,7 @@ export const getMarketCollateral = async (
 
   // Get collateral stat.
   const collateralStatParentId =
-    marketFields.collateral_stats?.fields?.table?.fields?.id?.id;
-  if (!collateralStatParentId)
-    throw new Error('Missing collateral_stats in market');
+    fields.collateral_stats.fields.table.fields.id.id;
   const collateralStatDynamicFieldObjectResponse =
     await scallopSuiKit.queryGetDynamicFieldObject({
       parentId: collateralStatParentId,
@@ -791,7 +777,7 @@ export const getMarketCollateral = async (
     !(
       collateralStatDynamicFieldObject &&
       collateralStatDynamicFieldObject.json &&
-      typeof collateralStatDynamicFieldObject.json === 'object'
+      'fields' in collateralStatDynamicFieldObject.json
     )
   )
     throw new Error(
