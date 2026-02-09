@@ -11,7 +11,6 @@ import {
 import { SuiTxBlock, Transaction } from '@scallop-io/sui-kit';
 import { scallopSDK } from './scallopSdk.js';
 import { updateOracles } from 'src/builders/oracles/index.js';
-import { getTxFromResult } from './testHelpers.js';
 
 const ENABLE_LOG = false;
 const COIN_NAME = 'sui';
@@ -159,15 +158,13 @@ describe('Test Scallop Core Builder', () => {
     tx.openObligationEntry();
     const openObligationResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      openObligationResult.Transaction ??
+      openObligationResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'OpenObligationResult:',
-        getTxFromResult(openObligationResult).effects.status.error
-      );
+      console.info('OpenObligationResult:', txResult.effects.status.error);
     }
-    expect(
-      getTxFromResult(openObligationResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"addCollateralQuick" should succeed', async () => {
@@ -177,15 +174,13 @@ describe('Test Scallop Core Builder', () => {
     await tx.addCollateralQuick(10 ** 7, COLLATERAL_COIN_NAME);
     const addCollateralQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      addCollateralQuickResult.Transaction ??
+      addCollateralQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'AddCollateralQuickResult:',
-        getTxFromResult(addCollateralQuickResult).effects.status.error
-      );
+      console.info('AddCollateralQuickResult:', txResult.effects.status.error);
     }
-    expect(
-      getTxFromResult(addCollateralQuickResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"takeCollateralQuick" should succeed', async () => {
@@ -196,15 +191,13 @@ describe('Test Scallop Core Builder', () => {
     tx.transferObjects([coin], sender);
     const takeCollateralQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      takeCollateralQuickResult.Transaction ??
+      takeCollateralQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'TakeCollateralQuickResult:',
-        getTxFromResult(takeCollateralQuickResult).effects.status.error
-      );
+      console.info('TakeCollateralQuickResult:', txResult.effects.status.error);
     }
-    expect(
-      getTxFromResult(takeCollateralQuickResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"depositQuick" should succeed', async () => {
@@ -215,15 +208,12 @@ describe('Test Scallop Core Builder', () => {
     tx.transferObjects([marketCoin], sender);
     const depositQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      depositQuickResult.Transaction ?? depositQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'DepositQuickResult:',
-        getTxFromResult(depositQuickResult).effects.status.error
-      );
+      console.info('DepositQuickResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(depositQuickResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"withdrawQuick" should succeed', async () => {
@@ -234,15 +224,12 @@ describe('Test Scallop Core Builder', () => {
     tx.transferObjects([coin], sender);
     const withdrawQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      withdrawQuickResult.Transaction ?? withdrawQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'WithdrawQuickResult:',
-        getTxFromResult(withdrawQuickResult).effects.status.error
-      );
+      console.info('WithdrawQuickResult:', txResult.effects.status.error);
     }
-    expect(
-      getTxFromResult(withdrawQuickResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"borrowQuick" should succeed', async () => {
@@ -254,15 +241,12 @@ describe('Test Scallop Core Builder', () => {
     tx.transferObjects([borrowedCoin], sender);
     const borrowQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      borrowQuickResult.Transaction ?? borrowQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'BorrowQuickResult:',
-        getTxFromResult(borrowQuickResult).effects.status.error
-      );
+      console.info('BorrowQuickResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(borrowQuickResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"repayQuick" should succeed', async () => {
@@ -272,15 +256,12 @@ describe('Test Scallop Core Builder', () => {
     await tx.repayQuick(4 * 10 ** 7, BORROW_COIN_NAME);
     const repayQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      repayQuickResult.Transaction ?? repayQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'RepayQuickResult:',
-        getTxFromResult(repayQuickResult).effects.status.error
-      );
+      console.info('RepayQuickResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(repayQuickResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"borrowFlashLoan" & "repayFlashLoan" should succeed', async () => {
@@ -306,15 +287,13 @@ describe('Test Scallop Core Builder', () => {
     tx.repayFlashLoan(coin, loan, SUPPLY_COIN_NAME);
     const borrowFlashLoanResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      borrowFlashLoanResult.Transaction ??
+      borrowFlashLoanResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'BorrowFlashLoanResult:',
-        getTxFromResult(borrowFlashLoanResult).effects.status.error
-      );
+      console.info('BorrowFlashLoanResult:', txResult.effects.status.error);
     }
-    expect(
-      getTxFromResult(borrowFlashLoanResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"ScallopTxBlock" should be an instance of "Transaction"', async () => {
@@ -333,15 +312,12 @@ describe('Test Scallop Core Builder', () => {
     suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure.address(sender));
     const txBlockResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      txBlockResult.Transaction ?? txBlockResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'TxBlockResult:',
-        getTxFromResult(txBlockResult).effects.status.error
-      );
+      console.info('TxBlockResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(txBlockResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"updateAssetPricesQuick" should succeed', async () => {
@@ -351,15 +327,13 @@ describe('Test Scallop Core Builder', () => {
     await tx.updateAssetPricesQuick([SUPPLY_COIN_NAME]);
     const updateAssetPricesResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      updateAssetPricesResult.Transaction ??
+      updateAssetPricesResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'UpdateAssetPricesResult:',
-        getTxFromResult(updateAssetPricesResult).effects.status.error
-      );
+      console.info('UpdateAssetPricesResult:', txResult.effects.status.error);
     }
-    expect(
-      getTxFromResult(updateAssetPricesResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it.skip('"liquidate" normal method should succeed in inspection', async () => {
@@ -403,17 +377,16 @@ describe('Test Scallop Core Builder', () => {
 
     const liquidateResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      liquidateResult.Transaction ?? liquidateResult.FailedTransaction;
 
     if (ENABLE_LOG) {
-      console.info(
-        'LiquidateResult:',
-        getTxFromResult(liquidateResult).effects.status.error
-      );
+      console.info('LiquidateResult:', txResult.effects.status.error);
     }
 
     // Note: This test may fail if there's no liquidatable position
     // or if liquidation conditions are not met
-    expect(getTxFromResult(liquidateResult).effects).toBeDefined();
+    expect(txResult.effects).toBeDefined();
   });
 
   it('"liquidateQuick" should succeed in inspection', async () => {
@@ -445,16 +418,16 @@ describe('Test Scallop Core Builder', () => {
 
       const liquidateQuickResult =
         await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      const txResult =
+        liquidateQuickResult.Transaction ??
+        liquidateQuickResult.FailedTransaction;
 
       if (ENABLE_LOG) {
-        console.info(
-          'LiquidateQuickResult:',
-          getTxFromResult(liquidateQuickResult).effects.status.error
-        );
+        console.info('LiquidateQuickResult:', txResult.effects.status.error);
       }
 
       // Note: This test may fail if there's no liquidatable position
-      expect(getTxFromResult(liquidateQuickResult).effects).toBeDefined();
+      expect(txResult.effects).toBeDefined();
     } catch (error) {
       // Expected to fail if no liquidatable position exists
       if (ENABLE_LOG) {
@@ -472,15 +445,13 @@ describe('Test Scallop Spool Builder', () => {
     tx.transferObjects([stakeAccount], sender);
     const createStakeAccountResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      createStakeAccountResult.Transaction ??
+      createStakeAccountResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'CreateStakeAccountResult:',
-        getTxFromResult(createStakeAccountResult).effects.status.error
-      );
+      console.info('CreateStakeAccountResult:', txResult.effects.status.error);
     }
-    expect(
-      getTxFromResult(createStakeAccountResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"stakeQuick" should succeed', async () => {
@@ -490,15 +461,12 @@ describe('Test Scallop Spool Builder', () => {
     await tx.stakeQuick(10 ** 6, 'ssui');
     const stakeQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      stakeQuickResult.Transaction ?? stakeQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'StakeQuickResult:',
-        getTxFromResult(stakeQuickResult).effects.status.error
-      );
+      console.info('StakeQuickResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(stakeQuickResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"unstakeQuick" should succeed', async () => {
@@ -510,15 +478,12 @@ describe('Test Scallop Spool Builder', () => {
     tx.transferObjects([marketCoin!], sender);
     const unstakeQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      unstakeQuickResult.Transaction ?? unstakeQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'UnstakeQuickResult:',
-        getTxFromResult(unstakeQuickResult).effects.status.error
-      );
+      console.info('UnstakeQuickResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(unstakeQuickResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"claimQuick" should succeed', async () => {
@@ -529,15 +494,12 @@ describe('Test Scallop Spool Builder', () => {
     tx.transferObjects(rewardCoins, sender);
     const claimQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      claimQuickResult.Transaction ?? claimQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'ClaimQuickResult:',
-        getTxFromResult(claimQuickResult).effects.status.error
-      );
+      console.info('ClaimQuickResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(claimQuickResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 });
 
@@ -549,15 +511,16 @@ describe('Test Scallop Borrow Incentive Builder', () => {
     await tx.stakeObligationQuick();
     const stakeObligationQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      stakeObligationQuickResult.Transaction ??
+      stakeObligationQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
       console.info(
         'StakeObligationQuickResult:',
-        getTxFromResult(stakeObligationQuickResult).effects.status.error
+        txResult.effects.status.error
       );
     }
-    expect(
-      getTxFromResult(stakeObligationQuickResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"unstakeObligationQuick" should succeed', async () => {
@@ -567,15 +530,16 @@ describe('Test Scallop Borrow Incentive Builder', () => {
     await tx.unstakeObligationQuick();
     const unstakeObligationQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      unstakeObligationQuickResult.Transaction ??
+      unstakeObligationQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
       console.info(
         'UnstakeObligationQuickResult:',
-        getTxFromResult(unstakeObligationQuickResult).effects.status.error
+        txResult.effects.status.error
       );
     }
-    expect(
-      getTxFromResult(unstakeObligationQuickResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"claimBorrowIncentiveQuick" should succeed', async () => {
@@ -586,15 +550,16 @@ describe('Test Scallop Borrow Incentive Builder', () => {
     tx.transferObjects([rewardCoin], sender);
     const claimBorrowIncentiveQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      claimBorrowIncentiveQuickResult.Transaction ??
+      claimBorrowIncentiveQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
       console.info(
         'ClaimBorrowIncentiveQuickResult:',
         claimBorrowIncentiveQuickResult
       );
     }
-    expect(
-      getTxFromResult(claimBorrowIncentiveQuickResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   if (obligations.length > 0) {
@@ -607,17 +572,16 @@ describe('Test Scallop Borrow Incentive Builder', () => {
       await tx.stakeObligationWithVeScaQuick(id, keyId);
       const stakeObligationWithVeScaQuickResult =
         await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      const txResult =
+        stakeObligationWithVeScaQuickResult.Transaction ??
+        stakeObligationWithVeScaQuickResult.FailedTransaction;
       if (ENABLE_LOG) {
         console.info(
           'StakeObligationWithVeScaQuickResult:',
-          getTxFromResult(stakeObligationWithVeScaQuickResult).effects.status
-            .error
+          txResult.effects.status.error
         );
       }
-      expect(
-        getTxFromResult(stakeObligationWithVeScaQuickResult).effects?.status
-          .success
-      ).toEqual(true);
+      expect(txResult.effects?.status.success).toEqual(true);
     });
 
     it('"stakeObligationWithVeScaQuick" with not owned veScaKey should fail on non boosted obligation', async () => {
@@ -634,16 +598,13 @@ describe('Test Scallop Borrow Incentive Builder', () => {
       );
       const stakeObligationWithVeScaQuickResult =
         await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      const txResult =
+        stakeObligationWithVeScaQuickResult.Transaction ??
+        stakeObligationWithVeScaQuickResult.FailedTransaction;
       if (ENABLE_LOG) {
-        console.info(
-          'StakeObligationWithVeScaQuickResult:',
-          getTxFromResult(stakeObligationWithVeScaQuickResult).effects
-        );
+        console.info('StakeObligationWithVeScaQuickResult:', txResult.effects);
       }
-      expect(
-        getTxFromResult(stakeObligationWithVeScaQuickResult).effects?.status
-          .success
-      ).toEqual(false);
+      expect(txResult.effects?.status.success).toEqual(false);
     });
 
     if (veScas.length > 0) {
@@ -656,17 +617,16 @@ describe('Test Scallop Borrow Incentive Builder', () => {
           await tx.stakeObligationWithVeScaQuick(id, keyId, veScas[0].keyId);
           const stakeObligationWithVeScaQuickResult =
             await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+          const txResult =
+            stakeObligationWithVeScaQuickResult.Transaction ??
+            stakeObligationWithVeScaQuickResult.FailedTransaction;
           if (ENABLE_LOG) {
             console.info(
               'StakeObligationWithVeScaQuickResult:',
-              getTxFromResult(stakeObligationWithVeScaQuickResult).effects
-                .status.error
+              txResult.effects.status.error
             );
           }
-          expect(
-            getTxFromResult(stakeObligationWithVeScaQuickResult).effects?.status
-              .success
-          ).toEqual(true);
+          expect(txResult.effects?.status.success).toEqual(true);
         });
 
         it('"stakesObligationWithVeScaQuick" with incorrect veScakey on boosted obligation should auto switch to correct binded obligation automatically and succeed', async () => {
@@ -676,17 +636,16 @@ describe('Test Scallop Borrow Incentive Builder', () => {
           await tx.stakeObligationWithVeScaQuick(id, keyId, OTHER_VESCA_KEY);
           const stakeObligationWithVeScaQuickResult =
             await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+          const txResult =
+            stakeObligationWithVeScaQuickResult.Transaction ??
+            stakeObligationWithVeScaQuickResult.FailedTransaction;
           if (ENABLE_LOG) {
             console.info(
               'StakeObligationWithVeScaQuickResult:',
-              getTxFromResult(stakeObligationWithVeScaQuickResult).effects
-                .status.error
+              txResult.effects.status.error
             );
           }
-          expect(
-            getTxFromResult(stakeObligationWithVeScaQuickResult).effects?.status
-              .success
-          ).toEqual(true);
+          expect(txResult.effects?.status.success).toEqual(true);
         });
 
         it('"deactivateBoost" should success', async () => {
@@ -695,17 +654,16 @@ describe('Test Scallop Borrow Incentive Builder', () => {
           tx.deactivateBoost(id, veScas[0].keyId);
           const stakeObligationWithVeScaQuickResult =
             await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+          const txResult =
+            stakeObligationWithVeScaQuickResult.Transaction ??
+            stakeObligationWithVeScaQuickResult.FailedTransaction;
           if (ENABLE_LOG) {
             console.info(
               'StakeObligationWithVeScaQuickResult:',
-              getTxFromResult(stakeObligationWithVeScaQuickResult).effects
-                .status.error
+              txResult.effects.status.error
             );
           }
-          expect(
-            getTxFromResult(stakeObligationWithVeScaQuickResult).effects?.status
-              .success
-          ).toEqual(true);
+          expect(txResult.effects?.status.success).toEqual(true);
         });
 
         if (veScas[1]?.keyId)
@@ -717,17 +675,16 @@ describe('Test Scallop Borrow Incentive Builder', () => {
             await tx.stakeObligationWithVeScaQuick(id, keyId, veScas[1].keyId);
             const stakeObligationWithVeScaQuickResult =
               await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+            const txResult =
+              stakeObligationWithVeScaQuickResult.Transaction ??
+              stakeObligationWithVeScaQuickResult.FailedTransaction;
             if (ENABLE_LOG) {
               console.info(
                 'StakeObligationWithVeScaQuickResult:',
-                getTxFromResult(stakeObligationWithVeScaQuickResult).effects
-                  .status.error
+                txResult.effects.status.error
               );
             }
-            expect(
-              getTxFromResult(stakeObligationWithVeScaQuickResult).effects
-                ?.status.success
-            ).toEqual(true);
+            expect(txResult.effects?.status.success).toEqual(true);
           });
       }
     }
@@ -747,15 +704,12 @@ describe('Test Scallop VeSca Builder', () => {
       await tx.lockScaQuick({ amountOrCoin: 10 * 10 ** 9, lockPeriodInDays });
       const lockScaQuickResult =
         await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      const txResult =
+        lockScaQuickResult.Transaction ?? lockScaQuickResult.FailedTransaction;
       if (ENABLE_LOG) {
-        console.info(
-          'LockScaQuickResult:',
-          getTxFromResult(lockScaQuickResult).effects.status.error
-        );
+        console.info('LockScaQuickResult:', txResult.effects.status.error);
       }
-      expect(
-        getTxFromResult(lockScaQuickResult).effects.status.success
-      ).toEqual(true);
+      expect(txResult.effects.status.success).toEqual(true);
     });
 
     it('"lockScaQuick" Initial lock with auto check (lock more than 1460 days) should throw error', async () => {
@@ -811,15 +765,12 @@ describe('Test Scallop VeSca Builder', () => {
       });
       const lockScaQuickResult =
         await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      const txResult =
+        lockScaQuickResult.Transaction ?? lockScaQuickResult.FailedTransaction;
       if (ENABLE_LOG) {
-        console.info(
-          'LockScaQuickResult:',
-          getTxFromResult(lockScaQuickResult).effects.status.error
-        );
+        console.info('LockScaQuickResult:', txResult.effects.status.error);
       }
-      expect(
-        getTxFromResult(lockScaQuickResult).effects?.status.success
-      ).toEqual(true);
+      expect(txResult.effects?.status.success).toEqual(true);
     });
 
     it('"lockScaQuick" Initial lock without auto check should success', async () => {
@@ -835,15 +786,12 @@ describe('Test Scallop VeSca Builder', () => {
       });
       const lockScaQuickResult =
         await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      const txResult =
+        lockScaQuickResult.Transaction ?? lockScaQuickResult.FailedTransaction;
       if (ENABLE_LOG) {
-        console.info(
-          'LockScaQuickResult:',
-          getTxFromResult(lockScaQuickResult).effects.status.error
-        );
+        console.info('LockScaQuickResult:', txResult.effects.status.error);
       }
-      expect(
-        getTxFromResult(lockScaQuickResult).effects?.status.success
-      ).toEqual(true);
+      expect(txResult.effects?.status.success).toEqual(true);
     });
   }
 
@@ -914,15 +862,12 @@ describe('Test Scallop VeSca Builder', () => {
     });
     const lockScaQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      lockScaQuickResult.Transaction ?? lockScaQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'LockScaQuickResult:',
-        getTxFromResult(lockScaQuickResult).effects.status.error
-      );
+      console.info('LockScaQuickResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(lockScaQuickResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"lockScaQuick" extend lock without auto check (Only give period) should success', async () => {
@@ -934,15 +879,12 @@ describe('Test Scallop VeSca Builder', () => {
     await tx.lockScaQuick({ lockPeriodInDays, autoCheck: false });
     const lockScaQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      lockScaQuickResult.Transaction ?? lockScaQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'LockScaQuickResult:',
-        getTxFromResult(lockScaQuickResult).effects.status.error
-      );
+      console.info('LockScaQuickResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(lockScaQuickResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"extendLockAmountQuick" extend lock with auto check (lock less than 1 amount) should throw error', async () => {
@@ -966,15 +908,16 @@ describe('Test Scallop VeSca Builder', () => {
 
     const extendLockPeriodQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      extendLockPeriodQuickResult.Transaction ??
+      extendLockPeriodQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
       console.info(
         'ExtendLockPeriodQuickResult:',
-        getTxFromResult(extendLockPeriodQuickResult).effects.status.error
+        txResult.effects.status.error
       );
     }
-    expect(
-      getTxFromResult(extendLockPeriodQuickResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"extendLockAmountQuick" extend lock without auto check should success', async () => {
@@ -986,15 +929,16 @@ describe('Test Scallop VeSca Builder', () => {
     await tx.extendLockAmountQuick({ scaAmount: lockAmount, autoCheck: false });
     const extendLockAmountQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      extendLockAmountQuickResult.Transaction ??
+      extendLockAmountQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
       console.info(
         'ExtendLockAmountQuickResult:',
-        getTxFromResult(extendLockAmountQuickResult).effects.status.error
+        txResult.effects.status.error
       );
     }
-    expect(
-      getTxFromResult(extendLockAmountQuickResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"extendLockAmountQuick" extend lock with expired veSCA should throw error', async () => {
@@ -1086,15 +1030,16 @@ describe('Test Scallop VeSca Builder', () => {
     });
     const renewExpiredVeScaQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      renewExpiredVeScaQuickResult.Transaction ??
+      renewExpiredVeScaQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
       console.info(
         'RenewExpiredVeScaQuickResult:',
-        getTxFromResult(renewExpiredVeScaQuickResult).effects.status.error
+        txResult.effects.status.error
       );
     }
-    expect(
-      getTxFromResult(renewExpiredVeScaQuickResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"renewExpiredVeScaQuick" should fail if veSCA is not expired yet', async () => {
@@ -1111,15 +1056,16 @@ describe('Test Scallop VeSca Builder', () => {
 
     const renewExpiredVeScaQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      renewExpiredVeScaQuickResult.Transaction ??
+      renewExpiredVeScaQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
       console.info(
         'RenewExpiredVeScaQuickResult:',
-        getTxFromResult(renewExpiredVeScaQuickResult).effects.status.error
+        txResult.effects.status.error
       );
     }
-    expect(
-      getTxFromResult(renewExpiredVeScaQuickResult).effects?.status.success
-    ).toEqual(false);
+    expect(txResult.effects?.status.success).toEqual(false);
   });
 
   it('"redeemScaQuick" should succeed', async () => {
@@ -1129,16 +1075,14 @@ describe('Test Scallop VeSca Builder', () => {
     await tx.redeemScaQuick({ veScaKey: expiredVeScaKey });
     const redeemScaQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      redeemScaQuickResult.Transaction ??
+      redeemScaQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'RedeemScaQuickResult:',
-        getTxFromResult(redeemScaQuickResult).effects.status.error
-      );
+      console.info('RedeemScaQuickResult:', txResult.effects.status.error);
     }
 
-    expect(
-      getTxFromResult(redeemScaQuickResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"redeemScaQuick" should fail', async () => {
@@ -1147,15 +1091,13 @@ describe('Test Scallop VeSca Builder', () => {
     await tx.redeemScaQuick({ veScaKey: expiredVeScaKey });
     const redeemScaQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      redeemScaQuickResult.Transaction ??
+      redeemScaQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'RedeemScaQuickResult:',
-        getTxFromResult(redeemScaQuickResult).effects.status.error
-      );
+      console.info('RedeemScaQuickResult:', txResult.effects.status.error);
     }
-    expect(
-      getTxFromResult(redeemScaQuickResult).effects?.status.success
-    ).toEqual(false);
+    expect(txResult.effects?.status.success).toEqual(false);
   });
 
   it('"mergeVeSca" should succeed', async () => {
@@ -1168,30 +1110,24 @@ describe('Test Scallop VeSca Builder', () => {
     tx.mergeVeSca(targetKey, sourceKey);
 
     const mergeVeScaResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const txResult =
+      mergeVeScaResult.Transaction ?? mergeVeScaResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'MergeVeScaResult:',
-        getTxFromResult(mergeVeScaResult).effects.status.error
-      );
+      console.info('MergeVeScaResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(mergeVeScaResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"splitVeSca" should succeed', async () => {
     const { tx, veScaKey } = await createNewVeScaTx();
     const splitVeScaKey = tx.splitVeSca(veScaKey, '0');
     const splitVeScaResult = await scallopBuilder.suiKit.inspectTxn(tx);
+    const txResult =
+      splitVeScaResult.Transaction ?? splitVeScaResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'SplitVeScaResult:',
-        getTxFromResult(splitVeScaResult).effects.status.error
-      );
+      console.info('SplitVeScaResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(splitVeScaResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
     expect(splitVeScaKey).toBeDefined();
   });
 });
@@ -1205,15 +1141,12 @@ describe('Test Scallop Referral Builder', () => {
 
     const bindReferralResult =
       await randomBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      bindReferralResult.Transaction ?? bindReferralResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'BindReferralResult:',
-        getTxFromResult(bindReferralResult).effects.status.error
-      );
+      console.info('BindReferralResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(bindReferralResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   // use account that already binds to a referral
@@ -1223,16 +1156,13 @@ describe('Test Scallop Referral Builder', () => {
 
     const bindReferralResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      bindReferralResult.Transaction ?? bindReferralResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'BindReferralResult:',
-        getTxFromResult(bindReferralResult).effects.status.error
-      );
+      console.info('BindReferralResult:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(bindReferralResult).effects?.status.success).toEqual(
-      false
-    );
-    const error = getTxFromResult(bindReferralResult).effects?.status.error;
+    expect(txResult.effects?.status.success).toEqual(false);
+    const error = txResult.effects?.status.error;
     const errorStr = error ? JSON.stringify(error) : '';
     expect(errorStr.includes('Some("bind_ve_sca_referrer") }, 405')).toBe(true);
   });
@@ -1245,15 +1175,13 @@ describe('Test Scallop Referral Builder', () => {
 
     const claimReferralTicketResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      claimReferralTicketResult.Transaction ??
+      claimReferralTicketResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'ClaimReferralTicketResult:',
-        getTxFromResult(claimReferralTicketResult).effects.status.error
-      );
+      console.info('ClaimReferralTicketResult:', txResult.effects.status.error);
     }
-    expect(
-      getTxFromResult(claimReferralTicketResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 });
 
@@ -1268,15 +1196,13 @@ describe('Test Scallop Loyalty Program Builder', () => {
     await tx.claimLoyaltyRevenueQuick();
     const claimRevenueQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      claimRevenueQuickResult.Transaction ??
+      claimRevenueQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'ClaimRevenueQuickResult:',
-        getTxFromResult(claimRevenueQuickResult).effects.status.error
-      );
+      console.info('ClaimRevenueQuickResult:', txResult.effects.status.error);
     }
-    expect(
-      getTxFromResult(claimRevenueQuickResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 });
 
@@ -1292,15 +1218,12 @@ describe('Test sCoin Builder', () => {
 
     const mintSCoinResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      mintSCoinResult.Transaction ?? mintSCoinResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'mintSCoin:',
-        getTxFromResult(mintSCoinResult).effects.status.error
-      );
+      console.info('mintSCoin:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(mintSCoinResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"burnSCoin" should succeed', async () => {
@@ -1316,15 +1239,12 @@ describe('Test sCoin Builder', () => {
 
     const burnSCoinResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      burnSCoinResult.Transaction ?? burnSCoinResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'burnSCoin:',
-        getTxFromResult(burnSCoinResult).effects.status.error
-      );
+      console.info('burnSCoin:', txResult.effects.status.error);
     }
-    expect(getTxFromResult(burnSCoinResult).effects?.status.success).toEqual(
-      true
-    );
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   it('"mintSCoinQuick" should succeed', async () => {
@@ -1339,15 +1259,13 @@ describe('Test sCoin Builder', () => {
 
     const mintSCoinQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      mintSCoinQuickResult.Transaction ??
+      mintSCoinQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info(
-        'mintSCoinQuick:',
-        getTxFromResult(mintSCoinQuickResult).effects.status.error
-      );
+      console.info('mintSCoinQuick:', txResult.effects.status.error);
     }
-    expect(
-      getTxFromResult(mintSCoinQuickResult).effects?.status.success
-    ).toEqual(true);
+    expect(txResult.effects?.status.success).toEqual(true);
   });
 
   // need to have sCoin in the wallet first
@@ -1363,15 +1281,13 @@ describe('Test sCoin Builder', () => {
 
       const burnSCoinQuickResult =
         await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      const txResult =
+        burnSCoinQuickResult.Transaction ??
+        burnSCoinQuickResult.FailedTransaction;
       if (ENABLE_LOG) {
-        console.info(
-          'burnSCoinQuick:',
-          getTxFromResult(burnSCoinQuickResult).effects.status.error
-        );
+        console.info('burnSCoinQuick:', txResult.effects.status.error);
       }
-      expect(
-        getTxFromResult(burnSCoinQuickResult).effects?.status.success
-      ).toEqual(true);
+      expect(txResult.effects?.status.success).toEqual(true);
     });
   }
 });
@@ -1390,6 +1306,6 @@ describe('Test XOracle V2', () => {
       transactionBlock: txb.txBlock,
       sender: scallopBuilder.walletAddress,
     });
-    expect(resp.effects?.status?.status).toEqual(true);
+    expect(resp.effects?.status?.success).toEqual(true);
   });
 });
