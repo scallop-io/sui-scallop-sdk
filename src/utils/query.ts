@@ -447,10 +447,7 @@ export const parseOriginBorrowIncentivePoolData = (
     maxStakes: Number(originBorrowIncentivePoolData.max_stakes),
     staked: Number(originBorrowIncentivePoolData.stakes),
     poolPoints: originBorrowIncentivePoolData.points.reduce(
-      (
-        acc: Record<string, ParsedBorrowIncentivePoolPointData>,
-        point: OriginBorrowIncentivePoolPointData
-      ) => {
+      (acc, point) => {
         const parsed = parseOriginBorrowIncentivesPoolPointData(point);
         const name = utils.parseCoinNameFromType(parsed.pointType) as string;
 
@@ -588,10 +585,7 @@ export const parseOriginBorrowIncentiveAccountData = (
     ),
     debtAmount: Number(originBorrowIncentiveAccountData.debt_amount),
     pointList: originBorrowIncentiveAccountData.points_list.reduce(
-      (
-        acc: Record<string, ParsedBorrowIncentiveAccountPoolData>,
-        point: OriginBorrowIncentiveAccountPoolData
-      ) => {
+      (acc, point) => {
         const parsed = parseOriginBorrowIncentiveAccountPoolPointData(point);
         const name = utils.parseCoinNameFromType(parsed.pointType);
         acc[name] = parsed;
@@ -602,27 +596,20 @@ export const parseOriginBorrowIncentiveAccountData = (
   };
 };
 
-type BNValue = string | number | import('bignumber.js').BigNumber.Instance;
-type BN = import('bignumber.js').BigNumber;
-
-export const minBigNumber = (...args: BNValue[]): BN => {
-  if (args.length === 0) return BigNumber(0) as BN;
-  let result = BigNumber(args[0]) as BN;
-  for (let i = 1; i < args.length; i++) {
-    const curr = BigNumber(args[i]) as BN;
-    result = curr.lt(result) ? curr : result;
-  }
-  return result;
+export const minBigNumber = (...args: BigNumber.Value[]) => {
+  return BigNumber(
+    args.reduce((min, current) =>
+      new BigNumber(current).lt(min) ? current : min
+    )
+  );
 };
 
-export const maxBigNumber = (...args: BNValue[]): BN => {
-  if (args.length === 0) return BigNumber(0) as BN;
-  let result = BigNumber(args[0]) as BN;
-  for (let i = 1; i < args.length; i++) {
-    const curr = BigNumber(args[i]) as BN;
-    result = curr.gt(result) ? curr : result;
-  }
-  return result;
+export const maxBigNumber = (...args: BigNumber.Value[]) => {
+  return BigNumber(
+    args.reduce((max, current) =>
+      new BigNumber(current).gt(max) ? current : max
+    )
+  );
 };
 
 /**
