@@ -875,38 +875,28 @@ export const getObligations = async (
   const keyObjects = keyObjectsResponse.filter((ref) => !!ref);
 
   const obligations: Obligation[] = [];
-  const keyObjectDatas = keyObjects;
-  const getObligationId = (
-    json: Record<string, unknown> | null | undefined
-  ): string | undefined => {
-    if (!json || typeof json !== 'object') return undefined;
-    const ownership = json.ownership;
-    if (!ownership || typeof ownership !== 'object') return undefined;
-    const fields = (ownership as { fields?: { of?: string } }).fields;
-    return fields?.of;
-  };
-  const validEntries = keyObjectDatas
-    .map((obj) => {
-      const id = getObligationId(obj.json ?? undefined);
-      return id ? { obj, obligationId: id } : null;
-    })
-    .filter(
-      (e): e is { obj: SuiObjectData; obligationId: string } => e !== null
-    );
-  const obligationsObjects =
-    validEntries.length > 0
-      ? await utils.scallopSuiKit.queryGetObjects(
-          validEntries.map((e) => e.obligationId)
-        )
-      : [];
+  const obligationsObjects = await utils.scallopSuiKit.queryGetObjects(
+    keyObjects
+      .map((ref) => ref.json)
+      .filter(
+        (json): json is { dataType: 'moveObject'; fields: any } =>
+          json?.dataType === 'moveObject'
+      )
+      .map((json) => (json.fields as any).ownership.fields.of)
+  );
   await Promise.allSettled(
-    validEntries.map(async ({ obj, obligationId }, idx) => {
-      const obligationObj = obligationsObjects[idx];
-      const locked =
-        obligationObj != null
-          ? await getObligationLocked(utils, obligationObj)
-          : false;
-      obligations.push({ id: obligationId, keyId: obj.objectId, locked });
+    keyObjects.map(async (ref, idx) => {
+      const keyId = ref.objectId;
+      const json = ref.json;
+      if (keyId && json && 'fields' in json) {
+        const fields = json.fields as any;
+        const obligationId = String(fields.ownership.fields.of);
+        const locked = await getObligationLocked(
+          utils,
+          obligationsObjects[idx]
+        );
+        obligations.push({ id: obligationId, keyId, locked });
+      }
     })
   );
 

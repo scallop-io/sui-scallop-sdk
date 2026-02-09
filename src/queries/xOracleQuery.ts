@@ -89,9 +89,8 @@ export const getAssetOracles = async (
       limit: 10,
     });
     if (!response) break;
-    const dynamicFields = response.dynamicFields;
-    const hasNextPage = response.hasNextPage;
-    cursor = response.cursor;
+    const { dynamicFields, hasNextPage, cursor: nextCursor } = response;
+    cursor = nextCursor;
 
     // Group object ids
     const objectIds = dynamicFields.map(

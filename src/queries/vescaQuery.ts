@@ -42,9 +42,8 @@ export const getVescaKeys = async (
       });
     if (!paginatedKeyObjectsResponse) break;
 
-    const objects = paginatedKeyObjectsResponse.objects;
-
-    if (objects) keyObjectsResponse.push(...objects);
+    if (paginatedKeyObjectsResponse.objects)
+      keyObjectsResponse.push(...paginatedKeyObjectsResponse.objects);
 
     if (
       paginatedKeyObjectsResponse.hasNextPage &&
@@ -134,12 +133,7 @@ export const getVeSca = async (
 
   const veScaDynamicFieldObject = veScaDynamicFieldObjectResponse.object;
   const jsonData = veScaDynamicFieldObject?.json as any;
-  if (
-    veScaDynamicFieldObject &&
-    jsonData &&
-    jsonData.dataType === 'moveObject' &&
-    'fields' in jsonData
-  ) {
+  if (veScaDynamicFieldObject && jsonData?.dataType === 'moveObject') {
     const dynamicFields = jsonData.fields.value.fields;
 
     const remainingLockPeriodInMilliseconds = Math.max(
