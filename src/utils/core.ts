@@ -1,10 +1,14 @@
-import type { SuiObjectData } from 'src/types/index.js';
+import type { SuiObjectData } from '../types/index.js';
 
 export const parseObjectAs = <T>(object: SuiObjectData): T => {
-  if (!(object && object.content && 'fields' in object.content))
-    throw new Error(`Failed to parse object ${object}`);
+  if (!(object && object.json))
+    throw new Error(
+      `Failed to parse object: ${JSON.stringify(object, null, 2)}`
+    );
 
-  const fields = object.content.fields as any;
+  const fields = (
+    'fields' in object.json ? object.json.fields : object.json
+  ) as any;
 
   if (typeof fields === 'object' && 'value' in fields) {
     const value = fields.value;

@@ -187,6 +187,7 @@ class ScallopSuiKit extends ScallopQueryClient {
     if (objectIds.length === 0) return [];
     const includeOptions: SuiObjectDataOptions = {
       content: true,
+      json: true,
       ...options,
     };
 

@@ -431,19 +431,18 @@ const parseMarketPoolObjects = async (
 
   const isIsolated = await isIsolatedAsset(
     utils,
-    utils.parseCoinNameFromType(`0x${_interestModel.type.fields.name}`)
+    utils.parseCoinNameFromType(`0x${_interestModel.type.name}`)
   );
 
   const parsedOriginMarketCollateral =
     _riskModel && _collateralStat
       ? {
-          type: _interestModel.type.fields,
-          collateralFactor: _riskModel.collateral_factor.fields,
-          liquidationFactor: _riskModel.liquidation_factor.fields,
-          liquidationPenalty: _riskModel.liquidation_penalty.fields,
-          liquidationDiscount: _riskModel.liquidation_discount.fields,
-          liquidationReserveFactor:
-            _riskModel.liquidation_revenue_factor.fields,
+          type: _interestModel.type,
+          collateralFactor: _riskModel.collateral_factor,
+          liquidationFactor: _riskModel.liquidation_factor,
+          liquidationPenalty: _riskModel.liquidation_penalty,
+          liquidationDiscount: _riskModel.liquidation_discount,
+          liquidationReserveFactor: _riskModel.liquidation_revenue_factor,
           maxCollateralAmount: _riskModel.max_collateral_amount,
           totalCollateralAmount: _collateralStat.amount,
           isIsolated,
@@ -451,9 +450,9 @@ const parseMarketPoolObjects = async (
       : undefined;
 
   return {
-    type: _interestModel.type.fields,
-    maxBorrowRate: _interestModel.max_borrow_rate.fields,
-    interestRate: _borrowDynamic.interest_rate.fields,
+    type: _interestModel.type,
+    maxBorrowRate: _interestModel.max_borrow_rate,
+    interestRate: _borrowDynamic.interest_rate,
     interestRateScale: _borrowDynamic.interest_rate_scale,
     borrowIndex: _borrowDynamic.borrow_index,
     lastUpdated: _borrowDynamic.last_updated,
@@ -461,14 +460,14 @@ const parseMarketPoolObjects = async (
     debt: _balanceSheet.debt,
     marketCoinSupply: _balanceSheet.market_coin_supply,
     reserve: _balanceSheet.revenue,
-    reserveFactor: _interestModel.revenue_factor.fields,
-    borrowWeight: _interestModel.borrow_weight.fields,
+    reserveFactor: _interestModel.revenue_factor,
+    borrowWeight: _interestModel.borrow_weight,
     borrowFeeRate: _borrowFee,
-    baseBorrowRatePerSec: _interestModel.base_borrow_rate_per_sec.fields,
-    borrowRateOnHighKink: _interestModel.borrow_rate_on_high_kink.fields,
-    borrowRateOnMidKink: _interestModel.borrow_rate_on_mid_kink.fields,
-    highKink: _interestModel.high_kink.fields,
-    midKink: _interestModel.mid_kink.fields,
+    baseBorrowRatePerSec: _interestModel.base_borrow_rate_per_sec,
+    borrowRateOnHighKink: _interestModel.borrow_rate_on_high_kink,
+    borrowRateOnMidKink: _interestModel.borrow_rate_on_mid_kink,
+    highKink: _interestModel.high_kink,
+    midKink: _interestModel.mid_kink,
     minBorrowAmount: _interestModel.min_borrow_amount,
     supplyLimit: _supplyLimit,
     borrowLimit: _borrowLimit,
@@ -789,12 +788,12 @@ export const getMarketCollateral = async (
   ).value.fields;
 
   const parsedMarketCollateralData = parseOriginMarketCollateralData({
-    type: riskModel.type.fields,
-    collateralFactor: riskModel.collateral_factor.fields,
-    liquidationFactor: riskModel.liquidation_factor.fields,
-    liquidationDiscount: riskModel.liquidation_discount.fields,
-    liquidationPenalty: riskModel.liquidation_penalty.fields,
-    liquidationReserveFactor: riskModel.liquidation_revenue_factor.fields,
+    type: riskModel.type,
+    collateralFactor: riskModel.collateral_factor,
+    liquidationFactor: riskModel.liquidation_factor,
+    liquidationDiscount: riskModel.liquidation_discount,
+    liquidationPenalty: riskModel.liquidation_penalty,
+    liquidationReserveFactor: riskModel.liquidation_revenue_factor,
     maxCollateralAmount: riskModel.max_collateral_amount,
     totalCollateralAmount: collateralStat.amount,
     isIsolated: await isIsolatedAsset(utils, collateralCoinName),
