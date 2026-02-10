@@ -45,7 +45,7 @@ export const getLoyaltyProgramInformations = async (
   const rewardPoolObject = rewardPoolResponse?.object;
   const jsonData = rewardPoolObject?.json as any;
 
-  if (jsonData?.dataType !== 'moveObject') return null;
+  if (!jsonData?.fields) return null;
   const rewardPoolFields = jsonData.fields;
   const { isClaimEnabled, totalPoolReward } = rewardPoolFieldsZod.parse(
     rewardPoolFields
@@ -78,7 +78,7 @@ export const getLoyaltyProgramInformations = async (
   const userRewardObjData = userRewardObject?.object;
   const userRewardJson = userRewardObjData?.json as any;
 
-  if (userRewardJson?.dataType !== 'moveObject') return result;
+  if (!userRewardJson?.fields) return result;
   const userRewardFields = userRewardJson.fields;
   result.pendingReward = userRewardFieldsZod.parse(
     userRewardFields
@@ -126,7 +126,7 @@ export const getVeScaLoyaltyProgramInformations = async (
   const rewardPoolObject = rewardPoolResponse?.object;
   const jsonData = rewardPoolObject?.json as any;
 
-  if (jsonData?.dataType !== 'moveObject') return null;
+  if (!jsonData?.fields) return null;
   const rewardPoolFields = jsonData.fields;
   const { isClaimEnabled, reserveVeScaKey } = veScaRewardPoolFieldsZod.parse(
     rewardPoolFields
@@ -167,7 +167,7 @@ export const getVeScaLoyaltyProgramInformations = async (
   const userRewardObjData = userRewardObject?.object;
   const userRewardJson = userRewardObjData?.json as any;
 
-  if (userRewardJson?.dataType !== 'moveObject') return result;
+  if (!userRewardJson?.fields) return result;
   const userRewardFields = userRewardJson.fields;
   result.pendingScaReward = userVeScaRewardFieldsZod.parse(
     userRewardFields

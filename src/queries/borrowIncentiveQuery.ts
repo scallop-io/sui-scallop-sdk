@@ -268,7 +268,7 @@ export const getBindedObligationId = async (
 
   const incentivePoolsObject = incentivePoolsResponse?.object;
   const incentivePoolsJson = incentivePoolsObject?.json as any;
-  if (incentivePoolsJson?.dataType !== 'moveObject') return null;
+  if (!incentivePoolsJson?.fields) return null;
   const incentivePoolFields = incentivePoolsJson.fields as {
     ve_sca_bind: { fields: { id: { id: string } } };
   };
@@ -289,7 +289,7 @@ export const getBindedObligationId = async (
 
   const veScaBindObject = veScaBindTableResponse?.object;
   const veScaBindJson = veScaBindObject?.json as any;
-  if (veScaBindJson?.dataType !== 'moveObject') return null;
+  if (!veScaBindJson?.fields) return null;
   const veScaBindTableFields = veScaBindJson.fields as {
     value: { fields: { id: string } };
   };
@@ -317,7 +317,7 @@ export const getBindedVeScaKey = async (
     await scallopSuiKit.queryGetObject(incentiveAccountsId);
   const incentiveAccountsObject = incentiveAccountsResponse?.object;
   const incentiveAccountsJson = incentiveAccountsObject?.json as any;
-  if (incentiveAccountsJson?.dataType !== 'moveObject') return null;
+  if (!incentiveAccountsJson?.fields) return null;
   const incentiveAccountsFields = incentiveAccountsJson.fields as {
     accounts: { fields: { id: { id: string } } };
   };
@@ -335,7 +335,7 @@ export const getBindedVeScaKey = async (
 
   const bindedIncentiveAccObject = bindedIncentiveAcc?.object;
   const bindedIncentiveAccJson = bindedIncentiveAccObject?.json as any;
-  if (bindedIncentiveAccJson?.dataType !== 'moveObject') return null;
+  if (!bindedIncentiveAccJson?.fields) return null;
   const bindedIncentiveAccFields = bindedIncentiveAccJson.fields as {
     value: {
       fields: { binded_ve_sca_key?: { fields: { id: string } } };

@@ -128,21 +128,17 @@ const updateOracle = (
     txBlock,
     rules,
     builder.address.get('core.packages.xOracle.id'),
-    txBlock.object(builder.address.get('core.oracles.xOracle')!),
+    builder.address.get('core.oracles.xOracle'),
     builder.address.get('core.packages.pyth.id'),
-    txBlock.object(builder.address.get('core.oracles.pyth.registry')!),
-    txBlock.object(builder.address.get('core.oracles.pyth.state')!),
-    txBlock.object(
-      builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feedObject`)!
-    ),
+    builder.address.get('core.oracles.pyth.registry'),
+    builder.address.get('core.oracles.pyth.state'),
+    builder.address.get(`core.coins.${assetCoinName}.oracle.pyth.feedObject`),
     builder.address.get('core.packages.switchboard.id'),
-    txBlock.object(builder.address.get('core.oracles.switchboard.registry')!),
-    txBlock.object(
-      builder.address.get(`core.coins.${assetCoinName}.oracle.switchboard`)!
-    ),
+    builder.address.get('core.oracles.switchboard.registry'),
+    builder.address.get(`core.coins.${assetCoinName}.oracle.switchboard`),
     builder.address.get('core.packages.supra.id'),
-    txBlock.object(builder.address.get('core.oracles.supra.registry')!),
-    txBlock.object(builder.address.get(`core.oracles.supra.holder`)!),
+    builder.address.get('core.oracles.supra.registry'),
+    builder.address.get(`core.oracles.supra.holder`),
     coinType
   );
 };
@@ -171,19 +167,32 @@ const updatePrice = (
   txBlock: SuiKitTxBlock,
   rules: xOracleRules,
   xOraclePackageId: string,
-  xOracleId: TransactionArgument,
+  xOracleId: TransactionArgument | string,
   pythPackageId: string,
-  pythRegistryId: TransactionArgument,
-  pythStateId: TransactionArgument,
-  pythFeedObjectId: TransactionArgument,
+  pythRegistryId: TransactionArgument | string,
+  pythStateId: TransactionArgument | string,
+  pythFeedObjectId: TransactionArgument | string,
   switchboardPackageId: string,
-  switchboardRegistryId: TransactionArgument,
-  switchboardAggregatorId: TransactionArgument,
+  switchboardRegistryId: TransactionArgument | string,
+  switchboardAggregatorId: TransactionArgument | string,
   supraPackageId: string,
-  supraRegistryId: TransactionArgument,
-  supraHolderId: TransactionArgument,
+  supraRegistryId: TransactionArgument | string,
+  supraHolderId: TransactionArgument | string,
   coinType: string
 ) => {
+  // Convert string to TransactionArgument for v2 compatibility
+  const toTxArg = (arg: TransactionArgument | string): TransactionArgument =>
+    typeof arg === 'string' ? txBlock.object(arg) : arg;
+
+  xOracleId = toTxArg(xOracleId);
+  pythRegistryId = toTxArg(pythRegistryId);
+  pythStateId = toTxArg(pythStateId);
+  pythFeedObjectId = toTxArg(pythFeedObjectId);
+  switchboardRegistryId = toTxArg(switchboardRegistryId);
+  switchboardAggregatorId = toTxArg(switchboardAggregatorId);
+  supraRegistryId = toTxArg(supraRegistryId);
+  supraHolderId = toTxArg(supraHolderId);
+
   const request = priceUpdateRequest(
     txBlock,
     xOraclePackageId,

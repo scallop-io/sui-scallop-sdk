@@ -102,7 +102,7 @@ export const getAssetOracles = async (
       await utils.scallopSuiKit.queryGetObjects(objectIds);
     objectResponses.forEach((object) => {
       const jsonData = object.json as any;
-      if (!jsonData || jsonData.dataType !== 'moveObject') return;
+      if (!jsonData?.fields) return;
       const fields = jsonData.fields;
       const typeName = (
         fields.name as { type: string; fields: { name: string } }

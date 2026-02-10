@@ -443,7 +443,8 @@ describe('Test Scallop Client - Other Method', async () => {
             const marketCoin = await txBlock.unstakeQuick(
               stakeAccount.staked,
               stakeMarketCoinName,
-              stakeAccount.id
+              stakeAccount.id,
+              false // v2: Return marketCoin instead of sCoin to avoid type mismatch
             );
 
             if (marketCoin) {
@@ -456,7 +457,8 @@ describe('Test Scallop Client - Other Method', async () => {
             const marketCoin = await txBlock.unstakeQuick(
               needUnstakeMarketAmount,
               stakeMarketCoinName,
-              stakeAccount.id
+              stakeAccount.id,
+              false // v2: Return marketCoin instead of sCoin to avoid type mismatch
             );
 
             if (marketCoin) {

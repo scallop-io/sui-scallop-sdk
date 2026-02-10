@@ -107,24 +107,20 @@ export const getPoolAddresses = async (
     })
   )?.object;
 
-  if (!(marketObject && marketObject.json?.dataType === 'moveObject'))
+  if (!(marketObject && marketObject.json))
     throw new Error(`Failed to fetch marketObject`);
 
-  const fields = marketObject.json.fields as any;
+  const fields = marketObject.json as any;
 
-  const balanceSheetParentId =
-    fields.vault.fields.balance_sheets.fields.table.fields.id.id;
+  const balanceSheetParentId = fields.vault.balance_sheets.table.id.id;
 
-  const collateralStatsParentId =
-    fields.collateral_stats.fields.table.fields.id.id;
+  const collateralStatsParentId = fields.collateral_stats.table.id.id;
 
-  const borrowDynamicsParentid =
-    fields.borrow_dynamics.fields.table.fields.id.id;
+  const borrowDynamicsParentid = fields.borrow_dynamics.table.id.id;
 
-  const interestModelParentId =
-    fields.interest_models.fields.table.fields.id.id;
+  const interestModelParentId = fields.interest_models.table.id.id;
 
-  const riskModelParentId = fields.risk_models.fields.table.fields.id.id;
+  const riskModelParentId = fields.risk_models.table.id.id;
 
   const ADDRESS_TYPE = `0x1::type_name::TypeName`;
   const BORROW_FEE_TYPE = `0xc38f849e81cfe46d4e4320f508ea7dda42934a329d5a6571bb4c3cb6ea63f5da::market_dynamic_keys::BorrowFeeKey`;

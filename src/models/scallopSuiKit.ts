@@ -159,6 +159,7 @@ class ScallopSuiKit extends ScallopQueryClient {
   async queryGetObject(objectId: string, options?: SuiObjectDataOptions) {
     const includeOptions: SuiObjectDataOptions = {
       content: true,
+      json: true,
       ...options,
     };
     return await this.callWithRateLimiter(

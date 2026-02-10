@@ -53,12 +53,12 @@ export const queryFlashLoanFees = async (
   return flashloanFeeObjects.reduce(
     (prev, curr) => {
       const jsonData = curr.json as any;
-      if (jsonData?.dataType === 'moveObject') {
-        const assetType = `0x${jsonData.fields.name.fields.name}`;
+      if (jsonData) {
+        const assetType = `0x${jsonData.name.fields.name}`;
         const assetName = assetTypeMap[assetType];
         if (!assetName) return prev;
 
-        const objectFields = jsonData.fields;
+        const objectFields = jsonData;
         const feeNumerator = +objectFields.value;
         prev[assetName] = feeNumerator / feeRate;
       }
@@ -77,12 +77,12 @@ export const parseFlashloanFeeObjects = (
   return objects.reduce(
     (prev, curr) => {
       const jsonData = curr.json as any;
-      if (jsonData?.dataType === 'moveObject') {
-        const assetType = `0x${jsonData.fields.name.fields.name}`;
+      if (jsonData) {
+        const assetType = `0x${jsonData.name.fields.name}`;
         const assetName = assetTypeMap[assetType];
         if (!assetName) return prev;
 
-        const objectFields = jsonData.fields;
+        const objectFields = jsonData;
         const feeNumerator = +objectFields.value;
         prev[assetName] = feeNumerator / feeRate;
       }
