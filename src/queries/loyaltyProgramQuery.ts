@@ -7,6 +7,7 @@ import {
   VeScaLoyaltyProgramInfo,
 } from 'src/types/index.js';
 import { z as zod } from 'zod';
+import { parseObjectAs } from 'src/utils/index.js';
 
 const rewardPoolFieldsZod = zod
   .object({
@@ -43,10 +44,9 @@ export const getLoyaltyProgramInformations = async (
   const rewardPoolResponse =
     await query.scallopSuiKit.queryGetObject(rewardPool);
   const rewardPoolObject = rewardPoolResponse?.object;
-  const jsonData = rewardPoolObject?.json as any;
-
-  if (!jsonData?.fields) return null;
-  const rewardPoolFields = jsonData.fields;
+  if (!rewardPoolObject) return null;
+  const rewardPoolFields =
+    parseObjectAs<Record<string, unknown>>(rewardPoolObject);
   const { isClaimEnabled, totalPoolReward } = rewardPoolFieldsZod.parse(
     rewardPoolFields
   ) as RewardPoolFields;
@@ -65,21 +65,19 @@ export const getLoyaltyProgramInformations = async (
     'loyaltyProgram.userRewardTableId'
   );
 
-  const userRewardObject = await query.scallopSuiKit.queryGetDynamicFieldObject(
-    {
+  const userRewardObject = await query.scallopSuiKit
+    .queryGetDynamicFieldObject({
       parentId: userRewardTableId,
       name: {
         type: '0x2::object::ID',
         value: typeof veScaKey === 'string' ? veScaKey : veScaKey.objectId,
       },
-    }
-  );
+    })
+    .catch(() => null);
 
   const userRewardObjData = userRewardObject?.object;
-  const userRewardJson = userRewardObjData?.json as any;
-
-  if (!userRewardJson?.fields) return result;
-  const userRewardFields = userRewardJson.fields;
+  if (!userRewardObjData) return result;
+  const userRewardFields = parseObjectAs<{ value: string }>(userRewardObjData);
   result.pendingReward = userRewardFieldsZod.parse(
     userRewardFields
   ) as UserRewardFields;
@@ -124,13 +122,17 @@ export const getVeScaLoyaltyProgramInformations = async (
   const rewardPoolResponse =
     await query.scallopSuiKit.queryGetObject(rewardPool);
   const rewardPoolObject = rewardPoolResponse?.object;
-  const jsonData = rewardPoolObject?.json as any;
-
-  if (!jsonData?.fields) return null;
-  const rewardPoolFields = jsonData.fields;
-  const { isClaimEnabled, reserveVeScaKey } = veScaRewardPoolFieldsZod.parse(
-    rewardPoolFields
-  ) as VeScaRewardPoolFields;
+  if (!rewardPoolObject) return null;
+  const rewardPoolFields =
+    parseObjectAs<Record<string, unknown>>(rewardPoolObject);
+  const parsedVeScaRewardPool =
+    veScaRewardPoolFieldsZod.safeParse(rewardPoolFields);
+  const { isClaimEnabled, reserveVeScaKey } = parsedVeScaRewardPool.success
+    ? (parsedVeScaRewardPool.data as VeScaRewardPoolFields)
+    : {
+        isClaimEnabled: false,
+        reserveVeScaKey: undefined,
+      };
 
   const result: VeScaLoyaltyProgramInfo = {
     pendingVeScaReward: 0,
@@ -154,24 +156,23 @@ export const getVeScaLoyaltyProgramInformations = async (
     'veScaLoyaltyProgram.veScaRewardTableId'
   );
 
-  const userRewardObject = await query.scallopSuiKit.queryGetDynamicFieldObject(
-    {
+  const userRewardObject = await query.scallopSuiKit
+    .queryGetDynamicFieldObject({
       parentId: veScaRewardTableId,
       name: {
         type: '0x2::object::ID',
         value: typeof veScaKey === 'string' ? veScaKey : veScaKey.objectId,
       },
-    }
-  );
+    })
+    .catch(() => null);
 
   const userRewardObjData = userRewardObject?.object;
-  const userRewardJson = userRewardObjData?.json as any;
-
-  if (!userRewardJson?.fields) return result;
-  const userRewardFields = userRewardJson.fields;
-  result.pendingScaReward = userVeScaRewardFieldsZod.parse(
-    userRewardFields
-  ) as UserVeScaRewardFields;
+  if (!userRewardObjData) return result;
+  const userRewardFields = parseObjectAs<{ value: string }>(userRewardObjData);
+  const parsedUserVeScaReward =
+    userVeScaRewardFieldsZod.safeParse(userRewardFields);
+  if (!parsedUserVeScaReward.success) return result;
+  result.pendingScaReward = parsedUserVeScaReward.data as UserVeScaRewardFields;
 
   const remainingLockPeriodInMilliseconds = Math.max(
     (reserveVeSca?.unlockAt ?? 0) - Date.now(),

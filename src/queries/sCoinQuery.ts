@@ -167,7 +167,18 @@ export const getSCoinSwapRate = async (
   const BtoSCoinBRate = 1 / marketPools[1]!.conversionRate;
 
   const calcAtoBRate = async () => {
-    const prices = await query.utils.getCoinPrices();
+    let prices = await query.utils.getCoinPrices();
+    if (
+      !prices[fromCoinName] ||
+      !prices[toCoinName] ||
+      prices[fromCoinName] === 0 ||
+      prices[toCoinName] === 0
+    ) {
+      const indexerPrices = await query
+        .getCoinPricesByIndexer()
+        .catch(() => ({}));
+      prices = { ...prices, ...indexerPrices };
+    }
     if (!prices[fromCoinName] || !prices[toCoinName]) {
       throw new Error('Failed to fetch the coin prices');
     }
