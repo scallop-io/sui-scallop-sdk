@@ -242,7 +242,7 @@ class ScallopSuiKit extends ScallopQueryClient {
       () =>
         this.client.core.listOwnedObjects({
           owner: input.owner,
-          type: input.filter?.StructType,
+          type: input.filter?.StructType ?? undefined,
           include: input.options,
           cursor: input.cursor ?? undefined,
           limit: input.limit ?? undefined,
@@ -300,15 +300,19 @@ class ScallopSuiKit extends ScallopQueryClient {
 
     const result = await this.callWithRateLimiter(
       queryKeys.rpc.getDynamicFieldObject(input),
-      () =>
-        this.client.core.getDynamicObjectField({
+      async () => {
+        const { dynamicField } = await this.client.core.getDynamicField({
           parentId: input.parentId,
           name: nameParam,
+        });
+        return await this.client.core.getObject({
+          objectId: dynamicField.fieldId,
           include: {
             content: true,
             json: true,
           },
-        })
+        });
+      }
     );
 
     if (result?.object) {

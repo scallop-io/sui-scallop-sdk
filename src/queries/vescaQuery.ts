@@ -12,7 +12,7 @@ import { SUI_CLOCK_OBJECT_ID, SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui/bcs';
 import { z as zod } from 'zod';
 import { queryKeys } from 'src/constants/index.js';
-import { getSharedObjectData } from 'src/utils/index.js';
+import { getSharedObjectData, parseObjectAs } from 'src/utils/index.js';
 /**
  * Query all owned veSca key.
  *
@@ -136,9 +136,11 @@ export const getVeSca = async (
   if (!veScaDynamicFieldObjectResponse) return undefined;
 
   const veScaDynamicFieldObject = veScaDynamicFieldObjectResponse.object;
-  const jsonData = veScaDynamicFieldObject?.json as any;
-  if (veScaDynamicFieldObject && jsonData?.fields?.value?.fields) {
-    const dynamicFields = jsonData.fields.value.fields;
+  if (veScaDynamicFieldObject) {
+    const dynamicFields = parseObjectAs<{
+      unlock_at: string | number;
+      locked_sca_amount: string | number;
+    }>(veScaDynamicFieldObject);
 
     const remainingLockPeriodInMilliseconds = Math.max(
       +dynamicFields.unlock_at * 1000 - Date.now(),
@@ -161,7 +163,7 @@ export const getVeSca = async (
       lockedScaAmount,
       lockedScaCoin,
       currentVeScaBalance,
-      unlockAt: BigNumber(dynamicFields.unlock_at * 1000).toNumber(),
+      unlockAt: BigNumber(Number(dynamicFields.unlock_at) * 1000).toNumber(),
     };
   }
 
@@ -245,8 +247,9 @@ const getTotalVeScaTreasuryAmount = async (
   });
 
   // return result
-  const res =
-    await utils.scallopSuiKit.queryClient.fetchQuery<DevInspectResults>({
+  let res: DevInspectResults | null = null;
+  try {
+    res = await utils.scallopSuiKit.queryClient.fetchQuery<DevInspectResults>({
       queryKey: queryKeys.rpc.getTotalVeScaTreasuryAmount({
         refreshArgs,
         vescaAmountArgs,
@@ -256,8 +259,11 @@ const getTotalVeScaTreasuryAmount = async (
         return await utils.suiKit.inspectTxn(txBytes);
       },
     });
+  } catch {
+    return '0';
+  }
 
-  if (res.$kind !== 'Transaction') {
+  if (!res || res.$kind !== 'Transaction') {
     return '0';
   }
 
@@ -283,17 +289,17 @@ export const getVeScaTreasuryInfo = async (
     await utils.scallopSuiKit.queryGetObject(veScaTreasuryId);
 
   const veScaTreasuryObject = veScaTreasury?.object;
-  const jsonData = veScaTreasuryObject?.json as any;
+  if (!veScaTreasuryObject) return null;
 
-  if (!veScaTreasuryObject || !jsonData?.fields) return null;
+  const treasuryFields =
+    parseObjectAs<VeScaTreasuryFields>(veScaTreasuryObject);
+  const lockedScaAmount =
+    (treasuryFields as any)?.unlock_schedule?.fields?.locked_sca_amount ??
+    (treasuryFields as any)?.unlockSchedule?.lockedScaAmount ??
+    (treasuryFields as any)?.locked_sca_amount ??
+    '0';
 
-  const treasuryFields = jsonData.fields as VeScaTreasuryFields;
-
-  const totalLockedSca = BigNumber(
-    treasuryFields.unlock_schedule.fields.locked_sca_amount
-  )
-    .shiftedBy(-9)
-    .toNumber();
+  const totalLockedSca = BigNumber(lockedScaAmount).shiftedBy(-9).toNumber();
   const totalVeSca = BigNumber(
     (await getTotalVeScaTreasuryAmount(utils, veScaTreasuryObject)) ?? 0
   )

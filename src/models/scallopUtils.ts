@@ -419,36 +419,54 @@ class ScallopUtils implements ScallopUtilsInterface {
     const pythFeedObjectId = this.address.get(
       `core.coins.${assetCoinName}.oracle.pyth.feedObject`
     );
+    const priceFeedId = this.address.get(
+      `core.coins.${assetCoinName}.oracle.pyth.feed`
+    );
     priceFeedObject =
       priceFeedObject ||
       (await this.scallopSuiKit.queryGetObject(pythFeedObjectId))?.object;
 
-    if (priceFeedObject) {
-      const priceFeedPoolObject = priceFeedObject;
-      if (priceFeedPoolObject.json && 'fields' in priceFeedPoolObject.json) {
-        const fields = priceFeedPoolObject.json.fields as any;
-        const expoMagnitude = Number(
-          fields.price_info.fields.price_feed.fields.price.fields.expo.fields
-            .magnitude
-        );
-        const expoNegative = Number(
-          fields.price_info.fields.price_feed.fields.price.fields.expo.fields
-            .negative
-        );
-        const priceMagnitude = Number(
-          fields.price_info.fields.price_feed.fields.price.fields.price.fields
-            .magnitude
-        );
-        const priceNegative = Number(
-          fields.price_info.fields.price_feed.fields.price.fields.price.fields
-            .negative
-        );
+    if (priceFeedObject?.json && 'fields' in priceFeedObject.json) {
+      const fields = priceFeedObject.json.fields as any;
+      const expoMagnitude = Number(
+        fields?.price_info?.fields?.price_feed?.fields?.price?.fields?.expo
+          ?.fields?.magnitude
+      );
+      const expoNegative = Number(
+        fields?.price_info?.fields?.price_feed?.fields?.price?.fields?.expo
+          ?.fields?.negative
+      );
+      const priceMagnitude = Number(
+        fields?.price_info?.fields?.price_feed?.fields?.price?.fields?.price
+          ?.fields?.magnitude
+      );
+      const priceNegative = Number(
+        fields?.price_info?.fields?.price_feed?.fields?.price?.fields?.price
+          ?.fields?.negative
+      );
 
-        return (
+      if (!Number.isNaN(expoMagnitude) && !Number.isNaN(priceMagnitude)) {
+        const price =
           priceMagnitude *
           10 ** ((expoNegative ? -1 : 1) * expoMagnitude) *
-          (priceNegative ? -1 : 1)
+          (priceNegative ? -1 : 1);
+        if (price > 0) return price;
+      }
+    }
+
+    if (priceFeedId) {
+      try {
+        const pythConnection = new SuiPriceServiceConnection(
+          this.pythEndpoints[0],
+          { timeout: this.timeout, httpRetries: 0 }
         );
+        const feeds = await pythConnection.getLatestPriceFeeds([priceFeedId]);
+        if (feeds?.[0]) {
+          const parsed = feeds[0].getPriceUnchecked();
+          return parsed.getPriceAsNumberUnchecked();
+        }
+      } catch {
+        // ignore
       }
     }
 
