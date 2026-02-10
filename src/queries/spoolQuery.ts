@@ -434,8 +434,8 @@ export const getStakePool = async (
     const id = stakePoolObject.objectId;
     const type = stakePoolObject.type!;
     const json = stakePoolObject.json as any;
-    if (json?.dataType === 'moveObject') {
-      const fields = json.fields;
+    if (json) {
+      const fields = json;
       const maxPoint = Number(fields.max_distributed_point);
       const distributedPoint = Number(fields.distributed_point);
       const pointPerPeriod = Number(fields.distributed_point_per_period);
@@ -496,8 +496,8 @@ export const getStakeRewardPool = async (
     const id = stakeRewardPoolObject.objectId;
     const type = stakeRewardPoolObject.type!;
     const json = stakeRewardPoolObject.json as any;
-    if (json?.dataType === 'moveObject') {
-      const rewardPoolFields = json.fields;
+    if (json) {
+      const rewardPoolFields = json;
       const stakePoolId = String(rewardPoolFields.spool_id);
       const ratioNumerator = Number(rewardPoolFields.exchange_rate_numerator);
       const ratioDenominator = Number(

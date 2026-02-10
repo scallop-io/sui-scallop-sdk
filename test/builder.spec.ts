@@ -1300,12 +1300,12 @@ describe('Test XOracle V2', () => {
     const txb = new SuiTxBlock();
 
     await updateOracles(scallopBuilder, txb, coins);
-    const resp = await (
-      scallopBuilder.scallopSuiKit.suiKit.client as any
-    ).devInspectTransactionBlock({
-      transactionBlock: txb.txBlock,
-      sender: scallopBuilder.walletAddress,
-    });
-    expect(resp.effects?.status?.success).toEqual(true);
+
+    // v2: Use suiKit.inspectTxn which calls client.core.simulateTransaction
+    const resp = await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(txb);
+
+    // v2: Check status from the Transaction result
+    const tx = resp.Transaction ?? resp.FailedTransaction;
+    expect(tx?.status?.success).toEqual(true);
   });
 });

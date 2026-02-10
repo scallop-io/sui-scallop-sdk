@@ -720,14 +720,14 @@ export const getMarketCollateral = async (
   marketObject =
     marketObject || (await scallopSuiKit.queryGetObject(marketId))?.object;
 
-  if (!(marketObject && marketObject.json?.dataType === 'moveObject'))
+  if (!(marketObject && marketObject.json))
     throw new Error(`Failed to fetch marketObject`);
 
-  const fields = marketObject.json.fields as any;
+  const fields = marketObject.json as any;
   const coinType = utils.parseCoinType(collateralCoinName);
 
   // Get risk model.
-  const riskModelParentId = fields.risk_models.fields.table.fields.id.id;
+  const riskModelParentId = fields.risk_models.table.id.id;
   const riskModelDynamicFieldObjectResponse =
     await scallopSuiKit.queryGetDynamicFieldObject({
       parentId: riskModelParentId,
@@ -741,23 +741,16 @@ export const getMarketCollateral = async (
 
   const riskModelDynamicFieldObject =
     riskModelDynamicFieldObjectResponse?.object;
-  if (
-    !(
-      riskModelDynamicFieldObject &&
-      riskModelDynamicFieldObject.json &&
-      'fields' in riskModelDynamicFieldObject.json
-    )
-  )
+  if (!(riskModelDynamicFieldObject && riskModelDynamicFieldObject.json))
     throw new Error(
       `Failed to fetch riskModelDynamicFieldObject for ${collateralCoinName}`
     );
 
-  const riskModel: RiskModel = (riskModelDynamicFieldObject.json.fields as any)
-    .value.fields;
+  const riskModel: RiskModel = (riskModelDynamicFieldObject.json as any).value
+    .fields;
 
   // Get collateral stat.
-  const collateralStatParentId =
-    fields.collateral_stats.fields.table.fields.id.id;
+  const collateralStatParentId = fields.collateral_stats.table.id.id;
   const collateralStatDynamicFieldObjectResponse =
     await scallopSuiKit.queryGetDynamicFieldObject({
       parentId: collateralStatParentId,
@@ -773,18 +766,14 @@ export const getMarketCollateral = async (
     collateralStatDynamicFieldObjectResponse?.object;
 
   if (
-    !(
-      collateralStatDynamicFieldObject &&
-      collateralStatDynamicFieldObject.json &&
-      'fields' in collateralStatDynamicFieldObject.json
-    )
+    !(collateralStatDynamicFieldObject && collateralStatDynamicFieldObject.json)
   )
     throw new Error(
       `Failed to fetch collateralStatDynamicFieldObject for ${collateralCoinName}`
     );
 
   const collateralStat: CollateralStat = (
-    collateralStatDynamicFieldObject.json.fields as any
+    collateralStatDynamicFieldObject.json as any
   ).value.fields;
 
   const parsedMarketCollateralData = parseOriginMarketCollateralData({
@@ -879,17 +868,28 @@ export const getObligations = async (
     keyObjects
       .map((ref) => ref.json)
       .filter(
-        (json): json is { ownership: any } =>
-          json != null && 'ownership' in json
+        (json): json is { fields: { ownership: any } } =>
+          json != null &&
+          'fields' in json &&
+          json.fields != null &&
+          typeof json.fields === 'object' &&
+          'ownership' in json.fields
       )
-      .map((json) => (json as any).ownership.of)
+      .map((json) => (json as any).fields.ownership.of)
   );
   await Promise.allSettled(
     keyObjects.map(async (ref, idx) => {
       const keyId = ref.objectId;
       const json = ref.json;
-      if (keyId && json && 'ownership' in json) {
-        const obligationId = String((json as any).ownership.of);
+      if (
+        keyId &&
+        json &&
+        'fields' in json &&
+        json.fields &&
+        typeof json.fields === 'object' &&
+        'ownership' in json.fields
+      ) {
+        const obligationId = String((json as any).fields.ownership.of);
         const locked = await getObligationLocked(
           utils,
           obligationsObjects[idx]
@@ -920,8 +920,11 @@ export const getObligationLocked = async (
   let obligationLocked = false;
   if (
     obligationObjectData &&
-    (obligationObjectData.json as any)?.dataType === 'moveObject' &&
-    'lock_key' in ((obligationObjectData.json as any)?.fields ?? {})
+    obligationObjectData.json &&
+    'fields' in obligationObjectData.json &&
+    obligationObjectData.json.fields &&
+    typeof obligationObjectData.json.fields === 'object' &&
+    'lock_key' in obligationObjectData.json.fields
   ) {
     obligationLocked = Boolean(
       (obligationObjectData.json as any).fields.lock_key
@@ -1162,9 +1165,9 @@ export const getFlashLoanFees = async (
     ...results,
     ...flashloanFeeObjects.reduce(
       (prev, curr) => {
-        if (curr.json?.dataType === 'moveObject') {
-          const objectFields = curr.json.fields as any;
-          const assetType = (curr.json.fields as any).name.fields.name;
+        if (curr.json) {
+          const objectFields = curr.json as any;
+          const assetType = (curr.json as any).name?.name;
           const feeNumerator = +objectFields.value;
           prev[assetTypeMap[assetType]] = feeNumerator / feeRate;
         }

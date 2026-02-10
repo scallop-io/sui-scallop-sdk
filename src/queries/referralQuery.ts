@@ -27,7 +27,7 @@ export const queryVeScaKeyIdFromReferralBindings = async (
   const referralBindObject = referralBindResponse?.object;
   const jsonData = referralBindObject?.json as any;
 
-  if (jsonData?.dataType !== 'moveObject') return null;
+  if (!jsonData?.fields?.value) return null;
 
   const fields = jsonData.fields as any;
   return fields.value;

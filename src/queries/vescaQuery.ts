@@ -137,7 +137,7 @@ export const getVeSca = async (
 
   const veScaDynamicFieldObject = veScaDynamicFieldObjectResponse.object;
   const jsonData = veScaDynamicFieldObject?.json as any;
-  if (veScaDynamicFieldObject && jsonData?.dataType === 'moveObject') {
+  if (veScaDynamicFieldObject && jsonData?.fields?.value?.fields) {
     const dynamicFields = jsonData.fields.value.fields;
 
     const remainingLockPeriodInMilliseconds = Math.max(
@@ -285,7 +285,7 @@ export const getVeScaTreasuryInfo = async (
   const veScaTreasuryObject = veScaTreasury?.object;
   const jsonData = veScaTreasuryObject?.json as any;
 
-  if (!veScaTreasuryObject || jsonData?.dataType !== 'moveObject') return null;
+  if (!veScaTreasuryObject || !jsonData?.fields) return null;
 
   const treasuryFields = jsonData.fields as VeScaTreasuryFields;
 
