@@ -5,6 +5,7 @@ import type {
   SuiParsedData,
 } from 'src/types/index.js';
 import type { ClientWithCoreApi } from '@mysten/sui/client';
+import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 
 const queryFlashloanFeeObjectIds = async (
   client: ClientWithCoreApi,
@@ -49,12 +50,10 @@ const fetchDynamicObject = async <S extends boolean>(
   value: any,
   returnObjId: S = true as S
 ): Promise<FetchDynamicObjectReturnType<S>> => {
+  const nameParam = encodeDynamicFieldNameForV2({ type, value });
   const res = await client.core.getDynamicObjectField({
     parentId,
-    name: {
-      type,
-      value,
-    } as any,
+    name: nameParam,
     include: { content: true, json: true },
   });
 
@@ -112,15 +111,15 @@ export const getPoolAddresses = async (
 
   const fields = marketObject.json as any;
 
-  const balanceSheetParentId = fields.vault.balance_sheets.table.id.id;
+  const balanceSheetParentId = fields.vault.balance_sheets.table.id;
 
-  const collateralStatsParentId = fields.collateral_stats.table.id.id;
+  const collateralStatsParentId = fields.collateral_stats.table.id;
 
-  const borrowDynamicsParentid = fields.borrow_dynamics.table.id.id;
+  const borrowDynamicsParentid = fields.borrow_dynamics.table.id;
 
-  const interestModelParentId = fields.interest_models.table.id.id;
+  const interestModelParentId = fields.interest_models.table.id;
 
-  const riskModelParentId = fields.risk_models.table.id.id;
+  const riskModelParentId = fields.risk_models.table.id;
 
   const ADDRESS_TYPE = `0x1::type_name::TypeName`;
   const BORROW_FEE_TYPE = `0xc38f849e81cfe46d4e4320f508ea7dda42934a329d5a6571bb4c3cb6ea63f5da::market_dynamic_keys::BorrowFeeKey`;
