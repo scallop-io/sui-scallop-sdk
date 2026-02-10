@@ -9,6 +9,7 @@ import {
   Transaction,
 } from '@scallop-io/sui-kit';
 import { queryKeys } from 'src/constants/index.js';
+import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 import { newSuiKit } from 'src/models/suiKit.js';
 import type {
   CoinBalance,
@@ -289,12 +290,20 @@ class ScallopSuiKit extends ScallopQueryClient {
   async queryGetDynamicFieldObject(
     input: GetDynamicFieldObjectParams
   ): Promise<SuiObjectResponse | null> {
+    if (!input.parentId) {
+      throw new Error(
+        'queryGetDynamicFieldObject: parentId is required (got undefined). Check that the parent object has the expected structure (e.g. table.id.id).'
+      );
+    }
+    // v2: Convert { type, value } to { type, bcs }
+    const nameParam = encodeDynamicFieldNameForV2(input.name);
+
     const result = await this.callWithRateLimiter(
       queryKeys.rpc.getDynamicFieldObject(input),
       () =>
         this.client.core.getDynamicObjectField({
           parentId: input.parentId,
-          name: input.name,
+          name: nameParam,
           include: {
             content: true,
             json: true,

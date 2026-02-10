@@ -727,7 +727,7 @@ export const getMarketCollateral = async (
   const coinType = utils.parseCoinType(collateralCoinName);
 
   // Get risk model.
-  const riskModelParentId = fields.risk_models.table.id.id;
+  const riskModelParentId = fields.risk_models.table.id;
   const riskModelDynamicFieldObjectResponse =
     await scallopSuiKit.queryGetDynamicFieldObject({
       parentId: riskModelParentId,
@@ -750,7 +750,7 @@ export const getMarketCollateral = async (
     .fields;
 
   // Get collateral stat.
-  const collateralStatParentId = fields.collateral_stats.table.id.id;
+  const collateralStatParentId = fields.collateral_stats.table.id;
   const collateralStatDynamicFieldObjectResponse =
     await scallopSuiKit.queryGetDynamicFieldObject({
       parentId: collateralStatParentId,
