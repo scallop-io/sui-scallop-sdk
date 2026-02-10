@@ -426,24 +426,14 @@ class ScallopUtils implements ScallopUtilsInterface {
       priceFeedObject ||
       (await this.scallopSuiKit.queryGetObject(pythFeedObjectId))?.object;
 
-    if (priceFeedObject?.json && 'fields' in priceFeedObject.json) {
-      const fields = priceFeedObject.json.fields as any;
-      const expoMagnitude = Number(
-        fields?.price_info?.fields?.price_feed?.fields?.price?.fields?.expo
-          ?.fields?.magnitude
-      );
-      const expoNegative = Number(
-        fields?.price_info?.fields?.price_feed?.fields?.price?.fields?.expo
-          ?.fields?.negative
-      );
-      const priceMagnitude = Number(
-        fields?.price_info?.fields?.price_feed?.fields?.price?.fields?.price
-          ?.fields?.magnitude
-      );
-      const priceNegative = Number(
-        fields?.price_info?.fields?.price_feed?.fields?.price?.fields?.price
-          ?.fields?.negative
-      );
+    if (priceFeedObject?.content && 'fields' in priceFeedObject.content) {
+      const fields = priceFeedObject.content.fields as any;
+      const priceFields =
+        fields?.price_info?.fields?.price_feed?.fields?.price?.fields;
+      const expoMagnitude = Number(priceFields?.expo?.fields?.magnitude);
+      const expoNegative = Number(priceFields?.expo?.fields?.negative);
+      const priceMagnitude = Number(priceFields?.price?.fields?.magnitude);
+      const priceNegative = Number(priceFields?.price?.fields?.negative);
 
       if (!Number.isNaN(expoMagnitude) && !Number.isNaN(priceMagnitude)) {
         const price =
@@ -630,13 +620,13 @@ class ScallopUtils implements ScallopUtilsInterface {
       );
     }
 
-    return {
-      ...coinNames.reduce((prev, coinName) => {
-        prev[coinName as string] = coinPrices[coinName as string] || 0;
-        return prev;
-      }, {} as CoinPrices),
-      ...coinPrices,
-    };
+    return coinNames.reduce((prev, coinName) => {
+      const price = coinPrices[coinName as string];
+      if (typeof price === 'number' && price > 0) {
+        prev[coinName as string] = price;
+      }
+      return prev;
+    }, {} as CoinPrices);
   }
 
   /**
