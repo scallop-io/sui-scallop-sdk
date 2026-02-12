@@ -904,7 +904,7 @@ describe('Test Scallop VeSca Builder', () => {
     tx.setSender(sender);
 
     const lockAmount = 1 * 10 ** 9; // lock less than 1 amount
-    tx.extendLockAmountQuick({ scaAmount: lockAmount });
+    await tx.extendLockAmountQuick({ scaAmount: lockAmount });
 
     const extendLockPeriodQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
