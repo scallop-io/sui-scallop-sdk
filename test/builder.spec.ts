@@ -1077,8 +1077,9 @@ describe('Test Scallop VeSca Builder', () => {
     tx.setSender(sender);
 
     await tx.redeemScaQuick({ veScaKey: expiredVeScaKey });
+    // v2: Use devInspectTxn (JSON-RPC) to bypass strict gRPC ownership checks
     const redeemScaQuickResult =
-      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.devInspectTxn(tx);
     const txResult =
       redeemScaQuickResult.Transaction ??
       redeemScaQuickResult.FailedTransaction;
@@ -1166,8 +1167,9 @@ describe('Test Scallop Referral Builder', () => {
     const tx = scallopBuilder.createTxBlock();
     tx.bindToReferral(veScaReferral);
 
+    // v2: Use devInspectTxn (JSON-RPC) to bypass strict gRPC gas balance checks
     const bindReferralResult =
-      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.devInspectTxn(tx);
     const txResult =
       bindReferralResult.Transaction ?? bindReferralResult.FailedTransaction;
     if (ENABLE_LOG) {
