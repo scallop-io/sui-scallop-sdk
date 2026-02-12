@@ -102,11 +102,10 @@ export const getAssetOracles = async (
       await utils.scallopSuiKit.queryGetObjects(objectIds);
     objectResponses.forEach((object) => {
       const jsonData = object.json as any;
-      if (!jsonData?.fields) return;
-      const fields = jsonData.fields;
-      const typeName = (
-        fields.name as { type: string; fields: { name: string } }
-      ).fields.name;
+      if (!jsonData) return;
+
+      const typeName = jsonData.name?.name;
+      if (!typeName) return;
 
       const assetName = utils.parseCoinNameFromType(`0x${typeName}`);
       if (!assetName) throw new Error(`Invalid asset name: ${assetName}`);
@@ -114,16 +113,9 @@ export const getAssetOracles = async (
         assetOracles[assetName] = [];
       }
 
-      const value = fields.value as {
-        type: string;
-        fields: {
-          contents: Array<{ type: string; fields: { name: string } }>;
-        };
-      };
-
-      value.fields.contents.forEach((content) => {
+      (jsonData.value?.contents ?? []).forEach((content: any) => {
         assetOracles[assetName].push(
-          ruleTypeNameToOracleType[`0x${content.fields.name}`]
+          ruleTypeNameToOracleType[`0x${content.name}`]
         );
       });
     });

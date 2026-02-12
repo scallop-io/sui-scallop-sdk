@@ -9,12 +9,12 @@ import {
   type SuiTxBlock as SuiKitTxBlock,
   type Transaction,
 } from '@scallop-io/sui-kit';
-import type { ClientWithCoreApi } from '@mysten/sui/client';
+import { SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
 
 type ObjectId = string;
 class ScallopPythClient extends SuiPythClient {
   constructor(
-    provider: ClientWithCoreApi,
+    provider: SuiJsonRpcClient,
     pythStateId: ObjectId,
     wormholeStateId: ObjectId,
     private params: {
@@ -23,7 +23,7 @@ class ScallopPythClient extends SuiPythClient {
       gasStationId: ObjectId;
     }
   ) {
-    super(provider, pythStateId, wormholeStateId);
+    super(provider as any, pythStateId, wormholeStateId);
   }
 
   async updatePriceFeedsWithSponsoredBaseUpdateFee(
@@ -84,8 +84,16 @@ export const updatePythPriceFeeds = async (
   txBlock: SuiKitTxBlock,
   isSponsoredTx: boolean = false
 ) => {
+  // @pythnetwork/pyth-sui-js uses v1-style SuiClient API (getObject, getDynamicFieldObject).
+  // SuiGrpcClient has a different interface, so use SuiJsonRpcClient for Pyth compatibility.
+  const fullnodeUrl = builder.suiKit.suiInteractor.currentFullNode;
+  const network = builder.suiKit.client.network;
+  const jsonRpcClient = new SuiJsonRpcClient({
+    url: fullnodeUrl,
+    network,
+  });
   const pythClient = new ScallopPythClient(
-    builder.suiKit.client,
+    jsonRpcClient,
     builder.address.get('core.oracles.pyth.state'),
     builder.address.get('core.oracles.pyth.wormholeState'),
     {
