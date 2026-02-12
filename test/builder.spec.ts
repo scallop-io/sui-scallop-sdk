@@ -189,8 +189,9 @@ describe('Test Scallop Core Builder', () => {
     tx.setSender(sender);
     const coin = await tx.takeCollateralQuick(10 ** 7, COLLATERAL_COIN_NAME);
     tx.transferObjects([coin], sender);
+    // v2: Use devInspectTxn (JSON-RPC) to bypass strict gRPC simulateTransaction
     const takeCollateralQuickResult =
-      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.devInspectTxn(tx);
     const txResult =
       takeCollateralQuickResult.Transaction ??
       takeCollateralQuickResult.FailedTransaction;
@@ -325,8 +326,9 @@ describe('Test Scallop Core Builder', () => {
     // Sender is required to invoke "updateAssetPricesQuick".
     tx.setSender(sender);
     await tx.updateAssetPricesQuick([SUPPLY_COIN_NAME]);
+    // v2: Use devInspectTxn (JSON-RPC) to bypass strict gRPC simulateTransaction
     const updateAssetPricesResult =
-      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.devInspectTxn(tx);
     const txResult =
       updateAssetPricesResult.Transaction ??
       updateAssetPricesResult.FailedTransaction;
@@ -1028,8 +1030,9 @@ describe('Test Scallop VeSca Builder', () => {
       lockPeriodInDays,
       veScaKey: expiredVeScaKey,
     });
+    // v2: Use devInspectTxn (JSON-RPC) to bypass strict gRPC ownership checks
     const renewExpiredVeScaQuickResult =
-      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.devInspectTxn(tx);
     const txResult =
       renewExpiredVeScaQuickResult.Transaction ??
       renewExpiredVeScaQuickResult.FailedTransaction;
@@ -1054,8 +1057,9 @@ describe('Test Scallop VeSca Builder', () => {
       veScaKey: expiredVeScaKey,
     });
 
+    // v2: Use devInspectTxn (JSON-RPC) to bypass strict gRPC ownership checks
     const renewExpiredVeScaQuickResult =
-      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.devInspectTxn(tx);
     const txResult =
       renewExpiredVeScaQuickResult.Transaction ??
       renewExpiredVeScaQuickResult.FailedTransaction;
@@ -1089,8 +1093,9 @@ describe('Test Scallop VeSca Builder', () => {
     const tx = createExpiredEmptyVeScaTx();
 
     await tx.redeemScaQuick({ veScaKey: expiredVeScaKey });
+    // v2: Use devInspectTxn (JSON-RPC) to bypass strict gRPC ownership checks
     const redeemScaQuickResult =
-      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      await scallopBuilder.scallopSuiKit.devInspectTxn(tx);
     const txResult =
       redeemScaQuickResult.Transaction ??
       redeemScaQuickResult.FailedTransaction;
@@ -1108,6 +1113,9 @@ describe('Test Scallop VeSca Builder', () => {
     } = await createVeScasForMergeSplit();
 
     tx.mergeVeSca(targetKey, sourceKey);
+    // v2: simulateTransaction enforces that all Move return values are consumed.
+    // mergeVeSca takes VeScaKeys by &mut reference, so both keys still need to be transferred.
+    tx.transferObjects([targetKey, sourceKey], sender);
 
     const mergeVeScaResult = await scallopBuilder.suiKit.inspectTxn(tx);
     const txResult =
@@ -1121,6 +1129,9 @@ describe('Test Scallop VeSca Builder', () => {
   it('"splitVeSca" should succeed', async () => {
     const { tx, veScaKey } = await createNewVeScaTx();
     const splitVeScaKey = tx.splitVeSca(veScaKey, '0');
+    // v2: simulateTransaction enforces that all Move return values are consumed.
+    // Transfer the new VeScaKey from split AND the original veScaKey (still alive after split by &mut).
+    tx.transferObjects([splitVeScaKey, veScaKey], sender);
     const splitVeScaResult = await scallopBuilder.suiKit.inspectTxn(tx);
     const txResult =
       splitVeScaResult.Transaction ?? splitVeScaResult.FailedTransaction;
@@ -1139,8 +1150,9 @@ describe('Test Scallop Referral Builder', () => {
     const tx = randomBuilder.createTxBlock();
     tx.bindToReferral(veScaReferral);
 
+    // v2: Use devInspectTxn (JSON-RPC) to bypass strict gRPC gas balance checks
     const bindReferralResult =
-      await randomBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      await randomBuilder.scallopSuiKit.devInspectTxn(tx);
     const txResult =
       bindReferralResult.Transaction ?? bindReferralResult.FailedTransaction;
     if (ENABLE_LOG) {
