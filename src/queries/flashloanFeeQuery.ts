@@ -54,7 +54,7 @@ export const queryFlashLoanFees = async (
     (prev, curr) => {
       const jsonData = curr.json as any;
       if (jsonData) {
-        const assetType = `0x${jsonData.name.fields.name}`;
+        const assetType = `0x${jsonData.name?.name}`;
         const assetName = assetTypeMap[assetType];
         if (!assetName) return prev;
 
@@ -78,7 +78,7 @@ export const parseFlashloanFeeObjects = (
     (prev, curr) => {
       const jsonData = curr.json as any;
       if (jsonData) {
-        const assetType = `0x${jsonData.name.fields.name}`;
+        const assetType = `0x${jsonData.name?.name}`;
         const assetName = assetTypeMap[assetType];
         if (!assetName) return prev;
 

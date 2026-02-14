@@ -922,7 +922,7 @@ export const getObligations = async (
     })
   );
 
-  return obligations.slice(0, 5);
+  return obligations;
 };
 
 /**
@@ -1001,34 +1001,20 @@ export const queryObligation = async (
     },
   ];
 
-  const queryResult = await Promise.race([
-    scallopSuiKit.queryInspectTxn({
+  const queryResult = await scallopSuiKit.queryInspectTxn({
+    queryTarget,
+    args,
+    txBlock,
+    keys: queryKeys.rpc.getInspectTxn({
       queryTarget,
-      args,
-      txBlock,
-      keys: queryKeys.rpc.getInspectTxn({
-        queryTarget,
-        args: [version, market, obligationId],
-        node: scallopSuiKit.currentFullNode,
-      }),
+      args: [version, market, obligationId],
+      node: scallopSuiKit.currentFullNode,
     }),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), 1200)),
-  ]).catch(() => null);
+  });
   const tx = queryResult?.Transaction ?? queryResult?.FailedTransaction;
-  const parsed = (tx?.events?.[0] as any)?.parsedJson as
+  return (tx?.events?.[0] as any)?.parsedJson as
     | ObligationQueryInterface
     | undefined;
-  if (parsed) return parsed;
-
-  return {
-    collaterals: [],
-    debts: [],
-    healthFactor: 0,
-    maxBorrowValue: '0',
-    minCollateralValue: '0',
-    totalCollateralValue: '0',
-    totalDebtValue: '0',
-  } as ObligationQueryInterface;
 };
 
 /**
