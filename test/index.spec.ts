@@ -109,11 +109,7 @@ describe('Test Scallop Client - Spool Method', async () => {
       (
         unstakeAndWithdrawResult.Transaction ??
         unstakeAndWithdrawResult.FailedTransaction
-      ).effects?.status.success ||
-        (
-          unstakeAndWithdrawResult.Transaction ??
-          unstakeAndWithdrawResult.FailedTransaction
-        ).effects?.status.success
+      ).effects?.status.success
     ).toBeTruthy();
   });
 
@@ -177,11 +173,7 @@ describe('Test Scallop Client - Borrow incentive Method', async () => {
       (
         unstakeAndWithdrawResult.Transaction ??
         unstakeAndWithdrawResult.FailedTransaction
-      ).effects?.status.success ||
-        (
-          unstakeAndWithdrawResult.Transaction ??
-          unstakeAndWithdrawResult.FailedTransaction
-        ).effects?.status.success
+      ).effects?.status.success
     ).toBeTruthy();
   });
 
