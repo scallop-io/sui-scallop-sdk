@@ -4,11 +4,21 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [2.4.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.0...v2.3.14) (2026-02-16)
 
+### ⚠ BREAKING CHANGES
+
+Migrated to `@mysten/sui@2` and `@scallop-io/sui-kit@2`. Minimum Node.js version is now 22+ (ESM-only).
+
+- Update all API calls to use `SuiGrpcClient` with `client.core.*` namespace ([cf08538](https://github.com/scallop-io/sui-scallop-sdk/commit/cf08538))
+- Change transaction result access from `result.effects.status.status` to `(result.Transaction ?? result.FailedTransaction).status.success` ([075f4c4](https://github.com/scallop-io/sui-scallop-sdk/commit/075f4c4))
+- Change object access from `.data.content` to `.object` and `.json` for field access ([782eeb7](https://github.com/scallop-io/sui-scallop-sdk/commit/782eeb7))
+
 ### Added
 
-### Changed
+- New `devInspectTxn()` method using JSON-RPC to bypass strict gRPC validation checks ([39d8c66](https://github.com/scallop-io/sui-scallop-sdk/commit/39d8c66))
 
 ### Removed
+
+- Nested `.fields` access patterns (v2 auto-unwraps fields from `.json`) ([8884816](https://github.com/scallop-io/sui-scallop-sdk/commit/8884816))
 
 ### [2.3.14](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.13...v2.3.14) (2026-02-02)
 
