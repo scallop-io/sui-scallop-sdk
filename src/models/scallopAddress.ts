@@ -1,10 +1,10 @@
 import { NetworkType } from '@scallop-io/sui-kit';
-import { API_BASE_URL, queryKeys } from 'src/constants';
-import { AddressesInterface, AddressStringPath } from 'src/types';
-import ScallopAxios, { ScallopAxiosParams } from './scallopAxios';
+import { API_BASE_URL, queryKeys } from 'src/constants/index.js';
+import { AddressesInterface, AddressStringPath } from 'src/types/index.js';
+import ScallopAxios, { ScallopAxiosParams } from './scallopAxios.js';
 import { QueryKey } from '@tanstack/query-core';
 import { AxiosRequestConfig } from 'axios';
-import { parseUrl } from 'src/utils';
+import { parseUrl } from 'src/utils/index.js';
 
 export type ScallopAddressParams = {
   addressId?: string;

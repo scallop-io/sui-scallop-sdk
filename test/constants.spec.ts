@@ -5,8 +5,8 @@ import {
   TEST_ADDRESSES,
   WHITELIST,
   Whitelist,
-} from 'src';
-import { scallopSDK } from './scallopSdk';
+} from 'src/index.js';
+import { scallopSDK } from './scallopSdk.js';
 
 // const ENABLE_LOG = false;
 let scallopConstants: ScallopConstants;

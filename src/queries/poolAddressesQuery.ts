@@ -1,62 +1,40 @@
-import { getFullnodeUrl, SuiClient, SuiParsedData } from '@mysten/sui/client';
-import { AddressesInterface, OptionalKeys, PoolAddress } from 'src/types';
-
-const RPC_PROVIDERS = [
-  getFullnodeUrl('mainnet'),
-  'https://sui-mainnet-ca-2.cosmostation.io',
-  'https://sui-mainnet-eu-4.cosmostation.io',
-  'https://sui-mainnet-endpoint.blockvision.org',
-  'https://sui-rpc.publicnode.com',
-  'https://sui-mainnet-rpc.allthatnode.com',
-  'https://mainnet.suiet.app',
-  'https://mainnet.sui.rpcpool.com',
-  'https://sui1mainnet-rpc.chainode.tech',
-  'https://fullnode.mainnet.apis.scallop.io',
-  'https://sui-mainnet-us-2.cosmostation.io',
-];
-
-const tryRequest = async <T>(fn: (client: SuiClient) => T) => {
-  for (const rpc of RPC_PROVIDERS) {
-    try {
-      const res = await fn(new SuiClient({ url: rpc }));
-      return res;
-    } catch (e: any) {
-      if (e.status !== 429) {
-        throw e;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
-  throw new Error('Failed to fetch data');
-};
+import type {
+  AddressesInterface,
+  OptionalKeys,
+  PoolAddress,
+  SuiParsedData,
+} from 'src/types/index.js';
+import type { ClientWithCoreApi } from '@mysten/sui/client';
+import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 
 const queryFlashloanFeeObjectIds = async (
-  client: SuiClient,
+  client: ClientWithCoreApi,
   coinTypeMap: Set<string>, // set of coin types
   flashloanFeeTableId: string = '0x00481a93b819d744a7d79ecdc6c62c74f2f7cb4779316c4df640415817ac61bb'
 ) => {
   let cursor: string | null | undefined = null;
-  let nextPage: boolean = false;
+  let hasNextPage: boolean = false;
   const flashloanFeeObjectIds: Record<string, string> = {}; // <coinType, flashloanFeeObjectId>
 
   do {
-    const resp = await client.getDynamicFields({
+    const resp = await client.core.listDynamicFields({
       parentId: flashloanFeeTableId,
       limit: 10,
       cursor,
     });
     if (!resp) break;
-    const { data, hasNextPage, nextCursor } = resp;
-    // get the dynamic object ids
-    data.forEach((field) => {
+
+    const fields = resp.dynamicFields;
+    fields.forEach((field: any) => {
       const assetType = `0x${(field.name.value as any).name as string}`;
       if (coinTypeMap.has(assetType)) {
-        flashloanFeeObjectIds[assetType] = field.objectId;
+        flashloanFeeObjectIds[assetType] = field.fieldId;
       }
     });
-    nextPage = hasNextPage;
-    cursor = nextCursor;
-  } while (nextPage);
+
+    hasNextPage = resp.hasNextPage;
+    cursor = resp.cursor;
+  } while (hasNextPage);
 
   return flashloanFeeObjectIds;
 };
@@ -66,27 +44,26 @@ type FetchDynamicObjectReturnType<T extends boolean> = T extends true
   : (SuiParsedData & { dataType: 'moveObject' }) | null | undefined;
 
 const fetchDynamicObject = async <S extends boolean>(
+  client: ClientWithCoreApi,
   parentId: string,
   type: string,
   value: any,
   returnObjId: S = true as S
 ): Promise<FetchDynamicObjectReturnType<S>> => {
-  const res = (
-    await tryRequest(async (client) => {
-      return await client.getDynamicFieldObject({
-        parentId,
-        name: {
-          type,
-          value,
-        },
-      });
-    })
-  ).data;
-  if (returnObjId) return res?.objectId as FetchDynamicObjectReturnType<S>;
-  else return res?.content as FetchDynamicObjectReturnType<S>;
+  const nameParam = encodeDynamicFieldNameForV2({ type, value });
+  const res = await client.core.getDynamicObjectField({
+    parentId,
+    name: nameParam,
+    include: { content: true, json: true },
+  });
+
+  const object = res?.object;
+  if (returnObjId) return object?.objectId as FetchDynamicObjectReturnType<S>;
+  else return object?.json as FetchDynamicObjectReturnType<S>;
 };
 
 export const getPoolAddresses = async (
+  client: ClientWithCoreApi,
   addressId: string,
   poolNames: string[] = []
 ) => {
@@ -123,34 +100,26 @@ export const getPoolAddresses = async (
 
   const marketId = addressApiResponse.core.market;
   const marketObject = (
-    await tryRequest(async (client) => {
-      return await client.getObject({
-        id: marketId,
-        options: {
-          showContent: true,
-        },
-      });
+    await client.core.getObject({
+      objectId: marketId,
+      include: { content: true, json: true },
     })
-  ).data;
+  )?.object;
 
-  if (!(marketObject && marketObject.content?.dataType === 'moveObject'))
+  if (!(marketObject && marketObject.json))
     throw new Error(`Failed to fetch marketObject`);
 
-  const fields = marketObject.content.fields as any;
+  const fields = marketObject.json as any;
 
-  const balanceSheetParentId =
-    fields.vault.fields.balance_sheets.fields.table.fields.id.id;
+  const balanceSheetParentId = fields.vault.balance_sheets.table.id;
 
-  const collateralStatsParentId =
-    fields.collateral_stats.fields.table.fields.id.id;
+  const collateralStatsParentId = fields.collateral_stats.table.id;
 
-  const borrowDynamicsParentid =
-    fields.borrow_dynamics.fields.table.fields.id.id;
+  const borrowDynamicsParentid = fields.borrow_dynamics.table.id;
 
-  const interestModelParentId =
-    fields.interest_models.fields.table.fields.id.id;
+  const interestModelParentId = fields.interest_models.table.id;
 
-  const riskModelParentId = fields.risk_models.fields.table.fields.id.id;
+  const riskModelParentId = fields.risk_models.table.id;
 
   const ADDRESS_TYPE = `0x1::type_name::TypeName`;
   const BORROW_FEE_TYPE = `0xc38f849e81cfe46d4e4320f508ea7dda42934a329d5a6571bb4c3cb6ea63f5da::market_dynamic_keys::BorrowFeeKey`;
@@ -159,18 +128,17 @@ export const getPoolAddresses = async (
   const ISOLATED_ASSET_KEY = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da26c7221b220f01af6::market_dynamic_keys::IsolatedAssetKey`;
 
   // query flashloan fee objects first
-  const flashloanFeeObjectIds = await tryRequest(async (client) => {
-    return await queryFlashloanFeeObjectIds(
-      client,
-      new Set(coinTypesPairs.map(([, coinType]) => coinType))
-    );
-  });
+  const flashloanFeeObjectIds = await queryFlashloanFeeObjectIds(
+    client,
+    new Set(coinTypesPairs.map(([, coinType]) => coinType))
+  );
 
   await Promise.all(
     coinTypesPairs.map(async ([coinName, coinType]) => {
       const coinTypeKey = coinType.slice(2);
       const addresses = await Promise.all([
         fetchDynamicObject(
+          client,
           balanceSheetParentId,
           ADDRESS_TYPE,
           {
@@ -179,6 +147,7 @@ export const getPoolAddresses = async (
           true
         ),
         fetchDynamicObject(
+          client,
           collateralStatsParentId,
           ADDRESS_TYPE,
           {
@@ -187,6 +156,7 @@ export const getPoolAddresses = async (
           true
         ),
         fetchDynamicObject(
+          client,
           borrowDynamicsParentid,
           ADDRESS_TYPE,
           {
@@ -195,6 +165,7 @@ export const getPoolAddresses = async (
           true
         ),
         fetchDynamicObject(
+          client,
           interestModelParentId,
           ADDRESS_TYPE,
           {
@@ -203,6 +174,7 @@ export const getPoolAddresses = async (
           true
         ),
         fetchDynamicObject(
+          client,
           riskModelParentId,
           ADDRESS_TYPE,
           {
@@ -210,10 +182,34 @@ export const getPoolAddresses = async (
           },
           true
         ),
-        fetchDynamicObject(marketId, BORROW_FEE_TYPE, coinTypeKey, true),
-        fetchDynamicObject(marketId, SUPPLY_LIMIT_TYPE, coinTypeKey, true),
-        fetchDynamicObject(marketId, BORROW_LIMIT_TYPE, coinTypeKey, true),
-        fetchDynamicObject(marketId, ISOLATED_ASSET_KEY, coinTypeKey, false),
+        fetchDynamicObject(
+          client,
+          marketId,
+          BORROW_FEE_TYPE,
+          coinTypeKey,
+          true
+        ),
+        fetchDynamicObject(
+          client,
+          marketId,
+          SUPPLY_LIMIT_TYPE,
+          coinTypeKey,
+          true
+        ),
+        fetchDynamicObject(
+          client,
+          marketId,
+          BORROW_LIMIT_TYPE,
+          coinTypeKey,
+          true
+        ),
+        fetchDynamicObject(
+          client,
+          marketId,
+          ISOLATED_ASSET_KEY,
+          coinTypeKey,
+          false
+        ),
       ]);
 
       // @ts-ignore
@@ -276,12 +272,10 @@ export const getPoolAddresses = async (
 
       const decimals =
         (
-          await tryRequest(async (client) => {
-            return await client.getCoinMetadata({
-              coinType: coinType,
-            });
+          await client.core.getCoinMetadata({
+            coinType,
           })
-        )?.decimals ?? 0;
+        )?.coinMetadata?.decimals ?? 0;
       const spoolName = spoolData ? `s${coinName}` : undefined;
 
       results[coinName] = {

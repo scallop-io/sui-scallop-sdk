@@ -6,9 +6,9 @@ import {
   calculateSpoolRewardPoolData,
   parseObjectAs,
   partitionArray,
-} from 'src/utils';
-import type { SuiObjectData, SuiObjectResponse } from '@mysten/sui/client';
-import type { ScallopQuery, ScallopUtils } from 'src/models';
+} from 'src/utils/index.js';
+import type { ScallopQuery, ScallopUtils } from 'src/models/index.js';
+import type { SuiObjectData } from 'src/types/index.js';
 import type {
   Spools,
   Spool,
@@ -20,7 +20,7 @@ import type {
   OriginSpoolRewardPoolData,
   SpoolData,
   OriginSpoolData,
-} from '../types';
+} from '../types/index.js';
 
 const queryRequiredSpoolObjects = async (
   query: ScallopQuery,
@@ -298,7 +298,7 @@ export const getStakeAccounts = async (
   const owner = ownerAddress || utils.suiKit.currentAddress;
   const spoolObjectId = utils.address.get('spool.object');
   const stakeAccountType = `${spoolObjectId}::spool_account::SpoolAccount`;
-  const stakeObjectsResponse: SuiObjectResponse[] = [];
+  const stakeObjectsResponse: SuiObjectData[] = [];
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
   do {
@@ -307,21 +307,23 @@ export const getStakeAccounts = async (
         owner,
         filter: { StructType: stakeAccountType },
         options: {
-          showContent: true,
-          showType: true,
+          content: true,
+          json: true,
         },
         cursor: nextCursor,
         limit: 10,
       });
-    if (!paginatedStakeObjectsResponse) continue;
+    if (!paginatedStakeObjectsResponse) break;
 
-    stakeObjectsResponse.push(...paginatedStakeObjectsResponse.data);
+    if (paginatedStakeObjectsResponse.objects)
+      stakeObjectsResponse.push(...paginatedStakeObjectsResponse.objects);
+
     if (
       paginatedStakeObjectsResponse.hasNextPage &&
-      paginatedStakeObjectsResponse.nextCursor
+      paginatedStakeObjectsResponse.cursor
     ) {
       hasNextPage = true;
-      nextCursor = paginatedStakeObjectsResponse.nextCursor;
+      nextCursor = paginatedStakeObjectsResponse.cursor;
     } else {
       hasNextPage = false;
     }
@@ -359,17 +361,17 @@ export const getStakeAccounts = async (
     {} as Record<string, string>
   );
 
-  for (const stakeObject of stakeObjectsResponse.map((ref) => ref.data)) {
+  for (const stakeObject of stakeObjectsResponse) {
     const id = stakeObject?.objectId;
     const type = stakeObject?.type!;
-    if (id && stakeObject?.content && 'fields' in stakeObject.content) {
-      const fields = stakeObject.content.fields as any;
-      const stakePoolId = String(fields.spool_id);
-      const stakeType = String(fields.stake_type.fields.name);
-      const staked = Number(fields.stakes);
-      const index = Number(fields.index);
-      const points = Number(fields.points);
-      const totalPoints = Number(fields.total_points);
+    if (id && stakeObject?.json) {
+      const json = stakeObject.json as any;
+      const stakePoolId = String(json.spool_id);
+      const stakeType = String(json.stake_type.name);
+      const staked = Number(json.stakes);
+      const index = Number(json.index);
+      const points = Number(json.points);
+      const totalPoints = Number(json.total_points);
 
       const stakeMarketCoinTypeMap: Record<string, StakeAccounts[string]> = {
         sweth: stakeAccounts.sweth,
@@ -427,18 +429,19 @@ export const getStakePool = async (
   let stakePool: StakePool | undefined = undefined;
   const stakePoolObjectResponse =
     await utils.scallopSuiKit.queryGetObject(poolId);
-  if (stakePoolObjectResponse?.data) {
-    const stakePoolObject = stakePoolObjectResponse.data;
+  if (stakePoolObjectResponse?.object) {
+    const stakePoolObject = stakePoolObjectResponse.object;
     const id = stakePoolObject.objectId;
     const type = stakePoolObject.type!;
-    if (stakePoolObject.content && 'fields' in stakePoolObject.content) {
-      const fields = stakePoolObject.content.fields as any;
+    const json = stakePoolObject.json as any;
+    if (json) {
+      const fields = json;
       const maxPoint = Number(fields.max_distributed_point);
       const distributedPoint = Number(fields.distributed_point);
       const pointPerPeriod = Number(fields.distributed_point_per_period);
       const period = Number(fields.point_distribution_time);
       const maxStake = Number(fields.max_stakes);
-      const stakeType = String(fields.stake_type.fields.name);
+      const stakeType = String(fields.stake_type.name);
       const totalStaked = Number(fields.stakes);
       const index = Number(fields.index);
       const createdAt = Number(fields.created_at);
@@ -488,15 +491,13 @@ export const getStakeRewardPool = async (
   const stakeRewardPoolObjectResponse =
     await utils.scallopSuiKit.queryGetObject(poolId);
 
-  if (stakeRewardPoolObjectResponse?.data) {
-    const stakeRewardPoolObject = stakeRewardPoolObjectResponse.data;
+  if (stakeRewardPoolObjectResponse?.object) {
+    const stakeRewardPoolObject = stakeRewardPoolObjectResponse.object;
     const id = stakeRewardPoolObject.objectId;
     const type = stakeRewardPoolObject.type!;
-    if (
-      stakeRewardPoolObject.content &&
-      'fields' in stakeRewardPoolObject.content
-    ) {
-      const rewardPoolFields = stakeRewardPoolObject.content.fields as any;
+    const json = stakeRewardPoolObject.json as any;
+    if (json) {
+      const rewardPoolFields = json;
       const stakePoolId = String(rewardPoolFields.spool_id);
       const ratioNumerator = Number(rewardPoolFields.exchange_rate_numerator);
       const ratioDenominator = Number(

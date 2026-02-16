@@ -1,7 +1,7 @@
-export type * from './borrowIncentive';
-export type * from './core';
-export type * from './loyaltyProgram';
-export type * from './portfolio';
-export type * from './sCoin';
-export type * from './spool';
-export type * from './vesca';
+export type * from './borrowIncentive.js';
+export type * from './core.js';
+export type * from './loyaltyProgram.js';
+export type * from './portfolio.js';
+export type * from './sCoin.js';
+export type * from './spool.js';
+export type * from './vesca.js';

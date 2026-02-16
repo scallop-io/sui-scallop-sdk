@@ -4,8 +4,8 @@ import type {
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import type { ScallopBuilder } from '../../models';
-import { SuiTxBlockWithSCoin } from '.';
+import type { ScallopBuilder } from '../../models/index.js';
+import { SuiTxBlockWithSCoin } from './index.js';
 
 export type SpoolIds = {
   spoolPkg: string;

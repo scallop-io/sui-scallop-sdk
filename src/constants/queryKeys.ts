@@ -1,4 +1,4 @@
-import { QueryKeys } from 'src/types/constant/queryKeys';
+import { QueryKeys } from 'src/types/constant/queryKeys.js';
 
 export const queryKeys = {
   api: {

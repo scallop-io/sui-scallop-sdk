@@ -1,11 +1,11 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { getObligations } from '../queries';
-import { updateOracles } from './oracles';
-import { requireSender } from '../utils';
+import { getObligations } from '../queries/index.js';
+import { updateOracles } from './oracles/index.js';
+import { requireSender } from '../utils/index.js';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
-import type { ScallopBuilder } from 'src/models';
+import type { ScallopBuilder } from 'src/models/index.js';
 import type {
   CoreIds,
   GenerateCoreNormalMethod,
@@ -15,7 +15,7 @@ import type {
   ScallopTxBlock,
   NestedResult,
   SuiTxBlockWithSpool,
-} from 'src/types';
+} from 'src/types/index.js';
 
 /**
  * Check and get Obligation information from transaction block.

@@ -1,9 +1,9 @@
-import ScallopAddress from './scallopAddress';
-import ScallopBuilder from './scallopBuilder';
-import ScallopConstants from './scallopConstants';
-import ScallopQuery from './scallopQuery';
-import ScallopSuiKit from './scallopSuiKit';
-import ScallopUtils from './scallopUtils';
+import ScallopAddress from './scallopAddress.js';
+import ScallopBuilder from './scallopBuilder.js';
+import ScallopConstants from './scallopConstants.js';
+import ScallopQuery from './scallopQuery.js';
+import ScallopSuiKit from './scallopSuiKit.js';
+import ScallopUtils from './scallopUtils.js';
 
 interface ScallopBaseInterface {
   scallopSuiKit: ScallopSuiKit;

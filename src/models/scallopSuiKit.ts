@@ -8,8 +8,11 @@ import {
   SuiTxBlock,
   Transaction,
 } from '@scallop-io/sui-kit';
-import { queryKeys } from 'src/constants';
-import {
+import { SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
+import { queryKeys } from 'src/constants/index.js';
+import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
+import { newSuiKit } from 'src/models/suiKit.js';
+import type {
   CoinBalance,
   DevInspectResults,
   DynamicFieldPage,
@@ -17,16 +20,16 @@ import {
   GetDynamicFieldObjectParams,
   GetDynamicFieldsParams,
   GetOwnedObjectsParams,
+  PaginatedObjectsResponse,
   SuiObjectData,
   SuiObjectDataOptions,
   SuiObjectResponse,
-} from '@mysten/sui/client';
-import { newSuiKit } from 'src/models/suiKit';
+} from 'src/types/index.js';
 import { QueryKey } from '@tanstack/query-core';
 import ScallopQueryClient, {
   ScallopQueryClientParams,
-} from './scallopQueryClient';
-import { RateLimiter } from './rateLimiter';
+} from './scallopQueryClient.js';
+import { RateLimiter } from './rateLimiter.js';
 
 type QueryInspectTxnParams = {
   queryTarget: string;
@@ -141,11 +144,10 @@ class ScallopSuiKit extends ScallopQueryClient {
     return await this.callWithRateLimiter(
       queryKeys.rpc.getNormalizedMoveFunction({ target }),
       () =>
-        this.client.getNormalizedMoveFunction({
-          // Wrapped in function
-          package: address,
-          module,
-          function: name,
+        this.client.core.getMoveFunction({
+          packageId: address,
+          moduleName: module,
+          name,
         })
     );
   }
@@ -157,22 +159,21 @@ class ScallopSuiKit extends ScallopQueryClient {
    * @returns Promise<SuiObjectResponse>
    */
   async queryGetObject(objectId: string, options?: SuiObjectDataOptions) {
-    options = {
+    const includeOptions: SuiObjectDataOptions = {
+      content: true,
+      json: true,
       ...options,
-      showOwner: true,
-      showContent: true,
-      showType: true,
     };
     return await this.callWithRateLimiter(
       queryKeys.rpc.getObject({
         objectId,
-        options,
+        options: includeOptions,
         node: this.currentFullNode,
       }),
       () =>
-        this.client.getObject({
-          id: objectId,
-          options,
+        this.client.core.getObject({
+          objectId,
+          include: includeOptions,
         })
     );
   }
@@ -187,10 +188,10 @@ class ScallopSuiKit extends ScallopQueryClient {
     options?: SuiObjectDataOptions
   ): Promise<SuiObjectData[]> {
     if (objectIds.length === 0) return [];
-    options ??= {
-      showContent: true,
-      showOwner: true,
-      showType: true,
+    const includeOptions: SuiObjectDataOptions = {
+      content: true,
+      json: true,
+      ...options,
     };
 
     const results = await this.callWithRateLimiter(
@@ -200,9 +201,7 @@ class ScallopSuiKit extends ScallopQueryClient {
       }),
       () =>
         this.suiKit.getObjects(objectIds, {
-          showOwner: options?.showOwner,
-          showContent: options?.showContent,
-          showType: options?.showType,
+          include: includeOptions,
         })
     );
 
@@ -218,11 +217,11 @@ class ScallopSuiKit extends ScallopQueryClient {
       });
       prevDatas.forEach(([key, prevData]) => {
         if (!prevData) {
-          prevData = { data: prevData };
+          prevData = { object: null };
         }
         this.queryClient.setQueryData(
           key,
-          deepMergeObject(prevData, { data: result, error: null }),
+          deepMergeObject(prevData, { object: result }),
           { updatedAt: Date.now() }
         );
       });
@@ -235,35 +234,39 @@ class ScallopSuiKit extends ScallopQueryClient {
    * @param input
    * @returns Promise<PaginatedObjectsResponse>
    */
-  async queryGetOwnedObjects(input: GetOwnedObjectsParams) {
+  async queryGetOwnedObjects(
+    input: GetOwnedObjectsParams
+  ): Promise<PaginatedObjectsResponse<SuiObjectData> | null> {
     // @TODO: This query need its own separate rate limiter (as owned objects can theoretically be infinite), need a better way to handle this
     const results = await this.callWithRateLimiter(
       queryKeys.rpc.getOwnedObjects(input),
-      () => this.client.getOwnedObjects(input)
+      () =>
+        this.client.core.listOwnedObjects({
+          owner: input.owner,
+          type: input.filter?.StructType ?? undefined,
+          include: input.options,
+          cursor: input.cursor ?? undefined,
+          limit: input.limit ?? undefined,
+        })
     );
 
-    if (results && results.data.length > 0) {
-      results.data
-        .filter(
-          (
-            result
-          ): result is typeof result & NonNullable<{ data: SuiObjectData }> =>
-            !!result.data
-        )
-        .forEach((result) => {
+    if (results && results.objects && results.objects.length > 0) {
+      results.objects
+        .filter((result): result is NonNullable<typeof result> => !!result)
+        .forEach((result: any) => {
           // fetch previous data
           const queryKey = queryKeys.rpc.getObject({
-            objectId: result.data.objectId,
+            objectId: result.objectId,
             node: this.currentFullNode,
           });
           const prevDatas = this.queryClient.getQueriesData<SuiObjectResponse>({
             exact: false,
             queryKey,
           });
-          prevDatas.forEach(([key, prevData]) => {
+          prevDatas.forEach(([key, prevData]: any) => {
             this.queryClient.setQueryData(
               key,
-              deepMergeObject(prevData, { data: result.data, error: null }),
+              deepMergeObject(prevData, { object: result }),
               { updatedAt: Date.now() }
             );
           });
@@ -275,23 +278,47 @@ class ScallopSuiKit extends ScallopQueryClient {
   async queryGetDynamicFields(
     input: GetDynamicFieldsParams
   ): Promise<DynamicFieldPage | null> {
+    const params = {
+      ...input,
+      limit: input.limit ?? undefined,
+    };
     return await this.callWithRateLimiter(
       queryKeys.rpc.getDynamicFields(input),
-      () => this.client.getDynamicFields(input)
+      () => this.client.core.listDynamicFields(params)
     );
   }
 
   async queryGetDynamicFieldObject(
     input: GetDynamicFieldObjectParams
   ): Promise<SuiObjectResponse | null> {
+    if (!input.parentId) {
+      throw new Error(
+        'queryGetDynamicFieldObject: parentId is required (got undefined). Check that the parent object has the expected structure (e.g. table.id.id).'
+      );
+    }
+    // v2: Convert { type, value } to { type, bcs }
+    const nameParam = encodeDynamicFieldNameForV2(input.name);
+
     const result = await this.callWithRateLimiter(
       queryKeys.rpc.getDynamicFieldObject(input),
-      () => this.client.getDynamicFieldObject(input)
+      async () => {
+        const { dynamicField } = await this.client.core.getDynamicField({
+          parentId: input.parentId,
+          name: nameParam,
+        });
+        return await this.client.core.getObject({
+          objectId: dynamicField.fieldId,
+          include: {
+            content: true,
+            json: true,
+          },
+        });
+      }
     );
 
-    if (result?.data) {
+    if (result?.object) {
       const queryKey = queryKeys.rpc.getObject({
-        objectId: result.data.objectId,
+        objectId: result.object.objectId,
         node: this.currentFullNode,
       });
       const prevDatas = this.queryClient.getQueriesData<SuiObjectResponse>({
@@ -299,11 +326,9 @@ class ScallopSuiKit extends ScallopQueryClient {
         queryKey,
       });
       prevDatas.forEach(([key, prevData]) => {
-        this.queryClient.setQueryData(
-          key,
-          deepMergeObject(prevData, { data: result.data, error: null }),
-          { updatedAt: Date.now() }
-        );
+        this.queryClient.setQueryData(key, deepMergeObject(prevData, result), {
+          updatedAt: Date.now(),
+        });
       });
     }
     return result;
@@ -318,13 +343,30 @@ class ScallopSuiKit extends ScallopQueryClient {
         node: this.currentFullNode,
       }),
       async () => {
-        const allBalances = await this.client.getAllBalances({ owner });
-        if (!allBalances) return {};
+        const allBalances: { coinType: string; balance: string }[] = [];
+        let cursor: string | null = null;
+        let hasNextPage = true;
+
+        while (hasNextPage) {
+          const result = await this.client.core.listBalances({
+            owner,
+            cursor,
+            limit: 100,
+          });
+          allBalances.push(...(result.balances ?? []));
+          hasNextPage = result.hasNextPage;
+          cursor = result.cursor;
+        }
+
+        if (!allBalances.length) return {};
 
         const balances = allBalances.reduce(
           (acc, coinBalance) => {
-            if (coinBalance.totalBalance !== '0') {
-              acc[normalizeStructTag(coinBalance.coinType)] = coinBalance;
+            if (coinBalance.balance !== '0') {
+              acc[normalizeStructTag(coinBalance.coinType)] = {
+                coinType: coinBalance.coinType,
+                balance: coinBalance.balance,
+              };
             }
             return acc;
           },
@@ -365,13 +407,14 @@ class ScallopSuiKit extends ScallopQueryClient {
       (args ?? []).map(async (arg) => {
         if (typeof arg !== 'string') return arg;
 
-        const cachedData = (await this.queryGetObject(arg))?.data;
+        const objectResponse = await this.queryGetObject(arg);
+        const cachedData = objectResponse?.object;
         if (!cachedData) return arg;
 
         return cachedData;
       })
     );
-    txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
+    txBlock.moveCall(queryTarget, resolvedArgs as any, typeArgs);
 
     return await this.callWithRateLimiter(
       keys ??
@@ -383,8 +426,40 @@ class ScallopSuiKit extends ScallopQueryClient {
           typeArgs,
           node: this.currentFullNode,
         }),
-      () => this.suiKit.inspectTxn(txBlock)
+      () => this.devInspectTxn(txBlock)
     );
+  }
+
+  /**
+   * v2: Use JSON-RPC devInspectTransactionBlock for read-only simulation.
+   * Bypasses strict gRPC simulateTransaction (ownership/gas checks).
+   */
+  async devInspectTxn(txBlock: SuiTxBlock): Promise<DevInspectResults> {
+    const jsonRpcClient = new SuiJsonRpcClient({
+      url: this.suiKit.suiInteractor.currentFullNode,
+      network: this.suiKit.client.network,
+    });
+    const senderAddr = this.suiKit.getAddress();
+    txBlock.setSender(senderAddr);
+    const result = await jsonRpcClient.devInspectTransactionBlock({
+      transactionBlock: txBlock.txBlock,
+      sender: senderAddr,
+    });
+    // Adapt v1 JSON-RPC response to v2 format
+    const success = result.effects?.status?.status === 'success';
+    const txData = {
+      ...result,
+      effects: {
+        ...result.effects,
+        status: { success, error: result.effects?.status?.error },
+      },
+    };
+    return (success
+      ? { Transaction: txData, FailedTransaction: undefined }
+      : {
+          Transaction: undefined,
+          FailedTransaction: txData,
+        }) as unknown as DevInspectResults;
   }
 }
 

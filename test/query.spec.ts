@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { isValidSuiAddress } from '@scallop-io/sui-kit';
 import { z as zod } from 'zod';
-import { scallopSDK } from './scallopSdk';
-import { ScallopQuery } from 'src/models';
-import BigNumber from 'bignumber.js';
+import { scallopSDK } from './scallopSdk.js';
+import { ScallopQuery } from 'src/models/index.js';
+import { BigNumber } from 'bignumber.js';
 
 const ENABLE_LOG = false;
 let obligationId: string | null;

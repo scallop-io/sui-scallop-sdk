@@ -1,4 +1,4 @@
-import type { CoinWrappedType } from '../constant';
+import type { CoinWrappedType } from '../constant/index.js';
 
 type OptionalKeys<T> = {
   [K in keyof T]?: T[K];
@@ -21,9 +21,7 @@ export type BalanceSheet = {
 export type BorrowDynamic = {
   borrow_index: string;
   interest_rate: {
-    fields: {
-      value: string;
-    };
+    value: string;
   };
   interest_rate_scale: string;
   last_updated: string;
@@ -33,80 +31,58 @@ export type BorrowFee = { value: string };
 
 export type InterestModel = {
   base_borrow_rate_per_sec: {
-    fields: {
-      value: string;
-    };
+    value: string;
   };
   borrow_rate_on_high_kink: {
-    fields: {
-      value: string;
-    };
+    value: string;
   };
   borrow_rate_on_mid_kink: {
-    fields: {
-      value: string;
-    };
+    value: string;
   };
   borrow_weight: {
-    fields: {
-      value: string;
-    };
+    value: string;
   };
   borrow_fee_rate: {
-    fields: {
-      value: string;
-    };
+    value: string;
   };
   high_kink: {
-    fields: {
-      value: string;
-    };
+    value: string;
   };
   interest_rate_scale: string;
   max_borrow_rate: {
-    fields: {
-      value: string;
-    };
+    value: string;
   };
   mid_kink: {
-    fields: {
-      value: string;
-    };
+    value: string;
   };
   min_borrow_amount: string;
   revenue_factor: {
-    fields: {
-      value: string;
-    };
+    value: string;
   };
   type: {
-    fields: {
-      name: string;
-    };
+    name: string;
   };
 };
 
 export type RiskModel = {
   collateral_factor: {
-    fields: { value: string };
+    value: string;
   };
   liquidation_discount: {
-    fields: { value: string };
+    value: string;
   };
   liquidation_factor: {
-    fields: { value: string };
+    value: string;
   };
   liquidation_penalty: {
-    fields: { value: string };
+    value: string;
   };
   liquidation_revenue_factor: {
-    fields: { value: string };
+    value: string;
   };
   max_collateral_amount: string;
   type: {
-    fields: {
-      name: string;
-    };
+    name: string;
   };
 };
 

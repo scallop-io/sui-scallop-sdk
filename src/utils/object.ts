@@ -1,5 +1,5 @@
-import { SuiObjectData } from '@mysten/sui/client';
-import { ScallopSuiKit } from 'src/models';
+import type { SuiObjectData } from 'src/types/index.js';
+import { ScallopSuiKit } from 'src/models/index.js';
 
 const parseObjectData = (data: SuiObjectData) => {
   if (
@@ -8,12 +8,16 @@ const parseObjectData = (data: SuiObjectData) => {
     'owner' in data &&
     data.owner &&
     typeof data.owner === 'object' &&
+    '$kind' in data.owner &&
+    (data.owner as any).$kind === 'Shared' &&
     'Shared' in data.owner &&
-    'initial_shared_version' in data.owner.Shared
+    'initialSharedVersion' in (data.owner as any).Shared
   ) {
     return {
       objectId: data.objectId,
-      initialSharedVersion: data.owner.Shared.initial_shared_version.toString(),
+      initialSharedVersion: (
+        data.owner as any
+      ).Shared.initialSharedVersion.toString(),
     };
   }
 
@@ -26,10 +30,13 @@ export const getSharedObjectData = async (
 ) => {
   if (typeof object === 'string') {
     const objectData = await scallopSuiKit.queryGetObject(object, {
-      showOwner: true,
-      showContent: false,
+      json: true,
+      content: false,
     });
-    return parseObjectData(objectData.data!);
+    if (!objectData?.object) {
+      throw new Error('Failed to get object data');
+    }
+    return parseObjectData(objectData.object);
   } else {
     return parseObjectData(object);
   }

@@ -1,4 +1,5 @@
-import type { ScallopAddress, ScallopSuiKit } from 'src/models';
+import type { ScallopAddress, ScallopSuiKit } from 'src/models/index.js';
+import { parseObjectAs } from 'src/utils/index.js';
 
 /**
  * Query the veScaKeyId from the referral bindings table using the borrower address
@@ -24,9 +25,18 @@ export const queryVeScaKeyIdFromReferralBindings = async (
     },
   });
 
-  if (referralBindResponse?.data?.content?.dataType !== 'moveObject')
-    return null;
+  const referralBindObject = referralBindResponse?.object;
+  if (!referralBindObject) return null;
 
-  const fields = referralBindResponse.data.content.fields as any;
-  return fields.value;
+  const value = parseObjectAs<unknown>(referralBindObject);
+  if (typeof value === 'string') return value;
+
+  if (value && typeof value === 'object') {
+    const asObj = value as Record<string, unknown>;
+    if (typeof asObj.id === 'string') return asObj.id;
+    const nestedId = (asObj.id as Record<string, unknown> | undefined)?.id;
+    if (typeof nestedId === 'string') return nestedId;
+  }
+
+  return null;
 };

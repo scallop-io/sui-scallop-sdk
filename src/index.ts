@@ -1,4 +1,4 @@
-export * from './constants';
+export * from './constants/index.js';
 export {
   Scallop,
   ScallopConstants,
@@ -9,5 +9,5 @@ export {
   ScallopClient,
   ScallopIndexer,
   ScallopUtils,
-} from './models';
-export type * from './types';
+} from './models/index.js';
+export type * from './types/index.js';

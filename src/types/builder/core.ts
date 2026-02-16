@@ -3,9 +3,13 @@ import type {
   SuiObjectArg,
   SuiTxArg,
 } from '@scallop-io/sui-kit';
-import type { Argument, TransactionResult } from '@mysten/sui/transactions';
-import { SuiTxBlockWithSpool } from '.';
-import { ScallopBuilder } from 'src/models';
+import type {
+  Argument,
+  TransactionResult,
+  Transaction,
+} from '@mysten/sui/transactions';
+import { SuiTxBlockWithSpool } from './index.js';
+import { ScallopBuilder } from 'src/models/index.js';
 
 export type CoreIds = {
   protocolPkg: string;
@@ -16,6 +20,11 @@ export type CoreIds = {
 };
 
 export type NestedResult = Extract<Argument, { $kind: 'NestedResult' }>;
+
+/** Transaction command from getData().commands (MoveCall, TransferObjects, etc.) */
+export type TransactionCommand = ReturnType<
+  Transaction['getData']
+>['commands'][number];
 type Obligation = NestedResult;
 type ObligationKey = NestedResult;
 type ObligationHotPotato = NestedResult;

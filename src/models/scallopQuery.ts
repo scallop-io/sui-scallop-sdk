@@ -1,6 +1,6 @@
-import ScallopUtils, { ScallopUtilsParams } from './scallopUtils';
-import ScallopIndexer, { ScallopIndexerParams } from './scallopIndexer';
-import { withIndexerFallback } from 'src/utils';
+import ScallopUtils, { ScallopUtilsParams } from './scallopUtils.js';
+import ScallopIndexer, { ScallopIndexerParams } from './scallopIndexer.js';
+import { withIndexerFallback } from 'src/utils/index.js';
 import {
   CoinPrices,
   MarketCollaterals,
@@ -8,9 +8,11 @@ import {
   MarketPools,
   StakePools,
   StakeRewardPools,
+  SuiObjectData,
   SupportOracleType,
+  SuiObjectRef,
   xOracleRules,
-} from 'src/types';
+} from 'src/types/index.js';
 import {
   getAllCoinPrices,
   getAssetOracles,
@@ -57,10 +59,9 @@ import {
   queryMarket,
   queryObligation,
   queryVeScaKeyIdFromReferralBindings,
-} from 'src/queries';
-import { SuiObjectRef, SuiObjectData } from '@mysten/sui/client';
+} from 'src/queries/index.js';
 import { SuiObjectArg } from '@scallop-io/sui-kit';
-import { ScallopQueryInterface } from './interface';
+import { ScallopQueryInterface } from './interface.js';
 
 export type ScallopQueryParams = {
   indexer?: ScallopIndexer;
@@ -900,7 +901,10 @@ class ScallopQuery implements ScallopQueryInterface {
    */
   async getPoolAddresses(apiAddressId = this.address.getId()) {
     if (!apiAddressId) throw new Error('apiAddressId is required');
-    return getPoolAddresses(apiAddressId);
+    return getPoolAddresses(
+      this.utils.scallopSuiKit.suiKit.client,
+      apiAddressId
+    );
   }
 
   /**

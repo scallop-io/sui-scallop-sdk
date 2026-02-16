@@ -1,11 +1,11 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { getStakeAccounts } from '../queries/spoolQuery';
-import { requireSender } from '../utils';
+import { getStakeAccounts } from '../queries/spoolQuery.js';
+import { requireSender } from '../utils/index.js';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import type { ScallopBuilder } from 'src/models';
+import type { ScallopBuilder } from 'src/models/index.js';
 import type {
   SpoolIds,
   GenerateSpoolNormalMethod,
@@ -14,7 +14,7 @@ import type {
   SpoolTxBlock,
   ScallopTxBlock,
   SuiTxBlockWithSCoin,
-} from 'src/types';
+} from 'src/types/index.js';
 
 /**
  * Check and get stake account id from transaction block.
@@ -44,7 +44,7 @@ const requireStakeAccountIds = async (
   if (stakeAccounts[stakeMarketCoinName].length === 0) {
     throw new Error(`No stake account id found for sender ${sender}`);
   }
-  return stakeAccounts[stakeMarketCoinName].map((account) => account.id);
+  return stakeAccounts[stakeMarketCoinName].map((account: any) => account.id);
 };
 
 /**
@@ -76,7 +76,7 @@ const requireStakeAccounts = async (
   }
 
   const specificStakeAccounts = stakeAccountId
-    ? stakeAccounts[stakeMarketCoinName].filter((account) => {
+    ? stakeAccounts[stakeMarketCoinName].filter((account: any) => {
         return account.id === stakeAccountId;
       })
     : stakeAccounts[stakeMarketCoinName];

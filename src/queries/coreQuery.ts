@@ -6,14 +6,10 @@ import {
   calculateMarketCollateralData,
   parseObjectAs,
   partitionArray,
-} from 'src/utils';
-import type {
-  SuiObjectResponse,
-  SuiObjectData,
-  SuiParsedData,
-} from '@mysten/sui/client';
+} from 'src/utils/index.js';
+import type { SuiObjectData } from 'src/types/index.js';
 import { SuiTxBlock, type SuiObjectArg } from '@scallop-io/sui-kit';
-// import type { ScallopAddress, ScallopCache, ScallopQuery } from '../models';
+// import type { ScallopAddress, ScallopCache, ScallopQuery } from '../models.js';
 import {
   Market,
   MarketPools,
@@ -33,21 +29,21 @@ import {
   BorrowFee,
   BorrowDynamic,
   OriginMarketCollateralData,
-} from 'src/types';
-import BigNumber from 'bignumber.js';
-import { getSupplyLimit } from './supplyLimitQuery';
-import { isIsolatedAsset } from './isolatedAssetQuery';
-import { getBorrowLimit } from './borrowLimitQuery';
-import { queryFlashLoanFees } from './flashloanFeeQuery';
+} from 'src/types/index.js';
+import { BigNumber } from 'bignumber.js';
+import { getSupplyLimit } from './supplyLimitQuery.js';
+import { isIsolatedAsset } from './isolatedAssetQuery.js';
+import { getBorrowLimit } from './borrowLimitQuery.js';
+import { queryFlashLoanFees } from './flashloanFeeQuery.js';
 import {
   ScallopSuiKit,
   ScallopQuery,
   ScallopUtils,
   ScallopIndexer,
   ScallopAddress,
-} from 'src/models';
-import { getSharedObjectData } from 'src/utils/object';
-import { queryKeys } from 'src/constants';
+} from 'src/models/index.js';
+import { getSharedObjectData } from 'src/utils/object.js';
+import { queryKeys } from 'src/constants/index.js';
 
 /**
  * Query market data.
@@ -126,7 +122,10 @@ export const queryMarket = async (
       node: utils.scallopSuiKit.currentFullNode,
     }),
   });
-  const marketData = queryResult?.events[0]?.parsedJson as
+
+  const tx = queryResult?.Transaction ?? queryResult?.FailedTransaction;
+  // SDK v2: Event structure changed, parsedJson may not be in type but exists at runtime
+  const marketData = (tx?.events?.[0] as any)?.parsedJson as
     | MarketQueryInterface
     | undefined;
 
@@ -243,7 +242,8 @@ const queryRequiredMarketObjects = async (
 
   for (const batch of batches) {
     const responses = await scallopSuiKit.queryGetObjects(batch, {
-      showContent: true,
+      content: true,
+      json: true,
     });
     if (responses.length > 0) {
       objectDatas.push(...responses);
@@ -431,19 +431,18 @@ const parseMarketPoolObjects = async (
 
   const isIsolated = await isIsolatedAsset(
     utils,
-    utils.parseCoinNameFromType(`0x${_interestModel.type.fields.name}`)
+    utils.parseCoinNameFromType(`0x${_interestModel.type.name}`)
   );
 
   const parsedOriginMarketCollateral =
     _riskModel && _collateralStat
       ? {
-          type: _interestModel.type.fields,
-          collateralFactor: _riskModel.collateral_factor.fields,
-          liquidationFactor: _riskModel.liquidation_factor.fields,
-          liquidationPenalty: _riskModel.liquidation_penalty.fields,
-          liquidationDiscount: _riskModel.liquidation_discount.fields,
-          liquidationReserveFactor:
-            _riskModel.liquidation_revenue_factor.fields,
+          type: _interestModel.type,
+          collateralFactor: _riskModel.collateral_factor,
+          liquidationFactor: _riskModel.liquidation_factor,
+          liquidationPenalty: _riskModel.liquidation_penalty,
+          liquidationDiscount: _riskModel.liquidation_discount,
+          liquidationReserveFactor: _riskModel.liquidation_revenue_factor,
           maxCollateralAmount: _riskModel.max_collateral_amount,
           totalCollateralAmount: _collateralStat.amount,
           isIsolated,
@@ -451,9 +450,9 @@ const parseMarketPoolObjects = async (
       : undefined;
 
   return {
-    type: _interestModel.type.fields,
-    maxBorrowRate: _interestModel.max_borrow_rate.fields,
-    interestRate: _borrowDynamic.interest_rate.fields,
+    type: _interestModel.type,
+    maxBorrowRate: _interestModel.max_borrow_rate,
+    interestRate: _borrowDynamic.interest_rate,
     interestRateScale: _borrowDynamic.interest_rate_scale,
     borrowIndex: _borrowDynamic.borrow_index,
     lastUpdated: _borrowDynamic.last_updated,
@@ -461,14 +460,14 @@ const parseMarketPoolObjects = async (
     debt: _balanceSheet.debt,
     marketCoinSupply: _balanceSheet.market_coin_supply,
     reserve: _balanceSheet.revenue,
-    reserveFactor: _interestModel.revenue_factor.fields,
-    borrowWeight: _interestModel.borrow_weight.fields,
+    reserveFactor: _interestModel.revenue_factor,
+    borrowWeight: _interestModel.borrow_weight,
     borrowFeeRate: _borrowFee,
-    baseBorrowRatePerSec: _interestModel.base_borrow_rate_per_sec.fields,
-    borrowRateOnHighKink: _interestModel.borrow_rate_on_high_kink.fields,
-    borrowRateOnMidKink: _interestModel.borrow_rate_on_mid_kink.fields,
-    highKink: _interestModel.high_kink.fields,
-    midKink: _interestModel.mid_kink.fields,
+    baseBorrowRatePerSec: _interestModel.base_borrow_rate_per_sec,
+    borrowRateOnHighKink: _interestModel.borrow_rate_on_high_kink,
+    borrowRateOnMidKink: _interestModel.borrow_rate_on_mid_kink,
+    highKink: _interestModel.high_kink,
+    midKink: _interestModel.mid_kink,
     minBorrowAmount: _interestModel.min_borrow_amount,
     supplyLimit: _supplyLimit,
     borrowLimit: _borrowLimit,
@@ -661,7 +660,7 @@ export const getMarketCollaterals = async (
         },
         collateralCoinName,
         useIndexer,
-        marketObjectResponse?.data,
+        marketObjectResponse?.object,
         coinPrices?.[collateralCoinName]
       );
 
@@ -719,16 +718,16 @@ export const getMarketCollateral = async (
 
   const marketId = utils.address.get('core.market');
   marketObject =
-    marketObject || (await scallopSuiKit.queryGetObject(marketId))?.data;
+    marketObject || (await scallopSuiKit.queryGetObject(marketId))?.object;
 
-  if (!(marketObject && marketObject.content?.dataType === 'moveObject'))
+  if (!(marketObject && marketObject.json))
     throw new Error(`Failed to fetch marketObject`);
 
-  const fields = marketObject.content.fields as any;
+  const fields = marketObject.json as any;
   const coinType = utils.parseCoinType(collateralCoinName);
 
   // Get risk model.
-  const riskModelParentId = fields.risk_models.fields.table.fields.id.id;
+  const riskModelParentId = fields.risk_models.table.id;
   const riskModelDynamicFieldObjectResponse =
     await scallopSuiKit.queryGetDynamicFieldObject({
       parentId: riskModelParentId,
@@ -740,25 +739,19 @@ export const getMarketCollateral = async (
       },
     });
 
-  const riskModelDynamicFieldObject = riskModelDynamicFieldObjectResponse?.data;
-  if (
-    !(
-      riskModelDynamicFieldObject &&
-      riskModelDynamicFieldObject.content &&
-      'fields' in riskModelDynamicFieldObject.content
-    )
-  )
+  const riskModelDynamicFieldObject =
+    riskModelDynamicFieldObjectResponse?.object;
+  if (!(riskModelDynamicFieldObject && riskModelDynamicFieldObject.json))
     throw new Error(
-      `Failed to fetch riskModelDynamicFieldObject for ${riskModelDynamicFieldObjectResponse?.error?.code.toString()}: `
+      `Failed to fetch riskModelDynamicFieldObject for ${collateralCoinName}`
     );
 
-  const riskModel: RiskModel = (
-    riskModelDynamicFieldObject.content.fields as any
-  ).value.fields;
+  const riskModel: RiskModel = parseObjectAs<RiskModel>(
+    riskModelDynamicFieldObject
+  );
 
   // Get collateral stat.
-  const collateralStatParentId =
-    fields.collateral_stats.fields.table.fields.id.id;
+  const collateralStatParentId = fields.collateral_stats.table.id;
   const collateralStatDynamicFieldObjectResponse =
     await scallopSuiKit.queryGetDynamicFieldObject({
       parentId: collateralStatParentId,
@@ -771,30 +764,26 @@ export const getMarketCollateral = async (
     });
 
   const collateralStatDynamicFieldObject =
-    collateralStatDynamicFieldObjectResponse?.data;
+    collateralStatDynamicFieldObjectResponse?.object;
 
   if (
-    !(
-      collateralStatDynamicFieldObject &&
-      collateralStatDynamicFieldObject.content &&
-      'fields' in collateralStatDynamicFieldObject.content
-    )
+    !(collateralStatDynamicFieldObject && collateralStatDynamicFieldObject.json)
   )
     throw new Error(
-      `Failed to fetch collateralStatDynamicFieldObject for ${collateralCoinName}: ${collateralStatDynamicFieldObjectResponse?.error?.code.toString()}`
+      `Failed to fetch collateralStatDynamicFieldObject for ${collateralCoinName}`
     );
 
-  const collateralStat: CollateralStat = (
-    collateralStatDynamicFieldObject.content.fields as any
-  ).value.fields;
+  const collateralStat: CollateralStat = parseObjectAs<CollateralStat>(
+    collateralStatDynamicFieldObject
+  );
 
   const parsedMarketCollateralData = parseOriginMarketCollateralData({
-    type: riskModel.type.fields,
-    collateralFactor: riskModel.collateral_factor.fields,
-    liquidationFactor: riskModel.liquidation_factor.fields,
-    liquidationDiscount: riskModel.liquidation_discount.fields,
-    liquidationPenalty: riskModel.liquidation_penalty.fields,
-    liquidationReserveFactor: riskModel.liquidation_revenue_factor.fields,
+    type: riskModel.type,
+    collateralFactor: riskModel.collateral_factor,
+    liquidationFactor: riskModel.liquidation_factor,
+    liquidationDiscount: riskModel.liquidation_discount,
+    liquidationPenalty: riskModel.liquidation_penalty,
+    liquidationReserveFactor: riskModel.liquidation_revenue_factor,
     maxCollateralAmount: riskModel.max_collateral_amount,
     totalCollateralAmount: collateralStat.amount,
     isIsolated: await isIsolatedAsset(utils, collateralCoinName),
@@ -839,7 +828,7 @@ export const getObligations = async (
 ) => {
   const owner = ownerAddress;
   const protocolObjectId = utils.constants.protocolObjectId;
-  const keyObjectsResponse: SuiObjectResponse[] = [];
+  const keyObjectsResponse: SuiObjectData[] = [];
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
   do {
@@ -850,7 +839,8 @@ export const getObligations = async (
           StructType: `${protocolObjectId}::obligation::ObligationKey`,
         },
         options: {
-          showContent: true,
+          content: true,
+          json: true,
         },
         cursor: nextCursor,
         limit: 10,
@@ -858,43 +848,75 @@ export const getObligations = async (
 
     if (!paginatedKeyObjectsResponse) break;
 
-    keyObjectsResponse.push(...paginatedKeyObjectsResponse.data);
-    if (
-      paginatedKeyObjectsResponse.hasNextPage &&
-      paginatedKeyObjectsResponse.nextCursor
-    ) {
+    const objects = paginatedKeyObjectsResponse.objects;
+    const hasNextPageResponse = paginatedKeyObjectsResponse.hasNextPage;
+    const nextCursorResponse = paginatedKeyObjectsResponse.cursor;
+
+    if (objects) keyObjectsResponse.push(...objects);
+
+    if (hasNextPageResponse && nextCursorResponse) {
       hasNextPage = true;
-      nextCursor = paginatedKeyObjectsResponse.nextCursor;
+      nextCursor = nextCursorResponse;
     } else {
       hasNextPage = false;
     }
   } while (hasNextPage);
 
-  const keyObjects = keyObjectsResponse.filter((ref) => !!ref.data);
+  if (keyObjectsResponse.length === 0) {
+    let cursor: string | null | undefined = null;
+    let hasNext = false;
+    do {
+      const owned = await utils.scallopSuiKit.queryGetOwnedObjects({
+        owner,
+        options: {
+          content: true,
+          json: true,
+        },
+        cursor,
+        limit: 50,
+      });
+      if (!owned) break;
+      const matched =
+        owned.objects?.filter((obj) =>
+          (obj.type ?? '').includes('::obligation::ObligationKey')
+        ) ?? [];
+      keyObjectsResponse.push(...matched);
+      hasNext = Boolean(owned.hasNextPage && owned.cursor);
+      cursor = owned.cursor;
+    } while (hasNext);
+  }
+
+  const keyObjects = keyObjectsResponse.filter((ref) => !!ref);
+
+  const keyObjectsWithOwnership = keyObjects
+    .map((ref) => {
+      const parsed = parseObjectAs<{ ownership?: { of?: string } }>(ref);
+      return { ref, ownershipOf: parsed?.ownership?.of };
+    })
+    .filter(
+      (
+        item
+      ): item is {
+        ref: SuiObjectData;
+        ownershipOf: string;
+      } => typeof item.ownershipOf === 'string'
+    );
 
   const obligations: Obligation[] = [];
-  // fetch all obligations with multi get objects
   const obligationsObjects = await utils.scallopSuiKit.queryGetObjects(
-    keyObjects
-      .map((ref) => ref.data?.content)
-      .filter(
-        (content): content is SuiParsedData & { dataType: 'moveObject' } =>
-          content?.dataType === 'moveObject'
-      )
-      .map((content) => (content.fields as any).ownership.fields.of)
+    keyObjectsWithOwnership.map((item) => item.ownershipOf)
   );
-
+  const obligationObjectMap = new Map(
+    obligationsObjects.map((obj) => [obj.objectId, obj] as const)
+  );
   await Promise.allSettled(
-    keyObjects.map(async ({ data }, idx) => {
-      const keyId = data?.objectId;
-      const content = data?.content;
-      if (keyId && content && 'fields' in content) {
-        const fields = content.fields as any;
-        const obligationId = String(fields.ownership.fields.of);
-        const locked = await getObligationLocked(
-          utils,
-          obligationsObjects[idx]
-        );
+    keyObjectsWithOwnership.map(async ({ ref, ownershipOf }) => {
+      const keyId = ref.objectId;
+      if (keyId) {
+        const obligationId = ownershipOf;
+        const obligationObject = obligationObjectMap.get(obligationId);
+        if (!obligationObject) return;
+        const locked = await getObligationLocked(utils, obligationObject);
         obligations.push({ id: obligationId, keyId, locked });
       }
     })
@@ -916,15 +938,12 @@ export const getObligationLocked = async (
 ) => {
   const obligationObjectData =
     typeof obligation === 'string'
-      ? (await scallopSuiKit.queryGetObject(obligation))?.data
+      ? (await scallopSuiKit.queryGetObject(obligation))?.object
       : obligation;
   let obligationLocked = false;
-  if (
-    obligationObjectData &&
-    obligationObjectData?.content?.dataType === 'moveObject' &&
-    'lock_key' in obligationObjectData.content.fields
-  ) {
-    obligationLocked = Boolean(obligationObjectData.content.fields.lock_key);
+  if (obligationObjectData) {
+    const fields = parseObjectAs<{ lock_key?: unknown }>(obligationObjectData);
+    obligationLocked = Boolean(fields?.lock_key);
   }
 
   return obligationLocked;
@@ -982,20 +1001,18 @@ export const queryObligation = async (
     },
   ];
 
-  const queryResult = await scallopSuiKit.queryInspectTxn(
-    {
+  const queryResult = await scallopSuiKit.queryInspectTxn({
+    queryTarget,
+    args,
+    txBlock,
+    keys: queryKeys.rpc.getInspectTxn({
       queryTarget,
-      args,
-      txBlock,
-      keys: queryKeys.rpc.getInspectTxn({
-        queryTarget,
-        args: [version, market, obligationId],
-        node: scallopSuiKit.currentFullNode,
-      }),
-    }
-    // txBlock
-  );
-  return queryResult?.events[0]?.parsedJson as
+      args: [version, market, obligationId],
+      node: scallopSuiKit.currentFullNode,
+    }),
+  });
+  const tx = queryResult?.Transaction ?? queryResult?.FailedTransaction;
+  return (tx?.events?.[0] as any)?.parsedJson as
     | ObligationQueryInterface
     | undefined;
 };
@@ -1045,7 +1062,7 @@ export const getCoinAmount = async (
     owner,
     coinType: coinType,
   });
-  return BigNumber(coinBalance?.totalBalance ?? '0').toNumber();
+  return BigNumber(coinBalance?.balance ?? '0').toNumber();
 };
 
 /**
@@ -1102,7 +1119,7 @@ export const getMarketCoinAmount = async (
     owner,
     coinType: marketCoinType,
   });
-  return BigNumber(coinBalance?.totalBalance ?? '0').toNumber();
+  return BigNumber(coinBalance?.balance ?? '0').toNumber();
 };
 
 /**
@@ -1159,9 +1176,9 @@ export const getFlashLoanFees = async (
     ...results,
     ...flashloanFeeObjects.reduce(
       (prev, curr) => {
-        if (curr.content?.dataType === 'moveObject') {
-          const objectFields = curr.content.fields as any;
-          const assetType = (curr.content.fields as any).name.fields.name;
+        if (curr.json) {
+          const objectFields = curr.json as any;
+          const assetType = (curr.json as any).name?.name;
           const feeNumerator = +objectFields.value;
           prev[assetTypeMap[assetType]] = feeNumerator / feeRate;
         }
