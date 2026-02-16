@@ -6,19 +6,21 @@ import {
   SuiTxBlock,
   Transaction,
 } from '@scallop-io/sui-kit';
-import ScallopConstants, { ScallopConstantsParams } from './scallopConstants';
-import { CoinPrices, CoinWrappedType, PoolAddress } from 'src/types';
-import { findClosestUnlockRound } from 'src/utils';
+import ScallopConstants, {
+  ScallopConstantsParams,
+} from './scallopConstants.js';
+import { CoinPrices, CoinWrappedType, PoolAddress } from 'src/types/index.js';
+import { findClosestUnlockRound } from 'src/utils/index.js';
 import {
   MAX_LOCK_DURATION,
   queryKeys,
   UNLOCK_ROUND_DURATION,
-} from 'src/constants';
+} from 'src/constants/index.js';
 import { PriceFeed, SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
-import ScallopSuiKit, { ScallopSuiKitParams } from './scallopSuiKit';
-import { SuiObjectData } from '@mysten/sui/client';
-import { queryObligation } from 'src/queries';
-import { ScallopUtilsInterface } from './interface';
+import ScallopSuiKit, { ScallopSuiKitParams } from './scallopSuiKit.js';
+import { queryObligation } from 'src/queries/index.js';
+import { ScallopUtilsInterface } from './interface.js';
+import type { SuiObjectData } from 'src/types/index.js';
 
 export type ScallopUtilsParams = {
   pythEndpoints?: string[];
@@ -417,39 +419,44 @@ class ScallopUtils implements ScallopUtilsInterface {
     const pythFeedObjectId = this.address.get(
       `core.coins.${assetCoinName}.oracle.pyth.feedObject`
     );
+    const priceFeedId = this.address.get(
+      `core.coins.${assetCoinName}.oracle.pyth.feed`
+    );
     priceFeedObject =
       priceFeedObject ||
-      (await this.scallopSuiKit.queryGetObject(pythFeedObjectId))?.data;
+      (await this.scallopSuiKit.queryGetObject(pythFeedObjectId))?.object;
 
-    if (priceFeedObject) {
-      const priceFeedPoolObject = priceFeedObject;
-      if (
-        priceFeedPoolObject.content &&
-        'fields' in priceFeedPoolObject.content
-      ) {
-        const fields = priceFeedPoolObject.content.fields as any;
-        const expoMagnitude = Number(
-          fields.price_info.fields.price_feed.fields.price.fields.expo.fields
-            .magnitude
-        );
-        const expoNegative = Number(
-          fields.price_info.fields.price_feed.fields.price.fields.expo.fields
-            .negative
-        );
-        const priceMagnitude = Number(
-          fields.price_info.fields.price_feed.fields.price.fields.price.fields
-            .magnitude
-        );
-        const priceNegative = Number(
-          fields.price_info.fields.price_feed.fields.price.fields.price.fields
-            .negative
-        );
+    if (priceFeedObject?.content && 'fields' in priceFeedObject.content) {
+      const fields = priceFeedObject.content.fields as any;
+      const priceFields =
+        fields?.price_info?.fields?.price_feed?.fields?.price?.fields;
+      const expoMagnitude = Number(priceFields?.expo?.fields?.magnitude);
+      const expoNegative = Number(priceFields?.expo?.fields?.negative);
+      const priceMagnitude = Number(priceFields?.price?.fields?.magnitude);
+      const priceNegative = Number(priceFields?.price?.fields?.negative);
 
-        return (
+      if (!Number.isNaN(expoMagnitude) && !Number.isNaN(priceMagnitude)) {
+        const price =
           priceMagnitude *
           10 ** ((expoNegative ? -1 : 1) * expoMagnitude) *
-          (priceNegative ? -1 : 1)
+          (priceNegative ? -1 : 1);
+        if (price > 0) return price;
+      }
+    }
+
+    if (priceFeedId) {
+      try {
+        const pythConnection = new SuiPriceServiceConnection(
+          this.pythEndpoints[0],
+          { timeout: this.timeout, httpRetries: 0 }
         );
+        const feeds = await pythConnection.getLatestPriceFeeds([priceFeedId]);
+        if (feeds?.[0]) {
+          const parsed = feeds[0].getPriceUnchecked();
+          return parsed.getPriceAsNumberUnchecked();
+        }
+      } catch {
+        // ignore
       }
     }
 
@@ -613,13 +620,13 @@ class ScallopUtils implements ScallopUtilsInterface {
       );
     }
 
-    return {
-      ...coinNames.reduce((prev, coinName) => {
-        prev[coinName as string] = coinPrices[coinName as string] || 0;
-        return prev;
-      }, {} as CoinPrices),
-      ...coinPrices,
-    };
+    return coinNames.reduce((prev, coinName) => {
+      const price = coinPrices[coinName as string];
+      if (typeof price === 'number' && price > 0) {
+        prev[coinName as string] = price;
+      }
+      return prev;
+    }, {} as CoinPrices);
   }
 
   /**

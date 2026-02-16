@@ -1,11 +1,10 @@
 import { bcs } from '@mysten/sui/bcs';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
-import assert from 'assert';
-import BigNumber from 'bignumber.js';
-import { queryKeys } from 'src/constants';
-import { ScallopQuery, ScallopUtils } from 'src/models';
-import { OptionalKeys, sCoinBalance } from 'src/types';
-import { getSharedObjectData } from 'src/utils';
+import { BigNumber } from 'bignumber.js';
+import { queryKeys } from 'src/constants/index.js';
+import { ScallopQuery, ScallopUtils } from 'src/models/index.js';
+import { OptionalKeys, sCoinBalance } from 'src/types/index.js';
+import { getSharedObjectData } from 'src/utils/index.js';
 
 /**
  * Get total supply of sCoin
@@ -47,12 +46,12 @@ export const getSCoinTotalSupply = async (
       node: utils.scallopSuiKit.currentFullNode,
     }),
   });
-  const results = queryResults?.results;
-  if (results && results[0]?.returnValues) {
-    const value = Uint8Array.from(results[0].returnValues[0][0]);
-    const type = results[0].returnValues[0][1]; // should be u64
-    assert(type === 'u64', 'Result type is not u64');
 
+  if (!queryResults || queryResults.$kind !== 'Transaction') return 0;
+
+  const results = queryResults.commandResults;
+  if (results && results[0]?.returnValues && results[0].returnValues[0]) {
+    const value = results[0].returnValues[0].bcs;
     return BigNumber(bcs.u64().parse(value))
       .shiftedBy(utils.getCoinDecimal(utils.parseCoinName(sCoinName)))
       .toNumber();
@@ -114,7 +113,7 @@ export const getSCoinAmount = async (
     owner,
     coinType: sCoinType,
   });
-  return BigNumber(coinBalance?.totalBalance ?? '0').toNumber();
+  return BigNumber(coinBalance?.balance ?? '0').toNumber();
 };
 
 const checkAssetParams = (
@@ -168,7 +167,18 @@ export const getSCoinSwapRate = async (
   const BtoSCoinBRate = 1 / marketPools[1]!.conversionRate;
 
   const calcAtoBRate = async () => {
-    const prices = await query.utils.getCoinPrices();
+    let prices = await query.utils.getCoinPrices();
+    if (
+      !prices[fromCoinName] ||
+      !prices[toCoinName] ||
+      prices[fromCoinName] === 0 ||
+      prices[toCoinName] === 0
+    ) {
+      const indexerPrices = await query
+        .getCoinPricesByIndexer()
+        .catch(() => ({}));
+      prices = { ...prices, ...indexerPrices };
+    }
     if (!prices[fromCoinName] || !prices[toCoinName]) {
       throw new Error('Failed to fetch the coin prices');
     }

@@ -4,13 +4,14 @@ import {
   parseOriginBorrowIncentiveAccountData,
   calculateBorrowIncentivePoolPointData,
   getSharedObjectData,
-} from 'src/utils';
+  parseObjectAs,
+} from 'src/utils/index.js';
 import type {
   ScallopAddress,
   ScallopQuery,
   ScallopSuiKit,
   ScallopUtils,
-} from 'src/models';
+} from 'src/models/index.js';
 import type {
   BorrowIncentivePoolsQueryInterface,
   BorrowIncentivePools,
@@ -18,13 +19,13 @@ import type {
   BorrowIncentiveAccounts,
   BorrowIncentivePoolPoints,
   OptionalKeys,
+  SuiObjectRef,
   CoinPrices,
   MarketPools,
-} from 'src/types';
-import BigNumber from 'bignumber.js';
-import { SuiObjectRef } from '@mysten/sui/client';
+} from 'src/types/index.js';
+import { BigNumber } from 'bignumber.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
-import { queryKeys } from 'src/constants';
+import { queryKeys } from 'src/constants/index.js';
 
 /**
  * Query borrow incentive pools data using moveCall
@@ -59,7 +60,9 @@ const queryBorrowIncentivePools = async ({
       node: scallopSuiKit.currentFullNode,
     }),
   });
-  const borrowIncentivePoolsQueryData = queryResult?.events[0].parsedJson as
+  // SDK v2: Extract transaction result using discriminated union pattern
+  const tx = queryResult?.Transaction ?? queryResult?.FailedTransaction;
+  const borrowIncentivePoolsQueryData = (tx?.events?.[0] as any)?.parsedJson as
     | BorrowIncentivePoolsQueryInterface
     | undefined;
   return borrowIncentivePoolsQueryData;
@@ -214,7 +217,9 @@ export const queryBorrowIncentiveAccounts = async (
       node: utils.scallopSuiKit.currentFullNode,
     }),
   });
-  const borrowIncentiveAccountsQueryData = queryResult?.events[0]
+  // SDK v2: Extract transaction result using discriminated union pattern
+  const tx = queryResult?.Transaction ?? queryResult?.FailedTransaction;
+  const borrowIncentiveAccountsQueryData = (tx?.events?.[0] as any)
     ?.parsedJson as BorrowIncentiveAccountsQueryInterface | undefined;
 
   const borrowIncentiveAccounts: BorrowIncentiveAccounts = Object.values(
@@ -264,11 +269,12 @@ export const getBindedObligationId = async (
   const incentivePoolsResponse =
     await scallopSuiKit.queryGetObject(incentivePoolsId);
 
-  if (incentivePoolsResponse?.data?.content?.dataType !== 'moveObject')
-    return null;
-  const incentivePoolFields = incentivePoolsResponse.data.content.fields as any;
-  const veScaBindTableId = incentivePoolFields.ve_sca_bind.fields.id
-    .id as string;
+  const incentivePoolsObject = incentivePoolsResponse?.object;
+  if (!incentivePoolsObject) return null;
+  const incentivePoolFields = parseObjectAs<Record<string, unknown>>(
+    incentivePoolsObject
+  ) as any;
+  const veScaBindTableId = incentivePoolFields.ve_sca_bind.id as string;
 
   // check if veSca is inside the bind table
   const keyType = `${borrowIncentiveObjectId}::typed_id::TypedID<${veScaObjId}::ve_sca::VeScaKey>`;
@@ -282,12 +288,12 @@ export const getBindedObligationId = async (
     }
   );
 
-  if (veScaBindTableResponse?.data?.content?.dataType !== 'moveObject')
-    return null;
-  const veScaBindTableFields = veScaBindTableResponse.data.content
-    .fields as any;
-  // get obligationId pair
-  const obligationId = veScaBindTableFields.value.fields.id as string;
+  const veScaBindObject = veScaBindTableResponse?.object;
+  if (!veScaBindObject) return null;
+  const veScaBindTableFields = parseObjectAs<Record<string, unknown>>(
+    veScaBindObject
+  ) as any;
+  const obligationId = veScaBindTableFields.id as string;
 
   return obligationId;
 };
@@ -309,10 +315,11 @@ export const getBindedVeScaKey = async (
   // get IncentiveAccounts object
   const incentiveAccountsObject =
     await scallopSuiKit.queryGetObject(incentiveAccountsId);
-  if (incentiveAccountsObject?.data?.content?.dataType !== 'moveObject')
-    return null;
+  if (!incentiveAccountsObject?.object) return null;
   const incentiveAccountsTableId = (
-    incentiveAccountsObject.data.content.fields as any
+    parseObjectAs<Record<string, unknown>>(
+      incentiveAccountsObject.object
+    ) as any
   ).accounts.fields.id.id;
 
   // Search in the table
@@ -324,9 +331,10 @@ export const getBindedVeScaKey = async (
     },
   });
 
-  if (bindedIncentiveAcc?.data?.content?.dataType !== 'moveObject') return null;
-  const bindedIncentiveAccFields = bindedIncentiveAcc.data.content
-    .fields as any;
+  if (!bindedIncentiveAcc?.object) return null;
+  const bindedIncentiveAccFields = parseObjectAs<Record<string, unknown>>(
+    bindedIncentiveAcc.object
+  ) as any;
 
   return (
     bindedIncentiveAccFields.value.fields.binded_ve_sca_key?.fields.id ?? null

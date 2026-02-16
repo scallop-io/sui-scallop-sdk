@@ -1,14 +1,14 @@
-import ScallopBuilder, { ScallopBuilderParams } from './scallopBuilder';
-import type { SuiTransactionBlockResponse } from '@mysten/sui/client';
+import ScallopBuilder, { ScallopBuilderParams } from './scallopBuilder.js';
+import type { SuiTransactionBlockResponse } from '@scallop-io/sui-kit';
 import type {
   Transaction,
   TransactionObjectArgument,
   TransactionResult,
 } from '@mysten/sui/transactions';
-import { requireSender } from 'src/utils';
+import { requireSender } from 'src/utils/index.js';
 import type { NetworkType, SuiObjectArg } from '@scallop-io/sui-kit';
-import type { ScallopTxBlock } from '../types';
-import { ScallopClientInterface } from './interface';
+import type { ScallopTxBlock } from '../types/index.js';
+import { ScallopClientInterface } from './interface.js';
 
 export type ScallopClientParams = {
   networkType?: NetworkType;
@@ -750,7 +750,7 @@ class ScallopClient implements ScallopClientInterface {
       await this.utils.mergeSimilarCoins(txBlock, sCoin, sCoinType, sender);
     }
 
-    txBlock.transferObjects([sCoin], sender);
+    txBlock.transferObjects([sCoin as SuiObjectArg], sender);
 
     if (sign) {
       return (await this.scallopSuiKit.signAndSendTxn(
@@ -1104,7 +1104,7 @@ class ScallopClient implements ScallopClientInterface {
       (await this.query.getVeScas({
         walletAddress: sender,
       })) ?? []
-    ).map(({ keyObject }) => keyObject);
+    ).map(({ keyId }) => keyId);
     if (veScaKeys.length === 0) {
       throw new Error('No veSCA found in the wallet');
     }

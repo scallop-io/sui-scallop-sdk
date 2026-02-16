@@ -1,5 +1,5 @@
 import { Transaction, SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { ScallopBuilder } from 'src/models';
+import { ScallopBuilder } from 'src/models/index.js';
 import {
   BaseScallopTxBlock,
   GenerateSCoinNormalMethod,
@@ -8,8 +8,8 @@ import {
   ScallopTxBlock,
   SuiTxBlockWithSCoinNormalMethods,
   sCoinPkgIds,
-} from 'src/types';
-import { requireSender } from 'src/utils';
+} from 'src/types/index.js';
+import { requireSender } from 'src/utils/index.js';
 
 const generateSCoinNormalMethod: GenerateSCoinNormalMethod = ({
   builder,

@@ -1,5 +1,5 @@
-import { ScallopBuilder } from 'src/models';
-import { ScallopTxBlock } from 'src/types';
+import { ScallopBuilder } from 'src/models/index.js';
+import { ScallopTxBlock } from 'src/types/index.js';
 import {
   SUI_CLOCK_OBJECT_ID,
   SuiTxBlock as SuiKitTxBlock,
@@ -12,8 +12,8 @@ import {
   ReferralIds,
   ReferralTxBlock,
   SuiTxBlockWithReferralNormalMethods,
-} from 'src/types/builder/referral';
-import { requireSender } from 'src/utils';
+} from 'src/types/builder/referral.js';
+import { requireSender } from 'src/utils/index.js';
 
 const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
   builder,

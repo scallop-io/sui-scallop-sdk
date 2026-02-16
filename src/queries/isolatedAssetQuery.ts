@@ -1,5 +1,4 @@
-import { DynamicFieldInfo, DynamicFieldName } from '@mysten/sui/client';
-import { ScallopQuery, ScallopUtils } from '../models';
+import { ScallopQuery, ScallopUtils } from '../models/index.js';
 import { z as zod } from 'zod';
 
 const isolatedAssetZod = zod.object({
@@ -44,12 +43,8 @@ export const getIsolatedAssets = async (
     let hasNextPage = false;
     let nextCursor: string | null | undefined = null;
 
-    const isIsolatedDynamicField = (
-      dynamicField: DynamicFieldInfo
-    ): dynamicField is DynamicFieldInfo & {
-      name: DynamicFieldName & { value: { type: { name: string } } };
-    } => {
-      return dynamicField.name.type === isolatedAssetKeyType;
+    const isIsolatedDynamicField = (dynamicField: any) => {
+      return dynamicField.type === isolatedAssetKeyType;
     };
 
     do {
@@ -60,14 +55,14 @@ export const getIsolatedAssets = async (
       });
       if (!response) break;
 
-      const isolatedAssetCoinTypes = response.data
+      const isolatedAssetCoinTypes = response.dynamicFields
         .filter(isIsolatedDynamicField)
-        .map(({ name }) => `0x${name.value.type.name}`);
+        .map(({ name }: any) => `0x${name.value.type.name}`);
       isolatedAssets.push(...isolatedAssetCoinTypes);
 
-      if (response && response.hasNextPage && response.nextCursor) {
+      if (response && response.hasNextPage && response.cursor) {
         hasNextPage = true;
-        nextCursor = response.nextCursor;
+        nextCursor = response.cursor;
       } else {
         hasNextPage = false;
       }
@@ -118,7 +113,7 @@ export const isIsolatedAsset = async (
     },
   });
 
-  const parsedData = isolatedAssetZod.safeParse(object?.data?.content);
+  const parsedData = isolatedAssetZod.safeParse(object?.object?.json);
   if (!parsedData.success) return false;
   return parsedData.data.fields.value;
 };

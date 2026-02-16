@@ -1,6 +1,6 @@
-import BigNumber from 'bignumber.js';
+import { BigNumber } from 'bignumber.js';
 import { normalizeStructTag } from '@mysten/sui/utils';
-import type { ScallopUtils } from '../models';
+import type { ScallopUtils } from '../models/index.js';
 import type {
   OriginMarketPoolData,
   ParsedMarketPoolData,
@@ -23,7 +23,7 @@ import type {
   CalculatedBorrowIncentivePoolPointData,
   OriginBorrowIncentiveAccountPoolData,
   ParsedBorrowIncentiveAccountPoolData,
-} from '../types';
+} from '../types/index.js';
 
 /**
  *  Parse origin market pool data to a more readable format.
@@ -244,7 +244,7 @@ export const parseOriginSpoolData = (
   originSpoolData: OriginSpoolData
 ): ParsedSpoolData => {
   return {
-    stakeType: normalizeStructTag(originSpoolData.stakeType.fields.name),
+    stakeType: normalizeStructTag(originSpoolData.stakeType.name),
     maxPoint: Number(originSpoolData.maxDistributedPoint),
     distributedPoint: Number(originSpoolData.distributedPoint),
     pointPerPeriod: Number(originSpoolData.distributedPointPerPeriod),

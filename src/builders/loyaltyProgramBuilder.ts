@@ -1,14 +1,14 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { ScallopBuilder } from 'src/models';
+import { ScallopBuilder } from 'src/models/index.js';
 import {
   GenerateLoyaltyProgramNormalMethod,
   GenerateLoyaltyProgramQuickMethod,
   LoyaltyProgramTxBlock,
   ScallopTxBlock,
   SuiTxBlockWithLoyaltyProgramNormalMethods,
-} from 'src/types';
-import { requireSender } from 'src/utils';
+} from 'src/types/index.js';
+import { requireSender } from 'src/utils/index.js';
 
 const generateLoyaltyProgramNormalMethod: GenerateLoyaltyProgramNormalMethod =
   ({ builder, txBlock }) => {
@@ -61,7 +61,7 @@ const generateLoyaltyProgramQuickMethod: GenerateLoyaltyProgramQuickMethod = ({
 }) => {
   return {
     claimLoyaltyRevenueQuick: async (veScaKey) => {
-      veScaKey = veScaKey ?? (await builder.query.getVeScas())[0]?.keyObject;
+      veScaKey = veScaKey ?? (await builder.query.getVeScas())[0]?.keyId;
       const sender = requireSender(txBlock);
       if (!veScaKey) throw new Error(`No veScaKey found for user ${sender}`);
 
@@ -81,7 +81,7 @@ const generateLoyaltyProgramQuickMethod: GenerateLoyaltyProgramQuickMethod = ({
       txBlock.transferObjects([rewardCoin], sender);
     },
     claimVeScaLoyaltyRewardQuick: async (veScaKey) => {
-      veScaKey = veScaKey ?? (await builder.query.getVeScas())[0]?.keyObject;
+      veScaKey = veScaKey ?? (await builder.query.getVeScas())[0]?.keyId;
       const sender = requireSender(txBlock);
       if (!veScaKey) throw new Error(`No veScaKey found for user ${sender}`);
 

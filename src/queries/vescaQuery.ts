@@ -1,18 +1,18 @@
-import BigNumber from 'bignumber.js';
-import { VeScaTreasuryFields, VeScaTreasuryInfo, Vesca } from 'src/types';
-import {
-  type SuiObjectResponse,
-  type SuiObjectData,
+import { BigNumber } from 'bignumber.js';
+import type {
+  VeScaTreasuryFields,
+  VeScaTreasuryInfo,
+  Vesca,
+  SuiObjectData,
   DevInspectResults,
-} from '@mysten/sui/client';
-import type { ScallopUtils } from 'src/models';
-import { MAX_LOCK_DURATION } from 'src/constants';
+} from 'src/types/index.js';
+import type { ScallopUtils } from 'src/models/index.js';
+import { MAX_LOCK_DURATION } from 'src/constants/index.js';
 import { SUI_CLOCK_OBJECT_ID, SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui/bcs';
 import { z as zod } from 'zod';
-import { queryKeys } from 'src/constants';
-import assert from 'assert';
-import { getSharedObjectData } from 'src/utils';
+import { queryKeys } from 'src/constants/index.js';
+import { getSharedObjectData, parseObjectAs } from 'src/utils/index.js';
 /**
  * Query all owned veSca key.
  *
@@ -27,7 +27,7 @@ export const getVescaKeys = async (
   const owner = ownerAddress || utils.suiKit.currentAddress;
   const veScaObjId = utils.address.get('vesca.object');
   const veScaKeyType = `${veScaObjId}::ve_sca::VeScaKey`;
-  const keyObjectsResponse: SuiObjectResponse[] = [];
+  const keyObjectsResponse: SuiObjectData[] = [];
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
   do {
@@ -37,27 +37,30 @@ export const getVescaKeys = async (
         filter: {
           StructType: veScaKeyType,
         },
+        options: {
+          content: true,
+          json: true,
+        },
         cursor: nextCursor,
         limit: 10,
       });
-    if (!paginatedKeyObjectsResponse) continue;
+    if (!paginatedKeyObjectsResponse) break;
 
-    keyObjectsResponse.push(...paginatedKeyObjectsResponse.data);
+    if (paginatedKeyObjectsResponse.objects)
+      keyObjectsResponse.push(...paginatedKeyObjectsResponse.objects);
+
     if (
-      paginatedKeyObjectsResponse &&
       paginatedKeyObjectsResponse.hasNextPage &&
-      paginatedKeyObjectsResponse.nextCursor
+      paginatedKeyObjectsResponse.cursor
     ) {
       hasNextPage = true;
-      nextCursor = paginatedKeyObjectsResponse.nextCursor;
+      nextCursor = paginatedKeyObjectsResponse.cursor;
     } else {
       hasNextPage = false;
     }
   } while (hasNextPage);
 
-  const keyObjectDatas = keyObjectsResponse
-    .map((objResponse) => objResponse.data)
-    .filter((data) => !!data) as SuiObjectData[];
+  const keyObjectDatas = keyObjectsResponse.filter((data) => !!data);
   return keyObjectDatas;
 };
 
@@ -104,7 +107,6 @@ const SuiObjectRefZod = zod.object({
   version: zod.string(),
 });
 
-type SuiObjectRefType = zod.infer<typeof SuiObjectRefZod>;
 /**
  * Get veSca data.
  *
@@ -120,9 +122,6 @@ export const getVeSca = async (
   const tableId = utils.address.get(`vesca.tableId`);
 
   if (!veScaKey) return undefined;
-  if (typeof veScaKey === 'object') {
-    veScaKey = SuiObjectRefZod.parse(veScaKey) as SuiObjectRefType;
-  }
 
   let vesca: Vesca | undefined = undefined;
 
@@ -136,15 +135,12 @@ export const getVeSca = async (
     });
   if (!veScaDynamicFieldObjectResponse) return undefined;
 
-  const veScaDynamicFieldObject = veScaDynamicFieldObjectResponse.data;
-  if (
-    veScaDynamicFieldObject &&
-    veScaDynamicFieldObject.content &&
-    veScaDynamicFieldObject.content.dataType === 'moveObject' &&
-    'fields' in veScaDynamicFieldObject.content
-  ) {
-    const dynamicFields = (veScaDynamicFieldObject.content.fields as any).value
-      .fields;
+  const veScaDynamicFieldObject = veScaDynamicFieldObjectResponse.object;
+  if (veScaDynamicFieldObject) {
+    const dynamicFields = parseObjectAs<{
+      unlock_at: string | number;
+      locked_sca_amount: string | number;
+    }>(veScaDynamicFieldObject);
 
     const remainingLockPeriodInMilliseconds = Math.max(
       +dynamicFields.unlock_at * 1000 - Date.now(),
@@ -163,11 +159,11 @@ export const getVeSca = async (
       id: veScaDynamicFieldObject.objectId,
       keyId: typeof veScaKey === 'string' ? veScaKey : veScaKey.objectId,
       keyObject: typeof veScaKey === 'string' ? undefined : veScaKey,
-      object: SuiObjectRefZod.parse(veScaDynamicFieldObjectResponse.data),
+      object: SuiObjectRefZod.parse(veScaDynamicFieldObject),
       lockedScaAmount,
       lockedScaCoin,
       currentVeScaBalance,
-      unlockAt: BigNumber(dynamicFields.unlock_at * 1000).toNumber(),
+      unlockAt: BigNumber(Number(dynamicFields.unlock_at) * 1000).toNumber(),
     };
   }
 
@@ -226,7 +222,7 @@ const getTotalVeScaTreasuryAmount = async (
   const resolvedRefreshArgs = await Promise.all(
     refreshArgs.map(async (arg) => {
       if (typeof arg === 'string') {
-        return (await utils.scallopSuiKit.queryGetObject(arg))?.data;
+        return (await utils.scallopSuiKit.queryGetObject(arg))?.object as any;
       }
       return arg;
     })
@@ -235,7 +231,7 @@ const getTotalVeScaTreasuryAmount = async (
   const resolvedVeScaAmountArgs = await Promise.all(
     vescaAmountArgs.map(async (arg) => {
       if (typeof arg === 'string') {
-        return (await utils.scallopSuiKit.queryGetObject(arg))?.data;
+        return (await utils.scallopSuiKit.queryGetObject(arg))?.object as any;
       }
       return arg;
     })
@@ -251,8 +247,9 @@ const getTotalVeScaTreasuryAmount = async (
   });
 
   // return result
-  const res =
-    await utils.scallopSuiKit.queryClient.fetchQuery<DevInspectResults>({
+  let res: DevInspectResults | null = null;
+  try {
+    res = await utils.scallopSuiKit.queryClient.fetchQuery<DevInspectResults>({
       queryKey: queryKeys.rpc.getTotalVeScaTreasuryAmount({
         refreshArgs,
         vescaAmountArgs,
@@ -262,12 +259,17 @@ const getTotalVeScaTreasuryAmount = async (
         return await utils.suiKit.inspectTxn(txBytes);
       },
     });
+  } catch {
+    return '0';
+  }
 
-  const results = res.results;
-  if (results && results[1]?.returnValues) {
-    const value = Uint8Array.from(results[1].returnValues[0][0]);
-    const type = results[1].returnValues[0][1];
-    assert(type === 'u64', 'Result type is not u64');
+  if (!res || res.$kind !== 'Transaction') {
+    return '0';
+  }
+
+  const results = res.commandResults;
+  if (results && results[1]?.returnValues && results[1].returnValues[0]) {
+    const value = results[1].returnValues[0].bcs;
     return bcs.u64().parse(value);
   }
 
@@ -286,19 +288,20 @@ export const getVeScaTreasuryInfo = async (
   const veScaTreasury =
     await utils.scallopSuiKit.queryGetObject(veScaTreasuryId);
 
-  if (!veScaTreasury || veScaTreasury.data?.content?.dataType !== 'moveObject')
-    return null;
+  const veScaTreasuryObject = veScaTreasury?.object;
+  if (!veScaTreasuryObject) return null;
 
-  const treasuryFields = veScaTreasury.data.content
-    .fields as VeScaTreasuryFields;
+  const treasuryFields =
+    parseObjectAs<VeScaTreasuryFields>(veScaTreasuryObject);
+  const lockedScaAmount =
+    (treasuryFields as any)?.unlock_schedule?.fields?.locked_sca_amount ??
+    (treasuryFields as any)?.unlockSchedule?.lockedScaAmount ??
+    (treasuryFields as any)?.locked_sca_amount ??
+    '0';
 
-  const totalLockedSca = BigNumber(
-    treasuryFields.unlock_schedule.fields.locked_sca_amount
-  )
-    .shiftedBy(-9)
-    .toNumber();
+  const totalLockedSca = BigNumber(lockedScaAmount).shiftedBy(-9).toNumber();
   const totalVeSca = BigNumber(
-    (await getTotalVeScaTreasuryAmount(utils, veScaTreasury.data)) ?? 0
+    (await getTotalVeScaTreasuryAmount(utils, veScaTreasuryObject)) ?? 0
   )
     .shiftedBy(-9)
     .toNumber();

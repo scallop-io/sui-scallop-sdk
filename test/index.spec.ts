@@ -1,7 +1,7 @@
 import { BigNumber } from 'bignumber.js';
 import { describe, it, expect } from 'vitest';
 import type { Transaction } from '@scallop-io/sui-kit';
-import { scallopSDK } from './scallopSdk';
+import { scallopSDK } from './scallopSdk.js';
 
 const ENABLE_LOG = false;
 
@@ -101,11 +101,16 @@ describe('Test Scallop Client - Spool Method', async () => {
     const txb = await client.unstakeAndWithdraw('ssui', 5 * 10 ** 7, false);
     const unstakeAndWithdrawResult =
       await client.scallopSuiKit.suiKit.signAndSendTxn(txb);
-    console.dir(txb.blockData, { depth: null });
+    console.dir((txb as any).blockData, { depth: null });
     if (ENABLE_LOG) {
       console.info('UnstakeAndWithdrawResult:', unstakeAndWithdrawResult);
     }
-    expect(unstakeAndWithdrawResult.effects?.status.status).toEqual('success');
+    expect(
+      (
+        unstakeAndWithdrawResult.Transaction ??
+        unstakeAndWithdrawResult.FailedTransaction
+      ).effects?.status.success
+    ).toBeTruthy();
   });
 
   // it('Should claim success', async () => {
@@ -126,7 +131,12 @@ describe('Test Scallop Client - Borrow incentive Method', async () => {
     if (ENABLE_LOG) {
       console.info('CreateStakeAccountResult:', createStakeAccountResult);
     }
-    expect(createStakeAccountResult.effects?.status.status).toEqual('success');
+    expect(
+      (
+        createStakeAccountResult.Transaction ??
+        createStakeAccountResult.FailedTransaction
+      ).effects?.status.success
+    ).toEqual(true);
   });
 
   it('Should stake success', async () => {
@@ -134,7 +144,10 @@ describe('Test Scallop Client - Borrow incentive Method', async () => {
     if (ENABLE_LOG) {
       console.info('StakeResult:', stakeResult);
     }
-    expect(stakeResult.effects?.status.status).toEqual('success');
+    expect(
+      (stakeResult.Transaction ?? stakeResult.FailedTransaction).effects?.status
+        .success
+    ).toEqual(true);
   });
 
   it('Should unstake success', async () => {
@@ -142,7 +155,10 @@ describe('Test Scallop Client - Borrow incentive Method', async () => {
     if (ENABLE_LOG) {
       console.info('UnstakeResult:', unstakeResult);
     }
-    expect(unstakeResult.effects?.status.status).toEqual('success');
+    expect(
+      (unstakeResult.Transaction ?? unstakeResult.FailedTransaction).effects
+        ?.status.success
+    ).toEqual(true);
   });
 
   it('Should unstake and withdraw asset success', async () => {
@@ -153,7 +169,12 @@ describe('Test Scallop Client - Borrow incentive Method', async () => {
     if (ENABLE_LOG) {
       console.info('UnstakeAndWithdrawResult:', unstakeAndWithdrawResult);
     }
-    expect(unstakeAndWithdrawResult.effects?.status.status).toEqual('success');
+    expect(
+      (
+        unstakeAndWithdrawResult.Transaction ??
+        unstakeAndWithdrawResult.FailedTransaction
+      ).effects?.status.success
+    ).toBeTruthy();
   });
 
   it('Should claim success', async () => {
@@ -161,7 +182,10 @@ describe('Test Scallop Client - Borrow incentive Method', async () => {
     if (ENABLE_LOG) {
       console.info('ClaimResult:', claimResult);
     }
-    expect(claimResult.effects?.status.status).toEqual('success');
+    expect(
+      (claimResult.Transaction ?? claimResult.FailedTransaction).effects?.status
+        .success
+    ).toEqual(true);
   });
 });
 
@@ -174,7 +198,12 @@ describe('Test Scallop Client - Core Method', async () => {
     if (ENABLE_LOG) {
       console.info('OpenObligationResult:', openObligationResult);
     }
-    expect(openObligationResult.effects?.status.status).toEqual('success');
+    expect(
+      (
+        openObligationResult.Transaction ??
+        openObligationResult.FailedTransaction
+      ).effects?.status.success
+    ).toEqual(true);
   });
 
   it('Should deposit collateral success', async () => {
@@ -185,7 +214,12 @@ describe('Test Scallop Client - Core Method', async () => {
     if (ENABLE_LOG) {
       console.info('DepositCollateralResult:', depositCollateralResult);
     }
-    expect(depositCollateralResult.effects?.status.status).toEqual('success');
+    expect(
+      (
+        depositCollateralResult.Transaction ??
+        depositCollateralResult.FailedTransaction
+      ).effects?.status.success
+    ).toEqual(true);
   });
 
   it('Should withdraw collateral success', async () => {
@@ -201,7 +235,12 @@ describe('Test Scallop Client - Core Method', async () => {
     if (ENABLE_LOG) {
       console.info('WithdrawCollateralResult:', withdrawCollateralResult);
     }
-    expect(withdrawCollateralResult.effects?.status.status).toEqual('success');
+    expect(
+      (
+        withdrawCollateralResult.Transaction ??
+        withdrawCollateralResult.FailedTransaction
+      ).effects?.status.success
+    ).toEqual(true);
   });
 
   it('Should deposit asset success', async () => {
@@ -209,7 +248,10 @@ describe('Test Scallop Client - Core Method', async () => {
     if (ENABLE_LOG) {
       console.info('DepositResult:', depositResult);
     }
-    expect(depositResult.effects?.status.status).toEqual('success');
+    expect(
+      (depositResult.Transaction ?? depositResult.FailedTransaction).effects
+        ?.status.success
+    ).toEqual(true);
   });
 
   it('Should deposit asset and stake success', async () => {
@@ -220,7 +262,12 @@ describe('Test Scallop Client - Core Method', async () => {
     if (ENABLE_LOG) {
       console.info('DepositAndStakeResult:', depositAndStakeResult);
     }
-    expect(depositAndStakeResult.effects?.status.status).toEqual('success');
+    expect(
+      (
+        depositAndStakeResult.Transaction ??
+        depositAndStakeResult.FailedTransaction
+      ).effects?.status.success
+    ).toEqual(true);
   });
 
   it('Should withdraw asset success', async () => {
@@ -228,7 +275,10 @@ describe('Test Scallop Client - Core Method', async () => {
     if (ENABLE_LOG) {
       console.info('WithdrawResult:', withdrawResult);
     }
-    expect(withdrawResult.effects?.status.status).toEqual('success');
+    expect(
+      (withdrawResult.Transaction ?? withdrawResult.FailedTransaction).effects
+        ?.status.success
+    ).toEqual(true);
   });
 
   it('Should borrow asset success', async () => {
@@ -244,7 +294,10 @@ describe('Test Scallop Client - Core Method', async () => {
     if (ENABLE_LOG) {
       console.info('BorrowResult:', borrowResult);
     }
-    expect(borrowResult.effects?.status.status).toEqual('success');
+    expect(
+      (borrowResult.Transaction ?? borrowResult.FailedTransaction).effects
+        ?.status.success
+    ).toEqual(true);
   });
 
   it('Should repay asset success', async () => {
@@ -260,7 +313,10 @@ describe('Test Scallop Client - Core Method', async () => {
     if (ENABLE_LOG) {
       console.info('RepayResult:', repayResult);
     }
-    expect(repayResult.effects?.status.status).toEqual('success');
+    expect(
+      (repayResult.Transaction ?? repayResult.FailedTransaction).effects?.status
+        .success
+    ).toEqual(true);
   });
 
   it('Should flash loan successfully', async () => {
@@ -274,7 +330,10 @@ describe('Test Scallop Client - Core Method', async () => {
     if (ENABLE_LOG) {
       console.info('FlashLoanResult:', flashLoanResult);
     }
-    expect(flashLoanResult.effects?.status.status).toEqual('success');
+    expect(
+      (flashLoanResult.Transaction ?? flashLoanResult.FailedTransaction).effects
+        ?.status.success
+    ).toEqual(true);
   });
 });
 
@@ -287,8 +346,7 @@ describe('Test Scallop Client - Other Method', async () => {
 
   it('Should supply and stake successful', async () => {
     const sender = client.walletAddress;
-    const coinName = utils.constants.coinTypes.sui;
-    if (!coinName) throw new Error('Coin name not found');
+    const coinName = 'sui';
     const stakeMarketCoinName = utils.parseMarketCoinName<string>(coinName); // sSui.
 
     const stakeAccounts = await query.getStakeAccounts(stakeMarketCoinName);
@@ -302,7 +360,8 @@ describe('Test Scallop Client - Other Method', async () => {
     // Supply.
     const marketCoin = await txBlock.depositQuick(
       supplyAmountWithDecimals,
-      coinName
+      coinName,
+      false // Return marketCoin instead of sCoin for staking
     );
 
     // And then Stake.
@@ -325,13 +384,17 @@ describe('Test Scallop Client - Other Method', async () => {
     if (ENABLE_LOG) {
       console.info('Supply And Stake Result:', transactionBlock);
     }
-    expect(supplyAndStakeResult.effects?.status.status).toEqual('success');
+    expect(
+      (
+        supplyAndStakeResult.Transaction ??
+        supplyAndStakeResult.FailedTransaction
+      ).effects?.status.success
+    ).toEqual(true);
   });
 
   it('Should withdraw and unstake successful', async () => {
     const sender = client.walletAddress;
-    const coinName = utils.constants.coinTypes.sui;
-    if (!coinName) throw new Error('Coin name not found');
+    const coinName = 'sui';
     const stakeMarketCoinName = utils.parseMarketCoinName<string>(coinName); // sSui.
 
     const marketPool = await query.getMarketPool(coinName);
@@ -372,7 +435,8 @@ describe('Test Scallop Client - Other Method', async () => {
             const marketCoin = await txBlock.unstakeQuick(
               stakeAccount.staked,
               stakeMarketCoinName,
-              stakeAccount.id
+              stakeAccount.id,
+              false // v2: Return marketCoin instead of sCoin to avoid type mismatch
             );
 
             if (marketCoin) {
@@ -385,7 +449,8 @@ describe('Test Scallop Client - Other Method', async () => {
             const marketCoin = await txBlock.unstakeQuick(
               needUnstakeMarketAmount,
               stakeMarketCoinName,
-              stakeAccount.id
+              stakeAccount.id,
+              false // v2: Return marketCoin instead of sCoin to avoid type mismatch
             );
 
             if (marketCoin) {
@@ -421,9 +486,12 @@ describe('Test Scallop Client - Other Method', async () => {
       if (ENABLE_LOG) {
         console.info('Withdraw And Unstake Result:', withdrawAndUnstakeResult);
       }
-      expect(withdrawAndUnstakeResult.effects?.status.status).toEqual(
-        'success'
-      );
+      expect(
+        (
+          withdrawAndUnstakeResult.Transaction ??
+          withdrawAndUnstakeResult.FailedTransaction
+        ).effects?.status.success
+      ).toEqual(true);
     }
   });
 
@@ -433,7 +501,10 @@ describe('Test Scallop Client - Other Method', async () => {
     if (ENABLE_LOG) {
       console.info('MintTestCoinResult:', mintTestCoinResult);
     }
-    expect(mintTestCoinResult.effects?.status.status).toEqual('success');
+    expect(
+      (mintTestCoinResult.Transaction ?? mintTestCoinResult.FailedTransaction)
+        .effects?.status.success
+    ).toEqual(true);
   });
 });
 
@@ -448,7 +519,10 @@ describe('Test Scallop Client - Migrate sCoin method', async () => {
       console.info('Migrate result:', migrateResult);
     }
 
-    expect(migrateResult.effects.status.status).toBe('success');
+    expect(
+      (migrateResult.Transaction ?? migrateResult.FailedTransaction).effects
+        .status.success
+    ).toBe(true);
   });
 });
 
@@ -460,10 +534,11 @@ describe('Test Scallop Client - VeSCA Method', async () => {
     // assuming you have veSCA with unlocked SCA.
     const { tx, scaCoin } = await client.claimAllUnlockedSca(false);
     tx.transferObjects([scaCoin], client.walletAddress);
-    const { effects } = await client.scallopSuiKit.suiKit.inspectTxn(tx);
+    const result = await client.scallopSuiKit.suiKit.inspectTxn(tx);
+    const effects = (result.Transaction ?? result.FailedTransaction).effects;
     if (ENABLE_LOG) {
-      console.info('Claim unlocked SCA result:', effects.status.error);
+      console.info('Claim unlocked SCA result:', effects?.status?.error);
     }
-    expect(effects.status.status).toBe('success');
+    expect(effects.status.success).toBe(true);
   });
 });

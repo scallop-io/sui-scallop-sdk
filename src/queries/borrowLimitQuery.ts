@@ -1,4 +1,4 @@
-import { ScallopUtils } from 'src/models';
+import { ScallopUtils } from 'src/models/index.js';
 import { z as zod } from 'zod';
 
 const borrowLimitZod = zod.object({
@@ -39,7 +39,7 @@ export const getBorrowLimit = async (utils: ScallopUtils, poolName: string) => {
       },
     });
 
-    const parsedData = borrowLimitZod.safeParse(object?.data?.content);
+    const parsedData = borrowLimitZod.safeParse(object?.object?.json);
     if (!parsedData.success) return '0';
 
     return parsedData.data.fields.value;

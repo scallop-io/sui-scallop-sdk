@@ -1,4 +1,4 @@
-import { ScallopQuery } from 'src/models';
+import { ScallopQuery } from 'src/models/index.js';
 
 export const getOnDemandAggObjectIds = async (
   query: ScallopQuery,
@@ -52,11 +52,11 @@ export const getOnDemandAggObjectIds = async (
         name: dfName,
       });
 
-      if (!resp?.data?.content || resp.data.content.dataType !== 'moveObject')
+      const jsonData = resp?.object?.json as any;
+      if (!jsonData?.fields?.value)
         throw new Error(`No on-demand aggregator found for ${coinType}`);
 
-      const content = resp.data.content;
-      registeredAggs[idx] = (content.fields as any).value;
+      registeredAggs[idx] = jsonData.fields.value;
     })
   );
 
