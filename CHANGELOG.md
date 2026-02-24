@@ -2,7 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [2.4.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.0...v2.3.14) (2026-02-16)
+### [2.4.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.0...2.4.1) (2026-02-24)
+
+### Added
+
+- `supply()` client method for supplying assets to the lending pool — industry-standard naming aligned with Aave/Compound ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `supplyAndStake()` client method for supplying to the lending pool and staking in a single transaction ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `supplyQuick()` builder quick method for lending pool deposits ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `depositCollateralQuick()` builder quick method for adding collateral ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `supply` and `depositCollateral` normal builder methods as canonical replacements for `deposit` and `addCollateral` ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+
+### Changed
+
+- `depositCollateral()` client method now calls `depositCollateralQuick()` internally instead of the deprecated `addCollateralQuick()` ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- Fixed `userRewardFieldsZod` and `userVeScaRewardFieldsZod` schemas in loyalty program query to correctly parse string values unwrapped by `parseObjectAs` ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+
+### Deprecated
+
+- `deposit()` client method — use `supply()` instead. Will be removed in v3.0 ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `depositAndStake()` client method — use `supplyAndStake()` instead. Will be removed in v3.0 ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `depositQuick()` builder quick method — use `supplyQuick()` instead. Will be removed in v3.0 ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `addCollateralQuick()` builder quick method — use `depositCollateralQuick()` instead. Will be removed in v3.0 ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `deposit` builder normal method — use `supply` instead. Will be removed in v3.0 ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `addCollateral` builder normal method — use `depositCollateral` instead. Will be removed in v3.0 ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+
+### [2.4.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.14...v2.4.0) (2026-02-16)
 
 ### ⚠ BREAKING CHANGES
 
