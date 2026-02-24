@@ -167,18 +167,21 @@ describe('Test Scallop Core Builder', () => {
     expect(txResult.effects?.status.success).toEqual(true);
   });
 
-  it('"addCollateralQuick" should succeed', async () => {
+  it('"depositCollateralQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
-    // Sender is required to invoke "addCollateralQuick".
+    // Sender is required to invoke "depositCollateralQuick".
     tx.setSender(sender);
-    await tx.addCollateralQuick(10 ** 7, COLLATERAL_COIN_NAME);
-    const addCollateralQuickResult =
+    await tx.depositCollateralQuick(10 ** 7, COLLATERAL_COIN_NAME);
+    const depositCollateralQuickResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
     const txResult =
-      addCollateralQuickResult.Transaction ??
-      addCollateralQuickResult.FailedTransaction;
+      depositCollateralQuickResult.Transaction ??
+      depositCollateralQuickResult.FailedTransaction;
     if (ENABLE_LOG) {
-      console.info('AddCollateralQuickResult:', txResult.effects.status.error);
+      console.info(
+        'DepositCollateralQuickResult:',
+        txResult.effects.status.error
+      );
     }
     expect(txResult.effects?.status.success).toEqual(true);
   });
@@ -309,7 +312,7 @@ describe('Test Scallop Core Builder', () => {
      */
     const suiTxBlock = tx.txBlock;
     const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [10 ** 6]);
-    const marketCoin = await tx.deposit(coin, SUPPLY_COIN_NAME);
+    const marketCoin = tx.supply(coin, SUPPLY_COIN_NAME);
     suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure.address(sender));
     const txBlockResult =
       await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
