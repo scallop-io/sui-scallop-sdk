@@ -30,7 +30,7 @@ describe('Test Query Scallop Contract On Chain Data', () => {
       console.info('Market:');
       console.dir(market, { depth: null, colors: true });
     }
-    expect(!!market).toBe(true);
+    expect(market).toBeTruthy();
   });
 
   it('Should get market pools data', async () => {
@@ -40,7 +40,7 @@ describe('Test Query Scallop Contract On Chain Data', () => {
       console.info('Market pool:');
       console.dir(marketPools, { depth: null, colors: true });
     }
-    expect(!!marketPools).toBe(true);
+    expect(marketPools).toBeTruthy();
   });
 
   it('Should get market pool data', async () => {
@@ -50,7 +50,7 @@ describe('Test Query Scallop Contract On Chain Data', () => {
       console.info('Sui market pool:');
       console.dir(suiMarketPool, { depth: null, colors: true });
     }
-    expect(!!suiMarketPool).toBe(true);
+    expect(suiMarketPool).toBeTruthy();
   });
 
   it('Should get market collaterals data', async () => {
@@ -63,7 +63,7 @@ describe('Test Query Scallop Contract On Chain Data', () => {
       console.info('Market collaterasl:');
       console.dir(marketCollaterals, { depth: null, colors: true });
     }
-    expect(!!marketCollaterals).toBe(true);
+    expect(marketCollaterals).toBeTruthy();
   });
 
   it('Should get market collateral data', async () => {
@@ -73,7 +73,7 @@ describe('Test Query Scallop Contract On Chain Data', () => {
       console.info('Sui market collateral:');
       console.dir(suiMarketCollateral, { depth: null, colors: true });
     }
-    expect(!!suiMarketCollateral).toBe(true);
+    expect(suiMarketCollateral).toBeTruthy();
   });
 
   it('Should get obligations and its all obligation data', async () => {
@@ -82,7 +82,7 @@ describe('Test Query Scallop Contract On Chain Data', () => {
     if (ENABLE_LOG) {
       console.info('Obligations', obligations);
     }
-    expect(!!obligations).toBe(true);
+    expect(obligations).toBeTruthy();
 
     for (const { id } of obligations) {
       const obligationData = await scallopQuery.queryObligation(id);
@@ -92,7 +92,7 @@ describe('Test Query Scallop Contract On Chain Data', () => {
         console.info('Obligation:');
         console.dir(obligationData, { depth: null, colors: true });
       }
-      expect(!!obligationData).toBe(true);
+      expect(obligationData).toBeTruthy();
     }
   });
 
@@ -103,7 +103,7 @@ describe('Test Query Scallop Contract On Chain Data', () => {
       console.info('Coin amounts:');
       console.dir(coinAmounts, { depth: null, colors: true });
     }
-    expect(!!coinAmounts).toBe(true);
+    expect(coinAmounts).toBeTruthy();
   });
 
   it('Should get coin amount', async () => {
@@ -122,7 +122,7 @@ describe('Test Query Scallop Contract On Chain Data', () => {
       console.info('Market coin amounts:');
       console.dir(marketCoinAmounts, { depth: null, colors: true });
     }
-    expect(!!marketCoinAmounts).toBe(true);
+    expect(marketCoinAmounts).toBeTruthy();
   });
 
   it('Should get market coin amount', async () => {
@@ -152,7 +152,7 @@ describe('Test Query Spool Contract On Chain Data', () => {
       console.info('Spools:');
       console.dir(spools, { depth: null, colors: true });
     }
-    expect(!!spools).toBe(true);
+    expect(spools).toBeTruthy();
   });
 
   it('Should get spool data', async () => {
@@ -162,7 +162,7 @@ describe('Test Query Spool Contract On Chain Data', () => {
       console.info('sSUI spool:');
       console.dir(ssuiSpool, { depth: null, colors: true });
     }
-    expect(!!ssuiSpool).toBe(true);
+    expect(ssuiSpool).toBeTruthy();
   });
 
   it('Should get all stake accounts data', async () => {
@@ -172,7 +172,7 @@ describe('Test Query Spool Contract On Chain Data', () => {
       console.info('All stake accounts:');
       console.dir(allStakeAccounts, { depth: null, colors: true });
     }
-    expect(!!allStakeAccounts).toBe(true);
+    expect(allStakeAccounts).toBeTruthy();
   });
 
   it('Should get stake accounts data', async () => {
@@ -182,7 +182,7 @@ describe('Test Query Spool Contract On Chain Data', () => {
       console.info('Stake accounts:');
       console.dir(stakeAccounts, { depth: null, colors: true });
     }
-    expect(!!stakeAccounts).toBe(true);
+    expect(stakeAccounts).toBeTruthy();
   });
 
   it('Should get all stake pools data', async () => {
@@ -192,7 +192,7 @@ describe('Test Query Spool Contract On Chain Data', () => {
       console.info('Stake pools:');
       console.dir(stakePools, { depth: null, colors: true });
     }
-    expect(!!stakePools).toBe(true);
+    expect(stakePools).toBeTruthy();
   });
 
   it('Should get stake pool data', async () => {
@@ -202,7 +202,7 @@ describe('Test Query Spool Contract On Chain Data', () => {
       console.info('sSui stake pool:');
       console.dir(suiStakePool, { depth: null, colors: true });
     }
-    expect(!!suiStakePool).toBe(true);
+    expect(suiStakePool).toBeTruthy();
   });
 
   it('Should get all stake reward pools data', async () => {
@@ -212,7 +212,7 @@ describe('Test Query Spool Contract On Chain Data', () => {
       console.info('Reward pools:');
       console.dir(stakeRewardPools, { depth: null, colors: true });
     }
-    expect(!!stakeRewardPools).toBe(true);
+    expect(stakeRewardPools).toBeTruthy();
   });
 
   it('Should get all stake reward pool data', async () => {
@@ -222,7 +222,7 @@ describe('Test Query Spool Contract On Chain Data', () => {
       console.info('sSui Reward pool:');
       console.dir(stakeRewardPool, { depth: null, colors: true });
     }
-    expect(!!stakeRewardPool).toBe(true);
+    expect(stakeRewardPool).toBeTruthy();
   });
 });
 
@@ -234,7 +234,7 @@ describe('Test Query Borrow Incentive Contract On Chain Data', () => {
       console.info('BorrowIncentive pools:');
       console.dir(borrowIncentivePools, { depth: null, colors: true });
     }
-    expect(!!borrowIncentivePools).toBe(true);
+    expect(borrowIncentivePools).toBeTruthy();
   });
 
   it('Should get borrow incentive accounts data', async () => {
@@ -252,7 +252,7 @@ describe('Test Query Borrow Incentive Contract On Chain Data', () => {
       console.info('BorrowIncentive accounts:');
       console.dir(borrowIncentiveAccounts, { depth: null, colors: true });
     }
-    expect(!!borrowIncentiveAccounts).toBe(true);
+    expect(borrowIncentiveAccounts).toBeTruthy();
   });
 });
 
@@ -263,7 +263,7 @@ describe('Test Portfolio Query', () => {
     if (ENABLE_LOG) {
       console.info('User lendings:', lendings);
     }
-    expect(!!lendings).toBe(true);
+    expect(lendings).toBeTruthy();
   }, 120000);
 
   it('Should get user lending data', async () => {
@@ -272,7 +272,7 @@ describe('Test Portfolio Query', () => {
     if (ENABLE_LOG) {
       console.info('User lending:', lending);
     }
-    expect(!!lending).toBe(true);
+    expect(lending).toBeTruthy();
   });
 
   it('Should get all obligation accounts', async () => {
@@ -281,7 +281,7 @@ describe('Test Portfolio Query', () => {
       console.info('Obligation accounts:');
       console.dir(obligationAccounts, { depth: null, colors: true });
     }
-    expect(!!obligationAccounts).toBe(true);
+    expect(obligationAccounts).toBeTruthy();
   }, 120000);
 
   it('Should get obligation account', async () => {
@@ -299,7 +299,7 @@ describe('Test Portfolio Query', () => {
       console.info('Obligation account:');
       console.dir(obligationAccount, { depth: null, colors: true });
     }
-    expect(!!obligationAccount).toBe(true);
+    expect(obligationAccount).toBeTruthy();
   });
 
   it('Should get obligation account by ids', async () => {
@@ -329,7 +329,7 @@ describe('Test Portfolio Query', () => {
     if (ENABLE_LOG) {
       console.info('Scallop tvl:', tvl);
     }
-    expect(!!tvl).toBe(true);
+    expect(tvl).toBeTruthy();
   });
 });
 
@@ -347,7 +347,7 @@ describe('Test VeSca Query', () => {
         `No binded obligationId found for veScaKey ${VE_SCA_KEY}`
       );
     obligationId = bindedObligationId;
-    expect(!!bindedObligationId).toBe(true);
+    expect(bindedObligationId).toBeTruthy();
   });
 
   if (obligationId) {
@@ -363,7 +363,7 @@ describe('Test VeSca Query', () => {
         console.info('Binded VeSca Key Id:', bindedVeScaKeyId);
       }
 
-      expect(!!bindedVeScaKeyId).toBe(true);
+      expect(bindedVeScaKeyId).toBeTruthy();
     });
   }
 
@@ -386,7 +386,7 @@ describe('Test VeSca Query', () => {
     if (ENABLE_LOG) {
       console.info('VeSca:', veSca);
     }
-    expect(!!veSca).toBe(true);
+    expect(veSca).toBeTruthy();
 
     const veScaSchema = zod.object({
       id: zod.string(),
@@ -440,7 +440,7 @@ describe('Test Loyalty Program Query', () => {
     if (ENABLE_LOG) {
       console.info('Loyalty Program Info:', loyaltyProgramInfo);
     }
-    expect(!!loyaltyProgramInfo).toBe(true);
+    expect(loyaltyProgramInfo).toBeTruthy();
     expect(loyaltyProgramInfoZod.safeParse(loyaltyProgramInfo).success).toBe(
       true
     );
@@ -459,7 +459,7 @@ describe('Test Loyalty Program Query', () => {
     if (ENABLE_LOG) {
       console.info('VeSca Loyalty Program Info:', veScaLoyaltyProgramInfo);
     }
-    expect(!!veScaLoyaltyProgramInfo).toBe(true);
+    expect(veScaLoyaltyProgramInfo).toBeTruthy();
     expect(
       veScaLoyaltyProgramInfoZod.safeParse(veScaLoyaltyProgramInfo).success
     ).toBe(true);
@@ -545,7 +545,7 @@ describe('Test All Coin Prices Query', () => {
       console.info('All coin prices:', coinPrices);
       console.info('Usdc coin price:', swusdcPrice);
     }
-    expect(!!coinPrices).toBe(true);
+    expect(coinPrices).toBeTruthy();
     expect(swusdcPrice).toBeGreaterThanOrEqual(0);
   });
 });
@@ -556,7 +556,7 @@ describe('Test Address Query', () => {
     if (ENABLE_LOG) {
       console.info('Pool addresses:', poolAddresses);
     }
-    expect(!!poolAddresses).toBe(true);
+    expect(poolAddresses).toBeTruthy();
   });
 });
 
@@ -576,7 +576,7 @@ describe('Test Get Flashloan Fees', () => {
     if (ENABLE_LOG) {
       console.info('Flashloan fees:', flashloanFees);
     }
-    expect(!!flashloanFees).toBe(true);
+    expect(flashloanFees).toBeTruthy();
     expect(Object.keys(flashloanFees).length).toBeGreaterThan(0);
   });
 });
@@ -588,7 +588,7 @@ describe('Test Get User Portfolio', () => {
       console.info('User portfolio:', portfolio);
     }
 
-    expect(!!portfolio).toBe(true);
+    expect(portfolio).toBeTruthy();
     expect(portfolio.totalSupplyValue > 0).toBe(true);
   });
 });
