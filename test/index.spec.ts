@@ -244,7 +244,7 @@ describe('Test Scallop Client - Core Method', async () => {
   });
 
   it('Should deposit asset success', async () => {
-    const depositResult = await client.deposit('sui', 2 * 10 ** 8);
+    const depositResult = await client.supply('sui', 2 * 10 ** 8);
     if (ENABLE_LOG) {
       console.info('DepositResult:', depositResult);
     }

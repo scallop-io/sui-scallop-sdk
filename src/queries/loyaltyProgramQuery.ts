@@ -20,10 +20,8 @@ const rewardPoolFieldsZod = zod
   }));
 
 const userRewardFieldsZod = zod
-  .object({
-    value: zod.string(),
-  })
-  .transform((value) => BigNumber(value.value).shiftedBy(-9).toNumber());
+  .string()
+  .transform((value) => BigNumber(value).shiftedBy(-9).toNumber());
 
 type RewardPoolFields = zod.infer<typeof rewardPoolFieldsZod>;
 type UserRewardFields = zod.infer<typeof userRewardFieldsZod>;
@@ -77,7 +75,7 @@ export const getLoyaltyProgramInformations = async (
 
   const userRewardObjData = userRewardObject?.object;
   if (!userRewardObjData) return result;
-  const userRewardFields = parseObjectAs<{ value: string }>(userRewardObjData);
+  const userRewardFields = parseObjectAs<string>(userRewardObjData);
   result.pendingReward = userRewardFieldsZod.parse(
     userRewardFields
   ) as UserRewardFields;
@@ -104,10 +102,8 @@ const veScaRewardPoolFieldsZod = zod
   }));
 
 const userVeScaRewardFieldsZod = zod
-  .object({
-    value: zod.string(),
-  })
-  .transform((value) => BigNumber(value.value).shiftedBy(-9).toNumber());
+  .string()
+  .transform((value) => BigNumber(value).shiftedBy(-9).toNumber());
 
 type VeScaRewardPoolFields = zod.infer<typeof veScaRewardPoolFieldsZod>;
 type UserVeScaRewardFields = zod.infer<typeof userVeScaRewardFieldsZod>;
@@ -168,7 +164,7 @@ export const getVeScaLoyaltyProgramInformations = async (
 
   const userRewardObjData = userRewardObject?.object;
   if (!userRewardObjData) return result;
-  const userRewardFields = parseObjectAs<{ value: string }>(userRewardObjData);
+  const userRewardFields = parseObjectAs<string>(userRewardObjData);
   const parsedUserVeScaReward =
     userVeScaRewardFieldsZod.safeParse(userRewardFields);
   if (!parsedUserVeScaReward.success) return result;
