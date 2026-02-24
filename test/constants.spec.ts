@@ -15,13 +15,13 @@ beforeAll(async () => {
 });
 
 describe('Test Scallop Constants API Fetch', () => {
-  it('Should have sucessfully fetched constants', () => {
+  it('Should have successfully fetched constants', () => {
     expect(scallopConstants.whitelist.lending.size > 0).toBe(true);
     expect(Object.values(scallopConstants.poolAddresses).length > 0).toBe(true);
   });
 });
 
-describe('Test Scallop Constants Values Overide', () => {
+describe('Test Scallop Constants Values Override', () => {
   it('Should override whitelist', async () => {
     await scallopConstants.init({
       constantsParams: { forceWhitelistInterface: {} as Whitelist },

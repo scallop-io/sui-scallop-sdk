@@ -220,6 +220,21 @@ describe('Test Scallop Core Builder', () => {
     expect(txResult.effects?.status.success).toEqual(true);
   });
 
+  it('"supplyQuick" should succeed', async () => {
+    const tx = scallopBuilder.createTxBlock();
+    tx.setSender(sender);
+    const sCoin = await tx.supplyQuick(10 ** 7, SUPPLY_COIN_NAME);
+    tx.transferObjects([sCoin], sender);
+    const supplyQuickResult =
+      await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+    const txResult =
+      supplyQuickResult.Transaction ?? supplyQuickResult.FailedTransaction;
+    expect(
+      txResult.effects?.status.success,
+      JSON.stringify(txResult.effects?.status.error)
+    ).toEqual(true);
+  });
+
   it('"withdrawQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
     // Sender is required to invoke "withdrawQuick".

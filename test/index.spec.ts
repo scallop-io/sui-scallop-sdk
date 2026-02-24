@@ -1,110 +1,71 @@
 import { BigNumber } from 'bignumber.js';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import type { Transaction } from '@scallop-io/sui-kit';
 import { scallopSDK } from './scallopSdk.js';
+import type {
+  ScallopClient,
+  ScallopBuilder,
+  ScallopQuery,
+  ScallopUtils,
+} from 'src/index.js';
 
-const ENABLE_LOG = false;
+let client: ScallopClient;
+let builder: ScallopBuilder;
+let query: ScallopQuery;
+let utils: ScallopUtils;
 
-describe('Test Scallop Client - Query Method', async () => {
-  const client = await scallopSDK.createScallopClient();
+beforeAll(async () => {
+  client = await scallopSDK.createScallopClient();
+  builder = await scallopSDK.createScallopBuilder();
+  query = await scallopSDK.createScallopQuery();
+  utils = await scallopSDK.createScallopUtils();
   console.info('Your wallet:', client.walletAddress);
+});
 
+describe('Test Scallop Client - Query Method', () => {
   it('Should query market data', async () => {
     const marketData = await client.queryMarket();
-    if (ENABLE_LOG) {
-      console.info('MarketData:', marketData);
-    }
-    expect(!!marketData).toBe(true);
+    expect(marketData).toBeTruthy();
   });
 
   it('Should get obligations data', async () => {
     const obligationsData = await client.getObligations();
-    if (ENABLE_LOG) {
-      console.info('Obligations data:', obligationsData);
-    }
-    expect(!!obligationsData).toBe(true);
+    expect(obligationsData).toBeTruthy();
   });
 
   it('Should get obligation data', async () => {
     const obligations = await client.getObligations();
     expect(obligations.length).toBeGreaterThan(0);
     const obligationData = await client.queryObligation(obligations[0].id);
-    if (ENABLE_LOG) {
-      console.info('Obligation data:', obligationData);
-    }
-    expect(!!obligationData).toBe(true);
+    expect(obligationData).toBeTruthy();
   });
 
   it('Should get all stake accounts data', async () => {
     const allStakeAccountsData = await client.getAllStakeAccounts();
-    if (ENABLE_LOG) {
-      console.info('All stakeAccounts data:', allStakeAccountsData);
-    }
-    expect(!!allStakeAccountsData).toBe(true);
+    expect(allStakeAccountsData).toBeTruthy();
   });
 
   it('Should get stake accounts data', async () => {
     const stakeAccountsData = await client.getStakeAccounts('ssui');
-    if (ENABLE_LOG) {
-      console.info('StakeAccounts data:', stakeAccountsData);
-    }
-    expect(!!stakeAccountsData).toBe(true);
+    expect(stakeAccountsData).toBeTruthy();
   });
 
   it('Should get stake pool data', async () => {
     const stakePoolData = await client.getStakePool('ssui');
-    if (ENABLE_LOG) {
-      console.info('Stake pool data:', stakePoolData);
-    }
-    expect(!!stakePoolData).toBe(true);
+    expect(stakePoolData).toBeTruthy();
   });
 
   it('Should get stake reward pool data', async () => {
     const stakeRewardPoolData = await client.getStakeRewardPool('ssui');
-    if (ENABLE_LOG) {
-      console.info('Stake reward pool data:', stakeRewardPoolData);
-    }
-    expect(!!stakeRewardPoolData).toBe(true);
+    expect(stakeRewardPoolData).toBeTruthy();
   });
 });
 
-describe('Test Scallop Client - Spool Method', async () => {
-  const client = await scallopSDK.createScallopClient();
-  console.info('Your wallet:', client.walletAddress);
-
-  // it('Should create stake account success', async () => {
-  //   const txb = await client.createStakeAccount('ssui', false);
-  //   const createStakeAccountResult = await client.scallopSuiKit.suiKit.inspectTxn(txb);
-  //   if (ENABLE_LOG) {
-  //     console.info('CreateStakeAccountResult:', createStakeAccountResult);
-  //   }
-  //   expect(createStakeAccountResult.effects?.status.status).toEqual('success');
-  // });
-
-  // it('Should stake success', async () => {
-  //   const stakeResult = await client.stake('ssui', 10 ** 8);
-  //   if (ENABLE_LOG) {
-  //     console.info('StakeResult:', stakeResult);
-  //   }
-  //   expect(stakeResult.effects?.status.status).toEqual('success');
-  // });
-
-  // it('Should unstake success', async () => {
-  //   const unstakeResult = await client.unstake('ssui', 5 * 10 ** 7);
-  //   if (ENABLE_LOG) {
-  //     console.info('UnstakeResult:', unstakeResult);
-  //   }
-  //   expect(unstakeResult.effects?.status.status).toEqual('success');
-  // });
-
+describe('Test Scallop Client - Spool Method', () => {
   it('Should unstake and withdraw asset success', async () => {
     const txb = await client.unstakeAndWithdraw('ssui', 5 * 10 ** 7, false);
     const unstakeAndWithdrawResult =
       await client.scallopSuiKit.suiKit.signAndSendTxn(txb);
-    console.dir((txb as any).blockData, { depth: null });
-    if (ENABLE_LOG) {
-      console.info('UnstakeAndWithdrawResult:', unstakeAndWithdrawResult);
-    }
     expect(
       (
         unstakeAndWithdrawResult.Transaction ??
@@ -112,25 +73,11 @@ describe('Test Scallop Client - Spool Method', async () => {
       ).effects?.status.success
     ).toBeTruthy();
   });
-
-  // it('Should claim success', async () => {
-  //   const claimResult = await client.claim('ssui');
-  //   if (ENABLE_LOG) {
-  //     console.info('ClaimResult:', claimResult);
-  //   }
-  //   expect(claimResult.effects?.status.status).toEqual('success');
-  // });
 });
 
-describe('Test Scallop Client - Borrow incentive Method', async () => {
-  const client = await scallopSDK.createScallopClient();
-  console.info('Your wallet:', client.walletAddress);
-
+describe('Test Scallop Client - Borrow incentive Method', () => {
   it('Should create stake account success', async () => {
     const createStakeAccountResult = await client.createStakeAccount('ssui');
-    if (ENABLE_LOG) {
-      console.info('CreateStakeAccountResult:', createStakeAccountResult);
-    }
     expect(
       (
         createStakeAccountResult.Transaction ??
@@ -141,9 +88,6 @@ describe('Test Scallop Client - Borrow incentive Method', async () => {
 
   it('Should stake success', async () => {
     const stakeResult = await client.stake('ssui', 10 ** 8);
-    if (ENABLE_LOG) {
-      console.info('StakeResult:', stakeResult);
-    }
     expect(
       (stakeResult.Transaction ?? stakeResult.FailedTransaction).effects?.status
         .success
@@ -152,9 +96,6 @@ describe('Test Scallop Client - Borrow incentive Method', async () => {
 
   it('Should unstake success', async () => {
     const unstakeResult = await client.unstake('ssui', 10 ** 8);
-    if (ENABLE_LOG) {
-      console.info('UnstakeResult:', unstakeResult);
-    }
     expect(
       (unstakeResult.Transaction ?? unstakeResult.FailedTransaction).effects
         ?.status.success
@@ -166,9 +107,6 @@ describe('Test Scallop Client - Borrow incentive Method', async () => {
       'ssui',
       2 * 10 ** 8
     );
-    if (ENABLE_LOG) {
-      console.info('UnstakeAndWithdrawResult:', unstakeAndWithdrawResult);
-    }
     expect(
       (
         unstakeAndWithdrawResult.Transaction ??
@@ -179,9 +117,6 @@ describe('Test Scallop Client - Borrow incentive Method', async () => {
 
   it('Should claim success', async () => {
     const claimResult = await client.claim('ssui');
-    if (ENABLE_LOG) {
-      console.info('ClaimResult:', claimResult);
-    }
     expect(
       (claimResult.Transaction ?? claimResult.FailedTransaction).effects?.status
         .success
@@ -189,15 +124,9 @@ describe('Test Scallop Client - Borrow incentive Method', async () => {
   });
 });
 
-describe('Test Scallop Client - Core Method', async () => {
-  const client = await scallopSDK.createScallopClient();
-  console.info('Your wallet:', client.walletAddress);
-
+describe('Test Scallop Client - Core Method', () => {
   it('Should open obligation success', async () => {
     const openObligationResult = await client.openObligation();
-    if (ENABLE_LOG) {
-      console.info('OpenObligationResult:', openObligationResult);
-    }
     expect(
       (
         openObligationResult.Transaction ??
@@ -211,9 +140,6 @@ describe('Test Scallop Client - Core Method', async () => {
       'sui',
       10 ** 8
     );
-    if (ENABLE_LOG) {
-      console.info('DepositCollateralResult:', depositCollateralResult);
-    }
     expect(
       (
         depositCollateralResult.Transaction ??
@@ -232,9 +158,6 @@ describe('Test Scallop Client - Core Method', async () => {
       obligations[0].id,
       obligations[0].keyId
     );
-    if (ENABLE_LOG) {
-      console.info('WithdrawCollateralResult:', withdrawCollateralResult);
-    }
     expect(
       (
         withdrawCollateralResult.Transaction ??
@@ -243,25 +166,32 @@ describe('Test Scallop Client - Core Method', async () => {
     ).toEqual(true);
   });
 
-  it('Should deposit asset success', async () => {
-    const depositResult = await client.supply('sui', 2 * 10 ** 8);
-    if (ENABLE_LOG) {
-      console.info('DepositResult:', depositResult);
-    }
+  it('Should supply asset success', async () => {
+    const supplyResult = await client.supply('sui', 2 * 10 ** 8);
     expect(
-      (depositResult.Transaction ?? depositResult.FailedTransaction).effects
+      (supplyResult.Transaction ?? supplyResult.FailedTransaction).effects
         ?.status.success
     ).toEqual(true);
   });
 
-  it('Should deposit asset and stake success', async () => {
+  it('Should supply asset and stake success', async () => {
+    const supplyAndStakeResult = await client.supplyAndStake(
+      'sui',
+      2 * 10 ** 8
+    );
+    expect(
+      (
+        supplyAndStakeResult.Transaction ??
+        supplyAndStakeResult.FailedTransaction
+      ).effects?.status.success
+    ).toEqual(true);
+  });
+
+  it('Should deposit asset and stake success (deprecated)', async () => {
     const depositAndStakeResult = await client.depositAndStake(
       'sui',
       2 * 10 ** 8
     );
-    if (ENABLE_LOG) {
-      console.info('DepositAndStakeResult:', depositAndStakeResult);
-    }
     expect(
       (
         depositAndStakeResult.Transaction ??
@@ -272,9 +202,6 @@ describe('Test Scallop Client - Core Method', async () => {
 
   it('Should withdraw asset success', async () => {
     const withdrawResult = await client.withdraw('sui', 1.5 * 10 ** 8);
-    if (ENABLE_LOG) {
-      console.info('WithdrawResult:', withdrawResult);
-    }
     expect(
       (withdrawResult.Transaction ?? withdrawResult.FailedTransaction).effects
         ?.status.success
@@ -291,9 +218,6 @@ describe('Test Scallop Client - Core Method', async () => {
       obligations[0].id,
       obligations[0].keyId
     );
-    if (ENABLE_LOG) {
-      console.info('BorrowResult:', borrowResult);
-    }
     expect(
       (borrowResult.Transaction ?? borrowResult.FailedTransaction).effects
         ?.status.success
@@ -310,9 +234,6 @@ describe('Test Scallop Client - Core Method', async () => {
       obligations[0].id,
       obligations[0].keyId
     );
-    if (ENABLE_LOG) {
-      console.info('RepayResult:', repayResult);
-    }
     expect(
       (repayResult.Transaction ?? repayResult.FailedTransaction).effects?.status
         .success
@@ -327,9 +248,6 @@ describe('Test Scallop Client - Core Method', async () => {
         return coin;
       }
     );
-    if (ENABLE_LOG) {
-      console.info('FlashLoanResult:', flashLoanResult);
-    }
     expect(
       (flashLoanResult.Transaction ?? flashLoanResult.FailedTransaction).effects
         ?.status.success
@@ -337,34 +255,25 @@ describe('Test Scallop Client - Core Method', async () => {
   });
 });
 
-describe('Test Scallop Client - Other Method', async () => {
-  const client = await scallopSDK.createScallopClient();
-  const builder = await scallopSDK.createScallopBuilder();
-  const query = await scallopSDK.createScallopQuery();
-  const utils = await scallopSDK.createScallopUtils();
-  console.info('Your wallet:', client.walletAddress);
-
+describe('Test Scallop Client - Other Method', () => {
   it('Should supply and stake successful', async () => {
     const sender = client.walletAddress;
     const coinName = 'sui';
-    const stakeMarketCoinName = utils.parseMarketCoinName<string>(coinName); // sSui.
+    const stakeMarketCoinName = utils.parseMarketCoinName<string>(coinName);
 
     const stakeAccounts = await query.getStakeAccounts(stakeMarketCoinName);
 
-    // Lending Supply with Spool Staking.
-    const supplyAmountWithDecimals = 1_000_000_000; // Supply target amount.
+    const supplyAmountWithDecimals = 1_000_000_000;
 
     const txBlock = builder.createTxBlock();
     txBlock.setSender(sender);
 
-    // Supply.
-    const marketCoin = await txBlock.depositQuick(
+    const marketCoin = await txBlock.supplyQuick(
       supplyAmountWithDecimals,
       coinName,
       false // Return marketCoin instead of sCoin for staking
     );
 
-    // And then Stake.
     if (stakeAccounts.length > 0) {
       const stakeAccount = stakeAccounts[0];
       await txBlock.stakeQuick(
@@ -381,9 +290,6 @@ describe('Test Scallop Client - Other Method', async () => {
     const transactionBlock = txBlock.txBlock;
     const supplyAndStakeResult =
       await builder.scallopSuiKit.suiKit.inspectTxn(transactionBlock);
-    if (ENABLE_LOG) {
-      console.info('Supply And Stake Result:', transactionBlock);
-    }
     expect(
       (
         supplyAndStakeResult.Transaction ??
@@ -395,7 +301,7 @@ describe('Test Scallop Client - Other Method', async () => {
   it('Should withdraw and unstake successful', async () => {
     const sender = client.walletAddress;
     const coinName = 'sui';
-    const stakeMarketCoinName = utils.parseMarketCoinName<string>(coinName); // sSui.
+    const stakeMarketCoinName = utils.parseMarketCoinName<string>(coinName);
 
     const marketPool = await query.getMarketPool(coinName);
     const stakeAccounts = await query.getStakeAccounts(stakeMarketCoinName);
@@ -403,8 +309,7 @@ describe('Test Scallop Client - Other Method', async () => {
 
     let transactionBlock: Transaction;
     if (marketPool) {
-      // Lending Withdraw with Spool Unstaking.
-      const withdrawAmountWithDecimals = 1_000_000_000; // Withdraw target amount.
+      const withdrawAmountWithDecimals = 1_000_000_000;
 
       const witdrawMarketAmount = BigNumber(withdrawAmountWithDecimals)
         .dividedToIntegerBy(marketPool.conversionRate)
@@ -416,27 +321,21 @@ describe('Test Scallop Client - Other Method', async () => {
         lendingInfo.availableUnstakeAmount > 0 &&
         witdrawMarketAmount > unStakedMarketAmount
       ) {
-        // unstake staked sSui only if withdrawal market amount > unstaked sSui amount
-        // availableUnstakeAmount > 0, unstake, and then withdraw.
-
         const txBlock = builder.createTxBlock();
         txBlock.setSender(sender);
 
-        // need unstake amount = withdrawal market amount - unstaked sSui amount
         let needUnstakeMarketAmount =
           witdrawMarketAmount - unStakedMarketAmount;
 
         const txObjects = [];
 
-        // unstake and withdraw from spool
         for (const stakeAccount of stakeAccounts) {
           if (stakeAccount.staked <= needUnstakeMarketAmount) {
-            // Unstake sequentially from all stake accounts
             const marketCoin = await txBlock.unstakeQuick(
               stakeAccount.staked,
               stakeMarketCoinName,
               stakeAccount.id,
-              false // v2: Return marketCoin instead of sCoin to avoid type mismatch
+              false
             );
 
             if (marketCoin) {
@@ -445,12 +344,11 @@ describe('Test Scallop Client - Other Method', async () => {
               needUnstakeMarketAmount -= stakeAccount.staked;
             }
           } else {
-            // A single account has enough to unstake them all.
             const marketCoin = await txBlock.unstakeQuick(
               needUnstakeMarketAmount,
               stakeMarketCoinName,
               stakeAccount.id,
-              false // v2: Return marketCoin instead of sCoin to avoid type mismatch
+              false
             );
 
             if (marketCoin) {
@@ -462,7 +360,6 @@ describe('Test Scallop Client - Other Method', async () => {
         }
 
         if (unStakedMarketAmount > 0) {
-          // withdraw unstaked sSui amount from supply
           const wdSCoin = await txBlock.withdrawQuick(
             unStakedMarketAmount,
             coinName
@@ -473,7 +370,6 @@ describe('Test Scallop Client - Other Method', async () => {
         txBlock.transferObjects(txObjects, sender);
         transactionBlock = txBlock.txBlock;
       } else {
-        // directly witdhdraw.
         transactionBlock = await client.withdraw(
           coinName,
           withdrawAmountWithDecimals,
@@ -483,9 +379,6 @@ describe('Test Scallop Client - Other Method', async () => {
       }
       const withdrawAndUnstakeResult =
         await builder.scallopSuiKit.suiKit.inspectTxn(transactionBlock);
-      if (ENABLE_LOG) {
-        console.info('Withdraw And Unstake Result:', withdrawAndUnstakeResult);
-      }
       expect(
         (
           withdrawAndUnstakeResult.Transaction ??
@@ -498,9 +391,6 @@ describe('Test Scallop Client - Other Method', async () => {
   // Only for testnet.
   it.skip('Should get test coin', async () => {
     const mintTestCoinResult = await client.mintTestCoin('wusdc', 10 ** 11);
-    if (ENABLE_LOG) {
-      console.info('MintTestCoinResult:', mintTestCoinResult);
-    }
     expect(
       (mintTestCoinResult.Transaction ?? mintTestCoinResult.FailedTransaction)
         .effects?.status.success
@@ -508,17 +398,10 @@ describe('Test Scallop Client - Other Method', async () => {
   });
 });
 
-describe('Test Scallop Client - Migrate sCoin method', async () => {
-  const client = await scallopSDK.createScallopClient();
-  console.info('Your wallet:', client.walletAddress);
-
+describe('Test Scallop Client - Migrate sCoin method', () => {
   it('Should migrate all market coin into sCoin successfully', async () => {
     const txb = await client.migrateAllMarketCoin(false, false);
     const migrateResult = await client.scallopSuiKit.suiKit.inspectTxn(txb);
-    if (ENABLE_LOG) {
-      console.info('Migrate result:', migrateResult);
-    }
-
     expect(
       (migrateResult.Transaction ?? migrateResult.FailedTransaction).effects
         .status.success
@@ -526,19 +409,12 @@ describe('Test Scallop Client - Migrate sCoin method', async () => {
   });
 });
 
-describe('Test Scallop Client - VeSCA Method', async () => {
-  const client = await scallopSDK.createScallopClient();
-  console.info('Your wallet:', client.walletAddress);
-
+describe('Test Scallop Client - VeSCA Method', () => {
   it('Should claim unlocked SCA from all owned veSCA successfully', async () => {
-    // assuming you have veSCA with unlocked SCA.
     const { tx, scaCoin } = await client.claimAllUnlockedSca(false);
     tx.transferObjects([scaCoin], client.walletAddress);
     const result = await client.scallopSuiKit.suiKit.inspectTxn(tx);
     const effects = (result.Transaction ?? result.FailedTransaction).effects;
-    if (ENABLE_LOG) {
-      console.info('Claim unlocked SCA result:', effects?.status?.error);
-    }
     expect(effects.status.success).toBe(true);
   });
 });
