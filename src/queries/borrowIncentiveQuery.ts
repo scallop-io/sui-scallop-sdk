@@ -320,7 +320,7 @@ export const getBindedVeScaKey = async (
     parseObjectAs<Record<string, unknown>>(
       incentiveAccountsObject.object
     ) as any
-  ).accounts.fields.id.id;
+  ).accounts.id;
 
   // Search in the table
   const bindedIncentiveAcc = await scallopSuiKit.queryGetDynamicFieldObject({
@@ -336,7 +336,5 @@ export const getBindedVeScaKey = async (
     bindedIncentiveAcc.object
   ) as any;
 
-  return (
-    bindedIncentiveAccFields.value.fields.binded_ve_sca_key?.fields.id ?? null
-  );
+  return bindedIncentiveAccFields.binded_ve_sca_key?.id ?? null;
 };

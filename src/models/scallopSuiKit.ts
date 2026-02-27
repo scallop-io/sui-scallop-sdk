@@ -299,22 +299,36 @@ class ScallopSuiKit extends ScallopQueryClient {
     // v2: Convert { type, value } to { type, bcs }
     const nameParam = encodeDynamicFieldNameForV2(input.name);
 
+    // v2: getDynamicField throws an error with "not found" when the field doesn't exist (v1 returned null).
+    const isNotFound = (e: unknown) =>
+      (e instanceof Error ? e.message : String(e))
+        .toLowerCase()
+        .includes('not found');
+
     const result = await this.callWithRateLimiter(
       queryKeys.rpc.getDynamicFieldObject(input),
       async () => {
-        const { dynamicField } = await this.client.core.getDynamicField({
-          parentId: input.parentId,
-          name: nameParam,
-        });
-        return await this.client.core.getObject({
-          objectId: dynamicField.fieldId,
-          include: {
-            content: true,
-            json: true,
-          },
-        });
+        try {
+          const { dynamicField } = await this.client.core.getDynamicField({
+            parentId: input.parentId,
+            name: nameParam,
+          });
+          return await this.client.core.getObject({
+            objectId: dynamicField.fieldId,
+            include: {
+              content: true,
+              json: true,
+            },
+          });
+        } catch (e: unknown) {
+          if (isNotFound(e)) return null;
+          throw e;
+        }
       }
-    );
+    ).catch((e: unknown) => {
+      if (isNotFound(e)) return null as SuiObjectResponse | null;
+      throw e;
+    });
 
     if (result?.object) {
       const queryKey = queryKeys.rpc.getObject({

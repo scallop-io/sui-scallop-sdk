@@ -2,10 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [2.4.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.0...2.4.1) (2026-02-24)
+### [2.4.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.0...v2.4.1) (2026-02-27)
 
 ### Added
 
+- Add assertions for veSCA treasury info test ([12bea01](https://github.com/scallop-io/sui-scallop-sdk/commit/12bea01))
 - `supply()` client method for supplying assets to the lending pool — industry-standard naming aligned with Aave/Compound ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
 - `supplyAndStake()` client method for supplying to the lending pool and staking in a single transaction ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
 - `supplyQuick()` builder quick method for lending pool deposits ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
@@ -14,8 +15,16 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Changed
 
+- Set sender and gas settings when building veSCA treasury query transactions ([7ff6cd2](https://github.com/scallop-io/sui-scallop-sdk/commit/7ff6cd2))
+- Simplify obligationId check in veSCA key test and align logging ([152c9e3](https://github.com/scallop-io/sui-scallop-sdk/commit/152c9e3))
 - `depositCollateral()` client method now calls `depositCollateralQuick()` internally instead of the deprecated `addCollateralQuick()` ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
 - Fixed `userRewardFieldsZod` and `userVeScaRewardFieldsZod` schemas in loyalty program query to correctly parse string values unwrapped by `parseObjectAs` ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+
+### Fixed
+
+- Correct access to `binded_ve_sca_key` in borrow incentive query ([66c66a7](https://github.com/scallop-io/sui-scallop-sdk/commit/66c66a7))
+- Return `null` instead of throwing when dynamic fields are missing ([561653c](https://github.com/scallop-io/sui-scallop-sdk/commit/561653c))
+- Fix loyalty program user reward parsing schema ([c4cdfec](https://github.com/scallop-io/sui-scallop-sdk/commit/c4cdfec))
 
 ### Deprecated
 
