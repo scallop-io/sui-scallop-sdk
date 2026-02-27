@@ -21,7 +21,7 @@ describe('Test Scallop Indexer', () => {
     expect(marketPools).not.toEqual(undefined);
   });
 
-  it('Should get marke pool', async () => {
+  it('Should get market pool', async () => {
     const marketPool = await scallopIndexer.getMarketPool('sui');
 
     if (ENABLE_LOG) console.info('market pool:', marketPool);
@@ -34,7 +34,7 @@ describe('Test Scallop Indexer', () => {
     expect(marketCollaterals).not.toEqual(undefined);
   });
 
-  it('Should get marke collateral', async () => {
+  it('Should get market collateral', async () => {
     const marketCollateral = await scallopIndexer.getMarketCollateral('sui');
     if (ENABLE_LOG) console.info('market collateral:', marketCollateral);
     expect(marketCollateral).not.toEqual(undefined);

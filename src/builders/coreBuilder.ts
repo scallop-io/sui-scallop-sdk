@@ -15,6 +15,8 @@ import type {
   ScallopTxBlock,
   NestedResult,
   SuiTxBlockWithSpool,
+  CoreNormalMethods,
+  CoreQuickMethods,
 } from 'src/types/index.js';
 
 /**
@@ -81,6 +83,30 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
     initialSharedVersion: '1',
   });
 
+  const depositCollateral: CoreNormalMethods['depositCollateral'] = (
+    obligation,
+    coin,
+    collateralCoinName
+  ) => {
+    const coinType = builder.utils.parseCoinType(collateralCoinName);
+    builder.moveCall(
+      txBlock,
+      `${coreIds.protocolPkg}::deposit_collateral::deposit_collateral`,
+      [coreIds.version, obligation, coreIds.market, coin],
+      [coinType]
+    );
+  };
+
+  const supply: CoreNormalMethods['supply'] = (coin, poolCoinName) => {
+    const coinType = builder.utils.parseCoinType(poolCoinName);
+    return builder.moveCall(
+      txBlock,
+      `${coreIds.protocolPkg}::mint::mint`,
+      [coreIds.version, coreIds.market, coin, clockObjectRef],
+      [coinType]
+    );
+  };
+
   return {
     openObligation: () => {
       const [obligation, obligationKey, obligationHotPotato] = builder.moveCall(
@@ -108,15 +134,11 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coreIds.version]
       );
     },
-    addCollateral: (obligation, coin, collateralCoinName) => {
-      const coinType = builder.utils.parseCoinType(collateralCoinName);
-      builder.moveCall(
-        txBlock,
-        `${coreIds.protocolPkg}::deposit_collateral::deposit_collateral`,
-        [coreIds.version, obligation, coreIds.market, coin],
-        [coinType]
-      );
-    },
+    /**
+     * @deprecated Use {@link depositCollateral} instead.
+     */
+    addCollateral: depositCollateral,
+    depositCollateral,
     takeCollateral: (obligation, obligationKey, amount, collateralCoinName) => {
       const coinType = builder.utils.parseCoinType(collateralCoinName);
       // return await builder.moveCall(
@@ -136,16 +158,11 @@ const generateCoreNormalMethod: GenerateCoreNormalMethod = ({
         [coinType]
       );
     },
-    deposit: (coin, poolCoinName) => {
-      const coinType = builder.utils.parseCoinType(poolCoinName);
-      // return await builder.moveCall(
-      return builder.moveCall(
-        txBlock,
-        `${coreIds.protocolPkg}::mint::mint`,
-        [coreIds.version, coreIds.market, coin, clockObjectRef],
-        [coinType]
-      );
-    },
+    /**
+     * @deprecated Use {@link supply} instead.
+     */
+    deposit: supply,
+    supply,
     depositEntry: (coin, poolCoinName) => {
       const coinType = builder.utils.parseCoinType(poolCoinName);
       // return await builder.moveCall(
@@ -307,13 +324,35 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
   builder,
   txBlock,
 }) => {
-  return {
-    addCollateralQuick: async (
+  const supplyQuick: CoreQuickMethods['supplyQuick'] = async (
+    amount,
+    poolCoinName,
+    returnSCoin = true,
+    isSponsoredTx = false
+  ) => {
+    const sender = requireSender(txBlock);
+    const { leftCoin, takeCoin } = await builder.selectCoin(
+      txBlock,
+      poolCoinName,
       amount,
-      collateralCoinName,
-      obligationId,
-      isSponsoredTx = false
-    ) => {
+      sender,
+      isSponsoredTx
+    );
+    if (leftCoin) {
+      txBlock.transferObjects([leftCoin], sender);
+    }
+    const marketCoinDeposit = txBlock.supply(takeCoin, poolCoinName);
+
+    // convert to sCoin
+    return returnSCoin
+      ? txBlock.mintSCoin(
+          builder.utils.parseMarketCoinName(poolCoinName),
+          marketCoinDeposit
+        )
+      : marketCoinDeposit;
+  };
+  const depositCollateralQuick: CoreQuickMethods['depositCollateralQuick'] =
+    async (amount, collateralCoinName, obligationId, isSponsoredTx = false) => {
       const sender = requireSender(txBlock);
       const { obligationId: obligationArg } = await requireObligationInfo(
         builder,
@@ -332,8 +371,15 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       if (leftCoin) {
         txBlock.transferObjects([leftCoin], sender);
       }
-      txBlock.addCollateral(obligationArg, takeCoin, collateralCoinName);
-    },
+      txBlock.depositCollateral(obligationArg, takeCoin, collateralCoinName);
+    };
+
+  return {
+    /**
+     * @deprecated Use {@link depositCollateralQuick} instead.
+     */
+    addCollateralQuick: depositCollateralQuick,
+    depositCollateralQuick,
     takeCollateralQuick: async (
       amount,
       collateralCoinName,
@@ -363,33 +409,11 @@ const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         collateralCoinName
       );
     },
-    depositQuick: async (
-      amount,
-      poolCoinName,
-      returnSCoin = true,
-      isSponsoredTx = false
-    ) => {
-      const sender = requireSender(txBlock);
-      const { leftCoin, takeCoin } = await builder.selectCoin(
-        txBlock,
-        poolCoinName,
-        amount,
-        sender,
-        isSponsoredTx
-      );
-      if (leftCoin) {
-        txBlock.transferObjects([leftCoin], sender);
-      }
-      const marketCoinDeposit = txBlock.deposit(takeCoin, poolCoinName);
-
-      // convert to sCoin
-      return returnSCoin
-        ? txBlock.mintSCoin(
-            builder.utils.parseMarketCoinName(poolCoinName),
-            marketCoinDeposit
-          )
-        : marketCoinDeposit;
-    },
+    /**
+     * @deprecated Use {@link supplyQuick} instead.
+     */
+    depositQuick: supplyQuick,
+    supplyQuick,
     withdrawQuick: async (amount, poolCoinName) => {
       const sender = requireSender(txBlock);
       const sCoinName = builder.utils.parseSCoinName(poolCoinName);
