@@ -367,18 +367,23 @@ describe('Test VeSca Query', () => {
     });
   }
 
-  it(`Should get veSCA treasury info`, async () => {
+  it.only(`Should get veSCA treasury info`, async () => {
     const totalVeScaTreasury = await scallopQuery.getVeScaTreasuryInfo();
     if (ENABLE_LOG) {
       console.info('Total VeSca Treasury:', totalVeScaTreasury);
     }
+
     const treasuryInfoSchema = zod.object({
       totalLockedSca: zod.number(),
       totalVeSca: zod.number(),
       averageLockingPeriod: zod.number(),
       averageLockingPeriodUnit: zod.string(),
     });
-    expect(treasuryInfoSchema.safeParse(totalVeScaTreasury).success).toBe(true);
+    const { success, data } = treasuryInfoSchema.safeParse(totalVeScaTreasury);
+    expect(success).toBe(true);
+    expect(data).toBeTruthy();
+    expect(data?.totalLockedSca).toBeGreaterThan(0);
+    expect(data?.totalVeSca).toBeGreaterThan(0);
   });
 
   it(`Should get veSCA`, async () => {
