@@ -4,6 +4,7 @@ import { z as zod } from 'zod';
 import { scallopSDK } from './scallopSdk.js';
 import { ScallopQuery } from 'src/models/index.js';
 import { BigNumber } from 'bignumber.js';
+import { parseObjectAs } from 'src/utils/index.js';
 
 const ENABLE_LOG = false;
 let obligationId: string | null;
@@ -254,6 +255,50 @@ describe('Test Query Borrow Incentive Contract On Chain Data', () => {
     }
     expect(!!borrowIncentiveAccounts).toBe(true);
   });
+
+  it('Should return null for an unbound obligationId', async () => {
+    const missingObligationId =
+      '0x0000000000000000000000000000000000000000000000000000000000000000';
+    const bindedVeScaKeyId =
+      await scallopQuery.getBindedVeScaKey(missingObligationId);
+    expect(bindedVeScaKeyId).toBeNull();
+  });
+
+  it('Should return null for a missing dynamic field object', async () => {
+    const incentiveAccountsId = scallopQuery.utils.address.get(
+      'borrowIncentive.incentiveAccounts'
+    );
+    const incentiveAccountsObject =
+      await scallopQuery.utils.scallopSuiKit.queryGetObject(
+        incentiveAccountsId
+      );
+    expect(incentiveAccountsObject?.object).toBeTruthy();
+    if (!incentiveAccountsObject?.object) return;
+
+    const incentiveAccountsTableId = (
+      parseObjectAs<Record<string, unknown>>(
+        incentiveAccountsObject.object
+      ) as any
+    ).accounts.id;
+
+    const borrowIncentiveObjectId = scallopQuery.utils.address.get(
+      'borrowIncentive.object'
+    );
+    const corePkg = scallopQuery.utils.address.get('core.object');
+    const missingObligationId =
+      '0x0000000000000000000000000000000000000000000000000000000000000001';
+
+    const result =
+      await scallopQuery.utils.scallopSuiKit.queryGetDynamicFieldObject({
+        parentId: incentiveAccountsTableId,
+        name: {
+          type: `${borrowIncentiveObjectId}::typed_id::TypedID<${corePkg}::obligation::Obligation>`,
+          value: missingObligationId,
+        },
+      });
+
+    expect(result).toBeNull();
+  });
 });
 
 describe('Test Portfolio Query', () => {
@@ -363,6 +408,7 @@ describe('Test VeSca Query', () => {
     }
 
     expect(bindedVeScaKeyId).toBeTruthy();
+    expect(bindedVeScaKeyId).toBe(VE_SCA_KEY);
   });
 
   it(`Should get veSCA treasury info`, async () => {
@@ -446,6 +492,36 @@ describe('Test Loyalty Program Query', () => {
     expect(!!loyaltyProgramInfo).toBe(true);
     expect(loyaltyProgramInfoZod.safeParse(loyaltyProgramInfo).success).toBe(
       true
+    );
+  });
+
+  it(`Should parse pendingReward from raw user reward object`, async () => {
+    const userRewardTableId = scallopQuery.utils.address.get(
+      'loyaltyProgram.userRewardTableId'
+    );
+    const rawUserRewardObject =
+      await scallopQuery.utils.scallopSuiKit.queryGetDynamicFieldObject({
+        parentId: userRewardTableId,
+        name: {
+          type: '0x2::object::ID',
+          value: VE_SCA_KEY,
+        },
+      });
+
+    const loyaltyProgramInfo =
+      await scallopQuery.getLoyaltyProgramInfos(VE_SCA_KEY);
+    expect(loyaltyProgramInfo).toBeTruthy();
+
+    if (!rawUserRewardObject?.object) {
+      expect(loyaltyProgramInfo?.pendingReward ?? 0).toBeGreaterThanOrEqual(0);
+      return;
+    }
+
+    const rawValue = parseObjectAs<string>(rawUserRewardObject.object);
+    const expectedPendingReward = BigNumber(rawValue).shiftedBy(-9).toNumber();
+    expect(loyaltyProgramInfo?.pendingReward).toBeCloseTo(
+      expectedPendingReward,
+      8
     );
   });
 
