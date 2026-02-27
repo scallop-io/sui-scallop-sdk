@@ -426,14 +426,13 @@ class ScallopUtils implements ScallopUtilsInterface {
       priceFeedObject ||
       (await this.scallopSuiKit.queryGetObject(pythFeedObjectId))?.object;
 
-    if (priceFeedObject?.content && 'fields' in priceFeedObject.content) {
-      const fields = priceFeedObject.content.fields as any;
-      const priceFields =
-        fields?.price_info?.fields?.price_feed?.fields?.price?.fields;
-      const expoMagnitude = Number(priceFields?.expo?.fields?.magnitude);
-      const expoNegative = Number(priceFields?.expo?.fields?.negative);
-      const priceMagnitude = Number(priceFields?.price?.fields?.magnitude);
-      const priceNegative = Number(priceFields?.price?.fields?.negative);
+    if (priceFeedObject?.json) {
+      const json = priceFeedObject.json as any;
+      const priceFields = json?.price_info?.price_feed?.price;
+      const expoMagnitude = Number(priceFields?.expo?.magnitude);
+      const expoNegative = Number(priceFields?.expo?.negative);
+      const priceMagnitude = Number(priceFields?.price?.magnitude);
+      const priceNegative = Number(priceFields?.price?.negative);
 
       if (!Number.isNaN(expoMagnitude) && !Number.isNaN(priceMagnitude)) {
         const price =
