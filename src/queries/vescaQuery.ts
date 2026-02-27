@@ -241,9 +241,14 @@ const getTotalVeScaTreasuryAmount = async (
   txb.moveCall(refreshQueryTarget, resolvedRefreshArgs);
   txb.moveCall(veScaAmountQueryTarget, resolvedVeScaAmountArgs);
 
+  const sender =
+    utils.suiKit.currentAddress ||
+    '0x0000000000000000000000000000000000000000000000000000000000000000';
+  txb.txBlock.setSender(sender);
+  txb.txBlock.setGasBudget(50_000_000_000n);
+  txb.txBlock.setGasPayment([]);
   const txBytes = await txb.txBlock.build({
     client: utils.suiKit.client,
-    onlyTransactionKind: true,
   });
 
   // return result
@@ -294,10 +299,7 @@ export const getVeScaTreasuryInfo = async (
   const treasuryFields =
     parseObjectAs<VeScaTreasuryFields>(veScaTreasuryObject);
   const lockedScaAmount =
-    (treasuryFields as any)?.unlock_schedule?.fields?.locked_sca_amount ??
-    (treasuryFields as any)?.unlockSchedule?.lockedScaAmount ??
-    (treasuryFields as any)?.locked_sca_amount ??
-    '0';
+    (treasuryFields as any)?.unlock_schedule?.locked_sca_amount ?? '0';
 
   const totalLockedSca = BigNumber(lockedScaAmount).shiftedBy(-9).toNumber();
   const totalVeSca = BigNumber(
