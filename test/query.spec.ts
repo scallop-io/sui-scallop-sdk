@@ -350,24 +350,22 @@ describe('Test VeSca Query', () => {
     expect(!!bindedObligationId).toBe(true);
   });
 
-  if (obligationId) {
-    it(`Should get veScaKeyId of obligationId ${obligationId}`, async () => {
-      if (!obligationId) {
-        throw new Error('No obligationId found');
-      }
-      const bindedVeScaKeyId = await scallopQuery.getBindedVeScaKey(
-        obligationId!
-      );
+  it(`Should get veScaKeyId of obligationId ${obligationId}`, async () => {
+    if (!obligationId) {
+      return;
+    }
+    const bindedVeScaKeyId = await scallopQuery.getBindedVeScaKey(
+      obligationId!
+    );
 
-      if (ENABLE_LOG) {
-        console.info('Binded VeSca Key Id:', bindedVeScaKeyId);
-      }
+    if (ENABLE_LOG) {
+      console.info('Binded VeSca Key Id:', bindedVeScaKeyId);
+    }
 
-      expect(!!bindedVeScaKeyId).toBe(true);
-    });
-  }
+    expect(bindedVeScaKeyId).toBeTruthy();
+  });
 
-  it.only(`Should get veSCA treasury info`, async () => {
+  it(`Should get veSCA treasury info`, async () => {
     const totalVeScaTreasury = await scallopQuery.getVeScaTreasuryInfo();
     if (ENABLE_LOG) {
       console.info('Total VeSca Treasury:', totalVeScaTreasury);
