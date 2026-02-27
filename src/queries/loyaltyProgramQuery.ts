@@ -20,10 +20,8 @@ const rewardPoolFieldsZod = zod
   }));
 
 const userRewardFieldsZod = zod
-  .object({
-    value: zod.string(),
-  })
-  .transform((value) => BigNumber(value.value).shiftedBy(-9).toNumber());
+  .string()
+  .transform((value) => BigNumber(value).shiftedBy(-9).toNumber());
 
 type RewardPoolFields = zod.infer<typeof rewardPoolFieldsZod>;
 type UserRewardFields = zod.infer<typeof userRewardFieldsZod>;
@@ -77,7 +75,7 @@ export const getLoyaltyProgramInformations = async (
 
   const userRewardObjData = userRewardObject?.object;
   if (!userRewardObjData) return result;
-  const userRewardFields = parseObjectAs<{ value: string }>(userRewardObjData);
+  const userRewardFields = parseObjectAs<string>(userRewardObjData);
   result.pendingReward = userRewardFieldsZod.parse(
     userRewardFields
   ) as UserRewardFields;
