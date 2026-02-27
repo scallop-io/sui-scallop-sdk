@@ -2,7 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [2.4.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.0...v2.3.14) (2026-02-16)
+### [2.4.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.0...v2.4.1) (2026-02-27)
+
+### Changed
+
+- Set sender and gas settings when building veSCA treasury query transactions ([7ff6cd2](https://github.com/scallop-io/sui-scallop-sdk/commit/7ff6cd2))
+- Simplify obligationId check in veSCA key test and align logging ([152c9e3](https://github.com/scallop-io/sui-scallop-sdk/commit/152c9e3))
+
+### Fixed
+
+- Correct access to `binded_ve_sca_key` in borrow incentive query ([66c66a7](https://github.com/scallop-io/sui-scallop-sdk/commit/66c66a7))
+- Return `null` instead of throwing when dynamic fields are missing ([561653c](https://github.com/scallop-io/sui-scallop-sdk/commit/561653c))
+- Fix loyalty program user reward parsing schema ([c4cdfec](https://github.com/scallop-io/sui-scallop-sdk/commit/c4cdfec))
+
+### Added
+
+- Add assertions for veSCA treasury info test ([12bea01](https://github.com/scallop-io/sui-scallop-sdk/commit/12bea01))
+
+### [2.4.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.14...v2.4.0) (2026-02-16)
 
 ### ⚠ BREAKING CHANGES
 
