@@ -278,7 +278,11 @@
   import { getSharedObjectData } from 'src/utils/index.js';
 
   // Accepts object id string, SuiObjectData, SuiObjectRef, or SuiObjectArg.
-  const sharedObject = await getSharedObjectData(objectArg, scallopSuiKit);
+  const sharedObject = await getSharedObjectData(scallopSuiKit, {
+    tx,
+    object,
+    mutable,
+  });
   ```
 
 - For Sui kit v2 dynamic field responses, value fields are parsed from flattened json
