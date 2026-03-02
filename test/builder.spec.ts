@@ -31,7 +31,6 @@ let isVeScaExpired =
   hasVeSca && veScas[0].unlockAt * 1000 <= new Date().getTime();
 
 let hasSCoinInWallet = false;
-let bindedObligationId: string | null;
 let obligationWithBoost: Obligation | undefined;
 
 const createNewVeScaTx = async (
@@ -138,11 +137,11 @@ beforeAll(async () => {
   }
 
   if (hasVeSca) {
-    bindedObligationId = await scallopBuilder.query.getBindedObligationId(
+    const bindedObligation = await scallopBuilder.query.getBindedObligation(
       veScas[0].keyId
     );
     obligationWithBoost = obligations.find(
-      ({ id }) => id === bindedObligationId
+      ({ id }) => id === bindedObligation?.obligationId
     );
   }
   console.info('Sender:', sender);
