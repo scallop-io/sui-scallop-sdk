@@ -2,18 +2,7 @@ import { ScallopQuery, ScallopUtils } from '../models/index.js';
 import { z as zod } from 'zod';
 
 const isolatedAssetZod = zod.object({
-  dataType: zod.string(),
-  type: zod.string(),
-  hasPublicTransfer: zod.boolean(),
-  fields: zod.object({
-    id: zod.object({
-      id: zod.string(),
-    }),
-    name: zod.object({
-      type: zod.string(),
-    }),
-    value: zod.boolean(),
-  }),
+  value: zod.boolean(),
 });
 
 const isolatedAssetKeyType = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da26c7221b220f01af6::market_dynamic_keys::IsolatedAssetKey`; // prod
@@ -115,5 +104,5 @@ export const isIsolatedAsset = async (
 
   const parsedData = isolatedAssetZod.safeParse(object?.object?.json);
   if (!parsedData.success) return false;
-  return parsedData.data.fields.value;
+  return parsedData.data.value;
 };
