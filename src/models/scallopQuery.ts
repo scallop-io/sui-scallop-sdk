@@ -741,7 +741,16 @@ class ScallopQuery implements ScallopQueryInterface {
   }
 
   /**
-   * Get binded obligationId from a veScaKey if it exists.
+   * @deprecated use getBindedObligation instead
+   * @param veScaKey
+   * @returns obligationId
+   */
+  async getBindedObligationId(veScaKey: string) {
+    return (await this.getBindedObligation(veScaKey))?.obligationId;
+  }
+
+  /**
+   * Get binded obligation from a veScaKey if it exists.
    * @param veScaKey
    * @returns { obligationId, obligationKey } if binded, otherwise null
    */

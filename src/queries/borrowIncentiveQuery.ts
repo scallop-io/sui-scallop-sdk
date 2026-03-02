@@ -245,6 +245,30 @@ export const queryBorrowIncentiveAccounts = async (
 };
 
 /**
+ * @deprecated Use getBindedObligation instead
+ */
+export const getBindedObligationId = async (
+  {
+    address,
+    scallopSuiKit,
+  }: {
+    address: ScallopAddress;
+    scallopSuiKit: ScallopSuiKit;
+  },
+  veScaKeyId: string
+) => {
+  return (
+    await getBindedObligation(
+      {
+        address,
+        scallopSuiKit,
+      },
+      veScaKeyId
+    )
+  )?.obligationId;
+};
+
+/**
  * Check veSca bind status
  * @param query
  * @param veScaKey
