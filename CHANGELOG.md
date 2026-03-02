@@ -6,7 +6,31 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Fixed
 
-- Fix gRPC JSON field access and Zod schemas in veSCA, loyalty program, borrow/supply limit, and switchboard queries ([466c1fd](https://github.com/scallop-io/sui-scallop-sdk/commit/466c1fd))
+- Correct Zod schemas by removing unnecessary fields in borrowLimit, isolatedAsset, and supplyLimit queries ([19b7ee1](https://github.com/scallop-io/sui-scallop-sdk/commit/19b7ee1))
+- Streamline JSON field access in vescaBuilder and switchboardQuery, removing unnecessary nesting ([ae4da96](https://github.com/scallop-io/sui-scallop-sdk/commit/ae4da96))
+- Correct index assignment in `getOnDemandAggObjectIds` for registered aggregators ([503e32c](https://github.com/scallop-io/sui-scallop-sdk/commit/503e32c))
+
+### Refactored
+
+- Simplify JSON field parsing and update related types across queries ([25ffa9f](https://github.com/scallop-io/sui-scallop-sdk/commit/25ffa9f))
+- Streamline shared object data retrieval in query functions ([2ec3581](https://github.com/scallop-io/sui-scallop-sdk/commit/2ec3581))
+- Rename core utility functions and add veSCA utilities for unlock round calculations ([7d05e71](https://github.com/scallop-io/sui-scallop-sdk/commit/7d05e71))
+- Update `EncodeDynamicFieldNameInput` type and adjust `encodeDynamicFieldNameForV2` function ([257bf36](https://github.com/scallop-io/sui-scallop-sdk/commit/257bf36))
+- Rename variable for clarity in switchboard query ([0639fe1](https://github.com/scallop-io/sui-scallop-sdk/commit/0639fe1))
+
+### Deprecated
+
+- `getBindedObligationId` — use `getBindedObligation` instead ([5db77bf](https://github.com/scallop-io/sui-scallop-sdk/commit/5db77bf))
+
+### Chore
+
+- Update `@scallop-io/sui-kit` to latest version ([cab1558](https://github.com/scallop-io/sui-scallop-sdk/commit/cab1558))
+- Update `@mysten/bcs` SDK to latest version ([75f53f4](https://github.com/scallop-io/sui-scallop-sdk/commit/75f53f4))
+
+### Tests
+
+- Add unit tests for utility functions ([9011033](https://github.com/scallop-io/sui-scallop-sdk/commit/9011033))
+- Update builder and query tests ([cabf3b5](https://github.com/scallop-io/sui-scallop-sdk/commit/cabf3b5))
 
 ### [2.4.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.0...v2.4.1) (2026-02-27)
 
