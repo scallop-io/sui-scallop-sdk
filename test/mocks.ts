@@ -626,7 +626,7 @@ export const ADDRESS_INTERFACE = {
             '0x3f203f6fff6a69d151e4f1cd931f22b68c489ef2759765662fc7baf673943c9e',
         },
         protocol: {
-          id: '0xd384ded6b9e7f4d2c4c9007b0291ef88fbfed8e709bce83d2da69de2d79d013d',
+          id: '0xde5c09ad171544aa3724dc67216668c80e754860f419136a68d78504eb2e2805',
           upgradeCap:
             '0x38527d154618d1fd5a644b90717fe07cf0e9f26b46b63e9568e611a3f86d5c1a',
         },
@@ -636,7 +636,7 @@ export const ADDRESS_INTERFACE = {
             '0x4a5e88a75039b00988f633f811f58117f31b8627a46bf822aa114d9010049449',
         },
         query: {
-          id: '0x7ed02e8bdd61179879854d7bcbaacacee86df22a23a5f45a4772dcb8b339632a',
+          id: '0x3427c12d8faee7cd3dc295ac838cd87c2a13803d7c4a947b7b47a75591906010',
           upgradeCap:
             '0x14220f035f4cfc2ce442c30703fb44d24f00846eb7077907a231a56051a1d9b2',
         },
@@ -726,7 +726,7 @@ export const ADDRESS_INTERFACE = {
       config: '',
     },
     borrowIncentive: {
-      id: '0xbfbfff53c7c0979c9c6896f33570f7c07d41c58850c7e46ba46b633788db7029',
+      id: '0x74922703605ba0548a55188098d6ebc8fdeb9fe16993986f1b7c9a49036c7c9c',
       adminCap:
         '0xc486afa253646f4d381e81d7f1df8aa4723b845a6bb356f69bad635ffefffe2c',
       object:
@@ -764,7 +764,7 @@ export const ADDRESS_INTERFACE = {
         '0xaa0a920bf20b43aa1a8c19cf39df457a835ce98b2820a0d1090420a7e5ff66fe',
     },
     referral: {
-      id: '0xefcab8b04cb944f91cbbd8090f07587ad895393c4a61448a4ee7d1889cdce573',
+      id: '0x73883b65a77436e7028bc41be184a7795573ceed8bb24cb289ae21680beb037c',
       object:
         '0x5658d4bf5ddcba27e4337b4262108b3ad1716643cac8c2054ac341538adc72ec',
       adminCap:
