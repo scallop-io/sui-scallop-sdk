@@ -16,7 +16,7 @@ import {
 import {
   getAllCoinPrices,
   getAssetOracles,
-  getBindedObligationId,
+  getBindedObligation,
   getBindedVeScaKey,
   getBorrowIncentivePools,
   getBorrowLimit,
@@ -520,7 +520,11 @@ class ScallopQuery implements ScallopQueryInterface {
     obligationId: string | SuiObjectRef,
     coinNames?: string[]
   ) {
-    return await queryBorrowIncentiveAccounts(this, obligationId, coinNames);
+    return await queryBorrowIncentiveAccounts(
+      this,
+      typeof obligationId === 'string' ? obligationId : obligationId.objectId,
+      coinNames
+    );
   }
 
   /**
@@ -739,10 +743,10 @@ class ScallopQuery implements ScallopQueryInterface {
   /**
    * Get binded obligationId from a veScaKey if it exists.
    * @param veScaKey
-   * @returns obligationId
+   * @returns { obligationId, obligationKey } if binded, otherwise null
    */
-  async getBindedObligationId(veScaKey: string) {
-    return await getBindedObligationId(this, veScaKey);
+  async getBindedObligation(veScaKey: string) {
+    return await getBindedObligation(this, veScaKey);
   }
 
   /**

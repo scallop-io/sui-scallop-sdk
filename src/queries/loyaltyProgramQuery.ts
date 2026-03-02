@@ -86,18 +86,13 @@ const veScaRewardPoolFieldsZod = zod
   .object({
     reserve_ve_sca_key: zod.nullable(
       zod.object({
-        fields: zod.object({
-          id: zod.object({
-            id: zod.string(),
-          }),
-        }),
-        type: zod.string(),
+        id: zod.string(),
       })
     ),
     enable_claim: zod.boolean(),
   })
   .transform((value) => ({
-    reserveVeScaKey: value.reserve_ve_sca_key?.fields.id.id,
+    reserveVeScaKey: value.reserve_ve_sca_key?.id,
     isClaimEnabled: value.enable_claim,
   }));
 

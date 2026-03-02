@@ -53,10 +53,10 @@ export const getOnDemandAggObjectIds = async (
       });
 
       const jsonData = resp?.object?.json as any;
-      if (!jsonData?.fields?.value)
+      if (!jsonData?.value)
         throw new Error(`No on-demand aggregator found for ${coinType}`);
 
-      registeredAggs[idx] = jsonData.fields.value;
+      registeredAggs[missingAgg[idx].idx] = jsonData.value;
     })
   );
 

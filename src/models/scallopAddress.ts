@@ -4,7 +4,7 @@ import { AddressesInterface, AddressStringPath } from 'src/types/index.js';
 import ScallopAxios, { ScallopAxiosParams } from './scallopAxios.js';
 import { QueryKey } from '@tanstack/query-core';
 import { AxiosRequestConfig } from 'axios';
-import { parseUrl } from 'src/utils/index.js';
+import { parseUrl } from 'src/utils/url.js';
 
 export type ScallopAddressParams = {
   addressId?: string;
