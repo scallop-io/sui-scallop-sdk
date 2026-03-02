@@ -1,3 +1,4 @@
+import { bcs } from '@mysten/sui/bcs';
 import {
   ScallopAddress,
   ScallopSuiKit,
@@ -8,6 +9,7 @@ import type {
   xOracleRuleType,
   SuiObjectResponse,
 } from 'src/types/index.js';
+import { getDfObjectIdAndName, parseObjectAs } from 'src/utils/object.js';
 
 /**
  * Query the price update policy table ids. Usually the value for these table will be constant.
@@ -25,20 +27,26 @@ export const getPriceUpdatePolicies = async ({
   secondary: SuiObjectResponse | null;
 }> => {
   const priceUpdatePolicyRulesKeyType = `${address.get('core.packages.xOracle.object')}::price_update_policy::PriceUpdatePolicyRulesKey`;
+  const nameBcs = bcs
+    .struct('TypeName', { dummy_field: bcs.bool() })
+    .serialize({ dummy_field: false })
+    .toBytes();
+
   const [primaryPriceUpdatePolicyTable, secondaryPriceUpdatePolicyTable] =
     await Promise.all([
       scallopSuiKit.queryGetDynamicFieldObject({
         parentId: address.get('core.oracles.primaryPriceUpdatePolicyObject'),
         name: {
           type: priceUpdatePolicyRulesKeyType,
-          value: { dummy_field: false },
+          // value: { dummy_field: false },
+          bcs: nameBcs,
         },
       }),
       scallopSuiKit.queryGetDynamicFieldObject({
         parentId: address.get('core.oracles.secondaryPriceUpdatePolicyObject'),
         name: {
           type: priceUpdatePolicyRulesKeyType,
-          value: { dummy_field: false },
+          bcs: nameBcs,
         },
       }),
     ]);
@@ -101,19 +109,34 @@ export const getAssetOracles = async (
     const objectResponses =
       await utils.scallopSuiKit.queryGetObjects(objectIds);
     objectResponses.forEach((object) => {
-      const jsonData = object.json as any;
-      if (!jsonData) return;
+      const jsonData = parseObjectAs<{
+        contents: [
+          {
+            name: string;
+          },
+        ];
+      }>(object);
 
-      const typeName = jsonData.name?.name;
-      if (!typeName) return;
+      const dynamicFieldInfo = getDfObjectIdAndName(object);
+      if (dynamicFieldInfo.nameKind !== 'type') {
+        console.error('Unsupported dynamic field key kind for oracle mapping', {
+          objectId: object.objectId,
+          name: dynamicFieldInfo.name,
+          nameKind: dynamicFieldInfo.nameKind,
+        });
+        return;
+      }
 
-      const assetName = utils.parseCoinNameFromType(`0x${typeName}`);
+      const normalizedTypeName = dynamicFieldInfo.name.startsWith('0x')
+        ? dynamicFieldInfo.name
+        : `0x${dynamicFieldInfo.name}`;
+      const assetName = utils.parseCoinNameFromType(normalizedTypeName);
       if (!assetName) throw new Error(`Invalid asset name: ${assetName}`);
       if (!assetOracles[assetName]) {
         assetOracles[assetName] = [];
       }
 
-      (jsonData.value?.contents ?? []).forEach((content: any) => {
+      (jsonData.contents ?? []).forEach((content: any) => {
         assetOracles[assetName].push(
           ruleTypeNameToOracleType[`0x${content.name}`]
         );

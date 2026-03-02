@@ -15,9 +15,7 @@ export type VeScaTreasuryFields = {
   total_ve_sca_amount: string;
   sca_balance: string;
   unlock_schedule: {
-    fields: {
-      locked_sca_amount: string;
-    };
+    locked_sca_amount: string;
   };
 };
 

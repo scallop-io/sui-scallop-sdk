@@ -105,12 +105,12 @@ export const queryMarket = async (
   const packageId = utils.address.get('core.packages.query.id');
   const marketId = utils.address.get('core.market');
   const queryTarget = `${packageId}::market_query::market_data`;
-  const args = [
-    txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(marketId, utils.scallopSuiKit)),
-      mutable: true,
-    }),
-  ];
+  const marketSharedObject = await getSharedObjectData(utils.scallopSuiKit, {
+    object: marketId,
+    tx: txBlock,
+    mutable: true,
+  });
+  const args = [marketSharedObject];
 
   const queryResult = await utils.scallopSuiKit.queryInspectTxn({
     queryTarget,
@@ -976,24 +976,27 @@ export const queryObligation = async (
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
 
   const [versionData, marketData, obligationData] = await Promise.all([
-    getSharedObjectData(version, scallopSuiKit),
-    getSharedObjectData(market, scallopSuiKit),
-    getSharedObjectData(obligationId, scallopSuiKit),
+    getSharedObjectData(scallopSuiKit, {
+      object: version,
+      mutable: false,
+      tx: txBlock,
+    }),
+    getSharedObjectData(scallopSuiKit, {
+      object: market,
+      mutable: true,
+      tx: txBlock,
+    }),
+    getSharedObjectData(scallopSuiKit, {
+      object: obligationId,
+      mutable: true,
+      tx: txBlock,
+    }),
   ]);
 
   const args = [
-    txBlock.sharedObjectRef({
-      ...versionData,
-      mutable: false,
-    }),
-    txBlock.sharedObjectRef({
-      ...marketData,
-      mutable: true,
-    }),
-    txBlock.sharedObjectRef({
-      ...obligationData,
-      mutable: true,
-    }),
+    versionData,
+    marketData,
+    obligationData,
     {
       objectId: SUI_CLOCK_OBJECT_ID,
       mutable: false,

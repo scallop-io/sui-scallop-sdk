@@ -1,15 +1,14 @@
 import { normalizeStructTag } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui/bcs';
+import { EncodeDynamicFieldNameInput } from 'src/types/sui.js';
 
 /**
  * v2 getDynamicObjectField expects name as { type, bcs: Uint8Array }.
  * Converts from v1 style { type, value? } or existing { type, bcs? }.
  */
-export function encodeDynamicFieldNameForV2(name: {
-  type: string;
-  value?: unknown;
-  bcs?: Uint8Array;
-}): { type: string; bcs: Uint8Array } {
+export function encodeDynamicFieldNameForV2(
+  name: EncodeDynamicFieldNameInput
+): { type: string; bcs: Uint8Array } {
   const { type, value } = name;
 
   // Already encoded
