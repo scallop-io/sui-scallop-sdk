@@ -24,12 +24,11 @@ export const getSCoinTotalSupply = async (
   const sCoinPkgId = utils.address.get('scoin.id');
   // get treasury
   const treasury = utils.getSCoinTreasury(sCoinName);
-  const args = [
-    txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(treasury, utils.scallopSuiKit)),
-      mutable: false,
-    }),
-  ];
+  const treasurySharedObject = await getSharedObjectData(utils.scallopSuiKit, {
+    tx: txBlock,
+    object: treasury,
+  });
+  const args = [treasurySharedObject];
   const typeArgs = [
     utils.parseSCoinType(sCoinName),
     utils.parseUnderlyingSCoinType(sCoinName),
