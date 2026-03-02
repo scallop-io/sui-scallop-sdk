@@ -189,40 +189,33 @@ const getTotalVeScaTreasuryAmount = async (
   });
 
   const [treasuryVersion, veScaConfigVersion] = await Promise.all([
-    getSharedObjectData(
-      typeof veScaTreasury === 'string'
-        ? veScaTreasury
-        : veScaTreasury.objectId,
-      utils.scallopSuiKit
-    ),
-    getSharedObjectData(veScaConfig, utils.scallopSuiKit),
-  ]);
-
-  const treasuryRef = txb.sharedObjectRef({
-    ...treasuryVersion,
-    mutable: true,
-  });
-
-  // refresh query
-  const refreshQueryTarget = `${veScaPkgId}::treasury::refresh`;
-  const refreshArgs = [
-    txb.sharedObjectRef({
-      ...veScaConfigVersion,
+    getSharedObjectData(utils.scallopSuiKit, {
+      object:
+        typeof veScaTreasury === 'string'
+          ? veScaTreasury
+          : veScaTreasury.objectId,
+      tx: txb,
+      mutable: true,
+    }),
+    getSharedObjectData(utils.scallopSuiKit, {
+      object: veScaConfig,
+      tx: txb,
       mutable: false,
     }),
-    treasuryRef,
-    clockObjectRef,
-  ];
+  ]);
+  // refresh query
+  const refreshQueryTarget = `${veScaPkgId}::treasury::refresh`;
+  const refreshArgs = [veScaConfigVersion, treasuryVersion, clockObjectRef];
 
   // query total veSca amount
   const veScaAmountQueryTarget = `${veScaPkgId}::treasury::total_ve_sca_amount`;
-  const vescaAmountArgs = [treasuryRef, clockObjectRef];
+  const vescaAmountArgs = [treasuryVersion, clockObjectRef];
 
   // resolve each args
   const resolvedRefreshArgs = await Promise.all(
     refreshArgs.map(async (arg) => {
       if (typeof arg === 'string') {
-        return (await utils.scallopSuiKit.queryGetObject(arg))?.object as any;
+        return (await utils.scallopSuiKit.queryGetObject(arg))?.object;
       }
       return arg;
     })
@@ -231,7 +224,7 @@ const getTotalVeScaTreasuryAmount = async (
   const resolvedVeScaAmountArgs = await Promise.all(
     vescaAmountArgs.map(async (arg) => {
       if (typeof arg === 'string') {
-        return (await utils.scallopSuiKit.queryGetObject(arg))?.object as any;
+        return (await utils.scallopSuiKit.queryGetObject(arg))?.object;
       }
       return arg;
     })
@@ -299,7 +292,7 @@ export const getVeScaTreasuryInfo = async (
   const treasuryFields =
     parseObjectAs<VeScaTreasuryFields>(veScaTreasuryObject);
   const lockedScaAmount =
-    (treasuryFields as any)?.unlock_schedule?.locked_sca_amount ?? '0';
+    treasuryFields?.unlock_schedule?.locked_sca_amount ?? '0';
 
   const totalLockedSca = BigNumber(lockedScaAmount).shiftedBy(-9).toNumber();
   const totalVeSca = BigNumber(

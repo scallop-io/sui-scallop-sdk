@@ -47,8 +47,25 @@ export type InspectTxnParsedJson<T> =
   | undefined;
 
 // SDK v2 API parameter types
+export type EncodeDynamicFieldNameInput = {
+  type: string;
+} & (
+  | {
+      value: any;
+      bcs?: never;
+    }
+  | {
+      value?: never;
+      bcs: Uint8Array;
+    }
+);
 export type GetBalanceParams = { owner: string; coinType?: string | null };
-export type GetDynamicFieldObjectParams = { parentId: string; name: any };
+export type GetDynamicFieldObjectParams<
+  T extends EncodeDynamicFieldNameInput = EncodeDynamicFieldNameInput,
+> = {
+  parentId: string;
+  name: T;
+};
 export type GetDynamicFieldsParams = {
   parentId: string;
   cursor?: string | null;
