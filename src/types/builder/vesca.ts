@@ -7,9 +7,7 @@ import type { SuiObjectData } from '../sui.js';
 export type DynamicFieldResponseWithContents = {
   object?: {
     json?: {
-      fields?: {
-        value?: { fields?: { contents?: unknown[] } };
-      };
+      value?: { contents?: unknown[] };
     };
   };
 };
