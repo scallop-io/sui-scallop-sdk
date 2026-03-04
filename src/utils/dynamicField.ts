@@ -48,7 +48,7 @@ export function encodeDynamicFieldNameForV2(
       .toBytes();
   } else if (type.includes('::type_name::TypeName')) {
     const nameStr =
-      typeof value === 'object' && value != null && 'name' in value
+      typeof value === 'object' && value !== null && 'name' in value
         ? (value as { name: string }).name
         : normalizeStructTag(value as string);
     bcsEncoded = bcs
