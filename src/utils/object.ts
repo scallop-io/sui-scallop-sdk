@@ -175,12 +175,6 @@ const parseDynamicFieldValue = <T>(fields: T): T => {
     );
   }
   const { value } = fields as DynamicField & { value: T };
-
-  // If nested, continue to unwrap until it reaches the innermost value
-  if (isDynamicField(value)) {
-    return parseDynamicFieldValue(value as any);
-  }
-
   return value as T;
 };
 
