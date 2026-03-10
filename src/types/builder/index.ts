@@ -1,19 +1,22 @@
-import type { CoreTxBlock } from './core';
-import type { SpoolTxBlock } from './spool';
-import type { BorrowIncentiveTxBlock } from './borrowIncentive';
-import type { VeScaTxBlock } from './vesca';
-import type { ReferralTxBlock } from './referral';
-import { LoyaltyProgramTxBlock } from './loyaltyProgram';
-import { SCoinTxBlock } from './sCoin';
+import type { CoreTxBlock } from './core.js';
+import type { SpoolTxBlock } from './spool.js';
+import type { BorrowIncentiveTxBlock } from './borrowIncentive.js';
+import type { VeScaTxBlock } from './vesca.js';
+import type { ReferralTxBlock } from './referral.js';
+import type { ObligationNamingTxBlock } from './obligationNaming.js';
+import { LoyaltyProgramTxBlock } from './loyaltyProgram.js';
+import { SCoinTxBlock } from './sCoin.js';
 
-export type * from './core';
-export type * from './spool';
-export type * from './borrowIncentive';
-export type * from './vesca';
-export type * from './loyaltyProgram';
-export type * from './sCoin';
+export type * from './core.js';
+export type * from './spool.js';
+export type * from './borrowIncentive.js';
+export type * from './vesca.js';
+export type * from './loyaltyProgram.js';
+export type * from './sCoin.js';
+export type * from './obligationNaming.js';
 
 export type BaseScallopTxBlock = ReferralTxBlock &
+  ObligationNamingTxBlock &
   LoyaltyProgramTxBlock &
   BorrowIncentiveTxBlock &
   VeScaTxBlock;

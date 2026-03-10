@@ -1,14 +1,15 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { newCoreTxBlock } from './coreBuilder';
-import { newSpoolTxBlock } from './spoolBuilder';
-import { newBorrowIncentiveTxBlock } from './borrowIncentiveBuilder';
-import { newVeScaTxBlock } from './vescaBuilder';
-import type { ScallopBuilder } from 'src/models';
-import type { ScallopTxBlock } from 'src/types';
-import { newReferralTxBlock } from './referralBuilder';
-import { newLoyaltyProgramTxBlock } from './loyaltyProgramBuilder';
-import { newSCoinTxBlock } from './sCoinBuilder';
+import { newCoreTxBlock } from './coreBuilder.js';
+import { newSpoolTxBlock } from './spoolBuilder.js';
+import { newBorrowIncentiveTxBlock } from './borrowIncentiveBuilder.js';
+import { newVeScaTxBlock } from './vescaBuilder.js';
+import type { ScallopBuilder } from 'src/models/index.js';
+import type { ScallopTxBlock } from 'src/types/index.js';
+import { newReferralTxBlock } from './referralBuilder.js';
+import { newObligationNamingTxBlock } from './obligationNamingBuilder.js';
+import { newLoyaltyProgramTxBlock } from './loyaltyProgramBuilder.js';
+import { newSCoinTxBlock } from './sCoinBuilder.js';
 
 /**
  * Create a new ScallopTxBlock instance.
@@ -28,7 +29,11 @@ export const newScallopTxBlock = (
     loyaltyTxBlock
   );
   const referralTxBlock = newReferralTxBlock(builder, borrowIncentiveTxBlock);
-  const sCoinTxBlock = newSCoinTxBlock(builder, referralTxBlock);
+  const obligationNamingTxBlock = newObligationNamingTxBlock(
+    builder,
+    referralTxBlock
+  );
+  const sCoinTxBlock = newSCoinTxBlock(builder, obligationNamingTxBlock);
   const spoolTxBlock = newSpoolTxBlock(builder, sCoinTxBlock);
   const coreTxBlock = newCoreTxBlock(builder, spoolTxBlock);
 
@@ -40,6 +45,8 @@ export const newScallopTxBlock = (
         return Reflect.get(borrowIncentiveTxBlock, prop);
       } else if (prop in referralTxBlock) {
         return Reflect.get(referralTxBlock, prop);
+      } else if (prop in obligationNamingTxBlock) {
+        return Reflect.get(obligationNamingTxBlock, prop);
       } else if (prop in spoolTxBlock) {
         return Reflect.get(spoolTxBlock, prop);
       } else if (prop in loyaltyTxBlock) {
