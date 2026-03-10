@@ -806,6 +806,11 @@ export const ADDRESS_INTERFACE = {
       veScaRewardTableId:
         '0xb63dc27b258ae4066544f58a987931a5a2f78ebe872319381b62eb65c3ac5560',
     },
+    obligationNaming: {
+      id: '0xf03b52be1ab9545203c3aa3c88eecefb020c5c37e59f0cb452d0006689584b27',
+      namingRegistry:
+        '0x9a98ed110db1982f18cdbb21ee6f724377c8163de1147ca1bf777477af058776',
+    },
     scoin: {
       id: '0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c',
       coins: {

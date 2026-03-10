@@ -13,3 +13,4 @@ export * from './borrowLimitQuery.js';
 export * from './poolAddressesQuery.js';
 export * from './switchboardQuery.js';
 export * from './xOracleQuery.js';
+export * from './obligationNamingQuery.js';

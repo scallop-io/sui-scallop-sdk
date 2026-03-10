@@ -140,6 +140,10 @@ export interface AddressesInterface {
     veScaRewardPool: string;
     veScaRewardTableId: string;
   };
+  obligationNaming?: {
+    id: string;
+    namingRegistry: string;
+  };
   scoin: {
     id: string;
     coins: Partial<
