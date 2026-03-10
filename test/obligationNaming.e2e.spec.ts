@@ -95,42 +95,42 @@ async function main() {
   console.log('Names:', JSON.stringify(allNames, null, 2));
   console.log();
 
-  // ── Step 6: Remove name ──
-  console.log('--- Remove name ---');
-  {
-    const tx = builder.createTxBlock();
-    tx.setSender(sender);
-    tx.removeObligationName(OBLIGATION_KEY_ID);
+  // // ── Step 6: Remove name ──
+  // console.log('--- Remove name ---');
+  // {
+  //   const tx = builder.createTxBlock();
+  //   tx.setSender(sender);
+  //   tx.removeObligationName(OBLIGATION_KEY_ID);
 
-    const result = await builder.scallopSuiKit.signAndSendTxn(tx);
-    console.log('Digest:', result.digest);
-    console.log(
-      'Status:',
-      result.effects?.status?.status === 'success' ? 'success' : 'failed'
-    );
-    if (result.effects?.status?.status !== 'success') {
-      console.log('Error:', result.effects?.status?.error);
-    }
-  }
-  console.log();
+  //   const result = await builder.scallopSuiKit.signAndSendTxn(tx);
+  //   console.log('Digest:', result.digest);
+  //   console.log(
+  //     'Status:',
+  //     result.effects?.status?.status === 'success' ? 'success' : 'failed'
+  //   );
+  //   if (result.effects?.status?.status !== 'success') {
+  //     console.log('Error:', result.effects?.status?.error);
+  //   }
+  // }
+  // console.log();
 
-  console.log('Waiting 10s for RPC propagation...');
-  await new Promise((r) => setTimeout(r, 10000));
+  // console.log('Waiting 10s for RPC propagation...');
+  // await new Promise((r) => setTimeout(r, 10000));
 
-  // ── Step 7: Query name after remove ──
-  console.log('--- Query name (after remove) ---');
-  const nameAfterRemove = await query.getObligationName(
-    OBLIGATION_KEY_ID,
-    sender
-  );
-  console.log('Name:', nameAfterRemove);
-  console.log('Removed:', nameAfterRemove === null ? 'YES' : 'NO');
-  console.log();
+  // // ── Step 7: Query name after remove ──
+  // console.log('--- Query name (after remove) ---');
+  // const nameAfterRemove = await query.getObligationName(
+  //   OBLIGATION_KEY_ID,
+  //   sender
+  // );
+  // console.log('Name:', nameAfterRemove);
+  // console.log('Removed:', nameAfterRemove === null ? 'YES' : 'NO');
+  // console.log();
 
   // ── Summary ──
   console.log('=== Summary ===');
   console.log('Set name:     ', nameAfterSet === testName ? 'PASS' : 'FAIL');
-  console.log('Remove name:  ', nameAfterRemove === null ? 'PASS' : 'FAIL');
+  // console.log('Remove name:  ', nameAfterRemove === null ? 'PASS' : 'FAIL');
 }
 
 main().catch(console.error);

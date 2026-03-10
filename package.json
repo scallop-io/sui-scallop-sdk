@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "@mysten/sui": "1.28.2",
+    "@noble/hashes": "^2.0.1",
     "@pythnetwork/pyth-sui-js": "2.2.0",
     "@scallop-io/sui-kit": "1.4.1",
     "@tanstack/query-core": "5.59.16",

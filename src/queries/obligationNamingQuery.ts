@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { sha3_256 } from '@noble/hashes/sha3.js';
 import { bcs } from '@mysten/sui/bcs';
 import type { ScallopAddress, ScallopSuiKit } from 'src/models';
 import type ScallopQuery from 'src/models/scallopQuery';
@@ -16,7 +16,10 @@ export const computeNamingKey = (
   const combined = new Uint8Array(keyBytes.length + ownerBytes.length);
   combined.set(keyBytes, 0);
   combined.set(ownerBytes, keyBytes.length);
-  const hash = createHash('sha3-256').update(combined).digest('hex');
+  const hashBytes = sha3_256(combined);
+  const hash = Array.from(hashBytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
   return `0x${hash}`;
 };
 
