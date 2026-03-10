@@ -1,5 +1,5 @@
-import { ScallopBuilder } from 'src/models/index.js';
-import { ScallopTxBlock } from 'src/types/index.js';
+import { ScallopBuilder } from 'src/models';
+import { ScallopTxBlock } from 'src/types';
 import {
   SuiTxBlock as SuiKitTxBlock,
   SuiObjectArg,
@@ -11,7 +11,7 @@ import {
   ObligationNamingIds,
   ObligationNamingTxBlock,
   SuiTxBlockWithObligationNamingNormalMethods,
-} from 'src/types/builder/obligationNaming.js';
+} from 'src/types/builder/obligationNaming';
 
 const generateObligationNamingNormalMethod: GenerateObligationNamingNormalMethod =
   ({ builder, txBlock }) => {

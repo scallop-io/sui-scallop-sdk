@@ -6,8 +6,8 @@
  * Assumes the obligation key already has a name set from the previous e2e test.
  */
 import * as dotenv from 'dotenv';
-import { Scallop } from 'src/index.js';
-import { computeNamingKey } from 'src/queries/obligationNamingQuery.js';
+import { Scallop } from 'src';
+import { computeNamingKey } from 'src/queries/obligationNamingQuery';
 
 dotenv.config();
 

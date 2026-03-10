@@ -5,8 +5,8 @@
  * Requires SECRET_KEY in .env
  */
 import * as dotenv from 'dotenv';
-import { Scallop } from 'src/index.js';
-import { computeNamingKey } from 'src/queries/obligationNamingQuery.js';
+import { Scallop } from 'src';
+import { computeNamingKey } from 'src/queries/obligationNamingQuery';
 
 dotenv.config();
 
@@ -67,20 +67,20 @@ async function main() {
     tx.setObligationName(OBLIGATION_KEY_ID, testName);
 
     const result = await builder.scallopSuiKit.signAndSendTxn(tx);
-    const txResult = result.Transaction ?? result.FailedTransaction;
-    console.log('Digest:', txResult?.digest ?? 'unknown');
+    console.log('Digest:', result.digest);
     console.log(
       'Status:',
-      txResult?.effects?.status?.success ? 'success' : 'failed'
+      result.effects?.status?.status === 'success' ? 'success' : 'failed'
     );
-    if (!txResult?.effects?.status?.success) {
-      console.log('Error:', txResult?.effects?.status?.error);
+    if (result.effects?.status?.status !== 'success') {
+      console.log('Error:', result.effects?.status?.error);
     }
   }
   console.log();
 
-  // Wait for chain to propagate
-  await new Promise((r) => setTimeout(r, 3000));
+  // Wait for RPC nodes to propagate the new state
+  console.log('Waiting 10s for RPC propagation...');
+  await new Promise((r) => setTimeout(r, 10000));
 
   // ── Step 4: Query name after set ──
   console.log('--- Query name (after set) ---');
@@ -95,39 +95,42 @@ async function main() {
   console.log('Names:', JSON.stringify(allNames, null, 2));
   console.log();
 
-  // // ── Step 6: Remove name ──
-  // console.log('--- Remove name ---');
-  // {
-  //   const tx = builder.createTxBlock();
-  //   tx.setSender(sender);
-  //   tx.removeObligationName(OBLIGATION_KEY_ID);
+  // ── Step 6: Remove name ──
+  console.log('--- Remove name ---');
+  {
+    const tx = builder.createTxBlock();
+    tx.setSender(sender);
+    tx.removeObligationName(OBLIGATION_KEY_ID);
 
-  //   const result = await builder.scallopSuiKit.signAndSendTxn(tx);
-  //   const txResult = result.Transaction ?? result.FailedTransaction;
-  //   console.log('Digest:', txResult?.digest ?? 'unknown');
-  //   console.log('Status:', txResult?.effects?.status?.success ? 'success' : 'failed');
-  //   if (!txResult?.effects?.status?.success) {
-  //     console.log('Error:', txResult?.effects?.status?.error);
-  //   }
-  // }
-  // console.log();
+    const result = await builder.scallopSuiKit.signAndSendTxn(tx);
+    console.log('Digest:', result.digest);
+    console.log(
+      'Status:',
+      result.effects?.status?.status === 'success' ? 'success' : 'failed'
+    );
+    if (result.effects?.status?.status !== 'success') {
+      console.log('Error:', result.effects?.status?.error);
+    }
+  }
+  console.log();
 
-  // await new Promise((r) => setTimeout(r, 3000));
+  console.log('Waiting 10s for RPC propagation...');
+  await new Promise((r) => setTimeout(r, 10000));
 
-  // // ── Step 7: Query name after remove ──
-  // console.log('--- Query name (after remove) ---');
-  // const nameAfterRemove = await query.getObligationName(
-  //   OBLIGATION_KEY_ID,
-  //   sender
-  // );
-  // console.log('Name:', nameAfterRemove);
-  // console.log('Removed:', nameAfterRemove === null ? 'YES' : 'NO');
-  // console.log();
+  // ── Step 7: Query name after remove ──
+  console.log('--- Query name (after remove) ---');
+  const nameAfterRemove = await query.getObligationName(
+    OBLIGATION_KEY_ID,
+    sender
+  );
+  console.log('Name:', nameAfterRemove);
+  console.log('Removed:', nameAfterRemove === null ? 'YES' : 'NO');
+  console.log();
 
-  // // ── Summary ──
-  // console.log('=== Summary ===');
-  // console.log('Set name:     ', nameAfterSet === testName ? 'PASS' : 'FAIL');
-  // console.log('Remove name:  ', nameAfterRemove === null ? 'PASS' : 'FAIL');
+  // ── Summary ──
+  console.log('=== Summary ===');
+  console.log('Set name:     ', nameAfterSet === testName ? 'PASS' : 'FAIL');
+  console.log('Remove name:  ', nameAfterRemove === null ? 'PASS' : 'FAIL');
 }
 
 main().catch(console.error);

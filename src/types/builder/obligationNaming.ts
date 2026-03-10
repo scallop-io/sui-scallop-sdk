@@ -1,5 +1,5 @@
 import { SuiObjectArg, SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { ScallopBuilder } from 'src/models/index.js';
+import { ScallopBuilder } from 'src/models';
 
 export type ObligationNamingIds = {
   pkgId: string;
