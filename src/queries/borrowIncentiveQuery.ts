@@ -5,6 +5,7 @@ import {
   calculateBorrowIncentivePoolPointData,
   getSharedObjectData,
   parseObjectAs,
+  getDfObjectIdAndName,
 } from 'src/utils/index.js';
 import type {
   ScallopAddress,
@@ -19,7 +20,6 @@ import type {
   BorrowIncentiveAccounts,
   BorrowIncentivePoolPoints,
   OptionalKeys,
-  SuiObjectRef,
   CoinPrices,
   MarketPools,
 } from 'src/types/index.js';
@@ -44,12 +44,12 @@ const queryBorrowIncentivePools = async ({
 
   const txBlock = new SuiTxBlock();
   const queryTarget = `${queryPkgId}::incentive_pools_query::incentive_pools_data`;
-  const args = [
-    txBlock.sharedObjectRef({
-      ...(await getSharedObjectData(incentivePoolsId, scallopSuiKit)),
-      mutable: true,
-    }),
-  ];
+  const incentivePoolsSharedObject = await getSharedObjectData(scallopSuiKit, {
+    tx: txBlock,
+    object: incentivePoolsId,
+    mutable: true,
+  });
+  const args = [incentivePoolsSharedObject];
   const queryResult = await scallopSuiKit.queryInspectTxn({
     queryTarget,
     args,
@@ -182,7 +182,7 @@ export const getBorrowIncentivePools = async (
  */
 export const queryBorrowIncentiveAccounts = async (
   { utils }: { utils: ScallopUtils },
-  obligationId: string | SuiObjectRef,
+  obligationId: string,
   borrowIncentiveCoinNames: string[] = [...utils.constants.whitelist.lending]
 ) => {
   const txBlock = new SuiTxBlock();
@@ -192,20 +192,19 @@ export const queryBorrowIncentiveAccounts = async (
   );
   const queryTarget = `${queryPkgId}::incentive_account_query::incentive_account_data`;
   const [incentiveAccountVersion, obligationDataVersion] = await Promise.all([
-    getSharedObjectData(incentiveAccountsId, utils.scallopSuiKit),
-    getSharedObjectData(obligationId, utils.scallopSuiKit),
+    getSharedObjectData(utils.scallopSuiKit, {
+      tx: txBlock,
+      object: incentiveAccountsId,
+      mutable: true,
+    }),
+    getSharedObjectData(utils.scallopSuiKit, {
+      tx: txBlock,
+      object: obligationId,
+      mutable: true,
+    }),
   ]);
 
-  const args = [
-    txBlock.sharedObjectRef({
-      ...incentiveAccountVersion,
-      mutable: true,
-    }),
-    txBlock.sharedObjectRef({
-      ...obligationDataVersion,
-      mutable: true,
-    }),
-  ];
+  const args = [incentiveAccountVersion, obligationDataVersion];
 
   const queryResult = await utils.scallopSuiKit.queryInspectTxn({
     queryTarget,
@@ -246,10 +245,7 @@ export const queryBorrowIncentiveAccounts = async (
 };
 
 /**
- * Check veSca bind status
- * @param query
- * @param veScaKey
- * @returns
+ * @deprecated Use getBindedObligation instead
  */
 export const getBindedObligationId = async (
   {
@@ -260,7 +256,34 @@ export const getBindedObligationId = async (
     scallopSuiKit: ScallopSuiKit;
   },
   veScaKeyId: string
-): Promise<string | null> => {
+) => {
+  return (
+    await getBindedObligation(
+      {
+        address,
+        scallopSuiKit,
+      },
+      veScaKeyId
+    )
+  )?.obligationId;
+};
+
+/**
+ * Check veSca bind status
+ * @param query
+ * @param veScaKey
+ * @returns { obligationId, obligationKey } if binded, otherwise null
+ */
+export const getBindedObligation = async (
+  {
+    address,
+    scallopSuiKit,
+  }: {
+    address: ScallopAddress;
+    scallopSuiKit: ScallopSuiKit;
+  },
+  veScaKeyId: string
+): Promise<{ obligationId: string; obligationKey: string } | null> => {
   const borrowIncentiveObjectId = address.get('borrowIncentive.object');
   const incentivePoolsId = address.get('borrowIncentive.incentivePools');
   const veScaObjId = address.get('vesca.object');
@@ -271,9 +294,9 @@ export const getBindedObligationId = async (
 
   const incentivePoolsObject = incentivePoolsResponse?.object;
   if (!incentivePoolsObject) return null;
-  const incentivePoolFields = parseObjectAs<Record<string, unknown>>(
+  const incentivePoolFields = parseObjectAs<{ ve_sca_bind: { id: string } }>(
     incentivePoolsObject
-  ) as any;
+  );
   const veScaBindTableId = incentivePoolFields.ve_sca_bind.id as string;
 
   // check if veSca is inside the bind table
@@ -290,12 +313,10 @@ export const getBindedObligationId = async (
 
   const veScaBindObject = veScaBindTableResponse?.object;
   if (!veScaBindObject) return null;
-  const veScaBindTableFields = parseObjectAs<Record<string, unknown>>(
-    veScaBindObject
-  ) as any;
-  const obligationId = veScaBindTableFields.id as string;
+  const { id: obligationId } = parseObjectAs<{ id: string }>(veScaBindObject);
+  const { name: obligationKey } = getDfObjectIdAndName(veScaBindObject);
 
-  return obligationId;
+  return { obligationId, obligationKey };
 };
 
 export const getBindedVeScaKey = async (

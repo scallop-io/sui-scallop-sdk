@@ -252,3 +252,38 @@
   const poolAddresses = scallopUtils.getSupportedPoolAddresses();
   // Returns array of PoolAddress objects with coinName, symbol, coinType, etc.
   ```
+
+## Advanced Utility Helpers (SDK Contributors)
+
+- Parse object json safely (including dynamic field unwrapping).
+
+  ```typescript
+  import { parseObjectAs } from 'src/utils/index.js';
+
+  const fields = parseObjectAs<{ value: string }>(suiObjectData);
+  ```
+
+- Extract dynamic field object id + key name with key kind.
+
+  ```typescript
+  import { getDfObjectIdAndName } from 'src/utils/index.js';
+
+  const info = getDfObjectIdAndName(suiObjectData);
+  // info: { objectId: string; name: string; nameKind: 'type' | 'id' | 'bytes' | 'string' }
+  ```
+
+- Resolve shared object data from flexible argument types.
+
+  ```typescript
+  import { getSharedObjectData } from 'src/utils/index.js';
+
+  // Accepts object id string, SuiObjectData, SuiObjectRef, or SuiObjectArg.
+  const sharedObject = await getSharedObjectData(scallopSuiKit, {
+    tx,
+    object,
+    mutable,
+  });
+  ```
+
+- For Sui kit v2 dynamic field responses, value fields are parsed from flattened json
+  (for example `json.value` instead of older nested `json.fields.value`).

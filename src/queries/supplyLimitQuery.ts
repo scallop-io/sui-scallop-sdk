@@ -2,18 +2,7 @@ import { ScallopUtils } from 'src/models/index.js';
 import { z as zod } from 'zod';
 
 const supplyLimitZod = zod.object({
-  dataType: zod.string(),
-  type: zod.string(),
-  hasPublicTransfer: zod.boolean(),
-  fields: zod.object({
-    id: zod.object({
-      id: zod.string(),
-    }),
-    name: zod.object({
-      type: zod.string(),
-    }),
-    value: zod.string(),
-  }),
+  value: zod.string(),
 });
 
 const supplyLimitKeyType = `0x6e641f0dca8aedab3101d047e96439178f16301bf0b57fe8745086ff1195eb3e::market_dynamic_keys::SupplyLimitKey`; // prod
@@ -40,7 +29,7 @@ export const getSupplyLimit = async (utils: ScallopUtils, poolName: string) => {
 
     const parsedData = supplyLimitZod.safeParse(object?.object?.json);
     if (!parsedData.success) return '0';
-    return parsedData.data.fields.value;
+    return parsedData.data.value;
   } catch (e: any) {
     console.error(`Error in getSupplyLimit for ${poolName}: ${e.message}`);
     return '0';

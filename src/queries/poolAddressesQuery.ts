@@ -6,6 +6,7 @@ import type {
 } from 'src/types/index.js';
 import type { ClientWithCoreApi } from '@mysten/sui/client';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
+import { bcs } from '@mysten/sui/bcs';
 
 const queryFlashloanFeeObjectIds = async (
   client: ClientWithCoreApi,
@@ -26,7 +27,11 @@ const queryFlashloanFeeObjectIds = async (
 
     const fields = resp.dynamicFields;
     fields.forEach((field: any) => {
-      const assetType = `0x${(field.name.value as any).name as string}`;
+      const rawBcs = field.name.bcs;
+      const parsed = bcs
+        .struct('TypeName', { name: bcs.string() })
+        .parse(rawBcs);
+      const assetType = `0x${(parsed as any).name as string}`;
       if (coinTypeMap.has(assetType)) {
         flashloanFeeObjectIds[assetType] = field.fieldId;
       }
@@ -51,15 +56,32 @@ const fetchDynamicObject = async <S extends boolean>(
   returnObjId: S = true as S
 ): Promise<FetchDynamicObjectReturnType<S>> => {
   const nameParam = encodeDynamicFieldNameForV2({ type, value });
-  const res = await client.core.getDynamicObjectField({
-    parentId,
-    name: nameParam,
-    include: { content: true, json: true },
-  });
 
-  const object = res?.object;
-  if (returnObjId) return object?.objectId as FetchDynamicObjectReturnType<S>;
-  else return object?.json as FetchDynamicObjectReturnType<S>;
+  // Use getDynamicField + getObject instead of getDynamicObjectField,
+  // because getDynamicObjectField wraps with Wrapper<Type> which only works
+  // for DynamicObjectFields. Some keys (BorrowFeeKey, SupplyLimitKey, etc.)
+  // are regular DynamicFields.
+  try {
+    const { dynamicField } = await client.core.getDynamicField({
+      parentId,
+      name: nameParam,
+    });
+
+    const { object } = await client.core.getObject({
+      objectId: dynamicField.fieldId,
+      include: { content: true, json: true },
+    });
+
+    if (!object) return undefined as FetchDynamicObjectReturnType<S>;
+
+    if (returnObjId) return object.objectId as FetchDynamicObjectReturnType<S>;
+    else return object.json as FetchDynamicObjectReturnType<S>;
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message.toLowerCase().includes('not found')) {
+      return undefined as FetchDynamicObjectReturnType<S>;
+    }
+    throw e;
+  }
 };
 
 export const getPoolAddresses = async (
@@ -111,15 +133,19 @@ export const getPoolAddresses = async (
 
   const fields = marketObject.json as any;
 
-  const balanceSheetParentId = fields.vault.balance_sheets.table.id;
+  const balanceSheetParentId =
+    fields.vault.fields.balance_sheets.fields.table.fields.id.id;
 
-  const collateralStatsParentId = fields.collateral_stats.table.id;
+  const collateralStatsParentId =
+    fields.collateral_stats.fields.table.fields.id.id;
 
-  const borrowDynamicsParentid = fields.borrow_dynamics.table.id;
+  const borrowDynamicsParentid =
+    fields.borrow_dynamics.fields.table.fields.id.id;
 
-  const interestModelParentId = fields.interest_models.table.id;
+  const interestModelParentId =
+    fields.interest_models.fields.table.fields.id.id;
 
-  const riskModelParentId = fields.risk_models.table.id;
+  const riskModelParentId = fields.risk_models.fields.table.fields.id.id;
 
   const ADDRESS_TYPE = `0x1::type_name::TypeName`;
   const BORROW_FEE_TYPE = `0xc38f849e81cfe46d4e4320f508ea7dda42934a329d5a6571bb4c3cb6ea63f5da::market_dynamic_keys::BorrowFeeKey`;
@@ -289,8 +315,8 @@ export const getPoolAddresses = async (
         borrowFeeKey: addresses[5] ?? '',
         supplyLimitKey: addresses[6] ?? '',
         borrowLimitKey: addresses[7] ?? '',
-        isolatedAssetKey: (addresses[8]?.fields as any)?.id.id ?? '',
-        isIsolated: (addresses[8]?.fields as any)?.value ?? false,
+        isolatedAssetKey: (addresses[8] as any)?.id ?? '',
+        isIsolated: (addresses[8] as any)?.value ?? false,
         ...spoolData,
         ...sCoinData,
         sCoinName,

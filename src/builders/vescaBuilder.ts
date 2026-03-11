@@ -95,7 +95,7 @@ export const isInSubsTable = async (
 
     if (!resp?.object?.json) return false;
 
-    const contents = resp.object.json.fields?.value?.fields?.contents;
+    const contents = resp.object.json?.value?.contents;
     return Array.isArray(contents) && contents.length > 0;
   } catch (e) {
     console.error(e);
