@@ -2,13 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [2.4.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.1...v2.4.2) (2026-03-02)
+### [2.4.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.1...v2.4.2) (2026-03-05)
 
 ### Fixed
 
 - Correct Zod schemas by removing unnecessary fields in borrowLimit, isolatedAsset, and supplyLimit queries ([19b7ee1](https://github.com/scallop-io/sui-scallop-sdk/commit/19b7ee1))
 - Streamline JSON field access in vescaBuilder and switchboardQuery, removing unnecessary nesting ([ae4da96](https://github.com/scallop-io/sui-scallop-sdk/commit/ae4da96))
 - Correct index assignment in `getOnDemandAggObjectIds` for registered aggregators ([503e32c](https://github.com/scallop-io/sui-scallop-sdk/commit/503e32c))
+- Use `getDynamicField` + `getObject` instead of `getDynamicObjectField` in pool address queries to support regular DynamicField keys ([222c507](https://github.com/scallop-io/sui-scallop-sdk/commit/222c507))
+- Correct JSON field access paths in market object parsing for pool addresses ([222c507](https://github.com/scallop-io/sui-scallop-sdk/commit/222c507))
+- Decode BCS-encoded TypeName in flashloan fee object query ([222c507](https://github.com/scallop-io/sui-scallop-sdk/commit/222c507))
+- Remove recursive unwrap in `parseDynamicFieldValue` that caused incorrect nested field parsing ([222c507](https://github.com/scallop-io/sui-scallop-sdk/commit/222c507))
 
 ### Refactored
 
