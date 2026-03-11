@@ -428,7 +428,7 @@ class ScallopSuiKit extends ScallopQueryClient {
         return cachedData;
       })
     );
-    txBlock.moveCall(queryTarget, resolvedArgs as any, typeArgs);
+    txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
 
     return await this.callWithRateLimiter(
       keys ??

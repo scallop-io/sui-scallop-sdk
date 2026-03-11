@@ -2,18 +2,7 @@ import { ScallopUtils } from 'src/models/index.js';
 import { z as zod } from 'zod';
 
 const borrowLimitZod = zod.object({
-  dataType: zod.string(),
-  type: zod.string(),
-  hasPublicTransfer: zod.boolean(),
-  fields: zod.object({
-    id: zod.object({
-      id: zod.string(),
-    }),
-    name: zod.object({
-      type: zod.string(),
-    }),
-    value: zod.string(),
-  }),
+  value: zod.string(),
 });
 
 const borrowLimitKeyType = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da26c7221b220f01af6::market_dynamic_keys::BorrowLimitKey`; // prod
@@ -42,7 +31,7 @@ export const getBorrowLimit = async (utils: ScallopUtils, poolName: string) => {
     const parsedData = borrowLimitZod.safeParse(object?.object?.json);
     if (!parsedData.success) return '0';
 
-    return parsedData.data.fields.value;
+    return parsedData.data.value;
   } catch (e: any) {
     console.error(`Error in getBorrowLimit for ${poolName}: ${e.message}`);
     return '0';

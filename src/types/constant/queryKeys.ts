@@ -1,4 +1,8 @@
-import type { SuiObjectArg, SuiTxArg } from '@scallop-io/sui-kit';
+import type {
+  SuiAmountsArg,
+  SuiObjectArg,
+  SuiTxArg,
+} from '@scallop-io/sui-kit';
 import type {
   SuiObjectData,
   SuiObjectDataOptions,
@@ -36,7 +40,13 @@ export namespace QueryKeys {
       Partial<GetDynamicFieldObjectParams>;
     export type getTotalVeScaTreasuryAmount = BaseType & {
       refreshArgs?: any[];
-      vescaAmountArgs?: (string | SuiObjectData | SuiTxArg)[];
+      vescaAmountArgs?: (
+        | string
+        | SuiObjectData
+        | SuiTxArg
+        | SuiAmountsArg
+        | SuiObjectArg
+      )[];
     };
     export type GetAllCoinBalances = BaseType & {
       activeAddress?: string;

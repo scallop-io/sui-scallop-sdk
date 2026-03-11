@@ -11,10 +11,9 @@ The query methods in the client have been migrated to the query instance. These 
   ```typescript
   // Query market data.
   const marketData = await client.queryMarket();
-  // Get obligations data.
+  // Get obligation data (requires obligation id).
   const obligationsData = await client.getObligations();
-  // Get obligation data.
-  const obligationData = await client.queryObligation();
+  const obligationData = await client.queryObligation(obligationsData[0].id);
   // Get all stake accounts data.
   const allStakeAccountsData = await client.getAllStakeAccounts();
   // Get stake accounts data.

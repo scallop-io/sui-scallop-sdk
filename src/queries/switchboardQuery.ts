@@ -32,14 +32,14 @@ export const getOnDemandAggObjectIds = async (
 
   // If not, query from the registry table
   const missingCoinNames = missingAgg.map((agg) => agg.coinName);
-  const coinTypes = missingCoinNames.map((coinName) => {
+  const missingCoinTypes = missingCoinNames.map((coinName) => {
     const coinType = query.utils.parseCoinType(coinName);
     if (!coinType) throw new Error(`Invalid coin name: ${coinName}`);
     return coinType;
   });
 
   await Promise.all(
-    coinTypes.map(async (coinType, idx) => {
+    missingCoinTypes.map(async (coinType, idx) => {
       const dfName = {
         type: '0x1::type_name::TypeName',
         value: {
@@ -53,10 +53,10 @@ export const getOnDemandAggObjectIds = async (
       });
 
       const jsonData = resp?.object?.json as any;
-      if (!jsonData?.fields?.value)
+      if (!jsonData?.value)
         throw new Error(`No on-demand aggregator found for ${coinType}`);
 
-      registeredAggs[idx] = jsonData.fields.value;
+      registeredAggs[missingAgg[idx].idx] = jsonData.value;
     })
   );
 

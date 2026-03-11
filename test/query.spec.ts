@@ -7,10 +7,12 @@ import { BigNumber } from 'bignumber.js';
 import { parseObjectAs } from 'src/utils/index.js';
 
 const ENABLE_LOG = false;
-let obligationId: string | null;
+// let obligationId: string | null;
 
 const VE_SCA_KEY =
   '0xad50994e23ae4268fc081f477d0bdc3f1b92c7049c9038dedec5bac725273d18' as const;
+const obligationId =
+  '0x98bcdfb4bf5ced4ebe8a490f9dc19f67ecf9bbe2a76b71d8400e344306deed42';
 // make sure you test with an account that has binded obligationId to a veScaKey
 let scallopQuery: ScallopQuery;
 let sender: string;
@@ -18,7 +20,6 @@ let sender: string;
 beforeAll(async () => {
   console.log('start beforeAll');
   scallopQuery = await scallopSDK.createScallopQuery();
-  obligationId = await scallopQuery.getBindedObligationId(VE_SCA_KEY);
   sender = scallopQuery.walletAddress;
   console.log('end beforeAll');
   console.log(`Your wallet: ${sender}`);
@@ -142,6 +143,17 @@ describe('Test Query Scallop Contract On Chain Data', () => {
       console.info('Usdc price:', usdcPrice);
     }
     expect(usdcPrice).toBeGreaterThan(0);
+  });
+
+  it('Should get pyth prices for multiple assets', async () => {
+    const prices = await scallopQuery.getPricesFromPyth(['sui', 'wusdc']);
+
+    if (ENABLE_LOG) {
+      console.info('Pyth prices:', prices);
+    }
+    expect(prices).toBeTruthy();
+    expect(prices['sui']).toBeGreaterThan(0);
+    expect(prices['wusdc']).toBeGreaterThan(0);
   });
 });
 
@@ -276,7 +288,7 @@ describe('Test Query Borrow Incentive Contract On Chain Data', () => {
     if (!incentiveAccountsObject?.object) return;
 
     const incentiveAccountsTableId = (
-      parseObjectAs<Record<string, unknown>>(
+      parseObjectAs<{ accounts: { id: string } }>(
         incentiveAccountsObject.object
       ) as any
     ).accounts.id;
@@ -380,25 +392,16 @@ describe('Test Portfolio Query', () => {
 
 describe('Test VeSca Query', () => {
   it(`Should get binded obligationId of veScaKey ${VE_SCA_KEY}`, async () => {
-    const bindedObligationId =
-      await scallopQuery.getBindedObligationId(VE_SCA_KEY);
+    const bindedObligation = await scallopQuery.getBindedObligation(VE_SCA_KEY);
 
     if (ENABLE_LOG) {
-      console.info('Binded Obligation Id:', bindedObligationId);
+      console.info('Binded Obligation Id:', bindedObligation?.obligationId);
     }
 
-    if (!bindedObligationId)
-      throw new Error(
-        `No binded obligationId found for veScaKey ${VE_SCA_KEY}`
-      );
-    obligationId = bindedObligationId;
-    expect(bindedObligationId).toBeTruthy();
+    expect(bindedObligation?.obligationId).toBeTruthy();
   });
 
   it(`Should get veScaKeyId of obligationId ${obligationId}`, async () => {
-    if (!obligationId) {
-      return;
-    }
     const bindedVeScaKeyId = await scallopQuery.getBindedVeScaKey(
       obligationId!
     );
@@ -556,6 +559,24 @@ describe('Test sCoin Query', () => {
     expect(totalSupply >= 0).toBe(true);
   });
 
+  it('Should get sCoin amounts', async () => {
+    const sCoinAmounts = await scallopQuery.getSCoinAmounts(['ssui', 'swusdc']);
+
+    if (ENABLE_LOG) {
+      console.info('sCoin amounts:', sCoinAmounts);
+    }
+    expect(sCoinAmounts).toBeTruthy();
+  });
+
+  it('Should get sCoin amount', async () => {
+    const sCoinAmount = await scallopQuery.getSCoinAmount('ssui');
+
+    if (ENABLE_LOG) {
+      console.info('sCoin amount:', sCoinAmount);
+    }
+    expect(sCoinAmount).toBeGreaterThanOrEqual(0);
+  });
+
   it('Should get swap rate between sCoin assets', async () => {
     const fromSCoin = 'swusdc';
     const toSCoin = 'ssui';
@@ -646,6 +667,14 @@ describe('Test Get Coin Price By Indexer', () => {
     }
     expect(coinPrice).toBeGreaterThan(0);
   });
+
+  it('Should get all coin prices by indexer', async () => {
+    const coinPrices = await scallopQuery.getCoinPricesByIndexer();
+    if (ENABLE_LOG) {
+      console.info('Coin prices:', coinPrices);
+    }
+    expect(coinPrices).toBeTruthy();
+  });
 });
 
 describe('Test Get Flashloan Fees', () => {
@@ -656,6 +685,36 @@ describe('Test Get Flashloan Fees', () => {
     }
     expect(flashloanFees).toBeTruthy();
     expect(Object.keys(flashloanFees).length).toBeGreaterThan(0);
+  });
+});
+
+describe('Test Oracle Query', () => {
+  it('Should get price update policies', async () => {
+    const policies = await scallopQuery.getPriceUpdatePolicies();
+    if (ENABLE_LOG) {
+      console.info('Price update policies:', policies);
+    }
+    expect(policies).toBeTruthy();
+  });
+
+  it('Should get asset oracles', async () => {
+    const assetOracles = await scallopQuery.getAssetOracles();
+    if (ENABLE_LOG) {
+      console.info('Asset oracles:', assetOracles);
+    }
+    expect(assetOracles).toBeTruthy();
+    expect(assetOracles['sui']).toBeTruthy();
+    expect(assetOracles['sui'].primary.length).toBeGreaterThan(0);
+  });
+
+  it('Should get switchboard on-demand aggregator object IDs', async () => {
+    const aggObjectIds =
+      await scallopQuery.getSwitchboardOnDemandAggregatorObjectIds(['sui']);
+    if (ENABLE_LOG) {
+      console.info('Switchboard agg object IDs:', aggObjectIds);
+    }
+    expect(aggObjectIds).toBeTruthy();
+    expect(aggObjectIds.length).toBe(1);
   });
 });
 
