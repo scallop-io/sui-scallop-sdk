@@ -46,7 +46,7 @@ import {
   ScallopIndexer,
   ScallopAddress,
 } from 'src/models';
-import { getSharedObjectData } from 'src/utils/object';
+import { getSharedObjectData, getSharedObjectDatas } from 'src/utils/object';
 import { queryKeys } from 'src/constants';
 
 /**
@@ -130,21 +130,45 @@ export const queryMarket = async (
     | MarketQueryInterface
     | undefined;
 
-  for (const pool of marketData?.pools ?? []) {
+  // Pre-filter supported pools and collaterals
+  const supportedPools = (marketData?.pools ?? []).filter((pool) => {
     const coinType = normalizeStructTag(pool.type.name);
     const poolCoinName = utils.parseCoinNameFromType(coinType);
-    const coinPrice = coinPrices[poolCoinName] ?? 0;
+    return utils.constants.whitelist.lending.has(poolCoinName);
+  });
 
-    // Filter pools not yet supported by the SDK.
-    if (!utils.constants.whitelist.lending.has(poolCoinName)) {
-      continue;
+  const supportedCollaterals = (marketData?.collaterals ?? []).filter(
+    (collateral) => {
+      const coinType = normalizeStructTag(collateral.type.name);
+      const collateralCoinName = utils.parseCoinNameFromType(coinType);
+      return utils.constants.whitelist.collateral.has(collateralCoinName);
     }
+  );
+
+  // Batch-fetch supplyLimit and borrowLimit for all pools in parallel
+  const poolCoinNamesFromMarket = supportedPools.map((pool) =>
+    utils.parseCoinNameFromType(normalizeStructTag(pool.type.name))
+  );
+
+  const [supplyLimits, borrowLimits] = await Promise.all([
+    Promise.all(
+      poolCoinNamesFromMarket.map((name) => getSupplyLimit(utils, name))
+    ),
+    Promise.all(
+      poolCoinNamesFromMarket.map((name) => getBorrowLimit(utils, name))
+    ),
+  ]);
+
+  for (let i = 0; i < supportedPools.length; i++) {
+    const pool = supportedPools[i];
+    const poolCoinName = poolCoinNamesFromMarket[i];
+    const coinPrice = coinPrices[poolCoinName] ?? 0;
 
     const parsedMarketPoolData = parseOriginMarketPoolData({
       ...pool,
       isIsolated: await isIsolatedAsset(utils, poolCoinName),
-      supplyLimit: (await getSupplyLimit(utils, poolCoinName)) ?? '0',
-      borrowLimit: (await getBorrowLimit(utils, poolCoinName)) ?? '0',
+      supplyLimit: supplyLimits[i] ?? '0',
+      borrowLimit: borrowLimits[i] ?? '0',
     });
 
     const calculatedMarketPoolData = calculateMarketPoolData(
@@ -165,15 +189,10 @@ export const queryMarket = async (
     };
   }
 
-  for (const collateral of marketData?.collaterals ?? []) {
+  for (const collateral of supportedCollaterals) {
     const coinType = normalizeStructTag(collateral.type.name);
     const collateralCoinName = utils.parseCoinNameFromType(coinType);
     const coinPrice = coinPrices[collateralCoinName] ?? 0;
-
-    // Filter collaterals not yet supported by the SDK.
-    if (!utils.constants.whitelist.collateral.has(collateralCoinName)) {
-      continue;
-    }
 
     const parsedMarketCollateralData = parseOriginMarketCollateralData({
       ...collateral,
@@ -238,17 +257,15 @@ const queryRequiredMarketObjects = async (
     }
   }
 
-  const objectDatas: SuiObjectData[] = [];
   const batches = partitionArray(allObjectIds, 50);
-
-  for (const batch of batches) {
-    const responses = await scallopSuiKit.queryGetObjects(batch, {
-      showContent: true,
-    });
-    if (responses.length > 0) {
-      objectDatas.push(...responses);
-    }
-  }
+  const batchResults = await Promise.all(
+    batches.map((batch) =>
+      scallopSuiKit.queryGetObjects(batch, {
+        showContent: true,
+      })
+    )
+  );
+  const objectDatas = batchResults.flat();
 
   // Transform into map
   const objectDataMap = objectDatas.reduce(
@@ -727,18 +744,28 @@ export const getMarketCollateral = async (
   const fields = marketObject.content.fields as any;
   const coinType = utils.parseCoinType(collateralCoinName);
 
-  // Get risk model.
+  // Get risk model and collateral stat in parallel.
   const riskModelParentId = fields.risk_models.fields.table.fields.id.id;
-  const riskModelDynamicFieldObjectResponse =
-    await scallopSuiKit.queryGetDynamicFieldObject({
+  const collateralStatParentId =
+    fields.collateral_stats.fields.table.fields.id.id;
+  const dynamicFieldName = {
+    type: '0x1::type_name::TypeName' as const,
+    value: { name: coinType.substring(2) },
+  };
+
+  const [
+    riskModelDynamicFieldObjectResponse,
+    collateralStatDynamicFieldObjectResponse,
+  ] = await Promise.all([
+    scallopSuiKit.queryGetDynamicFieldObject({
       parentId: riskModelParentId,
-      name: {
-        type: '0x1::type_name::TypeName',
-        value: {
-          name: coinType.substring(2),
-        },
-      },
-    });
+      name: dynamicFieldName,
+    }),
+    scallopSuiKit.queryGetDynamicFieldObject({
+      parentId: collateralStatParentId,
+      name: dynamicFieldName,
+    }),
+  ]);
 
   const riskModelDynamicFieldObject = riskModelDynamicFieldObjectResponse?.data;
   if (
@@ -755,20 +782,6 @@ export const getMarketCollateral = async (
   const riskModel: RiskModel = (
     riskModelDynamicFieldObject.content.fields as any
   ).value.fields;
-
-  // Get collateral stat.
-  const collateralStatParentId =
-    fields.collateral_stats.fields.table.fields.id.id;
-  const collateralStatDynamicFieldObjectResponse =
-    await scallopSuiKit.queryGetDynamicFieldObject({
-      parentId: collateralStatParentId,
-      name: {
-        type: '0x1::type_name::TypeName',
-        value: {
-          name: coinType.substring(2),
-        },
-      },
-    });
 
   const collateralStatDynamicFieldObject =
     collateralStatDynamicFieldObjectResponse?.data;
@@ -956,11 +969,10 @@ export const queryObligation = async (
   const market = address.get('core.market');
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
 
-  const [versionData, marketData, obligationData] = await Promise.all([
-    getSharedObjectData(version, scallopSuiKit),
-    getSharedObjectData(market, scallopSuiKit),
-    getSharedObjectData(obligationId, scallopSuiKit),
-  ]);
+  const [versionData, marketData, obligationData] = await getSharedObjectDatas(
+    [version, market, obligationId],
+    scallopSuiKit
+  );
 
   const args = [
     txBlock.sharedObjectRef({

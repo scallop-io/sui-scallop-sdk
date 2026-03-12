@@ -34,3 +34,36 @@ export const getSharedObjectData = async (
     return parseObjectData(object);
   }
 };
+
+export const getSharedObjectDatas = async (
+  objects: (string | SuiObjectData)[],
+  scallopSuiKit: ScallopSuiKit
+) => {
+  // Separate string IDs (need RPC) from already-resolved objects
+  const stringIds: string[] = [];
+  for (let i = 0; i < objects.length; i++) {
+    if (typeof objects[i] === 'string') {
+      stringIds.push(objects[i] as string);
+    }
+  }
+
+  // Batch-fetch only string IDs
+  const fetchedMap = new Map<string, SuiObjectData>();
+  if (stringIds.length > 0) {
+    const objectsData = await scallopSuiKit.queryGetObjects(stringIds, {
+      showOwner: true,
+      showContent: false,
+    });
+    for (let i = 0; i < stringIds.length; i++) {
+      fetchedMap.set(stringIds[i], objectsData[i]);
+    }
+  }
+
+  // Resolve in original order
+  return objects.map((obj) => {
+    if (typeof obj === 'string') {
+      return parseObjectData(fetchedMap.get(obj)!);
+    }
+    return parseObjectData(obj);
+  });
+};

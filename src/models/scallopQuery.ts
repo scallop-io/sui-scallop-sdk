@@ -415,14 +415,40 @@ class ScallopQuery implements ScallopQueryInterface {
   async getStakePools(
     stakeMarketCoinNames: string[] = [...this.constants.whitelist.spool]
   ) {
-    const stakePools: StakePools = {};
-    for (const stakeMarketCoinName of stakeMarketCoinNames) {
-      const stakePool = await getStakePool(this, stakeMarketCoinName);
-
-      if (stakePool) {
-        stakePools[stakeMarketCoinName] = stakePool;
+    // Pre-fetch all pool objects in one batch to warm the cache.
+    // Each getStakePool call will then hit the queryGetObject cache.
+    const poolIdMap = new Map<string, string>();
+    const poolIds: string[] = [];
+    for (const name of stakeMarketCoinNames) {
+      const id = this.address.get(`spool.pools.${name}.id`);
+      if (id) {
+        poolIdMap.set(name, id);
+        poolIds.push(id);
       }
     }
+    const responseMap = new Map<string, SuiObjectData>();
+    if (poolIds.length > 0) {
+      const responses = await this.scallopSuiKit.queryGetObjects(poolIds);
+      for (let i = 0; i < poolIds.length; i++) {
+        responseMap.set(poolIds[i], responses[i]);
+      }
+    }
+
+    const stakePools: StakePools = {};
+    await Promise.allSettled(
+      stakeMarketCoinNames.map(async (stakeMarketCoinName) => {
+        const poolId = poolIdMap.get(stakeMarketCoinName);
+        const stakePool = await getStakePool(
+          this,
+          stakeMarketCoinName,
+          poolId ? responseMap.get(poolId) : undefined
+        );
+
+        if (stakePool) {
+          stakePools[stakeMarketCoinName] = stakePool;
+        }
+      })
+    );
 
     return stakePools;
   }
@@ -454,6 +480,14 @@ class ScallopQuery implements ScallopQueryInterface {
   async getStakeRewardPools(
     stakeMarketCoinNames: string[] = [...this.constants.whitelist.spool]
   ) {
+    // Pre-fetch all reward pool objects in one batch to warm the cache.
+    const rewardPoolIds = stakeMarketCoinNames
+      .map((name) => this.address.get(`spool.pools.${name}.rewardPoolId`))
+      .filter((id): id is string => !!id);
+    if (rewardPoolIds.length > 0) {
+      await this.scallopSuiKit.queryGetObjects(rewardPoolIds);
+    }
+
     const stakeRewardPools: StakeRewardPools = {};
     await Promise.allSettled(
       stakeMarketCoinNames.map(async (stakeMarketCoinName) => {
