@@ -360,18 +360,7 @@ class ScallopSuiKit extends ScallopQueryClient {
     const resolvedQueryTarget =
       await this.queryGetNormalizedMoveFunction(queryTarget);
     if (!resolvedQueryTarget) throw new Error('Invalid query target');
-
-    const resolvedArgs = await Promise.all(
-      (args ?? []).map(async (arg) => {
-        if (typeof arg !== 'string') return arg;
-
-        const cachedData = (await this.queryGetObject(arg))?.data;
-        if (!cachedData) return arg;
-
-        return cachedData;
-      })
-    );
-    txBlock.moveCall(queryTarget, resolvedArgs, typeArgs);
+    txBlock.moveCall(queryTarget, args, typeArgs);
 
     return await this.callWithRateLimiter(
       keys ??
