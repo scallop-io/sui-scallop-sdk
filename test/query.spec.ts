@@ -82,7 +82,7 @@ describe('Test Query Scallop Contract On Chain Data', () => {
     if (ENABLE_LOG) {
       console.info('Obligations', obligations);
     }
-    expect(!!obligations).toBe(true);
+    expect(obligations).toBeTruthy();
 
     for (const { id } of obligations) {
       const obligationData = await scallopQuery.queryObligation(id);
@@ -92,7 +92,7 @@ describe('Test Query Scallop Contract On Chain Data', () => {
         console.info('Obligation:');
         console.dir(obligationData, { depth: null, colors: true });
       }
-      expect(!!obligationData).toBe(true);
+      expect(obligationData).toBeTruthy();
     }
   });
 
@@ -379,6 +379,7 @@ describe('Test VeSca Query', () => {
       averageLockingPeriodUnit: zod.string(),
     });
     expect(treasuryInfoSchema.safeParse(totalVeScaTreasury).success).toBe(true);
+    expect(totalVeScaTreasury?.totalLockedSca).toBeGreaterThan(0);
   });
 
   it(`Should get veSCA`, async () => {

@@ -1,4 +1,9 @@
-export const ADDRESS_INTERFACE = {
+import { NetworkType } from '@scallop-io/sui-kit';
+import { AddressesInterface } from 'src/types';
+
+export const ADDRESS_INTERFACE: Partial<
+  Record<NetworkType, AddressesInterface>
+> = {
   mainnet: {
     core: {
       version:
@@ -334,9 +339,8 @@ export const ADDRESS_INTERFACE = {
             supra: '',
             switchboard: '',
             pyth: {
-              feed: '6a4090703da959247727f2b490eb21aea95c8684ecfac675f432008830890c75',
-              feedObject:
-                '0x4531c3ed0d22f21f5fce882905372006c9aafa30f01db03b789e95a6c50de7b2',
+              feed: '',
+              feedObject: '',
             },
           },
         },
@@ -372,9 +376,8 @@ export const ADDRESS_INTERFACE = {
             supra: '',
             switchboard: '',
             pyth: {
-              feed: '5fc11ffe4975b624be495be038da30e30bee2004d8ae6282b5364577ef4ca92c',
-              feedObject:
-                '0x246658c3324f2477568c78cca622518fbc6969a004b841d81409d24a7ec39b18',
+              feed: '',
+              feedObject: '',
             },
           },
         },
@@ -530,6 +533,25 @@ export const ADDRESS_INTERFACE = {
             },
           },
         },
+        lofi: {
+          id: '0xf22da9a24ad027cccb5f2d496cbe91de953d363513db08a3a734d361c7c17503',
+          metaData:
+            '0x57a2bf5e6887eca522fe6c3ff0d9d8dc116d072998a477c6c24fe6603107ebb8',
+          treasury: '',
+          coinType:
+            '0xf22da9a24ad027cccb5f2d496cbe91de953d363513db08a3a734d361c7c17503::LOFI::LOFI',
+          symbol: 'LOFI',
+          decimals: 9,
+          oracle: {
+            supra: '',
+            switchboard: '',
+            pyth: {
+              feed: '82eebc2c47490ba9c0f9bc35ea9fb57a7e2bbf69b84a04ea2a3525153b8090ea',
+              feedObject:
+                '0xb65b2888e74b2be973616740da410670ecd6d1d1f4b5456acc7b04ece9c95559',
+            },
+          },
+        },
         xbtc: {
           id: '0x876a4b7bce8aeaef60464c11f4026903e9afacab79b9b142686158aa86560b50',
           metaData:
@@ -549,23 +571,61 @@ export const ADDRESS_INTERFACE = {
             },
           },
         },
-        // lofi: {
-        //   id: '0xf22da9a24ad027cccb5f2d496cbe91de953d363513db08a3a734d361c7c17503',
-        //   metaData: '0x57a2bf5e6887eca522fe6c3ff0d9d8dc116d072998a477c6c24fe6603107ebb8',
-        //   treasury: '',
-        //   coinType:
-        //     '0xf22da9a24ad027cccb5f2d496cbe91de953d363513db08a3a734d361c7c17503::LOFI::LOFI',
-        //   symbol: 'LOFI',
-        //   decimals: 9,
-        //   oracle: {
-        //     supra: '',
-        //     switchboard: '',
-        //     pyth: {
-        //       feed: '82eebc2c47490ba9c0f9bc35ea9fb57a7e2bbf69b84a04ea2a3525153b8090ea',
-        //       feedObject: '0xb65b2888e74b2be973616740da410670ecd6d1d1f4b5456acc7b04ece9c95559',
-        //     },
-        //   },
-        // },
+        zwbtc: {
+          id: '0x0041f9f9344cac094454cd574e333c4fdb132d7bcc9379bcd4aab485b2a63942',
+          metaData:
+            '0xfcc731e8debdd78809a075418c27f0fc65adc2ff060804afb30d2c660837677e',
+          treasury: '',
+          coinType:
+            '0x0041f9f9344cac094454cd574e333c4fdb132d7bcc9379bcd4aab485b2a63942::wbtc::WBTC',
+          symbol: 'zwBTC',
+          decimals: 8,
+          oracle: {
+            supra: '',
+            switchboard: '',
+            pyth: {
+              feed: 'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43',
+              feedObject:
+                '0x9a62b4863bdeaabdc9500fce769cf7e72d5585eeb28a6d26e4cafadc13f76ab2',
+            },
+          },
+        },
+        suiusde: {
+          id: '0x41d587e5336f1c86cad50d38a7136db99333bb9bda91cea4ba69115defeb1402',
+          metaData: '',
+          treasury: '',
+          coinType:
+            '0x41d587e5336f1c86cad50d38a7136db99333bb9bda91cea4ba69115defeb1402::sui_usde::SUI_USDE',
+          symbol: 'suiUSDe',
+          decimals: 6,
+          oracle: {
+            supra: '',
+            switchboard: '',
+            pyth: {
+              feed: 'eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a',
+              feedObject:
+                '0x5dec622733a204ca27f5a90d8c2fad453cc6665186fd5dff13a83d0b6c9027ab',
+            },
+          },
+        },
+        usdsui: {
+          id: '0x44f838219cf67b058f3b37907b655f226153c18e33dfcd0da559a844fea9b1c1',
+          metaData: '',
+          treasury: '',
+          coinType:
+            '0x44f838219cf67b058f3b37907b655f226153c18e33dfcd0da559a844fea9b1c1::usdsui::USDSUI',
+          decimals: 6,
+          symbol: 'USDSUI',
+          oracle: {
+            supra: '',
+            switchboard: '',
+            pyth: {
+              feed: 'eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a',
+              feedObject:
+                '0x5dec622733a204ca27f5a90d8c2fad453cc6665186fd5dff13a83d0b6c9027ab',
+            },
+          },
+        },
       },
       oracles: {
         xOracle:
@@ -626,7 +686,7 @@ export const ADDRESS_INTERFACE = {
             '0x3f203f6fff6a69d151e4f1cd931f22b68c489ef2759765662fc7baf673943c9e',
         },
         protocol: {
-          id: '0xd384ded6b9e7f4d2c4c9007b0291ef88fbfed8e709bce83d2da69de2d79d013d',
+          id: '0xde5c09ad171544aa3724dc67216668c80e754860f419136a68d78504eb2e2805',
           upgradeCap:
             '0x38527d154618d1fd5a644b90717fe07cf0e9f26b46b63e9568e611a3f86d5c1a',
         },
@@ -636,7 +696,7 @@ export const ADDRESS_INTERFACE = {
             '0x4a5e88a75039b00988f633f811f58117f31b8627a46bf822aa114d9010049449',
         },
         query: {
-          id: '0x7ed02e8bdd61179879854d7bcbaacacee86df22a23a5f45a4772dcb8b339632a',
+          id: '0x3427c12d8faee7cd3dc295ac838cd87c2a13803d7c4a947b7b47a75591906010',
           upgradeCap:
             '0x14220f035f4cfc2ce442c30703fb44d24f00846eb7077907a231a56051a1d9b2',
         },
@@ -721,12 +781,10 @@ export const ADDRESS_INTERFACE = {
             '0xbca914adce058ad0902c7f3cfcd698392a475f00dcfdc3f76001d0370b98777a',
         },
       },
-      version: '',
-      versionCap: '',
       config: '',
     },
     borrowIncentive: {
-      id: '0xbfbfff53c7c0979c9c6896f33570f7c07d41c58850c7e46ba46b633788db7029',
+      id: '0x74922703605ba0548a55188098d6ebc8fdeb9fe16993986f1b7c9a49036c7c9c',
       adminCap:
         '0xc486afa253646f4d381e81d7f1df8aa4723b845a6bb356f69bad635ffefffe2c',
       object:
@@ -739,8 +797,6 @@ export const ADDRESS_INTERFACE = {
         '0xc4701fdbc1c92f9a636d334d66012b3027659e9fb8aff27279a82edfb6b77d02',
       config:
         '0xdf5d04b4691cc67e82fd4db8394d89ff44823a9de29716c924f74bb4f11cc1f7',
-      version: '',
-      versionCap: '',
     },
     vesca: {
       id: '0x18ff254b07856588796b3a97e447a1e504c48f58b309437cd8f2c397ecc2fc21',
@@ -764,7 +820,7 @@ export const ADDRESS_INTERFACE = {
         '0xaa0a920bf20b43aa1a8c19cf39df457a835ce98b2820a0d1090420a7e5ff66fe',
     },
     referral: {
-      id: '0xefcab8b04cb944f91cbbd8090f07587ad895393c4a61448a4ee7d1889cdce573',
+      id: '0x73883b65a77436e7028bc41be184a7795573ceed8bb24cb289ae21680beb037c',
       object:
         '0x5658d4bf5ddcba27e4337b4262108b3ad1716643cac8c2054ac341538adc72ec',
       adminCap:
@@ -1043,6 +1099,15 @@ export const ADDRESS_INTERFACE = {
             '0xc751ad85f74617c8174c43538a6de44be8ef4d0115cc74ff38c7e477fa8f6cfb',
           symbol: 'shaWAL',
         },
+        slofi: {
+          coinType:
+            '0x7eb699b346f752cf50a348b015fcaafa00224f88b8c2391a7cba1153ccdb91f9::scallop_lofi::SCALLOP_LOFI',
+          metaData:
+            '0xb55c74ac7302805a8c11a8c1328cae79d04c7484c5efd05b937ab9fd90602277',
+          symbol: 'sLOFI',
+          treasury:
+            '0xd5057447ac659ab3c50fa9cf444ac87a8086f198070b2b47b1e72630d1315c23',
+        },
         sxbtc: {
           coinType:
             '0xa2859d61462635912553746e1b28a54e90b6ad6270f1e7c7db73761a9d6ba1e1::scallop_xbtc::SCALLOP_XBTC',
@@ -1052,13 +1117,33 @@ export const ADDRESS_INTERFACE = {
           treasury:
             '0x089b41963032be029813a4a95907bfb035084f2e39cb2eabe263a0f7246e8573',
         },
-        // slofi: {
-        //   coinType:
-        //     '0x7eb699b346f752cf50a348b015fcaafa00224f88b8c2391a7cba1153ccdb91f9::scallop_lofi::SCALLOP_LOFI',
-        //   metaData: '0xb55c74ac7302805a8c11a8c1328cae79d04c7484c5efd05b937ab9fd90602277',
-        //   symbol: 'sLOFI',
-        //   treasury: '0xd5057447ac659ab3c50fa9cf444ac87a8086f198070b2b47b1e72630d1315c23',
-        // },
+        szwbtc: {
+          coinType:
+            '0x14e151ba6c124f36ac5e87ff64e6ac50ae7fbf7d2fd2b9d78219b942d3b1dc02::scallop_zwbtc::SCALLOP_ZWBTC',
+          treasury:
+            '0xac8d56149688e48f33d60c8be9922f5893ca5f5ccb4a2a2e6513cb691b4147c8',
+          metaData:
+            '0x1ed48e2d6dbaf718f2dadda00a8a41fa88b87af6e7bb234f8d223e623707cc45',
+          symbol: 'szwBTC',
+        },
+        ssuiusde: {
+          coinType:
+            '0xd5054b3f999f78360e4c32a138e623a678efde09335657e0406a313dc4b5bc59::scallop_sui_usde::SCALLOP_SUI_USDE',
+          treasury:
+            '0x9ca61d16a050da3e952ac41fb9cbf3004132b8c9c83026a2995a012cc9609183',
+          metaData:
+            '0x1df40849f26f4a23e87c5b272d2417785707f2818bba8c999b8ccab796965ef3',
+          symbol: 'ssuiUSDe',
+        },
+        susdsui: {
+          coinType:
+            '0x4dc741a062c216e7ac1c47a4034a8941112a5aa5516c128da10f0be2397e836d::scallop_usdsui::SCALLOP_USDSUI',
+          treasury:
+            '0xba68a930f4f35b589071e1247c44ada1c5e28cb3fac437b2cc6f8d9491c3b4bb',
+          metaData:
+            '0xbdd57e96225140e42fccf5d357a7f1ebb42d4fe47ceb50cc99f5d02cd72fb5b1',
+          symbol: 'sUSDSUI',
+        },
       },
     },
   },
@@ -2282,6 +2367,49 @@ export const POOL_ADDRESSES = {
     isolatedAssetKey: '',
     isIsolated: false,
   },
+  lofi: {
+    coinName: 'lofi',
+    symbol: 'LOFI',
+    lendingPoolAddress:
+      '0x186a998dd93384fad43711ab99417a4c0b5223a5c6759483c786397d43d60d79',
+    collateralPoolAddress: '',
+    borrowDynamic:
+      '0x901b6ba37a43e51ac4a544c75a7fae890d9c2fc0d24d5e6ecb58ec86e4446cb4',
+    interestModel:
+      '0x9aae55d520587530464520820e53be6b256c5b19108d62807b5dce626b8a90cd',
+    riskModel: '',
+    borrowFeeKey:
+      '0x9bc2a2db2b5908cbd736e54233db674929cbce36753311db3298aa756e412cb3',
+    supplyLimitKey:
+      '0x0d497d3680b2517ce37b3326cb874f5c2dab6007457fe86e2ccee2a891adcddb',
+    borrowLimitKey:
+      '0x077722075b388c38f03b638831ae0619a4d277f8c95bbf925c87296753b01715',
+    spool: '',
+    spoolReward: '',
+    coinMetadataId:
+      '0x57a2bf5e6887eca522fe6c3ff0d9d8dc116d072998a477c6c24fe6603107ebb8',
+    sCoinType:
+      '0x7eb699b346f752cf50a348b015fcaafa00224f88b8c2391a7cba1153ccdb91f9::scallop_lofi::SCALLOP_LOFI',
+    sCoinTreasury:
+      '0xd5057447ac659ab3c50fa9cf444ac87a8086f198070b2b47b1e72630d1315c23',
+    sCoinMetadataId:
+      '0xb55c74ac7302805a8c11a8c1328cae79d04c7484c5efd05b937ab9fd90602277',
+    sCoinSymbol: 'sLOFI',
+    sCoinName: 'slofi',
+    coinType:
+      '0xf22da9a24ad027cccb5f2d496cbe91de953d363513db08a3a734d361c7c17503::LOFI::LOFI',
+    spoolName: 'slofi',
+    decimals: 9,
+    pythFeed:
+      '82eebc2c47490ba9c0f9bc35ea9fb57a7e2bbf69b84a04ea2a3525153b8090ea',
+    pythFeedObjectId:
+      '0xb65b2888e74b2be973616740da410670ecd6d1d1f4b5456acc7b04ece9c95559',
+    flashloanFeeObject:
+      '0xe048cb922fc7234a3e1d4f2b2255b8bd0b990d0693db8100c0035a1dce1eebdc',
+    isolatedAssetKey:
+      '0x2553f563dca4e22c8e47223d97f53498b7ce4929452bb97637b119787c901528',
+    isIsolated: true,
+  },
   xbtc: {
     coinName: 'xbtc',
     symbol: 'xBTC',
@@ -2301,10 +2429,10 @@ export const POOL_ADDRESSES = {
       '0xedddb02b350dd2aca337cab05dcbed36f58fc75270f337c8037c926d4fac95a9',
     borrowLimitKey:
       '0x3da00c90d2230c8421b47d149ddc3c137c2ae2dac610e9ff39428daca4fef75b',
-    isolatedAssetKey: '',
-    isIsolated: false,
     spool: '',
     spoolReward: '',
+    coinMetadataId:
+      '0x2d8943412f7570da1c4dcdb5283683d0946ae97362d0373bc9212f952327e112',
     sCoinType:
       '0xa2859d61462635912553746e1b28a54e90b6ad6270f1e7c7db73761a9d6ba1e1::scallop_xbtc::SCALLOP_XBTC',
     sCoinTreasury:
@@ -2313,8 +2441,6 @@ export const POOL_ADDRESSES = {
       '0x1e7b5559948164032f7b49b49d64866b37b874bac1044283611f84daee76dd82',
     sCoinSymbol: 'sxBTC',
     sCoinName: 'sxbtc',
-    coinMetadataId:
-      '0x2d8943412f7570da1c4dcdb5283683d0946ae97362d0373bc9212f952327e112',
     coinType:
       '0x876a4b7bce8aeaef60464c11f4026903e9afacab79b9b142686158aa86560b50::xbtc::XBTC',
     spoolName: 'sxbtc',
@@ -2325,35 +2451,135 @@ export const POOL_ADDRESSES = {
       '0x9a62b4863bdeaabdc9500fce769cf7e72d5585eeb28a6d26e4cafadc13f76ab2',
     flashloanFeeObject:
       '0xec9edb6fd55666069331b1ac43ecf1e94fb1a972c5124d82369967520007cb8e',
+    isolatedAssetKey: '',
+    isIsolated: false,
   },
-  // lofi: {
-  //   coinName: 'lofi',
-  //   symbol: 'LOFI',
-  //   lendingPoolAddress: '0x186a998dd93384fad43711ab99417a4c0b5223a5c6759483c786397d43d60d79',
-  //   collateralPoolAddress: '',
-  //   borrowDynamic: '0x901b6ba37a43e51ac4a544c75a7fae890d9c2fc0d24d5e6ecb58ec86e4446cb4',
-  //   interestModel: '0x9aae55d520587530464520820e53be6b256c5b19108d62807b5dce626b8a90cd',
-  //   borrowFeeKey: '0x9bc2a2db2b5908cbd736e54233db674929cbce36753311db3298aa756e412cb3',
-  //   supplyLimitKey: '0x0d497d3680b2517ce37b3326cb874f5c2dab6007457fe86e2ccee2a891adcddb',
-  //   borrowLimitKey: '0x077722075b388c38f03b638831ae0619a4d277f8c95bbf925c87296753b01715',
-  //   isolatedAssetKey: '0x2553f563dca4e22c8e47223d97f53498b7ce4929452bb97637b119787c901528',
-  //   isIsolated: true,
-  //   spool: '',
-  //   spoolReward: '',
-  //   sCoinType:
-  //     '0x7eb699b346f752cf50a348b015fcaafa00224f88b8c2391a7cba1153ccdb91f9::scallop_lofi::SCALLOP_LOFI',
-  //   sCoinTreasury: '0xd5057447ac659ab3c50fa9cf444ac87a8086f198070b2b47b1e72630d1315c23',
-  //   sCoinMetadataId: '0xb55c74ac7302805a8c11a8c1328cae79d04c7484c5efd05b937ab9fd90602277',
-  //   sCoinSymbol: 'sLOFI',
-  //   sCoinName: 'slofi',
-  //   coinMetadataId: '0x57a2bf5e6887eca522fe6c3ff0d9d8dc116d072998a477c6c24fe6603107ebb8',
-  //   coinType: '0xf22da9a24ad027cccb5f2d496cbe91de953d363513db08a3a734d361c7c17503::LOFI::LOFI',
-  //   spoolName: 'slofi',
-  //   decimals: 9,
-  //   pythFeed: '82eebc2c47490ba9c0f9bc35ea9fb57a7e2bbf69b84a04ea2a3525153b8090ea',
-  //   pythFeedObjectId: '0xb65b2888e74b2be973616740da410670ecd6d1d1f4b5456acc7b04ece9c95559',
-  //   flashloanFeeObject: '0xe048cb922fc7234a3e1d4f2b2255b8bd0b990d0693db8100c0035a1dce1eebdc',
-  // },
+  zwbtc: {
+    coinName: 'zwbtc',
+    symbol: 'zwBTC',
+    lendingPoolAddress:
+      '0xcf5bc04619b3a007966849f54b33927f7b41909e14c0b44cb636c3f82dd6d402',
+    collateralPoolAddress:
+      '0x78c6f5b6a3da3d8eea927dfb82a6088e47ccebf7ce7b48752f9b567a9a84bcac',
+    borrowDynamic:
+      '0x5ae0a5688166bc0111bfad774c1a4a893726b255e6d316ca108a1fb480c01ef6',
+    interestModel:
+      '0xc7f1dca9cb9e572d9c50105a9486e4ff15a708366a136fa8b99b9db2150c1eac',
+    riskModel:
+      '0x832451e76007b125b695bb1104b99d69a9737ee7d51b8ab87e11087f2484e2c0',
+    borrowFeeKey:
+      '0xa89cbfa6dffb527db88abe8e19f3578bd3d7dcfbe1a0a760dfd06f05609e6c11',
+    supplyLimitKey:
+      '0x6dc7164b7515cf63dfc2871beb2892fa1ef8b8af9c91c5b8322e86d6c86e7fdf',
+    borrowLimitKey:
+      '0x8d9215fe9d504137216bf0c15af6460b14d0a1cdf12c6ad4a11868ed15917477',
+    spool: '',
+    spoolReward: '',
+    coinMetadataId:
+      '0xfcc731e8debdd78809a075418c27f0fc65adc2ff060804afb30d2c660837677e',
+    sCoinType:
+      '0x14e151ba6c124f36ac5e87ff64e6ac50ae7fbf7d2fd2b9d78219b942d3b1dc02::scallop_zwbtc::SCALLOP_ZWBTC',
+    sCoinTreasury:
+      '0xac8d56149688e48f33d60c8be9922f5893ca5f5ccb4a2a2e6513cb691b4147c8',
+    sCoinMetadataId:
+      '0x1ed48e2d6dbaf718f2dadda00a8a41fa88b87af6e7bb234f8d223e623707cc45',
+    sCoinSymbol: 'szwBTC',
+    sCoinName: 'szwbtc',
+    coinType:
+      '0x0041f9f9344cac094454cd574e333c4fdb132d7bcc9379bcd4aab485b2a63942::wbtc::WBTC',
+    spoolName: 'szwbtc',
+    decimals: 8,
+    pythFeed:
+      'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43',
+    pythFeedObjectId:
+      '0x9a62b4863bdeaabdc9500fce769cf7e72d5585eeb28a6d26e4cafadc13f76ab2',
+    flashloanFeeObject:
+      '0x263f69c0da8f7f0c52a5bc81816c1dfc6bf92c2c6e808a140a901aebe142bd21',
+    isolatedAssetKey: '',
+    isIsolated: false,
+  },
+  suiusde: {
+    coinName: 'suiusde',
+    symbol: 'suiUSDe',
+    lendingPoolAddress:
+      '0x4ed79138e1833920714e824012ca91a71ac2ac04f9157bcb09a74fa04f11739e',
+    collateralPoolAddress:
+      '0x3193f284a2fc38c849fb9ef8462521047f1af01f59fc07eee0416185bdfa6b3f',
+    borrowDynamic:
+      '0x60e4f4fe7bef2107f3f61731bd882b3020f7f89df464a1a3ba51173b92d21c43',
+    interestModel:
+      '0x41730699fab284ddff3eb72bca9d38fb97afafd79587de0d0064e3e326d6e40c',
+    riskModel:
+      '0xba991ac5cadc3e9f65d5b9f010cdb53a0845714d087bc461dd762231b629444e',
+    borrowFeeKey:
+      '0x3baad08d474e18f8aeaba00f31fab1889058637bbf679a4206caf29a81fa4d42',
+    supplyLimitKey:
+      '0x9d4d10ed4cef99d6e8aa60ca5ef92400d2c463f66b6214331f6d186c8c48b1cc',
+    borrowLimitKey:
+      '0x98a061738d89f60e022c807fdb0149744aa75ce2218085e79e37298899b8247d',
+    spool: '',
+    spoolReward: '',
+    coinMetadataId: '',
+    sCoinType:
+      '0xd5054b3f999f78360e4c32a138e623a678efde09335657e0406a313dc4b5bc59::scallop_sui_usde::SCALLOP_SUI_USDE',
+    sCoinTreasury:
+      '0x9ca61d16a050da3e952ac41fb9cbf3004132b8c9c83026a2995a012cc9609183',
+    sCoinMetadataId:
+      '0x1df40849f26f4a23e87c5b272d2417785707f2818bba8c999b8ccab796965ef3',
+    sCoinSymbol: 'ssuiUSDe',
+    sCoinName: 'ssuiusde',
+    coinType:
+      '0x41d587e5336f1c86cad50d38a7136db99333bb9bda91cea4ba69115defeb1402::sui_usde::SUI_USDE',
+    spoolName: '',
+    decimals: 6,
+    pythFeed: '',
+    pythFeedObjectId: '',
+    flashloanFeeObject:
+      '0xfdadb716b4a67da2b498d24bcd8e0ccc6940286616f1dbc10b150620e10d0d12',
+    isolatedAssetKey: '',
+    isIsolated: false,
+  },
+  usdsui: {
+    coinName: 'usdsui',
+    symbol: 'USDSUI',
+    lendingPoolAddress:
+      '0xf09633cd0637c5b2aa3a923da932df689afec4dcf96b8030c89bb7443f985955',
+    collateralPoolAddress: '',
+    borrowDynamic:
+      '0x3a6886f382c22c7abf44c8332f280e32131205d71ac6b6d9be7373036dd4480c',
+    interestModel:
+      '0x31ef0342759790f8aae3ed611c430b4e389833664e02293c6d2b1d4dc92a4e40',
+    riskModel: '',
+    borrowFeeKey:
+      '0x07e7682b0f8713eeb5f90fbd70586f186b455b546e4c30c02e21d9071355cb3e',
+    supplyLimitKey:
+      '0x2b161b1b5c4e7c0641d395480eaf8cd2b67cc460368e28219349e4b3f9a765f2',
+    borrowLimitKey:
+      '0xed1db809ac8b474213e1ce93dec608bc60077c1b1503b750c4e3a90df96539ea',
+    spool: '',
+    spoolReward: '',
+    coinMetadataId: '',
+    sCoinType:
+      '0x4dc741a062c216e7ac1c47a4034a8941112a5aa5516c128da10f0be2397e836d::scallop_usdsui::SCALLOP_USDSUI',
+    sCoinTreasury:
+      '0xba68a930f4f35b589071e1247c44ada1c5e28cb3fac437b2cc6f8d9491c3b4bb',
+    sCoinMetadataId:
+      '0xbdd57e96225140e42fccf5d357a7f1ebb42d4fe47ceb50cc99f5d02cd72fb5b1',
+    sCoinSymbol: 'sUSDSUI',
+    sCoinName: 'susdsui',
+    coinType:
+      '0x44f838219cf67b058f3b37907b655f226153c18e33dfcd0da559a844fea9b1c1::usdsui::USDSUI',
+    spoolName: '',
+    decimals: 6,
+    pythFeed:
+      'eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a',
+    pythFeedObjectId:
+      '0x5dec622733a204ca27f5a90d8c2fad453cc6665186fd5dff13a83d0b6c9027ab',
+    flashloanFeeObject:
+      '0xd60ece53f1d9dc59c0badbebe117e1a86ccfc461625a11d4d68aee95af0a06c6',
+    isolatedAssetKey: '',
+    isIsolated: false,
+  },
 };
 
 export const WHITELIST = {
@@ -2383,10 +2609,12 @@ export const WHITELIST = {
     'usdy',
     'wal',
     'haedal',
-    'wwal',
     'hawal',
+    'wwal',
     'xbtc',
-    // 'lofi',
+    'zwbtc',
+    'suiusde',
+    'usdsui',
   ],
   collateral: [
     'usdc',
@@ -2409,10 +2637,10 @@ export const WHITELIST = {
     'usdy',
     'wal',
     'deep',
-    // 'haedal',
-    'wwal',
     'hawal',
+    'wwal',
     'xbtc',
+    'zwbtc',
   ],
   borrowing: [
     'usdc',
@@ -2440,10 +2668,11 @@ export const WHITELIST = {
     'usdy',
     'wal',
     'haedal',
-    'wwal',
     'hawal',
+    'wwal',
     'xbtc',
-    // 'lofi',
+    'zwbtc',
+    'usdsui',
   ],
   packages: [
     'coinDecimalsRegistry',
@@ -2497,15 +2726,34 @@ export const WHITELIST = {
     'shaedal',
     'swwal',
     'shawal',
+    'slofi',
     'sxbtc',
-    // 'slofi',
+    'szwbtc',
+    'ssuiusde',
+    'susdsui',
   ],
   suiBridge: ['sbeth', 'sbusdt', 'sbwbtc'],
   wormhole: ['wusdc', 'wusdt', 'weth', 'wbtc', 'wapt', 'wsol'],
   oracles: ['pyth', 'supra', 'switchboard'],
-  pythEndpoints: ['https://hermes.pyth.network'],
-  deprecated: ['wapt', 'wusdc', 'wusdt', 'weth', 'wbtc', 'vsui', 'fud'],
+  pythEndpoints: [
+    'https://hermes.pyth.network',
+    'https://scallop.rpc.p2p.world',
+  ],
+  createdAt: '2025-03-11T20:50:11.000Z',
+  updatedAt: '2026-03-05T05:47:44.600Z',
+  version: 0,
+  deprecated: ['wapt', 'wusdc', 'wusdt', 'weth', 'wbtc', 'vsui', 'fud', 'blub'],
   borrowIncentiveRewards: ['mpoints'],
   rewardsAsPoint: ['mpoints'],
-  emerging: ['wal', 'deep', 'sca', 'cetus', 'haedal', 'blub', 'wwal', 'hawal'],
+  emerging: [
+    'wal',
+    'deep',
+    'sca',
+    'cetus',
+    'haedal',
+    'wwal',
+    'hawal',
+    'usdsui',
+  ],
+  layerZero: ['zwbtc'],
 };
