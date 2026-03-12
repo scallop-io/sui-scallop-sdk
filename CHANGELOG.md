@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.15](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.14...v2.3.15) (2026-03-12)
+
+### Added
+
+- `getSharedObjectDatas` batch utility for resolving multiple shared objects in a single RPC call ([9487718](https://github.com/scallop-io/sui-scallop-sdk/commit/9487718a96df970f401a59e2e6d006875b543242))
+
+### Changed
+
+- Batch RPC calls in `queryMarket` for supply/borrow limits using `Promise.all` ([9487718](https://github.com/scallop-io/sui-scallop-sdk/commit/9487718a96df970f401a59e2e6d006875b543242))
+- Parallelize risk model and collateral stat fetches in `getMarketCollateral` ([9487718](https://github.com/scallop-io/sui-scallop-sdk/commit/9487718a96df970f401a59e2e6d006875b543242))
+- Parallelize batch object fetches in `queryRequiredMarketObjects` ([9487718](https://github.com/scallop-io/sui-scallop-sdk/commit/9487718a96df970f401a59e2e6d006875b543242))
+
+### Fixed
+
+- Fix index mismatch in `getStakePools` when pool IDs are filtered ([9487718](https://github.com/scallop-io/sui-scallop-sdk/commit/9487718a96df970f401a59e2e6d006875b543242))
+
 ### [2.3.14](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.13...v2.3.14) (2026-02-02)
 
 ### Added
