@@ -16,9 +16,9 @@ const OBLIGATION_KEY_ID =
 
 const ADDRESS_INTERFACE_PATCH = {
   obligationNaming: {
-    id: '0xf03b52be1ab9545203c3aa3c88eecefb020c5c37e59f0cb452d0006689584b27',
+    id: '0x9d16020b034d14ccb622f450bbd449dae3bf235a7fc57b21689645fc1066ab74',
     namingRegistry:
-      '0x9a98ed110db1982f18cdbb21ee6f724377c8163de1147ca1bf777477af058776',
+      '0xe948aeff7fa931cb94e70b1bfc15581f34e459fb3747cf927a62697f9cab3671',
   },
 };
 

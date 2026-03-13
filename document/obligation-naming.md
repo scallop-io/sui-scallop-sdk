@@ -6,8 +6,8 @@ The `obligation_naming` contract allows users to assign custom names to their Sc
 
 ### On-chain Contract
 
-- **Package ID:** `0xf03b52be1ab9545203c3aa3c88eecefb020c5c37e59f0cb452d0006689584b27`
-- **NamingRegistry ID:** `0x9a98ed110db1982f18cdbb21ee6f724377c8163de1147ca1bf777477af058776`
+- **Package ID:** `0x9d16020b034d14ccb622f450bbd449dae3bf235a7fc57b21689645fc1066ab74`
+- **NamingRegistry ID:** `0xe948aeff7fa931cb94e70b1bfc15581f34e459fb3747cf927a62697f9cab3671`
 - Table key computation: `sha3_256(bcs(obligation_key_id) + bcs(sender))`
 
 ---
@@ -16,25 +16,25 @@ The `obligation_naming` contract allows users to assign custom names to their Sc
 
 ### New Files
 
-| File | Description |
-|---|---|
-| `src/types/builder/obligationNaming.ts` | Type definitions (ObligationNamingIds, Normal/Quick methods, TxBlock types) |
-| `src/builders/obligationNamingBuilder.ts` | Builder: `setObligationName`, `removeObligationName` + quick methods |
-| `src/queries/obligationNamingQuery.ts` | Query: `computeNamingKey`, `getObligationName`, `getObligationNames` |
-| `test/obligationNaming.spec.ts` | Unit tests (computeNamingKey) + vitest builder/query tests |
-| `test/obligationNaming.e2e.spec.ts` | E2E: set name -> query -> remove -> query full flow |
-| `test/obligationNamingQuery.e2e.spec.ts` | E2E: query-only tests (existing/fake/wrong owner) |
+| File                                      | Description                                                                 |
+| ----------------------------------------- | --------------------------------------------------------------------------- |
+| `src/types/builder/obligationNaming.ts`   | Type definitions (ObligationNamingIds, Normal/Quick methods, TxBlock types) |
+| `src/builders/obligationNamingBuilder.ts` | Builder: `setObligationName`, `removeObligationName` + quick methods        |
+| `src/queries/obligationNamingQuery.ts`    | Query: `computeNamingKey`, `getObligationName`, `getObligationNames`        |
+| `test/obligationNaming.spec.ts`           | Unit tests (computeNamingKey) + vitest builder/query tests                  |
+| `test/obligationNaming.e2e.spec.ts`       | E2E: set name -> query -> remove -> query full flow                         |
+| `test/obligationNamingQuery.e2e.spec.ts`  | E2E: query-only tests (existing/fake/wrong owner)                           |
 
 ### Modified Files
 
-| File | Change |
-|---|---|
-| `src/types/address.ts` | Added `obligationNaming?: { id: string; namingRegistry: string }` |
-| `src/types/builder/index.ts` | Export obligation naming types, added to `BaseScallopTxBlock` |
-| `src/builders/index.ts` | Inserted `newObligationNamingTxBlock` between referral and sCoin |
-| `src/queries/index.ts` | Export `obligationNamingQuery` |
-| `src/models/scallopQuery.ts` | Added `getObligationName()`, `getObligationNames()` methods |
-| `test/mocks.ts` | Added obligationNaming mock addresses |
+| File                         | Change                                                            |
+| ---------------------------- | ----------------------------------------------------------------- |
+| `src/types/address.ts`       | Added `obligationNaming?: { id: string; namingRegistry: string }` |
+| `src/types/builder/index.ts` | Export obligation naming types, added to `BaseScallopTxBlock`     |
+| `src/builders/index.ts`      | Inserted `newObligationNamingTxBlock` between referral and sCoin  |
+| `src/queries/index.ts`       | Export `obligationNamingQuery`                                    |
+| `src/models/scallopQuery.ts` | Added `getObligationName()`, `getObligationNames()` methods       |
+| `test/mocks.ts`              | Added obligationNaming mock addresses                             |
 
 ---
 
@@ -56,8 +56,8 @@ The backend needs to include the `obligationNaming` field in the addresses API r
 ```json
 {
   "obligationNaming": {
-    "id": "0xf03b52be1ab9545203c3aa3c88eecefb020c5c37e59f0cb452d0006689584b27",
-    "namingRegistry": "0x9a98ed110db1982f18cdbb21ee6f724377c8163de1147ca1bf777477af058776"
+    "id": "0x9d16020b034d14ccb622f450bbd449dae3bf235a7fc57b21689645fc1066ab74",
+    "namingRegistry": "0xe948aeff7fa931cb94e70b1bfc15581f34e459fb3747cf927a62697f9cab3671"
   }
 }
 ```
@@ -107,6 +107,7 @@ pnpm release:patch
 ```
 
 This runs `standard-version` which will:
+
 - Bump version in `package.json`
 - Update `CHANGELOG.md`
 - Create a git commit and tag
@@ -169,6 +170,7 @@ npx tsx test/obligationNaming.e2e.spec.ts
 ```
 
 Steps:
+
 1. Verify computeNamingKey output
 2. Query name before set -> null
 3. Set name -> submit transaction on-chain
@@ -186,6 +188,7 @@ npx tsx test/obligationNamingQuery.e2e.spec.ts
 Prerequisite: The obligation key must already have a name set (run the full flow e2e first).
 
 Tests:
+
 1. computeNamingKey format
 2. getObligationName — key with existing name
 3. getObligationName — non-existent key -> null
