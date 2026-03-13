@@ -1,108 +1,66 @@
-/**
- * E2E test script for obligation naming query functions.
- * Usage: npx tsx test/obligationNamingQuery.e2e.spec.ts
- *
- * Requires SECRET_KEY in .env
- * Assumes the obligation key already has a name set from the previous e2e test.
- */
-import * as dotenv from 'dotenv';
-import { Scallop } from 'src';
+import { describe, it, expect, beforeAll } from 'vitest';
+import { ScallopQuery } from 'src';
 import { computeNamingKey } from 'src/queries/obligationNamingQuery';
+import { scallopSDK } from './scallopSdk';
 
-dotenv.config();
+const ENABLE_LOG = false;
 
 const OBLIGATION_KEY_ID =
   '0x809bdbdeca55c88cdc0d6e54120c2f575479329edb6315994a56f2819769e0ae';
 
-const ADDRESS_INTERFACE_PATCH = {
-  obligationNaming: {
-    id: '0x9d16020b034d14ccb622f450bbd449dae3bf235a7fc57b21689645fc1066ab74',
-    namingRegistry:
-      '0xe948aeff7fa931cb94e70b1bfc15581f34e459fb3747cf927a62697f9cab3671',
-  },
-};
+const FAKE_ADDRESS =
+  '0x0000000000000000000000000000000000000000000000000000000000000001';
 
-async function main() {
-  const sdk = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: 'mainnet',
+let scallopQuery: ScallopQuery;
+let sender: string;
+
+beforeAll(async () => {
+  scallopQuery = await scallopSDK.createScallopQuery();
+  sender = scallopQuery.walletAddress;
+  console.info('Sender:', sender);
+});
+
+describe('Obligation Naming Query', () => {
+  describe('computeNamingKey', () => {
+    it('should return a valid hex string', () => {
+      const key = computeNamingKey(OBLIGATION_KEY_ID, sender);
+      if (ENABLE_LOG) console.info('Key:', key);
+      expect(key).toMatch(/^0x[0-9a-f]{64}$/);
+    });
   });
 
-  const query = await sdk.createScallopQuery();
-  const sender = query.walletAddress;
+  describe('getObligationName', () => {
+    it('should return string or null for existing key', async () => {
+      const name = await scallopQuery.getObligationName(
+        OBLIGATION_KEY_ID,
+        sender
+      );
+      if (ENABLE_LOG) console.info('Name:', name);
+      expect(name === null || typeof name === 'string').toBeTruthy();
+    });
 
-  function patchAddress(address: any) {
-    const current = address.getAddresses();
-    if (current && !current.obligationNaming) {
-      Object.assign(current, ADDRESS_INTERFACE_PATCH);
-    }
-  }
-  patchAddress(query.address);
+    it('should return null for non-existent key', async () => {
+      const name = await scallopQuery.getObligationName(FAKE_ADDRESS, sender);
+      if (ENABLE_LOG) console.info('Fake key name:', name);
+      expect(name).toBeNull();
+    });
 
-  console.log('=== Obligation Naming Query E2E ===');
-  console.log('Sender:', sender);
-  console.log();
+    it('should return null for wrong owner', async () => {
+      const name = await scallopQuery.getObligationName(
+        OBLIGATION_KEY_ID,
+        FAKE_ADDRESS
+      );
+      if (ENABLE_LOG) console.info('Wrong owner name:', name);
+      expect(name).toBeNull();
+    });
+  });
 
-  // ── 1. computeNamingKey ──
-  console.log('--- computeNamingKey ---');
-  const key = computeNamingKey(OBLIGATION_KEY_ID, sender);
-  console.log('Key:', key);
-  console.log('Format OK:', /^0x[0-9a-f]{64}$/.test(key) ? 'YES' : 'NO');
-  console.log();
-
-  // ── 2. getObligationName — existing key ──
-  console.log('--- getObligationName (existing key) ---');
-  const name = await query.getObligationName(OBLIGATION_KEY_ID, sender);
-  console.log('Name:', name);
-  console.log('Has name:', name !== null ? 'YES' : 'NO');
-  console.log();
-
-  // ── 3. getObligationName — non-existent key ──
-  console.log('--- getObligationName (fake key) ---');
-  const fakeName = await query.getObligationName(
-    '0x0000000000000000000000000000000000000000000000000000000000000001',
-    sender
-  );
-  console.log('Name:', fakeName);
-  console.log('Is null:', fakeName === null ? 'YES' : 'NO');
-  console.log();
-
-  // ── 4. getObligationName — wrong owner ──
-  console.log('--- getObligationName (wrong owner) ---');
-  const wrongOwnerName = await query.getObligationName(
-    OBLIGATION_KEY_ID,
-    '0x0000000000000000000000000000000000000000000000000000000000000001'
-  );
-  console.log('Name:', wrongOwnerName);
-  console.log('Is null:', wrongOwnerName === null ? 'YES' : 'NO');
-  console.log();
-
-  // ── 5. getObligationNames — all names for sender ──
-  console.log('--- getObligationNames ---');
-  const allNames = await query.getObligationNames(sender);
-  console.log('Names:', JSON.stringify(allNames, null, 2));
-  console.log('Count:', Object.keys(allNames).length);
-  console.log();
-
-  // ── Summary ──
-  console.log('=== Summary ===');
-  console.log(
-    'computeNamingKey format:  ',
-    /^0x[0-9a-f]{64}$/.test(key) ? 'PASS' : 'FAIL'
-  );
-  console.log('getObligationName (exist):', name !== null ? 'PASS' : 'FAIL');
-  console.log(
-    'getObligationName (fake): ',
-    fakeName === null ? 'PASS' : 'FAIL'
-  );
-  console.log(
-    'getObligationName (wrong):',
-    wrongOwnerName === null ? 'PASS' : 'FAIL'
-  );
-  console.log(
-    'getObligationNames:       ',
-    typeof allNames === 'object' ? 'PASS' : 'FAIL'
-  );
-}
-
-main().catch(console.error);
+  describe('getObligationNames', () => {
+    it('should return a record of names', async () => {
+      const allNames = await scallopQuery.getObligationNames(sender);
+      if (ENABLE_LOG) console.info('All names:', allNames);
+      expect(allNames).toBeDefined();
+      expect(typeof allNames).toBe('object');
+    });
+  });
+});

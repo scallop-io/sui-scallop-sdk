@@ -1,136 +1,114 @@
-/**
- * E2E test script for obligation naming.
- * Usage: npx tsx test/obligationNaming.e2e.spec.ts
- *
- * Requires SECRET_KEY in .env
- */
-import * as dotenv from 'dotenv';
-import { Scallop } from 'src';
+import { describe, it, expect, beforeAll } from 'vitest';
+import { ScallopBuilder, ScallopQuery } from 'src';
 import { computeNamingKey } from 'src/queries/obligationNamingQuery';
+import { scallopSDK } from './scallopSdk';
 
-dotenv.config();
+const ENABLE_LOG = false;
 
 const OBLIGATION_KEY_ID =
   '0x809bdbdeca55c88cdc0d6e54120c2f575479329edb6315994a56f2819769e0ae';
 
-const ADDRESS_INTERFACE_PATCH = {
-  obligationNaming: {
-    id: '0x9d16020b034d14ccb622f450bbd449dae3bf235a7fc57b21689645fc1066ab74',
-    namingRegistry:
-      '0xe948aeff7fa931cb94e70b1bfc15581f34e459fb3747cf927a62697f9cab3671',
-  },
-};
+let scallopBuilder: ScallopBuilder;
+let scallopQuery: ScallopQuery;
+let sender: string;
 
-async function main() {
-  const sdk = new Scallop({
-    secretKey: process.env.SECRET_KEY,
-    networkType: 'mainnet',
+beforeAll(async () => {
+  scallopBuilder = await scallopSDK.createScallopBuilder();
+  scallopQuery = await scallopSDK.createScallopQuery();
+  sender = scallopBuilder.walletAddress;
+  console.info('Sender:', sender);
+});
+
+describe('Obligation Naming', () => {
+  describe('computeNamingKey', () => {
+    it('should return a deterministic hex string', () => {
+      const key = computeNamingKey(OBLIGATION_KEY_ID, sender);
+      if (ENABLE_LOG) console.info('Computed key:', key);
+      expect(key).toMatch(/^0x[0-9a-f]{64}$/);
+    });
+
+    it('should be deterministic for same inputs', () => {
+      const key1 = computeNamingKey(OBLIGATION_KEY_ID, sender);
+      const key2 = computeNamingKey(OBLIGATION_KEY_ID, sender);
+      expect(key1).toBe(key2);
+    });
+
+    it('should differ for different inputs', () => {
+      const key1 = computeNamingKey(OBLIGATION_KEY_ID, sender);
+      const key2 = computeNamingKey(
+        '0x0000000000000000000000000000000000000000000000000000000000000001',
+        sender
+      );
+      expect(key1).not.toBe(key2);
+    });
   });
 
-  const builder = await sdk.createScallopBuilder();
-  const query = await sdk.createScallopQuery();
-  const sender = builder.walletAddress;
+  describe('Builder', () => {
+    it('"setObligationName" should succeed via dry-run', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+      tx.setObligationName(OBLIGATION_KEY_ID, 'test-name');
 
-  // Patch obligationNaming addresses if not yet in API response
-  function patchAddress(address: any) {
-    const current = address.getAddresses();
-    if (current && !current.obligationNaming) {
-      Object.assign(current, ADDRESS_INTERFACE_PATCH);
-    }
-  }
-  patchAddress(builder.address);
-  patchAddress(query.address);
+      const result = await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('setObligationName result:', result);
+      }
+      expect(result.effects?.status.status).toEqual('success');
+    });
 
-  console.log('=== Obligation Naming E2E ===');
-  console.log('Sender:', sender);
-  console.log('ObligationKey ID:', OBLIGATION_KEY_ID);
-  console.log();
+    it('"removeObligationName" should succeed via dry-run', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+      tx.removeObligationName(OBLIGATION_KEY_ID);
 
-  // ── Step 1: Verify computeNamingKey ──
-  const computedKey = computeNamingKey(OBLIGATION_KEY_ID, sender);
-  console.log('--- computeNamingKey ---');
-  console.log('Computed key:', computedKey);
-  console.log();
+      const result = await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('removeObligationName result:', result);
+      }
+      expect(result.effects?.status.status).toEqual('success');
+    });
 
-  // ── Step 2: Query name before set ──
-  console.log('--- Query name (before set) ---');
-  const nameBefore = await query.getObligationName(OBLIGATION_KEY_ID, sender);
-  console.log('Name:', nameBefore);
-  console.log();
+    it('"setObligationNameQuick" should succeed via dry-run', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+      await tx.setObligationNameQuick(OBLIGATION_KEY_ID, 'test-name-quick');
 
-  // ── Step 3: Set name ──
-  const testName = `test-${Date.now()}`;
-  console.log(`--- Set name: "${testName}" ---`);
-  {
-    const tx = builder.createTxBlock();
-    tx.setSender(sender);
-    tx.setObligationName(OBLIGATION_KEY_ID, testName);
+      const result = await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      if (ENABLE_LOG) {
+        console.info('setObligationNameQuick result:', result);
+      }
+      expect(result.effects?.status.status).toEqual('success');
+    });
 
-    const result = await builder.scallopSuiKit.signAndSendTxn(tx);
-    console.log('Digest:', result.digest);
-    console.log(
-      'Status:',
-      result.effects?.status?.status === 'success' ? 'success' : 'failed'
-    );
-    if (result.effects?.status?.status !== 'success') {
-      console.log('Error:', result.effects?.status?.error);
-    }
-  }
-  console.log();
+    it('"removeObligationNameQuick" should succeed via dry-run', async () => {
+      const tx = scallopBuilder.createTxBlock();
+      tx.setSender(sender);
+      await tx.removeObligationNameQuick(OBLIGATION_KEY_ID);
 
-  // Wait for RPC nodes to propagate the new state
-  console.log('Waiting 10s for RPC propagation...');
-  await new Promise((r) => setTimeout(r, 10000));
+      const result = await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
+      console.log(result);
+      if (ENABLE_LOG) {
+        console.info('removeObligationNameQuick result:', result);
+      }
+      expect(result.effects?.status.status).toEqual('success');
+    });
+  });
 
-  // ── Step 4: Query name after set ──
-  console.log('--- Query name (after set) ---');
-  const nameAfterSet = await query.getObligationName(OBLIGATION_KEY_ID, sender);
-  console.log('Name:', nameAfterSet);
-  console.log('Match:', nameAfterSet === testName ? 'YES' : 'NO');
-  console.log();
+  describe('Query', () => {
+    it('"getObligationName" should return string or null', async () => {
+      const name = await scallopQuery.getObligationName(
+        OBLIGATION_KEY_ID,
+        sender
+      );
+      if (ENABLE_LOG) console.info('Obligation name:', name);
+      expect(name === null || typeof name === 'string').toBeTruthy();
+    });
 
-  // ── Step 5: Query all obligation names ──
-  console.log('--- Query all obligation names ---');
-  const allNames = await query.getObligationNames(sender);
-  console.log('Names:', JSON.stringify(allNames, null, 2));
-  console.log();
-
-  // // ── Step 6: Remove name ──
-  // console.log('--- Remove name ---');
-  // {
-  //   const tx = builder.createTxBlock();
-  //   tx.setSender(sender);
-  //   tx.removeObligationName(OBLIGATION_KEY_ID);
-
-  //   const result = await builder.scallopSuiKit.signAndSendTxn(tx);
-  //   console.log('Digest:', result.digest);
-  //   console.log(
-  //     'Status:',
-  //     result.effects?.status?.status === 'success' ? 'success' : 'failed'
-  //   );
-  //   if (result.effects?.status?.status !== 'success') {
-  //     console.log('Error:', result.effects?.status?.error);
-  //   }
-  // }
-  // console.log();
-
-  // console.log('Waiting 10s for RPC propagation...');
-  // await new Promise((r) => setTimeout(r, 10000));
-
-  // // ── Step 7: Query name after remove ──
-  // console.log('--- Query name (after remove) ---');
-  // const nameAfterRemove = await query.getObligationName(
-  //   OBLIGATION_KEY_ID,
-  //   sender
-  // );
-  // console.log('Name:', nameAfterRemove);
-  // console.log('Removed:', nameAfterRemove === null ? 'YES' : 'NO');
-  // console.log();
-
-  // ── Summary ──
-  console.log('=== Summary ===');
-  console.log('Set name:     ', nameAfterSet === testName ? 'PASS' : 'FAIL');
-  // console.log('Remove name:  ', nameAfterRemove === null ? 'PASS' : 'FAIL');
-}
-
-main().catch(console.error);
+    it('"getObligationNames" should return a record', async () => {
+      const names = await scallopQuery.getObligationNames(sender);
+      if (ENABLE_LOG) console.info('All names:', names);
+      expect(names).toBeDefined();
+      expect(typeof names).toBe('object');
+    });
+  });
+});
