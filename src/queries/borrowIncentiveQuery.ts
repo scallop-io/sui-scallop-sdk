@@ -4,6 +4,7 @@ import {
   parseOriginBorrowIncentiveAccountData,
   calculateBorrowIncentivePoolPointData,
   getSharedObjectData,
+  getSharedObjectDatas,
 } from 'src/utils';
 import type {
   ScallopAddress,
@@ -188,10 +189,12 @@ export const queryBorrowIncentiveAccounts = async (
     'borrowIncentive.incentiveAccounts'
   );
   const queryTarget = `${queryPkgId}::incentive_account_query::incentive_account_data`;
-  const [incentiveAccountVersion, obligationDataVersion] = await Promise.all([
-    getSharedObjectData(incentiveAccountsId, utils.scallopSuiKit),
-    getSharedObjectData(obligationId, utils.scallopSuiKit),
-  ]);
+
+  const [incentiveAccountVersion, obligationDataVersion] =
+    await getSharedObjectDatas(
+      [incentiveAccountsId, obligationId],
+      utils.scallopSuiKit
+    );
 
   const args = [
     txBlock.sharedObjectRef({

@@ -421,18 +421,17 @@ export const getStakePool = async (
   }: {
     utils: ScallopUtils;
   },
-  marketCoinName: string
+  marketCoinName: string,
+  stakeObjectData?: SuiObjectData | null
 ) => {
   const poolId = utils.address.get(`spool.pools.${marketCoinName}.id`);
   let stakePool: StakePool | undefined = undefined;
-  const stakePoolObjectResponse =
-    await utils.scallopSuiKit.queryGetObject(poolId);
-  if (stakePoolObjectResponse?.data) {
-    const stakePoolObject = stakePoolObjectResponse.data;
-    const id = stakePoolObject.objectId;
-    const type = stakePoolObject.type!;
-    if (stakePoolObject.content && 'fields' in stakePoolObject.content) {
-      const fields = stakePoolObject.content.fields as any;
+  stakeObjectData ??= (await utils.scallopSuiKit.queryGetObject(poolId)).data;
+  if (stakeObjectData) {
+    const id = stakeObjectData.objectId;
+    const type = stakeObjectData.type!;
+    if (stakeObjectData.content && 'fields' in stakeObjectData.content) {
+      const fields = stakeObjectData.content.fields as any;
       const maxPoint = Number(fields.max_distributed_point);
       const distributedPoint = Number(fields.distributed_point);
       const pointPerPeriod = Number(fields.distributed_point_per_period);
