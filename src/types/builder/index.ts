@@ -3,6 +3,7 @@ import type { SpoolTxBlock } from './spool';
 import type { BorrowIncentiveTxBlock } from './borrowIncentive';
 import type { VeScaTxBlock } from './vesca';
 import type { ReferralTxBlock } from './referral';
+import type { ObligationNamingTxBlock } from './obligationNaming';
 import { LoyaltyProgramTxBlock } from './loyaltyProgram';
 import { SCoinTxBlock } from './sCoin';
 
@@ -12,8 +13,10 @@ export type * from './borrowIncentive';
 export type * from './vesca';
 export type * from './loyaltyProgram';
 export type * from './sCoin';
+export type * from './obligationNaming';
 
 export type BaseScallopTxBlock = ReferralTxBlock &
+  ObligationNamingTxBlock &
   LoyaltyProgramTxBlock &
   BorrowIncentiveTxBlock &
   VeScaTxBlock;

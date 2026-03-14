@@ -33,6 +33,8 @@ import {
   getObligationAccount,
   getObligationAccounts,
   getObligationAccountsByIds,
+  getObligationName,
+  getObligationNames,
   getObligations,
   getOnDemandAggObjectIds,
   getPoolAddresses,
@@ -985,6 +987,37 @@ class ScallopQuery implements ScallopQueryInterface {
    */
   async getSwitchboardOnDemandAggregatorObjectIds(coinName: string[]) {
     return await getOnDemandAggObjectIds(this, coinName);
+  }
+
+  /**
+   * Get the custom name assigned to an obligation key.
+   *
+   * @param obligationKeyId - The obligation key object ID.
+   * @param owner - The owner address (defaults to wallet address).
+   * @return The obligation name, or null if not set.
+   */
+  async getObligationName(
+    obligationKeyId: string,
+    owner: string = this.walletAddress
+  ) {
+    return await getObligationName(
+      {
+        address: this.address,
+        scallopSuiKit: this.scallopSuiKit,
+      },
+      obligationKeyId,
+      owner
+    );
+  }
+
+  /**
+   * Get all obligation names for a given owner.
+   *
+   * @param owner - The owner address (defaults to wallet address).
+   * @return A record mapping obligation key IDs to their names.
+   */
+  async getObligationNames(owner: string = this.walletAddress) {
+    return await getObligationNames(this, owner);
   }
 }
 

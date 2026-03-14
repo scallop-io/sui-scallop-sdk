@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-scallop-sdk",
-  "version": "2.3.15",
+  "version": "2.3.16",
   "description": "Typescript sdk for interacting with Scallop contract on SUI",
   "keywords": [
     "sui",
@@ -60,7 +60,8 @@
     "doc": "typedoc --out docs src/index.ts"
   },
   "dependencies": {
-    "@mysten/sui": "1.28.2",
+    "@mysten/sui": "1.45.2",
+    "@noble/hashes": "^2.0.1",
     "@pythnetwork/pyth-sui-js": "2.2.0",
     "@scallop-io/sui-kit": "1.4.1",
     "@tanstack/query-core": "5.59.16",
@@ -100,7 +101,7 @@
     "vitest": "^3.1.1"
   },
   "peerDependencies": {
-    "@mysten/sui": "1.28.2",
+    "@mysten/sui": "1.45.2",
     "@scallop-io/sui-kit": "1.4.1",
     "bn.js": "^5.2.1"
   },

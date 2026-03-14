@@ -13,3 +13,4 @@ export * from './borrowLimitQuery';
 export * from './poolAddressesQuery';
 export * from './switchboardQuery';
 export * from './xOracleQuery';
+export * from './obligationNamingQuery';

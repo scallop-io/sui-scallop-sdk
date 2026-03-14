@@ -7,6 +7,7 @@ import { newVeScaTxBlock } from './vescaBuilder';
 import type { ScallopBuilder } from 'src/models';
 import type { ScallopTxBlock } from 'src/types';
 import { newReferralTxBlock } from './referralBuilder';
+import { newObligationNamingTxBlock } from './obligationNamingBuilder';
 import { newLoyaltyProgramTxBlock } from './loyaltyProgramBuilder';
 import { newSCoinTxBlock } from './sCoinBuilder';
 
@@ -28,7 +29,11 @@ export const newScallopTxBlock = (
     loyaltyTxBlock
   );
   const referralTxBlock = newReferralTxBlock(builder, borrowIncentiveTxBlock);
-  const sCoinTxBlock = newSCoinTxBlock(builder, referralTxBlock);
+  const obligationNamingTxBlock = newObligationNamingTxBlock(
+    builder,
+    referralTxBlock
+  );
+  const sCoinTxBlock = newSCoinTxBlock(builder, obligationNamingTxBlock);
   const spoolTxBlock = newSpoolTxBlock(builder, sCoinTxBlock);
   const coreTxBlock = newCoreTxBlock(builder, spoolTxBlock);
 
@@ -40,6 +45,8 @@ export const newScallopTxBlock = (
         return Reflect.get(borrowIncentiveTxBlock, prop);
       } else if (prop in referralTxBlock) {
         return Reflect.get(referralTxBlock, prop);
+      } else if (prop in obligationNamingTxBlock) {
+        return Reflect.get(obligationNamingTxBlock, prop);
       } else if (prop in spoolTxBlock) {
         return Reflect.get(spoolTxBlock, prop);
       } else if (prop in loyaltyTxBlock) {
