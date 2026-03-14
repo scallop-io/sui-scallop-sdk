@@ -86,7 +86,6 @@ describe('Obligation Naming', () => {
       await tx.removeObligationNameQuick(OBLIGATION_KEY_ID);
 
       const result = await scallopBuilder.scallopSuiKit.suiKit.inspectTxn(tx);
-      console.log(result);
       if (ENABLE_LOG) {
         console.info('removeObligationNameQuick result:', result);
       }
