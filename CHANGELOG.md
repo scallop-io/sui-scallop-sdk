@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.16](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.15...v2.3.16) (2026-03-15)
+
+### Added
+
+- Obligation naming functionality with builder methods (`setObligationName`, `removeObligationName` and corresponding quick methods) and query methods (`getObligationName`, `getObligationNames`, `computeNamingKey`) ([996d695](https://github.com/scallop-io/sui-scallop-sdk/commit/996d695b090e84b68ae2e0872e7a88f982b4af85))
+
+### Changed
+
+- Added `@noble/hashes` dependency for browser-compatible SHA3 hashing (used by obligation naming) ([689094d](https://github.com/scallop-io/sui-scallop-sdk/commit/689094d8c3f0de7141005e6cfc341b753cfe5186))
+- Bump `@mysten/sui` to 1.45.2 ([9f0995e](https://github.com/scallop-io/sui-scallop-sdk/commit/9f0995e))
+
 ### [2.3.15](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.14...v2.3.15) (2026-03-12)
 
 ### Added
