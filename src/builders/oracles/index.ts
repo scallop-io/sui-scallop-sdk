@@ -51,7 +51,7 @@ export const updateOracles = async (
 
   const xOracleList = useOnChainXOracleList
     ? await builder.query.getAssetOracles()
-    : X_ORACLE_LIST;
+    : (builder.xOracleList ?? X_ORACLE_LIST);
 
   // const rules: SupportOracleType[] = builder.isTestnet ? ['pyth'] : ['pyth'];
   const flattenedRules = new Set(

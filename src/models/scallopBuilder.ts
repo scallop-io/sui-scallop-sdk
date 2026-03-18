@@ -12,14 +12,16 @@ import type {
   SuiTxArg,
   SuiVecTxArg,
 } from '@scallop-io/sui-kit';
-import type { ScallopTxBlock } from '../types';
+import type { ScallopTxBlock, xOracleListType } from '../types';
 import { ScallopBuilderInterface } from './interface';
+import { xOracleList as X_ORACLE_LIST } from 'src/constants';
 
 export type ScallopBuilderParams = {
   query?: ScallopQuery;
   usePythPullModel?: boolean;
   sponsoredFeeds?: string[];
   useOnChainXOracleList?: boolean;
+  xOracleList?: xOracleListType;
 } & ScallopQueryParams;
 
 /**
@@ -38,6 +40,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
   public readonly usePythPullModel: boolean;
   public readonly useOnChainXOracleList: boolean;
   public readonly sponsoredFeeds: string[];
+  public xOracleList?: xOracleListType = X_ORACLE_LIST;
 
   public constructor(params: ScallopBuilderParams = {}) {
     this.query = params.query ?? new ScallopQuery(params);
