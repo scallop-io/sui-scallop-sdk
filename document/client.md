@@ -156,11 +156,32 @@ Methods for interacting with the spool contract.
   const stakeResult = await client.stake('ssui', 10 ** 8);
   ```
 
+- Deposit Asset and Stake in One Transaction.
+
+  ```typescript
+  // Deposit SUI and immediately stake in the ssui spool
+  const result = await client.depositAndStake('ssui', 2 * 10 ** 8);
+  // Specify a stake account to use
+  const result = await client.depositAndStake(
+    'ssui',
+    2 * 10 ** 8,
+    true,
+    stakeAccountId
+  );
+  ```
+
 - Unstake Market Coin.
 
   ```typescript
   // Unstake from specific spool, currently support ssui, swusdc, and swusdt
   const unstakeResult = await client.unstake('ssui', 10 ** 8);
+  ```
+
+- Unstake and Withdraw in One Transaction.
+
+  ```typescript
+  // Unstake market coin from spool and withdraw the underlying asset atomically
+  const result = await client.unstakeAndWithdraw('ssui', 10 ** 8);
   ```
 
 - Claim Reward Coin.
@@ -180,3 +201,60 @@ Methods for migrating to the new sCoin package
 // Migrate all old market coin into new sCoin. Pass `false` as parameter to return the txBlock
 const txBlock = await client.migrateAllMarketCoin(false);
 ```
+
+## Borrow Incentive Method
+
+Methods for managing borrow incentive participation. These methods automatically handle veSCA boost if a veSCA key is bound to the obligation.
+
+> For low-level borrow incentive builder methods, see [borrow-incentive.md](./borrow-incentive.md).
+
+- Stake Obligation (start earning borrow incentive rewards).
+
+  ```typescript
+  const obligations = await client.getObligations();
+  // Automatically uses veSCA boost if available
+  const stakeResult = await client.stakeObligation(
+    obligations[0].id,
+    obligations[0].keyId
+  );
+  ```
+
+- Unstake Obligation.
+
+  ```typescript
+  const obligations = await client.getObligations();
+  const unstakeResult = await client.unstakeObligation(
+    obligations[0].id,
+    obligations[0].keyId
+  );
+  ```
+
+- Claim Borrow Incentive Rewards.
+
+  Automatically claims all available reward coins for the obligation.
+
+  ```typescript
+  const obligations = await client.getObligations();
+  const claimResult = await client.claimBorrowIncentive(
+    obligations[0].id,
+    obligations[0].keyId
+  );
+  ```
+
+  > **Note:** `client.borrow()` and `client.repay()` automatically unstake before and restake after the operation for assets in the borrow incentive whitelist.
+
+## veSCA Method
+
+Methods for managing veSCA (vote-escrowed SCA) positions.
+
+> For full veSCA builder and query documentation, see [vesca.md](./vesca.md).
+
+- Claim Unlocked SCA from all expired veSCA positions.
+
+  ```typescript
+  // Claim SCA from all veSCA accounts where unlock time has passed
+  const claimResult = await client.claimAllUnlockedSca();
+
+  // Return the transaction block without signing
+  const { tx, scaCoin } = await client.claimAllUnlockedSca(false);
+  ```

@@ -135,6 +135,9 @@ Below we will give a brief introduction to these instances respectively, and int
 - [veSCA — Governance Token Locking](./document/vesca.md)
 - [sCoin — New Market Coin Package](./document/scoin.md)
 - [Borrow Incentive](./document/borrow-incentive.md)
+- [Referral Program](./document/referral.md)
+- [Loyalty Program](./document/loyalty-program.md)
+- [Advanced Queries](./document/advanced-queries.md)
 - [Obligation Naming](./document/obligation-naming.md)
 
 For the original codes, please refer to `test` folder.
