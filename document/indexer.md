@@ -20,7 +20,7 @@ Use **Indexer** when you need market-level data efficiently. Use **Query** when 
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   networkType: 'mainnet',
 });
 
@@ -279,7 +279,7 @@ const prices = await indexer.getCoinPrices();
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   networkType: 'mainnet',
 });
 

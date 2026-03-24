@@ -25,7 +25,7 @@ Both exist simultaneously during the transition period. sCoin is the recommended
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   networkType: 'mainnet',
   secretKey: process.env.SECRET_KEY,
 });
@@ -240,7 +240,7 @@ const supportedSCoins = [...constants.whitelist.scoin];
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   networkType: 'mainnet',
   secretKey: process.env.SECRET_KEY,
 });

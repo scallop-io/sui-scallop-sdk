@@ -4,7 +4,7 @@
 
 ```typescript
 const scallopConstants = new ScallopConstants({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
 });
 
 await scallopConstants.init();
@@ -15,7 +15,7 @@ await scallopConstants.init();
 ```typescript
 const CUSTOM_POOL_ADDRESSES = {...}; // Record<string, PoolAddress>
 const scallopConstants = new ScallopConstants({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   forcePoolAddressInterface: CUSTOM_POOL_ADDRESSES,
 });
 
@@ -27,7 +27,7 @@ await scallopConstants.init();
 ```typescript
 const CUSTOM_WHITELIST = {...}; // Whitelist
 const scallopConstants = new ScallopConstants({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   forceWhitelistInterface: CUSTOM_WHITELIST,
 });
 
@@ -38,7 +38,7 @@ await scallopConstants.init();
 
 ```typescript
 const scallopConstants = new ScallopConstants({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   defaultValues: {
     poolAddresses: [DEFAULT_POOL_ADDRESSES],
     whitelist: [DEFAULT_WHITELIST],

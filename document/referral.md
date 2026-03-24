@@ -15,7 +15,7 @@ The Scallop referral program allows veSCA holders to act as referrers. Referees 
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   networkType: 'mainnet',
   secretKey: process.env.SECRET_KEY,
 });
@@ -151,7 +151,7 @@ const keyId = await query.getVeScaKeyIdFromReferralBindings('0x...');
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   networkType: 'mainnet',
   secretKey: process.env.SECRET_KEY,
 });

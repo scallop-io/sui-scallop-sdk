@@ -14,7 +14,7 @@ veSCA (vote-escrowed SCA) is Scallop's governance and incentive mechanism. Users
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   networkType: 'mainnet',
   secretKey: process.env.SECRET_KEY,
 });
@@ -321,7 +321,7 @@ const treasuryInfo = await query.getVeScaTreasuryInfo();
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   networkType: 'mainnet',
   secretKey: process.env.SECRET_KEY,
 });

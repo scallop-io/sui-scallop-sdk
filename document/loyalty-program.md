@@ -13,7 +13,7 @@ Both programs require holding a veSCA position to be eligible.
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   networkType: 'mainnet',
   secretKey: process.env.SECRET_KEY,
 });
@@ -178,7 +178,7 @@ const info = await query.getVeScaLoyaltyProgramInfos('0x...');
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   networkType: 'mainnet',
   secretKey: process.env.SECRET_KEY,
 });

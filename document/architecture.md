@@ -35,7 +35,7 @@ All modules share a single initialization call. The recommended pattern is to st
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc', // mainnet address set
+  addressId: '67c44a103fe1b8c454eb9699', // mainnet address set
   networkType: 'mainnet',
   secretKey: process.env.SECRET_KEY,
 });

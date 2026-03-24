@@ -16,7 +16,7 @@ The borrow incentive program rewards users for borrowing assets from Scallop. By
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   networkType: 'mainnet',
   secretKey: process.env.SECRET_KEY,
 });
@@ -275,7 +275,7 @@ const veScaKeyId = await query.getBindedVeScaKey(obligationId);
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
 const sdk = new Scallop({
-  addressId: '695fcdc084f790c04eb068dc',
+  addressId: '67c44a103fe1b8c454eb9699',
   networkType: 'mainnet',
   secretKey: process.env.SECRET_KEY,
 });
