@@ -121,13 +121,21 @@ This SDK is used to interact with [sui-lending-protocol](https://github.com/scal
 
 Below we will give a brief introduction to these instances respectively, and introduce the functions through test codes.
 
+- [SDK Architecture Overview](./document/architecture.md) ← start here
 - [Use Scallop Client](./document/client.md)
 - [Use Scallop Query](./document/query.md)
-- [Use Scallop Address](./document/address.md)
 - [Use Scallop Builder](./document/builder.md)
-- [Use Scallop Utils](./document/utils.md)
 - [Use Scallop Indexer](./document/indexer.md)
+- [Use Scallop Utils](./document/utils.md)
 - [Use Scallop Constants](./document/constants.md)
+- [Use Scallop Address](./document/address.md) *(deprecated — see constants.md)*
+
+### Feature Guides
+
+- [veSCA — Governance Token Locking](./document/vesca.md)
+- [sCoin — New Market Coin Package](./document/scoin.md)
+- [Borrow Incentive](./document/borrow-incentive.md)
+- [Obligation Naming](./document/obligation-naming.md)
 
 For the original codes, please refer to `test` folder.
 
