@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.4.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.2...v2.4.3) (2026-03-27)
+
+### Changed
+
+- Bump `@mysten/sui` to v2.11.0, add `@protobuf-ts` dependencies, pin vitest versions, and remove `peerDependencies` ([bda468d](https://github.com/scallop-io/sui-scallop-sdk/commit/bda468dd3c034f664bc87537ae5b5e8d7c1a62eb))
+
+### Fixed
+
+- Normalize Move JSON parsing to handle both JSON-RPC and gRPC response formats across all query and builder modules ([09d8497](https://github.com/scallop-io/sui-scallop-sdk/commit/09d84979cfe3b06cc80ef6a11254b256a72ec19c))
+
 ### [2.4.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.1...v2.4.2) (2026-03-05)
 
 ### Fixed
