@@ -309,8 +309,11 @@ describe('utils/object', () => {
     });
 
     const result = parseObjectAs<{ token: string }>(object);
-
-    expect(result).toEqual({ token: 'SCA' });
+    expect(result).toEqual({
+      id: '0xmiddle',
+      name: 'middle',
+      value: { id: '0xinner', name: 'inner', value: { token: 'SCA' } },
+    });
   });
 
   it('throws for missing object json', () => {
@@ -378,6 +381,257 @@ describe('utils/object', () => {
     expect(() => getDfObjectIdAndName(object)).toThrow(
       'Failed to parse dynamic field name from object 0xdf'
     );
+  });
+
+  // --- unwrapMoveJson / JSON-RPC format handling ---
+
+  it('unwraps JSON-RPC {type, fields} structs in parseObjectAs', () => {
+    // Simulates JSON-RPC response with nested Move structs
+    const object = createSuiObject({
+      type: '0x1::market::Market',
+      json: {
+        fields: {
+          vault: {
+            type: '0x1::vault::Vault',
+            fields: {
+              balance_sheets: {
+                type: '0x2::table::Table',
+                fields: {
+                  id: { id: '0xbalance' },
+                  size: '5',
+                },
+              },
+            },
+          },
+          risk_models: {
+            type: '0x2::table::Table',
+            fields: {
+              id: { id: '0xrisk' },
+              size: '3',
+            },
+          },
+        },
+      },
+    });
+
+    const result = parseObjectAs<{
+      vault: { balance_sheets: { id: { id: string }; size: string } };
+      risk_models: { id: { id: string }; size: string };
+    }>(object);
+
+    // {type, fields} wrappers should be stripped
+    expect(result.vault.balance_sheets.id.id).toBe('0xbalance');
+    expect(result.risk_models.id.id).toBe('0xrisk');
+    expect(result.vault.balance_sheets.size).toBe('5');
+  });
+
+  it('leaves gRPC flat format unchanged in parseObjectAs', () => {
+    // gRPC responses have no {type, fields} wrappers
+    const object = createSuiObject({
+      type: '0x1::market::Market',
+      json: {
+        vault: {
+          balance_sheets: {
+            id: { id: '0xbalance' },
+            size: '5',
+          },
+        },
+        risk_models: {
+          id: { id: '0xrisk' },
+          size: '3',
+        },
+      },
+    });
+
+    const result = parseObjectAs<{
+      vault: { balance_sheets: { id: { id: string }; size: string } };
+      risk_models: { id: { id: string }; size: string };
+    }>(object);
+
+    expect(result.vault.balance_sheets.id.id).toBe('0xbalance');
+    expect(result.risk_models.id.id).toBe('0xrisk');
+  });
+
+  it('unwraps arrays containing {type, fields} elements', () => {
+    const object = createSuiObject({
+      type: '0x1::spool::StakePool',
+      json: {
+        fields: {
+          items: [
+            { type: '0x1::item::Item', fields: { name: 'a', value: 1 } },
+            { type: '0x1::item::Item', fields: { name: 'b', value: 2 } },
+          ],
+        },
+      },
+    });
+
+    const result = parseObjectAs<{
+      items: { name: string; value: number }[];
+    }>(object);
+
+    expect(result.items).toEqual([
+      { name: 'a', value: 1 },
+      { name: 'b', value: 2 },
+    ]);
+  });
+
+  it('parseObjectAs returns string value for DF string fields (borrowLimit pattern)', () => {
+    // Simulates getDynamicField response for borrow limit / supply limit
+    const object = createSuiObject({
+      type: `${DYNAMIC_FIELD_TYPE_PREFIX}<0x1::key::BorrowLimitKey, u64>`,
+      json: {
+        fields: {
+          id: '0xdf1',
+          name: { name: '0xabc' },
+          value: '1000000',
+        },
+      },
+    });
+
+    const result = parseObjectAs<string>(object);
+    expect(result).toBe('1000000');
+  });
+
+  it('parseObjectAs returns boolean value for DF boolean fields (isolatedAsset pattern)', () => {
+    const object = createSuiObject({
+      type: `${DYNAMIC_FIELD_TYPE_PREFIX}<0x1::key::IsolatedAssetKey, bool>`,
+      json: {
+        fields: {
+          id: '0xdf2',
+          name: { name: '0xdef' },
+          value: true,
+        },
+      },
+    });
+
+    const result = parseObjectAs<boolean>(object);
+    expect(result).toBe(true);
+  });
+
+  it('parseObjectAs unwraps JSON-RPC format inside DF value (spool pattern)', () => {
+    // DF whose value is a Move struct in JSON-RPC format
+    const object = createSuiObject({
+      type: `${DYNAMIC_FIELD_TYPE_PREFIX}<address, 0x1::spool::StakeAccount>`,
+      json: {
+        fields: {
+          id: '0xdf3',
+          name: '0xaddr',
+          value: {
+            type: '0x1::spool::StakeAccount',
+            fields: {
+              spool_id: '0xpool1',
+              stake_type: {
+                type: '0x1::type_name::TypeName',
+                fields: { name: 'sweth' },
+              },
+              stakes: '500',
+              index: '10',
+              points: '200',
+              total_points: '1000',
+            },
+          },
+        },
+      },
+    });
+
+    const result = parseObjectAs<{
+      spool_id: string;
+      stake_type: { name: string };
+      stakes: string;
+      index: string;
+      points: string;
+      total_points: string;
+    }>(object);
+
+    expect(result.spool_id).toBe('0xpool1');
+    expect(result.stake_type.name).toBe('sweth');
+    expect(result.stakes).toBe('500');
+  });
+
+  it('getDfObjectIdAndName extracts id from nested {id: string} format', () => {
+    const object = createSuiObject({
+      objectId: '0xdf4',
+      type: `${DYNAMIC_FIELD_TYPE_PREFIX}<0x1::type_name::TypeName, u64>`,
+      json: {
+        fields: {
+          id: { id: '0xactual_id' },
+          name: { name: '0xcointype' },
+          value: '999',
+        },
+      },
+    });
+
+    const result = getDfObjectIdAndName(object);
+    expect(result.objectId).toBe('0xactual_id');
+    expect(result.name).toBe('0xcointype');
+  });
+
+  it('getDfObjectIdAndName works with JSON-RPC wrapped name', () => {
+    const object = createSuiObject({
+      objectId: '0xdf5',
+      type: `${DYNAMIC_FIELD_TYPE_PREFIX}<0x1::type_name::TypeName, u64>`,
+      json: {
+        fields: {
+          id: '0xsimple_id',
+          name: {
+            type: '0x1::type_name::TypeName',
+            fields: { name: '0xwrapped_coin' },
+          },
+          value: '123',
+        },
+      },
+    });
+
+    const result = getDfObjectIdAndName(object);
+    expect(result.objectId).toBe('0xsimple_id');
+    expect(result.name).toBe('0xwrapped_coin');
+  });
+
+  it('parseObjectAs handles deeply nested JSON-RPC structs (poolAddresses pattern)', () => {
+    const object = createSuiObject({
+      type: '0x1::market::Market',
+      json: {
+        fields: {
+          vault: {
+            type: '0x1::vault::Vault',
+            fields: {
+              balance_sheets: {
+                type: '0x2::table::Table',
+                fields: {
+                  table: {
+                    type: '0x2::table::TableInner',
+                    fields: {
+                      id: { id: '0xbs_table' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          collateral_stats: {
+            type: '0x2::table::Table',
+            fields: {
+              table: {
+                type: '0x2::table::TableInner',
+                fields: {
+                  id: { id: '0xcs_table' },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const result = parseObjectAs<{
+      vault: {
+        balance_sheets: { table: { id: { id: string } } };
+      };
+      collateral_stats: { table: { id: { id: string } } };
+    }>(object);
+
+    expect(result.vault.balance_sheets.table.id.id).toBe('0xbs_table');
+    expect(result.collateral_stats.table.id.id).toBe('0xcs_table');
   });
 });
 

@@ -3,9 +3,11 @@ import type {
   OptionalKeys,
   PoolAddress,
   SuiParsedData,
+  SuiObjectData,
 } from 'src/types/index.js';
 import type { ClientWithCoreApi } from '@mysten/sui/client';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
+import { parseObjectAs } from 'src/utils/index.js';
 import { bcs } from '@mysten/sui/bcs';
 
 const queryFlashloanFeeObjectIds = async (
@@ -131,21 +133,23 @@ export const getPoolAddresses = async (
   if (!(marketObject && marketObject.json))
     throw new Error(`Failed to fetch marketObject`);
 
-  const fields = marketObject.json as any;
+  const fields = parseObjectAs<{
+    vault: { balance_sheets: { table: { id: { id: string } } } };
+    collateral_stats: { table: { id: { id: string } } };
+    borrow_dynamics: { table: { id: { id: string } } };
+    interest_models: { table: { id: { id: string } } };
+    risk_models: { table: { id: { id: string } } };
+  }>(marketObject as SuiObjectData);
 
-  const balanceSheetParentId =
-    fields.vault.fields.balance_sheets.fields.table.fields.id.id;
+  const balanceSheetParentId = fields.vault.balance_sheets.table.id.id;
 
-  const collateralStatsParentId =
-    fields.collateral_stats.fields.table.fields.id.id;
+  const collateralStatsParentId = fields.collateral_stats.table.id.id;
 
-  const borrowDynamicsParentid =
-    fields.borrow_dynamics.fields.table.fields.id.id;
+  const borrowDynamicsParentid = fields.borrow_dynamics.table.id.id;
 
-  const interestModelParentId =
-    fields.interest_models.fields.table.fields.id.id;
+  const interestModelParentId = fields.interest_models.table.id.id;
 
-  const riskModelParentId = fields.risk_models.fields.table.fields.id.id;
+  const riskModelParentId = fields.risk_models.table.id.id;
 
   const ADDRESS_TYPE = `0x1::type_name::TypeName`;
   const BORROW_FEE_TYPE = `0xc38f849e81cfe46d4e4320f508ea7dda42934a329d5a6571bb4c3cb6ea63f5da::market_dynamic_keys::BorrowFeeKey`;

@@ -1,4 +1,5 @@
 import { ScallopQuery } from 'src/models/index.js';
+import { parseObjectAs } from 'src/utils/index.js';
 
 export const getOnDemandAggObjectIds = async (
   query: ScallopQuery,
@@ -52,11 +53,11 @@ export const getOnDemandAggObjectIds = async (
         name: dfName,
       });
 
-      const jsonData = resp?.object?.json as any;
-      if (!jsonData?.value)
+      const object = resp?.object;
+      if (!object?.json)
         throw new Error(`No on-demand aggregator found for ${coinType}`);
 
-      registeredAggs[missingAgg[idx].idx] = jsonData.value;
+      registeredAggs[missingAgg[idx].idx] = parseObjectAs<string>(object);
     })
   );
 
