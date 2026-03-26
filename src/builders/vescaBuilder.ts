@@ -15,6 +15,7 @@ import {
   checkRenewExpiredVeSca,
   checkVesca,
   getMoveCallTarget,
+  parseObjectAs,
 } from 'src/utils/index.js';
 import type {
   TransactionObjectArgument,
@@ -95,8 +96,10 @@ export const isInSubsTable = async (
 
     if (!resp?.object?.json) return false;
 
-    const contents = resp.object.json?.value?.contents;
-    return Array.isArray(contents) && contents.length > 0;
+    const value = parseObjectAs<{ contents?: unknown[] }>(
+      resp.object as SuiObjectData
+    );
+    return Array.isArray(value?.contents) && value.contents.length > 0;
   } catch (e) {
     console.error(e);
     return false;

@@ -5,6 +5,7 @@ import {
   parseOriginMarketCollateralData,
   calculateMarketCollateralData,
   parseObjectAs,
+  getDfObjectIdAndName,
   partitionArray,
 } from 'src/utils/index.js';
 import type { SuiObjectData } from 'src/types/index.js';
@@ -723,11 +724,14 @@ export const getMarketCollateral = async (
   if (!(marketObject && marketObject.json))
     throw new Error(`Failed to fetch marketObject`);
 
-  const fields = marketObject.json as any;
+  const fields = parseObjectAs<{
+    risk_models: { table: { id: { id: string } } };
+    collateral_stats: { table: { id: { id: string } } };
+  }>(marketObject);
   const coinType = utils.parseCoinType(collateralCoinName);
 
   // Get risk model.
-  const riskModelParentId = fields.risk_models.table.id;
+  const riskModelParentId = fields.risk_models.table.id.id;
   const riskModelDynamicFieldObjectResponse =
     await scallopSuiKit.queryGetDynamicFieldObject({
       parentId: riskModelParentId,
@@ -751,7 +755,7 @@ export const getMarketCollateral = async (
   );
 
   // Get collateral stat.
-  const collateralStatParentId = fields.collateral_stats.table.id;
+  const collateralStatParentId = fields.collateral_stats.table.id.id;
   const collateralStatDynamicFieldObjectResponse =
     await scallopSuiKit.queryGetDynamicFieldObject({
       parentId: collateralStatParentId,
@@ -1180,10 +1184,9 @@ export const getFlashLoanFees = async (
     ...flashloanFeeObjects.reduce(
       (prev, curr) => {
         if (curr.json) {
-          const objectFields = curr.json as any;
-          const assetType = (curr.json as any).name?.name;
-          const feeNumerator = +objectFields.value;
-          prev[assetTypeMap[assetType]] = feeNumerator / feeRate;
+          const { name: assetType } = getDfObjectIdAndName(curr);
+          const feeNumerator = +parseObjectAs<string>(curr);
+          prev[assetTypeMap[assetType!]] = feeNumerator / feeRate;
         }
         return prev;
       },

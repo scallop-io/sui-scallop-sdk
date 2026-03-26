@@ -365,13 +365,20 @@ export const getStakeAccounts = async (
     const id = stakeObject?.objectId;
     const type = stakeObject?.type!;
     if (id && stakeObject?.json) {
-      const json = stakeObject.json as any;
-      const stakePoolId = String(json.spool_id);
-      const stakeType = String(json.stake_type.name);
-      const staked = Number(json.stakes);
-      const index = Number(json.index);
-      const points = Number(json.points);
-      const totalPoints = Number(json.total_points);
+      const fields = parseObjectAs<{
+        spool_id: string;
+        stake_type: { name: string };
+        stakes: string;
+        index: string;
+        points: string;
+        total_points: string;
+      }>(stakeObject);
+      const stakePoolId = String(fields.spool_id);
+      const stakeType = String(fields.stake_type.name);
+      const staked = Number(fields.stakes);
+      const index = Number(fields.index);
+      const points = Number(fields.points);
+      const totalPoints = Number(fields.total_points);
 
       const stakeMarketCoinTypeMap: Record<string, StakeAccounts[string]> = {
         sweth: stakeAccounts.sweth,
@@ -433,9 +440,19 @@ export const getStakePool = async (
     const stakePoolObject = stakePoolObjectResponse.object;
     const id = stakePoolObject.objectId;
     const type = stakePoolObject.type!;
-    const json = stakePoolObject.json as any;
-    if (json) {
-      const fields = json;
+    if (stakePoolObject.json) {
+      const fields = parseObjectAs<{
+        max_distributed_point: string;
+        distributed_point: string;
+        distributed_point_per_period: string;
+        point_distribution_time: string;
+        max_stakes: string;
+        stake_type: { name: string };
+        stakes: string;
+        index: string;
+        created_at: string;
+        last_update: string;
+      }>(stakePoolObject);
       const maxPoint = Number(fields.max_distributed_point);
       const distributedPoint = Number(fields.distributed_point);
       const pointPerPeriod = Number(fields.distributed_point_per_period);
@@ -495,9 +512,14 @@ export const getStakeRewardPool = async (
     const stakeRewardPoolObject = stakeRewardPoolObjectResponse.object;
     const id = stakeRewardPoolObject.objectId;
     const type = stakeRewardPoolObject.type!;
-    const json = stakeRewardPoolObject.json as any;
-    if (json) {
-      const rewardPoolFields = json;
+    if (stakeRewardPoolObject.json) {
+      const rewardPoolFields = parseObjectAs<{
+        spool_id: string;
+        exchange_rate_numerator: string;
+        exchange_rate_denominator: string;
+        rewards: string;
+        claimed_rewards: string;
+      }>(stakeRewardPoolObject);
       const stakePoolId = String(rewardPoolFields.spool_id);
       const ratioNumerator = Number(rewardPoolFields.exchange_rate_numerator);
       const ratioDenominator = Number(

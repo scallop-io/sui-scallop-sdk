@@ -9,7 +9,7 @@ import {
   type SuiTxBlock as SuiKitTxBlock,
   type Transaction,
 } from '@scallop-io/sui-kit';
-import { SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
+import { getJsonRpcFullnodeUrl, SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
 
 type ObjectId = string;
 class ScallopPythClient extends SuiPythClient {
@@ -86,7 +86,14 @@ export const updatePythPriceFeeds = async (
 ) => {
   // @pythnetwork/pyth-sui-js uses v1-style SuiClient API (getObject, getDynamicFieldObject).
   // SuiGrpcClient has a different interface, so use SuiJsonRpcClient for Pyth compatibility.
-  const fullnodeUrl = builder.suiKit.suiInteractor.currentFullNode;
+  const fullnodeUrl = (() => {
+    try {
+      return builder.suiKit.suiInteractor.currentFullNode;
+    } catch {
+      // Initialized with clients so no fullnodeUrl available, fallback to default
+      return getJsonRpcFullnodeUrl('mainnet');
+    }
+  })();
   const network = builder.suiKit.client.network;
   const jsonRpcClient = new SuiJsonRpcClient({
     url: fullnodeUrl,

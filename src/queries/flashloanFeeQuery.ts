@@ -1,6 +1,7 @@
 import type { SuiObjectData } from 'src/types/index.js';
 import { ScallopSuiKit } from 'src/models/index.js';
 import ScallopConstants from 'src/models/scallopConstants.js';
+import { getDfObjectIdAndName, parseObjectAs } from 'src/utils/index.js';
 
 const FLASHLOAN_FEES_TABLE_ID =
   '0x00481a93b819d744a7d79ecdc6c62c74f2f7cb4779316c4df640415817ac61bb' as const;
@@ -52,14 +53,13 @@ export const queryFlashLoanFees = async (
 
   return flashloanFeeObjects.reduce(
     (prev, curr) => {
-      const jsonData = curr.json as any;
-      if (jsonData) {
-        const assetType = `0x${jsonData.name?.name}`;
+      if (curr.json) {
+        const { name } = getDfObjectIdAndName(curr);
+        const assetType = `0x${name}`;
         const assetName = assetTypeMap[assetType];
         if (!assetName) return prev;
 
-        const objectFields = jsonData;
-        const feeNumerator = +objectFields.value;
+        const feeNumerator = +parseObjectAs<string>(curr);
         prev[assetName] = feeNumerator / feeRate;
       }
       return prev;
@@ -76,14 +76,13 @@ export const parseFlashloanFeeObjects = (
   const assetTypeMap = constants.coinTypeToCoinNameMap;
   return objects.reduce(
     (prev, curr) => {
-      const jsonData = curr.json as any;
-      if (jsonData) {
-        const assetType = `0x${jsonData.name?.name}`;
+      if (curr.json) {
+        const { name } = getDfObjectIdAndName(curr);
+        const assetType = `0x${name}`;
         const assetName = assetTypeMap[assetType];
         if (!assetName) return prev;
 
-        const objectFields = jsonData;
-        const feeNumerator = +objectFields.value;
+        const feeNumerator = +parseObjectAs<string>(curr);
         prev[assetName] = feeNumerator / feeRate;
       }
       return prev;

@@ -10,7 +10,7 @@ import ScallopConstants, {
   ScallopConstantsParams,
 } from './scallopConstants.js';
 import { CoinPrices, CoinWrappedType, PoolAddress } from 'src/types/index.js';
-import { findClosestUnlockRound } from 'src/utils/index.js';
+import { findClosestUnlockRound, parseObjectAs } from 'src/utils/index.js';
 import {
   MAX_LOCK_DURATION,
   queryKeys,
@@ -422,13 +422,37 @@ class ScallopUtils implements ScallopUtilsInterface {
     const priceFeedId = this.address.get(
       `core.coins.${assetCoinName}.oracle.pyth.feed`
     );
-    priceFeedObject =
-      priceFeedObject ||
-      (await this.scallopSuiKit.queryGetObject(pythFeedObjectId))?.object;
+    priceFeedObject ??= (
+      await this.scallopSuiKit.queryGetObject(pythFeedObjectId)
+    )?.object;
 
     if (priceFeedObject?.json) {
-      const json = priceFeedObject.json as any;
-      const priceFields = json?.price_info?.price_feed?.price;
+      const parsed = parseObjectAs<{
+        id: string;
+        price_info: {
+          arrival_time: number;
+          attestation_time: number;
+          price_feed: {
+            ema_price: {
+              conf: string;
+              expo: { magnitude: string; negative: boolean };
+              price: { magnitude: string; negative: boolean };
+              timestamp: string;
+            };
+            price: {
+              conf: string;
+              expo: { magnitude: string; negative: boolean };
+              price: { magnitude: string; negative: boolean };
+              timestamp: string;
+            };
+            price_identifier: {
+              bytes: string;
+            };
+          };
+        };
+      }>(priceFeedObject);
+
+      const priceFields = parsed.price_info.price_feed.price;
       const expoMagnitude = Number(priceFields?.expo?.magnitude);
       const expoNegative = Number(priceFields?.expo?.negative);
       const priceMagnitude = Number(priceFields?.price?.magnitude);

@@ -42,10 +42,37 @@ function assertObjectJson(
   }
 }
 
+/**
+ * Recursively unwrap JSON-RPC Move struct format `{ type: string, fields: {...} }`
+ * into flat fields, matching the gRPC response format.
+ */
+const unwrapMoveJson = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value.map(unwrapMoveJson);
+  }
+  if (typeof value === 'object' && value !== null) {
+    const record = value as Record<string, unknown>;
+    if (
+      'type' in record &&
+      'fields' in record &&
+      typeof record.type === 'string'
+    ) {
+      return unwrapMoveJson(record.fields);
+    }
+    const result: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(record)) {
+      result[key] = unwrapMoveJson(val);
+    }
+    return result;
+  }
+  return value;
+};
+
 const getObjectFields = (object: SuiObjectData): unknown => {
   assertObjectJson(object);
   const objectJson = object.json;
-  return 'fields' in objectJson ? objectJson.fields : objectJson;
+  const fields = 'fields' in objectJson ? objectJson.fields : objectJson;
+  return unwrapMoveJson(fields);
 };
 
 const parseObjectData = (data: SuiObjectData) => {
@@ -84,7 +111,7 @@ export const asSharedObject = (
         };
     mutable?: boolean;
   }
-) => {
+): SuiObjectArg => {
   if (typeof obj === 'object' && 'initialSharedVersion' in obj) {
     return tx.sharedObjectRef({
       objectId: obj.objectId,
@@ -144,8 +171,10 @@ const dynamicFieldNameZod = z.union([
   z.record(z.unknown()),
 ]);
 
+const dynamicFieldIdZod = z.union([z.string(), z.object({ id: z.string() })]);
+
 const dynamicFieldZod = z.object({
-  id: z.string(),
+  id: dynamicFieldIdZod,
   name: dynamicFieldNameZod,
   value: z.unknown().optional(),
 });
@@ -166,6 +195,10 @@ const isDynamicField = (field: unknown): field is DynamicField => {
   //   console.error('Failed to parse dynamic field value', { field, error });
   // }
   return false;
+};
+
+const extractDfId = (id: string | { id: string }): string => {
+  return typeof id === 'string' ? id : id.id;
 };
 
 const parseDynamicFieldValue = <T>(fields: T): T => {
@@ -246,7 +279,7 @@ export const getDfObjectIdAndName = (
     }
 
     return {
-      objectId: fields.id,
+      objectId: extractDfId(fields.id),
       name,
       nameKind: getNameKind(fields.name),
     };
