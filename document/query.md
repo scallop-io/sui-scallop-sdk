@@ -1,261 +1,330 @@
-# Use ScallopQuery
+# ScallopQuery
 
-## Core Query
+`ScallopQuery` provides read-only access to all on-chain Scallop data: markets, obligations, spools, veSCA, portfolios, and prices.
 
-- Get market pools and collaterals.
+## Setup
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+```typescript
+import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
-  // Deprecated but still available:
-  const marketData = await scallopQuery.queryMarket();
+const sdk = new Scallop({ walletAddress: '0x...' });
+const query = await sdk.createScallopQuery();
+```
 
-  // Preferred APIs:
-  const marketPools = await scallopQuery.getMarketPools(['sui', 'wusdc']);
-  const suiMarketPool = await scallopQuery.getMarketPool('sui');
-  const marketCollaterals = await scallopQuery.getMarketCollaterals([
-    'sui',
-    'wusdc',
-  ]);
-  const suiMarketCollateral = await scallopQuery.getMarketCollateral('sui');
-  ```
+## Indexer Fallback
 
-- Get obligations and obligation details.
+Many query methods accept an optional `indexer` argument. When enabled, the method fetches from the Scallop Indexer API (faster and cheaper) instead of querying the chain directly.
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+By default, methods that support the indexer **automatically use it with a fallback to on-chain** if the indexer request fails.
 
-  const obligations = await scallopQuery.getObligations();
-  const obligationData = await scallopQuery.queryObligation(obligations[0].id);
-  ```
+```typescript
+// Use indexer (default behavior for supported methods)
+const pools = await query.getMarketPools();
 
-- Get wallet balances and Pyth prices.
+// Force on-chain query
+const pools = await query.getMarketPools(undefined, { indexer: false });
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+// Explicitly request indexer
+const pools = await query.getMarketPools(undefined, { indexer: true });
+```
 
-  const coinAmounts = await scallopQuery.getCoinAmounts();
-  const coinAmount = await scallopQuery.getCoinAmount('sui');
+Methods that support the `indexer` option are marked with **[indexer]** below.
 
-  const marketCoinAmounts = await scallopQuery.getMarketCoinAmounts();
-  const marketCoinAmount = await scallopQuery.getMarketCoinAmount('ssui');
+---
 
-  const usdcPrice = await scallopQuery.getPriceFromPyth('wusdc');
-  const prices = await scallopQuery.getPricesFromPyth(['sui', 'wusdc']); // Record<string, number>
-  ```
+## Core Queries
 
-## Spool Query
+### Market Pools **[indexer]**
 
-- Get spool data.
+```typescript
+// All market pools (default: all whitelisted coins)
+const pools = await query.getMarketPools();
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+// Specific coins only
+const pools = await query.getMarketPools(['sui', 'usdc']);
 
-  const spools = await scallopQuery.getSpools();
-  const selectedSpools = await scallopQuery.getSpools(['ssui', 'swusdc']);
-  const ssuiSpool = await scallopQuery.getSpool('ssui');
-  ```
+// Single pool
+const suiPool = await query.getMarketPool('sui');
+```
 
-- Legacy stake/reward object-level methods (still available).
+> `queryMarket()` is deprecated. Use `getMarketPools()` instead.
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+### Market Collaterals **[indexer]**
 
-  const allStakeAccounts = await scallopQuery.getAllStakeAccounts();
-  const stakeAccounts = await scallopQuery.getStakeAccounts('ssui');
-  const stakePools = await scallopQuery.getStakePools(['ssui', 'swusdc']);
-  const stakePool = await scallopQuery.getStakePool('ssui');
-  const rewardPools = await scallopQuery.getStakeRewardPools([
-    'ssui',
-    'swusdc',
-  ]);
-  const rewardPool = await scallopQuery.getStakeRewardPool('ssui');
-  ```
+```typescript
+// All collaterals
+const collaterals = await query.getMarketCollaterals();
 
-## Borrow Incentive Query
+// Specific coins
+const collaterals = await query.getMarketCollaterals(['sui', 'usdc']);
 
-- Get borrow incentive pools.
+// Single collateral
+const suiCollateral = await query.getMarketCollateral('sui');
+```
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
-  const pools = await scallopQuery.getBorrowIncentivePools();
-  ```
+### Obligations
 
-- Get borrow incentive accounts for an obligation.
+```typescript
+// All obligation accounts for the connected wallet
+const obligations = await query.getObligations();
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
-  const obligationId = '0x...';
-  const incentiveAccounts =
-    await scallopQuery.getBorrowIncentiveAccounts(obligationId);
-  ```
+// Obligation details by ID
+const detail = await query.queryObligation(obligations[0].id);
+```
 
-## Lending, Obligation, TVL
+### Wallet Balances
 
-- Get lending info.
+```typescript
+// All asset coin amounts for the connected wallet
+const amounts = await query.getCoinAmounts();
+const suiAmount = await query.getCoinAmount('sui');
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+// Market coin (sCoin wrapper) amounts
+const marketAmounts = await query.getMarketCoinAmounts();
+const ssuiAmount = await query.getMarketCoinAmount('ssui');
+```
 
-  const lendings = await scallopQuery.getLendings(['sui', 'wusdc']);
-  const lending = await scallopQuery.getLending('sui');
-  ```
+### Prices
 
-- Get obligation account data.
+```typescript
+// Pyth oracle price
+const suiPrice = await query.getPriceFromPyth('sui');
+const prices = await query.getPricesFromPyth(['sui', 'usdc']); // Record<string, number>
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+// All coin prices (including sCoin), indexer-backed by default
+const allPrices = await query.getAllCoinPrices();
 
-  const obligationAccounts = await scallopQuery.getObligationAccounts();
-  const obligations = await scallopQuery.getObligations();
-  const obligationAccount = await scallopQuery.getObligationAccount(
-    obligations[0].id
-  );
-  ```
+// Indexer price endpoints
+const suiIndexerPrice = await query.getCoinPriceByIndexer('sui');
+const allIndexerPrices = await query.getCoinPricesByIndexer();
+```
 
-- Get TVL.
+---
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
-  const tvl = await scallopQuery.getTvl();
-  ```
+## Spool Queries
 
-## VeSCA Query
+### Spools **[indexer]**
 
-- Get veSCA treasury.
+```typescript
+// All spools
+const spools = await query.getSpools();
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
-  const treasury = await scallopQuery.getVeScaTreasuryInfo();
-  ```
+// Specific spools
+const spools = await query.getSpools(['ssui', 'susdc']);
 
-- Get binded obligation from a veSCA key.
+// Single spool
+const ssuiSpool = await query.getSpool('ssui');
+```
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+> `getStakePools()` and `getStakeRewardPools()` are legacy methods. Use `getSpools()` / `getSpool()` instead.
 
-  const veScaKey = '0x...';
-  const binded = await scallopQuery.getBindedObligation(veScaKey);
-  // binded: { obligationId: string; obligationKey: string } | null
-  ```
+### Stake Accounts
 
-- Get binded veSCA key from an obligation id.
+```typescript
+// All stake accounts across all spools
+const all = await query.getAllStakeAccounts();
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+// Stake accounts for a specific spool
+const ssuiAccounts = await query.getStakeAccounts('ssui');
+```
 
-  const obligationId = '0x...';
-  const veScaKey = await scallopQuery.getBindedVeScaKey(obligationId); // string | null
-  ```
+### Legacy Stake Objects
 
-- Get referral binding.
+These are lower-level methods retained for backward compatibility.
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+```typescript
+const stakePool = await query.getStakePool('ssui');
+const rewardPool = await query.getStakeRewardPool('ssui');
+const stakePools = await query.getStakePools(['ssui', 'susdc']);
+const rewardPools = await query.getStakeRewardPools(['ssui', 'susdc']);
+```
 
-  const refereeAddress = '0x...';
-  const referrerVeScaKey =
-    await scallopQuery.getVeScaKeyIdFromReferralBindings(refereeAddress); // string | null
-  ```
+---
 
-- Get loyalty program info.
+## Borrow Incentive Queries
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+### Incentive Pools **[indexer]**
 
-  const loyaltyProgramInfos = await scallopQuery.getLoyaltyProgramInfos();
-  const veScaLoyaltyInfos = await scallopQuery.getVeScaLoyaltyProgramInfos();
-  ```
+```typescript
+// All borrow incentive pools
+const pools = await query.getBorrowIncentivePools();
+```
 
-## sCoin Query
+### Incentive Accounts
 
-- Get sCoin supply and balances.
+Returns incentive reward details for a specific obligation.
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
-  const sender = '0x...';
+```typescript
+const accounts = await query.getBorrowIncentiveAccounts('0x<obligationId>');
+```
 
-  const sCoinTotalSupply = await scallopQuery.getSCoinTotalSupply('ssui');
-  const sCoinAmounts = await scallopQuery.getSCoinAmounts(
-    ['ssui', 'swusdc'],
-    sender
-  );
-  const sCoinAmount = await scallopQuery.getSCoinAmount('ssui', sender);
-  ```
+---
 
-- Get sCoin swap rate.
+## Lending & Portfolio Queries
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
-  const rate = await scallopQuery.getSCoinSwapRate('ssui', 'swusdc');
-  ```
+### User Lending Info **[indexer]**
 
-## Limits and Isolation
+Returns supplied amounts, supply APR, and spool staking status for a wallet.
 
-- Get pool limits.
+```typescript
+// All lending pools for connected wallet
+const lendings = await query.getLendings();
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+// Specific pools
+const lendings = await query.getLendings(['sui', 'usdc']);
 
-  const supplyLimit = await scallopQuery.getPoolSupplyLimit('sui');
-  const borrowLimit = await scallopQuery.getPoolBorrowLimit('sui');
-  ```
+// Single pool
+const suiLending = await query.getLending('sui');
+```
 
-- Get isolated assets and check isolated status.
+### Obligation Accounts **[indexer]**
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+Full collateral and borrow breakdown per obligation.
 
-  const isolatedAssets = await scallopQuery.getIsolatedAssets(); // default: indexer-backed
-  const isolatedAssetsOnChain = await scallopQuery.getIsolatedAssets(true); // force on-chain
+```typescript
+// All obligation accounts for connected wallet
+const accounts = await query.getObligationAccounts();
 
-  const isIsolated = await scallopQuery.isIsolatedAsset('deep');
-  const isIsolatedOnChain = await scallopQuery.isIsolatedAsset('deep', true);
-  ```
+// By specific obligation IDs
+const accounts = await query.getObligationAccountsByIds(['0x<id1>', '0x<id2>']);
 
-## Oracle and Price Policies
+// Single obligation by ID (includes owner lookup)
+const account = await query.getObligationAccountById('0x<id>');
 
-- Get flashloan fees and all coin prices.
+// Single obligation (searches within wallet's obligations)
+const account = await query.getObligationAccount('0x<id>');
+```
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+### TVL **[indexer]**
 
-  const flashloanFees = await scallopQuery.getFlashLoanFees();
-  const allCoinPrices = await scallopQuery.getAllCoinPrices();
-  ```
+```typescript
+const tvl = await query.getTvl();
+// { totalSupplyValue: number, totalBorrowValue: number }
+```
 
-- Get xOracle policy objects and oracle mapping.
+### User Portfolio **[indexer]**
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+Aggregated view: lending, borrowing, collateral, and spool positions.
 
-  const policies = await scallopQuery.getPriceUpdatePolicies();
-  // { primary: SuiObjectResponse | null, secondary: SuiObjectResponse | null }
+```typescript
+// Connected wallet
+const portfolio = await query.getUserPortfolio();
 
-  const oracles = await scallopQuery.getAssetOracles();
-  /**
-   * {
-   *   sui: { primary: ['pyth', ...], secondary: ['supra', ...] },
-   *   wusdc: { primary: [...], secondary: [...] }
-   * }
-   */
-  ```
+// Specific wallet
+const portfolio = await query.getUserPortfolio({ walletAddress: '0x...' });
+```
 
-- Get Switchboard on-demand aggregator object ids.
+---
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
-  const aggObjectIds =
-    await scallopQuery.getSwitchboardOnDemandAggregatorObjectIds(['sui']);
-  ```
+## veSCA Queries
 
-## Portfolio
+### Get veSCA
 
-- Get user portfolio by wallet address.
+```typescript
+// Single veSCA by key object ID
+const vesca = await query.getVeSca('0x<veScaKey>');
 
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
+// All veSCAs for connected wallet
+const vescas = await query.getVeScas();
 
-  const walletAddress = '0x...';
-  const portfolio = await scallopQuery.getUserPortfolio({ walletAddress });
-  ```
+// Include empty veSCAs (locked SCA already unlocked)
+const all = await query.getVeScas({ excludeEmpty: false });
+
+// For a specific wallet
+const vescas = await query.getVeScas({ walletAddress: '0x...' });
+```
+
+### veSCA Treasury
+
+```typescript
+const treasury = await query.getVeScaTreasuryInfo();
+```
+
+### veSCA ↔ Obligation Bindings
+
+```typescript
+// Get bound obligation from a veSCA key
+const binding = await query.getBindedObligation('0x<veScaKey>');
+// Returns: { obligationId: string; obligationKey: string } | null
+
+// Get bound veSCA key from an obligation
+const veScaKey = await query.getBindedVeScaKey('0x<obligationId>');
+// Returns: string | null
+```
+
+### Referral Bindings
+
+```typescript
+// Get the referrer's veSCA key for a given wallet
+const referrerKey = await query.getVeScaKeyIdFromReferralBindings('0x<referee>');
+// Returns: string | null
+```
+
+### Loyalty Program
+
+```typescript
+// All loyalty program tiers info
+const infos = await query.getLoyaltyProgramInfos();
+
+// veSCA-gated loyalty rewards
+const rewardInfos = await query.getVeScaLoyaltyProgramInfos();
+```
+
+---
+
+## sCoin Queries
+
+```typescript
+// Total supply of a specific sCoin
+const totalSupply = await query.getSCoinTotalSupply('ssui');
+
+// sCoin balances for connected wallet
+const amounts = await query.getSCoinAmounts();
+const amounts = await query.getSCoinAmounts(['ssui', 'susdc']);
+const ssuiAmount = await query.getSCoinAmount('ssui');
+
+// Exchange rate between two sCoins
+const rate = await query.getSCoinSwapRate('ssui', 'susdc');
+```
+
+---
+
+## Limits & Isolation
+
+```typescript
+// Supply and borrow limits for a pool
+const supplyLimit = await query.getPoolSupplyLimit('sui');
+const borrowLimit = await query.getPoolBorrowLimit('sui');
+
+// Isolated assets list (indexer-backed by default)
+const isolatedAssets = await query.getIsolatedAssets();
+
+// Force on-chain query
+const isolatedAssets = await query.getIsolatedAssets(true);
+
+// Check if a specific asset is isolated
+const isIsolated = await query.isIsolatedAsset('deep');
+```
+
+---
+
+## Oracle & Protocol Queries
+
+```typescript
+// Flash loan fees for all lending pools
+const fees = await query.getFlashLoanFees();
+
+// xOracle price update policy objects
+const policies = await query.getPriceUpdatePolicies();
+// { primary: SuiObjectResponse | null, secondary: SuiObjectResponse | null }
+
+// Supported oracles per asset
+const oracles = await query.getAssetOracles();
+// { sui: { primary: ['pyth'], secondary: ['supra'] }, ... }
+
+// Switchboard on-demand aggregator object IDs
+const aggIds = await query.getSwitchboardOnDemandAggregatorObjectIds(['sui']);
+
+// All pool contract addresses (from API)
+const poolAddresses = await query.getPoolAddresses();
+```
