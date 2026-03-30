@@ -43,18 +43,18 @@ const { indexer } = query;
 new Scallop(params?: ScallopParams)
 ```
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `networkType` | `'mainnet'` | `'mainnet'` | Network to connect to. Only `mainnet` is currently supported. |
-| `secretKey` | `string` | — | Base64-encoded private key for signing transactions. Required for write operations. |
-| `walletAddress` | `string` | derived from `secretKey` | Override the wallet address. Useful for read-only usage without a private key. |
-| `fullnodeUrls` | `string[]` | Sui public RPC | Custom RPC endpoints. |
-| `addressId` | `string` | `'695fcdc084f790c04eb068dc'` | Scallop API ID used to fetch contract addresses. The default value points to the latest mainnet deployment. |
-| `queryClientConfig` | `QueryClientConfig` | see below | TanStack Query cache configuration. |
-| `usePythPullModel` | `boolean` | `true` | Whether to use Pyth pull oracle model when building transactions. |
-| `sponsoredFeeds` | `string[]` | `[]` | Pyth price feed IDs that are sponsored (no fee). |
-| `useOnChainXOracleList` | `boolean` | `true` | Whether to fetch the oracle whitelist from on-chain. |
-| `indexerApiUrl` | `string` | Scallop API base URL | Override the Scallop Indexer API endpoint. |
+| Parameter               | Type                | Default                      | Description                                                                                                 |
+| ----------------------- | ------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `networkType`           | `'mainnet'`         | `'mainnet'`                  | Network to connect to. Only `mainnet` is currently supported.                                               |
+| `secretKey`             | `string`            | —                            | Base64-encoded private key for signing transactions. Required for write operations.                         |
+| `walletAddress`         | `string`            | derived from `secretKey`     | Override the wallet address. Useful for read-only usage without a private key.                              |
+| `fullnodeUrls`          | `string[]`          | Sui public RPC               | Custom RPC endpoints.                                                                                       |
+| `addressId`             | `string`            | `'695fcdc084f790c04eb068dc'` | Scallop API ID used to fetch contract addresses. The default value points to the latest mainnet deployment. |
+| `queryClientConfig`     | `QueryClientConfig` | see below                    | TanStack Query cache configuration.                                                                         |
+| `usePythPullModel`      | `boolean`           | `true`                       | Whether to use Pyth pull oracle model when building transactions.                                           |
+| `sponsoredFeeds`        | `string[]`          | `[]`                         | Pyth price feed IDs that are sponsored (no fee).                                                            |
+| `useOnChainXOracleList` | `boolean`           | `true`                       | Whether to fetch the oracle whitelist from on-chain.                                                        |
+| `indexerApiUrl`         | `string`            | Scallop API base URL         | Override the Scallop Indexer API endpoint.                                                                  |
 
 ### Default Cache Options
 
@@ -92,8 +92,8 @@ const sdk = new Scallop({
 Fetches contract addresses and initializes all internal state. Called automatically by all `create*` / `get*` methods, so you only need to call this directly if you want explicit control over initialization timing.
 
 ```typescript
-await sdk.init();         // Initialize once
-await sdk.init(true);     // Force re-initialization (refresh addresses)
+await sdk.init(); // Initialize once
+await sdk.init(true); // Force re-initialization (refresh addresses)
 ```
 
 ### `createScallopClient()`
