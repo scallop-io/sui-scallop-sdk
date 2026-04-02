@@ -12,12 +12,12 @@ jobs:
       packages: write 
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
-          version: 9.12.3
-      - uses: actions/setup-node@v3.6.0
+          version: 10.32.1
+      - uses: actions/setup-node@v6.3.0
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
           scope: '@scallop-io'
@@ -39,7 +39,7 @@ jobs:
       - run: pnpm publish --no-git-checks --tag ${{ env.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-      - uses: actions/setup-node@v3.6.0
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '18'
           cache: 'pnpm'
