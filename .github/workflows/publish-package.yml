@@ -7,17 +7,17 @@ on:
 jobs:
   release:
     runs-on: ubuntu-22.04
-    permissions: 
+    permissions:
       contents: read
-      packages: write 
+      packages: write
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           version: 10.32.1
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6.3.0
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
           scope: '@scallop-io'
@@ -39,7 +39,7 @@ jobs:
       - run: pnpm publish --no-git-checks --tag ${{ env.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6.3.0
         with:
           node-version: '20'
           cache: 'pnpm'
