@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.17](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.16...v2.3.17) (2026-04-02)
+
+### Added
+
+- Support custom `xOracleList` override in `ScallopBuilder` via `xOracleList` param ([039c53c](https://github.com/scallop-io/sui-scallop-sdk/commit/039c53cebf7c0f44d98f6e5e525077ff35bb598f))
+- `unbindReferral` method in referral builder ([ae3367a](https://github.com/scallop-io/sui-scallop-sdk/commit/ae3367aff31cf99d973bed9129285bf893db58f7))
+
 ### [2.3.16](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.15...v2.3.16) (2026-03-15)
 
 ### Added
