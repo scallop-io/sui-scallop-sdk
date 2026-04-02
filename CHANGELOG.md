@@ -2,20 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [2.4.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.2...v2.4.3) (2026-03-27)
+## [3.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.14...v3.0.0) (2026-04-02)
+
+### ⚠ BREAKING CHANGES
+
+Migrated to `@mysten/sui@2` and `@scallop-io/sui-kit@2`. Minimum Node.js version is now 22+ (ESM-only).
+
+- Update all API calls to use `SuiGrpcClient` with `client.core.*` namespace ([cf08538](https://github.com/scallop-io/sui-scallop-sdk/commit/cf08538))
+- Change transaction result access from `result.effects.status.status` to `(result.Transaction ?? result.FailedTransaction).status.success` ([075f4c4](https://github.com/scallop-io/sui-scallop-sdk/commit/075f4c4))
+- Change object access from `.data.content` to `.object` and `.json` for field access ([782eeb7](https://github.com/scallop-io/sui-scallop-sdk/commit/782eeb7))
+- Bump `@mysten/sui` to v2.11.0, add `@protobuf-ts` dependencies, pin vitest versions, and remove `peerDependencies` ([bda468d](https://github.com/scallop-io/sui-scallop-sdk/commit/bda468dd3c034f664bc87537ae5b5e8d7c1a62eb))
+
+### Added
+
+- New `devInspectTxn()` method using JSON-RPC to bypass strict gRPC validation checks ([39d8c66](https://github.com/scallop-io/sui-scallop-sdk/commit/39d8c66))
+- `supply()` client method for supplying assets to the lending pool — industry-standard naming aligned with Aave/Compound ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `supplyAndStake()` client method for supplying to the lending pool and staking in a single transaction ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `supplyQuick()` builder quick method for lending pool deposits ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `depositCollateralQuick()` builder quick method for adding collateral ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `supply` and `depositCollateral` normal builder methods as canonical replacements for `deposit` and `addCollateral` ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
 
 ### Changed
 
-- Bump `@mysten/sui` to v2.11.0, add `@protobuf-ts` dependencies, pin vitest versions, and remove `peerDependencies` ([bda468d](https://github.com/scallop-io/sui-scallop-sdk/commit/bda468dd3c034f664bc87537ae5b5e8d7c1a62eb))
+- Set sender and gas settings when building veSCA treasury query transactions ([7ff6cd2](https://github.com/scallop-io/sui-scallop-sdk/commit/7ff6cd2))
+- `depositCollateral()` client method now calls `depositCollateralQuick()` internally instead of the deprecated `addCollateralQuick()` ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- Fixed `userRewardFieldsZod` and `userVeScaRewardFieldsZod` schemas in loyalty program query to correctly parse string values unwrapped by `parseObjectAs` ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
 
 ### Fixed
 
 - Normalize Move JSON parsing to handle both JSON-RPC and gRPC response formats across all query and builder modules ([09d8497](https://github.com/scallop-io/sui-scallop-sdk/commit/09d84979cfe3b06cc80ef6a11254b256a72ec19c))
-
-### [2.4.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.1...v2.4.2) (2026-03-05)
-
-### Fixed
-
 - Correct Zod schemas by removing unnecessary fields in borrowLimit, isolatedAsset, and supplyLimit queries ([19b7ee1](https://github.com/scallop-io/sui-scallop-sdk/commit/19b7ee1))
 - Streamline JSON field access in vescaBuilder and switchboardQuery, removing unnecessary nesting ([ae4da96](https://github.com/scallop-io/sui-scallop-sdk/commit/ae4da96))
 - Correct index assignment in `getOnDemandAggObjectIds` for registered aggregators ([503e32c](https://github.com/scallop-io/sui-scallop-sdk/commit/503e32c))
@@ -23,6 +38,9 @@ All notable changes to this project will be documented in this file. See [standa
 - Correct JSON field access paths in market object parsing for pool addresses ([222c507](https://github.com/scallop-io/sui-scallop-sdk/commit/222c507))
 - Decode BCS-encoded TypeName in flashloan fee object query ([222c507](https://github.com/scallop-io/sui-scallop-sdk/commit/222c507))
 - Remove recursive unwrap in `parseDynamicFieldValue` that caused incorrect nested field parsing ([222c507](https://github.com/scallop-io/sui-scallop-sdk/commit/222c507))
+- Correct access to `binded_ve_sca_key` in borrow incentive query ([66c66a7](https://github.com/scallop-io/sui-scallop-sdk/commit/66c66a7))
+- Return `null` instead of throwing when dynamic fields are missing ([561653c](https://github.com/scallop-io/sui-scallop-sdk/commit/561653c))
+- Fix loyalty program user reward parsing schema ([c4cdfec](https://github.com/scallop-io/sui-scallop-sdk/commit/c4cdfec))
 
 ### Refactored
 
@@ -32,8 +50,18 @@ All notable changes to this project will be documented in this file. See [standa
 - Update `EncodeDynamicFieldNameInput` type and adjust `encodeDynamicFieldNameForV2` function ([257bf36](https://github.com/scallop-io/sui-scallop-sdk/commit/257bf36))
 - Rename variable for clarity in switchboard query ([0639fe1](https://github.com/scallop-io/sui-scallop-sdk/commit/0639fe1))
 
+### Removed
+
+- Nested `.fields` access patterns (v2 auto-unwraps fields from `.json`) ([8884816](https://github.com/scallop-io/sui-scallop-sdk/commit/8884816))
+
 ### Deprecated
 
+- `deposit()` client method — use `supply()` instead ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `depositAndStake()` client method — use `supplyAndStake()` instead ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `depositQuick()` builder quick method — use `supplyQuick()` instead ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `addCollateralQuick()` builder quick method — use `depositCollateralQuick()` instead ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `deposit` builder normal method — use `supply` instead ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
+- `addCollateral` builder normal method — use `depositCollateral` instead ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
 - `getBindedObligationId` — use `getBindedObligation` instead ([5db77bf](https://github.com/scallop-io/sui-scallop-sdk/commit/5db77bf))
 
 ### Chore
@@ -45,57 +73,6 @@ All notable changes to this project will be documented in this file. See [standa
 
 - Add unit tests for utility functions ([9011033](https://github.com/scallop-io/sui-scallop-sdk/commit/9011033))
 - Update builder and query tests ([cabf3b5](https://github.com/scallop-io/sui-scallop-sdk/commit/cabf3b5))
-
-### [2.4.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.0...v2.4.1) (2026-02-27)
-
-### Added
-
-- Add assertions for veSCA treasury info test ([12bea01](https://github.com/scallop-io/sui-scallop-sdk/commit/12bea01))
-- `supply()` client method for supplying assets to the lending pool — industry-standard naming aligned with Aave/Compound ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-- `supplyAndStake()` client method for supplying to the lending pool and staking in a single transaction ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-- `supplyQuick()` builder quick method for lending pool deposits ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-- `depositCollateralQuick()` builder quick method for adding collateral ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-- `supply` and `depositCollateral` normal builder methods as canonical replacements for `deposit` and `addCollateral` ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-
-### Changed
-
-- Set sender and gas settings when building veSCA treasury query transactions ([7ff6cd2](https://github.com/scallop-io/sui-scallop-sdk/commit/7ff6cd2))
-- Simplify obligationId check in veSCA key test and align logging ([152c9e3](https://github.com/scallop-io/sui-scallop-sdk/commit/152c9e3))
-- `depositCollateral()` client method now calls `depositCollateralQuick()` internally instead of the deprecated `addCollateralQuick()` ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-- Fixed `userRewardFieldsZod` and `userVeScaRewardFieldsZod` schemas in loyalty program query to correctly parse string values unwrapped by `parseObjectAs` ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-
-### Fixed
-
-- Correct access to `binded_ve_sca_key` in borrow incentive query ([66c66a7](https://github.com/scallop-io/sui-scallop-sdk/commit/66c66a7))
-- Return `null` instead of throwing when dynamic fields are missing ([561653c](https://github.com/scallop-io/sui-scallop-sdk/commit/561653c))
-- Fix loyalty program user reward parsing schema ([c4cdfec](https://github.com/scallop-io/sui-scallop-sdk/commit/c4cdfec))
-
-### Deprecated
-
-- `deposit()` client method — use `supply()` instead. Will be removed in v3.0 ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-- `depositAndStake()` client method — use `supplyAndStake()` instead. Will be removed in v3.0 ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-- `depositQuick()` builder quick method — use `supplyQuick()` instead. Will be removed in v3.0 ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-- `addCollateralQuick()` builder quick method — use `depositCollateralQuick()` instead. Will be removed in v3.0 ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-- `deposit` builder normal method — use `supply` instead. Will be removed in v3.0 ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-- `addCollateral` builder normal method — use `depositCollateral` instead. Will be removed in v3.0 ([f913e14](https://github.com/scallop-io/sui-scallop-sdk/commit/f913e14))
-
-### [2.4.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.14...v2.4.0) (2026-02-16)
-
-### ⚠ BREAKING CHANGES
-
-Migrated to `@mysten/sui@2` and `@scallop-io/sui-kit@2`. Minimum Node.js version is now 22+ (ESM-only).
-
-- Update all API calls to use `SuiGrpcClient` with `client.core.*` namespace ([cf08538](https://github.com/scallop-io/sui-scallop-sdk/commit/cf08538))
-- Change transaction result access from `result.effects.status.status` to `(result.Transaction ?? result.FailedTransaction).status.success` ([075f4c4](https://github.com/scallop-io/sui-scallop-sdk/commit/075f4c4))
-- Change object access from `.data.content` to `.object` and `.json` for field access ([782eeb7](https://github.com/scallop-io/sui-scallop-sdk/commit/782eeb7))
-
-### Added
-
-- New `devInspectTxn()` method using JSON-RPC to bypass strict gRPC validation checks ([39d8c66](https://github.com/scallop-io/sui-scallop-sdk/commit/39d8c66))
-
-### Removed
-
-- Nested `.fields` access patterns (v2 auto-unwraps fields from `.json`) ([8884816](https://github.com/scallop-io/sui-scallop-sdk/commit/8884816))
 
 ### [2.3.14](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.13...v2.3.14) (2026-02-02)
 
