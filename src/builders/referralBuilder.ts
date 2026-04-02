@@ -95,6 +95,13 @@ const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
         [coinType]
       );
     },
+    unbindReferral: () => {
+      return builder.moveCall(
+        txBlock,
+        `${referralIds.referralPgkId}::referral_bindings::unbind_ve_sca_referrer`,
+        [referralIds.referralBindings]
+      );
+    },
   };
 };
 

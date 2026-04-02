@@ -22,6 +22,7 @@ export type ReferralNormalMethods = {
     veScaKey: SuiObjectArg,
     poolCoinName: string
   ) => TransactionResult;
+  unbindReferral: () => void;
 };
 
 export type ReferralQuickMethods = {
