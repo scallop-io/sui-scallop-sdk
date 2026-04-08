@@ -160,7 +160,7 @@ class ScallopSuiKit extends ScallopQueryClient {
    */
   async queryGetObject(objectId: string, options?: SuiObjectDataOptions) {
     const includeOptions: SuiObjectDataOptions = {
-      content: true,
+      // content: true,
       json: true,
       ...options,
     };
@@ -189,7 +189,7 @@ class ScallopSuiKit extends ScallopQueryClient {
   ): Promise<SuiObjectData[]> {
     if (objectIds.length === 0) return [];
     const includeOptions: SuiObjectDataOptions = {
-      content: true,
+      // content: true,
       json: true,
       ...options,
     };
@@ -316,7 +316,7 @@ class ScallopSuiKit extends ScallopQueryClient {
           return await this.client.core.getObject({
             objectId: dynamicField.fieldId,
             include: {
-              content: true,
+              // content: true,
               json: true,
             },
           });
