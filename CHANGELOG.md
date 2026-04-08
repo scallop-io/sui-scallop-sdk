@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v3.0.0...v3.0.1) (2026-04-08)
+
+### Fixed
+
+- TypeName fields in query types (`MarketPool`, `MarketCollateral`, `OriginMarketPoolData`, `OriginMarketCollateralData`, `SpoolData`, `StakeAccount`) now correctly use `string` instead of `{ name: string }` to match gRPC runtime format ([a1f58b9](https://github.com/scallop-io/sui-scallop-sdk/commit/a1f58b94b7043a022ca411a35c69fbbea4006beb))
+- Disable `content` option in Sui object fetch calls ([7cc3261](https://github.com/scallop-io/sui-scallop-sdk/commit/7cc3261a2662c537926da0a5912ca9e06379f985))
+
 ## [3.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.14...v3.0.0) (2026-04-02)
 
 ### ⚠ BREAKING CHANGES
