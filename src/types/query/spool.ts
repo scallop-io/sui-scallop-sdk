@@ -23,7 +23,7 @@ export type Spool = {
   SpoolRewardPool;
 
 export type OriginSpoolData = {
-  stakeType: { name: string };
+  stakeType: string;
   maxDistributedPoint: string;
   distributedPoint: string;
   distributedPointPerPeriod: string;
@@ -47,9 +47,7 @@ export type SpoolData = {
   max_distributed_point: string;
   max_stakes: string;
   point_distribution_time: string;
-  stake_type: {
-    name: string;
-  };
+  stake_type: string;
   stakes: string;
 };
 

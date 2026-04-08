@@ -35,7 +35,7 @@ export const parseOriginMarketPoolData = (
   originMarketPoolData: OriginMarketPoolData
 ): ParsedMarketPoolData => {
   return {
-    coinType: normalizeStructTag(originMarketPoolData.type.name),
+    coinType: normalizeStructTag(originMarketPoolData.type),
     // Parse origin data required for basic calculations.
     maxBorrowRate: Number(originMarketPoolData.maxBorrowRate.value) / 2 ** 32,
     borrowRate: Number(originMarketPoolData.interestRate.value) / 2 ** 32,
@@ -186,7 +186,7 @@ export const parseOriginMarketCollateralData = (
 ): ParsedMarketCollateralData => {
   const divisor = 2 ** 32;
   return {
-    coinType: normalizeStructTag(originMarketCollateralData.type.name),
+    coinType: normalizeStructTag(originMarketCollateralData.type),
     isIsolated: originMarketCollateralData.isIsolated,
     collateralFactor:
       Number(originMarketCollateralData.collateralFactor.value) / divisor,
@@ -244,7 +244,7 @@ export const parseOriginSpoolData = (
   originSpoolData: OriginSpoolData
 ): ParsedSpoolData => {
   return {
-    stakeType: normalizeStructTag(originSpoolData.stakeType.name),
+    stakeType: normalizeStructTag(originSpoolData.stakeType),
     maxPoint: Number(originSpoolData.maxDistributedPoint),
     distributedPoint: Number(originSpoolData.distributedPoint),
     pointPerPeriod: Number(originSpoolData.distributedPointPerPeriod),

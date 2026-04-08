@@ -142,6 +142,7 @@ export const queryMarket = async (
 
     const parsedMarketPoolData = parseOriginMarketPoolData({
       ...pool,
+      type: pool.type.name,
       isIsolated: await isIsolatedAsset(utils, poolCoinName),
       supplyLimit: (await getSupplyLimit(utils, poolCoinName)) ?? '0',
       borrowLimit: (await getBorrowLimit(utils, poolCoinName)) ?? '0',
@@ -177,6 +178,7 @@ export const queryMarket = async (
 
     const parsedMarketCollateralData = parseOriginMarketCollateralData({
       ...collateral,
+      type: collateral.type.name,
       liquidationPenalty: collateral.liquidationPanelty,
       isIsolated: await isIsolatedAsset(utils, collateralCoinName),
     });
@@ -432,7 +434,7 @@ const parseMarketPoolObjects = async (
 
   const isIsolated = await isIsolatedAsset(
     utils,
-    utils.parseCoinNameFromType(`0x${_interestModel.type.name}`)
+    utils.parseCoinNameFromType(`0x${_interestModel.type}`)
   );
 
   const parsedOriginMarketCollateral =
@@ -725,13 +727,13 @@ export const getMarketCollateral = async (
     throw new Error(`Failed to fetch marketObject`);
 
   const fields = parseObjectAs<{
-    risk_models: { table: { id: { id: string } } };
-    collateral_stats: { table: { id: { id: string } } };
+    risk_models: { table: { id: string } };
+    collateral_stats: { table: { id: string } };
   }>(marketObject);
   const coinType = utils.parseCoinType(collateralCoinName);
 
   // Get risk model.
-  const riskModelParentId = fields.risk_models.table.id.id;
+  const riskModelParentId = fields.risk_models.table.id;
   const riskModelDynamicFieldObjectResponse =
     await scallopSuiKit.queryGetDynamicFieldObject({
       parentId: riskModelParentId,
@@ -755,7 +757,7 @@ export const getMarketCollateral = async (
   );
 
   // Get collateral stat.
-  const collateralStatParentId = fields.collateral_stats.table.id.id;
+  const collateralStatParentId = fields.collateral_stats.table.id;
   const collateralStatDynamicFieldObjectResponse =
     await scallopSuiKit.queryGetDynamicFieldObject({
       parentId: collateralStatParentId,

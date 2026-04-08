@@ -522,7 +522,7 @@ describe('utils/object', () => {
               spool_id: '0xpool1',
               stake_type: {
                 type: '0x1::type_name::TypeName',
-                fields: { name: 'sweth' },
+                fields: 'sweth',
               },
               stakes: '500',
               index: '10',
@@ -536,7 +536,7 @@ describe('utils/object', () => {
 
     const result = parseObjectAs<{
       spool_id: string;
-      stake_type: { name: string };
+      stake_type: string;
       stakes: string;
       index: string;
       points: string;
@@ -544,7 +544,7 @@ describe('utils/object', () => {
     }>(object);
 
     expect(result.spool_id).toBe('0xpool1');
-    expect(result.stake_type.name).toBe('sweth');
+    expect(result.stake_type).toBe('sweth');
     expect(result.stakes).toBe('500');
   });
 
