@@ -59,9 +59,7 @@ export type InterestModel = {
   revenue_factor: {
     value: string;
   };
-  type: {
-    name: string;
-  };
+  type: string;
 };
 
 export type RiskModel = {
@@ -81,9 +79,7 @@ export type RiskModel = {
     value: string;
   };
   max_collateral_amount: string;
-  type: {
-    name: string;
-  };
+  type: string;
 };
 
 export type CollateralStat = { amount: string };
@@ -136,7 +132,7 @@ export type MarketCollateral = {
   CalculatedMarketCollateralData;
 
 export type OriginMarketPoolData = {
-  type: { name: string };
+  type: string;
   maxBorrowRate: { value: string };
   interestRate: { value: string };
   interestRateScale: string;
@@ -215,7 +211,7 @@ export type CalculatedMarketPoolData = {
 };
 
 export type OriginMarketCollateralData = {
-  type: { name: string };
+  type: string;
   isIsolated: boolean;
   collateralFactor: { value: string };
   liquidationFactor: { value: string };
