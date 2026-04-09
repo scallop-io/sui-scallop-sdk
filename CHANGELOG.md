@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v3.0.1...v3.0.2) (2026-04-09)
+
+### Fixed
+
+- Remove broken obligation key fallback loop that could cause infinite pagination over all owned objects ([1d17014](https://github.com/scallop-io/sui-scallop-sdk/commit/1d17014465e93e4470a7f85d0748b57b55d9a6e0))
+- Increase pagination limits from 10 to 50 across query modules for faster data fetching ([1d17014](https://github.com/scallop-io/sui-scallop-sdk/commit/1d17014465e93e4470a7f85d0748b57b55d9a6e0))
+- Remove remaining `content: true` options from object fetch calls ([1d17014](https://github.com/scallop-io/sui-scallop-sdk/commit/1d17014465e93e4470a7f85d0748b57b55d9a6e0))
+
 ## [3.0.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v3.0.0...v3.0.1) (2026-04-08)
 
 ### Fixed
