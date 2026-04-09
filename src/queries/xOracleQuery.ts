@@ -94,7 +94,7 @@ export const getAssetOracles = async (
               'core.oracles.secondaryPriceUpdatePolicyVecsetId'
             ),
       cursor,
-      limit: 10,
+      limit: 50,
     });
     if (!response) break;
     const { dynamicFields, hasNextPage, cursor: nextCursor } = response;

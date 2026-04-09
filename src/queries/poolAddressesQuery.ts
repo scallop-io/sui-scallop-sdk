@@ -22,7 +22,7 @@ const queryFlashloanFeeObjectIds = async (
   do {
     const resp = await client.core.listDynamicFields({
       parentId: flashloanFeeTableId,
-      limit: 10,
+      limit: 50,
       cursor,
     });
     if (!resp) break;
@@ -71,7 +71,7 @@ const fetchDynamicObject = async <S extends boolean>(
 
     const { object } = await client.core.getObject({
       objectId: dynamicField.fieldId,
-      include: { content: true, json: true },
+      include: { json: true },
     });
 
     if (!object) return undefined as FetchDynamicObjectReturnType<S>;
@@ -126,7 +126,7 @@ export const getPoolAddresses = async (
   const marketObject = (
     await client.core.getObject({
       objectId: marketId,
-      include: { content: true, json: true },
+      include: { json: true },
     })
   )?.object;
 

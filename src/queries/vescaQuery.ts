@@ -38,11 +38,10 @@ export const getVescaKeys = async (
           StructType: veScaKeyType,
         },
         options: {
-          content: true,
           json: true,
         },
         cursor: nextCursor,
-        limit: 10,
+        limit: 50,
       });
     if (!paginatedKeyObjectsResponse) break;
 

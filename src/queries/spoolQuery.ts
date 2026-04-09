@@ -307,11 +307,10 @@ export const getStakeAccounts = async (
         owner,
         filter: { StructType: stakeAccountType },
         options: {
-          content: true,
           json: true,
         },
         cursor: nextCursor,
-        limit: 10,
+        limit: 50,
       });
     if (!paginatedStakeObjectsResponse) break;
 
