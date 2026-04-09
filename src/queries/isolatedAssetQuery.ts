@@ -36,7 +36,7 @@ export const getIsolatedAssets = async (
       const response = await query.scallopSuiKit.queryGetDynamicFields({
         parentId: marketObject,
         cursor: nextCursor,
-        limit: 10,
+        limit: 50,
       });
       if (!response) break;
 

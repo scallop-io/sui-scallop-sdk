@@ -245,7 +245,6 @@ const queryRequiredMarketObjects = async (
 
   for (const batch of batches) {
     const responses = await scallopSuiKit.queryGetObjects(batch, {
-      content: true,
       json: true,
     });
     if (responses.length > 0) {
@@ -845,11 +844,10 @@ export const getObligations = async (
           StructType: `${protocolObjectId}::obligation::ObligationKey`,
         },
         options: {
-          content: true,
           json: true,
         },
         cursor: nextCursor,
-        limit: 10,
+        limit: 50,
       });
 
     if (!paginatedKeyObjectsResponse) break;
@@ -867,30 +865,6 @@ export const getObligations = async (
       hasNextPage = false;
     }
   } while (hasNextPage);
-
-  if (keyObjectsResponse.length === 0) {
-    let cursor: string | null | undefined = null;
-    let hasNext = false;
-    do {
-      const owned = await utils.scallopSuiKit.queryGetOwnedObjects({
-        owner,
-        options: {
-          content: true,
-          json: true,
-        },
-        cursor,
-        limit: 50,
-      });
-      if (!owned) break;
-      const matched =
-        owned.objects?.filter((obj) =>
-          (obj.type ?? '').includes('::obligation::ObligationKey')
-        ) ?? [];
-      keyObjectsResponse.push(...matched);
-      hasNext = Boolean(owned.hasNextPage && owned.cursor);
-      cursor = owned.cursor;
-    } while (hasNext);
-  }
 
   const keyObjects = keyObjectsResponse.filter((ref) => !!ref);
 

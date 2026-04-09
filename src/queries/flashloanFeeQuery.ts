@@ -30,7 +30,7 @@ export const queryFlashLoanFees = async (
   do {
     const resp = await scallopSuiKit.queryGetDynamicFields({
       parentId: FLASHLOAN_FEES_TABLE_ID,
-      limit: 10,
+      limit: 50,
       cursor,
     });
 

@@ -365,7 +365,7 @@ class ScallopSuiKit extends ScallopQueryClient {
           const result = await this.client.core.listBalances({
             owner,
             cursor,
-            limit: 100,
+            limit: 50,
           });
           allBalances.push(...(result.balances ?? []));
           hasNextPage = result.hasNextPage;

@@ -656,18 +656,18 @@ describe('utils/indexer', () => {
       method,
       context,
       'pool',
-      { indexer: true, limit: 10 }
+      { indexer: true, limit: 50 }
     );
 
     expect(result).toBe('ctx:pool:false:10');
     expect(method).toHaveBeenCalledTimes(2);
     expect(method.mock.calls[0]).toEqual([
       'pool',
-      { indexer: true, limit: 10 },
+      { indexer: true, limit: 50 },
     ]);
     expect(method.mock.calls[1]).toEqual([
       'pool',
-      { indexer: false, limit: 10 },
+      { indexer: false, limit: 50 },
     ]);
     expect(seenContexts).toEqual([context, context]);
     expect(warnSpy).toHaveBeenCalledTimes(1);
