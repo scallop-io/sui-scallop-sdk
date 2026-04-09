@@ -59,6 +59,7 @@ export const getLendings = async (
     marketPools,
     coinPrices,
   });
+
   const [coinAmounts, marketCoinAmounts, allStakeAccounts] = await Promise.all([
     query.getCoinAmounts(poolCoinNames, ownerAddress),
     query.getMarketCoinAmounts(marketCoinNames, ownerAddress),
