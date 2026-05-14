@@ -10,6 +10,7 @@ import { newReferralTxBlock } from './referralBuilder';
 import { newObligationNamingTxBlock } from './obligationNamingBuilder';
 import { newLoyaltyProgramTxBlock } from './loyaltyProgramBuilder';
 import { newSCoinTxBlock } from './sCoinBuilder';
+import { SCALLOP_TX_BLOCK_MARKER } from 'src/utils';
 
 /**
  * Create a new ScallopTxBlock instance.
@@ -39,6 +40,7 @@ export const newScallopTxBlock = (
 
   return new Proxy(coreTxBlock, {
     get: (target, prop) => {
+      if (prop === SCALLOP_TX_BLOCK_MARKER) return true;
       if (prop in vescaTxBlock) {
         return Reflect.get(vescaTxBlock, prop);
       } else if (prop in borrowIncentiveTxBlock) {

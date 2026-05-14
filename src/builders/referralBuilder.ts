@@ -1,11 +1,6 @@
 import { ScallopBuilder } from 'src/models';
 import { ScallopTxBlock } from 'src/types';
-import {
-  SUI_CLOCK_OBJECT_ID,
-  SuiTxBlock as SuiKitTxBlock,
-  SuiObjectArg,
-  Transaction,
-} from '@scallop-io/sui-kit';
+import { SUI_CLOCK_OBJECT_ID } from '@scallop-io/sui-kit';
 import {
   GenerateReferralNormalMethod,
   GenerateReferralQuickMethod,
@@ -13,7 +8,12 @@ import {
   ReferralTxBlock,
   SuiTxBlockWithReferralNormalMethods,
 } from 'src/types/builder/referral';
-import { requireSender } from 'src/utils';
+import { requireSender, resolveTxBlock } from 'src/utils';
+import type {
+  SuiTxBlock as SuiKitTxBlock,
+  SuiObjectArg,
+  Transaction,
+} from '@scallop-io/sui-kit';
 
 const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
   builder,
@@ -155,12 +155,7 @@ export const newReferralTxBlock = (
   builder: ScallopBuilder,
   initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ) => {
-  const txBlock =
-    initTxBlock instanceof Transaction
-      ? new SuiKitTxBlock(initTxBlock)
-      : initTxBlock
-        ? initTxBlock
-        : new SuiKitTxBlock();
+  const txBlock = resolveTxBlock(initTxBlock);
 
   const normalMethod = generateReferralNormalMethod({
     builder,

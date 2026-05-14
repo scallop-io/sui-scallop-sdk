@@ -1,8 +1,8 @@
-import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
-import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { getStakeAccounts } from '../queries/spoolQuery';
-import { requireSender } from '../utils';
+import { requireSender, resolveTxBlock } from '../utils';
+import type { Transaction } from '@mysten/sui/transactions';
+import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
 import type { ScallopBuilder } from 'src/models';
@@ -332,12 +332,7 @@ export const newSpoolTxBlock = (
     | Transaction
     | SuiTxBlockWithSCoin
 ) => {
-  const txBlock =
-    initTxBlock instanceof Transaction
-      ? new SuiKitTxBlock(initTxBlock)
-      : initTxBlock
-        ? initTxBlock
-        : new SuiKitTxBlock();
+  const txBlock = resolveTxBlock(initTxBlock);
 
   const normalMethod = generateSpoolNormalMethod({
     builder,

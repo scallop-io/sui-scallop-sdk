@@ -1,9 +1,9 @@
-import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
-import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { getObligations } from '../queries';
 import { updateOracles } from './oracles';
-import { requireSender } from '../utils';
+import { requireSender, resolveTxBlock } from '../utils';
+import type { Transaction } from '@mysten/sui/transactions';
+import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
 import type {
@@ -575,12 +575,7 @@ export const newCoreTxBlock = (
     | Transaction
     | SuiTxBlockWithSpool
 ) => {
-  const txBlock =
-    initTxBlock instanceof Transaction
-      ? new SuiKitTxBlock(initTxBlock)
-      : initTxBlock
-        ? initTxBlock
-        : new SuiKitTxBlock();
+  const txBlock = resolveTxBlock(initTxBlock);
 
   const normalMethod = generateCoreNormalMethod({
     builder,

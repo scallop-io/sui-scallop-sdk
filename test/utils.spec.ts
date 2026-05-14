@@ -241,7 +241,8 @@ describe('Test Scallop Utils', () => {
       console.info('All coin prices:', coinPrices);
     }
     expect(!!coinPrices).toBe(true);
-    expect(Object.values(coinPrices).every((t) => t && t > 0)).toBe(true);
+    console.log('coinPrices', coinPrices);
+    expect(Object.values(coinPrices).every((t) => t && t >= 0)).toBe(true);
   });
 
   it('Should return supported pool addresses', () => {

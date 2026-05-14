@@ -1,5 +1,5 @@
-import { Transaction } from '@mysten/sui/transactions';
-import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
+import type { Transaction } from '@mysten/sui/transactions';
+import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models';
 import {
   GenerateLoyaltyProgramNormalMethod,
@@ -8,7 +8,7 @@ import {
   ScallopTxBlock,
   SuiTxBlockWithLoyaltyProgramNormalMethods,
 } from 'src/types';
-import { requireSender } from 'src/utils';
+import { requireSender, resolveTxBlock } from 'src/utils';
 
 const generateLoyaltyProgramNormalMethod: GenerateLoyaltyProgramNormalMethod =
   ({ builder, txBlock }) => {
@@ -105,12 +105,7 @@ export const newLoyaltyProgramTxBlock = (
   builder: ScallopBuilder,
   initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ) => {
-  const txBlock =
-    initTxBlock instanceof Transaction
-      ? new SuiKitTxBlock(initTxBlock)
-      : initTxBlock
-        ? initTxBlock
-        : new SuiKitTxBlock();
+  const txBlock = resolveTxBlock(initTxBlock);
 
   const normalMethod = generateLoyaltyProgramNormalMethod({
     builder,

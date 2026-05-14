@@ -1,9 +1,4 @@
-import {
-  SUI_CLOCK_OBJECT_ID,
-  SuiTxBlock,
-  Transaction,
-  SuiTxBlock as SuiKitTxBlock,
-} from '@scallop-io/sui-kit';
+import { SUI_CLOCK_OBJECT_ID } from '@scallop-io/sui-kit';
 import { SCA_COIN_TYPE } from 'src/constants';
 import { ScallopBuilder } from 'src/models';
 import { getVeSca, getVeScas } from 'src/queries';
@@ -14,7 +9,13 @@ import {
   checkExtendLockAmount,
   checkRenewExpiredVeSca,
   checkVesca,
+  resolveTxBlock,
 } from 'src/utils';
+import type {
+  SuiTxBlock,
+  Transaction,
+  SuiTxBlock as SuiKitTxBlock,
+} from '@scallop-io/sui-kit';
 import type {
   TransactionObjectArgument,
   SuiObjectArg,
@@ -535,12 +536,7 @@ export const newVeScaTxBlock = (
   builder: ScallopBuilder,
   initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ) => {
-  const txBlock =
-    initTxBlock instanceof Transaction
-      ? new SuiKitTxBlock(initTxBlock)
-      : initTxBlock
-        ? initTxBlock
-        : new SuiKitTxBlock();
+  const txBlock = resolveTxBlock(initTxBlock);
 
   const normalMethod = generateNormalVeScaMethod({
     builder,

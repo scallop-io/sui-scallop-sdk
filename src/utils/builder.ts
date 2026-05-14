@@ -1,4 +1,4 @@
-import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
+import { SuiTxBlock as SuiKitTxBlock, Transaction } from '@scallop-io/sui-kit';
 import {
   UNLOCK_ROUND_DURATION,
   MAX_LOCK_DURATION,
@@ -7,6 +7,39 @@ import {
   MIN_TOP_UP_AMOUNT,
 } from 'src/constants';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
+import type { ScallopTxBlock } from 'src/types';
+
+/**
+ * Marker the outer `newScallopTxBlock` Proxy returns `true` for, so we can
+ * runtime-detect a `ScallopTxBlock` (otherwise indistinguishable from a plain
+ * `SuiKitTxBlock` since `ScallopTxBlock` is a TS-only type intersection).
+ */
+export const SCALLOP_TX_BLOCK_MARKER = Symbol.for('scallop.txBlock');
+
+export const isScallopTxBlock = (value: unknown): value is ScallopTxBlock => {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as Record<symbol, unknown>)[SCALLOP_TX_BLOCK_MARKER] === true
+  );
+};
+
+/**
+ * Resolve the `initTxBlock` argument accepted by every `new*TxBlock` factory
+ * into a concrete `SuiKitTxBlock` instance.
+ * - `ScallopTxBlock` (detected via marker) → pass through
+ * - `Transaction` → wrap in a new `SuiKitTxBlock`
+ * - existing `SuiKitTxBlock` → pass through
+ * - `undefined` → fresh `SuiKitTxBlock`
+ */
+export const resolveTxBlock = (
+  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
+): SuiKitTxBlock => {
+  if (isScallopTxBlock(initTxBlock)) return initTxBlock;
+  if (initTxBlock instanceof SuiKitTxBlock) return initTxBlock;
+  if (initTxBlock instanceof Transaction) return new SuiKitTxBlock(initTxBlock);
+  return initTxBlock ?? new SuiKitTxBlock();
+};
 
 /**
  * Check and get the sender from the transaction block.

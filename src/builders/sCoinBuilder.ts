@@ -1,4 +1,3 @@
-import { Transaction, SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models';
 import {
   BaseScallopTxBlock,
@@ -9,7 +8,11 @@ import {
   SuiTxBlockWithSCoinNormalMethods,
   sCoinPkgIds,
 } from 'src/types';
-import { requireSender } from 'src/utils';
+import { requireSender, resolveTxBlock } from 'src/utils';
+import type {
+  Transaction,
+  SuiTxBlock as SuiKitTxBlock,
+} from '@scallop-io/sui-kit';
 
 const generateSCoinNormalMethod: GenerateSCoinNormalMethod = ({
   builder,
@@ -86,12 +89,7 @@ export const newSCoinTxBlock = (
     | Transaction
     | BaseScallopTxBlock
 ) => {
-  const txBlock =
-    initTxBlock instanceof Transaction
-      ? new SuiKitTxBlock(initTxBlock)
-      : initTxBlock
-        ? initTxBlock
-        : new SuiKitTxBlock();
+  const txBlock = resolveTxBlock(initTxBlock);
 
   const normalMethod = generateSCoinNormalMethod({
     builder,

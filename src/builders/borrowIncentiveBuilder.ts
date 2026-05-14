@@ -1,10 +1,8 @@
-import { Transaction } from '@mysten/sui/transactions';
-import {
-  SuiTxBlock as SuiKitTxBlock,
-  SUI_CLOCK_OBJECT_ID,
-} from '@scallop-io/sui-kit';
+import { SUI_CLOCK_OBJECT_ID } from '@scallop-io/sui-kit';
 import { getObligations, getObligationLocked } from 'src/queries';
-import { requireSender } from 'src/utils';
+import { requireSender, resolveTxBlock } from 'src/utils';
+import type { Transaction } from '@mysten/sui/transactions';
+import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models';
 import type {
@@ -332,12 +330,7 @@ export const newBorrowIncentiveTxBlock = (
   builder: ScallopBuilder,
   initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ) => {
-  const txBlock =
-    initTxBlock instanceof Transaction
-      ? new SuiKitTxBlock(initTxBlock)
-      : initTxBlock
-        ? initTxBlock
-        : new SuiKitTxBlock();
+  const txBlock = resolveTxBlock(initTxBlock);
 
   const normalMethod = generateBorrowIncentiveNormalMethod({
     builder,

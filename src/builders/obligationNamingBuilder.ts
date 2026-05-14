@@ -1,6 +1,7 @@
 import { ScallopBuilder } from 'src/models';
 import { ScallopTxBlock } from 'src/types';
-import {
+import { resolveTxBlock } from 'src/utils';
+import type {
   SuiTxBlock as SuiKitTxBlock,
   SuiObjectArg,
   Transaction,
@@ -67,12 +68,7 @@ export const newObligationNamingTxBlock = (
   builder: ScallopBuilder,
   initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ) => {
-  const txBlock =
-    initTxBlock instanceof Transaction
-      ? new SuiKitTxBlock(initTxBlock)
-      : initTxBlock
-        ? initTxBlock
-        : new SuiKitTxBlock();
+  const txBlock = resolveTxBlock(initTxBlock);
 
   const normalMethod = generateObligationNamingNormalMethod({
     builder,
