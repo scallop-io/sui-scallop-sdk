@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.4.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.4...v2.4.5) (2026-05-15)
+
+### Changed
+
+- Consolidate `initTxBlock` resolution across all `new*TxBlock` factories into a shared `resolveTxBlock` helper; add `SCALLOP_TX_BLOCK_MARKER` symbol and `isScallopTxBlock` type guard for runtime detection of `ScallopTxBlock` instances ([536ca66](https://github.com/scallop-io/sui-scallop-sdk/commit/536ca66ae51cc3d2b84d4e87b89de1b8539657e3))
+
 ### [2.4.4](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.3.16...v2.3.17) (2026-04-02)
 
 ### Added
