@@ -25,22 +25,26 @@ Tracks [`docs/SDK_STRUCTURE_FIX_PLAN.md`](docs/SDK_STRUCTURE_FIX_PLAN.md). This 
 
 ```ts
 // v3
-if (constants instanceof ScallopAddress) { /* ... */ }
+if (constants instanceof ScallopAddress) {
+  /* ... */
+}
 
 // v4
-if (constants.address instanceof ScallopAddress) { /* ... */ }
+if (constants.address instanceof ScallopAddress) {
+  /* ... */
+}
 ```
 
 ```ts
 // v3 — these continue to work in v4 unchanged
-constants.get('core.market')
-constants.getAddresses()
-constants.queryClient
+constants.get('core.market');
+constants.getAddresses();
+constants.queryClient;
 
 // v4 (preferred, more explicit)
-constants.address.get('core.market')
-constants.address.getAddresses()
-constants.address.queryClient
+constants.address.get('core.market');
+constants.address.getAddresses();
+constants.address.queryClient;
 ```
 
 #### B2 — `whitelist` and `poolAddresses` are now frozen immutable snapshots
@@ -72,25 +76,25 @@ The SDK internals are now layered. Each layer has a single responsibility and on
 
 Pure functions that normalise transport-layer shape differences (gRPC vs JSON-RPC vs Move JSON) at the boundary so domain code sees a single canonical shape. Throw `ScallopParseError` on bad input.
 
-| File | Purpose |
-| --- | --- |
-| `moveTypeMapper.ts` | `TypeName` field shape — `{ name: string }` vs raw `string` across transports |
-| `obligationMapper.ts` | On-chain `Obligation` Move object → `Obligation` DTO |
-| `borrowIncentiveMapper.ts` | Borrow-incentive pool & account dynamic fields |
-| `marketMapper.ts` | Market pool + collateral state |
-| `spoolMapper.ts` | Spool stake pool + reward pool |
+| File                       | Purpose                                                                       |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| `moveTypeMapper.ts`        | `TypeName` field shape — `{ name: string }` vs raw `string` across transports |
+| `obligationMapper.ts`      | On-chain `Obligation` Move object → `Obligation` DTO                          |
+| `borrowIncentiveMapper.ts` | Borrow-incentive pool & account dynamic fields                                |
+| `marketMapper.ts`          | Market pool + collateral state                                                |
+| `spoolMapper.ts`           | Spool stake pool + reward pool                                                |
 
 #### Errors ([`src/errors/`](src/errors/)) — typed error hierarchy
 
 All new SDK-internal failures throw a subclass of `ScallopError`. Each carries `cause`, `context`, and structured fields so callers can branch on type instead of string-matching.
 
-| Class | When it fires |
-| --- | --- |
-| `ScallopRpcError` | Sui RPC / gRPC failure |
-| `ScallopIndexerError` | Scallop indexer HTTP failure |
-| `ScallopParseError` | Mapper rejected a payload shape |
-| `ScallopConfigError` | `strictInit: true` + required addresses/whitelist missing |
-| `ScallopTransactionBuildError` | A tx-builder couldn't construct a Move call |
+| Class                          | When it fires                                             |
+| ------------------------------ | --------------------------------------------------------- |
+| `ScallopRpcError`              | Sui RPC / gRPC failure                                    |
+| `ScallopIndexerError`          | Scallop indexer HTTP failure                              |
+| `ScallopParseError`            | Mapper rejected a payload shape                           |
+| `ScallopConfigError`           | `strictInit: true` + required addresses/whitelist missing |
+| `ScallopTransactionBuildError` | A tx-builder couldn't construct a Move call               |
 
 Mappers, config validation, and client services now throw typed errors. Some legacy builder/query/util paths still throw plain `Error` and remain follow-up work.
 
@@ -118,7 +122,7 @@ const scallop = new Scallop({ logger: consoleLogger });
 
 ```ts
 const constants = new ScallopConstants({ strictInit: true });
-await constants.init();  // throws ScallopConfigError if required addresses/whitelist missing
+await constants.init(); // throws ScallopConfigError if required addresses/whitelist missing
 ```
 
 Defaults to `false` — preserves best-effort init behaviour.
@@ -131,38 +135,38 @@ Defaults to `false` — preserves best-effort init behaviour.
 
 Repository pattern over read endpoints. Each interface has multiple implementations so services can swap between indexer-first, RPC-only, and ScallopQuery-backed sources.
 
-| File | Implements | Backed by |
-| --- | --- | --- |
-| `marketRepository.ts` | `MarketRepository` (interface) | — |
-| `obligationRepository.ts` | `ObligationRepository` (interface) | — |
-| `indexerMarketRepository.ts` | `MarketRepository` | Scallop indexer HTTP |
-| `rpcMarketRepository.ts` | `MarketRepository` | Forced RPC reads (no indexer) |
-| `scallopQueryMarketRepository.ts` | `MarketRepository` | `ScallopQuery` (default, indexer-first w/ RPC fallback) |
-| `scallopQueryObligationRepository.ts` | `ObligationRepository` | `ScallopQuery` |
+| File                                  | Implements                         | Backed by                                               |
+| ------------------------------------- | ---------------------------------- | ------------------------------------------------------- |
+| `marketRepository.ts`                 | `MarketRepository` (interface)     | —                                                       |
+| `obligationRepository.ts`             | `ObligationRepository` (interface) | —                                                       |
+| `indexerMarketRepository.ts`          | `MarketRepository`                 | Scallop indexer HTTP                                    |
+| `rpcMarketRepository.ts`              | `MarketRepository`                 | Forced RPC reads (no indexer)                           |
+| `scallopQueryMarketRepository.ts`     | `MarketRepository`                 | `ScallopQuery` (default, indexer-first w/ RPC fallback) |
+| `scallopQueryObligationRepository.ts` | `ObligationRepository`             | `ScallopQuery`                                          |
 
 #### Services ([`src/services/`](src/services/)) — business logic
 
 **Read-side services** — each owns one domain's read flow, replacing the previously inline orchestration inside `ScallopQuery`:
 
-| Service | Replaces logic in `ScallopQuery` for |
-| --- | --- |
-| `MarketService` | `queryMarket`, `getMarketPools`, `getMarketCollaterals`, `getMarketCollateral` |
-| `ObligationService` | `getObligations`, `queryObligation`, `getObligationAccounts`, `getObligationAccountsByIds`, `getObligationAccountById`, `getObligationAccount` |
-| `LendingReadService` | `getLendings`, `getLending` |
-| `SpoolReadService` | `getSpools`, `getSpool` |
-| `BorrowIncentiveService` | `getBorrowIncentivePools` |
-| `PriceService` | `getPriceFromPyth`, `getPricesFromPyth`, `getCoinPriceByIndexer`, `getCoinPricesByIndexer`, `getAllCoinPrices` |
+| Service                  | Replaces logic in `ScallopQuery` for                                                                                                           |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MarketService`          | `queryMarket`, `getMarketPools`, `getMarketCollaterals`, `getMarketCollateral`                                                                 |
+| `ObligationService`      | `getObligations`, `queryObligation`, `getObligationAccounts`, `getObligationAccountsByIds`, `getObligationAccountById`, `getObligationAccount` |
+| `LendingReadService`     | `getLendings`, `getLending`                                                                                                                    |
+| `SpoolReadService`       | `getSpools`, `getSpool`                                                                                                                        |
+| `BorrowIncentiveService` | `getBorrowIncentivePools`                                                                                                                      |
+| `PriceService`           | `getPriceFromPyth`, `getPricesFromPyth`, `getCoinPriceByIndexer`, `getCoinPricesByIndexer`, `getAllCoinPrices`                                 |
 
 **Write-side services** (under [`src/services/client/`](src/services/client/)) — each owns one domain's write flow:
 
-| Service | Replaces logic in `ScallopClient` for |
-| --- | --- |
-| `LendingService` | `supply`, `withdraw`, `flashLoan`, `supplyAndStake` |
-| `CollateralService` | `depositCollateral`, `withdrawCollateral` |
-| `BorrowService` | `openObligation`, `borrow`, `repay` |
-| `SpoolService` | `createStakeAccount`, `stake`, `unstake`, `unstakeAndWithdraw`, `claim` |
-| `VeScaService` | `stakeObligation`, `unstakeObligation`, `claimBorrowIncentive`, `claimAllUnlockedSca` |
-| `ReferralService` | `bindToReferral` and related |
+| Service             | Replaces logic in `ScallopClient` for                                                 |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| `LendingService`    | `supply`, `withdraw`, `flashLoan`, `supplyAndStake`                                   |
+| `CollateralService` | `depositCollateral`, `withdrawCollateral`                                             |
+| `BorrowService`     | `openObligation`, `borrow`, `repay`                                                   |
+| `SpoolService`      | `createStakeAccount`, `stake`, `unstake`, `unstakeAndWithdraw`, `claim`               |
+| `VeScaService`      | `stakeObligation`, `unstakeObligation`, `claimBorrowIncentive`, `claimAllUnlockedSca` |
+| `ReferralService`   | `bindToReferral` and related                                                          |
 
 All client-side services accept a structural `ClientServiceContext` (see [`src/services/client/types.ts`](src/services/client/types.ts)) instead of `ScallopClient` directly — this is what makes them unit-testable in isolation.
 
@@ -209,15 +213,15 @@ tx.core.supplyQuick(coinAmount, 'sui');
 tx.spool.stake(stakeAccount, marketCoin, 'ssui');
 
 // Identity guarantee — same function reference, two ways to reach it
-console.log(tx.supplyQuick === tx.core.supplyQuick);  // true
+console.log(tx.supplyQuick === tx.core.supplyQuick); // true
 ```
 
-| File | Purpose |
-| --- | --- |
-| `manifest.ts` | Per-domain method manifest. Declares which module owns each method name. |
-| `modules.ts` | The per-domain module objects: `CoreModule`, `SpoolModule`, `BorrowIncentiveModule`, `VeScaModule`, `ReferralModule`, `LoyaltyModule`, `SCoinModule`. |
-| `verify.ts` | Runtime collision/presence checker. Throws on tx-block construction if any builder exports an undeclared method or if two builders silently shadow each other. |
-| `index.ts` (`newScallopTxBlock`) | Layers a second `Proxy` exposing `tx.core` / `tx.spool` / `tx.vesca` / `tx.borrowIncentive` / `tx.referral` / `tx.loyalty` / `tx.scoin`. |
+| File                             | Purpose                                                                                                                                                        |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `manifest.ts`                    | Per-domain method manifest. Declares which module owns each method name.                                                                                       |
+| `modules.ts`                     | The per-domain module objects: `CoreModule`, `SpoolModule`, `BorrowIncentiveModule`, `VeScaModule`, `ReferralModule`, `LoyaltyModule`, `SCoinModule`.          |
+| `verify.ts`                      | Runtime collision/presence checker. Throws on tx-block construction if any builder exports an undeclared method or if two builders silently shadow each other. |
+| `index.ts` (`newScallopTxBlock`) | Layers a second `Proxy` exposing `tx.core` / `tx.spool` / `tx.vesca` / `tx.borrowIncentive` / `tx.referral` / `tx.loyalty` / `tx.scoin`.                       |
 
 **Why this matters:** in the old flat surface, `stake` / `unstake` collided between spool and borrowIncentive — the workaround was inventing `stakeObligation` / `unstakeObligation`. The new module surface exposes the natural names (`tx.spool.stake` vs `tx.borrowIncentive.stake`) without ambiguity, and the verifier catches future collisions at startup instead of in production.
 
@@ -235,9 +239,12 @@ Multi-entry `tsup` build with `package.json` `exports`. Each subpath ships ESM +
 
 ```ts
 import { ScallopClient } from '@scallop-io/sui-scallop-sdk/client';
-import { ScallopQuery }  from '@scallop-io/sui-scallop-sdk/query';
+import { ScallopQuery } from '@scallop-io/sui-scallop-sdk/query';
 import { ScallopBuilder } from '@scallop-io/sui-scallop-sdk/builder';
-import { ScallopRpcError, ScallopParseError } from '@scallop-io/sui-scallop-sdk/errors';
+import {
+  ScallopRpcError,
+  ScallopParseError,
+} from '@scallop-io/sui-scallop-sdk/errors';
 import { consoleLogger } from '@scallop-io/sui-scallop-sdk/logger';
 import { loadScallopConfigSnapshot } from '@scallop-io/sui-scallop-sdk/config';
 import { ScallopContext } from '@scallop-io/sui-scallop-sdk/context';
