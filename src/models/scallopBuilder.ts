@@ -263,7 +263,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
   async signAndSendTxBlock(
     txBlock: ScallopTxBlock | SuiKitTxBlock | Transaction
   ) {
-    return (await this.scallopSuiKit.suiKit.signAndSendTxn(
+    return (await this.scallopSuiKit.signAndSendTxn(
       txBlock
     )) as SuiTransactionBlockResponse;
   }

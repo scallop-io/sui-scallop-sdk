@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   MAX_LOCK_ROUNDS,
   Obligation,
@@ -22,16 +22,45 @@ const OTHER_VESCA_KEY =
 const expiredVeScaKey =
   '0x0515056c4a6ee46007b1e53356c51ca99bf772629a656d4ff24554417713bfcd' as const;
 
-let scallopBuilder: ScallopBuilder;
-let sender: string;
-let obligations: Obligation[] = [];
-let veScas: Vesca[] = [];
-let hasVeSca = veScas.length > 0;
-let isVeScaExpired =
+// Wallet state is resolved at module load (top-level await) so that
+// describe-block gating like `if (hasVeSca) { ... }` sees the real value
+// at test collection time, not the default `false`.
+const scallopBuilder: ScallopBuilder = await scallopSDK.createScallopBuilder();
+const sender: string = scallopBuilder.walletAddress;
+const obligations: Obligation[] = await scallopBuilder.query.getObligations();
+const veScas: Vesca[] = await scallopBuilder.query.getVeScas({
+  walletAddress: sender,
+});
+const hasVeSca = veScas.length > 0;
+const isVeScaExpired =
   hasVeSca && veScas[0].unlockAt * 1000 <= new Date().getTime();
 
 let hasSCoinInWallet = false;
+try {
+  const sCoinName = scallopBuilder.utils.parseSCoinName(COIN_NAME);
+  if (sCoinName) {
+    const sCoins =
+      await scallopBuilder.scallopSuiKit.suiKit.selectCoinsWithAmount(
+        COIN_AMOUNT,
+        sCoinName,
+        sender
+      );
+    hasSCoinInWallet = sCoins.length > 0;
+  }
+} catch (_e) {
+  // no sCoin, just ignore
+}
+
 let obligationWithBoost: Obligation | undefined;
+if (hasVeSca) {
+  const bindedObligation = await scallopBuilder.query.getBindedObligation(
+    veScas[0].keyId
+  );
+  obligationWithBoost = obligations.find(
+    ({ id }) => id === bindedObligation?.obligationId
+  );
+}
+console.info('Sender:', sender);
 
 const createNewVeScaTx = async (
   tx = scallopBuilder.createTxBlock(),
@@ -112,40 +141,6 @@ const createVeScasForMergeSplit = async () => {
   const veScaKey2 = tx.lockSca(scaCoin2, newUnlockAt);
   return { tx, veScaKey1, veScaKey2 };
 };
-
-beforeAll(async () => {
-  scallopBuilder = await scallopSDK.createScallopBuilder();
-  sender = scallopBuilder.walletAddress;
-  obligations = await scallopBuilder.query.getObligations();
-  veScas = await scallopBuilder.query.getVeScas({ walletAddress: sender });
-  hasVeSca = veScas.length > 0;
-  isVeScaExpired =
-    hasVeSca && veScas[0].unlockAt * 1000 <= new Date().getTime();
-
-  try {
-    const sCoinName = scallopBuilder.utils.parseSCoinName(COIN_NAME);
-    if (!sCoinName) throw new Error(`No sCoin for ${COIN_NAME}`);
-    const sCoins =
-      await scallopBuilder.scallopSuiKit.suiKit.selectCoinsWithAmount(
-        COIN_AMOUNT,
-        sCoinName,
-        sender
-      );
-    hasSCoinInWallet = sCoins.length > 0;
-  } catch (_e) {
-    // no sCoin, just ignore
-  }
-
-  if (hasVeSca) {
-    const bindedObligation = await scallopBuilder.query.getBindedObligation(
-      veScas[0].keyId
-    );
-    obligationWithBoost = obligations.find(
-      ({ id }) => id === bindedObligation?.obligationId
-    );
-  }
-  console.info('Sender:', sender);
-});
 
 describe('Test Scallop Core Builder', () => {
   const SUPPLY_COIN_NAME = 'sui';

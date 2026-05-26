@@ -101,7 +101,11 @@ export const isInSubsTable = async (
     );
     return Array.isArray(value?.contents) && value.contents.length > 0;
   } catch (e) {
-    console.error(e);
+    builder.utils.logger.error('isInSubsTable lookup failed', {
+      veScaKey,
+      tableId,
+      message: (e as Error)?.message,
+    });
     return false;
   }
 };
@@ -274,6 +278,22 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       const sender = requireSender(txBlock);
       const veSca = await requireVeSca(builder, txBlock, veScaKey);
 
+      const newUnlockAt = builder.utils.getUnlockAt(
+        lockPeriodInDays,
+        veSca?.unlockAt
+      );
+
+      // Validate before side effects (coin selection) so input-shape errors
+      // surface as the documented validation error, not a downstream
+      // "No valid coins" from selectCoins.
+      if (autoCheck)
+        checkLockSca(
+          amountOrCoin,
+          lockPeriodInDays,
+          newUnlockAt,
+          veSca?.unlockAt
+        );
+
       let scaCoin: TransactionObjectArgument | SuiObjectArg | undefined =
         undefined;
       const transferObjects = [];
@@ -293,19 +313,6 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         // With amountOrCoin is SuiObjectArg, we cannot validate the minimum sca amount for locking and topup
         scaCoin = amountOrCoin;
       }
-
-      const newUnlockAt = builder.utils.getUnlockAt(
-        lockPeriodInDays,
-        veSca?.unlockAt
-      );
-
-      if (autoCheck)
-        checkLockSca(
-          amountOrCoin,
-          lockPeriodInDays,
-          newUnlockAt,
-          veSca?.unlockAt
-        );
 
       const isInitialLock = !veSca;
       const isLockExpired =

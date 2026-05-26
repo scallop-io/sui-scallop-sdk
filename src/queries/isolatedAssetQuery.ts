@@ -1,8 +1,24 @@
 import { ScallopQuery, ScallopUtils } from '../models/index.js';
 import { parseObjectAs } from 'src/utils/index.js';
+import { parseMoveTypeName } from 'src/mappers/index.js';
 
 const isolatedAssetKeyType = `0xe7dbb371a9595631f7964b7ece42255ad0e738cc85fe6da26c7221b220f01af6::market_dynamic_keys::IsolatedAssetKey`; // prod
 // const isolatedAssetKeyType = `0x6c23585e940a989588432509107e98bae06dbca4e333f26d0635d401b3c7c76d::market_dynamic_keys::IsolatedAssetKey`;
+
+const parseIsolatedAssetDynamicFieldType = (dynamicField: unknown) => {
+  const type = (dynamicField as { name?: { value?: { type?: unknown } } }).name
+    ?.value?.type;
+  if (
+    type &&
+    typeof type === 'object' &&
+    'name' in type &&
+    typeof type.name === 'string' &&
+    !type.name.startsWith('0x')
+  ) {
+    return parseMoveTypeName(`0x${type.name}`);
+  }
+  return parseMoveTypeName(type);
+};
 
 /**
  * Return list of isolated assets coin types
@@ -42,7 +58,7 @@ export const getIsolatedAssets = async (
 
       const isolatedAssetCoinTypes = response.dynamicFields
         .filter(isIsolatedDynamicField)
-        .map(({ name }: any) => `0x${name.value.type.name}`);
+        .map(parseIsolatedAssetDynamicFieldType);
       isolatedAssets.push(...isolatedAssetCoinTypes);
 
       if (response && response.hasNextPage && response.cursor) {
@@ -54,7 +70,9 @@ export const getIsolatedAssets = async (
     } while (hasNextPage);
     return isolatedAssets;
   } catch (e) {
-    console.error(e);
+    query.logger.error('getIsolatedAssets on-chain query failed', {
+      message: (e as Error)?.message,
+    });
     return [];
   }
 };

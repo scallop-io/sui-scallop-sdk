@@ -5,6 +5,7 @@ import ScallopAxios, { ScallopAxiosParams } from './scallopAxios.js';
 import { QueryKey } from '@tanstack/query-core';
 import { AxiosRequestConfig } from 'axios';
 import { parseUrl } from 'src/utils/url.js';
+import { noopLogger, type Logger } from 'src/logger/index.js';
 
 export type ScallopAddressParams = {
   addressId?: string;
@@ -17,6 +18,7 @@ export type ScallopAddressParams = {
   defaultValues?: {
     addresses?: Partial<Record<NetworkType, AddressesInterface>>;
   };
+  logger?: Logger;
 } & ScallopAxiosParams;
 
 const EMPTY_ADDRESSES: AddressesInterface = {
@@ -440,6 +442,7 @@ class ScallopAddress {
   private auth: string;
 
   public readonly scallopAxios: ScallopAxios;
+  public readonly logger: Logger;
   private readonly addressMap = new Map<NetworkType, AddressesInterface>();
   private readonly defaultParamValues = {
     addressId: '695fcdc084f790c04eb068dc',
@@ -455,6 +458,7 @@ class ScallopAddress {
     this.network = params.networkType ?? 'mainnet';
     this.addressId = params.addressId ?? this.defaultParamValues.addressId;
     this.auth = params.auth ?? '';
+    this.logger = params.logger ?? noopLogger;
 
     if (params.forceAddressesInterface) {
       this.initializeForcedAddresses(params.forceAddressesInterface);
@@ -703,7 +707,10 @@ class ScallopAddress {
               queryKey: queryKeys.api.getAddresses({ addressId }) as string[],
             });
           } catch (e) {
-            console.error(`${e}`); // Trying next url in the list
+            this.logger.warn('addresses fetch failed; trying next url', {
+              url,
+              message: (e as Error)?.message,
+            });
           }
         }
 

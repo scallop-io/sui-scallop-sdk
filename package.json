@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-scallop-sdk",
-  "version": "3.0.2",
+  "version": "4.0.0",
   "description": "Typescript sdk for interacting with Scallop contract on SUI",
   "keywords": [
     "sui",
@@ -27,8 +27,55 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.ts",
+      "import": "./dist/errors.js",
+      "require": "./dist/errors.cjs"
+    },
+    "./logger": {
+      "types": "./dist/logger.d.ts",
+      "import": "./dist/logger.js",
+      "require": "./dist/logger.cjs"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js",
+      "require": "./dist/config.cjs"
+    },
+    "./context": {
+      "types": "./dist/context.d.ts",
+      "import": "./dist/context.js",
+      "require": "./dist/context.cjs"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js",
+      "require": "./dist/client.cjs"
+    },
+    "./query": {
+      "types": "./dist/query.d.ts",
+      "import": "./dist/query.js",
+      "require": "./dist/query.cjs"
+    },
+    "./builder": {
+      "types": "./dist/builder.d.ts",
+      "import": "./dist/builder.js",
+      "require": "./dist/builder.cjs"
+    },
+    "./mappers": {
+      "types": "./dist/mappers.d.ts",
+      "import": "./dist/mappers.js",
+      "require": "./dist/mappers.cjs"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js",
+      "require": "./dist/types.cjs"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
@@ -42,9 +89,13 @@
     "watch:tsup": "tsup --watch",
     "watch:types": "tsc --watch",
     "watch": "pnpm run clean & pnpm run watch:types & pnpm run watch:tsup",
-    "test": "pnpm test:typecheck && pnpm test:unit",
+    "test": "pnpm test:typecheck && pnpm test:all",
     "test:typecheck": "tsc -p ./test",
-    "test:unit": "vitest run --test-timeout=60000",
+    "test:unit": "vitest run test/mappers.spec.ts test/querySource.spec.ts test/scallopContext.spec.ts test/configSnapshot.spec.ts test/configSources.spec.ts test/txBlockManifest.spec.ts test/txBlockModules.spec.ts test/subpathExports.spec.ts test/strictInit.spec.ts test/utils-unit.spec.ts test/rate-limiter.spec.ts test/noConsole.spec.ts test/portfolioCalculations.spec.ts test/repositories.spec.ts test/clientServices.spec.ts test/marketService.spec.ts test/obligationService.spec.ts test/spoolReadService.spec.ts test/borrowIncentiveService.spec.ts test/lendingReadService.spec.ts test/priceService.spec.ts",
+    "test:no-console": "vitest run test/noConsole.spec.ts",
+    "test:query": "vitest run test/query.spec.ts",
+    "test:integration": "vitest run test/address.spec.ts test/builder.spec.ts test/constants.spec.ts test/index.spec.ts test/indexer.spec.ts test/query.spec.ts test/utils.spec.ts",
+    "test:all": "vitest run",
     "test:watch": "vitest",
     "format:fix": "prettier --ignore-path 'dist/* docs/*' --write '**/*.{ts,json,md}'",
     "lint:fix": "eslint . --ignore-pattern dist --ext .ts --fix",
@@ -57,46 +108,46 @@
     "doc": "typedoc --out docs src/index.ts"
   },
   "dependencies": {
-    "@mysten/sui": "^2.11.0",
+    "@mysten/sui": "2.11.0",
     "@pythnetwork/pyth-sui-js": "2.2.0",
-    "@scallop-io/sui-kit": "^2.0.1",
+    "@scallop-io/sui-kit": "2.0.1",
     "@tanstack/query-core": "5.59.16",
-    "axios": "^1.9.0",
-    "bignumber.js": "^9.1.2",
-    "zod": "^3.23.8"
+    "axios": "1.13.6",
+    "bignumber.js": "9.3.1",
+    "zod": "3.25.76"
   },
   "devDependencies": {
-    "@commitlint/cli": "^18.2.0",
-    "@commitlint/config-conventional": "^18.1.0",
-    "@commitlint/prompt-cli": "^18.2.0",
-    "@mysten/bcs": "^2.0.2",
-    "@mysten/utils": "^0.0.0",
-    "@protobuf-ts/grpcweb-transport": "^2.11.1",
-    "@protobuf-ts/runtime-rpc": "^2.11.1",
-    "@pythnetwork/price-service-client": "^1.9.0",
-    "@pythnetwork/price-service-sdk": "^1.8.0",
-    "@types/node": "^20.4.2",
-    "@typescript-eslint/eslint-plugin": "^8.11.0",
+    "@commitlint/cli": "18.6.1",
+    "@commitlint/config-conventional": "18.6.3",
+    "@commitlint/prompt-cli": "18.6.1",
+    "@mysten/bcs": "2.0.3",
+    "@mysten/utils": "0.0.0",
+    "@protobuf-ts/grpcweb-transport": "2.11.1",
+    "@protobuf-ts/runtime-rpc": "2.11.1",
+    "@pythnetwork/price-service-client": "1.11.0",
+    "@pythnetwork/price-service-sdk": "1.9.0",
+    "@types/node": "20.19.37",
+    "@typescript-eslint/eslint-plugin": "8.57.2",
     "@typescript-eslint/parser": "8.10.0",
     "@vitest/expect": "3.1.1",
     "@vitest/runner": "3.1.1",
     "@vitest/spy": "3.1.1",
-    "dotenv": "^16.3.1",
-    "eslint": "^8.53.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.1",
-    "graphql-config": "^5.0.3",
-    "husky": "^8.0.3",
-    "lint-staged": "^15.0.2",
-    "prettier": "^3.0.3",
-    "standard-version": "^9.5.0",
-    "tsconfig-paths": "^4.2.0",
-    "tsup": "^7.2.0",
-    "typedoc": "^0.26.3",
+    "dotenv": "16.6.1",
+    "eslint": "8.57.1",
+    "eslint-config-prettier": "9.1.2",
+    "eslint-plugin-prettier": "5.5.5",
+    "graphql-config": "5.1.6",
+    "husky": "8.0.3",
+    "lint-staged": "15.5.2",
+    "prettier": "3.8.1",
+    "standard-version": "9.5.0",
+    "tsconfig-paths": "4.2.0",
+    "tsup": "7.3.0",
+    "typedoc": "0.26.11",
     "typescript": "5.5.4",
-    "valibot": "^1.1.0",
-    "vite": "^6.3.5",
-    "vitest": "^3.1.1"
+    "valibot": "1.3.1",
+    "vite": "6.4.1",
+    "vitest": "3.2.4"
   },
   "lint-staged": {
     "**/*.ts": [

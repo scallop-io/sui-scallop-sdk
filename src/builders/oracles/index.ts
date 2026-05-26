@@ -38,8 +38,9 @@ export const updateOracles = async (
       // Ensure only valid feeds are included.
       {
         if (!builder.constants.whitelist.lending.has(t)) {
-          console.error(
-            `Sponsored feed ${t} is not in the whitelist lending assets.`
+          builder.utils.logger.warn(
+            'sponsored feed not in lending whitelist; skipping',
+            { feed: t }
           );
           return false;
         }

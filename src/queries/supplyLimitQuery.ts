@@ -26,7 +26,9 @@ export const getSupplyLimit = async (utils: ScallopUtils, poolName: string) => {
     if (!object?.object?.json) return '0';
     return parseObjectAs<string>(object.object);
   } catch (e: any) {
-    console.error(`Error in getSupplyLimit for ${poolName}: ${e.message}`);
+    utils.logger.error(`getSupplyLimit failed for ${poolName}`, {
+      message: e?.message,
+    });
     return '0';
   }
 };

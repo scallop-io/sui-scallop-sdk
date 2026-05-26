@@ -5,13 +5,21 @@ import { newSpoolTxBlock } from './spoolBuilder.js';
 import { newBorrowIncentiveTxBlock } from './borrowIncentiveBuilder.js';
 import { newVeScaTxBlock } from './vescaBuilder.js';
 import type { ScallopBuilder } from 'src/models/index.js';
-import type { ScallopTxBlock } from 'src/types/index.js';
+import type { ScallopTxBlock, ScallopTxBlockModules } from 'src/types/index.js';
 import { newReferralTxBlock } from './referralBuilder.js';
 import { newLoyaltyProgramTxBlock } from './loyaltyProgramBuilder.js';
 import { newSCoinTxBlock } from './sCoinBuilder.js';
+import { buildTxBlockModules, TX_BLOCK_MODULE_KEYS } from './modules.js';
 
 /**
  * Create a new ScallopTxBlock instance.
+ *
+ * The returned object exposes:
+ *  - flat methods from every domain builder (`tx.supply`, `tx.stake`, …) for
+ *    compatibility with existing call sites.
+ *  - per-domain module views (`tx.core.supply`, `tx.spool.stake`, …) for the
+ *    explicit composite API. Module views are frozen and built once from the
+ *    composed proxy via the static manifest.
  *
  * @param builder - Scallop builder instance.
  * @param txBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
@@ -32,7 +40,7 @@ export const newScallopTxBlock = (
   const spoolTxBlock = newSpoolTxBlock(builder, sCoinTxBlock);
   const coreTxBlock = newCoreTxBlock(builder, spoolTxBlock);
 
-  return new Proxy(coreTxBlock, {
+  const composed = new Proxy(coreTxBlock, {
     get: (target, prop) => {
       if (prop in vescaTxBlock) {
         return Reflect.get(vescaTxBlock, prop);
@@ -48,6 +56,24 @@ export const newScallopTxBlock = (
         return Reflect.get(sCoinTxBlock, prop);
       }
       return Reflect.get(target, prop);
+    },
+  }) as ScallopTxBlock;
+
+  const modules = buildTxBlockModules(composed);
+  const moduleKeySet = new Set<PropertyKey>(TX_BLOCK_MODULE_KEYS);
+
+  return new Proxy(composed, {
+    get: (target, prop) => {
+      if (typeof prop === 'string' && moduleKeySet.has(prop)) {
+        return modules[prop as keyof ScallopTxBlockModules];
+      }
+      return Reflect.get(target, prop);
+    },
+    has: (target, prop) => {
+      if (typeof prop === 'string' && moduleKeySet.has(prop)) {
+        return true;
+      }
+      return Reflect.has(target, prop);
     },
   }) as ScallopTxBlock;
 };
