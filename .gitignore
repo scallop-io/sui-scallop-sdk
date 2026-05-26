@@ -5,7 +5,8 @@ node_modules/
 
 # build / generate output
 dist/
-docs/
+docs/*
+!docs/*.md
 
 #misc
 .DS_Store

@@ -150,8 +150,9 @@ export const updatePythPriceFeeds = async (
 
       return;
     } catch (e) {
-      console.warn(
-        `Failed to update price feeds with endpoint ${endpoint}: ${e}`
+      builder.utils.logger.warn(
+        'pyth price-feed update failed; trying next endpoint',
+        { endpoint, message: (e as Error)?.message }
       );
     }
   }

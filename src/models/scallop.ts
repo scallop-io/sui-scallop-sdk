@@ -1,4 +1,8 @@
 import ScallopClient, { ScallopClientParams } from './scallopClient.js';
+import {
+  createScallopContext,
+  type ScallopContext,
+} from 'src/context/index.js';
 
 /**
  * @argument params - The parameters for the Scallop instance.
@@ -88,6 +92,24 @@ class Scallop {
   async getScallopConstants() {
     await this.init();
     return this.client.constants;
+  }
+
+  /**
+   * Build a lightweight ScallopContext for internal services and tests.
+   * Public API still goes through `client.builder/query/utils`; this is
+   * additive and does not replace existing constructors.
+   */
+  async getContext(): Promise<ScallopContext> {
+    await this.init();
+    const utils = this.client.utils;
+    return createScallopContext({
+      constants: utils.constants,
+      scallopSuiKit: utils.scallopSuiKit,
+      indexer: this.client.query.indexer,
+      queryClient: utils.queryClient,
+      logger: utils.logger,
+      walletAddress: utils.walletAddress,
+    });
   }
 }
 

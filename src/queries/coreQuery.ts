@@ -1,4 +1,4 @@
-import { normalizeStructTag, SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
+import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import {
   parseOriginMarketPoolData,
   calculateMarketPoolData,
@@ -8,6 +8,10 @@ import {
   getDfObjectIdAndName,
   partitionArray,
 } from 'src/utils/index.js';
+import {
+  mapMarketEventToMarketData,
+  mapObligationEventToObligationData,
+} from 'src/mappers/index.js';
 import type { SuiObjectData } from 'src/types/index.js';
 import { SuiTxBlock, type SuiObjectArg } from '@scallop-io/sui-kit';
 // import type { ScallopAddress, ScallopCache, ScallopQuery } from '../models.js';
@@ -26,11 +30,13 @@ import {
   CollateralStat,
   OptionalKeys,
   CoinPrices,
-  OriginMarketPoolData,
   BorrowFee,
   BorrowDynamic,
-  OriginMarketCollateralData,
 } from 'src/types/index.js';
+import type {
+  OriginMarketPoolData,
+  OriginMarketCollateralData,
+} from 'src/types/internal/index.js';
 import { BigNumber } from 'bignumber.js';
 import { getSupplyLimit } from './supplyLimitQuery.js';
 import { isIsolatedAsset } from './isolatedAssetQuery.js';
@@ -126,12 +132,12 @@ export const queryMarket = async (
 
   const tx = queryResult?.Transaction ?? queryResult?.FailedTransaction;
   // SDK v2: Event structure changed, parsedJson may not be in type but exists at runtime
-  const marketData = (tx?.events?.[0] as any)?.parsedJson as
-    | MarketQueryInterface
-    | undefined;
+  const marketData = mapMarketEventToMarketData(
+    (tx?.events?.[0] as any)?.parsedJson as MarketQueryInterface | undefined
+  );
 
   for (const pool of marketData?.pools ?? []) {
-    const coinType = normalizeStructTag(pool.type.name);
+    const coinType = pool.type;
     const poolCoinName = utils.parseCoinNameFromType(coinType);
     const coinPrice = coinPrices[poolCoinName] ?? 0;
 
@@ -142,7 +148,7 @@ export const queryMarket = async (
 
     const parsedMarketPoolData = parseOriginMarketPoolData({
       ...pool,
-      type: pool.type.name,
+      type: pool.type,
       isIsolated: await isIsolatedAsset(utils, poolCoinName),
       supplyLimit: (await getSupplyLimit(utils, poolCoinName)) ?? '0',
       borrowLimit: (await getBorrowLimit(utils, poolCoinName)) ?? '0',
@@ -167,7 +173,7 @@ export const queryMarket = async (
   }
 
   for (const collateral of marketData?.collaterals ?? []) {
-    const coinType = normalizeStructTag(collateral.type.name);
+    const coinType = collateral.type;
     const collateralCoinName = utils.parseCoinNameFromType(coinType);
     const coinPrice = coinPrices[collateralCoinName] ?? 0;
 
@@ -178,7 +184,7 @@ export const queryMarket = async (
 
     const parsedMarketCollateralData = parseOriginMarketCollateralData({
       ...collateral,
-      type: collateral.type.name,
+      type: collateral.type,
       liquidationPenalty: collateral.liquidationPanelty,
       isIsolated: await isIsolatedAsset(utils, collateralCoinName),
     });
@@ -372,7 +378,9 @@ export const getMarketPools = async (
           collaterals[poolCoinName as string] = result.collateral;
         }
       } catch (e) {
-        console.error(e);
+        query.logger.error(`getMarketPool failed for ${poolCoinName}`, {
+          message: (e as Error)?.message,
+        });
       }
     })
   );
@@ -995,9 +1003,9 @@ export const queryObligation = async (
     }),
   });
   const tx = queryResult?.Transaction ?? queryResult?.FailedTransaction;
-  return (tx?.events?.[0] as any)?.parsedJson as
-    | ObligationQueryInterface
-    | undefined;
+  return mapObligationEventToObligationData(
+    (tx?.events?.[0] as any)?.parsedJson as ObligationQueryInterface | undefined
+  );
 };
 
 /**

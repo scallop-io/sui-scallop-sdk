@@ -7,6 +7,7 @@ import {
   parseObjectAs,
   partitionArray,
 } from 'src/utils/index.js';
+import { mapSpoolData } from 'src/mappers/index.js';
 import type { ScallopQuery, ScallopUtils } from 'src/models/index.js';
 import type { SuiObjectData } from 'src/types/index.js';
 import type {
@@ -17,10 +18,12 @@ import type {
   StakeAccounts,
   CoinPrices,
   MarketPools,
-  OriginSpoolRewardPoolData,
   SpoolData,
-  OriginSpoolData,
 } from '../types/index.js';
+import type {
+  OriginSpoolData,
+  OriginSpoolRewardPoolData,
+} from '../types/internal/index.js';
 
 const queryRequiredSpoolObjects = async (
   query: ScallopQuery,
@@ -180,7 +183,9 @@ export const getSpools = async (
           spools[stakeMarketCoinName] = spool;
         }
       } catch (e) {
-        console.error(e);
+        query.logger.error(`getSpool failed for ${stakeMarketCoinName}`, {
+          message: (e as Error)?.message,
+        });
       }
     })
   );
@@ -231,7 +236,7 @@ export const getSpool = async (
   const rewardCoinName = query.utils.getSpoolRewardCoinName();
   coinPrices = coinPrices || (await query.utils.getCoinPrices());
 
-  const parsedSpoolObjects = parseSpoolObjects(requiredObjects);
+  const parsedSpoolObjects = mapSpoolData(parseSpoolObjects(requiredObjects));
   const parsedSpoolData = parseOriginSpoolData(parsedSpoolObjects);
 
   const marketCoinPrice = coinPrices?.[marketCoinName] ?? 0;

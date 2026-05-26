@@ -5,10 +5,17 @@ import type {
   TransactionObjectArgument,
   TransactionResult,
 } from '@mysten/sui/transactions';
-import { requireSender } from 'src/utils/index.js';
 import type { NetworkType, SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopTxBlock } from '../types/index.js';
 import { ScallopClientInterface } from './interface.js';
+import {
+  BorrowService,
+  CollateralService,
+  LendingService,
+  ReferralService,
+  SpoolService,
+  VeScaService,
+} from 'src/services/index.js';
 
 export type ScallopClientParams = {
   networkType?: NetworkType;
@@ -40,10 +47,22 @@ type ScallopClientVeScaReturnType<T extends boolean> = T extends true
  */
 class ScallopClient implements ScallopClientInterface {
   public readonly builder: ScallopBuilder;
+  public readonly collateralService: CollateralService;
+  public readonly lendingService: LendingService;
+  public readonly borrowService: BorrowService;
+  public readonly spoolService: SpoolService;
+  public readonly veScaService: VeScaService;
+  public readonly referralService: ReferralService;
   public networkType: NetworkType;
 
   public constructor(params: ScallopClientParams = {}) {
     this.builder = params.builder ?? new ScallopBuilder(params);
+    this.collateralService = new CollateralService(this);
+    this.lendingService = new LendingService(this);
+    this.borrowService = new BorrowService(this);
+    this.spoolService = new SpoolService(this);
+    this.veScaService = new VeScaService(this);
+    this.referralService = new ReferralService(this);
     this.networkType = params.networkType ?? 'mainnet';
   }
 
@@ -193,15 +212,9 @@ class ScallopClient implements ScallopClientInterface {
   async openObligation<S extends boolean>(
     sign: S = true as S
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    txBlock.openObligationEntry();
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+    return this.borrowService.openObligation(sign) as Promise<
+      ScallopClientFnReturnType<S>
+    >;
   }
 
   /**
@@ -235,38 +248,14 @@ class ScallopClient implements ScallopClientInterface {
     walletAddress?: string,
     isSponsoredTx?: boolean
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const specificObligationId =
-      obligationId ?? (await this.query.getObligations(sender))[0]?.id;
-    if (specificObligationId) {
-      await txBlock.depositCollateralQuick(
-        amount,
-        collateralCoinName,
-        specificObligationId,
-        isSponsoredTx
-      );
-    } else {
-      const [obligation, obligationKey, hotPotato] = txBlock.openObligation();
-      await txBlock.depositCollateralQuick(
-        amount,
-        collateralCoinName,
-        obligation,
-        isSponsoredTx
-      );
-      txBlock.returnObligation(obligation, hotPotato);
-      txBlock.transferObjects([obligationKey], sender);
-    }
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+    return this.collateralService.depositCollateral(
+      collateralCoinName,
+      amount,
+      sign,
+      obligationId,
+      walletAddress,
+      isSponsoredTx
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -305,26 +294,15 @@ class ScallopClient implements ScallopClientInterface {
     walletAddress?: string,
     isSponsoredTx?: boolean
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const collateralCoin = await txBlock.takeCollateralQuick(
-      amount,
+    return this.collateralService.withdrawCollateral(
       collateralCoinName,
+      amount,
+      sign,
       obligationId,
       obligationKey,
-      { isSponsoredTx }
-    );
-    txBlock.transferObjects([collateralCoin], sender);
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+      walletAddress,
+      isSponsoredTx
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -381,20 +359,12 @@ class ScallopClient implements ScallopClientInterface {
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const sCoin = await txBlock.supplyQuick(amount, poolCoinName);
-    txBlock.transferObjects([sCoin], sender);
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+    return this.lendingService.supply(
+      poolCoinName,
+      amount,
+      sign,
+      walletAddress
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -463,36 +433,13 @@ class ScallopClient implements ScallopClientInterface {
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const stakeMarketCoinName =
-      this.utils.parseMarketCoinName<string>(stakeCoinName);
-    const stakeAccounts =
-      await this.query.getStakeAccounts(stakeMarketCoinName);
-    const targetStakeAccount = stakeAccountId ?? stakeAccounts[0]?.id;
-
-    const marketCoin = await txBlock.supplyQuick(amount, stakeCoinName, false);
-    if (targetStakeAccount) {
-      await txBlock.stakeQuick(
-        marketCoin,
-        stakeMarketCoinName,
-        targetStakeAccount
-      );
-    } else {
-      const account = txBlock.createStakeAccount(stakeMarketCoinName);
-      await txBlock.stakeQuick(marketCoin, stakeMarketCoinName, account);
-      txBlock.transferObjects([account], sender);
-    }
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+    return this.borrowService.supplyAndStake(
+      stakeCoinName,
+      amount,
+      sign,
+      stakeAccountId,
+      walletAddress
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -520,20 +467,12 @@ class ScallopClient implements ScallopClientInterface {
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const coin = await txBlock.withdrawQuick(amount, poolCoinName);
-    txBlock.transferObjects([coin], sender);
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+    return this.lendingService.withdraw(
+      poolCoinName,
+      amount,
+      sign,
+      walletAddress
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -557,33 +496,15 @@ class ScallopClient implements ScallopClientInterface {
     walletAddress?: string,
     isSponsoredTx?: boolean
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const availableStake = this.constants.whitelist.lending.has(poolCoinName);
-    if (sign && availableStake) {
-      await txBlock.unstakeObligationQuick(obligationId, obligationKey);
-    }
-    const coin = await txBlock.borrowQuick(
-      amount,
+    return this.borrowService.borrow(
       poolCoinName,
+      amount,
+      sign,
       obligationId,
       obligationKey,
-      { isSponsoredTx }
-    );
-    txBlock.transferObjects([coin], sender);
-    if (sign && availableStake) {
-      await txBlock.stakeObligationWithVeScaQuick(obligationId, obligationKey);
-    }
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+      walletAddress,
+      isSponsoredTx
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -606,26 +527,15 @@ class ScallopClient implements ScallopClientInterface {
     walletAddress?: string,
     isSponsoredTx?: boolean
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const availableStake = this.constants.whitelist.lending.has(poolCoinName);
-    if (sign && availableStake) {
-      await txBlock.unstakeObligationQuick(obligationId, obligationKey);
-    }
-    await txBlock.repayQuick(amount, poolCoinName, obligationId, isSponsoredTx);
-    if (sign && availableStake) {
-      await txBlock.stakeObligationWithVeScaQuick(obligationId, obligationKey);
-    }
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+    return this.borrowService.repay(
+      poolCoinName,
+      amount,
+      sign,
+      obligationId,
+      obligationKey,
+      walletAddress,
+      isSponsoredTx
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -665,19 +575,13 @@ class ScallopClient implements ScallopClientInterface {
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-    const [coin, loan] = txBlock.borrowFlashLoan(amount, poolCoinName);
-    txBlock.repayFlashLoan(await callback(txBlock, coin), loan, poolCoinName);
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+    return this.lendingService.flashLoan(
+      poolCoinName,
+      amount,
+      callback,
+      sign,
+      walletAddress
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /* ==================== Spool Method ==================== */
@@ -702,20 +606,11 @@ class ScallopClient implements ScallopClientInterface {
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const stakeAccount = txBlock.createStakeAccount(marketCoinName);
-    txBlock.transferObjects([stakeAccount], sender);
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+    return this.spoolService.createStakeAccount(
+      marketCoinName,
+      sign,
+      walletAddress
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -746,28 +641,13 @@ class ScallopClient implements ScallopClientInterface {
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const stakeAccounts =
-      await this.query.getStakeAccounts(stakeMarketCoinName);
-    const targetStakeAccount = stakeAccountId ?? stakeAccounts[0]?.id;
-    if (targetStakeAccount) {
-      await txBlock.stakeQuick(amount, stakeMarketCoinName, targetStakeAccount);
-    } else {
-      const account = txBlock.createStakeAccount(stakeMarketCoinName);
-      await txBlock.stakeQuick(amount, stakeMarketCoinName, account);
-      txBlock.transferObjects([account], sender);
-    }
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+    return this.spoolService.stake(
+      stakeMarketCoinName,
+      amount,
+      sign,
+      stakeAccountId,
+      walletAddress
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -798,34 +678,13 @@ class ScallopClient implements ScallopClientInterface {
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const sCoin = await txBlock.unstakeQuick(
-      amount,
+    return this.spoolService.unstake(
       stakeMarketCoinName,
-      stakeAccountId
-    );
-
-    if (sCoin) {
-      const sCoinType = this.utils.parseSCoinType(stakeMarketCoinName);
-      if (!sCoinType)
-        throw new Error(`Invalid sCoin type: ${stakeMarketCoinName}`);
-
-      // merge to existing sCoins if exist
-      await this.utils.mergeSimilarCoins(txBlock, sCoin, sCoinType, sender);
-    }
-
-    txBlock.transferObjects([sCoin as SuiObjectArg], sender);
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+      amount,
+      sign,
+      stakeAccountId,
+      walletAddress
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -856,39 +715,13 @@ class ScallopClient implements ScallopClientInterface {
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const stakeMarketCoin = await txBlock.unstakeQuick(
-      amount,
+    return this.spoolService.unstakeAndWithdraw(
       stakeMarketCoinName,
+      amount,
+      sign,
       stakeAccountId,
-      false
-    );
-    const stakeCoinName = this.utils.parseCoinName(stakeMarketCoinName);
-
-    if (stakeMarketCoin) {
-      const coin = txBlock.withdraw(stakeMarketCoin, stakeCoinName);
-      await this.utils.mergeSimilarCoins(
-        txBlock,
-        coin,
-        this.utils.parseCoinType(stakeCoinName),
-        requireSender(txBlock)
-      );
-
-      txBlock.transferObjects([coin], sender);
-    } else {
-      throw new Error(`No stake found for ${stakeMarketCoinName}`);
-    }
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+      walletAddress
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -916,23 +749,12 @@ class ScallopClient implements ScallopClientInterface {
     stakeAccountId?: string,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const rewardCoins = await txBlock.claimQuick(
+    return this.spoolService.claim(
       stakeMarketCoinName,
-      stakeAccountId
-    );
-    txBlock.transferObjects(rewardCoins, sender);
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+      sign,
+      stakeAccountId,
+      walletAddress
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /* ==================== Borrow Incentive Method ==================== */
@@ -952,19 +774,12 @@ class ScallopClient implements ScallopClientInterface {
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    await txBlock.stakeObligationWithVeScaQuick(obligationId, obligationKeyId);
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+    return this.borrowService.stakeObligation(
+      obligationId,
+      obligationKeyId,
+      sign,
+      walletAddress
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -982,19 +797,12 @@ class ScallopClient implements ScallopClientInterface {
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    await txBlock.unstakeObligationQuick(obligationId, obligationKeyId);
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+    return this.borrowService.unstakeObligation(
+      obligationId,
+      obligationKeyId,
+      sign,
+      walletAddress
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /**
@@ -1013,51 +821,12 @@ class ScallopClient implements ScallopClientInterface {
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientFnReturnType<S>> {
-    const txBlock = this.builder.createTxBlock();
-    const sender = walletAddress ?? this.walletAddress;
-    txBlock.setSender(sender);
-
-    const rewardCoinsCollection: Record<string, TransactionResult[]> = {};
-    const obligationAccount =
-      await this.query.getObligationAccount(obligationId);
-    if (!obligationAccount) throw new Error('Obligation not found');
-    const rewardCoinNames = Object.values(obligationAccount.borrowIncentives)
-      .filter((t): t is NonNullable<typeof t> => !!t)
-      .flatMap(({ rewards }) =>
-        rewards.filter(({ availableClaimAmount }) => availableClaimAmount > 0)
-      )
-      .flatMap(({ coinName }) => coinName);
-    for (const rewardCoinName of rewardCoinNames) {
-      const rewardCoin = await txBlock.claimBorrowIncentiveQuick(
-        rewardCoinName,
-        obligationId,
-        obligationKeyId
-      );
-      if (!rewardCoinsCollection[rewardCoinName]) {
-        rewardCoinsCollection[rewardCoinName] = [rewardCoin];
-      } else {
-        rewardCoinsCollection[rewardCoinName].push(rewardCoin);
-      }
-    }
-
-    txBlock.transferObjects(
-      Object.values(rewardCoinsCollection).map((rewardCoins) => {
-        const mergeDest = rewardCoins[0];
-        if (rewardCoins.length > 1) {
-          txBlock.mergeCoins(mergeDest, rewardCoins.slice(1));
-        }
-        return mergeDest;
-      }),
-      sender
-    );
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as ScallopClientFnReturnType<S>;
-    } else {
-      return txBlock.txBlock as ScallopClientFnReturnType<S>;
-    }
+    return this.borrowService.claimBorrowIncentive(
+      obligationId,
+      obligationKeyId,
+      sign,
+      walletAddress
+    ) as Promise<ScallopClientFnReturnType<S>>;
   }
 
   /* ==================== Migrate market coin to sCoin method ==================== */
@@ -1165,55 +934,10 @@ class ScallopClient implements ScallopClientInterface {
     sign: S = true as S,
     walletAddress?: string
   ): Promise<ScallopClientVeScaReturnType<S>> {
-    const sender = walletAddress ?? this.walletAddress;
-    // get all veSca keys
-    const veScaKeys = (
-      (await this.query.getVeScas({
-        walletAddress: sender,
-      })) ?? []
-    ).map(({ keyId }) => keyId);
-    if (veScaKeys.length === 0) {
-      throw new Error('No veSCA found in the wallet');
-    }
-
-    const scaCoins: TransactionResult[] = [];
-    const tx = this.builder.createTxBlock();
-    tx.setSender(sender);
-
-    await Promise.all(
-      veScaKeys.map(async (veScaKey) => {
-        try {
-          const scaCoin = await tx.redeemScaQuick({
-            veScaKey,
-            transferSca: false,
-          });
-          if (!scaCoin) return;
-          scaCoins.push(scaCoin);
-        } catch (_e) {
-          // ignore
-        }
-      })
-    );
-
-    if (scaCoins.length === 0) {
-      throw new Error('No unlocked SCA found in the veSCA accounts');
-    }
-
-    if (scaCoins.length > 1) {
-      tx.mergeCoins(scaCoins[0], scaCoins.slice(1));
-    }
-    await this.utils.mergeSimilarCoins(tx, scaCoins[0], 'sca', sender);
-
-    if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
-        tx
-      )) as ScallopClientVeScaReturnType<S>;
-    } else {
-      return {
-        tx: tx.txBlock,
-        scaCoin: scaCoins[0],
-      } as ScallopClientVeScaReturnType<S>;
-    }
+    return this.veScaService.claimAllUnlockedSca(
+      sign,
+      walletAddress
+    ) as Promise<ScallopClientVeScaReturnType<S>>;
   }
 
   /* ==================== Other Method ==================== */

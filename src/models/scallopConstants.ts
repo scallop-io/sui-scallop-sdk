@@ -1,8 +1,22 @@
-import { PoolAddress, Whitelist } from 'src/types/index.js';
+import {
+  AddressesInterface,
+  AddressStringPath,
+  PoolAddress,
+  Whitelist,
+} from 'src/types/index.js';
 import ScallopAddress, { ScallopAddressParams } from './scallopAddress.js';
 import { NetworkType, parseStructTag } from '@scallop-io/sui-kit';
 import { queryKeys } from 'src/constants/index.js';
 import { parseUrl } from 'src/utils/index.js';
+import {
+  createLiveAddressConfigSource,
+  createLivePoolAddressConfigSource,
+  createLiveWhitelistConfigSource,
+  loadScallopConfigSnapshot,
+} from 'src/config/index.js';
+import { QueryKey } from '@tanstack/query-core';
+import { AxiosRequestConfig } from 'axios';
+import { noopLogger, type Logger } from 'src/logger/index.js';
 
 const isEmptyObject = (obj: object) => {
   return Object.keys(obj).length === 0;
@@ -34,6 +48,17 @@ export type ScallopConstantsParams = {
     poolAddresses?: Record<string, PoolAddress>;
     whitelist?: Whitelist | Record<string, any>;
   };
+  /**
+   * When true, `init()` throws `ScallopConfigError` at the tail if required
+   * core addresses or required whitelist sets are missing/empty. Defaults to
+   * false to preserve the existing best-effort behavior.
+   */
+  strictInit?: boolean;
+  /**
+   * Optional pre-built ScallopAddress to compose. When omitted, a new
+   * ScallopAddress is constructed from the same params object.
+   */
+  scallopAddress?: ScallopAddress;
 } & ScallopAddressParams;
 
 const DEFAULT_WHITELIST = {
@@ -54,21 +79,72 @@ const DEFAULT_WHITELIST = {
   emerging: new Set(),
 } satisfies Whitelist;
 
-const parseWhitelistParams = (params: Record<string, any> | Whitelist) => {
-  return Object.entries(params)
-    .filter(
-      ([_, value]) => !!value && (Array.isArray(value) || value instanceof Set)
-    )
-    .reduce((acc, [key, value]) => {
-      acc[key as keyof typeof DEFAULT_WHITELIST] =
-        value instanceof Set ? value : new Set(value);
-      return acc;
-    }, {} as Whitelist);
+const cloneDefaultWhitelist = (): Whitelist =>
+  Object.fromEntries(
+    Object.entries(DEFAULT_WHITELIST).map(([key, set]) => [key, new Set(set)])
+  ) as Whitelist;
+
+const readonlySet = <T>(values: Iterable<T>): Set<T> => {
+  const set = new Set(values);
+  const throwReadonlyMutation = () => {
+    throw new TypeError('Cannot mutate readonly ScallopConstants whitelist');
+  };
+
+  Object.defineProperties(set, {
+    add: { value: throwReadonlyMutation },
+    clear: { value: throwReadonlyMutation },
+    delete: { value: throwReadonlyMutation },
+  });
+
+  return Object.freeze(set);
 };
 
-class ScallopConstants extends ScallopAddress {
-  private _poolAddresses: Record<string, PoolAddress | undefined> = {};
-  private _whitelist: Whitelist = DEFAULT_WHITELIST;
+const freezeWhitelist = (whitelist: Whitelist): Whitelist =>
+  Object.freeze(
+    Object.fromEntries(
+      Object.entries(whitelist).map(([key, value]) => [key, readonlySet(value)])
+    ) as Whitelist
+  );
+
+const freezePoolAddresses = (
+  poolAddresses: Record<string, PoolAddress | undefined>
+): Record<string, PoolAddress | undefined> =>
+  Object.freeze(
+    Object.fromEntries(
+      Object.entries(poolAddresses).map(([key, value]) => [
+        key,
+        value ? Object.freeze({ ...value }) : undefined,
+      ])
+    )
+  ) as Record<string, PoolAddress | undefined>;
+
+const parseWhitelistParams = (
+  params: Record<string, any> | Whitelist
+): Whitelist => {
+  const merged = cloneDefaultWhitelist();
+  for (const [key, value] of Object.entries(params)) {
+    if (!value) continue;
+    if (Array.isArray(value)) {
+      merged[key as keyof Whitelist] = new Set(value);
+    } else if (value instanceof Set) {
+      merged[key as keyof Whitelist] = new Set(value);
+    }
+  }
+  return freezeWhitelist(merged);
+};
+
+class ScallopConstants {
+  /**
+   * Composed address adapter. Owns network/address state, axios client, query
+   * client, and the raw REST/HTTP plumbing. Prefer `constants.address.*` going
+   * forward; the inline forwarders below exist for v3 API compatibility.
+   */
+  public readonly address: ScallopAddress;
+  public readonly logger: Logger;
+
+  private _poolAddresses: Record<string, PoolAddress | undefined> =
+    freezePoolAddresses({});
+  private _whitelist: Whitelist = freezeWhitelist(cloneDefaultWhitelist());
 
   /**
    * @description coin names to coin decimal map
@@ -108,8 +184,58 @@ class ScallopConstants extends ScallopAddress {
   public supportedBorrowIncentiveRewards: Set<CoinName> = new Set();
 
   constructor(public readonly params: ScallopConstantsParams = {}) {
-    super(params);
+    this.address = params.scallopAddress ?? new ScallopAddress(params);
+    this.logger = params.logger ?? noopLogger;
   }
+
+  // ===== Forwarders preserved for backward compatibility =====
+  // Prefer `constants.address.*` going forward.
+
+  get queryClient() {
+    return this.address.queryClient;
+  }
+
+  get axiosClient() {
+    return this.address.axiosClient;
+  }
+
+  get scallopAxios() {
+    return this.address.scallopAxios;
+  }
+
+  get axiosInstance() {
+    return this.address.scallopAxios.axiosInstance;
+  }
+
+  getId() {
+    return this.address.getId();
+  }
+
+  get(path: AddressStringPath) {
+    return this.address.get(path);
+  }
+
+  set(path: AddressStringPath, value: string) {
+    return this.address.set(path, value);
+  }
+
+  getAddresses(network?: NetworkType) {
+    return this.address.getAddresses(network);
+  }
+
+  setAddresses(addresses: AddressesInterface, network?: NetworkType) {
+    return this.address.setAddresses(addresses, network);
+  }
+
+  getAllAddresses() {
+    return this.address.getAllAddresses();
+  }
+
+  switchCurrentAddresses(network: NetworkType) {
+    return this.address.switchCurrentAddresses(network);
+  }
+
+  // ===== Constants-specific surface =====
 
   get protocolObjectId() {
     return (
@@ -132,25 +258,25 @@ class ScallopConstants extends ScallopAddress {
     ] as const;
     return (
       this.isAddressInitialized() && // address is initialized
-      !isEmptyObject(this.poolAddresses) && // poolAddresses is initialized
-      REQUIRED_WHITELIST_KEYS.every((t) => this.whitelist[t].size > 0) // whitelist is initialized
+      !isEmptyObject(this._poolAddresses) && // poolAddresses is initialized
+      REQUIRED_WHITELIST_KEYS.every((t) => this._whitelist[t].size > 0) // whitelist is initialized
     );
   }
 
-  get whitelist() {
-    return new Proxy(this._whitelist, {
-      get: (target, key: keyof Whitelist) => {
-        return target[key] ?? DEFAULT_WHITELIST[key];
-      },
-    });
+  /**
+   * Immutable snapshot of the whitelist. Always populated for every known key
+   * (missing keys default to empty sets) so callers do not need null-checks.
+   */
+  get whitelist(): Readonly<Whitelist> {
+    return this._whitelist;
   }
 
-  get poolAddresses() {
-    return new Proxy(this._poolAddresses, {
-      get: (target, key: string) => {
-        return target[key] ?? undefined;
-      },
-    });
+  /**
+   * Immutable snapshot of pool addresses keyed by coin name. Missing entries
+   * are `undefined`.
+   */
+  get poolAddresses(): Readonly<Record<string, PoolAddress | undefined>> {
+    return this._poolAddresses;
   }
 
   get defaultValues() {
@@ -162,7 +288,7 @@ class ScallopConstants extends ScallopAddress {
   }: {
     networkType?: NetworkType;
   } = {}) {
-    const addresses = this.getAddresses(networkType);
+    const addresses = this.address.getAddresses(networkType);
     return !!addresses && !isEmptyObject(addresses);
   }
 
@@ -182,14 +308,15 @@ class ScallopConstants extends ScallopAddress {
     constantsParams?: Partial<ScallopConstantsParams>;
   } = {}) {
     // check if scallop address is initialized
-    const addresses = this.getAddresses(networkType);
+    const addresses = this.address.getAddresses(networkType);
     if (!addresses || Object.keys(addresses).length === 0 || force) {
-      await this.read(addressId); // ScallopAddress read()
+      await this.address.read(addressId);
     }
 
-    // Initialization function
     if (constantsParams.forcePoolAddressInterface) {
-      this._poolAddresses = constantsParams.forcePoolAddressInterface;
+      this._poolAddresses = freezePoolAddresses(
+        constantsParams.forcePoolAddressInterface
+      );
     }
 
     if (constantsParams.forceWhitelistInterface) {
@@ -200,6 +327,7 @@ class ScallopConstants extends ScallopAddress {
 
     if (this.isInitialized && !force) {
       this.initConstants();
+      this.maybeAssertStrictInit();
       return;
     }
 
@@ -209,57 +337,71 @@ class ScallopConstants extends ScallopAddress {
     ]);
 
     if (!this.params.forceWhitelistInterface) {
-      this._whitelist = Object.keys(this._whitelist).reduce(
-        (acc, key: unknown) => {
-          const whiteListKey = key as keyof Whitelist;
-          const whiteListValue = whitelistResponse[whiteListKey];
-          acc[whiteListKey] =
-            whiteListValue instanceof Set
-              ? whiteListValue
-              : Array.isArray(whiteListValue)
-                ? new Set(whiteListValue)
-                : new Set();
-          return acc;
-        },
-        {} as Whitelist
-      );
+      const merged = cloneDefaultWhitelist();
+      for (const key of Object.keys(merged) as (keyof Whitelist)[]) {
+        const value = whitelistResponse[key];
+        if (value instanceof Set) {
+          merged[key] = value;
+        } else if (Array.isArray(value)) {
+          merged[key] = new Set(value);
+        }
+      }
+      this._whitelist = freezeWhitelist(merged);
     }
 
     if (!this.params.forcePoolAddressInterface) {
-      this._poolAddresses = Object.fromEntries(
-        Object.entries(poolAddressesResponse)
-          .filter(([key]) =>
-            Object.values(this._whitelist).some((set) => set.has(key))
-          )
-          .map(([key, value]) => {
-            const parsedValue = Object.fromEntries(
-              Object.entries(value).map(([k, v]) => [
-                k,
-                typeof v === 'boolean' ? (v ?? false) : v || undefined,
-              ])
-            );
-            return [key, parsedValue as PoolAddress];
-          })
+      this._poolAddresses = freezePoolAddresses(
+        Object.fromEntries(
+          Object.entries(poolAddressesResponse)
+            .filter(([key]) =>
+              Object.values(this._whitelist).some((set) => set.has(key))
+            )
+            .filter(
+              (entry): entry is [string, PoolAddress] => entry[1] !== undefined
+            )
+            .map(([key, value]) => {
+              const parsedValue = Object.fromEntries(
+                Object.entries(value).map(([k, v]) => [
+                  k,
+                  typeof v === 'boolean' ? (v ?? false) : v || undefined,
+                ])
+              );
+              return [key, parsedValue as PoolAddress];
+            })
+        )
       );
     }
     this.initConstants();
+    this.maybeAssertStrictInit();
+  }
+
+  private maybeAssertStrictInit() {
+    if (!this.params.strictInit) return;
+    loadScallopConfigSnapshot(
+      {
+        addressSource: createLiveAddressConfigSource(this),
+        poolAddressSource: createLivePoolAddressConfigSource(this),
+        whitelistSource: createLiveWhitelistConfigSource(this),
+      },
+      { validate: true }
+    );
   }
 
   private initConstants() {
     this.coinDecimals = Object.fromEntries([
-      ...Object.entries(this.poolAddresses)
+      ...Object.entries(this._poolAddresses)
         .filter(([_, value]) => !!value)
         .map(([key, value]) => [key, value!.decimals]),
-      ...Object.entries(this.poolAddresses)
+      ...Object.entries(this._poolAddresses)
         .filter(([_, value]) => !!value?.sCoinName)
         .map(([_, value]) => [value!.sCoinName, value!.decimals]),
     ]);
 
     this.coinTypes = Object.fromEntries([
-      ...Object.entries(this.poolAddresses)
+      ...Object.entries(this._poolAddresses)
         .filter(([_, value]) => !!value)
         .map(([key, value]) => [key, value?.coinType]),
-      ...Object.entries(this.poolAddresses)
+      ...Object.entries(this._poolAddresses)
         .filter(([_, value]) => !!value && value.sCoinName && value.sCoinType)
         .map(([_, value]) => [value!.sCoinName, value!.sCoinType]),
     ]);
@@ -269,13 +411,13 @@ class ScallopConstants extends ScallopAddress {
     );
 
     this.wormholeCoinTypeToCoinNameMap = Object.fromEntries(
-      Object.entries(this.poolAddresses)
-        .filter(([key, value]) => !!value && this.whitelist.wormhole.has(key))
+      Object.entries(this._poolAddresses)
+        .filter(([key, value]) => !!value && this._whitelist.wormhole.has(key))
         .map(([_, value]) => [value!.coinType, value!.coinName])
     );
 
     this.coinNameToOldMarketCoinTypeMap = Object.fromEntries(
-      Object.entries(this.poolAddresses)
+      Object.entries(this._poolAddresses)
         .filter(([_, value]) => !!value)
         .map(([_, value]) => [
           value!.coinName,
@@ -284,7 +426,7 @@ class ScallopConstants extends ScallopAddress {
     );
 
     this.scoinRawNameToSCoinNameMap = Object.fromEntries(
-      Object.entries(this.poolAddresses)
+      Object.entries(this._poolAddresses)
         .filter(([_, value]) => !!value && value.sCoinType && value.sCoinName)
         .map(([_, value]) => {
           const scoinRawName = parseStructTag(value!.sCoinType!).name;
@@ -293,38 +435,56 @@ class ScallopConstants extends ScallopAddress {
     );
 
     this.scoinTypeToSCoinNameMap = Object.fromEntries(
-      Object.entries(this.poolAddresses)
+      Object.entries(this._poolAddresses)
         .filter(([_, value]) => !!value && value.sCoinType && value.sCoinName)
         .map(([_, value]) => [value!.sCoinType!, value!.sCoinName!])
     );
 
-    const vSuiCoinType = this.poolAddresses['vsui']?.coinType;
+    const vSuiCoinType = this._poolAddresses['vsui']?.coinType;
     if (vSuiCoinType)
       this.voloCoinTypeToCoinNameMap = {
         [vSuiCoinType]: 'vsui',
       };
 
     this.suiBridgeCoinTypeToCoinNameMap = Object.fromEntries(
-      Object.entries(this.poolAddresses)
+      Object.entries(this._poolAddresses)
         .filter(
           ([_, value]) =>
-            !!value && this.whitelist.suiBridge.has(value.coinName)
+            !!value && this._whitelist.suiBridge.has(value.coinName)
         )
         .map(([_, value]) => [value!.coinType, value!.coinName])
     );
 
     this.sCoinTypes = Object.fromEntries(
-      Object.entries(this.poolAddresses)
+      Object.entries(this._poolAddresses)
         .filter(([_, value]) => !!value && value.sCoinName && value.sCoinType)
         .map(([_, value]) => [value!.sCoinName, value!.sCoinType!])
     );
 
     this.supportedBorrowIncentiveRewards = new Set([
-      ...Object.values(this.poolAddresses)
+      ...Object.values(this._poolAddresses)
         .filter((t) => !!t)
         .map((t) => (t.sCoinName ? [t.coinName, t.sCoinName] : [t.coinName]))
         .flat(),
     ]);
+  }
+
+  private async readApi<T>({
+    url,
+    queryKey,
+    config,
+  }: {
+    url: string;
+    queryKey: QueryKey;
+    config?: AxiosRequestConfig;
+  }) {
+    const resp = await this.address.axiosClient.get<T>(url, queryKey, config);
+    if (resp.status === 200) {
+      return resp.data as T;
+    }
+    throw Error(
+      `Error: ${resp.status}; Failed to read ${url} ${resp.statusText}`
+    );
   }
 
   async readWhiteList() {
@@ -341,10 +501,13 @@ class ScallopConstants extends ScallopAddress {
             queryKey: queryKeys.api.getWhiteList(),
           });
         } catch (e) {
-          console.error(`${e}`); // Trying next url in the list
+          this.logger.warn('whitelist fetch failed; trying next url', {
+            url,
+            message: (e as Error)?.message,
+          });
         }
       }
-      return this.defaultValues?.whitelist ?? DEFAULT_WHITELIST;
+      return this.defaultValues?.whitelist ?? cloneDefaultWhitelist();
     })();
 
     return Object.fromEntries(
@@ -370,10 +533,13 @@ class ScallopConstants extends ScallopAddress {
           queryKey: queryKeys.api.getPoolAddresses(),
         });
       } catch (e) {
-        console.error(`${e}`); // Trying next url in the list
+        this.logger.warn('poolAddresses fetch failed; trying next url', {
+          url,
+          message: (e as Error)?.message,
+        });
       }
     }
-    return this.defaultValues?.poolAddresses ?? {};
+    return freezePoolAddresses(this.defaultValues?.poolAddresses ?? {});
   }
 }
 

@@ -1,5 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 import { normalizeStructTag } from '@mysten/sui/utils';
+import { parseMoveTypeName } from 'src/mappers/index.js';
 import type { ScallopUtils } from '../models/index.js';
 import type {
   OriginMarketPoolData,
@@ -23,7 +24,9 @@ import type {
   CalculatedBorrowIncentivePoolPointData,
   OriginBorrowIncentiveAccountPoolData,
   ParsedBorrowIncentiveAccountPoolData,
-} from '../types/index.js';
+} from '../types/internal/index.js';
+
+export { parseMoveTypeName };
 
 /**
  *  Parse origin market pool data to a more readable format.
@@ -412,9 +415,7 @@ export const parseOriginBorrowIncentivesPoolPointData = (
   originBorrowIncentivePoolPointData: OriginBorrowIncentivePoolPointData
 ): ParsedBorrowIncentivePoolPointData => {
   return {
-    pointType: normalizeStructTag(
-      originBorrowIncentivePoolPointData.point_type.name
-    ),
+    pointType: parseMoveTypeName(originBorrowIncentivePoolPointData.point_type),
     distributedPointPerPeriod: Number(
       originBorrowIncentivePoolPointData.distributed_point_per_period
     ),
@@ -442,7 +443,7 @@ export const parseOriginBorrowIncentivePoolData = (
   originBorrowIncentivePoolData: OriginBorrowIncentivePoolData
 ): ParsedBorrowIncentivePoolData => {
   return {
-    poolType: normalizeStructTag(originBorrowIncentivePoolData.pool_type.name),
+    poolType: parseMoveTypeName(originBorrowIncentivePoolData.pool_type),
     minStakes: Number(originBorrowIncentivePoolData.min_stakes),
     maxStakes: Number(originBorrowIncentivePoolData.max_stakes),
     staked: Number(originBorrowIncentivePoolData.stakes),
@@ -557,8 +558,8 @@ export const parseOriginBorrowIncentiveAccountPoolPointData = (
   originBorrowIncentiveAccountPoolPointData: OriginBorrowIncentiveAccountPoolData
 ): ParsedBorrowIncentiveAccountPoolData => {
   return {
-    pointType: normalizeStructTag(
-      originBorrowIncentiveAccountPoolPointData.point_type.name
+    pointType: parseMoveTypeName(
+      originBorrowIncentiveAccountPoolPointData.point_type
     ),
     weightedAmount: Number(
       originBorrowIncentiveAccountPoolPointData.weighted_amount
@@ -580,9 +581,7 @@ export const parseOriginBorrowIncentiveAccountData = (
   originBorrowIncentiveAccountData: OriginBorrowIncentiveAccountData
 ): ParsedBorrowIncentiveAccountData => {
   return {
-    poolType: normalizeStructTag(
-      originBorrowIncentiveAccountData.pool_type.name
-    ),
+    poolType: parseMoveTypeName(originBorrowIncentiveAccountData.pool_type),
     debtAmount: Number(originBorrowIncentiveAccountData.debt_amount),
     pointList: originBorrowIncentiveAccountData.points_list.reduce(
       (acc, point) => {

@@ -1,5 +1,25 @@
 import { BigNumber } from 'bignumber.js';
-import { minBigNumber, estimatedFactor } from 'src/utils/index.js';
+import {
+  minBigNumber,
+  resolveQuerySource,
+  runWithSourceFallback,
+  type QueryOptions,
+} from 'src/utils/index.js';
+import {
+  calculateTotalValueLocked,
+  parseLendingsForPortfolio,
+  parseObligationAccountsForPortfolio,
+  aggregatePendingLendingRewards,
+  aggregatePendingBorrowIncentiveRewards,
+  parseVeScasForPortfolio,
+  summarisePortfolioTotals,
+  buildObligationCollateralEntry,
+  buildObligationDebtEntry,
+  buildBorrowIncentiveRewards,
+  calculateObligationSummary,
+  estimateAvailableWithdrawAmount,
+  estimateAvailableBorrowAmount,
+} from 'src/services/index.js';
 import type { ScallopQuery } from 'src/models/index.js';
 import type {
   Market,
@@ -13,12 +33,10 @@ import type {
   CoinAmounts,
   CoinPrices,
   TotalValueLocked,
-  ObligationBorrowIncentiveReward,
   MarketPools,
   MarketCollaterals,
   SuiObjectRef,
 } from 'src/types/index.js';
-import { normalizeStructTag, SUI_TYPE_ARG } from '@scallop-io/sui-kit';
 
 /**
  * Get user lending infomation for specific pools.
@@ -440,302 +458,121 @@ export const getObligationAccount = async (
   let totalBorrowedValue = BigNumber(0);
   let totalBorrowedValueWithWeight = BigNumber(0);
 
+  // -------- per-coin collateral entries --------
   for (const assetCoinName of Array.from(
     query.constants.whitelist.collateral
   )) {
-    const collateral = obligationQuery?.collaterals.find((collateral) => {
-      const collateralCoinName = query.utils.parseCoinNameFromType(
-        collateral.type.name
-      );
-      return assetCoinName === collateralCoinName;
-    });
+    const onchainCollateral = obligationQuery?.collaterals.find(
+      (collateral) =>
+        query.utils.parseCoinNameFromType(collateral.type) === assetCoinName
+    );
 
     const marketCollateral = market.collaterals[assetCoinName];
-    const coinDecimal = query.utils.getCoinDecimal(assetCoinName);
-    const coinPrice = coinPrices?.[assetCoinName] ?? 0;
-    const coinAmount = coinAmounts?.[assetCoinName] ?? 0;
+    if (!marketCollateral) continue;
 
-    if (marketCollateral) {
-      const depositedAmount = BigNumber(collateral?.amount ?? 0);
-      const depositedCoin = depositedAmount.shiftedBy(-1 * coinDecimal);
-      const depositedValue = depositedCoin.multipliedBy(coinPrice);
-      const borrowCapacityValue = depositedValue.multipliedBy(
-        marketCollateral.collateralFactor
-      );
-      const requiredCollateralValue = depositedValue.multipliedBy(
-        marketCollateral.liquidationFactor
-      );
-
-      // const poolSizeAmount = BigNumber(marketCollateral.maxDepositAmount).minus(
-      //   marketCollateral.depositAmount
-      // );
-
-      const availableDepositAmount = BigNumber(coinAmount);
-      const availableDepositCoin = availableDepositAmount.shiftedBy(
-        -1 * coinDecimal
-      );
-
-      totalDepositedValue = totalDepositedValue.plus(depositedValue);
-      totalBorrowCapacityValue =
-        totalBorrowCapacityValue.plus(borrowCapacityValue);
-      totalRequiredCollateralValue = totalRequiredCollateralValue.plus(
-        requiredCollateralValue
-      );
-
-      if (depositedAmount.isGreaterThan(0)) {
-        totalDepositedPools++;
-      }
-
-      collaterals[assetCoinName] = {
-        coinName: assetCoinName,
-        coinType: query.utils.parseCoinType(assetCoinName),
-        symbol: query.utils.parseSymbol(assetCoinName),
-        coinDecimal: coinDecimal,
-        coinPrice: coinPrice,
-        depositedAmount: depositedAmount.toNumber(),
-        depositedCoin: depositedCoin.toNumber(),
-        depositedValue: depositedValue.toNumber(),
-        borrowCapacityValue: borrowCapacityValue.toNumber(),
-        requiredCollateralValue: requiredCollateralValue.toNumber(),
-        availableDepositAmount: availableDepositAmount.toNumber(),
-        availableDepositCoin: availableDepositCoin.toNumber(),
-        availableWithdrawAmount: 0,
-        availableWithdrawCoin: 0,
-      };
-    }
+    const built = buildObligationCollateralEntry({
+      assetCoinName,
+      coinType: query.utils.parseCoinType(assetCoinName),
+      symbol: query.utils.parseSymbol(assetCoinName),
+      coinDecimal: query.utils.getCoinDecimal(assetCoinName),
+      coinPrice: coinPrices?.[assetCoinName] ?? 0,
+      coinAmount: coinAmounts?.[assetCoinName] ?? 0,
+      marketCollateral,
+      depositedRawAmount: onchainCollateral?.amount,
+    });
+    totalDepositedValue = totalDepositedValue.plus(built.depositedValue);
+    totalBorrowCapacityValue = totalBorrowCapacityValue.plus(
+      built.borrowCapacityValue
+    );
+    totalRequiredCollateralValue = totalRequiredCollateralValue.plus(
+      built.requiredCollateralValue
+    );
+    if (built.isDeposited) totalDepositedPools++;
+    collaterals[assetCoinName] = built.entry;
   }
 
-  const borrowAssetCoinNames: string[] = [
-    ...new Set([
-      ...Object.values(market.pools)
-        .filter((t) => !!t)
-        .map((pool) => pool.coinName),
-    ]),
-  ];
-
+  // -------- borrow-incentive rewards per pool --------
   for (const [poolCoinName, borrowIncentiveAccount] of Object.entries(
     borrowIncentiveAccounts
   )) {
     if (!borrowIncentiveAccount) continue;
+    const borrowIncentivePool = borrowIncentivePools[poolCoinName];
+    if (!borrowIncentivePool) continue;
 
-    const coinName = poolCoinName as string;
-    const borrowIncentivePool = borrowIncentivePools[coinName];
-    if (borrowIncentivePool) {
-      const rewards: ObligationBorrowIncentiveReward[] = [];
-      Object.entries(borrowIncentiveAccount.pointList).forEach(
-        ([key, accountPoint]) => {
-          const poolPoint =
-            borrowIncentivePool.points[
-              query.utils.parseSCoinTypeNameToMarketCoinName(key)
-            ];
-          if (accountPoint && poolPoint) {
-            let availableClaimAmount = BigNumber(0);
-            let availableClaimCoin = BigNumber(0);
-            const accountBorrowedAmount = BigNumber(
-              accountPoint.weightedAmount
-            );
-            const baseIndexRate = 1_000_000_000;
-            const increasedPointRate = poolPoint.currentPointIndex
-              ? Math.max(
-                  BigNumber(poolPoint.currentPointIndex - accountPoint.index)
-                    .dividedBy(baseIndexRate)
-                    .toNumber(),
-                  0
-                )
-              : 1;
-            availableClaimAmount = availableClaimAmount.plus(
-              accountBorrowedAmount
-                .multipliedBy(increasedPointRate)
-                .plus(accountPoint.points)
-            );
-            availableClaimCoin = availableClaimAmount.shiftedBy(
-              -1 * poolPoint.coinDecimal
-            );
-
-            // for veSCA
-            const weightScale = BigNumber(1_000_000_000_000);
-            const boostScale = BigNumber(poolPoint.baseWeight).dividedBy(
-              weightScale
-            );
-            const boostValue = BigNumber(accountPoint.weightedAmount)
-              .div(
-                BigNumber(borrowIncentiveAccount.debtAmount).multipliedBy(
-                  boostScale
-                )
-              )
-              .isFinite()
-              ? BigNumber(accountPoint.weightedAmount)
-                  .div(
-                    BigNumber(borrowIncentiveAccount.debtAmount).multipliedBy(
-                      boostScale
-                    )
-                  )
-                  .toNumber()
-              : 1;
-
-            const rewardApr = isFinite(poolPoint.rewardApr)
-              ? poolPoint.rewardApr
-              : 0;
-
-            if (availableClaimAmount.isGreaterThanOrEqualTo(0)) {
-              rewards.push({
-                coinName: poolPoint.coinName,
-                coinType: poolPoint.coinType,
-                symbol: poolPoint.symbol,
-                coinDecimal: poolPoint.coinDecimal,
-                coinPrice: poolPoint.coinPrice,
-                weightedBorrowAmount: accountBorrowedAmount.toNumber(),
-                availableClaimAmount: availableClaimAmount.toNumber(),
-                availableClaimCoin: availableClaimCoin.toNumber(),
-                baseRewardApr: rewardApr,
-                boostedRewardApr: rewardApr * boostValue,
-                maxBoost: 1 / boostScale.toNumber(),
-                boostValue,
-              });
-            }
-          }
-        }
-      );
-
-      if (
-        Object.keys(borrowIncentivePool.points).some((coinName: any) => {
-          const rewardApr =
-            borrowIncentivePool.points[coinName as string]?.rewardApr;
-          return (
-            rewardApr !== Infinity &&
-            typeof rewardApr == 'number' &&
-            rewardApr > 0
-          );
-        }) &&
-        borrowIncentiveAccount.debtAmount > 0
-      ) {
-        totalRewardedPools++;
-      }
-      borrowIncentives[coinName] = {
-        coinName: borrowIncentivePool.coinName,
-        coinType: borrowIncentivePool.coinType,
-        symbol: borrowIncentivePool.symbol,
-        coinDecimal: borrowIncentivePool.coinDecimal,
-        coinPrice: borrowIncentivePool.coinPrice,
-        rewards,
-      };
-    }
-  }
-
-  for (const assetCoinName of borrowAssetCoinNames) {
-    const debt = obligationQuery?.debts.find((debt) => {
-      const poolCoinName = query.utils.parseCoinNameFromType(debt.type.name);
-      return assetCoinName === poolCoinName;
+    const built = buildBorrowIncentiveRewards({
+      borrowIncentivePool,
+      borrowIncentiveAccount,
+      toMarketCoinName: (key) =>
+        query.utils.parseSCoinTypeNameToMarketCoinName(key),
     });
-
-    const marketPool = market.pools[assetCoinName];
-    const coinDecimal = query.utils.getCoinDecimal(assetCoinName);
-    const coinPrice = coinPrices?.[assetCoinName] ?? 0;
-    const coinAmount = coinAmounts?.[assetCoinName] ?? 0;
-
-    if (marketPool) {
-      const increasedRate = debt?.borrowIndex
-        ? marketPool.borrowIndex / Number(debt.borrowIndex) - 1
-        : 0;
-      const borrowedAmount = BigNumber(debt?.amount ?? 0).multipliedBy(
-        increasedRate + 1
-      );
-      const borrowedCoin = borrowedAmount.shiftedBy(-1 * coinDecimal);
-
-      const requiredRepayAmount = borrowedAmount;
-      const requiredRepayCoin = requiredRepayAmount.shiftedBy(-1 * coinDecimal);
-
-      const availableRepayAmount = BigNumber(coinAmount);
-      const availableRepayCoin = availableRepayAmount.shiftedBy(
-        -1 * coinDecimal
-      );
-
-      const borrowedValue = requiredRepayCoin.multipliedBy(coinPrice);
-      const borrowedValueWithWeight = borrowedValue.multipliedBy(
-        marketPool.borrowWeight
-      );
-
-      totalBorrowedValue = totalBorrowedValue.plus(borrowedValue);
-      totalBorrowedValueWithWeight = totalBorrowedValueWithWeight.plus(
-        borrowedValueWithWeight
-      );
-
-      if (borrowedAmount.isGreaterThan(0)) {
-        totalBorrowedPools++;
-      }
-
-      debts[assetCoinName] = {
-        coinName: assetCoinName,
-        coinType: query.utils.parseCoinType(assetCoinName),
-        symbol: query.utils.parseSymbol(assetCoinName),
-        coinDecimal: coinDecimal,
-        coinPrice: coinPrice,
-        borrowedAmount: borrowedAmount.toNumber(),
-        borrowedCoin: borrowedCoin.toNumber(),
-        borrowedValue: borrowedValue.toNumber(),
-        borrowedValueWithWeight: borrowedValueWithWeight.toNumber(),
-        borrowIndex: Number(debt?.borrowIndex ?? 0),
-        requiredRepayAmount: requiredRepayAmount.toNumber(),
-        requiredRepayCoin: requiredRepayCoin.toNumber(),
-        availableBorrowAmount: 0,
-        availableBorrowCoin: 0,
-        availableRepayAmount: availableRepayAmount.toNumber(),
-        availableRepayCoin: availableRepayCoin.toNumber(),
-        rewards: (borrowIncentives[assetCoinName]?.rewards ?? []).filter(
-          ({ weightedBorrowAmount }) => weightedBorrowAmount > 0
-        ),
-      };
-    }
+    if (built.contributesRewardedPool) totalRewardedPools++;
+    borrowIncentives[poolCoinName] = {
+      coinName: borrowIncentivePool.coinName,
+      coinType: borrowIncentivePool.coinType,
+      symbol: borrowIncentivePool.symbol,
+      coinDecimal: borrowIncentivePool.coinDecimal,
+      coinPrice: borrowIncentivePool.coinPrice,
+      rewards: built.rewards,
+    };
   }
 
-  let riskLevel = totalRequiredCollateralValue.isZero()
-    ? // Note: when there is no collateral and debt is not zero, then it's a bad-debt situation.
-      totalBorrowedValueWithWeight.isGreaterThan(0)
-      ? BigNumber(100)
-      : BigNumber(0)
-    : totalBorrowedValueWithWeight.dividedBy(totalRequiredCollateralValue);
-  // Note: 100% represents the safety upper limit. Even if it exceeds 100% before it is liquidated, it will only display 100%.
-  riskLevel = riskLevel.isLessThan(1) ? riskLevel : BigNumber(1);
+  // -------- per-coin debt entries --------
+  const borrowAssetCoinNames: string[] = [
+    ...new Set(
+      Object.values(market.pools)
+        .filter((t): t is NonNullable<typeof t> => !!t)
+        .map((pool) => pool.coinName)
+    ),
+  ];
+  for (const assetCoinName of borrowAssetCoinNames) {
+    const onchainDebt = obligationQuery?.debts.find(
+      (debt) => query.utils.parseCoinNameFromType(debt.type) === assetCoinName
+    );
+    const marketPool = market.pools[assetCoinName];
+    if (!marketPool) continue;
 
-  const accountBalanceValue = totalDepositedValue
-    .minus(totalBorrowedValue)
-    .isGreaterThan(0)
-    ? totalDepositedValue.minus(totalBorrowedValue)
-    : BigNumber(0);
-  const availableCollateralValue = totalBorrowCapacityValue
-    .minus(totalBorrowedValueWithWeight)
-    .isGreaterThan(0)
-    ? totalBorrowCapacityValue.minus(totalBorrowedValueWithWeight)
-    : BigNumber(0);
-  const requiredCollateralValue = totalBorrowedValueWithWeight.isGreaterThan(0)
-    ? totalRequiredCollateralValue
-    : BigNumber(0);
-  const unhealthyCollateralValue = totalBorrowedValueWithWeight
-    .minus(requiredCollateralValue)
-    .isGreaterThan(0)
-    ? totalBorrowedValueWithWeight.minus(requiredCollateralValue)
-    : BigNumber(0);
+    const built = buildObligationDebtEntry({
+      assetCoinName,
+      coinType: query.utils.parseCoinType(assetCoinName),
+      symbol: query.utils.parseSymbol(assetCoinName),
+      coinDecimal: query.utils.getCoinDecimal(assetCoinName),
+      coinPrice: coinPrices?.[assetCoinName] ?? 0,
+      coinAmount: coinAmounts?.[assetCoinName] ?? 0,
+      marketPool,
+      debt: onchainDebt
+        ? { amount: onchainDebt.amount, borrowIndex: onchainDebt.borrowIndex }
+        : undefined,
+      rewards: borrowIncentives[assetCoinName]?.rewards,
+    });
+    totalBorrowedValue = totalBorrowedValue.plus(built.borrowedValue);
+    totalBorrowedValueWithWeight = totalBorrowedValueWithWeight.plus(
+      built.borrowedValueWithWeight
+    );
+    if (built.isBorrowed) totalBorrowedPools++;
+    debts[assetCoinName] = built.entry;
+  }
+
+  // -------- aggregate risk / balances --------
+  const summary = calculateObligationSummary({
+    totalDepositedValue,
+    totalBorrowedValue,
+    totalBorrowCapacityValue,
+    totalBorrowedValueWithWeight,
+    totalRequiredCollateralValue,
+  });
 
   const obligationAccount: ObligationAccount = {
     obligationId:
       typeof obligation === 'string' ? obligation : obligation.objectId,
-    // Deposited collateral value (collateral balance)
     totalDepositedValue: totalDepositedValue.toNumber(),
-    // Borrowed debt value (liabilities balance)
     totalBorrowedValue: totalBorrowedValue.toNumber(),
-    // The difference between the user’s actual deposit and loan (remaining balance)
-    totalBalanceValue: accountBalanceValue.toNumber(),
-    // Effective collateral value (the actual collateral value included in the calculation).
+    totalBalanceValue: summary.accountBalanceValue,
     totalBorrowCapacityValue: totalBorrowCapacityValue.toNumber(),
-    // Available collateral value (the remaining collateral value that can be borrowed).
-    totalAvailableCollateralValue: availableCollateralValue.toNumber(),
-    // Available debt value (the actual borrowing value included in the calculation).
+    totalAvailableCollateralValue: summary.availableCollateralValue,
     totalBorrowedValueWithWeight: totalBorrowedValueWithWeight.toNumber(),
-    // Required collateral value (avoid be liquidated).
-    totalRequiredCollateralValue: requiredCollateralValue.toNumber(),
-    // Unliquidated collateral value (pending liquidation).
-    totalUnhealthyCollateralValue: unhealthyCollateralValue.toNumber(),
-    totalRiskLevel: riskLevel.toNumber(),
+    totalRequiredCollateralValue: summary.requiredCollateralValue,
+    totalUnhealthyCollateralValue: summary.unhealthyCollateralValue,
+    totalRiskLevel: summary.riskLevel,
     totalDepositedPools,
     totalBorrowedPools,
     totalRewardedPools,
@@ -744,99 +581,46 @@ export const getObligationAccount = async (
     borrowIncentives,
   };
 
+  // -------- second pass: estimate available withdraw/borrow --------
   for (const [collateralCoinName, obligationCollateral] of Object.entries(
     obligationAccount.collaterals
   )) {
     if (!obligationCollateral) continue;
-    const marketCollateral = market.collaterals[collateralCoinName as string];
-    if (marketCollateral) {
-      let estimatedAvailableWithdrawAmount = BigNumber(
-        obligationAccount.totalAvailableCollateralValue
-      )
-        .dividedBy(marketCollateral.collateralFactor)
-        .dividedBy(marketCollateral.coinPrice)
-        .shiftedBy(marketCollateral.coinDecimal);
-      estimatedAvailableWithdrawAmount =
-        obligationAccount.totalBorrowedValueWithWeight === 0
-          ? // Note: when there is no debt record, there is no need to estimate and the deposited amount is directly used as available withdraw.
-            BigNumber(obligationCollateral.depositedAmount)
-          : minBigNumber(
-              estimatedAvailableWithdrawAmount
-                // Note: reduced chance of failure when calculations are inaccurate
-                .multipliedBy(
-                  estimatedFactor(
-                    BigNumber(obligationAccount.totalAvailableCollateralValue)
-                      .dividedBy(marketCollateral.collateralFactor)
-                      .toNumber(),
-                    3,
-                    'increase'
-                  )
-                )
-                .toNumber(),
-              obligationCollateral.depositedAmount,
-              marketCollateral.depositAmount
-            );
-      obligationCollateral.availableWithdrawAmount =
-        estimatedAvailableWithdrawAmount.toNumber();
-      obligationCollateral.availableWithdrawCoin =
-        estimatedAvailableWithdrawAmount
-          .shiftedBy(-1 * obligationCollateral.coinDecimal)
-          .toNumber();
-    }
+    const marketCollateral = market.collaterals[collateralCoinName];
+    if (!marketCollateral) continue;
+    const { availableWithdrawAmount, availableWithdrawCoin } =
+      estimateAvailableWithdrawAmount({
+        obligationCollateral,
+        marketCollateral,
+        totalAvailableCollateralValue:
+          obligationAccount.totalAvailableCollateralValue,
+        totalBorrowedValueWithWeight:
+          obligationAccount.totalBorrowedValueWithWeight,
+      });
+    obligationCollateral.availableWithdrawAmount = availableWithdrawAmount;
+    obligationCollateral.availableWithdrawCoin = availableWithdrawCoin;
   }
   for (const [poolCoinName, obligationDebt] of Object.entries(
     obligationAccount.debts
   )) {
     if (!obligationDebt) continue;
-    const marketPool = market.pools[poolCoinName as string];
-    if (marketPool) {
-      const estimatedRequiredRepayAmount = BigNumber(
-        obligationDebt.requiredRepayAmount
-      )
-        // Note: reduced chance of not being able to repay in full when calculations are inaccurate,
-        // and the contract will not actually take the excess amount.
-        .multipliedBy(
-          estimatedFactor(obligationDebt.borrowedValue, 3, 'decrease')
-        );
-
-      let estimatedAvailableBorrowAmount = BigNumber(
-        obligationAccount.totalAvailableCollateralValue
-      )
-        .dividedBy(marketPool.borrowWeight)
-        .shiftedBy(marketPool.coinDecimal)
-        .dividedBy(marketPool.coinPrice);
-      estimatedAvailableBorrowAmount =
-        obligationAccount.totalAvailableCollateralValue !== 0 &&
-        BigNumber(marketPool.maxBorrowCoin).isGreaterThan(marketPool.borrowCoin)
-          ? minBigNumber(
-              estimatedAvailableBorrowAmount
-                // Note: reduced chance of failure when calculations are inaccurate
-                .multipliedBy(
-                  estimatedFactor(
-                    estimatedAvailableBorrowAmount
-                      .shiftedBy(-1 * marketPool.coinDecimal)
-                      .multipliedBy(marketPool.coinPrice)
-                      .toNumber(),
-                    3,
-                    'increase'
-                  )
-                )
-                .toNumber(),
-              marketPool.supplyAmount
-            )
-          : BigNumber(0);
-
-      obligationDebt.availableBorrowAmount =
-        estimatedAvailableBorrowAmount.toNumber();
-      obligationDebt.availableBorrowCoin = estimatedAvailableBorrowAmount
-        .shiftedBy(-1 * obligationDebt.coinDecimal)
-        .toNumber();
-      obligationDebt.requiredRepayAmount =
-        estimatedRequiredRepayAmount.toNumber();
-      obligationDebt.requiredRepayCoin = estimatedRequiredRepayAmount
-        .shiftedBy(-1 * obligationDebt.coinDecimal)
-        .toNumber();
-    }
+    const marketPool = market.pools[poolCoinName];
+    if (!marketPool) continue;
+    const {
+      availableBorrowAmount,
+      availableBorrowCoin,
+      requiredRepayAmount,
+      requiredRepayCoin,
+    } = estimateAvailableBorrowAmount({
+      obligationDebt,
+      marketPool,
+      totalAvailableCollateralValue:
+        obligationAccount.totalAvailableCollateralValue,
+    });
+    obligationDebt.availableBorrowAmount = availableBorrowAmount;
+    obligationDebt.availableBorrowCoin = availableBorrowCoin;
+    obligationDebt.requiredRepayAmount = requiredRepayAmount;
+    obligationDebt.requiredRepayCoin = requiredRepayCoin;
   }
 
   return obligationAccount;
@@ -851,61 +635,37 @@ export const getObligationAccount = async (
  */
 export const getTotalValueLocked = async (
   query: ScallopQuery,
-  indexer: boolean = false
+  options: boolean | QueryOptions = false
 ) => {
-  let supplyLendingValue = BigNumber(0);
-  let supplyCollateralValue = BigNumber(0);
-  let borrowValue = BigNumber(0);
+  const queryOptions =
+    typeof options === 'boolean' ? { indexer: options } : options;
+  const source = resolveQuerySource(queryOptions);
 
-  if (indexer) {
-    const tvlIndexer = await query.indexer.getTotalValueLocked();
-    const tvl: TotalValueLocked = {
-      supplyValue: tvlIndexer.supplyValue,
-      supplyValueChangeRatio: tvlIndexer.supplyValueChangeRatio,
-      borrowValue: tvlIndexer.borrowValue,
-      borrowValueChangeRatio: tvlIndexer.borrowValueChangeRatio,
-      totalValue: tvlIndexer.totalValue,
-      totalValueChangeRatio: tvlIndexer.totalValueChangeRatio,
-      supplyLendingValue: tvlIndexer.supplyLendingValue,
-      supplyLendingValueChangeRatio: tvlIndexer.supplyLendingValueChangeRatio,
-      supplyCollateralValue: tvlIndexer.supplyCollateralValue,
-      supplyCollateralValueChangeRatio:
-        tvlIndexer.supplyCollateralValueChangeRatio,
-    };
-    return tvl;
-  }
-
-  const market = await query.getMarketPools(undefined, { indexer });
-
-  for (const pool of Object.values(market.pools)) {
-    if (!pool) continue;
-    supplyLendingValue = supplyLendingValue.plus(
-      BigNumber(pool.supplyCoin).multipliedBy(pool.coinPrice)
-    );
-    borrowValue = borrowValue.plus(
-      BigNumber(pool.borrowCoin).multipliedBy(pool.coinPrice)
-    );
-  }
-
-  for (const collateral of Object.values(market.collaterals)) {
-    if (!collateral) continue;
-    supplyCollateralValue = supplyCollateralValue.plus(
-      BigNumber(collateral.depositCoin).multipliedBy(collateral.coinPrice)
-    );
-  }
-
-  const tvl: TotalValueLocked = {
-    supplyValue: supplyLendingValue.plus(supplyCollateralValue).toNumber(),
-    supplyLendingValue: supplyLendingValue.toNumber(),
-    supplyCollateralValue: supplyCollateralValue.toNumber(),
-    borrowValue: borrowValue.toNumber(),
-    totalValue: supplyLendingValue
-      .plus(supplyCollateralValue)
-      .minus(borrowValue)
-      .toNumber(),
-  };
-
-  return tvl;
+  return runWithSourceFallback({
+    source,
+    label: 'getTotalValueLocked',
+    indexer: async () => {
+      const tvlIndexer = await query.indexer.getTotalValueLocked();
+      const tvl: TotalValueLocked = {
+        supplyValue: tvlIndexer.supplyValue,
+        supplyValueChangeRatio: tvlIndexer.supplyValueChangeRatio,
+        borrowValue: tvlIndexer.borrowValue,
+        borrowValueChangeRatio: tvlIndexer.borrowValueChangeRatio,
+        totalValue: tvlIndexer.totalValue,
+        totalValueChangeRatio: tvlIndexer.totalValueChangeRatio,
+        supplyLendingValue: tvlIndexer.supplyLendingValue,
+        supplyLendingValueChangeRatio: tvlIndexer.supplyLendingValueChangeRatio,
+        supplyCollateralValue: tvlIndexer.supplyCollateralValue,
+        supplyCollateralValueChangeRatio:
+          tvlIndexer.supplyCollateralValueChangeRatio,
+      };
+      return tvl;
+    },
+    rpc: async () => {
+      const market = await query.getMarketPools(undefined, { indexer: false });
+      return calculateTotalValueLocked(market);
+    },
+  });
 };
 
 /**
@@ -933,191 +693,26 @@ export const getUserPortfolio = async (
     query.getVeScas({ walletAddress, excludeEmpty: true }),
   ]);
 
-  // get pending rewards (spool and borrow incentive)
-  const parsedLendings = Object.values(lendings)
-    .filter(
-      (t): t is NonNullable<typeof t> => !!t && t.availableWithdrawCoin > 0
-    )
-    .map((lending) => ({
-      suppliedCoin: lending.availableWithdrawCoin,
-      suppliedValue: lending.suppliedValue,
-      stakedCoin: lending.availableUnstakeCoin,
-      coinName: lending.coinName,
-      symbol: lending.symbol,
-      coinType: lending.coinType,
-      coinPrice: lending.coinPrice,
-      coinDecimals: lending.coinDecimal,
-      supplyApr: lending.supplyApr,
-      supplyApy: lending.supplyApy,
-      incentiveApr: isFinite(lending.rewardApr) ? lending.rewardApr : 0,
-    }));
-
-  const parsedObligationAccounts = Object.values(obligationAccounts)
-    .filter(
-      (t): t is NonNullable<typeof t> =>
-        !!t && (t.totalBorrowedValueWithWeight > 0 || t.totalDepositedValue > 0)
-    )
-    .map((obligationAccount) => {
-      return {
-        obligationId: obligationAccount.obligationId,
-        totalDebtsInUsd: obligationAccount.totalBorrowedValueWithWeight,
-        totalCollateralInUsd: obligationAccount.totalDepositedValue,
-        riskLevel: obligationAccount.totalRiskLevel,
-        availableCollateralInUsd:
-          obligationAccount.totalAvailableCollateralValue,
-        totalUnhealthyCollateralInUsd:
-          obligationAccount.totalUnhealthyCollateralValue,
-        collaterals: Object.values(obligationAccount.collaterals)
-          .filter(
-            (collateral): collateral is NonNullable<typeof collateral> =>
-              !!collateral && collateral.depositedCoin > 0
-          )
-          .map((collateral) => ({
-            coinName: collateral.coinName,
-            symbol: collateral.symbol,
-            coinDecimals: collateral.coinDecimal,
-            coinType: collateral.coinType,
-            coinPrice: collateral.coinPrice,
-            depositedCoin: collateral.depositedCoin,
-            depositedValueInUsd: collateral.depositedValue,
-          })),
-        borrowedPools: Object.values(obligationAccount.debts)
-          .filter(
-            (debt): debt is NonNullable<typeof debt> =>
-              !!debt && debt.borrowedCoin > 0
-          )
-          .map((debt) => {
-            return {
-              coinName: debt.coinName,
-              symbol: debt.symbol,
-              coinDecimals: debt.coinDecimal,
-              coinType: debt.coinType,
-              coinPrice: debt.coinPrice,
-              borrowedCoin: debt.borrowedCoin,
-              borrowedValueInUsd: debt.borrowedValueWithWeight,
-              borrowApr: market.pools[debt.coinName]?.borrowApr,
-              borrowApy: market.pools[debt.coinName]?.borrowApy,
-              incentiveInfos: (
-                obligationAccount.borrowIncentives[debt.coinName]?.rewards ?? []
-              )
-                .filter(
-                  (t): t is NonNullable<typeof t> =>
-                    !!t && isFinite(t.baseRewardApr)
-                )
-                .map((t) => ({
-                  coinName: t.coinName,
-                  symbol: t.symbol,
-                  coinType: t.coinType,
-                  boostValue: t.boostValue,
-                  maxBoost: t.maxBoost,
-                  incentiveApr: t.baseRewardApr,
-                  boostedIncentiveApr: t.boostedRewardApr,
-                })),
-            };
-          }),
-      };
-    });
-
-  const LENDING_SPOOL_REWARD_COIN_NAME = 'sui' as const;
-  const LENDING_SPOOL_REWARD_COIN_SYMBOL = 'SUI' as const;
-  const pendingLendingRewards = Object.values(lendings).reduce(
-    (acc, reward) => {
-      if (reward) {
-        if (reward.availableClaimCoin === 0) return acc;
-        if (!acc[LENDING_SPOOL_REWARD_COIN_NAME]) {
-          acc[LENDING_SPOOL_REWARD_COIN_NAME] = {
-            symbol: LENDING_SPOOL_REWARD_COIN_SYMBOL,
-            coinType: normalizeStructTag(SUI_TYPE_ARG), // @TODO: for now lending reward is all in SUI
-            coinPrice: coinPrices[LENDING_SPOOL_REWARD_COIN_NAME] ?? 0,
-            pendingRewardInCoin: reward.availableClaimCoin,
-          };
-        } else {
-          acc[LENDING_SPOOL_REWARD_COIN_NAME].pendingRewardInCoin +=
-            reward.availableClaimCoin;
-        }
-      }
-      return acc;
-    },
-    {} as Record<
-      string,
-      {
-        coinType: string;
-        symbol: string;
-        coinPrice: number;
-        pendingRewardInCoin: number;
-      }
-    >
+  const parsedLendings = parseLendingsForPortfolio(lendings);
+  const parsedObligationAccounts = parseObligationAccountsForPortfolio(
+    obligationAccounts,
+    market.pools
   );
-
-  const pendingBorrowIncentiveRewards = Object.values(obligationAccounts)
-    .filter((t): t is NonNullable<typeof t> => !!t)
-    .reduce(
-      (acc, curr) => {
-        Object.values(curr.borrowIncentives).forEach((incentive) => {
-          incentive?.rewards.forEach((reward) => {
-            if (reward.availableClaimCoin === 0) return acc;
-            if (!acc[reward.coinName]) {
-              acc[reward.coinName] = {
-                symbol: reward.symbol,
-                coinType: reward.coinType,
-                coinPrice: reward.coinPrice,
-                pendingRewardInCoin: reward.availableClaimCoin,
-              };
-            } else {
-              acc[reward.coinName].pendingRewardInCoin +=
-                reward.availableClaimCoin;
-            }
-          });
-        });
-        return acc;
-      },
-      {} as Record<
-        string,
-        {
-          coinType: string;
-          symbol: string;
-          coinPrice: number;
-          pendingRewardInCoin: number;
-        }
-      >
-    );
-
-  const parsedVeScas = veScas.map(
-    ({ keyId, lockedScaCoin, currentVeScaBalance, unlockAt }) => ({
-      veScaKey: keyId,
-      coinPrice: coinPrices.sca ?? 0,
-      lockedScaInCoin: lockedScaCoin,
-      lockedScaInUsd: lockedScaCoin * (coinPrices.sca ?? 0),
-      currentVeScaBalance,
-      remainingLockPeriodInDays:
-        unlockAt - Date.now() > 0 ? (unlockAt - Date.now()) / 86400000 : 0,
-      unlockAt,
-    })
+  const pendingLendingRewards = aggregatePendingLendingRewards(
+    lendings,
+    coinPrices
   );
+  const pendingBorrowIncentiveRewards =
+    aggregatePendingBorrowIncentiveRewards(obligationAccounts);
+  const parsedVeScas = parseVeScasForPortfolio(veScas, coinPrices.sca ?? 0);
+  const totals = summarisePortfolioTotals({
+    parsedLendings,
+    parsedObligationAccounts,
+    parsedVeScas,
+  });
 
   return {
-    totalSupplyValue: parsedLendings.reduce((acc, curr) => {
-      acc += curr.suppliedValue;
-      return acc;
-    }, 0),
-    ...parsedObligationAccounts.reduce(
-      (acc, curr) => {
-        acc.totalDebtValue += curr.totalDebtsInUsd;
-        acc.totalCollateralValue += curr.totalCollateralInUsd;
-        return acc;
-      },
-      {
-        totalDebtValue: 0,
-        totalCollateralValue: 0,
-      } as {
-        totalDebtValue: number;
-        totalCollateralValue: number;
-      }
-    ),
-    totalLockedScaValue: parsedVeScas.reduce((acc, curr) => {
-      acc += curr.lockedScaInUsd;
-      return acc;
-    }, 0),
+    ...totals,
     lendings: parsedLendings,
     borrowings: parsedObligationAccounts,
     pendingRewards: {

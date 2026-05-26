@@ -8,7 +8,6 @@ import {
   SuiTxBlock,
   Transaction,
 } from '@scallop-io/sui-kit';
-import { SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
 import { queryKeys } from 'src/constants/index.js';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 import { newSuiKit } from 'src/models/suiKit.js';
@@ -444,36 +443,16 @@ class ScallopSuiKit extends ScallopQueryClient {
     );
   }
 
-  /**
-   * v2: Use JSON-RPC devInspectTransactionBlock for read-only simulation.
-   * Bypasses strict gRPC simulateTransaction (ownership/gas checks).
-   */
   async devInspectTxn(txBlock: SuiTxBlock): Promise<DevInspectResults> {
-    const jsonRpcClient = new SuiJsonRpcClient({
-      url: this.suiKit.suiInteractor.currentFullNode,
-      network: this.suiKit.client.network,
-    });
-    const senderAddr = this.suiKit.getAddress();
-    txBlock.setSender(senderAddr);
-    const result = await jsonRpcClient.devInspectTransactionBlock({
-      transactionBlock: txBlock.txBlock,
-      sender: senderAddr,
-    });
-    // Adapt v1 JSON-RPC response to v2 format
-    const success = result.effects?.status?.status === 'success';
-    const txData = {
-      ...result,
-      effects: {
-        ...result.effects,
-        status: { success, error: result.effects?.status?.error },
-      },
-    };
-    return (success
-      ? { Transaction: txData, FailedTransaction: undefined }
-      : {
-          Transaction: undefined,
-          FailedTransaction: txData,
-        }) as unknown as DevInspectResults;
+    const result = await this.suiKit.inspectTxn(txBlock);
+    const tx = result.Transaction ?? result.FailedTransaction;
+    if (tx?.events) {
+      tx.events = tx.events.map((event) => ({
+        ...event,
+        parsedJson: event.json,
+      })) as typeof tx.events;
+    }
+    return result;
   }
 }
 

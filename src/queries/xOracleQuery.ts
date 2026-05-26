@@ -65,14 +65,14 @@ export const getAssetOracles = async (
     ruleType === 'primary' &&
     !utils.address.get('core.oracles.primaryPriceUpdatePolicyVecsetId')
   ) {
-    console.error('Primary price update policy vecset id is not set');
+    utils.logger.error('Primary price update policy vecset id is not set');
     return null;
   }
   if (
     ruleType === 'secondary' &&
     !utils.address.get('core.oracles.secondaryPriceUpdatePolicyVecsetId')
   ) {
-    console.error('Secondary price update policy vecset id is not set');
+    utils.logger.error('Secondary price update policy vecset id is not set');
     return null;
   }
 
@@ -119,11 +119,14 @@ export const getAssetOracles = async (
 
       const dynamicFieldInfo = getDfObjectIdAndName(object);
       if (dynamicFieldInfo.nameKind !== 'type') {
-        console.error('Unsupported dynamic field key kind for oracle mapping', {
-          objectId: object.objectId,
-          name: dynamicFieldInfo.name,
-          nameKind: dynamicFieldInfo.nameKind,
-        });
+        utils.logger.error(
+          'Unsupported dynamic field key kind for oracle mapping',
+          {
+            objectId: object.objectId,
+            name: dynamicFieldInfo.name,
+            nameKind: dynamicFieldInfo.nameKind,
+          }
+        );
         return;
       }
 

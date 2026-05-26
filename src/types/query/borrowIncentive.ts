@@ -38,9 +38,7 @@ export type BorrowIncentivePool = {
 };
 
 export type OriginBorrowIncentivePoolPointData = {
-  point_type: {
-    name: string;
-  };
+  point_type: string | { name: string };
   distributed_point_per_period: string;
   point_distribution_time: string;
   distributed_point: string;
@@ -53,9 +51,7 @@ export type OriginBorrowIncentivePoolPointData = {
 };
 
 export type OriginBorrowIncentivePoolData = {
-  pool_type: {
-    name: string;
-  };
+  pool_type: string | { name: string };
   points: OriginBorrowIncentivePoolPointData[]; // one borrow pool can have multiple points (e.g. sui and sca)
   min_stakes: string;
   max_stakes: string;
@@ -102,9 +98,7 @@ export type BorrowIncentiveAccounts = OptionalKeys<
 >;
 
 export type OriginBorrowIncentiveAccountPoolData = {
-  point_type: {
-    name: string;
-  };
+  point_type: string | { name: string };
   weighted_amount: string;
   points: string;
   total_points: string;
@@ -113,9 +107,7 @@ export type OriginBorrowIncentiveAccountPoolData = {
 
 export type OriginBorrowIncentiveAccountData = {
   points_list: OriginBorrowIncentiveAccountPoolData[];
-  pool_type: {
-    name: string;
-  };
+  pool_type: string | { name: string };
   debt_amount: string;
 };
 

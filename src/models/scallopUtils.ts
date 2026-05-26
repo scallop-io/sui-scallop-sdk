@@ -21,11 +21,13 @@ import ScallopSuiKit, { ScallopSuiKitParams } from './scallopSuiKit.js';
 import { queryObligation } from 'src/queries/index.js';
 import { ScallopUtilsInterface } from './interface.js';
 import type { SuiObjectData } from 'src/types/index.js';
+import { noopLogger, type Logger } from 'src/logger/index.js';
 
 export type ScallopUtilsParams = {
   pythEndpoints?: string[];
   scallopSuiKit?: ScallopSuiKit;
   scallopConstants?: ScallopConstants;
+  logger?: Logger;
 } & ScallopSuiKitParams &
   ScallopConstantsParams;
 
@@ -34,6 +36,7 @@ class ScallopUtils implements ScallopUtilsInterface {
   public readonly scallopSuiKit: ScallopSuiKit;
   public readonly constants: ScallopConstants;
   public readonly timeout: number;
+  public readonly logger: Logger;
 
   constructor(params: ScallopUtilsParams = {}) {
     this.constants = params.scallopConstants ?? new ScallopConstants(params);
@@ -49,6 +52,7 @@ class ScallopUtils implements ScallopUtilsInterface {
     ];
 
     this.timeout = params.axiosTimeout ?? 4000;
+    this.logger = params.logger ?? noopLogger;
   }
 
   get walletAddress() {
@@ -65,7 +69,7 @@ class ScallopUtils implements ScallopUtilsInterface {
 
   // For backward compatibility with older sdk version
   get address() {
-    return this.constants;
+    return this.constants.address;
   }
 
   // -------------- TYPE GUARDS --------------
@@ -377,10 +381,10 @@ class ScallopUtils implements ScallopUtilsInterface {
     if (!obligation) return undefined;
 
     const collateralCoinTypes = obligation.collaterals.map((collateral) => {
-      return `0x${collateral.type.name}`;
+      return collateral.type;
     });
     const debtCoinTypes = obligation.debts.map((debt) => {
-      return `0x${debt.type.name}`;
+      return debt.type;
     });
     const obligationCoinTypes = [
       ...new Set([...collateralCoinTypes, ...debtCoinTypes]),
@@ -527,7 +531,9 @@ class ScallopUtils implements ScallopUtilsInterface {
               const price = await this.getPythPrice(coinName, feed);
               return { coinName, price };
             } catch (e) {
-              console.error(e);
+              this.logger.error(`pyth price failed for ${coinName}`, {
+                message: (e as Error)?.message,
+              });
               return { coinName, price: 0 };
             }
           }
@@ -624,10 +630,13 @@ class ScallopUtils implements ScallopUtilsInterface {
           );
         } catch (e: any) {
           if ('status' in e && e.status === 403) {
-            console.log(`trying next pyth endpoint`);
+            this.logger.info('trying next pyth endpoint', { endpoint });
             continue; // try next endpoint
           }
-          console.error(e.message);
+          this.logger.error('pyth endpoint request failed', {
+            endpoint,
+            message: e?.message,
+          });
         }
       }
     }

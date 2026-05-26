@@ -27,7 +27,9 @@ export const getBorrowLimit = async (utils: ScallopUtils, poolName: string) => {
     if (!object?.object?.json) return '0';
     return parseObjectAs<string>(object.object);
   } catch (e: any) {
-    console.error(`Error in getBorrowLimit for ${poolName}: ${e.message}`);
+    utils.logger.error(`getBorrowLimit failed for ${poolName}`, {
+      message: e?.message,
+    });
     return '0';
   }
 };

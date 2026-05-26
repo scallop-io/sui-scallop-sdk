@@ -659,7 +659,7 @@ describe('utils/indexer', () => {
       { indexer: true, limit: 50 }
     );
 
-    expect(result).toBe('ctx:pool:false:10');
+    expect(result).toBe('ctx:pool:false:50');
     expect(method).toHaveBeenCalledTimes(2);
     expect(method.mock.calls[0]).toEqual([
       'pool',

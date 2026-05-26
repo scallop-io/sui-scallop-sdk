@@ -1,4 +1,3 @@
-import { normalizeStructTag } from '@mysten/sui/utils';
 import {
   parseOriginBorrowIncentivePoolData,
   parseOriginBorrowIncentiveAccountData,
@@ -7,6 +6,10 @@ import {
   parseObjectAs,
   getDfObjectIdAndName,
 } from 'src/utils/index.js';
+import {
+  mapBorrowIncentiveAccountsEvent,
+  mapBorrowIncentivePoolsEvent,
+} from 'src/mappers/index.js';
 import type {
   ScallopAddress,
   ScallopQuery,
@@ -62,9 +65,11 @@ const queryBorrowIncentivePools = async ({
   });
   // SDK v2: Extract transaction result using discriminated union pattern
   const tx = queryResult?.Transaction ?? queryResult?.FailedTransaction;
-  const borrowIncentivePoolsQueryData = (tx?.events?.[0] as any)?.parsedJson as
-    | BorrowIncentivePoolsQueryInterface
-    | undefined;
+  const borrowIncentivePoolsQueryData = mapBorrowIncentivePoolsEvent(
+    (tx?.events?.[0] as any)?.parsedJson as
+      | BorrowIncentivePoolsQueryInterface
+      | undefined
+  );
   return borrowIncentivePoolsQueryData;
 };
 
@@ -100,7 +105,7 @@ export const getBorrowIncentivePools = async (
       pool
     );
 
-    const poolCoinType = normalizeStructTag(pool.pool_type.name);
+    const poolCoinType = pool.pool_type;
     const poolCoinName = query.utils.parseCoinNameFromType(poolCoinType);
     const poolCoinPrice = coinPrices?.[poolCoinName] ?? 0;
     const poolCoinDecimal = query.utils.getCoinDecimal(poolCoinName);
@@ -218,8 +223,11 @@ export const queryBorrowIncentiveAccounts = async (
   });
   // SDK v2: Extract transaction result using discriminated union pattern
   const tx = queryResult?.Transaction ?? queryResult?.FailedTransaction;
-  const borrowIncentiveAccountsQueryData = (tx?.events?.[0] as any)
-    ?.parsedJson as BorrowIncentiveAccountsQueryInterface | undefined;
+  const borrowIncentiveAccountsQueryData = mapBorrowIncentiveAccountsEvent(
+    (tx?.events?.[0] as any)?.parsedJson as
+      | BorrowIncentiveAccountsQueryInterface
+      | undefined
+  );
 
   const borrowIncentiveAccounts: BorrowIncentiveAccounts = Object.values(
     borrowIncentiveAccountsQueryData?.pool_records ?? []
