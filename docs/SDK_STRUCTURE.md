@@ -356,6 +356,7 @@ Then run `pnpm run test:typecheck && pnpm run test:unit && pnpm run build` befor
 
 ## 11. Further reading
 
+- [`V3_TO_V4.md`](V3_TO_V4.md) — upgrade guide with step-by-step v3 → v4 diffs
 - [`SDK_STRUCTURE_REPORT.md`](SDK_STRUCTURE_REPORT.md) — original problem statement
 - [`SDK_STRUCTURE_FIX_PLAN.md`](SDK_STRUCTURE_FIX_PLAN.md) — workstreams, execution status, remaining items
 - [`../CHANGELOG.md`](../CHANGELOG.md) — v4.0.0 BREAKING CHANGES + Added sections
