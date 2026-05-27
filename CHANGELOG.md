@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. See [standa
 
 Tracks [`docs/SDK_STRUCTURE_FIX_PLAN.md`](docs/SDK_STRUCTURE_FIX_PLAN.md). This release lands the full structural refactor of the SDK toward an **adapters → repositories → mappers → services → facade** internal architecture, while preserving the public method surface of `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, and `ScallopUtils`. See [`docs/SDK_STRUCTURE.md`](docs/SDK_STRUCTURE.md) for a 5-minute tour of the new layout. Commit SHAs are added at release tagging time.
 
+**Upgrading from v3?** See [`docs/V3_TO_V4.md`](docs/V3_TO_V4.md) for the migration guide with step-by-step diffs.
+
 **TL;DR for upgraders:** if you were only consuming `Scallop`/`ScallopClient`/`ScallopBuilder`/`ScallopQuery` methods, your code keeps working. The breaking changes only bite if you (a) inherited from `ScallopConstants`, (b) used `instanceof ScallopAddress` against a `ScallopConstants` instance, (c) mutated `constants.whitelist` or `constants.poolAddresses` directly, or (d) imported from non-public type paths.
 
 ---
@@ -21,38 +23,14 @@ Tracks [`docs/SDK_STRUCTURE_FIX_PLAN.md`](docs/SDK_STRUCTURE_FIX_PLAN.md). This 
 - **Forwarders preserved on `ScallopConstants`** for back-compat: `get`, `set`, `getAddresses`, `setAddresses`, `getId`, `getAllAddresses`, `switchCurrentAddresses`, `queryClient`, `axiosClient`, `axiosInstance`, `scallopAxios`. So `constants.get('core.market')`, `constants.getAddresses()`, `constants.queryClient`, etc. all still work.
 - `ScallopConstantsParams` accepts a new optional `scallopAddress?: ScallopAddress` field for injecting a pre-built address adapter (useful for tests).
 
-**Migration:**
-
-```ts
-// v3
-if (constants instanceof ScallopAddress) {
-  /* ... */
-}
-
-// v4
-if (constants.address instanceof ScallopAddress) {
-  /* ... */
-}
-```
-
-```ts
-// v3 — these continue to work in v4 unchanged
-constants.get('core.market');
-constants.getAddresses();
-constants.queryClient;
-
-// v4 (preferred, more explicit)
-constants.address.get('core.market');
-constants.address.getAddresses();
-constants.address.queryClient;
-```
+→ See [`docs/V3_TO_V4.md` § B1](docs/V3_TO_V4.md#b1--scallopconstants-no-longer-extends-scallopaddress) for diffs covering `instanceof` checks, subclass refactors, and the new `scallopAddress` injection.
 
 #### B2 — `whitelist` and `poolAddresses` are now frozen immutable snapshots
 
 - Previously: `Proxy` getters that fell back to `DEFAULT_WHITELIST` on missing keys, and allowed mutation through `Set.add` / `Set.delete` (which silently affected the singleton state).
 - Now: plain frozen objects populated during `init()`. Every whitelist key is always present (missing entries default to empty `Set`s). Calling `.add()` / `.delete()` / `.clear()` throws `TypeError: Cannot mutate readonly ScallopConstants whitelist`.
 
-If you were intentionally mutating these, you'll need to call `init()` again with `forceWhitelistInterface` / `forcePoolAddressInterface` overrides instead.
+→ See [`docs/V3_TO_V4.md` § B2](docs/V3_TO_V4.md#b2--whitelist--pooladdresses-are-now-frozen-immutable-snapshots) for the `forceWhitelistInterface` / `forcePoolAddressInterface` recipe.
 
 #### B3 — Minimum Node 22
 
