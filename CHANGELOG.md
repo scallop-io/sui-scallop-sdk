@@ -8,7 +8,7 @@ Tracks [`docs/SDK_STRUCTURE_FIX_PLAN.md`](docs/SDK_STRUCTURE_FIX_PLAN.md). This 
 
 **Upgrading from v3?** See [`docs/V3_TO_V4.md`](docs/V3_TO_V4.md) for the migration guide with step-by-step diffs.
 
-**TL;DR for upgraders:** if you were only consuming `Scallop`/`ScallopClient`/`ScallopBuilder`/`ScallopQuery` methods, your code keeps working. The breaking changes only bite if you (a) inherited from `ScallopConstants`, (b) used `instanceof ScallopAddress` against a `ScallopConstants` instance, (c) mutated `constants.whitelist` or `constants.poolAddresses` directly, or (d) imported from non-public type paths.
+**TL;DR for upgraders:** if you were only consuming `Scallop`/`ScallopClient`/`ScallopBuilder`/`ScallopQuery` methods, your code keeps working. The breaking changes only bite if you (a) inherited from `ScallopConstants`, (b) used `instanceof ScallopAddress` against a `ScallopConstants` instance, (c) mutated `constants.whitelist` or `constants.poolAddresses` directly, (d) imported from non-public type paths, or (e) relied on the SDK bundling `@mysten/sui` (now a peer dependency — install `@mysten/sui@^2` yourself).
 
 ---
 
@@ -43,6 +43,15 @@ Tracks [`docs/SDK_STRUCTURE_FIX_PLAN.md`](docs/SDK_STRUCTURE_FIX_PLAN.md). This 
 - Legacy `Origin*` / `Parsed*` / `Calculated*` DTOs remain reachable through `src/types/query/*` for back-compat, but internal code now imports them via `src/types/internal/`.
 
 If you import from the root `@scallop-io/sui-scallop-sdk` package, nothing changes. If you reached into `src/types/...` paths directly (not officially supported), some types have moved.
+
+#### B5 — `@mysten/sui` is now a peer dependency
+
+`@mysten/sui` moved from `dependencies` to `peerDependencies` (range `^2.0.0`). The SDK exchanges `Transaction` objects with your application code (e.g. `ScallopBuilder.createTxBlock()` returns a block you later sign/execute via `@mysten/sui`), so a **single shared copy** is required — two copies break `instanceof Transaction` checks and bcs serialization across the boundary.
+
+- **You must install `@mysten/sui@^2` in your own project.** npm 7+ and Bun auto-install peers; pnpm and yarn may require it explicitly.
+- A wide `^2.0.0` range lets it dedup with whatever `@mysten/sui` your app (and `@scallop-io/sui-kit`, which also depends on `^2.0.0`) already resolves.
+
+→ See [`docs/V3_TO_V4.md` § B5](docs/V3_TO_V4.md#b5--mystensui-is-now-a-peer-dependency).
 
 ---
 

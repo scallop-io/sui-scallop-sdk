@@ -10,7 +10,7 @@
 > 4. **Import from non-public paths** like `src/types/internal/`, deep internal modules.
 > 5. **Target Node < 22** (you can't — v4 requires Node 22+).
 
-This guide gives you the exact diff for each breaking change. For the *why*, see [`CHANGELOG.md`](../CHANGELOG.md). For the new SDK shape, see [`SDK_STRUCTURE.md`](SDK_STRUCTURE.md).
+This guide gives you the exact diff for each breaking change. For the _why_, see [`CHANGELOG.md`](../CHANGELOG.md). For the new SDK shape, see [`SDK_STRUCTURE.md`](SDK_STRUCTURE.md).
 
 ---
 
@@ -18,6 +18,7 @@ This guide gives you the exact diff for each breaking change. For the *why*, see
 
 ```
 □ Bump @scallop-io/sui-scallop-sdk to ^4.0.0
+□ Install @mysten/sui@^2 in your own deps (now a peer dependency)
 □ Update Node to >=22 in CI and local engines
 □ Replace `constants instanceof ScallopAddress` → `constants.address instanceof ScallopAddress`
 □ Remove any code that mutates `constants.whitelist` / `constants.poolAddresses`
@@ -36,19 +37,19 @@ This guide gives you the exact diff for each breaking change. For the *why*, see
 
 ### Impact matrix
 
-| If your v3 code did… | …in v4 you must… | Forwarder available? |
-| --- | --- | --- |
-| `constants.get('core.market')` | nothing — keeps working | ✅ yes |
-| `constants.getAddresses()` | nothing | ✅ yes |
-| `constants.setAddresses(...)` | nothing | ✅ yes |
-| `constants.read(addressId)` | call `constants.address.read(addressId)` | ❌ removed (use `.address`) |
-| `constants.queryClient` | nothing | ✅ yes |
-| `constants.axiosInstance` | nothing | ✅ yes |
-| `constants.scallopAxios` | nothing | ✅ yes |
-| `constants.switchCurrentAddresses('testnet')` | nothing | ✅ yes |
-| `constants instanceof ScallopAddress` | check `constants.address instanceof ScallopAddress` | — |
-| `class MyConstants extends ScallopConstants` and then `super.read()` | replace `super.X()` with `this.address.X()` | — |
-| `utils.address.get('core.market')` | nothing — `utils.address` now returns the *real* `ScallopAddress` | — |
+| If your v3 code did…                                                 | …in v4 you must…                                                  | Forwarder available?        |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------- |
+| `constants.get('core.market')`                                       | nothing — keeps working                                           | ✅ yes                      |
+| `constants.getAddresses()`                                           | nothing                                                           | ✅ yes                      |
+| `constants.setAddresses(...)`                                        | nothing                                                           | ✅ yes                      |
+| `constants.read(addressId)`                                          | call `constants.address.read(addressId)`                          | ❌ removed (use `.address`) |
+| `constants.queryClient`                                              | nothing                                                           | ✅ yes                      |
+| `constants.axiosInstance`                                            | nothing                                                           | ✅ yes                      |
+| `constants.scallopAxios`                                             | nothing                                                           | ✅ yes                      |
+| `constants.switchCurrentAddresses('testnet')`                        | nothing                                                           | ✅ yes                      |
+| `constants instanceof ScallopAddress`                                | check `constants.address instanceof ScallopAddress`               | —                           |
+| `class MyConstants extends ScallopConstants` and then `super.read()` | replace `super.X()` with `this.address.X()`                       | —                           |
+| `utils.address.get('core.market')`                                   | nothing — `utils.address` now returns the _real_ `ScallopAddress` | —                           |
 
 ### Migration — `instanceof` checks
 
@@ -82,7 +83,7 @@ If you had your own subclass overriding internal methods, switch to composition:
 // v3 — relied on inherited methods
 class MyConstants extends ScallopConstants {
   async readMine() {
-    const data = await super.read();   // ❌ no longer works
+    const data = await super.read(); // ❌ no longer works
     return data;
   }
 }
@@ -92,13 +93,13 @@ class MyConstants extends ScallopConstants {
 // v4 — go through the composed address
 class MyConstants extends ScallopConstants {
   async readMine() {
-    const data = await this.address.read();   // ✅
+    const data = await this.address.read(); // ✅
     return data;
   }
 }
 ```
 
-If you were *only* extending to grab the address adapter, you don't need a subclass at all in v4 — just use `constants.address` directly.
+If you were _only_ extending to grab the address adapter, you don't need a subclass at all in v4 — just use `constants.address` directly.
 
 ### Migration — injecting a pre-built `ScallopAddress`
 
@@ -112,7 +113,7 @@ const address = new ScallopAddress({
 });
 
 const constants = new ScallopConstants({
-  scallopAddress: address,  // ✅ v4 only
+  scallopAddress: address, // ✅ v4 only
 });
 ```
 
@@ -148,7 +149,7 @@ If you were intentionally adding entries at runtime:
 
 The `force*Interface` overrides existed in v3 too — you just didn't need them as often. In v4 they're the only sanctioned way to bypass the on-chain whitelist/pool source.
 
-If you were *reading* whitelist/poolAddresses, nothing changes — the shape and key set are identical.
+If you were _reading_ whitelist/poolAddresses, nothing changes — the shape and key set are identical.
 
 ---
 
@@ -184,12 +185,12 @@ v4 declares Node 22+ in `vitest.config.ts` and tsup output. v3 supported Node 18
 
 ### Impact
 
-| If your v3 code imported from… | …in v4… |
-| --- | --- |
-| `@scallop-io/sui-scallop-sdk` (root) | nothing changes |
-| `@scallop-io/sui-scallop-sdk/types` (new subpath) | use this for type-only imports — lighter bundle |
-| Deep paths like `@scallop-io/sui-scallop-sdk/dist/types/query/...` | unsupported in both v3 and v4 — please don't |
-| `src/types/internal/...` | this is internal — switch to the public barrel |
+| If your v3 code imported from…                                     | …in v4…                                         |
+| ------------------------------------------------------------------ | ----------------------------------------------- |
+| `@scallop-io/sui-scallop-sdk` (root)                               | nothing changes                                 |
+| `@scallop-io/sui-scallop-sdk/types` (new subpath)                  | use this for type-only imports — lighter bundle |
+| Deep paths like `@scallop-io/sui-scallop-sdk/dist/types/query/...` | unsupported in both v3 and v4 — please don't    |
+| `src/types/internal/...`                                           | this is internal — switch to the public barrel  |
 
 ### Migration
 
@@ -210,6 +211,32 @@ import type {
   Vesca,
 } from '@scallop-io/sui-scallop-sdk';
 ```
+
+---
+
+## B5 — `@mysten/sui` is now a peer dependency
+
+### What changed
+
+`@mysten/sui` moved from the SDK's `dependencies` to `peerDependencies` (`^2.0.0`). The SDK no longer ships its own copy.
+
+### Impact
+
+You exchange `Transaction` objects across the SDK boundary — `ScallopBuilder.createTxBlock()` hands you a block that you later sign/execute with your own `@mysten/sui` client. If the SDK bundled a _second_ copy of `@mysten/sui`, those objects would come from a different module instance than your app's, breaking `instanceof Transaction` checks and bcs serialization. A peer dependency guarantees one shared copy across your app, this SDK, and `@scallop-io/sui-kit` (which also depends on `^2.0.0`).
+
+### Migration
+
+Add `@mysten/sui` to your own `package.json` if it isn't already there:
+
+```bash
+npm install @mysten/sui@^2      # or: pnpm add / yarn add / bun add
+```
+
+- **npm 7+** and **Bun** auto-install missing peers, so you may already be covered.
+- **pnpm** and **yarn** do not — you'll see an "unmet peer dependency" warning until you add it explicitly.
+- Use a wide `^2` range so it dedups with whatever version your other Sui packages resolve. Pinning an exact version risks a duplicate install.
+
+No code changes are needed — your existing `@mysten/sui` imports keep working.
 
 ---
 
@@ -242,7 +269,10 @@ Available subpaths: `/client`, `/query`, `/builder`, `/errors`, `/logger`, `/con
 ### 3. Typed errors
 
 ```ts
-import { ScallopRpcError, ScallopParseError } from '@scallop-io/sui-scallop-sdk/errors';
+import {
+  ScallopRpcError,
+  ScallopParseError,
+} from '@scallop-io/sui-scallop-sdk/errors';
 
 try {
   await client.supply(/* ... */);
@@ -265,7 +295,7 @@ import { Scallop } from '@scallop-io/sui-scallop-sdk';
 import { consoleLogger } from '@scallop-io/sui-scallop-sdk/logger';
 
 const scallop = new Scallop({
-  logger: consoleLogger,  // default is noopLogger (silent)
+  logger: consoleLogger, // default is noopLogger (silent)
 });
 ```
 
