@@ -136,19 +136,26 @@ export const getBorrowIncentivePools = async (
         poolCoinDecimal
       );
 
-      if (poolPoint.points > calculatedPoolPoint.accumulatedPoints) {
-        borrowIncentivePoolPoints[coinName as string] = {
-          symbol,
-          coinName: rewardCoinName,
-          coinType: rewardCoinType,
-          coinDecimal,
-          coinPrice: rewardCoinPrice,
-          points: poolPoint.points,
-          distributedPoint: poolPoint.distributedPoint,
-          weightedAmount: poolPoint.weightedAmount,
-          ...calculatedPoolPoint,
-        };
-      }
+      // A campaign is exhausted once every allocated point has been
+      // distributed (accumulatedPoints is min-capped at points). We still emit
+      // the pool point — the portfolio query needs it to surface users'
+      // already-accrued, unclaimed rewards — but zero out the APR so callers
+      // don't display a stale reward rate for an ended campaign.
+      const isExhausted =
+        poolPoint.points <= calculatedPoolPoint.accumulatedPoints;
+
+      borrowIncentivePoolPoints[coinName as string] = {
+        symbol,
+        coinName: rewardCoinName,
+        coinType: rewardCoinType,
+        coinDecimal,
+        coinPrice: rewardCoinPrice,
+        points: poolPoint.points,
+        distributedPoint: poolPoint.distributedPoint,
+        weightedAmount: poolPoint.weightedAmount,
+        ...calculatedPoolPoint,
+        ...(isExhausted ? { rewardApr: 0 } : {}),
+      };
     }
 
     const stakedAmount = BigNumber(parsedBorrowIncentivePoolData.staked);
