@@ -45,7 +45,7 @@ jobs:
           elif [[ "${{ github.ref_name }}" == *"rc."* ]]; then
             echo "tag=rc" >> $GITHUB_ENV
           else
-            echo "tag=latest" >> $GITHUB_ENV
+            echo "tag=legacy" >> $GITHUB_ENV
           fi
 
       # Publish to npmjs.com via OIDC — use npm (not pnpm) for OIDC token exchange
