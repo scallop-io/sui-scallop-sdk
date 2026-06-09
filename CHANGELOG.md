@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.4.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.5...v2.4.6) (2026-06-09)
+
+### Fixed
+
+- Keep exhausted borrow incentive pools in `getBorrowIncentivePools` (emitted with zeroed APR) so users' already-accrued, unclaimed rewards still surface in the portfolio query instead of being dropped entirely ([02a5a05](https://github.com/scallop-io/sui-scallop-sdk/commit/02a5a05bb85a614e90c353443bc5e08465c52f5d))
+
 ### [2.4.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v2.4.4...v2.4.5) (2026-05-15)
 
 ### Changed
