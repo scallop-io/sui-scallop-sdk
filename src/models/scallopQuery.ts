@@ -1,8 +1,9 @@
 import ScallopUtils, { ScallopUtilsParams } from './scallopUtils.js';
 import ScallopIndexer, { ScallopIndexerParams } from './scallopIndexer.js';
 import type { QueryOptions } from 'src/utils/index.js';
+import { resolveQuerySource, runWithSourceFallback } from 'src/utils/index.js';
+import { calculateTotalValueLocked } from 'src/services/index.js';
 import { ObligationService } from 'src/services/query/ObligationService.js';
-import { BorrowIncentiveService } from 'src/services/query/BorrowIncentiveService.js';
 import { LendingReadService } from 'src/services/query/LendingReadService.js';
 import { PriceService } from 'src/services/query/PriceService.js';
 import {
@@ -22,21 +23,19 @@ import {
   StakePools,
   SuiObjectData,
   SuiObjectRef,
+  TotalValueLocked,
 } from 'src/types/index.js';
 import {
   getBindedObligation,
   getBindedVeScaKey,
   getBorrowLimit,
-  getLoyaltyProgramInformations,
   getOnDemandAggObjectIds,
   getPoolAddresses,
   getPriceUpdatePolicies,
   getSCoinSwapRate,
   getStakePool,
   getSupplyLimit,
-  getTotalValueLocked,
   getUserPortfolio,
-  getVeScaLoyaltyProgramInformations,
   isIsolatedAsset,
   queryVeScaKeyIdFromReferralBindings,
 } from 'src/queries/index.js';
@@ -67,7 +66,6 @@ class ScallopQuery implements ScallopQueryInterface {
   public readonly indexer: ScallopIndexer;
   public readonly utils: ScallopUtils;
   public readonly obligationService: ObligationService;
-  public readonly borrowIncentiveService: BorrowIncentiveService;
   public readonly lendingReadService: LendingReadService;
   public readonly priceService: PriceService;
 
@@ -83,10 +81,6 @@ class ScallopQuery implements ScallopQueryInterface {
       query: this,
       logger: this.utils.logger,
     });
-    this.borrowIncentiveService = new BorrowIncentiveService({
-      query: this,
-      logger: this.utils.logger,
-    });
     this.lendingReadService = new LendingReadService({
       query: this,
       logger: this.utils.logger,
@@ -97,17 +91,6 @@ class ScallopQuery implements ScallopQueryInterface {
       utils: this.utils,
       logger: this.utils.logger,
     });
-    this.initIndexerFallback();
-  }
-
-  /**
-   * @deprecated
-   * Kept for backward compatibility. All previously wrapped methods now use
-   * `runWithSourceFallback` inside their bodies. This method is a no-op and
-   * will be removed in a future major version.
-   */
-  initIndexerFallback() {
-    // intentionally empty
   }
 
   get logger() {
@@ -153,19 +136,9 @@ class ScallopQuery implements ScallopQueryInterface {
   /* ==================== Core Query Methods ==================== */
 
   /**
-   * @deprecated use getMarketPools
-   * Query market data.
-   * @param indexer - Whether to use indexer.
-   * @return Market data.
-   */
-  async queryMarket(args?: QueryOptions & { coinPrices?: CoinPrices }) {
-    return this.fetchMarkets(args);
-  }
-
-  /**
    * Shared market read: auto-fetch coin prices when the caller doesn't supply
    * them (otherwise every pool/collateral price would be 0), then delegate to
-   * the market repository. Used by queryMarket / getMarketPools / getMarketCollaterals.
+   * the market repository. Used by getMarketPools / getMarketCollaterals.
    */
   private async fetchMarkets(
     args?: QueryOptions & { coinPrices?: CoinPrices }
@@ -182,8 +155,8 @@ class ScallopQuery implements ScallopQueryInterface {
    * Get market pools.
    *
    * @description
-   * To obtain all market pools at once, it is recommended to use
-   * the `queryMarket` method to reduce time consumption.
+   * Fetches the full market once (pools + collaterals) and projects the result;
+   * reuse the returned data rather than calling per-coin to reduce RPC load.
    *
    * @param poolCoinNames - Specific an array of support pool coin name.
    * @param indexer - Whether to use indexer.
@@ -223,8 +196,8 @@ class ScallopQuery implements ScallopQueryInterface {
    * Get market collaterals.
    *
    * @description
-   * To obtain all market collaterals at once, it is recommended to use
-   * the `queryMarket` method to reduce time consumption.
+   * Fetches the full market once (pools + collaterals) and projects the result;
+   * reuse the returned data rather than calling per-coin to reduce RPC load.
    *
    * @param collateralCoinNames - Specific an array of support collateral coin name.
    * @param indexer - Whether to use indexer.
@@ -537,7 +510,14 @@ class ScallopQuery implements ScallopQueryInterface {
       marketPools?: MarketPools;
     } & QueryOptions
   ) {
-    return this.borrowIncentiveService.getBorrowIncentivePools(coinNames, args);
+    const coinPrices =
+      args?.coinPrices ??
+      (await this.getAllCoinPrices({ marketPools: args?.marketPools })) ??
+      {};
+    return this.repos.borrowIncentive.getBorrowIncentivePools({
+      coinNames,
+      coinPrices,
+    });
   }
 
   /**
@@ -701,7 +681,31 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Total value locked.
    */
   async getTvl(args?: QueryOptions) {
-    return await getTotalValueLocked(this, args);
+    const source = resolveQuerySource(args);
+    return runWithSourceFallback<TotalValueLocked>({
+      source,
+      label: 'getTvl',
+      logger: this.logger,
+      indexer: async () => {
+        const t = await this.indexer.getTotalValueLocked();
+        return {
+          supplyValue: t.supplyValue,
+          supplyValueChangeRatio: t.supplyValueChangeRatio,
+          borrowValue: t.borrowValue,
+          borrowValueChangeRatio: t.borrowValueChangeRatio,
+          totalValue: t.totalValue,
+          totalValueChangeRatio: t.totalValueChangeRatio,
+          supplyLendingValue: t.supplyLendingValue,
+          supplyLendingValueChangeRatio: t.supplyLendingValueChangeRatio,
+          supplyCollateralValue: t.supplyCollateralValue,
+          supplyCollateralValueChangeRatio: t.supplyCollateralValueChangeRatio,
+        };
+      },
+      rpc: async () =>
+        calculateTotalValueLocked(
+          await this.getMarketPools(undefined, { indexer: false })
+        ),
+    });
   }
 
   /**
@@ -753,15 +757,6 @@ class ScallopQuery implements ScallopQueryInterface {
   }
 
   /**
-   * @deprecated use getBindedObligation instead
-   * @param veScaKey
-   * @returns obligationId
-   */
-  async getBindedObligationId(veScaKey: string) {
-    return (await this.getBindedObligation(veScaKey))?.obligationId;
-  }
-
-  /**
    * Get binded obligation from a veScaKey if it exists.
    * @param veScaKey
    * @returns { obligationId, obligationKey } if binded, otherwise null
@@ -785,7 +780,10 @@ class ScallopQuery implements ScallopQueryInterface {
    * @returns Loyalty program information
    */
   async getLoyaltyProgramInfos(veScaKey?: string | SuiObjectData) {
-    return await getLoyaltyProgramInformations(this, veScaKey);
+    // Cross-domain default: fall back to the wallet's primary veSca key.
+    const key = veScaKey ?? (await this.getVeScas())[0]?.keyId;
+    const keyId = typeof key === 'string' ? key : key?.objectId;
+    return this.repos.loyaltyProgram.getLoyaltyProgramInfos(keyId);
   }
 
   /**
@@ -794,7 +792,9 @@ class ScallopQuery implements ScallopQueryInterface {
    * @returns Loyalty program information
    */
   async getVeScaLoyaltyProgramInfos(veScaKey?: string | SuiObjectData) {
-    return await getVeScaLoyaltyProgramInformations(this, veScaKey);
+    const key = veScaKey ?? (await this.getVeScas())[0]?.keyId;
+    const keyId = typeof key === 'string' ? key : key?.objectId;
+    return this.repos.veScaLoyaltyProgram.getVeScaLoyaltyProgramInfos(keyId);
   }
 
   /**
