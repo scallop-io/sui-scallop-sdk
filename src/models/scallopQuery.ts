@@ -42,7 +42,6 @@ import {
   getSCoinSwapRate,
   getStakePool,
   getSupplyLimit,
-  isIsolatedAsset,
   queryVeScaKeyIdFromReferralBindings,
 } from 'src/queries/index.js';
 import { SuiObjectArg } from '@scallop-io/sui-kit';
@@ -1099,7 +1098,19 @@ class ScallopQuery implements ScallopQueryInterface {
     assetCoinName: string,
     useOnChainQuery: boolean = false
   ) {
-    return isIsolatedAsset(this.utils, assetCoinName, useOnChainQuery);
+    // Fast-path: the cached pool address already carries the flag unless the
+    // caller explicitly forces an on-chain read.
+    const poolAddress = this.constants.poolAddresses[assetCoinName];
+    if (poolAddress && !useOnChainQuery) {
+      return poolAddress.isIsolated;
+    }
+    // Otherwise resolve from the on-chain isolated-asset set (coin types).
+    const isolatedCoinTypes = await this.repos.isolatedAssets.getIsolatedAssets(
+      {
+        source: 'onchain',
+      }
+    );
+    return isolatedCoinTypes.includes(this.utils.parseCoinType(assetCoinName));
   }
 
   /**
