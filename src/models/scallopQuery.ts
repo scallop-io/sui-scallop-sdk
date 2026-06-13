@@ -1,55 +1,43 @@
 import ScallopUtils, { ScallopUtilsParams } from './scallopUtils.js';
 import ScallopIndexer, { ScallopIndexerParams } from './scallopIndexer.js';
 import type { QueryOptions } from 'src/utils/index.js';
-import { MarketService } from 'src/services/MarketService.js';
-import { ObligationService } from 'src/services/ObligationService.js';
-import { SpoolReadService } from 'src/services/SpoolReadService.js';
-import { BorrowIncentiveService } from 'src/services/BorrowIncentiveService.js';
-import { LendingReadService } from 'src/services/LendingReadService.js';
-import { PriceService } from 'src/services/PriceService.js';
+import { ObligationService } from 'src/services/query/ObligationService.js';
+import { BorrowIncentiveService } from 'src/services/query/BorrowIncentiveService.js';
+import { LendingReadService } from 'src/services/query/LendingReadService.js';
+import { PriceService } from 'src/services/query/PriceService.js';
+import {
+  createRepositories,
+  type Repositories,
+} from 'src/repositories_v2/wiring/registry.js';
+import {
+  fromQueryOptions,
+  toQuerySource,
+} from 'src/repositories_v2/wiring/source.js';
+import { ScallopParseError } from 'src/errors/index.js';
 import {
   CoinPrices,
   MarketCollaterals,
   MarketPool,
   MarketPools,
   StakePools,
-  StakeRewardPools,
   SuiObjectData,
-  SupportOracleType,
   SuiObjectRef,
-  xOracleRules,
 } from 'src/types/index.js';
 import {
-  getAssetOracles,
   getBindedObligation,
   getBindedVeScaKey,
   getBorrowLimit,
-  getCoinAmount,
-  getCoinAmounts,
-  getFlashLoanFees,
-  getIsolatedAssets,
   getLoyaltyProgramInformations,
-  getMarketCoinAmount,
-  getMarketCoinAmounts,
   getOnDemandAggObjectIds,
   getPoolAddresses,
   getPriceUpdatePolicies,
-  getSCoinAmount,
-  getSCoinAmounts,
   getSCoinSwapRate,
-  getSCoinTotalSupply,
-  getStakeAccounts,
   getStakePool,
-  getStakeRewardPool,
   getSupplyLimit,
   getTotalValueLocked,
   getUserPortfolio,
-  getVeSca,
   getVeScaLoyaltyProgramInformations,
-  getVeScas,
-  getVeScaTreasuryInfo,
   isIsolatedAsset,
-  queryBorrowIncentiveAccounts,
   queryVeScaKeyIdFromReferralBindings,
 } from 'src/queries/index.js';
 import { SuiObjectArg } from '@scallop-io/sui-kit';
@@ -61,12 +49,24 @@ export type ScallopQueryParams = {
 } & ScallopUtilsParams &
   ScallopIndexerParams;
 
+/** Project a record down to the requested keys, dropping missing entries. */
+const pickRecord = <T>(
+  record: Record<string, T | undefined>,
+  names: string[]
+): Record<string, T> =>
+  names.reduce(
+    (acc, name) => {
+      const value = record[name];
+      if (value !== undefined) acc[name] = value;
+      return acc;
+    },
+    {} as Record<string, T>
+  );
+
 class ScallopQuery implements ScallopQueryInterface {
   public readonly indexer: ScallopIndexer;
   public readonly utils: ScallopUtils;
-  public readonly marketService: MarketService;
   public readonly obligationService: ObligationService;
-  public readonly spoolReadService: SpoolReadService;
   public readonly borrowIncentiveService: BorrowIncentiveService;
   public readonly lendingReadService: LendingReadService;
   public readonly priceService: PriceService;
@@ -79,16 +79,7 @@ class ScallopQuery implements ScallopQueryInterface {
         queryClient: this.utils.queryClient,
         ...params,
       });
-    this.marketService = new MarketService({
-      query: this,
-      indexer: this.indexer,
-      logger: this.utils.logger,
-    });
     this.obligationService = new ObligationService({
-      query: this,
-      logger: this.utils.logger,
-    });
-    this.spoolReadService = new SpoolReadService({
       query: this,
       logger: this.utils.logger,
     });
@@ -148,6 +139,17 @@ class ScallopQuery implements ScallopQueryInterface {
     return this.utils.address;
   }
 
+  /**
+   * The repositories_v2 registry — the clean read layer the facade is migrating
+   * onto. Built lazily from `this.utils` on first access (after `init()`), then
+   * memoised. Single-domain read methods delegate here; cross-domain assembly
+   * stays in the query services until Phase 3 (see PLAN.md).
+   */
+  private _repos?: Repositories;
+  get repos(): Repositories {
+    return (this._repos ??= createRepositories({ utils: this.utils }));
+  }
+
   /* ==================== Core Query Methods ==================== */
 
   /**
@@ -157,7 +159,23 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Market data.
    */
   async queryMarket(args?: QueryOptions & { coinPrices?: CoinPrices }) {
-    return this.marketService.queryMarket(args);
+    return this.fetchMarkets(args);
+  }
+
+  /**
+   * Shared market read: auto-fetch coin prices when the caller doesn't supply
+   * them (otherwise every pool/collateral price would be 0), then delegate to
+   * the market repository. Used by queryMarket / getMarketPools / getMarketCollaterals.
+   */
+  private async fetchMarkets(
+    args?: QueryOptions & { coinPrices?: CoinPrices }
+  ) {
+    const coinPrices =
+      args?.coinPrices ?? (await this.utils.getCoinPrices()) ?? {};
+    return this.repos.market.getMarkets({
+      coinPrices,
+      source: fromQueryOptions(args),
+    });
   }
 
   /**
@@ -177,7 +195,11 @@ class ScallopQuery implements ScallopQueryInterface {
       coinPrices?: CoinPrices;
     } & QueryOptions
   ) {
-    return this.marketService.getMarketPools(poolCoinNames, args);
+    const { pools, collaterals } = await this.fetchMarkets(args);
+    return {
+      pools: pickRecord(pools, poolCoinNames),
+      collaterals: pickRecord(collaterals, poolCoinNames),
+    };
   }
 
   /**
@@ -212,7 +234,8 @@ class ScallopQuery implements ScallopQueryInterface {
     collateralCoinNames: string[] = [...this.constants.whitelist.collateral],
     args?: QueryOptions
   ) {
-    return this.marketService.getMarketCollaterals(collateralCoinNames, args);
+    const { collaterals } = await this.fetchMarkets(args);
+    return pickRecord(collaterals, collateralCoinNames);
   }
 
   /**
@@ -223,7 +246,9 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Market collateral data.
    */
   async getMarketCollateral(collateralCoinName: string, args?: QueryOptions) {
-    return this.marketService.getMarketCollateral(collateralCoinName, args);
+    return (await this.getMarketCollaterals(undefined, args))[
+      collateralCoinName
+    ];
   }
 
   /**
@@ -233,7 +258,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Obligations data.
    */
   async getObligations(ownerAddress: string = this.walletAddress) {
-    return this.obligationService.getObligations(ownerAddress);
+    return this.repos.obligation.getObligations(ownerAddress);
   }
 
   /**
@@ -243,7 +268,18 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Obligation data.
    */
   async queryObligation(obligationId: SuiObjectArg) {
-    return this.obligationService.queryObligation(obligationId);
+    const id =
+      typeof obligationId === 'string'
+        ? obligationId
+        : 'objectId' in obligationId
+          ? obligationId.objectId
+          : undefined;
+    if (id === undefined) {
+      throw new ScallopParseError(
+        'queryObligation expects an object id (string) or an object reference'
+      );
+    }
+    return this.repos.obligation.getObligationData(id);
   }
 
   /**
@@ -257,7 +293,10 @@ class ScallopQuery implements ScallopQueryInterface {
     assetCoinNames?: string[],
     ownerAddress: string = this.walletAddress
   ) {
-    return await getCoinAmounts(this, assetCoinNames, ownerAddress);
+    return await this.repos.coinBalance.getCoinAmounts({
+      coinNames: assetCoinNames,
+      address: ownerAddress,
+    });
   }
 
   /**
@@ -271,7 +310,10 @@ class ScallopQuery implements ScallopQueryInterface {
     assetCoinName: string,
     ownerAddress: string = this.walletAddress
   ) {
-    return await getCoinAmount(this, assetCoinName, ownerAddress);
+    return await this.repos.coinBalance.getCoinAmount({
+      coinName: assetCoinName,
+      address: ownerAddress,
+    });
   }
 
   /**
@@ -285,7 +327,17 @@ class ScallopQuery implements ScallopQueryInterface {
     marketCoinNames?: string[],
     ownerAddress: string = this.walletAddress
   ) {
-    return await getMarketCoinAmounts(this, marketCoinNames, ownerAddress);
+    // Preserve the legacy default set: lending whitelist mapped to market-coin
+    // names (the repo's own default is the sCoin whitelist, a different set).
+    const names =
+      marketCoinNames ??
+      [...this.constants.whitelist.lending].map((coinName) =>
+        this.utils.parseMarketCoinName(coinName)
+      );
+    return await this.repos.coinBalance.getMarketCoinAmounts({
+      marketCoinNames: names,
+      address: ownerAddress,
+    });
   }
 
   /**
@@ -299,7 +351,10 @@ class ScallopQuery implements ScallopQueryInterface {
     marketCoinName: string,
     ownerAddress: string = this.walletAddress
   ) {
-    return await getMarketCoinAmount(this, marketCoinName, ownerAddress);
+    return await this.repos.coinBalance.getMarketCoinAmount({
+      marketCoinName,
+      address: ownerAddress,
+    });
   }
 
   /**
@@ -338,7 +393,17 @@ class ScallopQuery implements ScallopQueryInterface {
       coinPrices?: CoinPrices;
     } & QueryOptions
   ) {
-    return this.spoolReadService.getSpools(stakeMarketCoinNames, args);
+    const coinPrices =
+      args?.coinPrices ??
+      (await this.getAllCoinPrices({ marketPools: args?.marketPools })) ??
+      {};
+    return this.repos.spool.getSpools({
+      stakeCoinNames: stakeMarketCoinNames ?? [
+        ...this.constants.whitelist.spool,
+      ],
+      coinPrices,
+      source: fromQueryOptions(args),
+    });
   }
 
   /**
@@ -355,7 +420,13 @@ class ScallopQuery implements ScallopQueryInterface {
       coinPrices?: CoinPrices;
     } & QueryOptions
   ) {
-    return this.spoolReadService.getSpool(stakeMarketCoinName, args);
+    const coinPrices =
+      args?.coinPrices ?? (await this.getAllCoinPrices()) ?? {};
+    return this.repos.spool.getSpool({
+      stakeCoinName: stakeMarketCoinName,
+      coinPrices,
+      source: fromQueryOptions(args),
+    });
   }
 
   /**
@@ -365,7 +436,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return All Stake accounts data.
    */
   async getAllStakeAccounts(ownerAddress: string = this.walletAddress) {
-    return await getStakeAccounts(this, ownerAddress);
+    return await this.repos.spool.getStakeAccounts({ address: ownerAddress });
   }
 
   /**
@@ -435,20 +506,7 @@ class ScallopQuery implements ScallopQueryInterface {
   async getStakeRewardPools(
     stakeMarketCoinNames: string[] = [...this.constants.whitelist.spool]
   ) {
-    const stakeRewardPools: StakeRewardPools = {};
-    await Promise.allSettled(
-      stakeMarketCoinNames.map(async (stakeMarketCoinName) => {
-        const stakeRewardPool = await getStakeRewardPool(
-          this,
-          stakeMarketCoinName
-        );
-
-        if (stakeRewardPool) {
-          stakeRewardPools[stakeMarketCoinName] = stakeRewardPool;
-        }
-      })
-    );
-    return stakeRewardPools;
+    return this.repos.spool.getSpoolRewardPools(stakeMarketCoinNames);
   }
 
   /**
@@ -462,7 +520,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Stake reward pool data.
    */
   async getStakeRewardPool(stakeMarketCoinName: string) {
-    return await getStakeRewardPool(this, stakeMarketCoinName);
+    return this.repos.spool.getSpoolRewardPool(stakeMarketCoinName);
   }
 
   /**
@@ -491,13 +549,13 @@ class ScallopQuery implements ScallopQueryInterface {
    */
   async getBorrowIncentiveAccounts(
     obligationId: string | SuiObjectRef,
-    coinNames?: string[]
+    coinNames: string[] = [...this.constants.whitelist.lending]
   ) {
-    return await queryBorrowIncentiveAccounts(
-      this,
-      typeof obligationId === 'string' ? obligationId : obligationId.objectId,
-      coinNames
-    );
+    return await this.repos.borrowIncentive.getBorrowIncentiveAccounts({
+      obligationId:
+        typeof obligationId === 'string' ? obligationId : obligationId.objectId,
+      coinNames,
+    });
   }
 
   /**
@@ -652,7 +710,9 @@ class ScallopQuery implements ScallopQueryInterface {
    * @returns veSca
    */
   async getVeSca(veScaKey: string | SuiObjectData) {
-    return await getVeSca(this.utils, veScaKey);
+    return await this.repos.veSca.getVeSca(
+      typeof veScaKey === 'string' ? veScaKey : veScaKey.objectId
+    );
   }
 
   /**
@@ -667,7 +727,10 @@ class ScallopQuery implements ScallopQueryInterface {
     walletAddress?: string;
     excludeEmpty?: boolean;
   } = {}) {
-    return await getVeScas(this, walletAddress, excludeEmpty);
+    return await this.repos.veSca.getVeScasByAddress({
+      address: walletAddress,
+      excludeEmpty,
+    });
   }
 
   /**
@@ -675,7 +738,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @returns Promise<string | undefined>
    */
   async getVeScaTreasuryInfo() {
-    return await getVeScaTreasuryInfo(this.utils);
+    return await this.repos.veSca.getVeScaTreasuryInfo();
   }
 
   /**
@@ -740,7 +803,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @returns Total Supply
    */
   async getSCoinTotalSupply(sCoinName: string) {
-    return await getSCoinTotalSupply(this, sCoinName);
+    return await this.repos.coinBalance.getSCoinTotalSupply(sCoinName);
   }
 
   /**
@@ -754,7 +817,10 @@ class ScallopQuery implements ScallopQueryInterface {
     sCoinNames?: string[],
     ownerAddress: string = this.walletAddress
   ) {
-    return await getSCoinAmounts(this, sCoinNames, ownerAddress);
+    return await this.repos.coinBalance.getSCoinAmounts({
+      sCoinNames,
+      address: ownerAddress,
+    });
   }
 
   /**
@@ -770,7 +836,10 @@ class ScallopQuery implements ScallopQueryInterface {
   ) {
     const parsedSCoinName = this.utils.parseSCoinName(sCoinName);
     return parsedSCoinName
-      ? await getSCoinAmount(this, parsedSCoinName, ownerAddress)
+      ? await this.repos.coinBalance.getSCoinAmount({
+          sCoinName: parsedSCoinName,
+          address: ownerAddress,
+        })
       : 0;
   }
 
@@ -789,7 +858,7 @@ class ScallopQuery implements ScallopQueryInterface {
   async getFlashLoanFees(
     assetCoinNames: string[] = [...this.constants.whitelist.lending]
   ) {
-    return await getFlashLoanFees(this, assetCoinNames);
+    return await this.repos.flashloan.getFlashloanFees(assetCoinNames);
   }
 
   /**
@@ -810,7 +879,9 @@ class ScallopQuery implements ScallopQueryInterface {
    * Get list of isolated assets
    */
   async getIsolatedAssets(useOnChainQuery: boolean = false) {
-    return await getIsolatedAssets(this, useOnChainQuery);
+    return await this.repos.isolatedAssets.getIsolatedAssets({
+      source: toQuerySource({ useOnChainQuery }),
+    });
   }
 
   /**
@@ -888,21 +959,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @returns
    */
   async getAssetOracles() {
-    const [primary, secondary] = await Promise.all([
-      getAssetOracles(this.utils, 'primary'),
-      getAssetOracles(this.utils, 'secondary'),
-    ]);
-
-    return [...this.constants.whitelist.lending].reduce(
-      (acc, pool) => {
-        acc[pool] = {
-          primary: (primary?.[pool] ?? []) as SupportOracleType[],
-          secondary: (secondary?.[pool] ?? []) as SupportOracleType[],
-        };
-        return acc;
-      },
-      {} as Record<string, xOracleRules>
-    );
+    return this.repos.xOracle.getAssetOracles();
   }
 
   /**
