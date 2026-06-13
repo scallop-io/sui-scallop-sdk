@@ -16,6 +16,7 @@ import {
   buildMarketMetadata,
   buildObligationMetadata,
   buildSpoolMetadata,
+  buildVeScaLoyaltyProgramMetadata,
   buildVeScaMetadata,
   buildXOracleMetadata,
 } from './metadata.js';
@@ -29,6 +30,7 @@ import { VeScaRepository } from '../veSca/index.js';
 import { LoyaltyProgramRepository } from '../loyaltyProgram/index.js';
 import { XOracleRepository } from '../xOracle/index.js';
 import { SpoolRepository } from '../spool/index.js';
+import { VeScaLoyaltyProgramRepository } from '../veScaLoyaltyProgram/index.js';
 
 /**
  * Inputs the registry needs. `ScallopUtils` is the single hub — it exposes
@@ -57,6 +59,7 @@ export interface Repositories {
   readonly loyaltyProgram: LoyaltyProgramRepository;
   readonly xOracle: XOracleRepository;
   readonly spool: SpoolRepository;
+  readonly veScaLoyaltyProgram: VeScaLoyaltyProgramRepository;
 }
 
 /**
@@ -83,6 +86,7 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
   let loyaltyProgram: LoyaltyProgramRepository | undefined;
   let xOracle: XOracleRepository | undefined;
   let spool: SpoolRepository | undefined;
+  let veScaLoyaltyProgram: VeScaLoyaltyProgramRepository | undefined;
 
   return {
     get market() {
@@ -147,6 +151,12 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
         ...base,
         indexer,
         metadata: buildSpoolMetadata(utils),
+      }));
+    },
+    get veScaLoyaltyProgram() {
+      return (veScaLoyaltyProgram ??= new VeScaLoyaltyProgramRepository({
+        ...base,
+        metadata: buildVeScaLoyaltyProgramMetadata(utils),
       }));
     },
   };

@@ -23,7 +23,7 @@ export class LoyaltyProgramRepository extends BaseRepository<
     };
   }
 
-  getLoyaltyProgramInfos(veScaKey: string) {
+  getLoyaltyProgramInfos(veScaKey?: string) {
     return getLoyaltyProgramInfosOnChain(this.context, veScaKey);
   }
 }
