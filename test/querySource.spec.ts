@@ -10,7 +10,7 @@ describe('query source strategy', () => {
 
   it('falls back to rpc only for indexer-first', async () => {
     const fallback = await runWithSourceFallback({
-      source: 'indexer-first',
+      source: 'api-first',
       label: 'test',
       indexer: async () => {
         throw new Error('indexer down');

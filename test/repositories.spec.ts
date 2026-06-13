@@ -19,7 +19,7 @@ vi.mock('src/queries/coreQuery.js', async () => {
 
 import * as coreQuery from 'src/queries/coreQuery.js';
 
-describe('query-backed repositories', () => {
+describe('repository adapters', () => {
   it('delegates market calls through ScallopQuery compatibility API', async () => {
     const query = {
       queryMarket: vi.fn(async () => ({ pools: {}, collaterals: {} })),
@@ -67,7 +67,7 @@ describe('query-backed repositories', () => {
     expect(query.queryObligation).toHaveBeenCalledWith('0x2');
   });
 
-  it('creates rpc market repositories that force rpc source', async () => {
+  it('creates forced-RPC market data repositories', async () => {
     const query = {
       constants: {
         whitelist: {
@@ -88,7 +88,7 @@ describe('query-backed repositories', () => {
     );
   });
 
-  it('creates indexer market repositories with coin filters', async () => {
+  it('creates indexer-backed market data repositories with coin filters', async () => {
     const indexer = {
       getMarket: vi.fn(async () => ({
         pools: { sui: { coinName: 'sui' }, usdc: { coinName: 'usdc' } },

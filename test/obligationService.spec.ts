@@ -27,7 +27,7 @@ vi.mock('src/queries/portfolioQuery.js', async () => {
   };
 });
 
-import { ObligationService } from 'src/services/ObligationService.js';
+import { ObligationService } from 'src/services/query/ObligationService.js';
 import * as coreQuery from 'src/queries/coreQuery.js';
 import * as portfolioQuery from 'src/queries/portfolioQuery.js';
 

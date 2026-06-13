@@ -15,6 +15,9 @@ const listSourceFiles = (dir: string): string[] => {
     const path = join(dir, entry);
     const stats = statSync(path);
     if (stats.isDirectory()) return listSourceFiles(path);
+    // Colocated test files (e.g. src/repositories_v2/<domain>/utils.spec.ts) are
+    // not SDK internals — exclude them from the no-console gate.
+    if (path.endsWith('.spec.ts') || path.endsWith('.test.ts')) return [];
     return path.endsWith('.ts') ? [path] : [];
   });
 };
