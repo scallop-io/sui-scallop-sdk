@@ -4,8 +4,8 @@ import { estimatedFactor, minBigNumber } from 'src/utils/index.js';
 import type {
   BorrowIncentivePool,
   CoinPrices,
+  Lending,
   Lendings,
-  Market,
   MarketCollateral,
   MarketCollaterals,
   MarketPool,
@@ -15,15 +15,15 @@ import type {
   ObligationCollateral,
   ObligationDebt,
   ParsedBorrowIncentiveAccountData,
+  Spool,
+  StakeAccount,
   TotalValueLocked,
 } from 'src/types/index.js';
 
-export type TvlMarketInput =
-  | Pick<Market, 'pools' | 'collaterals'>
-  | {
-      pools: MarketPools;
-      collaterals: MarketCollaterals;
-    };
+export type TvlMarketInput = {
+  pools: MarketPools;
+  collaterals: MarketCollaterals;
+};
 
 export const calculateTotalValueLocked = (
   market: TvlMarketInput
@@ -746,5 +746,164 @@ export const estimateAvailableBorrowAmount = (
     requiredRepayCoin: estimatedRequiredRepayAmount
       .shiftedBy(-1 * input.obligationDebt.coinDecimal)
       .toNumber(),
+  };
+};
+
+/**
+ * Pure assembly of a single `Lending` from pre-fetched inputs. All I/O (market
+ * pool, spool, stake accounts, coin/sCoin amounts, price) and name parsing are
+ * resolved by the caller (`ScallopQuery.getLendings`) — this only does the math.
+ */
+export const buildLending = (input: {
+  coinName: string;
+  symbol: string;
+  coinType: string;
+  marketCoinType: string;
+  coinDecimal: number;
+  coinPrice: number;
+  marketPool?: MarketPool;
+  spool?: Spool;
+  stakeAccounts: StakeAccount[];
+  coinAmount: number;
+  marketCoinAmount: number;
+  sCoinAmount: number;
+}): Lending => {
+  const {
+    coinName,
+    symbol,
+    coinType,
+    marketCoinType,
+    coinDecimal,
+    coinPrice,
+    marketPool,
+    spool,
+    stakeAccounts,
+    coinAmount,
+    marketCoinAmount,
+    sCoinAmount,
+  } = input;
+
+  let stakedMarketAmount = BigNumber(0);
+  let stakedMarketCoin = BigNumber(0);
+  let stakedAmount = BigNumber(0);
+  let stakedCoin = BigNumber(0);
+  let stakedValue = BigNumber(0);
+  let availableUnstakeAmount = BigNumber(0);
+  let availableUnstakeCoin = BigNumber(0);
+  let availableClaimAmount = BigNumber(0);
+  let availableClaimCoin = BigNumber(0);
+
+  if (spool) {
+    for (const stakeAccount of stakeAccounts) {
+      const accountStakedMarketCoinAmount = BigNumber(stakeAccount.staked);
+      const accountStakedMarketCoin = accountStakedMarketCoinAmount.shiftedBy(
+        -1 * spool.coinDecimal
+      );
+      const accountStakedAmount = accountStakedMarketCoinAmount.multipliedBy(
+        marketPool?.conversionRate ?? 1
+      );
+      const accountStakedCoin = accountStakedAmount.shiftedBy(
+        -1 * spool.coinDecimal
+      );
+      const accountStakedValue = accountStakedCoin.multipliedBy(
+        spool.coinPrice
+      );
+
+      stakedMarketAmount = stakedMarketAmount.plus(
+        accountStakedMarketCoinAmount
+      );
+      stakedMarketCoin = stakedMarketCoin.plus(accountStakedMarketCoin);
+      stakedAmount = stakedAmount.plus(accountStakedAmount);
+      stakedCoin = stakedCoin.plus(accountStakedCoin);
+      stakedValue = stakedValue.plus(accountStakedValue);
+      availableUnstakeAmount = availableUnstakeAmount.plus(
+        accountStakedMarketCoinAmount
+      );
+      availableUnstakeCoin = availableUnstakeAmount.shiftedBy(
+        -1 * spool.coinDecimal
+      );
+
+      const baseIndexRate = 1_000_000_000;
+      const increasedPointRate = spool.currentPointIndex
+        ? BigNumber(spool.currentPointIndex - stakeAccount.index).dividedBy(
+            baseIndexRate
+          )
+        : 1;
+      availableClaimAmount = availableClaimAmount.plus(
+        accountStakedMarketCoinAmount
+          .multipliedBy(increasedPointRate)
+          .plus(stakeAccount.points)
+          .multipliedBy(spool.exchangeRateNumerator)
+          .dividedBy(spool.exchangeRateDenominator)
+      );
+      availableClaimCoin = availableClaimAmount.shiftedBy(
+        -1 * spool.rewardCoinDecimal
+      );
+    }
+  }
+
+  // Handle supplied coin
+  const suppliedAmount = BigNumber(marketCoinAmount)
+    .plus(BigNumber(sCoinAmount))
+    .multipliedBy(marketPool?.conversionRate ?? 1);
+  const suppliedCoin = suppliedAmount.shiftedBy(-1 * coinDecimal);
+  const suppliedValue = suppliedCoin.multipliedBy(coinPrice ?? 0);
+
+  const marketCoinPrice = BigNumber(coinPrice ?? 0).multipliedBy(
+    marketPool?.conversionRate ?? 1
+  );
+  const unstakedMarketAmount = BigNumber(marketCoinAmount).plus(
+    BigNumber(sCoinAmount)
+  );
+  const unstakedMarketCoin = unstakedMarketAmount.shiftedBy(-1 * coinDecimal);
+
+  const availableSupplyAmount = BigNumber(coinAmount);
+  const availableSupplyCoin = availableSupplyAmount.shiftedBy(-1 * coinDecimal);
+  const availableWithdrawAmount = minBigNumber(
+    suppliedAmount,
+    marketPool?.supplyAmount ?? Infinity
+  ).plus(stakedAmount);
+  const availableWithdrawCoin = minBigNumber(
+    suppliedCoin,
+    marketPool?.supplyCoin ?? Infinity
+  ).plus(stakedCoin);
+
+  return {
+    coinName,
+    symbol,
+    coinType,
+    marketCoinType,
+    sCoinType: marketPool?.sCoinType ?? '',
+    coinDecimal,
+    coinPrice: coinPrice ?? 0,
+    conversionRate: marketPool?.conversionRate ?? 1,
+    marketCoinPrice: marketCoinPrice.toNumber(),
+    supplyApr: marketPool?.supplyApr ?? 0,
+    supplyApy: marketPool?.supplyApy ?? 0,
+    rewardApr: spool?.rewardApr ?? 0,
+    suppliedAmount: suppliedAmount.plus(stakedAmount).toNumber(),
+    suppliedCoin: suppliedCoin.plus(stakedCoin).toNumber(),
+    suppliedValue: suppliedValue.plus(stakedValue).toNumber(),
+    stakedMarketAmount: stakedMarketAmount.toNumber(),
+    stakedMarketCoin: stakedMarketCoin.toNumber(),
+    stakedAmount: stakedAmount.toNumber(),
+    stakedCoin: stakedCoin.toNumber(),
+    stakedValue: stakedValue.toNumber(),
+    unstakedMarketAmount: unstakedMarketAmount.toNumber(),
+    unstakedMarketCoin: unstakedMarketCoin.toNumber(),
+    unstakedAmount: suppliedAmount.toNumber(),
+    unstakedCoin: suppliedCoin.toNumber(),
+    unstakedValue: suppliedValue.toNumber(),
+    availableSupplyAmount: availableSupplyAmount.toNumber(),
+    availableSupplyCoin: availableSupplyCoin.toNumber(),
+    availableWithdrawAmount: availableWithdrawAmount.toNumber(),
+    availableWithdrawCoin: availableWithdrawCoin.toNumber(),
+    availableStakeAmount: unstakedMarketAmount.toNumber(),
+    availableStakeCoin: unstakedMarketCoin.toNumber(),
+    availableUnstakeAmount: availableUnstakeAmount.toNumber(),
+    availableUnstakeCoin: availableUnstakeCoin.toNumber(),
+    availableClaimAmount: availableClaimAmount.toNumber(),
+    availableClaimCoin: availableClaimCoin.toNumber(),
+    isIsolated: marketPool ? marketPool.isIsolated : false,
   };
 };
