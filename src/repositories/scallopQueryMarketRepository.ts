@@ -5,6 +5,14 @@ import type {
 } from './marketRepository.js';
 import type { QueryOptions } from 'src/utils/index.js';
 
+/**
+ * Compatibility adapter, not a real data-source repository.
+ *
+ * This wraps the public `ScallopQuery` facade behind the `MarketRepository`
+ * interface for older tests/internal call sites. New read paths should prefer a
+ * concrete source adapter such as `indexerMarketRepository` or
+ * `rpcMarketRepository`.
+ */
 export const createScallopQueryMarketRepository = (
   query: ScallopQuery
 ): MarketRepository => ({

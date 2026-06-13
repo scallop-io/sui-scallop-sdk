@@ -154,7 +154,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
    * Specifying the sender's amount of sCoins to get coins args from transaction result.
    *
    * @param txBlock - Scallop txBlock or txBlock created by SuiKit .
-   * @param marketCoinName - Specific support sCoin name.
+   * @param sCoinName - Specific support sCoin name.
    * @param amount - Amount of coins to be selected.
    * @param sender - Sender address.
    * @return Take coin and left coin.
