@@ -110,7 +110,7 @@ class ScallopClient implements ScallopClientInterface {
    * @return Market data.
    */
   async queryMarket() {
-    return await this.query.queryMarket();
+    return await this.query.getMarketPools();
   }
 
   /**

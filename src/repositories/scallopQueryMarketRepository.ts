@@ -17,7 +17,7 @@ export const createScallopQueryMarketRepository = (
   query: ScallopQuery
 ): MarketRepository => ({
   getMarket: (options?: MarketRepositoryOptions) =>
-    query.queryMarket({
+    query.getMarketPools(undefined, {
       coinPrices: options?.coinPrices,
       indexer: options?.indexer,
       source: options?.source,
