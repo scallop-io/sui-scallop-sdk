@@ -1,14 +1,14 @@
+import { SuiClientTypes } from '@mysten/sui/client';
 import type {
   SuiAmountsArg,
   SuiObjectArg,
   SuiTxArg,
 } from '@scallop-io/sui-kit';
 import type {
-  SuiObjectData,
-  SuiObjectDataOptions,
   GetDynamicFieldObjectParams,
   GetDynamicFieldsParams,
-  GetOwnedObjectsParams,
+  SuiObjectData,
+  SuiObjectDataOptions,
 } from '../sui.js';
 
 export namespace QueryKeys {
@@ -26,27 +26,34 @@ export namespace QueryKeys {
       queryTarget?: string;
       args?: SuiObjectArg[];
       typeArgs?: any[];
+      include?: SuiClientTypes.SimulateTransactionInclude;
     };
     export type GetObject = BaseType & {
       objectId?: string;
-      options?: SuiObjectDataOptions;
+      include?: SuiObjectDataOptions;
     };
-    export type GetObjects = BaseType & {
-      objectIds?: string[];
+    export type GetSharedObject = BaseType & {
+      objectId?: string;
     };
-    export type GetOwnedObjects = BaseType & Partial<GetOwnedObjectsParams>;
+    export type GetObjects = BaseType & SuiClientTypes.GetObjectsOptions;
+    export type GetOwnedObjects = BaseType &
+      Partial<SuiClientTypes.ListOwnedObjectsOptions>;
     export type GetDynamicFields = BaseType & Partial<GetDynamicFieldsParams>;
     export type GetDynamicFieldObject = BaseType &
       Partial<GetDynamicFieldObjectParams>;
     export type getTotalVeScaTreasuryAmount = BaseType & {
       refreshArgs?: any[];
-      vescaAmountArgs?: (
+      veScaAmountArgs?: (
         | string
         | SuiObjectData
         | SuiTxArg
         | SuiAmountsArg
         | SuiObjectArg
       )[];
+    };
+    export type GetCoinBalance = BaseType & {
+      address?: string;
+      coinType?: string;
     };
     export type GetAllCoinBalances = BaseType & {
       activeAddress?: string;

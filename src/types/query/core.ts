@@ -243,10 +243,15 @@ export type CalculatedMarketCollateralData = {
   depositCoin: number;
 };
 
-export type Market = {
+export type Markets = {
   pools: MarketPools;
   collaterals: MarketCollaterals;
-  data?: MarketQueryInterface;
+  // data?: MarketQueryInterface;
+};
+
+export type Market = {
+  pool: MarketPool;
+  collateral: MarketCollateral | undefined;
 };
 
 export type Obligation = { id: string; keyId: string; locked: boolean };

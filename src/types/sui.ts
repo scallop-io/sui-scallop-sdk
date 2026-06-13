@@ -2,7 +2,6 @@ import type { SuiClientTypes } from '@mysten/sui/client';
 
 /** Sui Object with content and json (from getObject, listOwnedObjects, etc.) */
 export type SuiObjectData = SuiClientTypes.Object<{
-  content: true;
   json: true;
 }>;
 
