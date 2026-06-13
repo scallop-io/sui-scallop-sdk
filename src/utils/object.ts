@@ -1,7 +1,8 @@
-import type { SuiObjectData, SuiObjectRef } from 'src/types/index.js';
-import { ScallopSuiKit } from 'src/models/index.js';
-import { z } from 'zod';
+import { SuiClientTypes } from '@mysten/sui/client';
 import { SuiObjectArg, SuiTxBlock } from '@scallop-io/sui-kit';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { SuiObjectData, SuiObjectRef } from 'src/types/index.js';
+import { z } from 'zod';
 
 const DYNAMIC_FIELD_TYPE_PREFIX =
   '0x0000000000000000000000000000000000000000000000000000000000000002::dynamic_field::Field';
@@ -128,33 +129,35 @@ export const asSharedObject = (
 };
 
 export const getSharedObjectData = async (
-  scallopSuiKit: ScallopSuiKit,
+  { getObject }: OnChainDataSource,
   {
     tx,
-    object,
+    objectId,
     mutable = false,
+    include,
   }: {
     tx: SuiTxBlock;
-    object: string | SuiObjectData | SuiObjectRef | SuiObjectArg;
+    objectId: string | SuiObjectData | SuiObjectRef | SuiObjectArg;
     mutable?: boolean;
+    include?: SuiClientTypes.ObjectInclude;
   }
 ) => {
   let parsed;
   // Handle string
-  if (typeof object === 'string') {
-    const objectData = await scallopSuiKit.queryGetObject(object, {
-      json: true,
-      content: false,
+  if (typeof objectId === 'string') {
+    const objectData = await getObject({
+      objectId: objectId,
+      include,
     });
     if (!objectData?.object) {
       throw new Error('Failed to get object data');
     }
     parsed = parseObjectData(objectData.object);
-  } else if ('objectId' in object && 'owner' in object) {
-    parsed = parseObjectData(object);
+  } else if ('objectId' in objectId && 'owner' in objectId) {
+    parsed = parseObjectData(objectId);
   }
 
-  return asSharedObject(tx, { obj: parsed ?? object, mutable });
+  return asSharedObject(tx, { obj: parsed ?? objectId, mutable });
 };
 
 const dynamicFieldNameZod = z.union([
