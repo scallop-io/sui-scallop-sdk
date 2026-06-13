@@ -24,7 +24,7 @@ vi.mock('src/queries/coreQuery.js', async () => {
   };
 });
 
-import { MarketService } from 'src/services/MarketService.js';
+import { MarketService } from 'src/services/query/MarketService.js';
 import * as coreQuery from 'src/queries/coreQuery.js';
 
 const makeIndexer = () => ({

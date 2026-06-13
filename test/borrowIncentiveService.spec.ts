@@ -11,7 +11,7 @@ vi.mock('src/queries/borrowIncentiveQuery.js', async () => {
   };
 });
 
-import { BorrowIncentiveService } from 'src/services/BorrowIncentiveService.js';
+import { BorrowIncentiveService } from 'src/services/query/BorrowIncentiveService.js';
 import * as borrowIncentiveQuery from 'src/queries/borrowIncentiveQuery.js';
 
 const makeQuery = () =>

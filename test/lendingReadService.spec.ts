@@ -12,7 +12,7 @@ vi.mock('src/queries/portfolioQuery.js', async () => {
   };
 });
 
-import { LendingReadService } from 'src/services/LendingReadService.js';
+import { LendingReadService } from 'src/services/query/LendingReadService.js';
 import * as portfolioQuery from 'src/queries/portfolioQuery.js';
 
 const makeQuery = () =>

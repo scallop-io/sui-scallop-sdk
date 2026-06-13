@@ -12,7 +12,7 @@ vi.mock('src/queries/spoolQuery.js', async () => {
   };
 });
 
-import { SpoolReadService } from 'src/services/SpoolReadService.js';
+import { SpoolReadService } from 'src/services/query/SpoolReadService.js';
 import * as spoolQuery from 'src/queries/spoolQuery.js';
 
 const makeQuery = () =>
