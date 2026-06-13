@@ -5,6 +5,7 @@ import { resolveQuerySource, runWithSourceFallback } from 'src/utils/index.js';
 import {
   buildLending,
   buildObligationAccount,
+  buildUserPortfolio,
   calculateTotalValueLocked,
 } from 'src/services/index.js';
 import { PriceService } from 'src/services/query/PriceService.js';
@@ -41,7 +42,6 @@ import {
   getSCoinSwapRate,
   getStakePool,
   getSupplyLimit,
-  getUserPortfolio,
   isIsolatedAsset,
   queryVeScaKeyIdFromReferralBindings,
 } from 'src/queries/index.js';
@@ -1147,11 +1147,36 @@ class ScallopQuery implements ScallopQueryInterface {
    * Get user portfolio
    */
   async getUserPortfolio(args?: { walletAddress?: string; indexer?: boolean }) {
-    return getUserPortfolio(
-      this,
-      args?.walletAddress ?? this.walletAddress,
-      args?.indexer ?? false
-    );
+    const walletAddress = args?.walletAddress ?? this.walletAddress;
+    const indexer = args?.indexer ?? false;
+
+    const coinPrices = await this.getAllCoinPrices({ indexer });
+    const market = await this.getMarketPools(undefined, {
+      indexer,
+      coinPrices,
+    });
+
+    const [lendings, obligationAccounts, veScas] = await Promise.all([
+      this.getLendings(undefined, walletAddress, {
+        indexer,
+        marketPools: market.pools,
+        coinPrices,
+      }),
+      this.getObligationAccounts(walletAddress, {
+        indexer,
+        market,
+        coinPrices,
+      }),
+      this.getVeScas({ walletAddress, excludeEmpty: true }),
+    ]);
+
+    return buildUserPortfolio({
+      lendings,
+      obligationAccounts,
+      veScas,
+      coinPrices,
+      marketPools: market.pools,
+    });
   }
 
   /**

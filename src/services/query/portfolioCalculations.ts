@@ -1133,3 +1133,63 @@ export const buildObligationAccount = (input: {
 
   return obligationAccount;
 };
+
+/**
+ * Pure assembly of the full user portfolio from already-fetched lendings,
+ * obligation accounts, veScas, and prices. Composes the parse/aggregate/
+ * summarise helpers above; `ScallopQuery.getUserPortfolio` only does the I/O.
+ */
+export const buildUserPortfolio = (input: {
+  lendings: Lendings;
+  obligationAccounts: ObligationAccounts;
+  veScas: Array<{
+    keyId: string;
+    lockedScaCoin: number;
+    currentVeScaBalance: number;
+    unlockAt: number;
+  }>;
+  coinPrices: CoinPrices;
+  marketPools: MarketPools;
+}) => {
+  const { lendings, obligationAccounts, veScas, coinPrices, marketPools } =
+    input;
+
+  const parsedLendings = parseLendingsForPortfolio(lendings);
+  const parsedObligationAccounts = parseObligationAccountsForPortfolio(
+    obligationAccounts,
+    marketPools
+  );
+  const pendingLendingRewards = aggregatePendingLendingRewards(
+    lendings,
+    coinPrices
+  );
+  const pendingBorrowIncentiveRewards =
+    aggregatePendingBorrowIncentiveRewards(obligationAccounts);
+  const parsedVeScas = parseVeScasForPortfolio(veScas, coinPrices.sca ?? 0);
+  const totals = summarisePortfolioTotals({
+    parsedLendings,
+    parsedObligationAccounts,
+    parsedVeScas,
+  });
+
+  return {
+    ...totals,
+    lendings: parsedLendings,
+    borrowings: parsedObligationAccounts,
+    pendingRewards: {
+      lendings: Object.values(pendingLendingRewards).map((value) => ({
+        ...value,
+        coinName: LENDING_SPOOL_REWARD_COIN_NAME,
+        pendingRewardInUsd: value.coinPrice * value.pendingRewardInCoin,
+      })),
+      borrowIncentives: Object.entries(pendingBorrowIncentiveRewards).map(
+        ([coinName, value]) => ({
+          coinName,
+          ...value,
+          pendingRewardInUsd: value.coinPrice * value.pendingRewardInCoin,
+        })
+      ),
+    },
+    veScas: parsedVeScas,
+  };
+};
