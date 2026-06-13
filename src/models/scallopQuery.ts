@@ -2,9 +2,8 @@ import ScallopUtils, { ScallopUtilsParams } from './scallopUtils.js';
 import ScallopIndexer, { ScallopIndexerParams } from './scallopIndexer.js';
 import type { QueryOptions } from 'src/utils/index.js';
 import { resolveQuerySource, runWithSourceFallback } from 'src/utils/index.js';
-import { calculateTotalValueLocked } from 'src/services/index.js';
+import { buildLending, calculateTotalValueLocked } from 'src/services/index.js';
 import { ObligationService } from 'src/services/query/ObligationService.js';
-import { LendingReadService } from 'src/services/query/LendingReadService.js';
 import { PriceService } from 'src/services/query/PriceService.js';
 import {
   createRepositories,
@@ -17,6 +16,7 @@ import {
 import { ScallopParseError } from 'src/errors/index.js';
 import {
   CoinPrices,
+  Lendings,
   MarketCollaterals,
   MarketPool,
   MarketPools,
@@ -66,7 +66,6 @@ class ScallopQuery implements ScallopQueryInterface {
   public readonly indexer: ScallopIndexer;
   public readonly utils: ScallopUtils;
   public readonly obligationService: ObligationService;
-  public readonly lendingReadService: LendingReadService;
   public readonly priceService: PriceService;
 
   constructor(params: ScallopQueryParams = {}) {
@@ -78,10 +77,6 @@ class ScallopQuery implements ScallopQueryInterface {
         ...params,
       });
     this.obligationService = new ObligationService({
-      query: this,
-      logger: this.utils.logger,
-    });
-    this.lendingReadService = new LendingReadService({
       query: this,
       logger: this.utils.logger,
     });
@@ -554,11 +549,50 @@ class ScallopQuery implements ScallopQueryInterface {
       coinPrices?: CoinPrices;
     } & QueryOptions
   ) {
-    return this.lendingReadService.getLendings(
-      poolCoinNames,
-      ownerAddress,
-      args
+    const names = poolCoinNames ?? [...this.constants.whitelist.lending];
+    const marketCoinNames = names.map((n) => this.utils.parseMarketCoinName(n));
+    const stakeMarketCoinNames = marketCoinNames.filter((n) =>
+      this.constants.whitelist.spool.has(n)
     );
+
+    const coinPrices =
+      args?.coinPrices ?? (await this.utils.getCoinPrices()) ?? {};
+    const marketPools =
+      args?.marketPools ??
+      (await this.getMarketPools(names, { ...args, coinPrices })).pools;
+    const spools = await this.getSpools(stakeMarketCoinNames, {
+      ...args,
+      marketPools,
+      coinPrices,
+    });
+    const [coinAmounts, marketCoinAmounts, sCoinAmounts, allStakeAccounts] =
+      await Promise.all([
+        this.getCoinAmounts(names, ownerAddress),
+        this.getMarketCoinAmounts(marketCoinNames, ownerAddress),
+        this.getSCoinAmounts(marketCoinNames, ownerAddress),
+        this.getAllStakeAccounts(ownerAddress),
+      ]);
+
+    const lendings: Lendings = {};
+    for (const poolCoinName of names) {
+      const marketCoinName = this.utils.parseMarketCoinName(poolCoinName);
+      const isStake = stakeMarketCoinNames.includes(marketCoinName);
+      lendings[poolCoinName] = buildLending({
+        coinName: poolCoinName,
+        symbol: this.utils.parseSymbol(poolCoinName),
+        coinType: this.utils.parseCoinType(poolCoinName),
+        marketCoinType: this.utils.parseMarketCoinType(poolCoinName),
+        coinDecimal: this.utils.getCoinDecimal(poolCoinName) ?? 0,
+        coinPrice: coinPrices[poolCoinName] ?? 0,
+        marketPool: marketPools?.[poolCoinName],
+        spool: isStake ? spools[marketCoinName] : undefined,
+        stakeAccounts: isStake ? (allStakeAccounts[marketCoinName] ?? []) : [],
+        coinAmount: coinAmounts[poolCoinName] ?? 0,
+        marketCoinAmount: marketCoinAmounts[marketCoinName] ?? 0,
+        sCoinAmount: sCoinAmounts[marketCoinName] ?? 0,
+      });
+    }
+    return lendings;
   }
 
   /**
@@ -574,7 +608,9 @@ class ScallopQuery implements ScallopQueryInterface {
     ownerAddress: string = this.walletAddress,
     args?: QueryOptions
   ) {
-    return this.lendingReadService.getLending(poolCoinName, ownerAddress, args);
+    return (await this.getLendings([poolCoinName], ownerAddress, args))[
+      poolCoinName
+    ];
   }
 
   /**
