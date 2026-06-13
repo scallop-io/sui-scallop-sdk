@@ -27,7 +27,7 @@ beforeAll(async () => {
 
 describe('Test Query Scallop Contract On Chain Data', () => {
   it.skip('Should query market data', async () => {
-    const market = await scallopQuery.queryMarket();
+    const market = await scallopQuery.getMarketPools();
     if (ENABLE_LOG) {
       console.info('Market:');
       console.dir(market, { depth: null, colors: true });
