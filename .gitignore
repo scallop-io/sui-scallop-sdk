@@ -41,3 +41,4 @@ sui.log.*
 
 # claude settings
 .claude/
+coverage/
