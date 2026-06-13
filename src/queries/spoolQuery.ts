@@ -1,12 +1,11 @@
 import { normalizeStructTag } from '@mysten/sui/utils';
+import { parseObjectAs, partitionArray } from 'src/utils/index.js';
 import {
   parseOriginSpoolData,
   calculateSpoolData,
   parseOriginSpoolRewardPoolData,
   calculateSpoolRewardPoolData,
-  parseObjectAs,
-  partitionArray,
-} from 'src/utils/index.js';
+} from 'src/repositories_v2/spool/utils.js';
 import { mapSpoolData } from 'src/mappers/index.js';
 import type { ScallopQuery, ScallopUtils } from 'src/models/index.js';
 import type { SuiObjectData } from 'src/types/index.js';
@@ -304,6 +303,7 @@ export const getStakeAccounts = async (
   const spoolObjectId = utils.address.get('spool.object');
   const stakeAccountType = `${spoolObjectId}::spool_account::SpoolAccount`;
   const stakeObjectsResponse: SuiObjectData[] = [];
+
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
   do {

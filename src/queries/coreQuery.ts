@@ -50,7 +50,7 @@ import {
   ScallopAddress,
 } from 'src/models/index.js';
 import { getSharedObjectData } from 'src/utils/object.js';
-import { queryKeys } from 'src/constants/index.js';
+import { queryKeys } from 'src/constants/queryKeys.js';
 
 /**
  * Query market data.

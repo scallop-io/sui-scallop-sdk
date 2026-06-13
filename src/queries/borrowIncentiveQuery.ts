@@ -28,7 +28,7 @@ import type {
 } from 'src/types/index.js';
 import { BigNumber } from 'bignumber.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
-import { queryKeys } from 'src/constants/index.js';
+import { queryKeys } from 'src/constants/queryKeys.js';
 
 /**
  * Query borrow incentive pools data using moveCall
