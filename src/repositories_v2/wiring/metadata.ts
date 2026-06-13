@@ -13,6 +13,7 @@ import type {
 import type { IsolatedAssetsMetadata } from '../isolatedAssets/types.js';
 import type { VeScaRepoMetadata } from '../veSca/types.js';
 import type { LoyaltyProgramRepoMetadata } from '../loyaltyProgram/types.js';
+import type { VeScaLoyaltyProgramRepoMetadata } from '../veScaLoyaltyProgram/types.js';
 import type { XOracleMetadata } from '../xOracle/types.js';
 import type { SpoolMetadata } from '../spool/types.js';
 import { SUPPORTED_ORACLES } from '../xOracle/const.js';
@@ -154,6 +155,26 @@ export const buildLoyaltyProgramMetadata = (
     },
   },
 });
+
+export const buildVeScaLoyaltyProgramMetadata = (
+  utils: ScallopUtils
+): VeScaLoyaltyProgramRepoMetadata => {
+  const addresses = utils.address.getAddresses();
+  if (!addresses) {
+    throw new ScallopConfigError(
+      'Addresses are not initialized; call init() before building repositories'
+    );
+  }
+  return {
+    addresses: {
+      veSca: { tableId: addresses.vesca.tableId },
+      veScaLoyaltyProgram: {
+        veScaRewardPool: addresses.veScaLoyaltyProgram.veScaRewardPool,
+        veScaRewardTableId: addresses.veScaLoyaltyProgram.veScaRewardTableId,
+      },
+    },
+  };
+};
 
 export const buildSpoolMetadata = (utils: ScallopUtils): SpoolMetadata => ({
   whitelist: { spool: utils.constants.whitelist.spool },

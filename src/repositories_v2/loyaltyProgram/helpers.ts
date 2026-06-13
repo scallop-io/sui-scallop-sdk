@@ -76,7 +76,7 @@ const queryUserRewardAmount = async (
 
 export const getLoyaltyProgramInfosOnChain = async (
   ctx: LoyaltyProgramRepoContext,
-  veScaKey: string
+  veScaKey?: string
 ): Promise<LoyaltyProgramInfo> => {
   const {
     metadata: { addresses },
@@ -94,10 +94,14 @@ export const getLoyaltyProgramInfosOnChain = async (
     };
   }
 
-  const pendingReward = await queryUserRewardAmount(ctx, {
-    veScaKey,
-    tableId: data.userRewardTableId,
-  });
+  // No veSca key → pool info only; a user with no reward entry yet → 0
+  // (mirrors the legacy query's optional-key + catch-to-zero behavior).
+  const pendingReward = veScaKey
+    ? await queryUserRewardAmount(ctx, {
+        veScaKey,
+        tableId: data.userRewardTableId,
+      }).catch(() => 0)
+    : 0;
 
   return {
     pendingReward,

@@ -10,6 +10,7 @@ import { VeScaRepository } from '../veSca/index.js';
 import { LoyaltyProgramRepository } from '../loyaltyProgram/index.js';
 import { XOracleRepository } from '../xOracle/index.js';
 import { SpoolRepository } from '../spool/index.js';
+import { VeScaLoyaltyProgramRepository } from '../veScaLoyaltyProgram/index.js';
 import type ScallopUtils from 'src/models/scallopUtils.js';
 
 // Minimal ScallopUtils stand-in: only the fields the metadata builders read
@@ -22,7 +23,14 @@ const fakeUtils = {
   logger: { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() },
   address: {
     get: (path: string) => `0x_${path}`,
-    getAddresses: () => ({ scoin: { id: '0xscoin', coins: {} } }),
+    getAddresses: () => ({
+      scoin: { id: '0xscoin', coins: {} },
+      vesca: { tableId: '0xtable' },
+      veScaLoyaltyProgram: {
+        veScaRewardPool: '0xpool',
+        veScaRewardTableId: '0xrewardtable',
+      },
+    }),
   },
   constants: {
     whitelist: {
@@ -49,6 +57,9 @@ describe('createRepositories', () => {
     expect(repos.loyaltyProgram).toBeInstanceOf(LoyaltyProgramRepository);
     expect(repos.xOracle).toBeInstanceOf(XOracleRepository);
     expect(repos.spool).toBeInstanceOf(SpoolRepository);
+    expect(repos.veScaLoyaltyProgram).toBeInstanceOf(
+      VeScaLoyaltyProgramRepository
+    );
   });
 
   it('memoises each repository (lazy getter returns the same instance)', () => {

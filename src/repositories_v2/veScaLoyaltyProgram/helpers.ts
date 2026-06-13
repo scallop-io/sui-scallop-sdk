@@ -80,7 +80,7 @@ const queryRewardPool = async (
 
 export const getVeScaLoyaltyProgramInfosOnChain = async (
   ctx: VeScaLoyaltyProgramRepoContext,
-  veScaKey: string
+  veScaKey?: string
 ): Promise<VeScaLoyaltyProgramInfo> => {
   const {
     metadata: { addresses },
@@ -106,8 +106,11 @@ export const getVeScaLoyaltyProgramInfosOnChain = async (
     data.reserveVeScaKey
   );
 
-  // query the user pending reward
-  const pendingScaReward = await queryUserRewardAmount(ctx, veScaKey);
+  // No veSca key → pool info only; missing user reward entry → 0
+  // (mirrors the legacy query's optional-key + catch-to-zero behavior).
+  const pendingScaReward = veScaKey
+    ? await queryUserRewardAmount(ctx, veScaKey).catch(() => 0)
+    : 0;
 
   const remainingLockPeriodInMilliseconds = Math.max(
     (rewardPoolVeSca?.unlockAt ?? 0) - Date.now(),

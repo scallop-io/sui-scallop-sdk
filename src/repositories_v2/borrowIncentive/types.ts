@@ -1,4 +1,4 @@
-import type { OptionalKeys } from 'src/types/utils.js';
+import type { CoinPrices, OptionalKeys } from 'src/types/utils.js';
 import type { AddressesInterface } from 'src/types/address.js';
 import type { BaseContext, BaseRepoArgs } from '../type.js';
 
@@ -148,7 +148,7 @@ export type BorrowIncentiveMetadata = {
 };
 
 export type BorrowIncentiveReadArgs = {
-  coinPrices: Record<string, number>;
+  coinPrices: CoinPrices;
   coinNames?: string[];
 };
 
