@@ -2,8 +2,11 @@ import ScallopUtils, { ScallopUtilsParams } from './scallopUtils.js';
 import ScallopIndexer, { ScallopIndexerParams } from './scallopIndexer.js';
 import type { QueryOptions } from 'src/utils/index.js';
 import { resolveQuerySource, runWithSourceFallback } from 'src/utils/index.js';
-import { buildLending, calculateTotalValueLocked } from 'src/services/index.js';
-import { ObligationService } from 'src/services/query/ObligationService.js';
+import {
+  buildLending,
+  buildObligationAccount,
+  calculateTotalValueLocked,
+} from 'src/services/index.js';
 import { PriceService } from 'src/services/query/PriceService.js';
 import {
   createRepositories,
@@ -15,11 +18,14 @@ import {
 } from 'src/repositories_v2/wiring/source.js';
 import { ScallopParseError } from 'src/errors/index.js';
 import {
+  CoinAmounts,
   CoinPrices,
   Lendings,
   MarketCollaterals,
   MarketPool,
   MarketPools,
+  ObligationAccount,
+  ObligationAccounts,
   StakePools,
   SuiObjectData,
   SuiObjectRef,
@@ -65,7 +71,6 @@ const pickRecord = <T>(
 class ScallopQuery implements ScallopQueryInterface {
   public readonly indexer: ScallopIndexer;
   public readonly utils: ScallopUtils;
-  public readonly obligationService: ObligationService;
   public readonly priceService: PriceService;
 
   constructor(params: ScallopQueryParams = {}) {
@@ -76,10 +81,6 @@ class ScallopQuery implements ScallopQueryInterface {
         queryClient: this.utils.queryClient,
         ...params,
       });
-    this.obligationService = new ObligationService({
-      query: this,
-      logger: this.utils.logger,
-    });
     this.priceService = new PriceService({
       query: this,
       indexer: this.indexer,
@@ -632,8 +633,16 @@ class ScallopQuery implements ScallopQueryInterface {
       };
       coinPrices?: CoinPrices;
     } & QueryOptions
-  ) {
-    return this.obligationService.getObligationAccounts(ownerAddress, args);
+  ): Promise<ObligationAccounts> {
+    return runWithSourceFallback({
+      source: resolveQuerySource(args),
+      label: 'ScallopQuery.getObligationAccounts',
+      logger: this.logger,
+      indexer: () =>
+        this.assembleObligationAccountsByOwner(ownerAddress, args, true),
+      rpc: () =>
+        this.assembleObligationAccountsByOwner(ownerAddress, args, false),
+    });
   }
 
   /**
@@ -656,10 +665,15 @@ class ScallopQuery implements ScallopQueryInterface {
       coinPrices?: CoinPrices;
     } & QueryOptions
   ) {
-    return this.obligationService.getObligationAccountsByIds(
-      obligationIds,
-      args
-    );
+    return runWithSourceFallback({
+      source: resolveQuerySource(args),
+      label: 'ScallopQuery.getObligationAccountsByIds',
+      logger: this.logger,
+      indexer: () =>
+        this.assembleObligationAccountsByIds(obligationIds, args, true),
+      rpc: () =>
+        this.assembleObligationAccountsByIds(obligationIds, args, false),
+    });
   }
 
   /**
@@ -682,7 +696,165 @@ class ScallopQuery implements ScallopQueryInterface {
       coinPrices?: CoinPrices;
     } & QueryOptions
   ) {
-    return this.obligationService.getObligationAccountById(obligationId, args);
+    return runWithSourceFallback({
+      source: resolveQuerySource(args),
+      label: 'ScallopQuery.getObligationAccountById',
+      logger: this.logger,
+      indexer: () =>
+        this.assembleObligationAccountById(obligationId, args, true),
+      rpc: () => this.assembleObligationAccountById(obligationId, args, false),
+    });
+  }
+
+  /**
+   * Fetch the shared market + price inputs an obligation-account assembly needs,
+   * honouring caller-supplied overrides. `indexer` selects the market/price
+   * source (the obligation's own collateral/debt data is always RPC).
+   */
+  private async resolveObligationMarketInputs(
+    args:
+      | ({
+          market?: { collaterals: MarketCollaterals; pools: MarketPools };
+          coinPrices?: CoinPrices;
+        } & QueryOptions)
+      | undefined,
+    indexer: boolean
+  ) {
+    const market =
+      args?.market ?? (await this.getMarketPools(undefined, { indexer }));
+    const coinPrices =
+      args?.coinPrices ??
+      (await this.getAllCoinPrices({ marketPools: market.pools }));
+    return { market, coinPrices };
+  }
+
+  /**
+   * Assemble one obligation account: fetch its on-chain obligation data +
+   * borrow-incentive pools/accounts, then hand everything to the pure
+   * `buildObligationAccount`. Market/prices/coinAmounts are pre-fetched by the
+   * caller and passed in.
+   */
+  private async assembleObligationAccount(
+    obligation: string | SuiObjectRef | SuiObjectData,
+    inputs: {
+      market: { collaterals: MarketCollaterals; pools: MarketPools };
+      coinPrices: CoinPrices;
+      coinAmounts: CoinAmounts;
+    }
+  ): Promise<ObligationAccount> {
+    const { market, coinPrices, coinAmounts } = inputs;
+    const [obligationQuery, borrowIncentivePools, borrowIncentiveAccounts] =
+      await Promise.all([
+        this.queryObligation(obligation),
+        this.getBorrowIncentivePools(undefined, {
+          coinPrices,
+          marketPools: market.pools,
+        }),
+        this.getBorrowIncentiveAccounts(obligation),
+      ]);
+
+    return buildObligationAccount({
+      obligationId:
+        typeof obligation === 'string' ? obligation : obligation.objectId,
+      collateralCoinNames: Array.from(this.constants.whitelist.collateral),
+      market,
+      coinPrices,
+      coinAmounts,
+      obligationQuery,
+      borrowIncentivePools,
+      borrowIncentiveAccounts,
+      utils: {
+        parseCoinNameFromType: (type) => this.utils.parseCoinNameFromType(type),
+        parseCoinType: (coinName) => this.utils.parseCoinType(coinName),
+        parseSymbol: (coinName) => this.utils.parseSymbol(coinName),
+        getCoinDecimal: (coinName) => this.utils.getCoinDecimal(coinName),
+        parseSCoinTypeNameToMarketCoinName: (key) =>
+          this.utils.parseSCoinTypeNameToMarketCoinName(key),
+      },
+    });
+  }
+
+  private async assembleObligationAccountsByOwner(
+    ownerAddress: string,
+    args:
+      | ({
+          market?: { collaterals: MarketCollaterals; pools: MarketPools };
+          coinPrices?: CoinPrices;
+        } & QueryOptions)
+      | undefined,
+    indexer: boolean
+  ): Promise<ObligationAccounts> {
+    const { market, coinPrices } = await this.resolveObligationMarketInputs(
+      args,
+      indexer
+    );
+    const [coinAmounts, obligations] = await Promise.all([
+      this.getCoinAmounts(undefined, ownerAddress),
+      this.getObligations(ownerAddress),
+    ]);
+
+    const obligationObjects = await this.scallopSuiKit.queryGetObjects(
+      obligations.map((obligation) => obligation.id)
+    );
+    const obligationAccounts: ObligationAccounts = {};
+    await Promise.allSettled(
+      obligations.map(async (obligation, idx) => {
+        obligationAccounts[obligation.keyId] =
+          await this.assembleObligationAccount(
+            obligationObjects[idx] ?? obligation.id,
+            { market, coinPrices, coinAmounts }
+          );
+      })
+    );
+    return obligationAccounts;
+  }
+
+  private async assembleObligationAccountsByIds(
+    obligationIds: string[],
+    args:
+      | ({
+          market?: { collaterals: MarketCollaterals; pools: MarketPools };
+          coinPrices?: CoinPrices;
+        } & QueryOptions)
+      | undefined,
+    indexer: boolean
+  ): Promise<ObligationAccount[]> {
+    const { market, coinPrices } = await this.resolveObligationMarketInputs(
+      args,
+      indexer
+    );
+    const obligationAccounts: ObligationAccount[] = [];
+    await Promise.allSettled(
+      obligationIds.map(async (obligationId) => {
+        const obligationAccount = await this.assembleObligationAccount(
+          obligationId,
+          { market, coinPrices, coinAmounts: {} }
+        );
+        if (obligationAccount) obligationAccounts.push(obligationAccount);
+      })
+    );
+    return obligationAccounts;
+  }
+
+  private async assembleObligationAccountById(
+    obligationId: string,
+    args:
+      | ({
+          market?: { collaterals: MarketCollaterals; pools: MarketPools };
+          coinPrices?: CoinPrices;
+        } & QueryOptions)
+      | undefined,
+    indexer: boolean
+  ): Promise<ObligationAccount> {
+    const { market, coinPrices } = await this.resolveObligationMarketInputs(
+      args,
+      indexer
+    );
+    return this.assembleObligationAccount(obligationId, {
+      market,
+      coinPrices,
+      coinAmounts: {},
+    });
   }
 
   /**
