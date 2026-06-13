@@ -42,3 +42,6 @@ sui.log.*
 # claude settings
 .claude/
 coverage/
+
+CLAUDE.md
+PLAN.md
