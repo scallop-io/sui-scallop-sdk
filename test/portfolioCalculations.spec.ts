@@ -15,7 +15,7 @@ import {
   estimateAvailableWithdrawAmount,
   estimateAvailableBorrowAmount,
 } from 'src/services/index.js';
-import type { Lendings, Market, ObligationAccounts } from 'src/types/index.js';
+import type { Lendings, Markets, ObligationAccounts } from 'src/types/index.js';
 
 describe('portfolio calculations', () => {
   it('calculates TVL from market pools and collaterals without network state', () => {
@@ -25,7 +25,7 @@ describe('portfolio calculations', () => {
         usdc: { supplyCoin: 20, borrowCoin: 5, coinPrice: 1 },
       },
       collaterals: { sui: { depositCoin: 4, coinPrice: 2 } },
-    } as unknown as Market;
+    } as unknown as Markets;
 
     expect(calculateTotalValueLocked(market)).toEqual({
       supplyLendingValue: 40,
