@@ -1,5 +1,6 @@
 import type { QueryClient } from '@tanstack/query-core';
-import type ScallopSuiKit from 'src/models/scallopSuiKit.js';
+import type { SuiKit } from '@scallop-io/sui-kit';
+import type { TransactionExecutor } from 'src/models/transactionExecutor.js';
 import type ScallopConstants from 'src/models/scallopConstants.js';
 import type ScallopIndexer from 'src/models/scallopIndexer.js';
 import type { Logger } from 'src/logger/index.js';
@@ -7,12 +8,13 @@ import { noopLogger } from 'src/logger/index.js';
 
 /**
  * Lightweight dependency container internal services can take in lieu of
- * reaching through getter chains (`client.builder.query.utils.scallopSuiKit...`).
+ * reaching through getter chains (`client.builder.query.utils.suiKit...`).
  * Public constructors still accept their previous params; this is additive.
  */
 export interface ScallopContext {
   readonly constants: ScallopConstants;
-  readonly scallopSuiKit: ScallopSuiKit;
+  readonly suiKit: SuiKit;
+  readonly executor: TransactionExecutor;
   readonly indexer?: ScallopIndexer;
   readonly queryClient: QueryClient;
   readonly logger: Logger;
@@ -22,7 +24,8 @@ export interface ScallopContext {
 
 export type CreateScallopContextParams = {
   constants: ScallopConstants;
-  scallopSuiKit: ScallopSuiKit;
+  suiKit: SuiKit;
+  executor: TransactionExecutor;
   indexer?: ScallopIndexer;
   queryClient?: QueryClient;
   logger?: Logger;
@@ -34,11 +37,11 @@ export const createScallopContext = (
   params: CreateScallopContextParams
 ): ScallopContext => {
   const queryClient = params.queryClient ?? params.constants.queryClient;
-  const walletAddress =
-    params.walletAddress ?? params.scallopSuiKit.walletAddress;
+  const walletAddress = params.walletAddress ?? params.suiKit.currentAddress;
   return {
     constants: params.constants,
-    scallopSuiKit: params.scallopSuiKit,
+    suiKit: params.suiKit,
+    executor: params.executor,
     indexer: params.indexer,
     queryClient,
     logger: params.logger ?? noopLogger,

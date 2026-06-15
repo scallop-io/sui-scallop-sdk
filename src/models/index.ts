@@ -8,4 +8,5 @@ export { default as ScallopIndexer } from './scallopIndexer.js';
 export { default as ScallopQuery } from './scallopQuery.js';
 export { default as ScallopQueryClient } from '../models/scallopQueryClient.js';
 export { default as ScallopUtils } from './scallopUtils.js';
-export { default as ScallopSuiKit } from './scallopSuiKit.js';
+export { SuiKitTransactionExecutor } from './transactionExecutor.js';
+export type { TransactionExecutor } from './transactionExecutor.js';

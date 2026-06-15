@@ -5,7 +5,7 @@ export {
   ScallopAddress,
   ScallopBuilder,
   ScallopQuery,
-  ScallopSuiKit,
+  SuiKitTransactionExecutor,
   ScallopClient,
   ScallopIndexer,
   ScallopUtils,

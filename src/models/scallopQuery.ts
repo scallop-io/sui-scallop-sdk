@@ -91,8 +91,12 @@ class ScallopQuery implements ScallopQueryInterface {
     return this.utils.walletAddress;
   }
 
-  get scallopSuiKit() {
-    return this.utils.scallopSuiKit;
+  get suiKit() {
+    return this.utils.suiKit;
+  }
+
+  get executor() {
+    return this.utils.executor;
   }
 
   get address() {

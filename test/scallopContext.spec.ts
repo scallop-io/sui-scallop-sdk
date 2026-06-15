@@ -12,13 +12,18 @@ describe('ScallopContext', () => {
   } as unknown as ReturnType<typeof createScallopContext>['constants'];
 
   const stubSuiKit = {
-    walletAddress: '0xabc',
-  } as unknown as ReturnType<typeof createScallopContext>['scallopSuiKit'];
+    currentAddress: '0xabc',
+  } as unknown as ReturnType<typeof createScallopContext>['suiKit'];
+
+  const stubExecutor = {} as unknown as ReturnType<
+    typeof createScallopContext
+  >['executor'];
 
   it('defaults to noopLogger when none is provided', () => {
     const context = createScallopContext({
       constants: stubConstants,
-      scallopSuiKit: stubSuiKit,
+      suiKit: stubSuiKit,
+      executor: stubExecutor,
     });
     expect(context.logger).toBe(noopLogger);
   });
@@ -26,16 +31,18 @@ describe('ScallopContext', () => {
   it('uses provided wallet address override', () => {
     const context = createScallopContext({
       constants: stubConstants,
-      scallopSuiKit: stubSuiKit,
+      suiKit: stubSuiKit,
+      executor: stubExecutor,
       walletAddress: '0xfeed',
     });
     expect(context.walletAddress).toBe('0xfeed');
   });
 
-  it('falls back to scallopSuiKit.walletAddress', () => {
+  it('falls back to suiKit.currentAddress', () => {
     const context = createScallopContext({
       constants: stubConstants,
-      scallopSuiKit: stubSuiKit,
+      suiKit: stubSuiKit,
+      executor: stubExecutor,
     });
     expect(context.walletAddress).toBe('0xabc');
   });
@@ -52,7 +59,8 @@ describe('ScallopContext', () => {
     >['indexer'];
     const context = createScallopContext({
       constants: stubConstants,
-      scallopSuiKit: stubSuiKit,
+      suiKit: stubSuiKit,
+      executor: stubExecutor,
       logger,
       indexer,
     });
@@ -66,7 +74,8 @@ describe('ScallopContext', () => {
     >['queryClient'];
     const context = createScallopContext({
       constants: stubConstants,
-      scallopSuiKit: stubSuiKit,
+      suiKit: stubSuiKit,
+      executor: stubExecutor,
       queryClient: alt,
     });
     expect(context.queryClient).toBe(alt);
