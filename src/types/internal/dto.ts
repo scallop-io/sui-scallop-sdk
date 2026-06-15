@@ -31,7 +31,7 @@ export type {
   OriginSpoolRewardPoolData,
   ParsedSpoolRewardPoolData,
   CalculatedSpoolRewardPoolData,
-} from '../../repositories_v2/spool/types.js';
+} from '../../repositories/spool/types.js';
 
 export type {
   OriginBorrowIncentivePoolPointData,

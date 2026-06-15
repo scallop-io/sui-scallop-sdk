@@ -13,6 +13,7 @@ import { bcs } from '@mysten/sui/bcs';
 import { z as zod } from 'zod';
 import { queryKeys } from 'src/constants/index.js';
 import { getSharedObjectData, parseObjectAs } from 'src/utils/index.js';
+import { createOnChainDataSource } from 'src/repositories/wiring/datasources.js';
 /**
  * Query all owned veSca key.
  *
@@ -187,17 +188,18 @@ const getTotalVeScaTreasuryAmount = async (
     initialSharedVersion: '1',
   });
 
+  const onchain = createOnChainDataSource(utils.scallopSuiKit);
   const [treasuryVersion, veScaConfigVersion] = await Promise.all([
-    getSharedObjectData(utils.scallopSuiKit, {
-      object:
+    getSharedObjectData(onchain, {
+      objectId:
         typeof veScaTreasury === 'string'
           ? veScaTreasury
           : veScaTreasury.objectId,
       tx: txb,
       mutable: true,
     }),
-    getSharedObjectData(utils.scallopSuiKit, {
-      object: veScaConfig,
+    getSharedObjectData(onchain, {
+      objectId: veScaConfig,
       tx: txb,
       mutable: false,
     }),
@@ -249,7 +251,7 @@ const getTotalVeScaTreasuryAmount = async (
     res = await utils.scallopSuiKit.queryClient.fetchQuery<DevInspectResults>({
       queryKey: queryKeys.rpc.getTotalVeScaTreasuryAmount({
         refreshArgs,
-        vescaAmountArgs,
+        veScaAmountArgs: vescaAmountArgs,
         node: utils.scallopSuiKit.currentFullNode,
       }),
       queryFn: async () => {

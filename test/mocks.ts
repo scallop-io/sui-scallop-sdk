@@ -737,6 +737,7 @@ export const ADDRESS_INTERFACE = {
         '0x6547e143d406b5ccd5f46aae482497de279cc1a68c406f701df70a05f9212ab4',
       incentiveAccounts:
         '0xc4701fdbc1c92f9a636d334d66012b3027659e9fb8aff27279a82edfb6b77d02',
+      incentiveAccountsTableId: '0x0',
       config:
         '0xdf5d04b4691cc67e82fd4db8394d89ff44823a9de29716c924f74bb4f11cc1f7',
       version: '',

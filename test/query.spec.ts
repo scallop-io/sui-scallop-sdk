@@ -395,10 +395,10 @@ describe('Test VeSca Query', () => {
     const bindedObligation = await scallopQuery.getBindedObligation(VE_SCA_KEY);
 
     if (ENABLE_LOG) {
-      console.info('Binded Obligation Id:', bindedObligation?.obligationId);
+      console.info('Binded Obligation Id:', bindedObligation);
     }
 
-    expect(bindedObligation?.obligationId).toBeTruthy();
+    expect(bindedObligation).toBeTruthy();
   });
 
   it(`Should get veScaKeyId of obligationId ${obligationId}`, async () => {

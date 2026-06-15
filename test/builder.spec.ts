@@ -56,9 +56,7 @@ if (hasVeSca) {
   const bindedObligation = await scallopBuilder.query.getBindedObligation(
     veScas[0].keyId
   );
-  obligationWithBoost = obligations.find(
-    ({ id }) => id === bindedObligation?.obligationId
-  );
+  obligationWithBoost = obligations.find(({ id }) => id === bindedObligation);
 }
 console.info('Sender:', sender);
 

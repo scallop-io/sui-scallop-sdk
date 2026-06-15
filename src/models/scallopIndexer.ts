@@ -2,7 +2,7 @@ import {
   BorrowIncentivePool,
   BorrowIncentivePoolPoints,
   BorrowIncentivePools,
-  Market,
+  Markets,
   MarketCollateral,
   MarketCollaterals,
   MarketPool,
@@ -29,11 +29,11 @@ class ScallopIndexer extends ScallopAxios {
    *
    * @return Market data.
    */
-  async getMarket(): Promise<Pick<Market, 'pools' | 'collaterals'>> {
+  async getMarket(): Promise<Markets> {
     const response = await this.get<{
       pools: MarketPool[];
       collaterals: MarketCollateral[];
-    }>('/api/market/migrate', queryKeys.api.getMarket());
+    }>('/api/market/migrate', queryKeys.api.getMarkets());
 
     if (response.status === 200) {
       return {

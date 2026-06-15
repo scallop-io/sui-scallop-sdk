@@ -206,18 +206,18 @@ describe('utils/object', () => {
         Shared: { initialSharedVersion: 7 },
       },
     });
-    const queryGetObject = vi.fn().mockResolvedValue({ object: objectData });
-    const scallopSuiKit = { queryGetObject };
+    const getObject = vi.fn().mockResolvedValue({ object: objectData });
+    const onchain = { getObject };
 
-    const result = await getSharedObjectData(scallopSuiKit as never, {
+    const result = await getSharedObjectData(onchain as never, {
       tx: tx as never,
-      object: '0xshared',
+      objectId: '0xshared',
       mutable: true,
     });
 
-    expect(queryGetObject).toHaveBeenCalledWith('0xshared', {
-      json: true,
-      content: false,
+    expect(getObject).toHaveBeenCalledWith({
+      objectId: '0xshared',
+      include: undefined,
     });
     expect(sharedObjectRef).toHaveBeenCalledWith({
       objectId: '0xshared',
@@ -236,33 +236,33 @@ describe('utils/object', () => {
 
   it('throws when queryGetObject returns no object data', async () => {
     const { tx } = createTxMock();
-    const scallopSuiKit = {
-      queryGetObject: vi.fn().mockResolvedValue({ object: null }),
+    const onchain = {
+      getObject: vi.fn().mockResolvedValue({ object: null }),
     };
 
     await expect(
-      getSharedObjectData(scallopSuiKit as never, {
+      getSharedObjectData(onchain as never, {
         tx: tx as never,
-        object: '0xmissing',
+        objectId: '0xmissing',
       })
     ).rejects.toThrow('Failed to get object data');
   });
 
   it('uses provided object data without fetching', async () => {
     const { tx, object } = createTxMock();
-    const queryGetObject = vi.fn();
-    const scallopSuiKit = { queryGetObject };
+    const getObject = vi.fn();
+    const onchain = { getObject };
     const nonSharedObject = createSuiObject({
       objectId: '0xnonshared',
       owner: { $kind: 'AddressOwner', AddressOwner: '0x1' },
     });
 
-    const result = await getSharedObjectData(scallopSuiKit as never, {
+    const result = await getSharedObjectData(onchain as never, {
       tx: tx as never,
-      object: nonSharedObject,
+      objectId: nonSharedObject,
     });
 
-    expect(queryGetObject).not.toHaveBeenCalled();
+    expect(getObject).not.toHaveBeenCalled();
     expect(object).toHaveBeenCalledWith('0xnonshared');
     expect(result).toEqual({ tag: 'object', objectId: '0xnonshared' });
   });
