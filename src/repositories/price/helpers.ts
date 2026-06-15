@@ -1,10 +1,12 @@
 import { SuiClientTypes } from '@mysten/sui/client';
 import { PriceRepositoryContext } from './types.js';
+import type { BaseContext } from '../types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { PriceFeedObjectSchema } from './schema.js';
 import { calculatePrice } from './util.js';
 import { logError } from '../utils.js';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
+import type { SuiObjectData } from 'src/types/index.js';
 
 export const getPythPricesFromApi = async (
   ctx: PriceRepositoryContext,
@@ -60,6 +62,50 @@ export const getPythPricesFromApi = async (
       return prices;
     },
   });
+};
+
+/**
+ * Fetch a single raw Pyth price-feed object by id (cached). Returns `null` when
+ * the object is absent. Parsing is left to the caller — this is the raw-object
+ * read the legacy `ScallopUtils.getPythPrice` did via `queryGetObject`.
+ */
+export const getPythFeedObjectFromOnChain = async (
+  ctx: Pick<BaseContext, 'onchain' | 'fetchWithCache'>,
+  feedObjectId: string
+): Promise<SuiObjectData | null> => {
+  const { onchain, fetchWithCache } = ctx;
+  const options: SuiClientTypes.GetObjectOptions<{ json: true }> = {
+    objectId: feedObjectId,
+    include: { json: true },
+  };
+  const { object } = await fetchWithCache({
+    queryKey: queryKeys.rpc.getObject({ ...options, node: onchain.url }),
+    queryFn: () => onchain.getObject(options),
+  });
+  return object ?? null;
+};
+
+/**
+ * Batch-fetch raw Pyth price-feed objects in ONE getObjects call (cached). The
+ * caller keys results by `objectId`, so per-object failures are dropped rather
+ * than positioned — matching the legacy `queryGetObjects`, which returned only
+ * the successfully-fetched objects.
+ */
+export const getPythFeedObjectsFromOnChain = async (
+  ctx: Pick<BaseContext, 'onchain' | 'fetchWithCache'>,
+  feedObjectIds: string[]
+): Promise<SuiObjectData[]> => {
+  if (feedObjectIds.length === 0) return [];
+  const { onchain, fetchWithCache } = ctx;
+  const options: SuiClientTypes.GetObjectsOptions<{ json: true }> = {
+    objectIds: feedObjectIds,
+    include: { json: true },
+  };
+  const { objects } = await fetchWithCache({
+    queryKey: queryKeys.rpc.getObjects({ ...options, node: onchain.url }),
+    queryFn: () => onchain.client.getObjects(options),
+  });
+  return objects.filter((o): o is SuiObjectData => !(o instanceof Error));
 };
 
 export const getPythPricesFromOnChain = async (

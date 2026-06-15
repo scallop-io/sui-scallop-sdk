@@ -11,7 +11,8 @@ import { SuiClientTypes } from '@mysten/sui/client';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { MAX_LOCK_DURATION } from 'src/constants/vesca.js';
 import { getSharedObjectData, parseObjectAs } from 'src/utils/object.js';
-import { logError } from '../utils.js';
+import { logError, isObjectNotFoundError } from '../utils.js';
+import { BaseContext } from '../types.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui/bcs';
 import { BigNumber } from 'bignumber.js';
@@ -237,6 +238,51 @@ export const getVeScasByAddressFromOnChain = async (
   }
 
   return veScas;
+};
+
+/**
+ * Whether `veScaKey` is present (and non-empty) in the given subscription table.
+ * Ports the legacy `vescaBuilder.isInSubsTable` read: resolve the dynamic field
+ * for the key, fetch its object json, and check the VecSet `contents` is
+ * non-empty. Returns `false` when the key has no entry (not-found → not
+ * subscribed); real RPC/transport failures propagate.
+ */
+export const isVeScaKeyInSubsTableFromOnChain = async (
+  ctx: Pick<BaseContext, 'onchain' | 'fetchWithCache'>,
+  { veScaKey, tableId }: { veScaKey: string; tableId: string }
+): Promise<boolean> => {
+  const { onchain, fetchWithCache } = ctx;
+  const name = {
+    type: '0x2::object::ID',
+    value: veScaKey,
+  };
+
+  const object = await fetchWithCache({
+    queryKey: queryKeys.rpc.getDynamicFieldObject({
+      parentId: tableId,
+      name,
+      node: onchain.url,
+    }),
+    queryFn: async () => {
+      try {
+        const { dynamicField } = await onchain.client.getDynamicField({
+          parentId: tableId,
+          name: encodeDynamicFieldNameForV2(name),
+        });
+        return await onchain.getObject({
+          objectId: dynamicField.fieldId,
+          include: { json: true },
+        });
+      } catch (cause) {
+        if (isObjectNotFoundError(cause)) return null;
+        throw cause;
+      }
+    },
+  });
+
+  if (!object?.object) return false;
+  const value = parseObjectAs<{ contents?: unknown[] }>(object.object);
+  return Array.isArray(value?.contents) && value.contents.length > 0;
 };
 
 export const getVeScaTreasuryInfoFromOnChain = async (

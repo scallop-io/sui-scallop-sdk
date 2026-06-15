@@ -10,7 +10,12 @@
 import { BaseRepository } from '../base.js';
 import { QuerySource, runWithDataSourceFallback } from '../utils.js';
 import { DEFAULT_PYTH_URL } from './const.js';
-import { getPythPricesFromApi, getPythPricesFromOnChain } from './helpers.js';
+import {
+  getPythFeedObjectFromOnChain,
+  getPythFeedObjectsFromOnChain,
+  getPythPricesFromApi,
+  getPythPricesFromOnChain,
+} from './helpers.js';
 import {
   PriceApiConfig,
   PriceRepositoryArgs,
@@ -56,5 +61,13 @@ export class PriceRepository extends BaseRepository<
       api: () => getPythPricesFromApi(this.context, coinNames),
       onchain: () => getPythPricesFromOnChain(this.context, coinNames),
     });
+  }
+
+  getPythFeedObject(feedObjectId: string) {
+    return getPythFeedObjectFromOnChain(this.context, feedObjectId);
+  }
+
+  getPythFeedObjects(feedObjectIds: string[]) {
+    return getPythFeedObjectsFromOnChain(this.context, feedObjectIds);
   }
 }

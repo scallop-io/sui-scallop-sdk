@@ -15,6 +15,7 @@ import {
 import { getSharedObjectData, parseObjectAs } from 'src/utils/object.js';
 import { logError } from '../utils.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
+import type { SuiObjectData } from 'src/types/index.js';
 
 const queryObligationKeys = async (
   ctx: ObligationsContext,
@@ -224,4 +225,26 @@ export const getObligationsFromOnChain = async (
       locked: lockStatus.status === 'fulfilled' ? lockStatus.value : false,
     };
   });
+};
+
+/**
+ * Batch-fetch the raw obligation objects for the given ids in ONE getObjects
+ * call. Order-preserving: a per-object fetch failure maps to `null` at its index
+ * (callers fall back to the id), so indices stay aligned with the input array.
+ */
+export const getObligationObjectsFromOnChain = async (
+  ctx: Pick<BaseContext, 'onchain' | 'fetchWithCache'>,
+  ids: string[]
+): Promise<(SuiObjectData | null)[]> => {
+  if (ids.length === 0) return [];
+  const { onchain, fetchWithCache } = ctx;
+  const options: SuiClientTypes.GetObjectsOptions<{ json: true }> = {
+    objectIds: ids,
+    include: { json: true },
+  };
+  const { objects } = await fetchWithCache({
+    queryKey: queryKeys.rpc.getObjects({ objectIds: ids, node: onchain.url }),
+    queryFn: () => onchain.client.getObjects(options),
+  });
+  return objects.map((object) => (object instanceof Error ? null : object));
 };

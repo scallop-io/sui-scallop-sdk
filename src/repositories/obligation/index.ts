@@ -7,6 +7,7 @@
 import { BaseRepository } from '../base.js';
 import {
   getObligationLockedFromOnChain,
+  getObligationObjectsFromOnChain,
   getObligationsFromOnChain,
   queryObligationData,
 } from './helpers.js';
@@ -38,5 +39,9 @@ export class ObligationRepository extends BaseRepository<
 
   getObligationLocked(obligationId: string) {
     return getObligationLockedFromOnChain(this.context, obligationId);
+  }
+
+  getObligationObjects(ids: string[]) {
+    return getObligationObjectsFromOnChain(this.context, ids);
   }
 }

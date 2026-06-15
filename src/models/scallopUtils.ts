@@ -452,9 +452,8 @@ class ScallopUtils implements ScallopUtilsInterface {
     const priceFeedId = this.address.get(
       `core.coins.${assetCoinName}.oracle.pyth.feed`
     );
-    priceFeedObject ??= (
-      await this.scallopSuiKit.queryGetObject(pythFeedObjectId)
-    )?.object;
+    priceFeedObject ??=
+      await this.repos.price.getPythFeedObject(pythFeedObjectId);
 
     if (priceFeedObject?.json) {
       const parsed = parseObjectAs<{
@@ -535,7 +534,7 @@ class ScallopUtils implements ScallopUtilsInterface {
     );
 
     // Fetch multiple objects at once to save rpc calls
-    const priceFeedObjects = await this.scallopSuiKit.queryGetObjects(
+    const priceFeedObjects = await this.repos.price.getPythFeedObjects(
       Object.keys(pythPriceFeedIds)
     );
 

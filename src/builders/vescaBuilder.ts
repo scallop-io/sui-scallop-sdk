@@ -14,7 +14,6 @@ import {
   checkRenewExpiredVeSca,
   checkVesca,
   getMoveCallTarget,
-  parseObjectAs,
 } from 'src/utils/index.js';
 import type {
   TransactionObjectArgument,
@@ -22,7 +21,6 @@ import type {
 } from '@scallop-io/sui-kit';
 import type {
   AddressesInterface,
-  DynamicFieldResponseWithContents,
   GenerateVeScaNormalMethod,
   GenerateVeScaQuickMethod,
   QuickMethodReturnType,
@@ -85,20 +83,10 @@ export const isInSubsTable = async (
 ) => {
   const [builder, veScaKey, tableId] = params;
   try {
-    const resp = (await builder.scallopSuiKit.queryGetDynamicFieldObject({
-      parentId: tableId,
-      name: {
-        type: '0x2::object::ID',
-        value: veScaKey,
-      },
-    })) as DynamicFieldResponseWithContents;
-
-    if (!resp?.object?.json) return false;
-
-    const value = parseObjectAs<{ contents?: unknown[] }>(
-      resp.object as SuiObjectData
+    return await builder.query.repos.veSca.isVeScaKeyInSubsTable(
+      veScaKey,
+      tableId
     );
-    return Array.isArray(value?.contents) && value.contents.length > 0;
   } catch (e) {
     builder.utils.logger.error('isInSubsTable lookup failed', {
       veScaKey,
