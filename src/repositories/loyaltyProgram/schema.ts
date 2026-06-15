@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BigNumber } from 'bignumber.js';
 
 export const RewardPoolSchema = z
   .object({
