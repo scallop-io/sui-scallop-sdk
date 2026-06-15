@@ -365,7 +365,7 @@ export const buildObligationCollateralEntry = (
   input: BuildObligationCollateralInput
 ): BuildObligationCollateralResult => {
   const depositedAmount = BigNumber(input.depositedRawAmount ?? 0);
-  const depositedCoin = depositedAmount.shiftedBy(-1 * input.coinDecimal);
+  const depositedCoin = depositedAmount.shiftedBy(-input.coinDecimal);
   const depositedValue = depositedCoin.multipliedBy(input.coinPrice);
   const borrowCapacityValue = depositedValue.multipliedBy(
     input.marketCollateral.collateralFactor
@@ -375,7 +375,7 @@ export const buildObligationCollateralEntry = (
   );
   const availableDepositAmount = BigNumber(input.coinAmount);
   const availableDepositCoin = availableDepositAmount.shiftedBy(
-    -1 * input.coinDecimal
+    -input.coinDecimal
   );
   const entry: ObligationCollateral = {
     coinName: input.assetCoinName,
@@ -444,7 +444,7 @@ export const buildBorrowIncentiveRewards = (
         .multipliedBy(increasedPointRate)
         .plus(accountPoint.points);
       const availableClaimCoin = availableClaimAmount.shiftedBy(
-        -1 * poolPoint.coinDecimal
+        -poolPoint.coinDecimal
       );
 
       // veSCA boost
@@ -521,17 +521,13 @@ export const buildObligationDebtEntry = (
   const borrowedAmount = BigNumber(input.debt?.amount ?? 0).multipliedBy(
     increasedRate + 1
   );
-  const borrowedCoin = borrowedAmount.shiftedBy(-1 * input.coinDecimal);
+  const borrowedCoin = borrowedAmount.shiftedBy(-input.coinDecimal);
 
   const requiredRepayAmount = borrowedAmount;
-  const requiredRepayCoin = requiredRepayAmount.shiftedBy(
-    -1 * input.coinDecimal
-  );
+  const requiredRepayCoin = requiredRepayAmount.shiftedBy(-input.coinDecimal);
 
   const availableRepayAmount = BigNumber(input.coinAmount);
-  const availableRepayCoin = availableRepayAmount.shiftedBy(
-    -1 * input.coinDecimal
-  );
+  const availableRepayCoin = availableRepayAmount.shiftedBy(-input.coinDecimal);
 
   const borrowedValue = requiredRepayCoin.multipliedBy(input.coinPrice);
   const borrowedValueWithWeight = borrowedValue.multipliedBy(
@@ -672,7 +668,7 @@ export const estimateAvailableWithdrawAmount = (
   return {
     availableWithdrawAmount: estimated.toNumber(),
     availableWithdrawCoin: estimated
-      .shiftedBy(-1 * input.obligationCollateral.coinDecimal)
+      .shiftedBy(-input.obligationCollateral.coinDecimal)
       .toNumber(),
   };
 };
@@ -727,7 +723,7 @@ export const estimateAvailableBorrowAmount = (
             .multipliedBy(
               estimatedFactor(
                 baseEstimate
-                  .shiftedBy(-1 * input.marketPool.coinDecimal)
+                  .shiftedBy(-input.marketPool.coinDecimal)
                   .multipliedBy(input.marketPool.coinPrice)
                   .toNumber(),
                 3,
@@ -742,11 +738,11 @@ export const estimateAvailableBorrowAmount = (
   return {
     availableBorrowAmount: estimated.toNumber(),
     availableBorrowCoin: estimated
-      .shiftedBy(-1 * input.obligationDebt.coinDecimal)
+      .shiftedBy(-input.obligationDebt.coinDecimal)
       .toNumber(),
     requiredRepayAmount: estimatedRequiredRepayAmount.toNumber(),
     requiredRepayCoin: estimatedRequiredRepayAmount
-      .shiftedBy(-1 * input.obligationDebt.coinDecimal)
+      .shiftedBy(-input.obligationDebt.coinDecimal)
       .toNumber(),
   };
 };
@@ -799,13 +795,13 @@ export const buildLending = (input: {
     for (const stakeAccount of stakeAccounts) {
       const accountStakedMarketCoinAmount = BigNumber(stakeAccount.staked);
       const accountStakedMarketCoin = accountStakedMarketCoinAmount.shiftedBy(
-        -1 * spool.coinDecimal
+        -spool.coinDecimal
       );
       const accountStakedAmount = accountStakedMarketCoinAmount.multipliedBy(
         marketPool?.conversionRate ?? 1
       );
       const accountStakedCoin = accountStakedAmount.shiftedBy(
-        -1 * spool.coinDecimal
+        -spool.coinDecimal
       );
       const accountStakedValue = accountStakedCoin.multipliedBy(
         spool.coinPrice
@@ -822,7 +818,7 @@ export const buildLending = (input: {
         accountStakedMarketCoinAmount
       );
       availableUnstakeCoin = availableUnstakeAmount.shiftedBy(
-        -1 * spool.coinDecimal
+        -spool.coinDecimal
       );
 
       const baseIndexRate = 1_000_000_000;
@@ -839,7 +835,7 @@ export const buildLending = (input: {
           .dividedBy(spool.exchangeRateDenominator)
       );
       availableClaimCoin = availableClaimAmount.shiftedBy(
-        -1 * spool.rewardCoinDecimal
+        -spool.rewardCoinDecimal
       );
     }
   }
@@ -848,7 +844,7 @@ export const buildLending = (input: {
   const suppliedAmount = BigNumber(marketCoinAmount)
     .plus(BigNumber(sCoinAmount))
     .multipliedBy(marketPool?.conversionRate ?? 1);
-  const suppliedCoin = suppliedAmount.shiftedBy(-1 * coinDecimal);
+  const suppliedCoin = suppliedAmount.shiftedBy(-coinDecimal);
   const suppliedValue = suppliedCoin.multipliedBy(coinPrice ?? 0);
 
   const marketCoinPrice = BigNumber(coinPrice ?? 0).multipliedBy(
@@ -857,10 +853,10 @@ export const buildLending = (input: {
   const unstakedMarketAmount = BigNumber(marketCoinAmount).plus(
     BigNumber(sCoinAmount)
   );
-  const unstakedMarketCoin = unstakedMarketAmount.shiftedBy(-1 * coinDecimal);
+  const unstakedMarketCoin = unstakedMarketAmount.shiftedBy(-coinDecimal);
 
   const availableSupplyAmount = BigNumber(coinAmount);
-  const availableSupplyCoin = availableSupplyAmount.shiftedBy(-1 * coinDecimal);
+  const availableSupplyCoin = availableSupplyAmount.shiftedBy(-coinDecimal);
   const availableWithdrawAmount = minBigNumber(
     suppliedAmount,
     marketPool?.supplyAmount ?? Infinity
@@ -1192,4 +1188,26 @@ export const buildUserPortfolio = (input: {
     },
     veScas: parsedVeScas,
   };
+};
+
+/**
+ * Pure: extend a coin-price map with sCoin prices derived from each pool's
+ * conversion rate. The caller fetches `coinPrices` + `marketPools`;
+ * `ScallopQuery.getAllCoinPrices` is the thin orchestrator.
+ */
+export const buildAllCoinPrices = (input: {
+  coinPrices: CoinPrices;
+  marketPools: MarketPools;
+  sCoinNames: string[];
+  parseCoinName: (sCoinName: string) => string;
+}): CoinPrices => {
+  const { coinPrices, marketPools, sCoinNames, parseCoinName } = input;
+  const sCoinPrices: Record<string, number> = {};
+  for (const sCoinName of sCoinNames) {
+    const coinName = parseCoinName(sCoinName);
+    sCoinPrices[sCoinName] = BigNumber(coinPrices[coinName] ?? 0)
+      .multipliedBy(marketPools[coinName]?.conversionRate ?? 1)
+      .toNumber();
+  }
+  return { ...coinPrices, ...sCoinPrices };
 };

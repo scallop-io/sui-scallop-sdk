@@ -1,22 +1,23 @@
+import { BigNumber } from 'bignumber.js';
 import ScallopUtils, { ScallopUtilsParams } from './scallopUtils.js';
 import ScallopIndexer, { ScallopIndexerParams } from './scallopIndexer.js';
-import type { QueryOptions } from 'src/utils/index.js';
-import { resolveQuerySource, runWithSourceFallback } from 'src/utils/index.js';
+import type { QueryOptions } from 'src/repositories/wiring/source.js';
 import {
+  buildAllCoinPrices,
   buildLending,
   buildObligationAccount,
   buildUserPortfolio,
   calculateTotalValueLocked,
 } from 'src/services/index.js';
-import { PriceService } from 'src/services/query/PriceService.js';
+import { runWithDataSourceFallback } from 'src/repositories/utils.js';
 import {
   createRepositories,
   type Repositories,
-} from 'src/repositories_v2/wiring/registry.js';
+} from 'src/repositories/wiring/registry.js';
 import {
   fromQueryOptions,
   toQuerySource,
-} from 'src/repositories_v2/wiring/source.js';
+} from 'src/repositories/wiring/source.js';
 import { ScallopParseError } from 'src/errors/index.js';
 import {
   CoinAmounts,
@@ -32,18 +33,6 @@ import {
   SuiObjectRef,
   TotalValueLocked,
 } from 'src/types/index.js';
-import {
-  getBindedObligation,
-  getBindedVeScaKey,
-  getBorrowLimit,
-  getOnDemandAggObjectIds,
-  getPoolAddresses,
-  getPriceUpdatePolicies,
-  getSCoinSwapRate,
-  getStakePool,
-  getSupplyLimit,
-  queryVeScaKeyIdFromReferralBindings,
-} from 'src/queries/index.js';
 import { SuiObjectArg } from '@scallop-io/sui-kit';
 import { ScallopQueryInterface } from './interface.js';
 
@@ -70,7 +59,6 @@ const pickRecord = <T>(
 class ScallopQuery implements ScallopQueryInterface {
   public readonly indexer: ScallopIndexer;
   public readonly utils: ScallopUtils;
-  public readonly priceService: PriceService;
 
   constructor(params: ScallopQueryParams = {}) {
     this.utils = params.utils ?? new ScallopUtils(params);
@@ -80,12 +68,6 @@ class ScallopQuery implements ScallopQueryInterface {
         queryClient: this.utils.queryClient,
         ...params,
       });
-    this.priceService = new PriceService({
-      query: this,
-      indexer: this.indexer,
-      utils: this.utils,
-      logger: this.utils.logger,
-    });
   }
 
   get logger() {
@@ -118,7 +100,7 @@ class ScallopQuery implements ScallopQueryInterface {
   }
 
   /**
-   * The repositories_v2 registry — the clean read layer the facade is migrating
+   * The repositories registry — the clean read layer the facade is migrating
    * onto. Built lazily from `this.utils` on first access (after `init()`), then
    * memoised. Single-domain read methods delegate here; cross-domain assembly
    * stays in the query services until Phase 3 (see PLAN.md).
@@ -332,7 +314,10 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Asset coin price.
    */
   async getPriceFromPyth(assetCoinName: string) {
-    return this.priceService.getPriceFromPyth(assetCoinName);
+    const prices = await this.repos.price.getPricesFromPyth({
+      coinNames: [assetCoinName],
+    });
+    return prices[assetCoinName] ?? 0;
   }
 
   /**
@@ -342,7 +327,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Array of asset coin prices.
    */
   async getPricesFromPyth(assetCoinNames: string[]) {
-    return this.priceService.getPricesFromPyth(assetCoinNames);
+    return this.repos.price.getPricesFromPyth({ coinNames: assetCoinNames });
   }
 
   /* ==================== Spool Query Methods ==================== */
@@ -437,7 +422,8 @@ class ScallopQuery implements ScallopQueryInterface {
   ) {
     const stakePools: StakePools = {};
     for (const stakeMarketCoinName of stakeMarketCoinNames) {
-      const stakePool = await getStakePool(this, stakeMarketCoinName);
+      const stakePool =
+        await this.repos.spool.getStakePool(stakeMarketCoinName);
 
       if (stakePool) {
         stakePools[stakeMarketCoinName] = stakePool;
@@ -458,7 +444,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Stake pool data.
    */
   async getStakePool(stakeMarketCoinName: string) {
-    return await getStakePool(this, stakeMarketCoinName);
+    return this.repos.spool.getStakePool(stakeMarketCoinName);
   }
 
   /**
@@ -633,13 +619,13 @@ class ScallopQuery implements ScallopQueryInterface {
       coinPrices?: CoinPrices;
     } & QueryOptions
   ): Promise<ObligationAccounts> {
-    return runWithSourceFallback({
-      source: resolveQuerySource(args),
+    return runWithDataSourceFallback({
+      source: fromQueryOptions(args),
       label: 'ScallopQuery.getObligationAccounts',
       logger: this.logger,
-      indexer: () =>
+      api: () =>
         this.assembleObligationAccountsByOwner(ownerAddress, args, true),
-      rpc: () =>
+      onchain: () =>
         this.assembleObligationAccountsByOwner(ownerAddress, args, false),
     });
   }
@@ -664,13 +650,13 @@ class ScallopQuery implements ScallopQueryInterface {
       coinPrices?: CoinPrices;
     } & QueryOptions
   ) {
-    return runWithSourceFallback({
-      source: resolveQuerySource(args),
+    return runWithDataSourceFallback({
+      source: fromQueryOptions(args),
       label: 'ScallopQuery.getObligationAccountsByIds',
       logger: this.logger,
-      indexer: () =>
+      api: () =>
         this.assembleObligationAccountsByIds(obligationIds, args, true),
-      rpc: () =>
+      onchain: () =>
         this.assembleObligationAccountsByIds(obligationIds, args, false),
     });
   }
@@ -695,13 +681,13 @@ class ScallopQuery implements ScallopQueryInterface {
       coinPrices?: CoinPrices;
     } & QueryOptions
   ) {
-    return runWithSourceFallback({
-      source: resolveQuerySource(args),
+    return runWithDataSourceFallback({
+      source: fromQueryOptions(args),
       label: 'ScallopQuery.getObligationAccountById',
       logger: this.logger,
-      indexer: () =>
-        this.assembleObligationAccountById(obligationId, args, true),
-      rpc: () => this.assembleObligationAccountById(obligationId, args, false),
+      api: () => this.assembleObligationAccountById(obligationId, args, true),
+      onchain: () =>
+        this.assembleObligationAccountById(obligationId, args, false),
     });
   }
 
@@ -888,12 +874,11 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Total value locked.
    */
   async getTvl(args?: QueryOptions) {
-    const source = resolveQuerySource(args);
-    return runWithSourceFallback<TotalValueLocked>({
-      source,
+    return runWithDataSourceFallback<TotalValueLocked>({
+      source: fromQueryOptions(args),
       label: 'getTvl',
       logger: this.logger,
-      indexer: async () => {
+      api: async () => {
         const t = await this.indexer.getTotalValueLocked();
         return {
           supplyValue: t.supplyValue,
@@ -908,7 +893,7 @@ class ScallopQuery implements ScallopQueryInterface {
           supplyCollateralValueChangeRatio: t.supplyCollateralValueChangeRatio,
         };
       },
-      rpc: async () =>
+      onchain: async () =>
         calculateTotalValueLocked(
           await this.getMarketPools(undefined, { indexer: false })
         ),
@@ -960,25 +945,25 @@ class ScallopQuery implements ScallopQueryInterface {
   async getVeScaKeyIdFromReferralBindings(
     walletAddress: string = this.walletAddress
   ) {
-    return await queryVeScaKeyIdFromReferralBindings(this, walletAddress);
+    return this.repos.referral.getVeScaKeyIdFromReferralBindings(walletAddress);
   }
 
   /**
-   * Get binded obligation from a veScaKey if it exists.
+   * Get the obligationId bound to a veScaKey if it exists.
    * @param veScaKey
-   * @returns { obligationId, obligationKey } if binded, otherwise null
+   * @returns the bound obligationId, otherwise null
    */
   async getBindedObligation(veScaKey: string) {
-    return await getBindedObligation(this, veScaKey);
+    return this.repos.borrowIncentive.getBindedObligation(veScaKey);
   }
 
   /**
    * Get binded veSCA key from a obligationId if it exists.
    * @param obligationId
-   * @returns veScaKey
+   * @returns veScaKey, otherwise null
    */
   async getBindedVeScaKey(obligationId: string) {
-    return await getBindedVeScaKey(this, obligationId);
+    return this.repos.borrowIncentive.getBindedVeScaKey(obligationId);
   }
 
   /**
@@ -998,10 +983,8 @@ class ScallopQuery implements ScallopQueryInterface {
    * @param veScaKey
    * @returns Loyalty program information
    */
-  async getVeScaLoyaltyProgramInfos(veScaKey?: string | SuiObjectData) {
-    const key = veScaKey ?? (await this.getVeScas())[0]?.keyId;
-    const keyId = typeof key === 'string' ? key : key?.objectId;
-    return this.repos.veScaLoyaltyProgram.getVeScaLoyaltyProgramInfos(keyId);
+  async getVeScaLoyaltyProgramInfos(veScaKey: string) {
+    return this.repos.veScaLoyaltyProgram.getVeScaLoyaltyProgramInfos(veScaKey);
   }
 
   /**
@@ -1056,7 +1039,56 @@ class ScallopQuery implements ScallopQueryInterface {
    * @returns
    */
   async getSCoinSwapRate(fromSCoin: string, toSCoin: string) {
-    return await getSCoinSwapRate(this, fromSCoin, toSCoin);
+    // Cross-domain: combines both pools' conversion rates with the underlying
+    // price ratio. Orchestrated inline (no single repo owns it).
+    if (fromSCoin === toSCoin) {
+      throw new ScallopParseError('fromAsset and toAsset must be different');
+    }
+    if (!this.constants.whitelist.scoin.has(fromSCoin)) {
+      throw new ScallopParseError('fromAsset is not supported');
+    }
+    if (!this.constants.whitelist.scoin.has(toSCoin)) {
+      throw new ScallopParseError('toAsset is not supported');
+    }
+
+    const fromCoinName = this.utils.parseCoinName(fromSCoin);
+    const toCoinName = this.utils.parseCoinName(toSCoin);
+
+    const [fromPool, toPool] = await Promise.all([
+      this.getMarketPool(fromCoinName),
+      this.getMarketPool(toCoinName),
+    ]);
+    if (!fromPool || !toPool) {
+      throw new ScallopParseError('Failed to fetch the lendings data');
+    }
+    if (fromPool.conversionRate === 0 || toPool.conversionRate === 0) {
+      throw new ScallopParseError('Conversion rate cannot be zero');
+    }
+
+    const sCoinAToARate = fromPool.conversionRate;
+    const bToSCoinBRate = 1 / toPool.conversionRate;
+
+    let prices = await this.utils.getCoinPrices();
+    if (
+      !prices[fromCoinName] ||
+      !prices[toCoinName] ||
+      prices[fromCoinName] === 0 ||
+      prices[toCoinName] === 0
+    ) {
+      const indexerPrices = await this.getCoinPricesByIndexer().catch(
+        () => ({})
+      );
+      prices = { ...prices, ...indexerPrices };
+    }
+    if (!prices[fromCoinName] || !prices[toCoinName]) {
+      throw new ScallopParseError('Failed to fetch the coin prices');
+    }
+
+    const aToBRate = prices[fromCoinName]! / prices[toCoinName]!;
+    return BigNumber(sCoinAToARate)
+      .multipliedBy(aToBRate)
+      .multipliedBy(bToSCoinBRate)
+      .toNumber();
   }
 
   /*
@@ -1072,14 +1104,14 @@ class ScallopQuery implements ScallopQueryInterface {
    * Get supply limit of lending pool
    */
   async getPoolSupplyLimit(poolName: string) {
-    return await getSupplyLimit(this.utils, poolName);
+    return this.repos.market.getPoolSupplyLimit(poolName);
   }
 
   /**
    * Get borrow limit of borrow pool
    */
   async getPoolBorrowLimit(poolName: string) {
-    return await getBorrowLimit(this.utils, poolName);
+    return this.repos.market.getPoolBorrowLimit(poolName);
   }
 
   /**
@@ -1119,7 +1151,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @returns price data
    */
   async getCoinPriceByIndexer(poolName: string) {
-    return this.priceService.getCoinPriceByIndexer(poolName);
+    return this.indexer.getCoinPrice(poolName);
   }
 
   /**
@@ -1127,11 +1159,17 @@ class ScallopQuery implements ScallopQueryInterface {
    * @returns prices data
    */
   async getCoinPricesByIndexer() {
-    return this.priceService.getCoinPricesByIndexer();
+    return this.indexer.getCoinPrices();
   }
 
   /**
-   * Get all coin prices, including sCoin
+   * Get all coin prices, including sCoin.
+   *
+   * @description
+   * Cross-domain: fetches base coin prices (indexer or pyth via utils) + market
+   * pools, then derives sCoin prices from each pool's conversion rate
+   * (`buildAllCoinPrices`). Orchestrated inline (no single repo owns it).
+   *
    * @returns prices data
    */
   async getAllCoinPrices(args?: {
@@ -1139,7 +1177,22 @@ class ScallopQuery implements ScallopQueryInterface {
     coinPrices?: CoinPrices;
     indexer?: boolean;
   }) {
-    return this.priceService.getAllCoinPrices(args);
+    const indexer = args?.indexer ?? false;
+    const coinPrices =
+      args?.coinPrices ??
+      (indexer
+        ? await this.getCoinPricesByIndexer()
+        : await this.utils.getCoinPrices());
+    const marketPools =
+      args?.marketPools ??
+      (await this.getMarketPools(undefined, { coinPrices, indexer })).pools;
+
+    return buildAllCoinPrices({
+      coinPrices,
+      marketPools,
+      sCoinNames: [...this.constants.whitelist.scoin],
+      parseCoinName: (sCoinName) => this.utils.parseCoinName(sCoinName),
+    });
   }
 
   /**
@@ -1147,11 +1200,13 @@ class ScallopQuery implements ScallopQueryInterface {
    * @returns
    */
   async getPoolAddresses(apiAddressId = this.address.getId()) {
-    if (!apiAddressId) throw new Error('apiAddressId is required');
-    return getPoolAddresses(
-      this.utils.scallopSuiKit.suiKit.client,
-      apiAddressId
-    );
+    if (!apiAddressId) {
+      throw new ScallopParseError('apiAddressId is required');
+    }
+    // NOTE: `apiAddressId` no longer routes the fetch — the repo's API path uses
+    // the fixed pool-addresses endpoint and the on-chain path rebuilds from the
+    // current address config. The param is kept for signature compatibility.
+    return this.repos.poolAddresses.getPoolAddresses({});
   }
 
   /**
@@ -1195,7 +1250,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @returns price update policies
    */
   async getPriceUpdatePolicies() {
-    return await getPriceUpdatePolicies(this);
+    return this.repos.xOracle.getPriceUpdatePolicies();
   }
 
   /**
@@ -1212,7 +1267,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @returns
    */
   async getSwitchboardOnDemandAggregatorObjectIds(coinName: string[]) {
-    return await getOnDemandAggObjectIds(this, coinName);
+    return this.repos.xOracle.getOnDemandAggObjectIds(coinName);
   }
 }
 

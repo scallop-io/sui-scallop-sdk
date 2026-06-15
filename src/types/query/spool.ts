@@ -15,4 +15,4 @@ export type {
   StakeAccount,
   StakePool,
   StakeRewardPool,
-} from '../../repositories_v2/spool/types.js';
+} from '../../repositories/spool/types.js';

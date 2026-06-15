@@ -335,6 +335,7 @@ const EMPTY_ADDRESSES: AddressesInterface = {
     query: '',
     incentivePools: '',
     incentiveAccounts: '',
+    incentiveAccountsTableId: '',
     config: '',
   },
   vesca: {

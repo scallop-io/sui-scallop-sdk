@@ -5,7 +5,7 @@ import {
   calculateSpoolData,
   parseOriginSpoolRewardPoolData,
   calculateSpoolRewardPoolData,
-} from 'src/repositories_v2/spool/utils.js';
+} from 'src/repositories/spool/utils.js';
 import { mapSpoolData } from 'src/mappers/index.js';
 import type { ScallopQuery, ScallopUtils } from 'src/models/index.js';
 import type { SuiObjectData } from 'src/types/index.js';

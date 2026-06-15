@@ -270,6 +270,7 @@ export const TEST_ADDRESSES: AddressesInterface = {
       '0xb06657692f7f4d9eb0d7b7d6ac24db30e6fdaed64b09dee49664b496f687de46',
     incentiveAccounts:
       '0x0bf8168d983c18edcc6b2c2b2e85d2bdac84764babfecf1b567f98801fbf4942',
+    incentiveAccountsTableId: '0x0',
     query: '0xdbc22fe051d384691634cd3b9fe473b09723084a1e4c128728c42e2de3b2228f',
     adminCap:
       '0xc486afa253646f4d381e81d7f1df8aa4723b845a6bb356f69bad635ffefffe2c',

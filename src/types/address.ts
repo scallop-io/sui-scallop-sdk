@@ -100,6 +100,7 @@ export interface AddressesInterface {
     config: string;
     incentivePools: string;
     incentiveAccounts: string;
+    incentiveAccountsTableId: string;
   };
   vesca: {
     id: string;

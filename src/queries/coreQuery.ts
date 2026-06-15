@@ -14,9 +14,10 @@ import {
 } from 'src/mappers/index.js';
 import type { SuiObjectData } from 'src/types/index.js';
 import { SuiTxBlock, type SuiObjectArg } from '@scallop-io/sui-kit';
+import { createOnChainDataSource } from 'src/repositories/wiring/datasources.js';
 // import type { ScallopAddress, ScallopCache, ScallopQuery } from '../models.js';
 import {
-  Market,
+  Markets,
   MarketPools,
   MarketPool,
   MarketCollaterals,
@@ -112,11 +113,14 @@ export const queryMarket = async (
   const packageId = utils.address.get('core.packages.query.id');
   const marketId = utils.address.get('core.market');
   const queryTarget = `${packageId}::market_query::market_data`;
-  const marketSharedObject = await getSharedObjectData(utils.scallopSuiKit, {
-    object: marketId,
-    tx: txBlock,
-    mutable: true,
-  });
+  const marketSharedObject = await getSharedObjectData(
+    createOnChainDataSource(utils.scallopSuiKit),
+    {
+      objectId: marketId,
+      tx: txBlock,
+      mutable: true,
+    }
+  );
   const args = [marketSharedObject];
 
   const queryResult = await utils.scallopSuiKit.queryInspectTxn({
@@ -209,7 +213,7 @@ export const queryMarket = async (
     pools,
     collaterals,
     // data: marketData,
-  } as Market;
+  } as Markets;
 };
 
 const queryRequiredMarketObjects = async (
@@ -963,19 +967,20 @@ export const queryObligation = async (
   const market = address.get('core.market');
   const queryTarget = `${packageId}::obligation_query::obligation_data`;
 
+  const onchain = createOnChainDataSource(scallopSuiKit);
   const [versionData, marketData, obligationData] = await Promise.all([
-    getSharedObjectData(scallopSuiKit, {
-      object: version,
+    getSharedObjectData(onchain, {
+      objectId: version,
       mutable: false,
       tx: txBlock,
     }),
-    getSharedObjectData(scallopSuiKit, {
-      object: market,
+    getSharedObjectData(onchain, {
+      objectId: market,
       mutable: true,
       tx: txBlock,
     }),
-    getSharedObjectData(scallopSuiKit, {
-      object: obligationId,
+    getSharedObjectData(onchain, {
+      objectId: obligationId,
       mutable: true,
       tx: txBlock,
     }),

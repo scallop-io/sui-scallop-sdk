@@ -166,7 +166,7 @@ class ScallopSuiKit extends ScallopQueryClient {
     return await this.callWithRateLimiter(
       queryKeys.rpc.getObject({
         objectId,
-        options: includeOptions,
+        include: includeOptions,
         node: this.currentFullNode,
       }),
       () =>
@@ -238,7 +238,10 @@ class ScallopSuiKit extends ScallopQueryClient {
   ): Promise<PaginatedObjectsResponse<SuiObjectData> | null> {
     // @TODO: This query need its own separate rate limiter (as owned objects can theoretically be infinite), need a better way to handle this
     const results = await this.callWithRateLimiter(
-      queryKeys.rpc.getOwnedObjects(input),
+      queryKeys.rpc.getOwnedObjects({
+        ...input,
+        limit: input.limit ?? undefined,
+      }),
       () =>
         this.client.core.listOwnedObjects({
           owner: input.owner,
