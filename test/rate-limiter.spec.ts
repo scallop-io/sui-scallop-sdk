@@ -1,4 +1,4 @@
-import { RateLimiter } from 'src/models/rateLimiter.js';
+import { RateLimiter } from 'src/datasources/rateLimiter.js';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('RateLimiter', () => {

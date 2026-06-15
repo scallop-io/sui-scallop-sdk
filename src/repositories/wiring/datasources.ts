@@ -15,6 +15,9 @@ export const createOnChainDataSource = (
     // new-gen transport methods (getObjects/simulateTransaction/…) live on `.core`
     client: scallopSuiKit.client.core,
     url: scallopSuiKit.currentFullNode,
+    // Carry the throughput cap onto the datasource — this is now the single
+    // rate-limit point for every repo read (the old query path is gone).
+    tokensPerSecond: scallopSuiKit.tokensPerSecond,
   });
 
 /**
