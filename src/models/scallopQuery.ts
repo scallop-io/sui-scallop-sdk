@@ -233,6 +233,27 @@ class ScallopQuery implements ScallopQueryInterface {
   }
 
   /**
+   * Check whether an obligation is locked (bound to a borrow-incentive program).
+   *
+   * @param obligationId - The obligation id (string or object reference).
+   * @return `true` when the obligation has a lock key, otherwise `false`.
+   */
+  async getObligationLocked(obligationId: SuiObjectArg) {
+    const id =
+      typeof obligationId === 'string'
+        ? obligationId
+        : 'objectId' in obligationId
+          ? obligationId.objectId
+          : undefined;
+    if (id === undefined) {
+      throw new ScallopParseError(
+        'getObligationLocked expects an object id (string) or an object reference'
+      );
+    }
+    return this.repos.obligation.getObligationLocked(id);
+  }
+
+  /**
    * Get all asset coin amounts.
    *
    * @param assetCoinNames - Specific an array of support asset coin name.

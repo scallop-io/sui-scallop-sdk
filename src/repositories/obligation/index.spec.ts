@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('./helpers.js', () => ({
   getObligationsFromOnChain: vi.fn(),
   queryObligationData: vi.fn(),
+  getObligationLockedFromOnChain: vi.fn(),
 }));
 
 import * as helpers from './helpers.js';
@@ -40,5 +41,13 @@ describe('ObligationRepository', () => {
     expect(vi.mocked(helpers.queryObligationData).mock.calls[0][1]).toBe(
       '0xOB'
     );
+  });
+
+  it('getObligationLocked delegates the bare obligationId to the helper', () => {
+    vi.mocked(helpers.getObligationLockedFromOnChain).mockResolvedValue(false);
+    makeRepo().getObligationLocked('0xOB');
+    expect(
+      vi.mocked(helpers.getObligationLockedFromOnChain).mock.calls[0][1]
+    ).toBe('0xOB');
   });
 });

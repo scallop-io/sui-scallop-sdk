@@ -3,7 +3,6 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   SUI_CLOCK_OBJECT_ID,
 } from '@scallop-io/sui-kit';
-import { getObligations, getObligationLocked } from 'src/queries/index.js';
 import { requireSender, getMoveCallTarget } from 'src/utils/index.js';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models/index.js';
@@ -47,11 +46,12 @@ const requireObligationInfo = async (
     obligationKey &&
     typeof obligationId === 'string'
   ) {
-    const obligationLocked = await getObligationLocked(builder, obligationId);
+    const obligationLocked =
+      await builder.query.getObligationLocked(obligationId);
     return { obligationId, obligationKey, obligationLocked };
   }
   const sender = requireSender(txBlock);
-  const obligations = await getObligations(builder, sender);
+  const obligations = await builder.query.getObligations(sender);
   if (obligations.length === 0) {
     throw new Error(`No obligation found for sender ${sender}`);
   }

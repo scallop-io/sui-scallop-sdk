@@ -1,7 +1,6 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { getStakeAccounts } from '../queries/spoolQuery.js';
 import { requireSender } from '../utils/index.js';
 import type { SuiAddressArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
@@ -40,7 +39,7 @@ const requireStakeAccountIds = async (
   const [builder, txBlock, stakeMarketCoinName, stakeAccountId] = params;
   if (params.length === 4 && stakeAccountId) return [stakeAccountId];
   const sender = requireSender(txBlock);
-  const stakeAccounts = await getStakeAccounts(builder, sender);
+  const stakeAccounts = await builder.query.getAllStakeAccounts(sender);
   if (stakeAccounts[stakeMarketCoinName].length === 0) {
     throw new Error(`No stake account id found for sender ${sender}`);
   }
@@ -70,7 +69,7 @@ const requireStakeAccounts = async (
 ) => {
   const [builder, txBlock, stakeMarketCoinName, stakeAccountId] = params;
   const sender = requireSender(txBlock);
-  const stakeAccounts = await getStakeAccounts(builder, sender);
+  const stakeAccounts = await builder.query.getAllStakeAccounts(sender);
   if (stakeAccounts[stakeMarketCoinName].length === 0) {
     throw new Error(`No stake account found for sender ${sender}`);
   }
