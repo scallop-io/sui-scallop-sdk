@@ -28,7 +28,7 @@ import { QueryKey } from '@tanstack/query-core';
 import ScallopQueryClient, {
   ScallopQueryClientParams,
 } from './scallopQueryClient.js';
-import { RateLimiter } from './rateLimiter.js';
+import { RateLimiter } from 'src/datasources/rateLimiter.js';
 
 type QueryInspectTxnParams = {
   queryTarget: string;
