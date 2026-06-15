@@ -26,7 +26,7 @@ export class SpoolService {
     txBlock.transferObjects([stakeAccount], sender);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -56,7 +56,7 @@ export class SpoolService {
     }
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -94,7 +94,7 @@ export class SpoolService {
     txBlock.transferObjects([sCoin as SuiObjectArg], sender);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -137,7 +137,7 @@ export class SpoolService {
     }
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -161,7 +161,7 @@ export class SpoolService {
     txBlock.transferObjects(rewardCoins, sender);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }

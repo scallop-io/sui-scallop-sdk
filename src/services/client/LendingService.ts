@@ -20,7 +20,7 @@ export class LendingService {
     txBlock.transferObjects([sCoin], sender);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -41,7 +41,7 @@ export class LendingService {
     txBlock.transferObjects([coin], sender);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -66,7 +66,7 @@ export class LendingService {
     txBlock.repayFlashLoan(await callback(txBlock, coin), loan, poolCoinName);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }

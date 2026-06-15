@@ -86,6 +86,10 @@ class ScallopClient implements ScallopClientInterface {
     return this.utils.scallopSuiKit;
   }
 
+  get executor() {
+    return this.utils.executor;
+  }
+
   get address() {
     return this.builder.address;
   }

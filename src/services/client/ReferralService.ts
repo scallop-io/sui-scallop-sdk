@@ -23,7 +23,7 @@ export class ReferralService {
     txBlock.bindToReferral(veScaKeyId);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -44,7 +44,7 @@ export class ReferralService {
     await txBlock.claimReferralRevenueQuick(veScaKey, targetCoinNames);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -62,7 +62,7 @@ export class ReferralService {
     txBlock.burnReferralTicket(ticket, poolCoinName);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }

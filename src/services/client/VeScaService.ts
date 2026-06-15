@@ -40,9 +40,7 @@ export class VeScaService {
     txBlock.setSender(walletAddress ?? this.ctx.walletAddress);
     await txBlock.lockScaQuick(params);
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as SignedOrTx<S>;
+      return (await this.ctx.executor.signAndSendTxn(txBlock)) as SignedOrTx<S>;
     }
     return txBlock.txBlock as SignedOrTx<S>;
   }
@@ -60,9 +58,7 @@ export class VeScaService {
     txBlock.setSender(walletAddress ?? this.ctx.walletAddress);
     await txBlock.extendLockPeriodQuick(params);
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as SignedOrTx<S>;
+      return (await this.ctx.executor.signAndSendTxn(txBlock)) as SignedOrTx<S>;
     }
     return txBlock.txBlock as SignedOrTx<S>;
   }
@@ -80,9 +76,7 @@ export class VeScaService {
     txBlock.setSender(walletAddress ?? this.ctx.walletAddress);
     await txBlock.extendLockAmountQuick(params);
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
-        txBlock
-      )) as SignedOrTx<S>;
+      return (await this.ctx.executor.signAndSendTxn(txBlock)) as SignedOrTx<S>;
     }
     return txBlock.txBlock as SignedOrTx<S>;
   }
@@ -136,7 +130,7 @@ export class VeScaService {
     await this.ctx.utils.mergeSimilarCoins(tx, scaCoins[0], 'sca', sender);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         tx
       )) as VeScaClaimResult<S>;
     }
