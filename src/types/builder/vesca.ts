@@ -3,15 +3,6 @@ import type { TransactionResult } from '@mysten/sui/transactions';
 import { ScallopBuilder } from 'src/models/index.js';
 import type { SuiObjectData } from '../sui.js';
 
-/** Dynamic field response structure from queryGetDynamicFieldObject (subs table) - SDK v2 */
-export type DynamicFieldResponseWithContents = {
-  object?: {
-    json?: {
-      value?: { contents?: unknown[] };
-    };
-  };
-};
-
 export type VeScaNormalMethods = {
   lockSca: (
     scaCoin: SuiObjectArg,

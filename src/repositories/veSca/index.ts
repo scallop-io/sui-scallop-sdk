@@ -3,6 +3,7 @@ import {
   getVeScaDataFromOnChain,
   getVeScasByAddressFromOnChain,
   getVeScaTreasuryInfoFromOnChain,
+  isVeScaKeyInSubsTableFromOnChain,
 } from './helpers.js';
 import { VeScaRepoArgs, VeScaRepoContext, VeScaRepoMetadata } from './types.js';
 
@@ -37,5 +38,12 @@ export class VeScaRepository extends BaseRepository<
 
   getVeScaTreasuryInfo() {
     return getVeScaTreasuryInfoFromOnChain(this.context);
+  }
+
+  isVeScaKeyInSubsTable(veScaKey: string, tableId: string) {
+    return isVeScaKeyInSubsTableFromOnChain(this.context, {
+      veScaKey,
+      tableId,
+    });
   }
 }

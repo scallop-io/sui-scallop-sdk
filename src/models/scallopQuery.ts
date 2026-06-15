@@ -799,7 +799,7 @@ class ScallopQuery implements ScallopQueryInterface {
       this.getObligations(ownerAddress),
     ]);
 
-    const obligationObjects = await this.scallopSuiKit.queryGetObjects(
+    const obligationObjects = await this.repos.obligation.getObligationObjects(
       obligations.map((obligation) => obligation.id)
     );
     const obligationAccounts: ObligationAccounts = {};
