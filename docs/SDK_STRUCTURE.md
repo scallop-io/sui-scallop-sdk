@@ -16,7 +16,7 @@ Write path:
 ScallopClient method
   -> client service
   -> ScallopBuilder / ScallopTxBlock
-  -> ScallopSuiKit
+  -> TransactionExecutor (sign + execute, native CoreClient)
   -> Sui transaction
 
 Read path:
@@ -32,7 +32,9 @@ Supporting pieces:
 - `ScallopConstants` owns protocol config: addresses, pool addresses, whitelist, decimals.
 - `ScallopAddress` is the address/HTTP adapter composed by `ScallopConstants`.
 - `ScallopIndexer` is the REST/indexer adapter.
-- `ScallopSuiKit` is the Sui client adapter.
+- `ScallopUtils` owns a raw `SuiKit` (read client + node url) and a
+  `TransactionExecutor` (write path). `ScallopSuiKit` was removed; reads go
+  through `OnChainDataSource` (rate-limited), writes through the executor.
 - `src/mappers/` is the transport boundary for Move JSON, JSON-RPC, and gRPC shape differences.
 - `src/services/portfolioCalculations.ts` holds pure math extracted from portfolio queries.
 - `src/errors/`, `src/logger/`, `src/types/public`, and `src/types/internal` are cross-cutting support layers.
@@ -53,7 +55,8 @@ Scallop
                     └── ScallopUtils  // type lookups, coin metadata, pyth, etc.
                           ├── ScallopConstants  // pool addresses, whitelist, decimals
                           │     └── ScallopAddress  // address registry + HTTP
-                          ├── ScallopSuiKit      // wraps @scallop-io/sui-kit (Sui client)
+                          ├── SuiKit             // raw @scallop-io/sui-kit (read client + node url)
+                          ├── TransactionExecutor // write path: sign + execute (native CoreClient)
                           └── ScallopIndexer     // Scallop REST indexer (axios)
 ```
 
@@ -214,7 +217,7 @@ runWithSourceFallback()  ←  src/utils/querySource.ts
       │  └── fallback → RpcMarketRepository.getMarketPools()
        │                          │
        │                          ▼
-       │                 ScallopSuiKit (sui-kit)  → on-chain reads
+       │                 OnChainDataSource (rate-limited)  → on-chain reads
        │                          │
        │                          ▼
        │                 marketMapper.parsePools()
@@ -241,7 +244,7 @@ ScallopBuilder.createTxBlock()
 coreTxBlock.supplyQuick(...)   // GenerateCoreQuickMethod
        │  auto-resolves coin objects, builds Move call
        ▼
-ScallopSuiKit.signAndSendTxn(txBlock)
+executor.signAndSendTxn(txBlock)   // → CoreClient.signAndExecuteTransaction
        ▼
 returns SuiTransactionBlockResponse
 ```
