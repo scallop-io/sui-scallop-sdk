@@ -18,7 +18,11 @@ import {
 } from 'src/constants/index.js';
 import { PriceFeed, SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import ScallopSuiKit, { ScallopSuiKitParams } from './scallopSuiKit.js';
-import { queryObligation } from 'src/queries/index.js';
+import {
+  createRepositories,
+  type Repositories,
+} from 'src/repositories/wiring/registry.js';
+import { ScallopParseError } from 'src/errors/index.js';
 import { ScallopUtilsInterface } from './interface.js';
 import type { SuiObjectData } from 'src/types/index.js';
 import { noopLogger, type Logger } from 'src/logger/index.js';
@@ -37,6 +41,17 @@ class ScallopUtils implements ScallopUtilsInterface {
   public readonly constants: ScallopConstants;
   public readonly timeout: number;
   public readonly logger: Logger;
+
+  /**
+   * Lazily-built, memoised repositories used by utils' own onchain reads (e.g.
+   * `getObligationCoinNames`). Built from `this` — the registry imports
+   * `ScallopUtils` type-only, so there is no runtime cycle, and the getter only
+   * constructs repos on first use.
+   */
+  private _repos?: Repositories;
+  private get repos(): Repositories {
+    return (this._repos ??= createRepositories({ utils: this }));
+  }
 
   constructor(params: ScallopUtilsParams = {}) {
     this.constants = params.scallopConstants ?? new ScallopConstants(params);
@@ -377,7 +392,18 @@ class ScallopUtils implements ScallopUtilsInterface {
    * @return Asset coin Names.
    */
   async getObligationCoinNames(obligationId: SuiObjectArg) {
-    const obligation = await queryObligation(this, obligationId);
+    const id =
+      typeof obligationId === 'string'
+        ? obligationId
+        : 'objectId' in obligationId
+          ? obligationId.objectId
+          : undefined;
+    if (id === undefined) {
+      throw new ScallopParseError(
+        'getObligationCoinNames expects an object id (string) or an object reference'
+      );
+    }
+    const obligation = await this.repos.obligation.getObligationData(id);
     if (!obligation) return undefined;
 
     const collateralCoinTypes = obligation.collaterals.map((collateral) => {

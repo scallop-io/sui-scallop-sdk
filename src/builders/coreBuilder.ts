@@ -1,7 +1,6 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { getObligations } from '../queries/index.js';
 import { updateOracles } from './oracles/index.js';
 import { requireSender } from '../utils/index.js';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
@@ -46,7 +45,7 @@ const requireObligationInfo = async (
   if (params.length === 4 && obligationId && obligationKey)
     return { obligationId, obligationKey };
   const sender = requireSender(txBlock);
-  const obligations = await getObligations(builder, sender);
+  const obligations = await builder.query.getObligations(sender);
   if (obligations.length === 0) {
     throw new Error(`No obligation found for sender ${sender}`);
   }

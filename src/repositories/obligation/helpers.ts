@@ -12,7 +12,7 @@ import {
   getObligationFromObligationKey,
   mapObligationEventToObligationData,
 } from './utils.js';
-import { getSharedObjectData } from 'src/utils/object.js';
+import { getSharedObjectData, parseObjectAs } from 'src/utils/object.js';
 import { logError } from '../utils.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 
@@ -167,6 +167,33 @@ const getObligationLockStatus = async (
   });
 
   return getLockKeyFromObligationObject(obligationObject.object);
+};
+
+/**
+ * Whether a single obligation is locked (has a `lock_key`). Unlike
+ * `getLockKeyFromObligationObject` (used by the list assembly, which throws on a
+ * missing key), this returns `false` for an unlocked obligation and only
+ * propagates real fetch failures — matching the public `getObligationLocked`
+ * contract.
+ */
+export const getObligationLockedFromOnChain = async (
+  ctx: BaseContext,
+  obligationId: string
+): Promise<boolean> => {
+  const { onchain, fetchWithCache } = ctx;
+  const options: SuiClientTypes.GetObjectOptions<{ json: true }> = {
+    objectId: obligationId,
+    include: {
+      json: true,
+    },
+  };
+  const obligationObject = await fetchWithCache({
+    queryKey: queryKeys.rpc.getObject(options),
+    queryFn: () => onchain.getObject(options),
+  });
+
+  const fields = parseObjectAs<{ lock_key?: unknown }>(obligationObject.object);
+  return Boolean(fields?.lock_key);
 };
 
 export const getObligationsFromOnChain = async (

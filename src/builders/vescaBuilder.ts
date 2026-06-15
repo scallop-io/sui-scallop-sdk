@@ -6,7 +6,6 @@ import {
 } from '@scallop-io/sui-kit';
 import { SCA_COIN_TYPE } from 'src/constants/index.js';
 import { ScallopBuilder } from 'src/models/index.js';
-import { getVeSca, getVeScas } from 'src/queries/index.js';
 import {
   requireSender,
   checkLockSca,
@@ -56,7 +55,7 @@ export const requireVeSca = async (
 ) => {
   const [builder, txBlock, veScaKey] = params;
   if (params.length === 3 && veScaKey && typeof veScaKey !== 'undefined') {
-    const veSca = await getVeSca(builder.utils, veScaKey);
+    const veSca = await builder.query.getVeSca(veScaKey);
 
     if (!veSca) {
       return undefined;
@@ -66,7 +65,7 @@ export const requireVeSca = async (
   }
 
   const sender = requireSender(txBlock);
-  const veScas = await getVeScas(builder, sender);
+  const veScas = await builder.query.getVeScas({ walletAddress: sender });
   if (veScas.length === 0) {
     return undefined;
   }
@@ -513,8 +512,8 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       }
 
       const [sourceVesca, targetVesca] = await Promise.all([
-        getVeSca(builder.utils, sourceVeScaKey),
-        getVeSca(builder.utils, targetVeScaKey),
+        builder.query.getVeSca(sourceVeScaKey),
+        builder.query.getVeSca(targetVeScaKey),
       ]);
 
       if (!sourceVesca || !targetVesca) {
