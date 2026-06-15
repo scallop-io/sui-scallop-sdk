@@ -129,7 +129,10 @@ export const asSharedObject = (
 };
 
 export const getSharedObjectData = async (
-  { getObject }: OnChainDataSource,
+  // Take the whole data source (not a destructured `getObject`): `getObject` is a
+  // class method that reads `this.client`, so destructuring it here would drop the
+  // `this` binding and throw "Cannot read properties of undefined (reading 'client')".
+  onchain: OnChainDataSource,
   {
     tx,
     objectId,
@@ -145,7 +148,7 @@ export const getSharedObjectData = async (
   let parsed;
   // Handle string
   if (typeof objectId === 'string') {
-    const objectData = await getObject({
+    const objectData = await onchain.getObject({
       objectId: objectId,
       include,
     });

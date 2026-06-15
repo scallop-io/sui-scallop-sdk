@@ -267,18 +267,41 @@ export const getBindedVeScaKeyByObligationIdFromOnChain = async (
   obligationId: string
 ) => {
   const {
+    onchain,
+    fetchWithCache,
     metadata: { addresses },
   } = ctx;
+  const { borrowIncentive, core } = addresses;
 
-  const fetchOptions: SuiClientTypes.GetDynamicFieldOptions = {
-    parentId: addresses.borrowIncentive.incentiveAccountsTableId,
+  // The accounts table id is a dynamic UID living inside the incentiveAccounts
+  // object (`accounts.id`), not a static config address — derive it at runtime.
+  const fetchOptions: SuiClientTypes.GetObjectOptions<{ json: true }> = {
+    objectId: borrowIncentive.incentiveAccounts,
+    include: {
+      json: true,
+    },
+  };
+  const incentiveAccountsObject = await fetchWithCache({
+    queryKey: queryKeys.rpc.getObject(fetchOptions),
+    queryFn: () => onchain.getObject(fetchOptions),
+  });
+  if (!incentiveAccountsObject.object) {
+    throw logError(
+      ctx.logger,
+      `Failed to fetch incentive accounts object with id ${borrowIncentive.incentiveAccounts}`
+    );
+  }
+  const incentiveAccountsTableId = parseObjectAs<{ accounts: { id: string } }>(
+    incentiveAccountsObject.object
+  ).accounts.id;
+
+  const result = await getDynamicFieldOrNull(ctx, {
+    parentId: incentiveAccountsTableId,
     name: encodeDynamicFieldNameForV2({
-      type: `${addresses.borrowIncentive.object}::typed_id::TypedID<${addresses.core.object}::obligation::Obligation>`,
+      type: `${borrowIncentive.object}::typed_id::TypedID<${core.object}::obligation::Obligation>`,
       value: obligationId,
     }),
-  };
-
-  const result = await getDynamicFieldOrNull(ctx, fetchOptions);
+  });
   if (!result) return null;
 
   const parsed = IncentiveAccountBcs.parse(result.dynamicField.value.bcs);

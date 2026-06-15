@@ -164,9 +164,7 @@ export type BorrowIncentiveRepoContext = BaseContext & {
 
 export type GetBindedVeScaKeyContext = BaseContext & {
   metadata: {
-    addresses: BorrowIncentiveAddresses<
-      'object' | 'incentiveAccountsTableId'
-    > & {
+    addresses: BorrowIncentiveAddresses<'object' | 'incentiveAccounts'> & {
       core: { object: string };
     };
   };
