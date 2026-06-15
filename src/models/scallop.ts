@@ -104,7 +104,8 @@ class Scallop {
     const utils = this.client.utils;
     return createScallopContext({
       constants: utils.constants,
-      scallopSuiKit: utils.scallopSuiKit,
+      suiKit: utils.suiKit,
+      executor: utils.executor,
       indexer: this.client.query.indexer,
       queryClient: utils.queryClient,
       logger: utils.logger,

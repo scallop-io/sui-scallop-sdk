@@ -39,8 +39,9 @@ import { PriceRepository } from '../price/index.js';
 
 /**
  * Inputs the registry needs. `ScallopUtils` is the single hub — it exposes
- * `scallopSuiKit`, `queryClient`, `logger`, `address`, and `constants`, so the
- * registry can derive every datasource + metadata bundle from it.
+ * `suiKit`, `tokensPerSecond`, `queryClient`, `logger`, `address`, and
+ * `constants`, so the registry can derive every datasource + metadata bundle
+ * from it.
  */
 export type RepositoryDeps = {
   utils: ScallopUtils;
@@ -78,7 +79,9 @@ export interface Repositories {
 export const createRepositories = (deps: RepositoryDeps): Repositories => {
   const { utils, indexerUrl } = deps;
 
-  const onchain = createOnChainDataSource(utils.scallopSuiKit);
+  const onchain = createOnChainDataSource(utils.suiKit, {
+    tokensPerSecond: utils.tokensPerSecond,
+  });
   const indexer = createIndexerDataSource(indexerUrl);
   const queryClient: QueryClient = utils.queryClient;
   const logger: Logger = utils.logger;

@@ -5,6 +5,8 @@ import { scallopSDK } from './scallopSdk.js';
 import { ScallopQuery } from 'src/models/index.js';
 import { BigNumber } from 'bignumber.js';
 import { parseObjectAs } from 'src/utils/index.js';
+import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
+import type { SuiObjectData } from 'src/types/index.js';
 
 const ENABLE_LOG = false;
 // let obligationId: string | null;
@@ -277,39 +279,14 @@ describe('Test Query Borrow Incentive Contract On Chain Data', () => {
   });
 
   it('Should return null for a missing dynamic field object', async () => {
-    const incentiveAccountsId = scallopQuery.utils.address.get(
-      'borrowIncentive.incentiveAccounts'
-    );
-    const incentiveAccountsObject =
-      await scallopQuery.utils.scallopSuiKit.queryGetObject(
-        incentiveAccountsId
-      );
-    expect(incentiveAccountsObject?.object).toBeTruthy();
-    if (!incentiveAccountsObject?.object) return;
-
-    const incentiveAccountsTableId = (
-      parseObjectAs<{ accounts: { id: string } }>(
-        incentiveAccountsObject.object
-      ) as any
-    ).accounts.id;
-
-    const borrowIncentiveObjectId = scallopQuery.utils.address.get(
-      'borrowIncentive.object'
-    );
-    const corePkg = scallopQuery.utils.address.get('core.object');
+    // 0x..01 is not bound to any veSca. The incentive-accounts table-id
+    // derivation + dynamic-field read now live inside the borrowIncentive repo;
+    // a missing entry must resolve to null rather than throw.
     const missingObligationId =
       '0x0000000000000000000000000000000000000000000000000000000000000001';
-
-    const result =
-      await scallopQuery.utils.scallopSuiKit.queryGetDynamicFieldObject({
-        parentId: incentiveAccountsTableId,
-        name: {
-          type: `${borrowIncentiveObjectId}::typed_id::TypedID<${corePkg}::obligation::Obligation>`,
-          value: missingObligationId,
-        },
-      });
-
-    expect(result).toBeNull();
+    const bindedVeScaKeyId =
+      await scallopQuery.getBindedVeScaKey(missingObligationId);
+    expect(bindedVeScaKeyId).toBeNull();
   });
 });
 
@@ -501,25 +478,39 @@ describe('Test Loyalty Program Query', () => {
     const userRewardTableId = scallopQuery.utils.address.get(
       'loyaltyProgram.userRewardTableId'
     );
-    const rawUserRewardObject =
-      await scallopQuery.utils.scallopSuiKit.queryGetDynamicFieldObject({
+    // Fetch the raw user-reward dynamic-field object via the native core client
+    // (the SDK now reads on-chain through @mysten/sui's CoreClient, not SuiKit's
+    // legacy query wrappers).
+    const core = scallopQuery.utils.suiKit.client.core;
+    let rawObject: SuiObjectData | null = null;
+    try {
+      const { dynamicField } = await core.getDynamicField({
         parentId: userRewardTableId,
-        name: {
+        name: encodeDynamicFieldNameForV2({
           type: '0x2::object::ID',
           value: VE_SCA_KEY,
-        },
+        }),
       });
+      const { objects } = await core.getObjects({
+        objectIds: [dynamicField.fieldId],
+        include: { json: true },
+      });
+      const obj = objects[0];
+      rawObject = obj instanceof Error ? null : (obj ?? null);
+    } catch {
+      rawObject = null;
+    }
 
     const loyaltyProgramInfo =
       await scallopQuery.getLoyaltyProgramInfos(VE_SCA_KEY);
     expect(loyaltyProgramInfo).toBeTruthy();
 
-    if (!rawUserRewardObject?.object) {
+    if (!rawObject?.json) {
       expect(loyaltyProgramInfo?.pendingReward ?? 0).toBeGreaterThanOrEqual(0);
       return;
     }
 
-    const rawValue = parseObjectAs<string>(rawUserRewardObject.object);
+    const rawValue = parseObjectAs<string>(rawObject);
     const expectedPendingReward = BigNumber(rawValue).shiftedBy(-9).toNumber();
     expect(loyaltyProgramInfo?.pendingReward).toBeCloseTo(
       expectedPendingReward,

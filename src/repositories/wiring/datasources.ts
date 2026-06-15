@@ -1,23 +1,37 @@
-import ScallopSuiKit from 'src/models/scallopSuiKit.js';
+import type { SuiKit } from '@scallop-io/sui-kit';
 import { OnChainDataSource } from 'src/datasources/onchain.js';
 import { IndexerDataSource } from 'src/datasources/indexer.js';
 
 /**
- * Build the repositories datasources from the existing models. This is the
- * only place that knows how a `ScallopSuiKit` maps onto an `OnChainDataSource`
- * (new-gen client + node url for cache keys) and how the Scallop indexer maps
- * onto an `IndexerDataSource`. Repos never touch the models directly.
+ * SuiKit's current fullnode url, used in RPC cache keys. Returns `''` for
+ * custom-client setups (a SuiKit built from `suiClients` has no readable
+ * fullnode) — preserving the old `ScallopSuiKit.currentFullNode` behavior.
+ */
+const currentFullNode = (suiKit: SuiKit): string => {
+  try {
+    return suiKit.suiInteractor.currentFullNode;
+  } catch {
+    return '';
+  }
+};
+
+/**
+ * Build the repositories' on-chain datasource from a raw `SuiKit`. This is the
+ * only place that knows how a `SuiKit` maps onto an `OnChainDataSource`
+ * (new-gen client + node url for cache keys + throughput cap). Repos never
+ * touch the models directly.
  */
 export const createOnChainDataSource = (
-  scallopSuiKit: ScallopSuiKit
+  suiKit: SuiKit,
+  options?: { tokensPerSecond?: number }
 ): OnChainDataSource =>
   new OnChainDataSource({
     // new-gen transport methods (getObjects/simulateTransaction/…) live on `.core`
-    client: scallopSuiKit.client.core,
-    url: scallopSuiKit.currentFullNode,
-    // Carry the throughput cap onto the datasource — this is now the single
-    // rate-limit point for every repo read (the old query path is gone).
-    tokensPerSecond: scallopSuiKit.tokensPerSecond,
+    client: suiKit.client.core,
+    url: currentFullNode(suiKit),
+    // The datasource is now the single rate-limit point for every repo read
+    // (the old ScallopSuiKit query path is gone).
+    tokensPerSecond: options?.tokensPerSecond,
   });
 
 /**

@@ -21,7 +21,11 @@ import type ScallopUtils from 'src/models/scallopUtils.js';
 // invoked at construction time).
 const emptySet = new Set<string>();
 const fakeUtils = {
-  scallopSuiKit: { client: { core: {} }, currentFullNode: 'mock://node' },
+  suiKit: {
+    client: { core: {} },
+    suiInteractor: { currentFullNode: 'mock://node' },
+  },
+  tokensPerSecond: 10,
   queryClient: { fetchQuery: vi.fn() },
   logger: { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() },
   address: {

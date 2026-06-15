@@ -58,12 +58,12 @@ class ScallopBuilder implements ScallopBuilderInterface {
     return this.utils.walletAddress;
   }
 
-  get scallopSuiKit() {
-    return this.utils.scallopSuiKit;
+  get suiKit() {
+    return this.utils.suiKit;
   }
 
-  get suiKit() {
-    return this.scallopSuiKit.suiKit;
+  get executor() {
+    return this.utils.executor;
   }
 
   get address() {
@@ -263,7 +263,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
   async signAndSendTxBlock(
     txBlock: ScallopTxBlock | SuiKitTxBlock | Transaction
   ) {
-    return (await this.scallopSuiKit.signAndSendTxn(
+    return (await this.executor.signAndSendTxn(
       txBlock
     )) as SuiTransactionBlockResponse;
   }

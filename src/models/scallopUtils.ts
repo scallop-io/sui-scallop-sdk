@@ -5,7 +5,10 @@ import {
   SuiObjectArg,
   SuiTxBlock,
   Transaction,
+  type SuiKit,
+  type SuiKitParams,
 } from '@scallop-io/sui-kit';
+import { newSuiKit } from './suiKit.js';
 import ScallopConstants, {
   ScallopConstantsParams,
 } from './scallopConstants.js';
@@ -17,7 +20,6 @@ import {
   UNLOCK_ROUND_DURATION,
 } from 'src/constants/index.js';
 import { PriceFeed, SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
-import ScallopSuiKit, { ScallopSuiKitParams } from './scallopSuiKit.js';
 import {
   SuiKitTransactionExecutor,
   type TransactionExecutor,
@@ -33,15 +35,21 @@ import { noopLogger, type Logger } from 'src/logger/index.js';
 
 export type ScallopUtilsParams = {
   pythEndpoints?: string[];
-  scallopSuiKit?: ScallopSuiKit;
+  suiKit?: SuiKit;
+  tokensPerSecond?: number;
+  walletAddress?: string;
   scallopConstants?: ScallopConstants;
   logger?: Logger;
-} & ScallopSuiKitParams &
+} & SuiKitParams &
   ScallopConstantsParams;
+
+const DEFAULT_TOKENS_PER_SECOND = 10;
 
 class ScallopUtils implements ScallopUtilsInterface {
   public pythEndpoints: string[];
-  public readonly scallopSuiKit: ScallopSuiKit;
+  public readonly suiKit: SuiKit;
+  public walletAddress: string;
+  public readonly tokensPerSecond: number;
   public readonly constants: ScallopConstants;
   public readonly timeout: number;
   public readonly logger: Logger;
@@ -59,12 +67,9 @@ class ScallopUtils implements ScallopUtilsInterface {
 
   constructor(params: ScallopUtilsParams = {}) {
     this.constants = params.scallopConstants ?? new ScallopConstants(params);
-    this.scallopSuiKit =
-      params.scallopSuiKit ??
-      new ScallopSuiKit({
-        queryClient: this.constants.queryClient,
-        ...params,
-      });
+    this.suiKit = params.suiKit ?? newSuiKit(params);
+    this.walletAddress = params.walletAddress ?? this.suiKit.currentAddress;
+    this.tokensPerSecond = params.tokensPerSecond ?? DEFAULT_TOKENS_PER_SECOND;
 
     this.pythEndpoints = params.pythEndpoints ?? [
       'https://hermes.pyth.network',
@@ -72,14 +77,6 @@ class ScallopUtils implements ScallopUtilsInterface {
 
     this.timeout = params.axiosTimeout ?? 4000;
     this.logger = params.logger ?? noopLogger;
-  }
-
-  get walletAddress() {
-    return this.scallopSuiKit.walletAddress;
-  }
-
-  get suiKit() {
-    return this.scallopSuiKit.suiKit;
   }
 
   /**

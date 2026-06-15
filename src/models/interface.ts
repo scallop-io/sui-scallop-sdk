@@ -1,12 +1,14 @@
+import type { SuiKit } from '@scallop-io/sui-kit';
 import ScallopAddress from './scallopAddress.js';
 import ScallopBuilder from './scallopBuilder.js';
 import ScallopConstants from './scallopConstants.js';
 import ScallopQuery from './scallopQuery.js';
-import ScallopSuiKit from './scallopSuiKit.js';
+import type { TransactionExecutor } from './transactionExecutor.js';
 import ScallopUtils from './scallopUtils.js';
 
 interface ScallopBaseInterface {
-  scallopSuiKit: ScallopSuiKit;
+  suiKit: SuiKit;
+  executor: TransactionExecutor;
   constants: ScallopConstants;
   walletAddress: string;
   init: () => Promise<void>;

@@ -82,8 +82,8 @@ class ScallopClient implements ScallopClientInterface {
     return this.utils.walletAddress;
   }
 
-  get scallopSuiKit() {
-    return this.utils.scallopSuiKit;
+  get suiKit() {
+    return this.utils.suiKit;
   }
 
   get executor() {
@@ -917,7 +917,7 @@ class ScallopClient implements ScallopClientInterface {
     }
 
     if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
+      return (await this.executor.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
@@ -989,7 +989,7 @@ class ScallopClient implements ScallopClientInterface {
     txBlock.transferObjects([coin], recipient);
 
     if (sign) {
-      return (await this.scallopSuiKit.signAndSendTxn(
+      return (await this.executor.signAndSendTxn(
         txBlock
       )) as ScallopClientFnReturnType<S>;
     } else {
