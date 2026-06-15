@@ -37,7 +37,7 @@ export class CollateralService {
     }
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -67,7 +67,7 @@ export class CollateralService {
     txBlock.transferObjects([collateralCoin], sender);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }

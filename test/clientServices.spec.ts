@@ -71,7 +71,7 @@ const createClient = (txBlock = createTxBlock()) => {
       parseSCoinType: (n: string) => `0x1::s${n}::S${n.toUpperCase()}`,
       mergeSimilarCoins: vi.fn(async () => undefined),
     },
-    scallopSuiKit: {
+    executor: {
       signAndSendTxn: vi.fn(async () => ({ effects: { status: 'success' } })),
     },
   };

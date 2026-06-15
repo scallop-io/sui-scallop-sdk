@@ -20,7 +20,7 @@ export class BorrowService {
     const txBlock = this.ctx.builder.createTxBlock();
     txBlock.openObligationEntry();
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -58,7 +58,7 @@ export class BorrowService {
     }
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -89,7 +89,7 @@ export class BorrowService {
     }
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -127,7 +127,7 @@ export class BorrowService {
     }
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -145,7 +145,7 @@ export class BorrowService {
     await txBlock.stakeObligationWithVeScaQuick(obligationId, obligationKeyId);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -163,7 +163,7 @@ export class BorrowService {
     await txBlock.unstakeObligationQuick(obligationId, obligationKeyId);
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }
@@ -220,7 +220,7 @@ export class BorrowService {
     );
 
     if (sign) {
-      return (await this.ctx.scallopSuiKit.signAndSendTxn(
+      return (await this.ctx.executor.signAndSendTxn(
         txBlock
       )) as ClientTxResult<S>;
     }

@@ -3,7 +3,7 @@ import type { Transaction } from '@mysten/sui/transactions';
 import type ScallopBuilder from 'src/models/scallopBuilder.js';
 import type ScallopQuery from 'src/models/scallopQuery.js';
 import type ScallopUtils from 'src/models/scallopUtils.js';
-import type ScallopSuiKit from 'src/models/scallopSuiKit.js';
+import type { TransactionExecutor } from 'src/models/transactionExecutor.js';
 import type ScallopConstants from 'src/models/scallopConstants.js';
 
 export type ClientTxResult<S extends boolean> = S extends true
@@ -36,5 +36,5 @@ export interface ClientServiceContext {
     | 'parseSCoinType'
   >;
   readonly constants: Pick<ScallopConstants, 'whitelist'>;
-  readonly scallopSuiKit: Pick<ScallopSuiKit, 'signAndSendTxn'>;
+  readonly executor: TransactionExecutor;
 }

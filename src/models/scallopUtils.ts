@@ -19,6 +19,10 @@ import {
 import { PriceFeed, SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import ScallopSuiKit, { ScallopSuiKitParams } from './scallopSuiKit.js';
 import {
+  SuiKitTransactionExecutor,
+  type TransactionExecutor,
+} from './transactionExecutor.js';
+import {
   createRepositories,
   type Repositories,
 } from 'src/repositories/wiring/registry.js';
@@ -76,6 +80,16 @@ class ScallopUtils implements ScallopUtilsInterface {
 
   get suiKit() {
     return this.scallopSuiKit.suiKit;
+  }
+
+  /**
+   * The SDK-agnostic write-path signer/executor, memoised. Built from the raw
+   * `SuiKit`; all write callers go through this rather than touching the SDK
+   * directly, so the underlying SDK can be swapped in one place.
+   */
+  private _executor?: TransactionExecutor;
+  get executor(): TransactionExecutor {
+    return (this._executor ??= new SuiKitTransactionExecutor(this.suiKit));
   }
 
   get queryClient() {
