@@ -91,7 +91,7 @@
     "watch": "pnpm run clean & pnpm run watch:types & pnpm run watch:tsup",
     "test": "pnpm test:typecheck && pnpm test:all",
     "test:typecheck": "tsc -p ./test",
-    "test:unit": "vitest run test/mappers.spec.ts test/querySource.spec.ts test/scallopContext.spec.ts test/configSnapshot.spec.ts test/configSources.spec.ts test/txBlockManifest.spec.ts test/txBlockModules.spec.ts test/subpathExports.spec.ts test/strictInit.spec.ts test/utils-unit.spec.ts test/rate-limiter.spec.ts test/noConsole.spec.ts test/portfolioCalculations.spec.ts test/repositories.spec.ts test/clientServices.spec.ts test/marketService.spec.ts test/obligationService.spec.ts test/spoolReadService.spec.ts test/borrowIncentiveService.spec.ts test/lendingReadService.spec.ts test/priceService.spec.ts src/repositories_v2/",
+    "test:unit": "vitest run test/mappers.spec.ts test/querySource.spec.ts test/scallopContext.spec.ts test/configSnapshot.spec.ts test/configSources.spec.ts test/txBlockManifest.spec.ts test/txBlockModules.spec.ts test/subpathExports.spec.ts test/strictInit.spec.ts test/utils-unit.spec.ts test/rate-limiter.spec.ts test/noConsole.spec.ts test/portfolioCalculations.spec.ts test/repositories.spec.ts test/clientServices.spec.ts test/marketService.spec.ts test/obligationService.spec.ts test/spoolReadService.spec.ts test/borrowIncentiveService.spec.ts test/lendingReadService.spec.ts test/priceService.spec.ts src/repositories/",
     "test:no-console": "vitest run test/noConsole.spec.ts",
     "test:query": "vitest run test/query.spec.ts",
     "test:integration": "vitest run test/address.spec.ts test/builder.spec.ts test/constants.spec.ts test/index.spec.ts test/indexer.spec.ts test/query.spec.ts test/utils.spec.ts",
