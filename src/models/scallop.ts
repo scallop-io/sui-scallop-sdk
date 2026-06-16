@@ -76,16 +76,6 @@ class Scallop {
   }
 
   /**
-   * Create a scallop indexer instance.
-   *
-   * @return Scallop Indexer.
-   */
-  async createScallopIndexer() {
-    await this.init();
-    return this.client.query.indexer;
-  }
-
-  /**
    * Get a scallop constants instance that already has initial data.
    * @returns Scallop Constants
    */
@@ -106,7 +96,6 @@ class Scallop {
       constants: utils.constants,
       suiKit: utils.suiKit,
       executor: utils.executor,
-      indexer: this.client.query.indexer,
       queryClient: utils.queryClient,
       logger: utils.logger,
       walletAddress: utils.walletAddress,

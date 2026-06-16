@@ -1,24 +1,22 @@
+import { SuiObjectArg } from '@scallop-io/sui-kit';
 import { BigNumber } from 'bignumber.js';
-import ScallopUtils, { ScallopUtilsParams } from './scallopUtils.js';
-import ScallopIndexer, { ScallopIndexerParams } from './scallopIndexer.js';
-import type { QueryOptions } from 'src/repositories/wiring/source.js';
-import {
-  buildAllCoinPrices,
-  buildLending,
-  buildObligationAccount,
-  buildUserPortfolio,
-  calculateTotalValueLocked,
-} from 'src/services/index.js';
+import { ScallopParseError } from 'src/errors/index.js';
 import { runWithDataSourceFallback } from 'src/repositories/utils.js';
 import {
   createRepositories,
   type Repositories,
 } from 'src/repositories/wiring/registry.js';
+import type { QueryOptions } from 'src/repositories/wiring/source.js';
 import {
   fromQueryOptions,
   toQuerySource,
 } from 'src/repositories/wiring/source.js';
-import { ScallopParseError } from 'src/errors/index.js';
+import {
+  buildAllCoinPrices,
+  buildLending,
+  buildObligationAccount,
+  buildUserPortfolio,
+} from 'src/services/index.js';
 import {
   CoinAmounts,
   CoinPrices,
@@ -31,16 +29,13 @@ import {
   StakePools,
   SuiObjectData,
   SuiObjectRef,
-  TotalValueLocked,
 } from 'src/types/index.js';
-import { SuiObjectArg } from '@scallop-io/sui-kit';
 import { ScallopQueryInterface } from './interface.js';
+import ScallopUtils, { ScallopUtilsParams } from './scallopUtils.js';
 
 export type ScallopQueryParams = {
-  indexer?: ScallopIndexer;
   utils?: ScallopUtils;
-} & ScallopUtilsParams &
-  ScallopIndexerParams;
+} & ScallopUtilsParams;
 
 /** Project a record down to the requested keys, dropping missing entries. */
 const pickRecord = <T>(
@@ -57,17 +52,10 @@ const pickRecord = <T>(
   );
 
 class ScallopQuery implements ScallopQueryInterface {
-  public readonly indexer: ScallopIndexer;
   public readonly utils: ScallopUtils;
 
   constructor(params: ScallopQueryParams = {}) {
     this.utils = params.utils ?? new ScallopUtils(params);
-    this.indexer =
-      params.indexer ??
-      new ScallopIndexer({
-        queryClient: this.utils.queryClient,
-        ...params,
-      });
   }
 
   get logger() {
@@ -122,12 +110,29 @@ class ScallopQuery implements ScallopQueryInterface {
    * the market repository. Used by getMarketPools / getMarketCollaterals.
    */
   private async fetchMarkets(
-    args?: QueryOptions & { coinPrices?: CoinPrices }
+    args?: QueryOptions & {
+      coinPrices?: CoinPrices;
+      poolCoinNames?: readonly string[];
+      collateralCoinNames?: readonly string[];
+    }
   ) {
+    const priceCoinNames =
+      args?.poolCoinNames || args?.collateralCoinNames
+        ? Array.from(
+            new Set([
+              ...(args.poolCoinNames ?? []),
+              ...(args.collateralCoinNames ?? []),
+            ])
+          )
+        : undefined;
     const coinPrices =
-      args?.coinPrices ?? (await this.utils.getCoinPrices()) ?? {};
+      args?.coinPrices ??
+      (await this.getPythCoinPrices({ coinNames: priceCoinNames })) ??
+      {};
     return this.repos.market.getMarkets({
       coinPrices,
+      poolCoinNames: args?.poolCoinNames,
+      collateralCoinNames: args?.collateralCoinNames,
       source: fromQueryOptions(args),
     });
   }
@@ -149,7 +154,11 @@ class ScallopQuery implements ScallopQueryInterface {
       coinPrices?: CoinPrices;
     } & QueryOptions
   ) {
-    const { pools, collaterals } = await this.fetchMarkets(args);
+    const { pools, collaterals } = await this.fetchMarkets({
+      ...args,
+      poolCoinNames,
+      collateralCoinNames: poolCoinNames,
+    });
     return {
       pools: pickRecord(pools, poolCoinNames),
       collaterals: pickRecord(collaterals, poolCoinNames),
@@ -188,7 +197,11 @@ class ScallopQuery implements ScallopQueryInterface {
     collateralCoinNames: string[] = [...this.constants.whitelist.collateral],
     args?: QueryOptions
   ) {
-    const { collaterals } = await this.fetchMarkets(args);
+    const { collaterals } = await this.fetchMarkets({
+      ...args,
+      poolCoinNames: [],
+      collateralCoinNames,
+    });
     return pickRecord(collaterals, collateralCoinNames);
   }
 
@@ -330,29 +343,6 @@ class ScallopQuery implements ScallopQueryInterface {
       marketCoinName,
       address: ownerAddress,
     });
-  }
-
-  /**
-   * Get price from pyth fee object.
-   *
-   * @param assetCoinName - Specific support asset coin name.
-   * @return Asset coin price.
-   */
-  async getPriceFromPyth(assetCoinName: string) {
-    const prices = await this.repos.price.getPricesFromPyth({
-      coinNames: [assetCoinName],
-    });
-    return prices[assetCoinName] ?? 0;
-  }
-
-  /**
-   * Get prices from pyth fee object.
-   *
-   * @param assetCoinNames - Array of supported asset coin names.
-   * @return Array of asset coin prices.
-   */
-  async getPricesFromPyth(assetCoinNames: string[]) {
-    return this.repos.price.getPricesFromPyth({ coinNames: assetCoinNames });
   }
 
   /* ==================== Spool Query Methods ==================== */
@@ -502,6 +492,47 @@ class ScallopQuery implements ScallopQueryInterface {
     return this.repos.spool.getSpoolRewardPool(stakeMarketCoinName);
   }
 
+  async getPythCoinPrices(args?: { coinNames?: string[] }) {
+    const coinNames =
+      args?.coinNames ??
+      Array.from(
+        new Set([
+          ...this.constants.whitelist.lending,
+          ...this.constants.whitelist.collateral,
+        ]).values()
+      );
+
+    return this.repos.price.getPricesFromPyth({
+      coinNames,
+      source: 'api-first',
+    });
+  }
+
+  async getPythCoinPrice(coinName: string) {
+    const prices = await this.getPythCoinPrices({ coinNames: [coinName] });
+    return prices[coinName];
+  }
+
+  async getIndexerCoinPrices(args?: { coinNames?: string[] }) {
+    const coinNames =
+      args?.coinNames ??
+      Array.from(
+        new Set([
+          ...this.constants.whitelist.lending,
+          ...this.constants.whitelist.collateral,
+        ]).values()
+      );
+
+    return this.repos.price.getPricesFromIndexer({
+      coinNames,
+    });
+  }
+
+  async getIndexerCoinPrice(coinName: string) {
+    const prices = await this.getIndexerCoinPrices({ coinNames: [coinName] });
+    return prices[coinName];
+  }
+
   /**
    * Get borrow incentive pools data.
    *
@@ -567,7 +598,9 @@ class ScallopQuery implements ScallopQueryInterface {
     );
 
     const coinPrices =
-      args?.coinPrices ?? (await this.utils.getCoinPrices()) ?? {};
+      args?.coinPrices ??
+      (await this.getPythCoinPrices({ coinNames: names })) ??
+      {};
     const marketPools =
       args?.marketPools ??
       (await this.getMarketPools(names, { ...args, coinPrices })).pools;
@@ -899,29 +932,10 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Total value locked.
    */
   async getTvl(args?: QueryOptions) {
-    return runWithDataSourceFallback<TotalValueLocked>({
+    const coinPrices = await this.getIndexerCoinPrices();
+    return this.repos.market.getTvl({
       source: fromQueryOptions(args),
-      label: 'getTvl',
-      logger: this.logger,
-      api: async () => {
-        const t = await this.indexer.getTotalValueLocked();
-        return {
-          supplyValue: t.supplyValue,
-          supplyValueChangeRatio: t.supplyValueChangeRatio,
-          borrowValue: t.borrowValue,
-          borrowValueChangeRatio: t.borrowValueChangeRatio,
-          totalValue: t.totalValue,
-          totalValueChangeRatio: t.totalValueChangeRatio,
-          supplyLendingValue: t.supplyLendingValue,
-          supplyLendingValueChangeRatio: t.supplyLendingValueChangeRatio,
-          supplyCollateralValue: t.supplyCollateralValue,
-          supplyCollateralValueChangeRatio: t.supplyCollateralValueChangeRatio,
-        };
-      },
-      onchain: async () =>
-        calculateTotalValueLocked(
-          await this.getMarketPools(undefined, { indexer: false })
-        ),
+      coinPrices,
     });
   }
 
@@ -1093,16 +1107,14 @@ class ScallopQuery implements ScallopQueryInterface {
     const sCoinAToARate = fromPool.conversionRate;
     const bToSCoinBRate = 1 / toPool.conversionRate;
 
-    let prices = await this.utils.getCoinPrices();
+    let prices = await this.getPythCoinPrices();
     if (
       !prices[fromCoinName] ||
       !prices[toCoinName] ||
       prices[fromCoinName] === 0 ||
       prices[toCoinName] === 0
     ) {
-      const indexerPrices = await this.getCoinPricesByIndexer().catch(
-        () => ({})
-      );
+      const indexerPrices = await this.getIndexerCoinPrices().catch(() => ({}));
       prices = { ...prices, ...indexerPrices };
     }
     if (!prices[fromCoinName] || !prices[toCoinName]) {
@@ -1171,23 +1183,6 @@ class ScallopQuery implements ScallopQueryInterface {
   }
 
   /**
-   * Get pool coin price from indexer
-   * @param coinName
-   * @returns price data
-   */
-  async getCoinPriceByIndexer(poolName: string) {
-    return this.indexer.getCoinPrice(poolName);
-  }
-
-  /**
-   * Get all supported pool price from indexer
-   * @returns prices data
-   */
-  async getCoinPricesByIndexer() {
-    return this.indexer.getCoinPrices();
-  }
-
-  /**
    * Get all coin prices, including sCoin.
    *
    * @description
@@ -1206,8 +1201,8 @@ class ScallopQuery implements ScallopQueryInterface {
     const coinPrices =
       args?.coinPrices ??
       (indexer
-        ? await this.getCoinPricesByIndexer()
-        : await this.utils.getCoinPrices());
+        ? await this.getIndexerCoinPrices()
+        : await this.getPythCoinPrices());
     const marketPools =
       args?.marketPools ??
       (await this.getMarketPools(undefined, { coinPrices, indexer })).pools;

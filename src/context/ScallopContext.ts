@@ -2,7 +2,6 @@ import type { QueryClient } from '@tanstack/query-core';
 import type { SuiKit } from '@scallop-io/sui-kit';
 import type { TransactionExecutor } from 'src/models/transactionExecutor.js';
 import type ScallopConstants from 'src/models/scallopConstants.js';
-import type ScallopIndexer from 'src/models/scallopIndexer.js';
 import type { Logger } from 'src/logger/index.js';
 import { noopLogger } from 'src/logger/index.js';
 
@@ -15,7 +14,6 @@ export interface ScallopContext {
   readonly constants: ScallopConstants;
   readonly suiKit: SuiKit;
   readonly executor: TransactionExecutor;
-  readonly indexer?: ScallopIndexer;
   readonly queryClient: QueryClient;
   readonly logger: Logger;
   readonly walletAddress: string;
@@ -26,7 +24,6 @@ export type CreateScallopContextParams = {
   constants: ScallopConstants;
   suiKit: SuiKit;
   executor: TransactionExecutor;
-  indexer?: ScallopIndexer;
   queryClient?: QueryClient;
   logger?: Logger;
   walletAddress?: string;
@@ -42,7 +39,6 @@ export const createScallopContext = (
     constants: params.constants,
     suiKit: params.suiKit,
     executor: params.executor,
-    indexer: params.indexer,
     queryClient,
     logger: params.logger ?? noopLogger,
     walletAddress,

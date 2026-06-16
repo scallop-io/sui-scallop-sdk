@@ -7,7 +7,6 @@ export {
   ScallopQuery,
   SuiKitTransactionExecutor,
   ScallopClient,
-  ScallopIndexer,
   ScallopUtils,
 } from './models/index.js';
 export type * from './types/index.js';

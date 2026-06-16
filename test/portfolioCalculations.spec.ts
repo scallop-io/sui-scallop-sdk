@@ -1,41 +1,22 @@
-import { describe, expect, it } from 'vitest';
 import { BigNumber } from 'bignumber.js';
 import {
-  calculateTotalValueLocked,
-  parseLendingsForPortfolio,
-  parseObligationAccountsForPortfolio,
-  aggregatePendingLendingRewards,
   aggregatePendingBorrowIncentiveRewards,
-  parseVeScasForPortfolio,
-  summarisePortfolioTotals,
-  buildObligationCollateralEntry,
+  aggregatePendingLendingRewards,
   buildBorrowIncentiveRewards,
+  buildObligationCollateralEntry,
   buildObligationDebtEntry,
   calculateObligationSummary,
-  estimateAvailableWithdrawAmount,
   estimateAvailableBorrowAmount,
+  estimateAvailableWithdrawAmount,
+  parseLendingsForPortfolio,
+  parseObligationAccountsForPortfolio,
+  parseVeScasForPortfolio,
+  summarisePortfolioTotals,
 } from 'src/services/index.js';
-import type { Lendings, Markets, ObligationAccounts } from 'src/types/index.js';
+import type { Lendings, ObligationAccounts } from 'src/types/index.js';
+import { describe, expect, it } from 'vitest';
 
 describe('portfolio calculations', () => {
-  it('calculates TVL from market pools and collaterals without network state', () => {
-    const market = {
-      pools: {
-        sui: { supplyCoin: 10, borrowCoin: 3, coinPrice: 2 },
-        usdc: { supplyCoin: 20, borrowCoin: 5, coinPrice: 1 },
-      },
-      collaterals: { sui: { depositCoin: 4, coinPrice: 2 } },
-    } as unknown as Markets;
-
-    expect(calculateTotalValueLocked(market)).toEqual({
-      supplyLendingValue: 40,
-      supplyCollateralValue: 8,
-      supplyValue: 48,
-      borrowValue: 11,
-      totalValue: 37,
-    });
-  });
-
   it('parseLendingsForPortfolio filters zero-balance entries and normalises non-finite incentiveApr', () => {
     const lendings = {
       sui: {

@@ -4,7 +4,6 @@ export { default as ScallopBuilder } from './scallopBuilder.js';
 export { default as ScallopAddress } from './scallopAddress.js';
 export { default as ScallopAxios } from './scallopAxios.js';
 export { default as ScallopConstants } from './scallopConstants.js';
-export { default as ScallopIndexer } from './scallopIndexer.js';
 export { default as ScallopQuery } from './scallopQuery.js';
 export { default as ScallopQueryClient } from '../models/scallopQueryClient.js';
 export { default as ScallopUtils } from './scallopUtils.js';

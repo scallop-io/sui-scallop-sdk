@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { isValidSuiAddress } from '@scallop-io/sui-kit';
+import { getRpcStats, resetRpcStats } from 'src/datasources/onchain.js';
 import { z as zod } from 'zod';
 import { scallopSDK } from './scallopSdk.js';
 import { ScallopQuery } from 'src/models/index.js';
@@ -27,16 +28,24 @@ beforeAll(async () => {
   console.log(`Your wallet: ${sender}`);
 });
 
-describe('Test Query Scallop Contract On Chain Data', () => {
-  it.skip('Should query market data', async () => {
-    const market = await scallopQuery.getMarketPools();
-    if (ENABLE_LOG) {
-      console.info('Market:');
-      console.dir(market, { depth: null, colors: true });
-    }
-    expect(market).toBeTruthy();
-  });
+// --- RPC accounting: print per-test on-chain call volume + throttle wait so we
+// can see which queries spend the rate-limit budget. ---
+beforeEach(() => resetRpcStats());
+afterEach(() => {
+  const stats = getRpcStats();
+  const totalCalls = [...stats.values()].reduce((a, s) => a + s.calls, 0);
+  const totalWaitMs = [...stats.values()].reduce((a, s) => a + s.waitMs, 0);
+  const name = expect.getState().currentTestName;
+  const perMethod = [...stats.entries()]
+    .sort((a, b) => b[1].calls - a[1].calls)
+    .map(([m, s]) => `${m}=${s.calls}`)
+    .join(' ');
+  console.log(
+    `[rpc] ${name}: ${totalCalls} calls, ${Math.round(totalWaitMs)}ms throttle-wait | ${perMethod}`
+  );
+});
 
+describe('Test Query Scallop Contract On Chain Data', () => {
   it('Should get market pools data', async () => {
     const marketPools = await scallopQuery.getMarketPools(['sui', 'wusdc']);
 
@@ -139,7 +148,7 @@ describe('Test Query Scallop Contract On Chain Data', () => {
   });
 
   it('Should get pyth price data', async () => {
-    const usdcPrice = await scallopQuery.getPriceFromPyth('wusdc');
+    const usdcPrice = await scallopQuery.getPythCoinPrice('wusdc');
 
     if (ENABLE_LOG) {
       console.info('Usdc price:', usdcPrice);
@@ -148,7 +157,9 @@ describe('Test Query Scallop Contract On Chain Data', () => {
   });
 
   it('Should get pyth prices for multiple assets', async () => {
-    const prices = await scallopQuery.getPricesFromPyth(['sui', 'wusdc']);
+    const prices = await scallopQuery.getPythCoinPrices({
+      coinNames: ['sui', 'wusdc'],
+    });
 
     if (ENABLE_LOG) {
       console.info('Pyth prices:', prices);
@@ -652,7 +663,7 @@ describe('Test Address Query', () => {
 
 describe('Test Get Coin Price By Indexer', () => {
   it('Should get coin price by indexer', async () => {
-    const coinPrice = await scallopQuery.getCoinPriceByIndexer('wusdc');
+    const coinPrice = await scallopQuery.getIndexerCoinPrice('wusdc');
     if (ENABLE_LOG) {
       console.info('Coin price:', coinPrice);
     }
@@ -660,7 +671,7 @@ describe('Test Get Coin Price By Indexer', () => {
   });
 
   it('Should get all coin prices by indexer', async () => {
-    const coinPrices = await scallopQuery.getCoinPricesByIndexer();
+    const coinPrices = await scallopQuery.getIndexerCoinPrices();
     if (ENABLE_LOG) {
       console.info('Coin prices:', coinPrices);
     }
