@@ -24,6 +24,11 @@ export class ApiDataSource {
 
   async get<T>(urlPath: string): Promise<T> {
     const response = await this.client.get<T>(urlPath);
+    if (response.status !== 200) {
+      throw new Error(
+        `API request failed with status ${response.status}: ${response.statusText}`
+      );
+    }
     return response.data;
   }
 }

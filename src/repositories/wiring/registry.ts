@@ -2,6 +2,7 @@ import type ScallopUtils from 'src/models/scallopUtils.js';
 import type { QueryClient } from '@tanstack/query-core';
 import type { Logger } from 'src/logger/index.js';
 import {
+  createApiDataSource,
   createIndexerDataSource,
   createOnChainDataSource,
 } from './datasources.js';
@@ -50,9 +51,8 @@ export type RepositoryDeps = {
 };
 
 /**
- * The set of wired domain repositories. This interface GROWS as each domain is
- * migrated off the old query/service layer (see root PLAN.md Phase 2). Today:
- * market, coinBalance, flashloan.
+ * The set of wired domain repositories. Every domain below is wired into the
+ * facade — `ScallopQuery` delegates each read to `repos.<domain>`.
  */
 export interface Repositories {
   readonly market: MarketRepository;
@@ -181,12 +181,14 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
     get price() {
       return (price ??= new PriceRepository({
         ...base,
+        indexer,
         metadata: buildPriceMetadata(utils),
       }));
     },
     get poolAddresses() {
       return (poolAddresses ??= new PoolAddressesRepository({
         ...base,
+        api: createApiDataSource(),
         metadata: buildPoolAddressesMetadata(utils),
       }));
     },

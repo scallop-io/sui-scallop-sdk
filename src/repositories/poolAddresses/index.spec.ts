@@ -8,14 +8,21 @@ vi.mock('./helpers.js', () => ({
 import * as helpers from './helpers.js';
 import { PoolAddressesRepository } from './index.js';
 import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { ApiDataSource } from 'src/datasources/api.js';
 import type { PoolAddressesRepoMetadata } from './types.js';
 
 const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const api = { get: vi.fn() } as unknown as ApiDataSource;
 const metadata = { tag: 'META' } as unknown as PoolAddressesRepoMetadata;
 const logger = { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() };
 
 const makeRepo = () =>
-  new PoolAddressesRepository({ onchain, metadata, logger: logger as never });
+  new PoolAddressesRepository({
+    onchain,
+    api,
+    metadata,
+    logger: logger as never,
+  });
 
 beforeEach(() => vi.clearAllMocks());
 
@@ -32,7 +39,7 @@ describe('PoolAddressesRepository', () => {
     );
   });
 
-  it("source: 'onchain' rebuilds from chain, carrying api + metadata on the context", async () => {
+  it("source: 'onchain' rebuilds from chain, carrying metadata on the narrowed context", async () => {
     vi.mocked(helpers.getPoolAddressesFromOnChain).mockResolvedValue(
       {} as never
     );
@@ -41,9 +48,12 @@ describe('PoolAddressesRepository', () => {
 
     expect(helpers.getPoolAddressesFromOnChain).toHaveBeenCalledTimes(1);
     expect(helpers.getPoolAddressesFromApi).not.toHaveBeenCalled();
+    // The on-chain helper receives the narrowed PoolAddressesOnChainContext
+    // (metadata + onchain), not `api` — narrowing keeps the rebuild path off
+    // the API datasource.
     const ctx = vi.mocked(helpers.getPoolAddressesFromOnChain).mock.calls[0][0];
     expect(ctx.metadata).toBe(metadata);
-    expect(ctx.api).toBeDefined();
+    expect(ctx.onchain).toBe(onchain);
   });
 
   it("'api-first' falls back to onchain when the api throws", async () => {

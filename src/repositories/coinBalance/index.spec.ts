@@ -9,7 +9,7 @@ vi.mock('./helpers.js', () => ({
   getSCoinAmountFromOnChain: vi.fn(),
   querySCoinTotalSupplyFromOnChain: vi.fn(),
   getMarketCoinAmountsFromOnChain: vi.fn(),
-  getMarketCoinAmount: vi.fn(),
+  getMarketCoinAmountFromOnChain: vi.fn(),
 }));
 
 import * as helpers from './helpers.js';
@@ -65,7 +65,9 @@ describe('CoinBalanceRepository', () => {
   });
 
   it('returns the helper result unchanged (no post-processing in the repo)', async () => {
-    vi.mocked(helpers.getMarketCoinAmount).mockResolvedValue(123 as never);
+    vi.mocked(helpers.getMarketCoinAmountFromOnChain).mockResolvedValue(
+      123 as never
+    );
     const res = await makeRepo().getMarketCoinAmount({
       marketCoinName: 'ssui',
       address: '0xA',

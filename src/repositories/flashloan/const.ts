@@ -1,0 +1,3 @@
+export const FEE_DENOMINATOR = 1e4;
+export const FLASHLOAN_FEES_TABLE_ID =
+  '0x00481a93b819d744a7d79ecdc6c62c74f2f7cb4779316c4df640415817ac61bb' as const;

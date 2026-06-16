@@ -1,6 +1,8 @@
 import type { SuiKit } from '@scallop-io/sui-kit';
 import { OnChainDataSource } from 'src/datasources/onchain.js';
 import { IndexerDataSource } from 'src/datasources/indexer.js';
+import { ApiDataSource } from 'src/datasources/api.js';
+import { API_BASE_URL } from 'src/constants/api.js';
 
 /**
  * SuiKit's current fullnode url, used in RPC cache keys. Returns `''` for
@@ -40,3 +42,12 @@ export const createOnChainDataSource = (
  */
 export const createIndexerDataSource = (url?: string): IndexerDataSource =>
   new IndexerDataSource({ url });
+
+/**
+ * Plain Scallop API datasource (defaults to `API_BASE_URL`, distinct from the
+ * indexer base). Injected into repos that read the public API rather than the
+ * indexer (e.g. `poolAddresses`). Pass `url` to override.
+ */
+export const createApiDataSource = (
+  url: string = API_BASE_URL
+): ApiDataSource => new ApiDataSource({ url });

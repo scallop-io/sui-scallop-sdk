@@ -1,10 +1,14 @@
 import { SuiClientTypes } from '@mysten/sui/client';
 import { bcs } from '@mysten/sui/bcs';
-import { PoolAddress, PoolAddressesRepoContext } from './types.js';
+import {
+  PoolAddress,
+  PoolAddressesApiContext,
+  PoolAddressesOnChainContext,
+} from './types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { MarketObjectJsonSchema } from './schema.js';
-import { getDynamicFieldOrNull, logError } from '../utils.js';
-import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
+import { logError } from '../utils.js';
+import { ScallopParseError, ScallopRpcError } from 'src/errors/index.js';
 import {
   ADDRESS_TYPE,
   BORROW_FEE_TYPE,
@@ -12,9 +16,11 @@ import {
   ISOLATED_ASSET_KEY,
   SUPPLY_LIMIT_TYPE,
 } from './const.js';
+import type { SuiObjectData } from 'src/types/index.js';
+import { partitionArray } from 'src/utils/index.js';
 
 export const getPoolAddressesFromApi = async (
-  ctx: PoolAddressesRepoContext,
+  ctx: PoolAddressesApiContext,
   {
     poolNames = [],
   }: {
@@ -44,37 +50,113 @@ export const getPoolAddressesFromApi = async (
   );
 };
 
-/**
- * Resolve a market dynamic field to its value object — both the object id and
- * its parsed JSON. Returns `undefined` when the field isn't present (e.g. a
- * pool with no isolated-asset key). Two-step (dynamic field → object) because
- * some keys are plain `DynamicField`s, not `DynamicObjectField`s.
- */
-const resolveDynamicValueObject = async (
-  ctx: PoolAddressesRepoContext,
-  parentId: string,
-  type: string,
-  value: unknown
-): Promise<{ objectId: string; json: unknown } | undefined> => {
-  const { onchain, fetchWithCache } = ctx;
+type DynamicValueObject = { objectId: string; json: unknown };
 
-  const dynamicField = await getDynamicFieldOrNull(ctx, {
+const parseDynamicFieldCoinTypeKey = (
+  field: SuiClientTypes.DynamicFieldEntry
+): string | undefined => {
+  try {
+    if (field.name.type.includes('::type_name::TypeName')) {
+      return bcs
+        .struct('TypeName', { name: bcs.string() })
+        .parse(field.name.bcs).name;
+    }
+    return bcs.string().parse(field.name.bcs);
+  } catch {
+    return undefined;
+  }
+};
+
+const queryDynamicValueObjectIds = async (
+  ctx: PoolAddressesOnChainContext,
+  {
     parentId,
-    name: encodeDynamicFieldNameForV2({ type, value }),
-  });
-  if (!dynamicField) return undefined;
+    type,
+    coinTypeKeys,
+  }: {
+    parentId: string;
+    type: string;
+    coinTypeKeys: ReadonlySet<string>;
+  }
+): Promise<Record<string, string>> => {
+  const { onchain, fetchWithCache } = ctx;
+  const result: Record<string, string> = {};
+  let cursor: string | null | undefined = null;
+  let hasNextPage = false;
 
-  const fetchOptions: SuiClientTypes.GetObjectOptions<{ json: true }> = {
-    objectId: dynamicField.dynamicField.fieldId,
-    include: { json: true },
-  };
-  const { object } = await fetchWithCache({
-    queryKey: queryKeys.rpc.getObject({ ...fetchOptions, node: onchain.url }),
-    queryFn: () => onchain.getObject(fetchOptions),
-  });
-  if (!object) return undefined;
+  do {
+    const options: SuiClientTypes.ListDynamicFieldsOptions = {
+      parentId,
+      cursor,
+      limit: 50,
+    };
+    const resp = await fetchWithCache({
+      queryKey: queryKeys.rpc.getDynamicFields({
+        ...options,
+        node: onchain.url,
+      }),
+      queryFn: () => onchain.client.listDynamicFields(options),
+    });
 
-  return { objectId: object.objectId, json: object.json };
+    for (const field of resp.dynamicFields) {
+      if (field.name.type !== type) continue;
+      const coinTypeKey = parseDynamicFieldCoinTypeKey(field);
+      if (coinTypeKey && coinTypeKeys.has(coinTypeKey)) {
+        result[coinTypeKey] = field.fieldId;
+      }
+    }
+
+    cursor = resp.cursor;
+    hasNextPage = resp.hasNextPage;
+  } while (hasNextPage);
+
+  return result;
+};
+
+const queryDynamicValueObjects = async (
+  ctx: PoolAddressesOnChainContext,
+  requests: Record<string, Record<string, string>>
+): Promise<Record<string, Record<string, DynamicValueObject | undefined>>> => {
+  const { onchain, fetchWithCache } = ctx;
+  const objectIds = [
+    ...new Set(Object.values(requests).flatMap((ids) => Object.values(ids))),
+  ];
+  const objectDataMap: Record<string, SuiObjectData> = {};
+
+  for (const batch of partitionArray(objectIds, 50)) {
+    const { objects } = await fetchWithCache({
+      queryKey: queryKeys.rpc.getObjects({
+        objectIds: batch,
+        node: onchain.url,
+      }),
+      queryFn: () =>
+        onchain.client.getObjects({
+          objectIds: batch,
+          include: { json: true },
+        }),
+    });
+
+    for (const object of objects) {
+      if (!(object instanceof Error)) {
+        objectDataMap[object.objectId] = object;
+      }
+    }
+  }
+
+  return Object.entries(requests).reduce<
+    Record<string, Record<string, DynamicValueObject | undefined>>
+  >((resolved, [name, idsByCoinType]) => {
+    resolved[name] = Object.entries(idsByCoinType).reduce<
+      Record<string, DynamicValueObject | undefined>
+    >((objects, [coinTypeKey, objectId]) => {
+      const object = objectDataMap[objectId];
+      objects[coinTypeKey] = object
+        ? { objectId: object.objectId, json: object.json }
+        : undefined;
+      return objects;
+    }, {});
+    return resolved;
+  }, {});
 };
 
 /**
@@ -82,7 +164,7 @@ const resolveDynamicValueObject = async (
  * requested coinType to its flashloan-fee object id.
  */
 const queryFlashloanFeeObjectIds = async (
-  ctx: PoolAddressesRepoContext,
+  ctx: PoolAddressesOnChainContext,
   coinTypes: Set<string>,
   flashLoanFeesTableId: string
 ): Promise<Record<string, string>> => {
@@ -131,7 +213,7 @@ const queryFlashloanFeeObjectIds = async (
  * sub-tables. Optionally filtered to `poolNames`.
  */
 export const getPoolAddressesFromOnChain = async (
-  ctx: PoolAddressesRepoContext,
+  ctx: PoolAddressesOnChainContext,
   {
     poolNames = [],
   }: {
@@ -163,7 +245,13 @@ export const getPoolAddressesFromOnChain = async (
   if (!parsed.success) {
     throw logError(
       ctx.logger,
-      `Failed to parse market object from on-chain data: ${parsed.error.message}`
+      new ScallopParseError(
+        'Failed to parse market object from on-chain data',
+        {
+          context: { market },
+          cause: parsed.error,
+        }
+      )
     );
   }
   const marketFields = parsed.data;
@@ -187,7 +275,10 @@ export const getPoolAddressesFromOnChain = async (
   if (coinPairs.length === 0) {
     throw logError(
       ctx.logger,
-      'No coins to resolve pool addresses for (empty config or filter matched nothing)'
+      new ScallopRpcError(
+        'No coins to resolve pool addresses for (empty config or filter matched nothing)',
+        { context: { poolNames } }
+      )
     );
   }
 
@@ -198,84 +289,134 @@ export const getPoolAddressesFromOnChain = async (
     flashLoanFeesTableId
   );
 
-  // 4. Resolve per-coin object ids and assemble.
-  const results: Record<string, PoolAddress> = {};
-  await Promise.all(
-    coinPairs.map(async ([coinName, cfg]) => {
-      const { coinType } = cfg;
-      const coinTypeKey = coinType.slice(2);
-
-      const [
-        lendingPool,
-        collateralPool,
-        borrowDynamic,
-        interestModel,
-        riskModel,
-        borrowFee,
-        supplyLimit,
-        borrowLimit,
-        isolatedAsset,
-      ] = await Promise.all([
-        resolveDynamicValueObject(ctx, balanceSheetParentId, ADDRESS_TYPE, {
-          name: coinTypeKey,
-        }),
-        resolveDynamicValueObject(ctx, collateralStatsParentId, ADDRESS_TYPE, {
-          name: coinTypeKey,
-        }),
-        resolveDynamicValueObject(ctx, borrowDynamicsParentId, ADDRESS_TYPE, {
-          name: coinTypeKey,
-        }),
-        resolveDynamicValueObject(ctx, interestModelParentId, ADDRESS_TYPE, {
-          name: coinTypeKey,
-        }),
-        resolveDynamicValueObject(ctx, riskModelParentId, ADDRESS_TYPE, {
-          name: coinTypeKey,
-        }),
-        resolveDynamicValueObject(ctx, market, BORROW_FEE_TYPE, coinTypeKey),
-        resolveDynamicValueObject(ctx, market, SUPPLY_LIMIT_TYPE, coinTypeKey),
-        resolveDynamicValueObject(ctx, market, BORROW_LIMIT_TYPE, coinTypeKey),
-        resolveDynamicValueObject(ctx, market, ISOLATED_ASSET_KEY, coinTypeKey),
-      ]);
-
-      const isolatedJson = isolatedAsset?.json as
-        | { id?: string; value?: boolean }
-        | undefined;
-
-      const sCoinName = `s${coinName}`;
-      const spoolPool = spool.pools[sCoinName];
-      const sCoin = scoin.coins[sCoinName];
-      const pyth = cfg.oracle?.pyth;
-
-      results[coinName] = {
-        coinName,
-        symbol: cfg.symbol,
-        coinType,
-        coinMetadataId: cfg.metaData,
-        decimals: cfg.decimals,
-        lendingPoolAddress: lendingPool?.objectId ?? '',
-        collateralPoolAddress: collateralPool?.objectId ?? '',
-        borrowDynamic: borrowDynamic?.objectId ?? '',
-        interestModel: interestModel?.objectId ?? '',
-        riskModel: riskModel?.objectId,
-        borrowFeeKey: borrowFee?.objectId ?? '',
-        supplyLimitKey: supplyLimit?.objectId ?? '',
-        borrowLimitKey: borrowLimit?.objectId ?? '',
-        isolatedAssetKey: isolatedJson?.id ?? '',
-        isIsolated: isolatedJson?.value ?? false,
-        spool: spoolPool?.id ?? '',
-        spoolReward: spoolPool?.rewardPoolId ?? '',
-        spoolName: sCoinName,
-        sCoinName,
-        sCoinType: sCoin?.coinType ?? '',
-        sCoinTreasury: sCoin?.treasury ?? '',
-        sCoinMetadataId: sCoin?.metaData ?? '',
-        sCoinSymbol: sCoin?.symbol ?? '',
-        pythFeed: pyth?.feed ?? '',
-        pythFeedObjectId: pyth?.feedObject ?? '',
-        flashloanFeeObject: flashloanFeeObjectIds[coinType] ?? '',
-      };
-    })
+  // 4. Resolve per-coin object ids by scanning each source table once, then
+  // batch-fetching the value objects.
+  const coinTypeKeys = new Set(
+    coinPairs.map(([, cfg]) => cfg.coinType.slice(2))
   );
+  const [
+    lendingPoolIds,
+    collateralPoolIds,
+    borrowDynamicIds,
+    interestModelIds,
+    riskModelIds,
+    borrowFeeIds,
+    supplyLimitIds,
+    borrowLimitIds,
+    isolatedAssetIds,
+  ] = await Promise.all([
+    queryDynamicValueObjectIds(ctx, {
+      parentId: balanceSheetParentId,
+      type: ADDRESS_TYPE,
+      coinTypeKeys,
+    }),
+    queryDynamicValueObjectIds(ctx, {
+      parentId: collateralStatsParentId,
+      type: ADDRESS_TYPE,
+      coinTypeKeys,
+    }),
+    queryDynamicValueObjectIds(ctx, {
+      parentId: borrowDynamicsParentId,
+      type: ADDRESS_TYPE,
+      coinTypeKeys,
+    }),
+    queryDynamicValueObjectIds(ctx, {
+      parentId: interestModelParentId,
+      type: ADDRESS_TYPE,
+      coinTypeKeys,
+    }),
+    queryDynamicValueObjectIds(ctx, {
+      parentId: riskModelParentId,
+      type: ADDRESS_TYPE,
+      coinTypeKeys,
+    }),
+    queryDynamicValueObjectIds(ctx, {
+      parentId: market,
+      type: BORROW_FEE_TYPE,
+      coinTypeKeys,
+    }),
+    queryDynamicValueObjectIds(ctx, {
+      parentId: market,
+      type: SUPPLY_LIMIT_TYPE,
+      coinTypeKeys,
+    }),
+    queryDynamicValueObjectIds(ctx, {
+      parentId: market,
+      type: BORROW_LIMIT_TYPE,
+      coinTypeKeys,
+    }),
+    queryDynamicValueObjectIds(ctx, {
+      parentId: market,
+      type: ISOLATED_ASSET_KEY,
+      coinTypeKeys,
+    }),
+  ]);
+
+  const dynamicObjects = await queryDynamicValueObjects(ctx, {
+    lendingPool: lendingPoolIds,
+    collateralPool: collateralPoolIds,
+    borrowDynamic: borrowDynamicIds,
+    interestModel: interestModelIds,
+    riskModel: riskModelIds,
+    borrowFee: borrowFeeIds,
+    supplyLimit: supplyLimitIds,
+    borrowLimit: borrowLimitIds,
+    isolatedAsset: isolatedAssetIds,
+  });
+
+  // 5. Assemble the public pool-address map.
+  const results: Record<string, PoolAddress> = {};
+  for (const [coinName, cfg] of coinPairs) {
+    const { coinType } = cfg;
+    const coinTypeKey = coinType.slice(2);
+    const lendingPool = dynamicObjects.lendingPool[coinTypeKey];
+    const collateralPool = dynamicObjects.collateralPool[coinTypeKey];
+    const borrowDynamic = dynamicObjects.borrowDynamic[coinTypeKey];
+    const interestModel = dynamicObjects.interestModel[coinTypeKey];
+    const riskModel = dynamicObjects.riskModel[coinTypeKey];
+    const borrowFee = dynamicObjects.borrowFee[coinTypeKey];
+    const supplyLimit = dynamicObjects.supplyLimit[coinTypeKey];
+    const borrowLimit = dynamicObjects.borrowLimit[coinTypeKey];
+    const isolatedAsset = dynamicObjects.isolatedAsset[coinTypeKey];
+
+    const isolatedJson = isolatedAsset?.json as
+      | { id?: string; value?: boolean }
+      | undefined;
+
+    const sCoinName = `s${coinName}`;
+    const spoolPool = spool.pools[sCoinName];
+    const sCoin = scoin.coins[sCoinName];
+    const pyth = cfg.oracle?.pyth;
+
+    results[coinName] = {
+      coinName,
+      symbol: cfg.symbol,
+      coinType,
+      coinMetadataId: cfg.metaData,
+      decimals: cfg.decimals,
+      lendingPoolAddress: lendingPool?.objectId ?? '',
+      collateralPoolAddress: collateralPool?.objectId ?? '',
+      borrowDynamic: borrowDynamic?.objectId ?? '',
+      interestModel: interestModel?.objectId ?? '',
+      riskModel: riskModel?.objectId,
+      borrowFeeKey: borrowFee?.objectId ?? '',
+      supplyLimitKey: supplyLimit?.objectId ?? '',
+      borrowLimitKey: borrowLimit?.objectId ?? '',
+      isolatedAssetKey: isolatedJson?.id ?? '',
+      isIsolated: isolatedJson?.value ?? false,
+      spool: spoolPool?.id ?? '',
+      spoolReward: spoolPool?.rewardPoolId ?? '',
+      spoolName: sCoinName,
+      sCoinName,
+      sCoinType: sCoin?.coinType ?? '',
+      sCoinTreasury: sCoin?.treasury ?? '',
+      sCoinMetadataId: sCoin?.metaData ?? '',
+      sCoinSymbol: sCoin?.symbol ?? '',
+      pythFeed: pyth?.feed ?? '',
+      pythFeedObjectId: pyth?.feedObject ?? '',
+      flashloanFeeObject: flashloanFeeObjectIds[coinType] ?? '',
+    };
+  }
 
   return results;
 };

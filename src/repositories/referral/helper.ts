@@ -1,11 +1,11 @@
 import { SuiClientTypes } from '@mysten/sui/client';
 import { getDynamicFieldOrNull } from '../utils.js';
-import { ReferralRepoContext } from './types.js';
+import { ReferralBindingContext } from './types.js';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 import { ReferrerVeScaKeyBcs } from './bcs.js';
 
 export const getVeScaKeyIdFromRefBindingsFromOnChain = async (
-  ctx: ReferralRepoContext,
+  ctx: ReferralBindingContext,
   refereeAddress: string
 ) => {
   const {

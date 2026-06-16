@@ -1,11 +1,14 @@
 import { SuiClientTypes } from '@mysten/sui/client';
-import { IsolatedAssetsRepoContext } from './types.js';
+import {
+  IsolatedAssetsApiContext,
+  IsolatedAssetsOnChainContext,
+} from './types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { ISOLATED_ASSET_KEY_TYPE } from './const.js';
 import { IsolatedAssetBcs, IsolatedAssetTypeBcs } from './bcs.js';
 import { PoolAddress } from 'src/types/index.js';
 
-const queryIsolatedAssets = async (ctx: IsolatedAssetsRepoContext) => {
+const queryIsolatedAssets = async (ctx: IsolatedAssetsOnChainContext) => {
   const {
     onchain,
     fetchWithCache,
@@ -66,13 +69,13 @@ const queryIsolatedAssets = async (ctx: IsolatedAssetsRepoContext) => {
 };
 
 export const getIsolatedAssetsFromOnChain = async (
-  ctx: IsolatedAssetsRepoContext
+  ctx: IsolatedAssetsOnChainContext
 ) => {
   return queryIsolatedAssets(ctx);
 };
 
 export const getIsolatedAssetsFromApi = async (
-  ctx: IsolatedAssetsRepoContext
+  ctx: IsolatedAssetsApiContext
 ) => {
   const {
     metadata: { poolAddresses, whitelist },

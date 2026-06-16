@@ -29,7 +29,7 @@ export class SpoolRepository extends BaseRepository<
   SpoolRepoContext,
   SpoolMetadata
 > {
-  protected readonly indexer: IndexerDataSource;
+  private readonly indexer: IndexerDataSource;
 
   constructor({ indexer, ...args }: SpoolRepoArgs) {
     super(args);

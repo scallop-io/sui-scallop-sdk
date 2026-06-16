@@ -1,7 +1,7 @@
 import type { IndexerDataSource } from 'src/datasources/indexer.js';
 import type { PoolAddress } from 'src/types/constant/index.js';
 import type { SuiObjectData } from 'src/types/index.js';
-import type { CoinPrices } from 'src/types/utils.js';
+import type { CoinPrices, OptionalKeys } from 'src/types/utils.js';
 import type { BaseContext, BaseRepoArgs } from '../types.js';
 
 export type SpoolMetadata = {
@@ -63,10 +63,6 @@ export type RequiredSpoolObjects = Record<
     spoolReward?: SuiObjectData;
   }
 >;
-
-type OptionalKeys<T> = {
-  [K in keyof T]?: T[K];
-};
 
 export type Spools = OptionalKeys<Record<string, Spool>>;
 

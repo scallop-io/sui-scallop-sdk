@@ -9,6 +9,8 @@ import type {
   OriginMarketPoolData,
   ParsedMarketCollateralData,
   ParsedMarketPoolData,
+  TotalValueLocked,
+  TvlMarketInput,
 } from './types.js';
 
 export const filterRecords = <T extends { coinName: string }>(
@@ -225,6 +227,42 @@ export const calculateMarketCollateralData = (
     maxDepositCoin: maxCollateralCoin.toNumber(),
     depositAmount: parsedMarketCollateralData.totalCollateralAmount,
     depositCoin: depositCoin.toNumber(),
+  };
+};
+
+export const calculateTotalValueLocked = (
+  market: TvlMarketInput
+): TotalValueLocked => {
+  let supplyLendingValue = BigNumber(0);
+  let supplyCollateralValue = BigNumber(0);
+  let borrowValue = BigNumber(0);
+
+  for (const pool of Object.values(market.pools)) {
+    if (!pool) continue;
+    supplyLendingValue = supplyLendingValue.plus(
+      BigNumber(pool.supplyCoin).multipliedBy(pool.coinPrice)
+    );
+    borrowValue = borrowValue.plus(
+      BigNumber(pool.borrowCoin).multipliedBy(pool.coinPrice)
+    );
+  }
+
+  for (const collateral of Object.values(market.collaterals)) {
+    if (!collateral) continue;
+    supplyCollateralValue = supplyCollateralValue.plus(
+      BigNumber(collateral.depositCoin).multipliedBy(collateral.coinPrice)
+    );
+  }
+
+  return {
+    supplyValue: supplyLendingValue.plus(supplyCollateralValue).toNumber(),
+    supplyLendingValue: supplyLendingValue.toNumber(),
+    supplyCollateralValue: supplyCollateralValue.toNumber(),
+    borrowValue: borrowValue.toNumber(),
+    totalValue: supplyLendingValue
+      .plus(supplyCollateralValue)
+      .minus(borrowValue)
+      .toNumber(),
   };
 };
 

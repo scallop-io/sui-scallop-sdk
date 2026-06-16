@@ -12,6 +12,7 @@ import { queryKeys } from 'src/constants/queryKeys.js';
 import { MAX_LOCK_DURATION } from 'src/constants/vesca.js';
 import { getSharedObjectData, parseObjectAs } from 'src/utils/object.js';
 import { logError, isObjectNotFoundError } from '../utils.js';
+import { ScallopRpcError } from 'src/errors/index.js';
 import { BaseContext } from '../types.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui/bcs';
@@ -73,31 +74,32 @@ const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
 
   const tx = new SuiTxBlock();
 
+  const getArg = async (objectId: string, mutable: boolean) => {
+    const response = await fetchWithCache({
+      queryKey: queryKeys.rpc.getSharedObject({
+        node: onchain.url,
+        objectId,
+      }),
+      queryFn: () => onchain.getObject({ objectId }),
+    });
+    if (!response.object) {
+      throw logError(
+        ctx.logger,
+        new ScallopRpcError(`Failed to fetch object ${objectId}`, {
+          context: { objectId },
+        })
+      );
+    }
+    return getSharedObjectData(onchain, {
+      tx,
+      mutable,
+      objectId: response.object,
+    });
+  };
+
   const [treasurySharedObject, configSharedObject] = await Promise.all([
-    fetchWithCache({
-      queryKey: queryKeys.rpc.getSharedObject({
-        node: onchain.url,
-        objectId: treasury,
-      }),
-      queryFn: () =>
-        getSharedObjectData(onchain, {
-          tx,
-          mutable: true,
-          objectId: treasury,
-        }),
-    }),
-    fetchWithCache({
-      queryKey: queryKeys.rpc.getSharedObject({
-        node: onchain.url,
-        objectId: config,
-      }),
-      queryFn: () =>
-        getSharedObjectData(onchain, {
-          tx,
-          mutable: false,
-          objectId: config,
-        }),
-    }),
+    getArg(treasury, true),
+    getArg(config, false),
   ]);
 
   // Refreh query
@@ -134,7 +136,10 @@ const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
   if (!commandResults) {
     throw logError(
       ctx.logger,
-      'Failed to fetch total veSca amount from treasury: No command results'
+      new ScallopRpcError(
+        'Failed to fetch total veSca amount from treasury: No command results',
+        { context: { treasury } }
+      )
     );
   }
 
@@ -142,7 +147,9 @@ const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
   if (!resultBcs) {
     throw logError(
       ctx.logger,
-      'Failed to fetch result bcs from vesca treasury'
+      new ScallopRpcError('Failed to fetch result bcs from vesca treasury', {
+        context: { treasury },
+      })
     );
   }
 

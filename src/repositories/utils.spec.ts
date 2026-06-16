@@ -6,6 +6,7 @@ import {
   getDynamicFieldWithCache,
   getDynamicFieldOrNull,
 } from './utils.js';
+import { ScallopRpcError } from 'src/errors/index.js';
 
 const makeLogger = () => ({
   error: vi.fn(),
@@ -19,20 +20,30 @@ beforeEach(() => {
 });
 
 describe('logError', () => {
-  it('logs via logger.error and returns an Error carrying the message', () => {
+  it('logs the typed error via logger.error (forwarding its context) and returns it', () => {
     const logger = makeLogger();
-    const ctx = { foo: 'bar' };
-    const err = logError(logger as never, 'boom', ctx);
+    const error = new ScallopRpcError('boom', { context: { foo: 'bar' } });
+    const returned = logError(logger as never, error);
 
-    expect(err).toBeInstanceOf(Error);
-    expect(err.message).toBe('boom');
-    expect(logger.error).toHaveBeenCalledWith('boom', ctx);
+    // returns the SAME instance so callers can `throw logError(...)`
+    expect(returned).toBe(error);
+    expect(returned).toBeInstanceOf(ScallopRpcError);
+    expect(logger.error).toHaveBeenCalledWith('boom', { foo: 'bar' });
+  });
+
+  it('logs a plain Error with undefined context and returns it', () => {
+    const logger = makeLogger();
+    const error = new Error('plain');
+    const returned = logError(logger as never, error);
+
+    expect(returned).toBe(error);
+    expect(logger.error).toHaveBeenCalledWith('plain', undefined);
   });
 
   it('does not throw when no logger is supplied', () => {
-    const err = logError(undefined, 'no-logger');
-    expect(err).toBeInstanceOf(Error);
-    expect(err.message).toBe('no-logger');
+    const error = new ScallopRpcError('no-logger');
+    const returned = logError(undefined, error);
+    expect(returned).toBe(error);
   });
 });
 

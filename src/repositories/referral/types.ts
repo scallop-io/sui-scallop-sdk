@@ -18,3 +18,12 @@ export type ReferralRepoContext = BaseContext & {
 export type ReferralRepoArgs = BaseRepoArgs & {
   metadata: ReferralRepoMetadata;
 };
+
+/**
+ * Narrowed context for `getVeScaKeyIdFromRefBindingsFromOnChain`: it reads only
+ * `metadata.addresses.referral.bindingTableId`, plus the `onchain` /
+ * `fetchWithCache` fields it forwards to `getDynamicFieldOrNull`.
+ */
+export type ReferralBindingContext = BaseContext & {
+  metadata: { addresses: ReferralAddresses<'bindingTableId'> };
+};

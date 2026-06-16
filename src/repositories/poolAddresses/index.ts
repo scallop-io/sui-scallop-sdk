@@ -6,7 +6,6 @@ import {
   PoolAddressesRepoContext,
   PoolAddressesRepoMetadata,
 } from './types.js';
-import { API_BASE_URL } from 'src/constants/api.js';
 import { runWithDataSourceFallback } from '../utils.js';
 import {
   getPoolAddressesFromApi,
@@ -18,9 +17,9 @@ export class PoolAddressesRepository extends BaseRepository<
   PoolAddressesRepoMetadata
 > {
   private readonly api: ApiDataSource;
-  constructor(args: PoolAddressesRepoArgs) {
+  constructor({ api, ...args }: PoolAddressesRepoArgs) {
     super(args);
-    this.api = new ApiDataSource({ url: API_BASE_URL });
+    this.api = api;
   }
 
   get context() {

@@ -1,14 +1,24 @@
 import { SuiClientTypes } from '@mysten/sui/client';
-import { XOracleRepoContext, SupportedOracle } from './types.js';
+import {
+  SupportedOracle,
+  XOracleAssetOraclesContext,
+  XOracleOnDemandAggContext,
+  XOraclePriceUpdatePolicyContext,
+  XOracleSwitchboardRegistryContext,
+  XOracleUpdatePolicyRulesContext,
+} from './types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { bcs } from '@mysten/sui/bcs';
-import { prepend0x } from './util.js';
+import { prepend0x } from './utils.js';
 import { PricePolicyRulesVecSet } from './bcs.js';
 import { getDynamicFieldOrNull, logError } from '../utils.js';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
+import { ScallopParseError, ScallopRpcError } from 'src/errors/index.js';
+
+const SWITCHBOARD_REGISTRY_SCAN_THRESHOLD = 3;
 
 const queryUpdatePolicyRules = async (
-  ctx: XOracleRepoContext,
+  ctx: XOracleUpdatePolicyRulesContext,
   vecSetId: string
 ): Promise<Record<string, SupportedOracle[]>> => {
   const { onchain, fetchWithCache, metadata } = ctx;
@@ -72,7 +82,9 @@ const queryUpdatePolicyRules = async (
   return results;
 };
 
-export const getAssetOraclesFromOnChain = async (ctx: XOracleRepoContext) => {
+export const getAssetOraclesFromOnChain = async (
+  ctx: XOracleAssetOraclesContext
+) => {
   const {
     metadata: { addresses, whitelist },
   } = ctx;
@@ -110,7 +122,7 @@ export const getAssetOraclesFromOnChain = async (ctx: XOracleRepoContext) => {
  * dynamic-field result (or `null` when the policy rules key isn't present).
  */
 export const getPriceUpdatePoliciesFromOnChain = async (
-  ctx: XOracleRepoContext
+  ctx: XOraclePriceUpdatePolicyContext
 ) => {
   const { addresses } = ctx.metadata;
   const keyType = `${addresses.xOracleObject}::price_update_policy::PriceUpdatePolicyRulesKey`;
@@ -139,7 +151,7 @@ export const getPriceUpdatePoliciesFromOnChain = async (
  * the coin up in the on-chain switchboard registry table.
  */
 export const getOnDemandAggObjectIdsFromOnChain = async (
-  ctx: XOracleRepoContext,
+  ctx: XOracleOnDemandAggContext,
   coinNames: string[]
 ): Promise<string[]> => {
   const { addresses, parseCoinType, getSwitchboardAggAddress } = ctx.metadata;
@@ -157,11 +169,56 @@ export const getOnDemandAggObjectIdsFromOnChain = async (
 
   if (missingAgg.length === 0) return registeredAggs as string[];
 
+  if (missingAgg.length > SWITCHBOARD_REGISTRY_SCAN_THRESHOLD) {
+    const missingCoinTypes = new Map<
+      string,
+      { idx: number; coinName: string }
+    >();
+    for (const missing of missingAgg) {
+      const coinType = parseCoinType(missing.coinName);
+      if (!coinType) {
+        throw logError(
+          ctx.logger,
+          new ScallopParseError(`Invalid coin name: ${missing.coinName}`, {
+            context: { coinName: missing.coinName },
+          })
+        );
+      }
+      missingCoinTypes.set(coinType.slice(2), missing);
+    }
+
+    const scannedAggs = await querySwitchboardRegistryAggs(
+      ctx,
+      registryTableId,
+      missingCoinTypes
+    );
+    for (const [coinTypeKey, { idx }] of missingCoinTypes) {
+      const agg = scannedAggs[coinTypeKey];
+      if (!agg) {
+        throw logError(
+          ctx.logger,
+          new ScallopRpcError(
+            `No on-demand aggregator found for 0x${coinTypeKey}`,
+            { context: { coinTypeKey } }
+          )
+        );
+      }
+      registeredAggs[idx] = agg;
+    }
+
+    return registeredAggs as string[];
+  }
+
   await Promise.all(
     missingAgg.map(async ({ idx, coinName }) => {
       const coinType = parseCoinType(coinName);
       if (!coinType) {
-        throw logError(ctx.logger, `Invalid coin name: ${coinName}`);
+        throw logError(
+          ctx.logger,
+          new ScallopParseError(`Invalid coin name: ${coinName}`, {
+            context: { coinName },
+          })
+        );
       }
       const result = await getDynamicFieldOrNull(ctx, {
         parentId: registryTableId,
@@ -173,7 +230,9 @@ export const getOnDemandAggObjectIdsFromOnChain = async (
       if (!result) {
         throw logError(
           ctx.logger,
-          `No on-demand aggregator found for ${coinType}`
+          new ScallopRpcError(`No on-demand aggregator found for ${coinType}`, {
+            context: { coinType },
+          })
         );
       }
       // The registry value is the aggregator object id (an address).
@@ -183,4 +242,63 @@ export const getOnDemandAggObjectIdsFromOnChain = async (
   );
 
   return registeredAggs as string[];
+};
+
+const parseRegistryCoinTypeKey = (
+  field: SuiClientTypes.DynamicFieldEntry
+): string | undefined => {
+  try {
+    return bcs.struct('TypeName', { name: bcs.string() }).parse(field.name.bcs)
+      .name;
+  } catch {
+    try {
+      return bcs.string().parse(field.name.bcs);
+    } catch {
+      return undefined;
+    }
+  }
+};
+
+const querySwitchboardRegistryAggs = async (
+  ctx: XOracleSwitchboardRegistryContext,
+  registryTableId: string,
+  missingCoinTypes: ReadonlyMap<string, { idx: number; coinName: string }>
+): Promise<Record<string, string>> => {
+  const { onchain, fetchWithCache } = ctx;
+  const result: Record<string, string> = {};
+  let cursor: string | null | undefined = null;
+  let hasNextPage = false;
+
+  do {
+    const options: SuiClientTypes.ListDynamicFieldsOptions = {
+      parentId: registryTableId,
+      cursor,
+      limit: 50,
+      // @ts-ignore - Supported on grpc implementation
+      include: { value: true },
+    };
+    const resp = await fetchWithCache({
+      queryKey: queryKeys.rpc.getDynamicFields({
+        ...options,
+        node: onchain.url,
+      }),
+      queryFn: () => onchain.client.listDynamicFields(options),
+    });
+
+    for (const field of resp.dynamicFields) {
+      const coinTypeKey = parseRegistryCoinTypeKey(field);
+      if (!coinTypeKey || !missingCoinTypes.has(coinTypeKey)) continue;
+      // @ts-ignore - value is supported on grpc implementation
+      const valueBcs = field.value?.bcs;
+      if (valueBcs) {
+        result[coinTypeKey] = bcs.Address.parse(valueBcs);
+      }
+    }
+
+    cursor = resp.cursor;
+    hasNextPage =
+      resp.hasNextPage && Object.keys(result).length < missingCoinTypes.size;
+  } while (hasNextPage);
+
+  return result;
 };

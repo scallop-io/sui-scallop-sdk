@@ -2,6 +2,7 @@ import { Logger } from 'src/logger/Logger.js';
 import { BaseContext, DataSourceFallbackArgs } from './types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { SuiClientTypes } from '@mysten/sui/client';
+import { ScallopError } from 'src/errors/index.js';
 
 // Re-export so the many `import { QuerySource, runWithDataSourceFallback }
 // from '../utils.js'` call sites keep resolving after QuerySource moved to
@@ -9,20 +10,22 @@ import { SuiClientTypes } from '@mysten/sui/client';
 export type { QuerySource } from './types.js';
 
 /**
- * Logs an error via the injected `ctx.logger` (if any) and returns the built
- * `Error` so the caller can `throw` it: `throw logError(ctx.logger, msg)`.
- * Helpers route their failure throws through this so failures are surfaced
- * through the SDK's logger instead of being silently thrown. Returning (rather
- * than throwing) keeps TypeScript's control-flow narrowing working at the
- * `throw` site.
+ * Logs the given `error` via the injected `ctx.logger` (if any) and returns it
+ * so the caller can `throw` it: `throw logError(ctx.logger, new ScallopRpcError(msg))`.
+ * Helpers route their failure throws through this so every failure is surfaced
+ * through the SDK's logger before it propagates. Returning (rather than throwing)
+ * keeps TypeScript's control-flow narrowing working at the `throw` site.
+ *
+ * Pass a typed `Scallop*Error` (`ScallopRpcError` / `ScallopIndexerError` /
+ * `ScallopParseError`); its `context` is forwarded to the logger automatically.
  */
-export const logError = (
+export const logError = <E extends Error>(
   logger: Logger | undefined,
-  message: string,
-  context?: Record<string, unknown>
-): Error => {
-  logger?.error(message, context);
-  return new Error(message);
+  error: E
+): E => {
+  const context = error instanceof ScallopError ? error.context : undefined;
+  logger?.error(error.message, context);
+  return error;
 };
 
 /**

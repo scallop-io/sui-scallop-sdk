@@ -1,15 +1,25 @@
 import { SuiClientTypes } from '@mysten/sui/client';
-import { PriceRepositoryContext } from './types.js';
+import {
+  PriceApiContext,
+  PriceIndexerContext,
+  PriceOnChainContext,
+} from './types.js';
 import type { BaseContext } from '../types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { PriceFeedObjectSchema } from './schema.js';
-import { calculatePrice } from './util.js';
+import { calculatePrice } from './utils.js';
 import { logError } from '../utils.js';
+import {
+  ScallopIndexerError,
+  ScallopParseError,
+  ScallopRpcError,
+} from 'src/errors/index.js';
 import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import type { SuiObjectData } from 'src/types/index.js';
+import { MarketCollateral, MarketPool } from '../market/types.js';
 
 export const getPythPricesFromApi = async (
-  ctx: PriceRepositoryContext,
+  ctx: PriceApiContext,
   coinNames: string[]
 ) => {
   const {
@@ -32,7 +42,9 @@ export const getPythPricesFromApi = async (
   if (!feeds) {
     throw logError(
       ctx.logger,
-      `Failed to fetch price feeds from Pyth API at ${endpoint} for feeds: ${priceFeedIds.join(', ')}`
+      new ScallopIndexerError('Failed to fetch price feeds from Pyth API', {
+        context: { endpoint, priceFeedIds },
+      })
     );
   }
 
@@ -54,7 +66,9 @@ export const getPythPricesFromApi = async (
         if (price === undefined) {
           throw logError(
             ctx.logger,
-            `Price feed not found for ${coinName} at ${feedId} from Pyth API`
+            new ScallopIndexerError('Price feed not found from Pyth API', {
+              context: { coinName, feedId },
+            })
           );
         }
         prices[coinName] = price;
@@ -109,7 +123,7 @@ export const getPythFeedObjectsFromOnChain = async (
 };
 
 export const getPythPricesFromOnChain = async (
-  ctx: PriceRepositoryContext,
+  ctx: PriceOnChainContext,
   coinNames: string[]
 ) => {
   const {
@@ -143,10 +157,12 @@ export const getPythPricesFromOnChain = async (
   const priceByFeedObject = new Map<string, number>();
   for (const priceFeedObject of priceFeedObjects) {
     if (priceFeedObject instanceof Error) {
-      ctx.logger?.error('Failed to fetch price feed object on chain', {
-        cause: priceFeedObject.message,
-      });
-      throw priceFeedObject;
+      throw logError(
+        ctx.logger,
+        new ScallopRpcError('Failed to fetch price feed object on chain', {
+          cause: priceFeedObject,
+        })
+      );
     }
 
     const { data, success } = PriceFeedObjectSchema.safeParse(
@@ -155,9 +171,12 @@ export const getPythPricesFromOnChain = async (
     if (!success) {
       throw logError(
         ctx.logger,
-        `Failed to parse price feed object ${priceFeedObject.objectId}: ${JSON.stringify(
-          priceFeedObject.json
-        )}`
+        new ScallopParseError('Failed to parse price feed object', {
+          context: {
+            objectId: priceFeedObject.objectId,
+            json: JSON.stringify(priceFeedObject.json),
+          },
+        })
       );
     }
 
@@ -175,10 +194,42 @@ export const getPythPricesFromOnChain = async (
     if (price === undefined) {
       throw logError(
         ctx.logger,
-        `Price feed object not found for ${coinName} at ${feedObject} on chain`
+        new ScallopRpcError('Price feed object not found on chain', {
+          context: { coinName, feedObject },
+        })
       );
     }
     prices[coinName] = price;
   }
   return prices;
+};
+
+export const getPricesFromIndexer = async (
+  ctx: PriceIndexerContext,
+  {
+    coinNames,
+  }: {
+    coinNames: string[];
+  }
+) => {
+  const { indexer, fetchWithCache } = ctx;
+  const path = '/api/market/migrate';
+
+  const resp = await fetchWithCache<{
+    pools: MarketPool[];
+    collaterals: MarketCollateral[];
+  }>({
+    queryKey: queryKeys.api.getMarkets(),
+    queryFn: () => indexer.get(path),
+  });
+
+  return resp.pools.reduce(
+    (acc, pool) => {
+      if (coinNames.includes(pool.coinName)) {
+        acc[pool.coinName] = pool.coinPrice;
+      }
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 };
