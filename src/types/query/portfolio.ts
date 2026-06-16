@@ -133,16 +133,3 @@ export type ObligationBorrowIncentive = {
   coinPrice: number;
   rewards: ObligationBorrowIncentiveReward[];
 };
-
-export type TotalValueLocked = {
-  supplyLendingValue: number;
-  supplyCollateralValue: number;
-  supplyValue: number;
-  borrowValue: number;
-  totalValue: number;
-  supplyValueChangeRatio?: number;
-  supplyLendingValueChangeRatio?: number;
-  supplyCollateralValueChangeRatio?: number;
-  borrowValueChangeRatio?: number;
-  totalValueChangeRatio?: number;
-};

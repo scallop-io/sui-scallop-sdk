@@ -8,30 +8,27 @@ import {
   type SuiKit,
   type SuiKitParams,
 } from '@scallop-io/sui-kit';
-import { newSuiKit } from './suiKit.js';
-import ScallopConstants, {
-  ScallopConstantsParams,
-} from './scallopConstants.js';
-import { CoinPrices, CoinWrappedType, PoolAddress } from 'src/types/index.js';
-import { findClosestUnlockRound, parseObjectAs } from 'src/utils/index.js';
 import {
   MAX_LOCK_DURATION,
-  queryKeys,
   UNLOCK_ROUND_DURATION,
 } from 'src/constants/index.js';
-import { PriceFeed, SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
-import {
-  SuiKitTransactionExecutor,
-  type TransactionExecutor,
-} from './transactionExecutor.js';
+import { ScallopParseError } from 'src/errors/index.js';
+import { noopLogger, type Logger } from 'src/logger/index.js';
 import {
   createRepositories,
   type Repositories,
 } from 'src/repositories/wiring/registry.js';
-import { ScallopParseError } from 'src/errors/index.js';
+import { CoinWrappedType, PoolAddress } from 'src/types/index.js';
+import { findClosestUnlockRound } from 'src/utils/index.js';
 import { ScallopUtilsInterface } from './interface.js';
-import type { SuiObjectData } from 'src/types/index.js';
-import { noopLogger, type Logger } from 'src/logger/index.js';
+import ScallopConstants, {
+  ScallopConstantsParams,
+} from './scallopConstants.js';
+import { newSuiKit } from './suiKit.js';
+import {
+  SuiKitTransactionExecutor,
+  type TransactionExecutor,
+} from './transactionExecutor.js';
 
 export type ScallopUtilsParams = {
   pythEndpoints?: string[];
@@ -430,271 +427,6 @@ class ScallopUtils implements ScallopUtilsInterface {
       return this.parseCoinNameFromType(coinType);
     });
     return obligationCoinNames;
-  }
-
-  private parseDataFromPythPriceFeed(feed: PriceFeed) {
-    const assetCoinNames = [...this.constants.whitelist.lending] as string[];
-    const assetCoinName = assetCoinNames.find((assetCoinName) => {
-      return (
-        this.address.get(`core.coins.${assetCoinName}.oracle.pyth.feed`) ===
-        feed.id
-      );
-    });
-
-    if (assetCoinName) {
-      const parsedPrice = feed.getPriceUnchecked();
-      return {
-        coinName: assetCoinName,
-        price: parsedPrice.getPriceAsNumberUnchecked(),
-        publishTime: Number(parsedPrice.publishTime) * 10 ** 3,
-      };
-    } else {
-      throw new Error(`Invalid feed id: ${feed.id}`);
-    }
-  }
-
-  async getPythPrice(
-    assetCoinName: string,
-    priceFeedObject?: SuiObjectData | null
-  ) {
-    const pythFeedObjectId = this.address.get(
-      `core.coins.${assetCoinName}.oracle.pyth.feedObject`
-    );
-    const priceFeedId = this.address.get(
-      `core.coins.${assetCoinName}.oracle.pyth.feed`
-    );
-    priceFeedObject ??=
-      await this.repos.price.getPythFeedObject(pythFeedObjectId);
-
-    if (priceFeedObject?.json) {
-      const parsed = parseObjectAs<{
-        id: string;
-        price_info: {
-          arrival_time: number;
-          attestation_time: number;
-          price_feed: {
-            ema_price: {
-              conf: string;
-              expo: { magnitude: string; negative: boolean };
-              price: { magnitude: string; negative: boolean };
-              timestamp: string;
-            };
-            price: {
-              conf: string;
-              expo: { magnitude: string; negative: boolean };
-              price: { magnitude: string; negative: boolean };
-              timestamp: string;
-            };
-            price_identifier: {
-              bytes: string;
-            };
-          };
-        };
-      }>(priceFeedObject);
-
-      const priceFields = parsed.price_info.price_feed.price;
-      const expoMagnitude = Number(priceFields?.expo?.magnitude);
-      const expoNegative = Number(priceFields?.expo?.negative);
-      const priceMagnitude = Number(priceFields?.price?.magnitude);
-      const priceNegative = Number(priceFields?.price?.negative);
-
-      if (!Number.isNaN(expoMagnitude) && !Number.isNaN(priceMagnitude)) {
-        const price =
-          priceMagnitude *
-          10 ** ((expoNegative ? -1 : 1) * expoMagnitude) *
-          (priceNegative ? -1 : 1);
-        if (price > 0) return price;
-      }
-    }
-
-    if (priceFeedId) {
-      try {
-        const pythConnection = new SuiPriceServiceConnection(
-          this.pythEndpoints[0],
-          { timeout: this.timeout, httpRetries: 0 }
-        );
-        const feeds = await pythConnection.getLatestPriceFeeds([priceFeedId]);
-        if (feeds?.[0]) {
-          const parsed = feeds[0].getPriceUnchecked();
-          return parsed.getPriceAsNumberUnchecked();
-        }
-      } catch {
-        // ignore
-      }
-    }
-
-    return 0;
-  }
-
-  async getPythPrices(assetCoinNames: string[]) {
-    const pythPriceFeedIds = assetCoinNames.reduce(
-      (prev, assetCoinName) => {
-        const pythPriceFeed = this.address.get(
-          `core.coins.${assetCoinName}.oracle.pyth.feedObject`
-        );
-        if (pythPriceFeed) {
-          if (!prev[pythPriceFeed]) {
-            prev[pythPriceFeed] = [assetCoinName];
-          } else {
-            prev[pythPriceFeed].push(assetCoinName);
-          }
-        }
-        return prev;
-      },
-      {} as Record<string, string[]>
-    );
-
-    // Fetch multiple objects at once to save rpc calls
-    const priceFeedObjects = await this.repos.price.getPythFeedObjects(
-      Object.keys(pythPriceFeedIds)
-    );
-
-    const assetToPriceFeedMapping = priceFeedObjects.reduce(
-      (prev, priceFeedObject) => {
-        pythPriceFeedIds[priceFeedObject.objectId].forEach((assetCoinName) => {
-          prev[assetCoinName] = priceFeedObject;
-        });
-        return prev;
-      },
-      {} as Record<string, SuiObjectData>
-    );
-
-    return (
-      await Promise.all(
-        Object.entries(assetToPriceFeedMapping).map(
-          async ([coinName, feed]) => {
-            try {
-              const price = await this.getPythPrice(coinName, feed);
-              return { coinName, price };
-            } catch (e) {
-              this.logger.error(`pyth price failed for ${coinName}`, {
-                message: (e as Error)?.message,
-              });
-              return { coinName, price: 0 };
-            }
-          }
-        )
-      )
-    ).reduce(
-      (prev, curr) => {
-        prev[curr.coinName as string] = curr.price;
-        return prev;
-      },
-      {} as Record<string, number>
-    );
-  }
-
-  /**
-   * Get asset coin price.
-   *
-   * @description
-   * The strategy for obtaining the price is to get it through pyth API first,
-   * and then on-chain data if API cannot be retrieved.
-   * Currently, we only support obtaining from pyth protocol, other
-   * oracles will be supported in the future.
-   *
-   * @param assetCoinNames - Specific an array of support asset coin name.
-   * @return  Asset coin price.
-   */
-  async getCoinPrices(
-    coinNames: string[] = [
-      ...new Set([
-        ...this.constants.whitelist.lending,
-        ...this.constants.whitelist.collateral,
-      ]),
-    ] as string[],
-    useOnChainObjects: boolean = false
-  ) {
-    const priceIdsMap = new Map(
-      coinNames
-        .map((coinName) => {
-          const priceId = this.address.get(
-            `core.coins.${coinName}.oracle.pyth.feed`
-          );
-          return priceId
-            ? ([coinName, priceId] as [string, string])
-            : undefined;
-        })
-        .filter((entry): entry is [string, string] => !!entry)
-    );
-
-    const priceIds = Array.from(priceIdsMap.values());
-    const coinNamesMapped = Array.from(priceIdsMap.keys());
-    const state = this.queryClient.getQueryState(
-      queryKeys.oracle.getCoinPrices(priceIds)
-    );
-
-    if (state && state && Date.now() - (state.dataUpdatedAt ?? 0) < 30_000) {
-      return state.data as CoinPrices;
-    }
-
-    let coinPrices: CoinPrices = {};
-
-    if (!useOnChainObjects) {
-      for (const endpoint of this.pythEndpoints) {
-        const pythConnection = new SuiPriceServiceConnection(endpoint, {
-          timeout: this.timeout,
-          httpRetries: 0,
-        });
-
-        try {
-          const feeds = await this.queryClient.fetchQuery({
-            queryKey: queryKeys.oracle.getPythLatestPriceFeeds(
-              endpoint,
-              priceIds
-            ),
-            queryFn: async () => {
-              return await pythConnection.getLatestPriceFeeds(priceIds);
-            },
-            retry: false,
-            staleTime: 30_000,
-            gcTime: 30_000,
-          });
-          if (!feeds) throw new Error('No feeds returned from pyth');
-
-          if (feeds.length !== priceIds.length)
-            throw new Error('Incomplete feeds returned from pyth');
-
-          feeds.forEach((feed, idx) => {
-            const coinName = coinNamesMapped[idx] as string;
-            const data = this.parseDataFromPythPriceFeed(feed);
-            coinPrices[coinName as string] = data.price;
-          });
-          this.queryClient.setQueryData(
-            queryKeys.oracle.getCoinPrices(priceIds),
-            coinPrices
-          );
-        } catch (e: any) {
-          if ('status' in e && e.status === 403) {
-            this.logger.info('trying next pyth endpoint', { endpoint });
-            continue; // try next endpoint
-          }
-          this.logger.error('pyth endpoint request failed', {
-            endpoint,
-            message: e?.message,
-          });
-        }
-      }
-    }
-
-    if (Object.keys(coinPrices).length === 0) {
-      coinPrices = {
-        ...coinPrices,
-        ...(await this.getPythPrices(Array.from(coinNames))),
-      };
-      this.queryClient.setQueryData(
-        queryKeys.oracle.getCoinPrices(priceIds),
-        coinPrices
-      );
-    }
-
-    return coinNames.reduce((prev, coinName) => {
-      const price = coinPrices[coinName as string];
-      if (typeof price === 'number' && price > 0) {
-        prev[coinName as string] = price;
-      }
-      return prev;
-    }, {} as CoinPrices);
   }
 
   /**

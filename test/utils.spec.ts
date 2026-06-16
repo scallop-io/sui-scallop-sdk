@@ -235,15 +235,6 @@ describe('Test Scallop Utils', () => {
   //   expect(!!assetCoinNames).toBe(true);
   // });
 
-  it('Should get coin prices', async () => {
-    const coinPrices = await scallopUtils.getCoinPrices();
-    if (ENABLE_LOG) {
-      console.info('All coin prices:', coinPrices);
-    }
-    expect(!!coinPrices).toBe(true);
-    expect(Object.values(coinPrices).every((t) => t && t > 0)).toBe(true);
-  });
-
   it('Should return supported pool addresses', () => {
     const poolInfos = scallopUtils.getSupportedPoolAddresses();
     if (ENABLE_LOG) {

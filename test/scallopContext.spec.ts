@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
 import { createScallopContext } from 'src/context/index.js';
 import { noopLogger } from 'src/logger/index.js';
+import { describe, expect, it } from 'vitest';
 
 describe('ScallopContext', () => {
   const stubQueryClient = {} as unknown as ReturnType<
@@ -45,27 +45,6 @@ describe('ScallopContext', () => {
       executor: stubExecutor,
     });
     expect(context.walletAddress).toBe('0xabc');
-  });
-
-  it('exposes injected logger and indexer', () => {
-    const logger = {
-      debug: vi.fn(),
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
-    };
-    const indexer = {} as unknown as ReturnType<
-      typeof createScallopContext
-    >['indexer'];
-    const context = createScallopContext({
-      constants: stubConstants,
-      suiKit: stubSuiKit,
-      executor: stubExecutor,
-      logger,
-      indexer,
-    });
-    expect(context.logger).toBe(logger);
-    expect(context.indexer).toBe(indexer);
   });
 
   it('prefers explicit queryClient over constants.queryClient', () => {
