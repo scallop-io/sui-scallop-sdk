@@ -10,6 +10,7 @@ import { VeScaLoyaltyProgramInfo } from 'src/types/index.js';
 import { getVeScaDataFromOnChain } from '../veSca/helpers.js';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 import { logError } from '../utils.js';
+import { ScallopRpcError } from 'src/errors/index.js';
 import { UserRewardBcs } from './bcs.js';
 import { BigNumber } from 'bignumber.js';
 import { MAX_LOCK_DURATION } from 'src/constants/vesca.js';
@@ -72,7 +73,12 @@ const queryRewardPool = async (
   });
 
   if (!rewardPoolObject) {
-    throw logError(ctx.logger, 'Failed to fetch reward pool object');
+    throw logError(
+      ctx.logger,
+      new ScallopRpcError('Failed to fetch reward pool object', {
+        context: { rewardPoolId },
+      })
+    );
   }
 
   return rewardPoolObject;

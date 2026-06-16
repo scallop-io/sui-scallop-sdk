@@ -7,7 +7,7 @@ import { BaseRepository } from '../base.js';
 import {
   getCoinAmountFromOnChain,
   getCoinAmountsFromOnChain,
-  getMarketCoinAmount,
+  getMarketCoinAmountFromOnChain,
   getMarketCoinAmountsFromOnChain,
   getSCoinAmountFromOnChain,
   getSCoinAmountsFromOnChain,
@@ -59,6 +59,6 @@ export class CoinBalanceRepository extends BaseRepository<
   }
 
   getMarketCoinAmount(args: { marketCoinName: string; address: string }) {
-    return getMarketCoinAmount(this.context, args);
+    return getMarketCoinAmountFromOnChain(this.context, args);
   }
 }

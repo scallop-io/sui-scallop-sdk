@@ -162,6 +162,12 @@ export type BorrowIncentiveRepoContext = BaseContext & {
   metadata: BorrowIncentiveMetadata;
 };
 
+// On-chain pool/account reads: never touch the indexer (this domain has none).
+export type BorrowIncentiveOnChainContext = Pick<
+  BorrowIncentiveRepoContext,
+  'onchain' | 'metadata' | 'fetchWithCache' | 'logger'
+>;
+
 export type GetBindedVeScaKeyContext = BaseContext & {
   metadata: {
     addresses: BorrowIncentiveAddresses<'object' | 'incentiveAccounts'> & {

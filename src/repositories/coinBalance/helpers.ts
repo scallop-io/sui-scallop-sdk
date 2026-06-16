@@ -1,5 +1,6 @@
 import { CoinBalanceContext } from './types.js';
 import { logError } from '../utils.js';
+import { ScallopRpcError, ScallopParseError } from 'src/errors/index.js';
 import { normalizeStructTag } from '@mysten/sui/utils';
 import { SuiClientTypes } from '@mysten/sui/client';
 import { queryKeys } from 'src/constants/queryKeys.js';
@@ -7,6 +8,7 @@ import type { QueryClient } from '@tanstack/query-core';
 import { getSharedObjectData } from 'src/utils/object.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui/bcs';
+import { BigNumber } from 'bignumber.js';
 
 const getUserBalanceFromOnChain = async (
   ctx: Pick<CoinBalanceContext, 'onchain'>,
@@ -91,7 +93,10 @@ const getUserBalancesFromOnChain = async (
 };
 
 export const getCoinAmountsFromOnChain = async (
-  ctx: CoinBalanceContext,
+  ctx: Pick<
+    CoinBalanceContext,
+    'onchain' | 'fetchWithCache' | 'metadata' | 'queryClient'
+  >,
   readArgs: {
     coinNames?: string[];
     address: string;
@@ -151,7 +156,10 @@ export const getCoinAmountFromOnChain = async (
 };
 
 export const getSCoinAmountsFromOnChain = async (
-  ctx: CoinBalanceContext,
+  ctx: Pick<
+    CoinBalanceContext,
+    'onchain' | 'fetchWithCache' | 'metadata' | 'queryClient'
+  >,
   readArgs: {
     sCoinNames?: string[];
     address: string;
@@ -209,7 +217,10 @@ export const getSCoinAmountFromOnChain = async (
 };
 
 export const getMarketCoinAmountsFromOnChain = async (
-  ctx: CoinBalanceContext,
+  ctx: Pick<
+    CoinBalanceContext,
+    'onchain' | 'fetchWithCache' | 'metadata' | 'queryClient'
+  >,
   readArgs: {
     marketCoinNames?: string[];
     address: string;
@@ -242,7 +253,7 @@ export const getMarketCoinAmountsFromOnChain = async (
   return filteredBalances;
 };
 
-export const getMarketCoinAmount = async (
+export const getMarketCoinAmountFromOnChain = async (
   ctx: Pick<CoinBalanceContext, 'onchain' | 'fetchWithCache' | 'metadata'>,
   readArgs: {
     marketCoinName: string;
@@ -292,22 +303,35 @@ export const querySCoinTotalSupplyFromOnChain = async (
   if (!treasury) {
     throw logError(
       ctx.logger,
-      `Treasury address not found for sCoin: ${sCoinName}`
+      new ScallopParseError(
+        `Treasury address not found for sCoin: ${sCoinName}`,
+        {
+          context: { sCoinName },
+        }
+      )
     );
   }
 
   const tx = new SuiTxBlock();
+  const treasuryObject = await fetchWithCache({
+    queryKey: queryKeys.rpc.getSharedObject({
+      objectId: treasury,
+      node: onchain.url,
+    }),
+    queryFn: () => onchain.getObject({ objectId: treasury }),
+  });
+  if (!treasuryObject.object) {
+    throw logError(
+      ctx.logger,
+      new ScallopRpcError(`Failed to fetch treasury object ${treasury}`, {
+        context: { treasury },
+      })
+    );
+  }
   const args = [
-    await fetchWithCache({
-      queryKey: queryKeys.rpc.getSharedObject({
-        objectId: treasury,
-        node: onchain.url,
-      }),
-      queryFn: () =>
-        getSharedObjectData(onchain, {
-          tx,
-          objectId: treasury,
-        }),
+    await getSharedObjectData(onchain, {
+      tx,
+      objectId: treasuryObject.object,
     }),
   ];
   const typeArgs = [
@@ -346,7 +370,10 @@ export const querySCoinTotalSupplyFromOnChain = async (
   if (!commandResults) {
     throw logError(
       ctx.logger,
-      `Failed to query total supply for ${sCoinName}: ${queryResults[queryResults.$kind]?.status.error?.message}`
+      new ScallopRpcError(
+        `Failed to query total supply for ${sCoinName}: ${queryResults[queryResults.$kind]?.status.error?.message}`,
+        { context: { sCoinName } }
+      )
     );
   }
 

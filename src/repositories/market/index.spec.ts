@@ -104,7 +104,22 @@ describe('MarketRepository', () => {
       indexerFn.mockResolvedValue('OK' as never);
       const coinPrices = { sui: 2 };
       makeRepo().getMarkets({ coinPrices, source: 'api' });
-      expect(indexerFn.mock.calls[0][1]).toEqual({ coinPrices });
+      expect(indexerFn.mock.calls[0][1]).toMatchObject({ coinPrices });
+    });
+
+    it('forwards optional coin-name filters to the chosen helper', () => {
+      indexerFn.mockResolvedValue('OK' as never);
+      makeRepo().getMarkets({
+        coinPrices: {},
+        poolCoinNames: ['sui'],
+        collateralCoinNames: ['wusdc'],
+        source: 'api',
+      });
+
+      expect(indexerFn.mock.calls[0][1]).toMatchObject({
+        poolCoinNames: ['sui'],
+        collateralCoinNames: ['wusdc'],
+      });
     });
 
     it('getPoolSupplyLimit / getPoolBorrowLimit delegate with the bare poolName', () => {

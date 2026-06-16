@@ -20,6 +20,8 @@ import {
   getMarketsFromIndexer,
   getMarketsFromOnChain,
   getSupplyLimit,
+  getTvlFromIndexer,
+  getTvlFromOnChain,
 } from './helpers.js';
 import {
   MarketReadArgs,
@@ -52,10 +54,14 @@ export class MarketRepository extends BaseRepository<
 
   getMarkets({
     coinPrices,
+    poolCoinNames,
+    collateralCoinNames,
     source = 'api-first',
   }: MarketReadArgs & { source?: QuerySource }) {
     const options = {
       coinPrices,
+      poolCoinNames,
+      collateralCoinNames,
     };
 
     return runWithDataSourceFallback({
@@ -109,35 +115,19 @@ export class MarketRepository extends BaseRepository<
     return getBorrowLimit(this.context, poolName);
   }
 
-  // /**
-  //  * Get swap rate from sCoin A to sCoin B.
-  //  */
-  // getSCoinSwapRate({
-  //   fromSCoin,
-  //   toSCoin,
-  //   coinPrices,
-  //   source,
-  // }: {
-  //   fromSCoin: string;
-  //   toSCoin: string;
-  //   coinPrices: Record<string, number>;
-  //   source?: QuerySource;
-  // }) {
-  //   return runWithDataSourceFallback({
-  //     source,
-  //     label: 'MarketRepository.getSCoinSwapRate',
-  //     api: () =>
-  //       getSCoinSwapRateFromIndexer(this.baseHelperArgs, {
-  //         fromSCoin,
-  //         toSCoin,
-  //         coinPrices,
-  //       }),
-  //     onchain: () =>
-  //       getSCoinSwapRateFromOnChain(this.baseHelperArgs, {
-  //         fromSCoin,
-  //         toSCoin,
-  //         coinPrices,
-  //       }),
-  //   });
-  // }
+  getTvl({
+    source = 'api-first',
+    coinPrices,
+  }: {
+    source?: QuerySource;
+    coinPrices: Record<string, number>;
+  }) {
+    return runWithDataSourceFallback({
+      source,
+      label: 'MarketRepository.getTvl',
+      logger: this.logger,
+      api: () => getTvlFromIndexer(this.context),
+      onchain: () => getTvlFromOnChain(this.context, { coinPrices }),
+    });
+  }
 }

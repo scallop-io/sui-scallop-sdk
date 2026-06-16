@@ -14,12 +14,25 @@ export type PoolAddressesRepoMetadata = {
 
 export type PoolAddressesRepoArgs = BaseRepoArgs & {
   metadata: PoolAddressesRepoMetadata;
+  api: ApiDataSource;
 };
 
 export type PoolAddressesRepoContext = BaseContext & {
   metadata: PoolAddressesRepoMetadata;
   api: ApiDataSource;
 };
+
+/** Minimal context for the API-sourced pool-addresses read. */
+export type PoolAddressesApiContext = Pick<
+  PoolAddressesRepoContext,
+  'api' | 'fetchWithCache'
+>;
+
+/** Minimal context for the on-chain pool-addresses rebuild. */
+export type PoolAddressesOnChainContext = Pick<
+  PoolAddressesRepoContext,
+  'onchain' | 'fetchWithCache' | 'metadata' | 'logger'
+>;
 
 export type PoolAddress = {
   coinName: string;

@@ -7,10 +7,12 @@
  * switchboard aggregator ids
  */
 
+import { IndexerDataSource } from 'src/datasources/indexer.js';
 import { BaseRepository } from '../base.js';
 import { QuerySource, runWithDataSourceFallback } from '../utils.js';
 import { DEFAULT_PYTH_URL } from './const.js';
 import {
+  getPricesFromIndexer,
   getPythFeedObjectFromOnChain,
   getPythFeedObjectsFromOnChain,
   getPythPricesFromApi,
@@ -28,8 +30,13 @@ export class PriceRepository extends BaseRepository<
   PriceRepositoryMetadata
 > {
   private readonly config: PriceApiConfig;
+  private readonly indexer: IndexerDataSource;
 
-  constructor({ pythPriceServiceConfig, ...args }: PriceRepositoryArgs) {
+  constructor({
+    pythPriceServiceConfig,
+    indexer,
+    ...args
+  }: PriceRepositoryArgs) {
     super(args);
     this.config = pythPriceServiceConfig ?? {
       endpoint: DEFAULT_PYTH_URL,
@@ -38,11 +45,13 @@ export class PriceRepository extends BaseRepository<
         httpRetries: 1,
       },
     };
+    this.indexer = indexer;
   }
 
   get context() {
     return {
       ...this.baseContext,
+      indexer: this.indexer,
       pythPriceServiceConfig: this.config,
     };
   }
@@ -69,5 +78,9 @@ export class PriceRepository extends BaseRepository<
 
   getPythFeedObjects(feedObjectIds: string[]) {
     return getPythFeedObjectsFromOnChain(this.context, feedObjectIds);
+  }
+
+  getPricesFromIndexer(args: { coinNames: string[] }) {
+    return getPricesFromIndexer(this.context, args);
   }
 }

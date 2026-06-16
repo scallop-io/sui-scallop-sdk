@@ -1,6 +1,6 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import type {
-  BorrowIncentiveRepoContext,
+  BorrowIncentiveOnChainContext,
   BorrowIncentiveAccounts,
   BorrowIncentiveAccountsQueryInterface,
   BorrowIncentivePoolPoints,
@@ -12,6 +12,7 @@ import type {
 } from './types.js';
 import { getSharedObjectData, parseObjectAs } from 'src/utils/object.js';
 import { getDynamicFieldOrNull, logError } from '../utils.js';
+import { ScallopRpcError, ScallopParseError } from 'src/errors/index.js';
 import { bcs } from '@mysten/sui/bcs';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import {
@@ -30,7 +31,7 @@ import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 import { IncentiveAccountBcs } from './bcs.js';
 
 export const getBorrowIncentivePoolsFromOnChain = async (
-  ctx: BorrowIncentiveRepoContext,
+  ctx: BorrowIncentiveOnChainContext,
   { coinNames, coinPrices }: BorrowIncentiveReadArgs
 ): Promise<BorrowIncentivePools> => {
   const { onchain, metadata, fetchWithCache } = ctx;
@@ -40,19 +41,27 @@ export const getBorrowIncentivePoolsFromOnChain = async (
 
   const fetchOptions = {
     objectId: borrowIncentive.incentivePools,
-    node: onchain.url,
   };
-  const incentivePoolsSharedObject = await fetchWithCache({
+  const incentivePoolsObject = await fetchWithCache({
     queryKey: queryKeys.rpc.getSharedObject({
       ...fetchOptions,
       node: onchain.url,
     }),
-    queryFn: () =>
-      getSharedObjectData(onchain, {
-        tx,
-        mutable: true,
-        ...fetchOptions,
-      }),
+    queryFn: () => onchain.getObject(fetchOptions),
+  });
+  if (!incentivePoolsObject.object) {
+    throw logError(
+      ctx.logger,
+      new ScallopRpcError(
+        `Failed to fetch incentive pools object ${borrowIncentive.incentivePools}`,
+        { context: { objectId: borrowIncentive.incentivePools } }
+      )
+    );
+  }
+  const incentivePoolsSharedObject = await getSharedObjectData(onchain, {
+    tx,
+    mutable: true,
+    objectId: incentivePoolsObject.object,
   });
 
   const args = [incentivePoolsSharedObject];
@@ -100,7 +109,12 @@ export const getBorrowIncentivePoolsFromOnChain = async (
     const poolCoinPrice = coinPrices[poolCoinName] ?? 0;
     const poolCoinDecimal = metadata.getCoinDecimal(poolCoinName);
     if (poolCoinDecimal === undefined) {
-      throw logError(ctx.logger, `Coin decimal not found for ${poolCoinName}`);
+      throw logError(
+        ctx.logger,
+        new ScallopParseError(`Coin decimal not found for ${poolCoinName}`, {
+          context: { poolCoinName },
+        })
+      );
     }
 
     if (!enabledCoinNames.includes(poolCoinName)) {
@@ -117,7 +131,12 @@ export const getBorrowIncentivePoolsFromOnChain = async (
       if (rewardCoinDecimal === undefined) {
         throw logError(
           ctx.logger,
-          `Coin decimal not found for ${rewardCoinName}`
+          new ScallopParseError(
+            `Coin decimal not found for ${rewardCoinName}`,
+            {
+              context: { poolCoinName: rewardCoinName },
+            }
+          )
         );
       }
 
@@ -168,7 +187,7 @@ export const getBorrowIncentivePoolsFromOnChain = async (
 };
 
 export const getBorrowIncentiveAccountsFromOnChain = async (
-  ctx: BorrowIncentiveRepoContext,
+  ctx: BorrowIncentiveOnChainContext,
   {
     coinNames,
     obligationId,
@@ -182,31 +201,32 @@ export const getBorrowIncentiveAccountsFromOnChain = async (
   const tx = new SuiTxBlock();
   const queryTarget = `${borrowIncentive.query}::incentive_account_query::incentive_account_data`;
 
+  const getArg = async (objectId: string, mutable: boolean) => {
+    const response = await fetchWithCache({
+      queryKey: queryKeys.rpc.getSharedObject({
+        objectId,
+        node: onchain.url,
+      }),
+      queryFn: () => onchain.getObject({ objectId }),
+    });
+    if (!response.object) {
+      throw logError(
+        ctx.logger,
+        new ScallopRpcError(`Failed to fetch object ${objectId}`, {
+          context: { objectId },
+        })
+      );
+    }
+    return getSharedObjectData(onchain, {
+      tx,
+      mutable,
+      objectId: response.object,
+    });
+  };
+
   const [incentiveAccountVersion, obligationDataVersion] = await Promise.all([
-    fetchWithCache({
-      queryKey: queryKeys.rpc.getSharedObject({
-        objectId: borrowIncentive.incentiveAccounts,
-        node: onchain.url,
-      }),
-      queryFn: () =>
-        getSharedObjectData(onchain, {
-          tx,
-          mutable: true,
-          objectId: borrowIncentive.incentiveAccounts,
-        }),
-    }),
-    fetchWithCache({
-      queryKey: queryKeys.rpc.getSharedObject({
-        objectId: obligationId,
-        node: onchain.url,
-      }),
-      queryFn: () =>
-        getSharedObjectData(onchain, {
-          tx,
-          mutable: true,
-          objectId: obligationId,
-        }),
-    }),
+    getArg(borrowIncentive.incentiveAccounts, true),
+    getArg(obligationId, true),
   ]);
 
   const args = [incentiveAccountVersion, obligationDataVersion];
@@ -288,7 +308,10 @@ export const getBindedVeScaKeyByObligationIdFromOnChain = async (
   if (!incentiveAccountsObject.object) {
     throw logError(
       ctx.logger,
-      `Failed to fetch incentive accounts object with id ${borrowIncentive.incentiveAccounts}`
+      new ScallopRpcError(
+        `Failed to fetch incentive accounts object with id ${borrowIncentive.incentiveAccounts}`,
+        { context: { objectId: borrowIncentive.incentiveAccounts } }
+      )
     );
   }
   const incentiveAccountsTableId = parseObjectAs<{ accounts: { id: string } }>(
@@ -333,7 +356,10 @@ export const getBindedObligation = async (
   if (!incentivePoolsObject.object) {
     throw logError(
       ctx.logger,
-      `Failed to fetch incentive pool object with id ${borrowIncentive.incentivePools}`
+      new ScallopRpcError(
+        `Failed to fetch incentive pool object with id ${borrowIncentive.incentivePools}`,
+        { context: { objectId: borrowIncentive.incentivePools } }
+      )
     );
   }
 

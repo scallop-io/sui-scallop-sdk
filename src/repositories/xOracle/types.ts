@@ -35,3 +35,59 @@ export type XOracleRepoContext = BaseContext & {
 export type XOracleRepoArgs = BaseRepoArgs & {
   metadata: XOracleMetadata;
 };
+
+/**
+ * Reads update-policy rule VecSets per coin: paginated on-chain dynamic-field
+ * scan + coin-name parsing. Needs the oracle rule package addresses.
+ */
+export type XOracleUpdatePolicyRulesContext = Pick<
+  XOracleRepoContext,
+  'onchain' | 'fetchWithCache' | 'logger'
+> & {
+  metadata: Pick<XOracleMetadata, 'addresses' | 'parseCoinNameFromType'>;
+};
+
+/**
+ * Assembles primary/secondary asset oracles across the lending whitelist.
+ * Reads the rule VecSet ids + lending whitelist; delegates per-vecset scans to
+ * `queryUpdatePolicyRules` (hence the rule-scan slice on top).
+ */
+export type XOracleAssetOraclesContext = XOracleUpdatePolicyRulesContext & {
+  metadata: Pick<
+    XOracleMetadata,
+    'addresses' | 'parseCoinNameFromType' | 'whitelist'
+  >;
+};
+
+/**
+ * Reads the price-update-policy dynamic fields. Needs only the policy object
+ * ids from `addresses`; the dynamic-field reads go through
+ * `getDynamicFieldOrNull` (hence the `onchain`/`fetchWithCache` slice).
+ */
+export type XOraclePriceUpdatePolicyContext = Pick<
+  XOracleRepoContext,
+  'onchain' | 'fetchWithCache'
+> & {
+  metadata: Pick<XOracleMetadata, 'addresses'>;
+};
+
+/**
+ * Resolves switchboard on-demand aggregator ids for coins. Needs the registry
+ * table id + coin-type/aggregator parse helpers, plus the on-chain reads for
+ * the registry scan / dynamic-field lookups.
+ */
+export type XOracleOnDemandAggContext = Pick<
+  XOracleRepoContext,
+  'onchain' | 'fetchWithCache' | 'logger'
+> & {
+  metadata: Pick<
+    XOracleMetadata,
+    'addresses' | 'parseCoinType' | 'getSwitchboardAggAddress'
+  >;
+};
+
+/** Paginated scan of the switchboard registry table. On-chain reads only. */
+export type XOracleSwitchboardRegistryContext = Pick<
+  XOracleRepoContext,
+  'onchain' | 'fetchWithCache'
+>;

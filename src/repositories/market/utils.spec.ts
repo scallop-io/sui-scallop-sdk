@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateMarketCollateralData,
   calculateMarketPoolData,
+  calculateTotalValueLocked,
   filterRecords,
   parseOriginMarketCollateralData,
 } from './utils.js';
 import { ScallopParseError } from 'src/errors/index.js';
 import type {
+  Markets,
   OriginMarketCollateralData,
   ParsedMarketCollateralData,
   ParsedMarketPoolData,
@@ -113,6 +115,26 @@ describe('market repo utils', () => {
           parsed
         )
       ).toThrow(ScallopParseError);
+    });
+  });
+
+  describe('calculateTotalValueLocked', () => {
+    it('calculates TVL from market pools and collaterals without network state', () => {
+      const market = {
+        pools: {
+          sui: { supplyCoin: 10, borrowCoin: 3, coinPrice: 2 },
+          usdc: { supplyCoin: 20, borrowCoin: 5, coinPrice: 1 },
+        },
+        collaterals: { sui: { depositCoin: 4, coinPrice: 2 } },
+      } as unknown as Markets;
+
+      expect(calculateTotalValueLocked(market)).toEqual({
+        supplyLendingValue: 40,
+        supplyCollateralValue: 8,
+        supplyValue: 48,
+        borrowValue: 11,
+        totalValue: 37,
+      });
     });
   });
 });

@@ -5,10 +5,7 @@ import { getDfObjectIdAndName, parseObjectAs } from 'src/utils/object.js';
 import { FlashloanRepoContext } from './types.js';
 import type { BaseContext } from '../types.js';
 import { bcs } from '@mysten/sui/bcs';
-
-const FEE_DENOMINATOR = 1e4;
-const FLASHLOAN_FEES_TABLE_ID =
-  '0x00481a93b819d744a7d79ecdc6c62c74f2f7cb4779316c4df640415817ac61bb' as const;
+import { FEE_DENOMINATOR, FLASHLOAN_FEES_TABLE_ID } from './const.js';
 
 const queryFlashloanFees = async (
   ctx: BaseContext,

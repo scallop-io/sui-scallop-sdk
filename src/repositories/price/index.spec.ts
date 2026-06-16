@@ -10,13 +10,15 @@ import { PriceRepository } from './index.js';
 import { DEFAULT_PYTH_URL } from './const.js';
 import type { OnChainDataSource } from 'src/datasources/onchain.js';
 import type { PriceRepositoryMetadata } from './types.js';
+import { IndexerDataSource } from 'src/datasources/indexer.js';
 
 const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const indexer = {} as unknown as IndexerDataSource;
 const metadata = { tag: 'META' } as unknown as PriceRepositoryMetadata;
 const logger = { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() };
 
 const makeRepo = () =>
-  new PriceRepository({ onchain, metadata, logger: logger as never });
+  new PriceRepository({ onchain, indexer, metadata, logger: logger as never });
 
 beforeEach(() => vi.clearAllMocks());
 

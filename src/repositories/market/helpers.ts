@@ -1,7 +1,6 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import type { SuiObjectData, SuiObjectResponse } from 'src/types/index.js';
-import type { CoinPrices } from 'src/types/utils.js';
 import type {
   BalanceSheet,
   BorrowDynamic,
@@ -19,8 +18,10 @@ import type {
   MarketReadArgs,
   MarketQueryInterface,
   RequiredMarketObjects,
+  TotalValueLocked,
 } from './types.js';
 import { logError } from '../utils.js';
+import { ScallopRpcError, ScallopParseError } from 'src/errors/index.js';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 import { partitionArray, parseObjectAs } from 'src/utils/index.js';
 import { getSharedObjectData } from 'src/utils/object.js';
@@ -33,6 +34,7 @@ import {
 import {
   calculateMarketCollateralData,
   calculateMarketPoolData,
+  calculateTotalValueLocked,
   // checkAssetParams,
   parseOriginMarketCollateralData,
   parseOriginMarketPoolData,
@@ -40,7 +42,7 @@ import {
 
 export const getMarketsFromIndexer = async (
   ctx: MarketIndexerContext,
-  { coinPrices }: MarketReadArgs
+  { coinPrices, poolCoinNames, collateralCoinNames }: MarketReadArgs
 ): Promise<Markets> => {
   const { indexer, metadata, fetchWithCache } = ctx;
   const urlPath = 'api/market/migrate';
@@ -52,7 +54,13 @@ export const getMarketsFromIndexer = async (
   const pools: MarketPools = {};
   const collaterals: MarketCollaterals = {};
 
+  const poolFilter = poolCoinNames ? new Set(poolCoinNames) : undefined;
+  const collateralFilter = collateralCoinNames
+    ? new Set(collateralCoinNames)
+    : undefined;
+
   const updatePools = (item: IndexerMarket['pools'][number]) => {
+    if (poolFilter && !poolFilter.has(item.coinName)) return;
     pools[item.coinName] = {
       ...item,
       coinPrice: coinPrices[item.coinName] ?? item.coinPrice,
@@ -61,6 +69,7 @@ export const getMarketsFromIndexer = async (
   };
 
   const updateCollaterals = (item: IndexerMarket['collaterals'][number]) => {
+    if (collateralFilter && !collateralFilter.has(item.coinName)) return;
     collaterals[item.coinName] = {
       ...item,
       coinPrice: coinPrices[item.coinName] ?? item.coinPrice,
@@ -81,28 +90,36 @@ export const getMarketsFromIndexer = async (
 
 export const getMarketsFromOnChain = async (
   ctx: MarketOnChainContext,
-  { coinPrices }: MarketReadArgs
+  { coinPrices, poolCoinNames, collateralCoinNames }: MarketReadArgs
 ): Promise<Markets> => {
   const { onchain, addresses, fetchWithCache } = ctx;
+  const { queryPackageId: packageId, market: marketId } = addresses;
+
   const tx = new SuiTxBlock();
-  const packageId = addresses.queryPackageId;
-  const marketId = addresses.market;
   const queryTarget = `${packageId}::market_query::market_data`;
-  const marketSharedObject = await fetchWithCache({
+  const marketObject = await fetchWithCache({
     queryKey: queryKeys.rpc.getSharedObject({
       objectId: marketId,
       node: onchain.url,
     }),
-    queryFn: () =>
-      getSharedObjectData(onchain, {
-        tx,
-        mutable: true,
-        objectId: marketId,
-      }),
+    queryFn: () => onchain.getObject({ objectId: marketId }),
+  });
+  if (!marketObject.object) {
+    throw logError(
+      ctx.logger,
+      new ScallopRpcError(`Failed to fetch market object ${marketId}`, {
+        context: { marketId },
+      })
+    );
+  }
+  const marketSharedObject = await getSharedObjectData(onchain, {
+    tx,
+    mutable: true,
+    objectId: marketObject.object,
   });
 
   const args = [marketSharedObject];
-  tx.moveCall(queryTarget, args, []);
+  tx.moveCall(queryTarget, args);
 
   const queryResult = await fetchWithCache({
     queryKey: queryKeys.rpc.getInspectTxn({
@@ -129,7 +146,9 @@ export const getMarketsFromOnChain = async (
   if (!transaction.status.success) {
     throw logError(
       ctx.logger,
-      `On-chain market query transaction failed: ${transaction.status.error.message}`
+      new ScallopRpcError(
+        `On-chain market query transaction failed: ${transaction.status.error.message}`
+      )
     );
   }
   const marketData = mapMarketEventToMarketData(
@@ -137,7 +156,11 @@ export const getMarketsFromOnChain = async (
       | MarketQueryInterface
       | undefined
   );
-  return buildMarketFromOnChainData(ctx, marketData, coinPrices);
+  return buildMarketFromOnChainData(ctx, marketData, {
+    coinPrices,
+    poolCoinNames,
+    collateralCoinNames,
+  });
 };
 
 export const getMarketFromIndexer = async (
@@ -151,7 +174,10 @@ export const getMarketFromIndexer = async (
   if (!markets.pools[coinName]) {
     throw logError(
       ctx.logger,
-      `Market pool for ${coinName} not found in indexer data`
+      new ScallopParseError(
+        `Market pool for ${coinName} not found in indexer data`,
+        { context: { coinName } }
+      )
     );
   }
   return {
@@ -171,7 +197,10 @@ export const getMarketFromOnChain = async (
   if (!poolObjects) {
     throw logError(
       ctx.logger,
-      `Failed to fetch required market objects for ${coinName}`
+      new ScallopRpcError(
+        `Failed to fetch required market objects for ${coinName}`,
+        { context: { coinName } }
+      )
     );
   }
 
@@ -234,6 +263,30 @@ export const getMarketFromOnChain = async (
         }
       : undefined,
   };
+};
+
+export const getTvlFromIndexer = async (ctx: MarketIndexerContext) => {
+  const { indexer, fetchWithCache } = ctx;
+  const path = '/api/market/tvl';
+
+  return fetchWithCache<
+    TotalValueLocked & {
+      totalValueChangeRatio: number;
+      borrowValueChangeRatio: number;
+      supplyValueChangeRatio: number;
+    }
+  >({
+    queryKey: queryKeys.api.getTotalValueLocked(),
+    queryFn: () => indexer.get(path),
+  });
+};
+
+export const getTvlFromOnChain = async (
+  ctx: MarketOnChainContext,
+  { coinPrices }: Pick<MarketReadArgs, 'coinPrices'>
+): Promise<TotalValueLocked> => {
+  const markets = await getMarketsFromOnChain(ctx, { coinPrices });
+  return calculateTotalValueLocked(markets);
 };
 
 // const getScoinSwapRate = async (
@@ -314,11 +367,36 @@ export const getMarketFromOnChain = async (
 const buildMarketFromOnChainData = async (
   ctx: MarketOnChainContext,
   marketData: ReturnType<typeof mapMarketEventToMarketData>,
-  coinPrices: CoinPrices
+  { coinPrices, poolCoinNames, collateralCoinNames }: MarketReadArgs
 ): Promise<Markets> => {
   const { metadata } = ctx;
   const pools: MarketPools = {};
   const collaterals: MarketCollaterals = {};
+  const poolFilter = poolCoinNames ? new Set(poolCoinNames) : undefined;
+  const collateralFilter = collateralCoinNames
+    ? new Set(collateralCoinNames)
+    : undefined;
+  const flagCoinNames = new Set<string>();
+
+  for (const pool of marketData?.pools ?? []) {
+    const poolCoinName = metadata.parseCoinNameFromType(pool.type);
+    if (!metadata.whitelist.lending.has(poolCoinName)) continue;
+    if (poolFilter && !poolFilter.has(poolCoinName)) continue;
+    flagCoinNames.add(poolCoinName);
+  }
+
+  for (const collateral of marketData?.collaterals ?? []) {
+    const collateralCoinName = metadata.parseCoinNameFromType(collateral.type);
+    if (!metadata.whitelist.collateral.has(collateralCoinName)) continue;
+    if (collateralFilter && !collateralFilter.has(collateralCoinName)) continue;
+    flagCoinNames.add(collateralCoinName);
+  }
+
+  const marketFlagObjects = await queryRequiredMarketObjects(
+    ctx,
+    [...flagCoinNames],
+    MARKET_FLAG_OBJECT_KEYS
+  );
 
   for (const pool of marketData?.pools ?? []) {
     const coinType = pool.type;
@@ -328,12 +406,13 @@ const buildMarketFromOnChainData = async (
     if (!metadata.whitelist.lending.has(poolCoinName)) {
       continue;
     }
+    if (poolFilter && !poolFilter.has(poolCoinName)) {
+      continue;
+    }
 
-    const [supplyLimit, borrowLimit, isIsolated] = await Promise.all([
-      getSupplyLimit(ctx, poolCoinName),
-      getBorrowLimit(ctx, poolCoinName),
-      getIsolatedAsset(ctx, poolCoinName),
-    ]);
+    const { supplyLimit, borrowLimit, isIsolated } = parseMarketFlags(
+      marketFlagObjects[poolCoinName] ?? {}
+    );
 
     const parsedMarketPoolData = parseOriginMarketPoolData({
       ...pool,
@@ -370,12 +449,18 @@ const buildMarketFromOnChainData = async (
     if (!metadata.whitelist.collateral.has(collateralCoinName)) {
       continue;
     }
+    if (collateralFilter && !collateralFilter.has(collateralCoinName)) {
+      continue;
+    }
+    const { isIsolated } = parseMarketFlags(
+      marketFlagObjects[collateralCoinName] ?? {}
+    );
 
     const parsedMarketCollateralData = parseOriginMarketCollateralData({
       ...collateral,
       type: collateral.type,
       liquidationPenalty: collateral.liquidationPanelty,
-      isIsolated: await getIsolatedAsset(ctx, collateralCoinName),
+      isIsolated,
     });
 
     const calculatedMarketCollateralData = calculateMarketCollateralData(
@@ -411,6 +496,29 @@ const MARKET_OBJECT_KEYS = [
   'borrowLimitKey',
   'isolatedAssetKey',
 ] as const;
+type MarketObjectKey = (typeof MARKET_OBJECT_KEYS)[number];
+const MARKET_FLAG_OBJECT_KEYS = [
+  'supplyLimitKey',
+  'borrowLimitKey',
+  'isolatedAssetKey',
+] as const satisfies readonly MarketObjectKey[];
+
+const parseMarketFlags = (
+  objects: Pick<
+    RequiredMarketObjects[string],
+    'supplyLimitKey' | 'borrowLimitKey' | 'isolatedAssetKey'
+  >
+) => ({
+  supplyLimit: objects.supplyLimitKey
+    ? parseObjectAs<string>(objects.supplyLimitKey)
+    : '0',
+  borrowLimit: objects.borrowLimitKey
+    ? parseObjectAs<string>(objects.borrowLimitKey)
+    : '0',
+  isIsolated: objects.isolatedAssetKey?.json
+    ? parseObjectAs<boolean>(objects.isolatedAssetKey)
+    : false,
+});
 
 const parseMarketPoolObjects = async (
   ctx: MarketOnChainContext,
@@ -427,7 +535,10 @@ const parseMarketPoolObjects = async (
   }: RequiredMarketObjects[string]
 ) => {
   if (!balanceSheet || !borrowDynamic || !interestModel) {
-    throw logError(ctx.logger, 'Missing required market objects');
+    throw logError(
+      ctx.logger,
+      new ScallopRpcError('Missing required market objects')
+    );
   }
 
   const _balanceSheet = parseObjectAs<BalanceSheet>(balanceSheet);
@@ -499,13 +610,14 @@ const parseMarketPoolObjects = async (
 
 const queryRequiredMarketObjects = async (
   { onchain, metadata, fetchWithCache }: MarketOnChainContext,
-  poolCoinNames: string[]
+  poolCoinNames: string[],
+  keys: readonly MarketObjectKey[] = MARKET_OBJECT_KEYS
 ): Promise<RequiredMarketObjects> => {
   const allObjectIds: string[] = [];
 
   for (const poolCoinName of poolCoinNames) {
     const poolData = metadata.poolAddresses[poolCoinName];
-    for (const keyType of MARKET_OBJECT_KEYS) {
+    for (const keyType of keys) {
       const objectId = poolData?.[keyType];
       if (objectId) allObjectIds.push(objectId);
     }

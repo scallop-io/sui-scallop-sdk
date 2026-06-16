@@ -124,7 +124,12 @@ export const getSpoolFromOnChain = async (
   const { metadata } = ctx;
   const coinName = metadata.parseCoinName(stakeCoinName);
   const rewardCoinName = metadata.getSpoolRewardCoinName();
-  const parsedSpoolObjects = mapSpoolData(parseSpoolObjects(requiredObjects));
+  const parsedSpoolObjects = mapSpoolData(
+    parseSpoolObjects(
+      requiredObjects ??
+        (await queryRequiredSpoolObjects(ctx, [coinName]))[coinName]
+    )
+  );
   const parsedSpoolData = parseOriginSpoolData(parsedSpoolObjects);
 
   const marketCoinPrice = coinPrices[stakeCoinName] ?? 0;
@@ -268,7 +273,7 @@ export const getSpoolRewardPoolsFromOnChain = async (
 };
 
 const queryStakeAccounts = async (
-  ctx: BaseContext,
+  ctx: Pick<BaseContext, 'onchain' | 'fetchWithCache'>,
   { address, stakeAccountType }: { address: string; stakeAccountType: string }
 ) => {
   const { onchain, fetchWithCache } = ctx;

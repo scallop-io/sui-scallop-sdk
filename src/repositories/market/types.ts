@@ -386,6 +386,8 @@ export type IndexerMarketCollateral = Omit<
 
 export type MarketReadArgs = {
   coinPrices: CoinPrices;
+  poolCoinNames?: readonly string[];
+  collateralCoinNames?: readonly string[];
 };
 
 export type MappedMarketQueryData = {
@@ -418,3 +420,21 @@ export type RequiredMarketObjects = Record<
     >
   >
 >;
+
+export type TvlMarketInput = {
+  pools: MarketPools;
+  collaterals: MarketCollaterals;
+};
+
+export type TotalValueLocked = {
+  supplyLendingValue: number;
+  supplyCollateralValue: number;
+  supplyValue: number;
+  borrowValue: number;
+  totalValue: number;
+  supplyValueChangeRatio?: number;
+  supplyLendingValueChangeRatio?: number;
+  supplyCollateralValueChangeRatio?: number;
+  borrowValueChangeRatio?: number;
+  totalValueChangeRatio?: number;
+};

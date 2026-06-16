@@ -8,12 +8,12 @@ import {
 import type { BaseContext } from '../types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import {
-  getLockKeyFromObligationObject,
   getObligationFromObligationKey,
   mapObligationEventToObligationData,
 } from './utils.js';
 import { getSharedObjectData, parseObjectAs } from 'src/utils/object.js';
 import { logError } from '../utils.js';
+import { ScallopRpcError } from 'src/errors/index.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import type { SuiObjectData } from 'src/types/index.js';
 
@@ -80,50 +80,43 @@ export const queryObligationData = async (
     };
   };
 
+  const getArg = async (objectId: string) => {
+    const response = await fetchWithCache({
+      queryKey: queryKeys.rpc.getObject({
+        ...getFetchOptions(objectId),
+        node: onchain.url,
+      }),
+      queryFn: () => onchain.getObject(getFetchOptions(objectId)),
+    });
+
+    if (!response.object) {
+      throw logError(
+        ctx.logger,
+        new ScallopRpcError(`Failed to fetch object ${objectId}`, {
+          context: { objectId },
+        })
+      );
+    }
+
+    return getSharedObjectData(onchain, {
+      tx,
+      mutable: false,
+      objectId: response.object,
+    });
+  };
+
   const args = await Promise.all([
-    fetchWithCache({
-      queryKey: queryKeys.rpc.getObject({
-        ...getFetchOptions(version),
-        node: onchain.url,
-      }),
-      queryFn: () =>
-        getSharedObjectData(onchain, {
-          tx,
-          mutable: false,
-          ...getFetchOptions(version),
-        }),
-    }),
-    fetchWithCache({
-      queryKey: queryKeys.rpc.getObject({
-        ...getFetchOptions(market),
-        node: onchain.url,
-      }),
-      queryFn: () =>
-        getSharedObjectData(onchain, {
-          tx,
-          mutable: false,
-          ...getFetchOptions(market),
-        }),
-    }),
-    fetchWithCache({
-      queryKey: queryKeys.rpc.getObject({
-        ...getFetchOptions(obligationId),
-        node: onchain.url,
-      }),
-      queryFn: () =>
-        getSharedObjectData(onchain, {
-          tx,
-          mutable: false,
-          ...getFetchOptions(obligationId),
-        }),
-    }),
+    getArg(version),
+    getArg(market),
+    getArg(obligationId),
   ]);
   tx.moveCall(queryTarget, [...args, tx.txBlock.object.clock()]);
 
+  const queryArgs = [version, market, obligationId];
   const queryResult = await fetchWithCache({
     queryKey: queryKeys.rpc.getInspectTxn({
       queryTarget,
-      args,
+      args: queryArgs,
       node: onchain.url,
     }),
     queryFn: () =>
@@ -140,7 +133,10 @@ export const queryObligationData = async (
   if (!transaction.status.success) {
     throw logError(
       ctx.logger,
-      `Failed to query obligation data for obligationId ${obligationId}: ${transaction.status.error.message}`
+      new ScallopRpcError(
+        `Failed to query obligation data for obligationId ${obligationId}: ${transaction.status.error.message}`,
+        { context: { obligationId } }
+      )
     );
   }
 
@@ -151,34 +147,13 @@ export const queryObligationData = async (
   );
 };
 
-const getObligationLockStatus = async (
-  ctx: BaseContext,
-  obligationId: string
-) => {
-  const { onchain, fetchWithCache } = ctx;
-  const options: SuiClientTypes.GetObjectOptions<{ json: true }> = {
-    objectId: obligationId,
-    include: {
-      json: true,
-    },
-  };
-  const obligationObject = await fetchWithCache({
-    queryKey: queryKeys.rpc.getObject(options),
-    queryFn: () => onchain.getObject(options),
-  });
-
-  return getLockKeyFromObligationObject(obligationObject.object);
-};
-
 /**
- * Whether a single obligation is locked (has a `lock_key`). Unlike
- * `getLockKeyFromObligationObject` (used by the list assembly, which throws on a
- * missing key), this returns `false` for an unlocked obligation and only
- * propagates real fetch failures — matching the public `getObligationLocked`
- * contract.
+ * Whether a single obligation is locked (has a `lock_key`). Returns `false`
+ * for an unlocked obligation and only propagates real fetch failures — matching
+ * the public `getObligationLocked` contract.
  */
 export const getObligationLockedFromOnChain = async (
-  ctx: BaseContext,
+  ctx: Pick<BaseContext, 'onchain' | 'fetchWithCache'>,
   obligationId: string
 ): Promise<boolean> => {
   const { onchain, fetchWithCache } = ctx;
@@ -206,23 +181,24 @@ export const getObligationsFromOnChain = async (
   }
 ) => {
   const obligationKeyObjects = await queryObligationKeys(ctx, { address });
-
-  // Get obligation id from obligation key objects
-  const lockStatuses = await Promise.allSettled(
-    obligationKeyObjects.map(async (obj) => {
-      const obligationId = getObligationFromObligationKey(obj);
-      return getObligationLockStatus(ctx, obligationId);
-    })
+  const obligationIds = obligationKeyObjects.map(
+    getObligationFromObligationKey
+  );
+  const obligationObjects = await getObligationObjectsFromOnChain(
+    ctx,
+    obligationIds
   );
 
   return obligationKeyObjects.map<Obligation>((obj, index) => {
-    const obligationId = getObligationFromObligationKey(obj);
-    const lockStatus = lockStatuses[index];
+    const obligationObject = obligationObjects[index];
+    const fields = obligationObject
+      ? parseObjectAs<{ lock_key?: unknown }>(obligationObject)
+      : undefined;
 
     return {
-      id: obligationId,
+      id: obligationIds[index],
       keyId: obj.objectId,
-      locked: lockStatus.status === 'fulfilled' ? lockStatus.value : false,
+      locked: Boolean(fields?.lock_key),
     };
   });
 };
