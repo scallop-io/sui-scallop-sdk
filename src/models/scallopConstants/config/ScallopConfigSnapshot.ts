@@ -3,7 +3,7 @@ import type {
   AddressStringPath,
   PoolAddress,
 } from 'src/types/index.js';
-import type ScallopConstants from 'src/models/scallopConstants.js';
+import type ScallopConstants from '../index.js';
 
 /**
  * Immutable read-only view of the live `ScallopConstants` state used by

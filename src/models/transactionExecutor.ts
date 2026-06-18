@@ -13,7 +13,7 @@ const DEFAULT_TX_INCLUDE = {
   effects: true,
   events: true,
 } as const;
-type DefaultTxInclude = typeof DEFAULT_TX_INCLUDE;
+export type DefaultTxInclude = typeof DEFAULT_TX_INCLUDE;
 
 type TxResult = SuiClientTypes.TransactionResult<DefaultTxInclude>;
 

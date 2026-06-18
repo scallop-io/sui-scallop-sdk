@@ -1,11 +1,9 @@
 export { default as Scallop } from './scallop.js';
-export { default as ScallopClient } from './scallopClient.js';
-export { default as ScallopBuilder } from './scallopBuilder.js';
-export { default as ScallopAddress } from './scallopAddress.js';
-export { default as ScallopAxios } from './scallopAxios.js';
-export { default as ScallopConstants } from './scallopConstants.js';
-export { default as ScallopQuery } from './scallopQuery.js';
-export { default as ScallopQueryClient } from '../models/scallopQueryClient.js';
-export { default as ScallopUtils } from './scallopUtils.js';
+export { default as ScallopClient } from './scallopClient/index.js';
+export { default as ScallopBuilder } from './scallopBuilder/index.js';
+export { default as ScallopAddress } from './scallopAddress/index.js';
+export { default as ScallopConstants } from './scallopConstants/index.js';
+export { default as ScallopQuery } from './scallopQuery/index.js';
+export { default as ScallopUtils } from './scallopUtils/index.js';
 export { SuiKitTransactionExecutor } from './transactionExecutor.js';
 export type { TransactionExecutor } from './transactionExecutor.js';
