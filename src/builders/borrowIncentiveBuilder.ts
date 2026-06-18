@@ -3,7 +3,6 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   SUI_CLOCK_OBJECT_ID,
 } from '@scallop-io/sui-kit';
-import { requireSender, getMoveCallTarget } from 'src/utils/index.js';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import type { ScallopBuilder } from 'src/models/index.js';
 import type {
@@ -16,6 +15,7 @@ import type {
   TransactionCommand,
 } from 'src/types/index.js';
 import { OLD_BORROW_INCENTIVE_PROTOCOL_ID } from 'src/constants/index.js';
+import { getMoveCallTarget, requireSender } from 'src/utils/builder.js';
 
 /**
  * Check and get Obligation information from transaction block.

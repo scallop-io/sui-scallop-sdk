@@ -8,7 +8,7 @@ import {
   ScallopTxBlock,
   SuiTxBlockWithLoyaltyProgramNormalMethods,
 } from 'src/types/index.js';
-import { requireSender } from 'src/utils/index.js';
+import { requireSender } from 'src/utils/builder.js';
 
 const generateLoyaltyProgramNormalMethod: GenerateLoyaltyProgramNormalMethod =
   ({ builder, txBlock }) => {

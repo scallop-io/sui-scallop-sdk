@@ -14,7 +14,7 @@ import {
   checkRenewExpiredVeSca,
   checkVesca,
   getMoveCallTarget,
-} from 'src/utils/index.js';
+} from 'src/utils/builder.js';
 import type {
   TransactionObjectArgument,
   SuiObjectArg,
@@ -285,11 +285,11 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         undefined;
       const transferObjects = [];
       if (amountOrCoin !== undefined && typeof amountOrCoin === 'number') {
-        const coins = await builder.utils.selectCoins(
-          amountOrCoin,
-          SCA_COIN_TYPE,
-          sender
-        );
+        const coins = await builder.utils.selectCoins({
+          amount: amountOrCoin,
+          coinType: SCA_COIN_TYPE,
+          ownerAddress: sender,
+        });
         const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
           coins,
           amountOrCoin
@@ -363,11 +363,11 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       if (autoCheck) checkExtendLockAmount(scaAmount, veSca?.unlockAt);
 
       if (veSca) {
-        const scaCoins = await builder.utils.selectCoins(
-          scaAmount,
-          SCA_COIN_TYPE,
-          sender
-        );
+        const scaCoins = await builder.utils.selectCoins({
+          amount: scaAmount,
+          coinType: SCA_COIN_TYPE,
+          ownerAddress: sender,
+        });
         const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
           scaCoins,
           scaAmount
@@ -399,11 +399,11 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           const unlockedSca = txBlock.redeemSca(veSca.keyId);
           transferObjects.push(unlockedSca);
         }
-        const scaCoins = await builder.utils.selectCoins(
-          scaAmount,
-          SCA_COIN_TYPE,
-          sender
-        );
+        const scaCoins = await builder.utils.selectCoins({
+          amount: scaAmount,
+          coinType: SCA_COIN_TYPE,
+          ownerAddress: sender,
+        });
         const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
           scaCoins,
           scaAmount
