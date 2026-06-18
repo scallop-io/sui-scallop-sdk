@@ -1,6 +1,5 @@
-import { newScallopTxBlock } from '../builders/index.js';
-import ScallopQuery, { ScallopQueryParams } from './scallopQuery.js';
-import type { SuiTransactionBlockResponse } from '@scallop-io/sui-kit';
+import { newScallopTxBlock } from '../../builders/index.js';
+import { SuiKit, SuiTransactionBlockResponse } from '@scallop-io/sui-kit';
 import type {
   Transaction,
   TransactionObjectArgument,
@@ -12,18 +11,17 @@ import type {
   SuiTxArg,
   SuiVecTxArg,
 } from '@scallop-io/sui-kit';
-import type { ScallopTxBlock } from '../types/index.js';
-import { ScallopBuilderInterface } from './interface.js';
-
-export type ScallopBuilderParams = {
-  query?: ScallopQuery;
-  usePythPullModel?: boolean;
-  sponsoredFeeds?: string[];
-  useOnChainXOracleList?: boolean;
-} & ScallopQueryParams;
+import type { ScallopTxBlock } from '../../types/index.js';
+import { ScallopBuilderInterface } from '../interface.js';
+import {
+  SuiKitTransactionExecutor,
+  TransactionExecutor,
+} from '../transactionExecutor.js';
+import ScallopQuery from '../scallopQuery/index.js';
+import { ScallopBuilderConstructorParams } from './types.js';
 
 /**
- * @description
+ * @descriptionr
  * It provides methods for operating the transaction block, making it more convenient to organize transaction combinations.
  *
  * @example
@@ -38,12 +36,39 @@ class ScallopBuilder implements ScallopBuilderInterface {
   public readonly usePythPullModel: boolean;
   public readonly useOnChainXOracleList: boolean;
   public readonly sponsoredFeeds: string[];
+  public readonly suiKit: SuiKit;
+  public readonly pythEndpoints: string[];
 
-  public constructor(params: ScallopBuilderParams = {}) {
-    this.query = params.query ?? new ScallopQuery(params);
-    this.usePythPullModel = params.usePythPullModel ?? true;
-    this.useOnChainXOracleList = params.useOnChainXOracleList ?? true;
-    this.sponsoredFeeds = params.sponsoredFeeds ?? [];
+  public constructor({
+    usePythPullModel = true,
+    useOnChainXOracleList = true,
+    sponsoredFeeds = [],
+    pythEndpoints = [],
+    query,
+    ...scallopQueryArgs
+  }: ScallopBuilderConstructorParams) {
+    this.suiKit = new SuiKit(scallopQueryArgs);
+    this.query =
+      query ??
+      new ScallopQuery({
+        ...scallopQueryArgs,
+        walletAddress:
+          scallopQueryArgs.walletAddress ?? this.suiKit.currentAddress,
+      });
+    this.usePythPullModel = usePythPullModel;
+    this.useOnChainXOracleList = useOnChainXOracleList;
+    this.sponsoredFeeds = sponsoredFeeds;
+    this.pythEndpoints = pythEndpoints;
+  }
+
+  /**
+   * The SDK-agnostic write-path signer/executor, memoised. Built from the raw
+   * `SuiKit`; all write callers go through this rather than touching the SDK
+   * directly, so the underlying SDK can be swapped in one place.
+   */
+  private _executor?: TransactionExecutor;
+  get executor(): TransactionExecutor {
+    return (this._executor ??= new SuiKitTransactionExecutor(this.suiKit));
   }
 
   get utils() {
@@ -58,12 +83,8 @@ class ScallopBuilder implements ScallopBuilderInterface {
     return this.utils.walletAddress;
   }
 
-  get suiKit() {
-    return this.utils.suiKit;
-  }
-
-  get executor() {
-    return this.utils.executor;
+  get onchain() {
+    return this.utils.onchain;
   }
 
   get address() {
@@ -111,7 +132,11 @@ class ScallopBuilder implements ScallopBuilderInterface {
       return { takeCoin };
     } else {
       const coinType = this.utils.parseCoinType(assetCoinName);
-      const coins = await this.utils.selectCoins(amount, coinType, sender);
+      const coins = await this.utils.selectCoins({
+        amount,
+        coinType,
+        ownerAddress: sender,
+      });
       const totalAmount = coins.reduce((prev, coin) => {
         prev += Number(coin.balance);
         return prev;
@@ -138,7 +163,11 @@ class ScallopBuilder implements ScallopBuilderInterface {
     sender: string = this.walletAddress
   ) {
     const marketCoinType = this.utils.parseMarketCoinType(marketCoinName);
-    const coins = await this.utils.selectCoins(amount, marketCoinType, sender);
+    const coins = await this.utils.selectCoins({
+      amount,
+      coinType: marketCoinType,
+      ownerAddress: sender,
+    });
     const totalAmount = coins.reduce((prev, coin) => {
       prev += Number(coin.balance);
       return prev;
@@ -166,7 +195,11 @@ class ScallopBuilder implements ScallopBuilderInterface {
     sender: string = this.walletAddress
   ) {
     const sCoinType = this.utils.parseSCoinType(sCoinName);
-    const coins = await this.utils.selectCoins(amount, sCoinType, sender);
+    const coins = await this.utils.selectCoins({
+      amount,
+      coinType: sCoinType,
+      ownerAddress: sender,
+    });
     const totalAmount = coins.reduce((prev, coin) => {
       prev += Number(coin.balance);
       return prev;

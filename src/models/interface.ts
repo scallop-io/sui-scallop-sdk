@@ -1,21 +1,21 @@
-import type { SuiKit } from '@scallop-io/sui-kit';
-import ScallopAddress from './scallopAddress.js';
-import ScallopBuilder from './scallopBuilder.js';
-import ScallopConstants from './scallopConstants.js';
-import ScallopQuery from './scallopQuery.js';
-import type { TransactionExecutor } from './transactionExecutor.js';
-import ScallopUtils from './scallopUtils.js';
+import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import ScallopAddress from './scallopAddress/index.js';
+import ScallopBuilder from './scallopBuilder/index.js';
+import ScallopQuery from './scallopQuery/index.js';
+import ScallopUtils from './scallopUtils/index.js';
+import { TransactionExecutor } from './transactionExecutor.js';
 
-interface ScallopBaseInterface {
-  suiKit: SuiKit;
-  executor: TransactionExecutor;
-  constants: ScallopConstants;
+export interface ScallopBaseInterface {
+  // client: ClientWithCoreApi;
+  // fullnodeUrl: string;
   walletAddress: string;
+  // constants: ScallopConstants;
   init: () => Promise<void>;
 }
 
 interface ScallopUtilsInterface extends ScallopBaseInterface {
   address: ScallopAddress;
+  onchain: OnChainDataSource;
 }
 
 interface ScallopQueryInterface extends ScallopUtilsInterface {
@@ -24,6 +24,7 @@ interface ScallopQueryInterface extends ScallopUtilsInterface {
 
 interface ScallopBuilderInterface extends ScallopQueryInterface {
   query: ScallopQuery;
+  executor: TransactionExecutor;
 }
 
 interface ScallopClientInterface extends ScallopBuilderInterface {

@@ -1,3 +1,4 @@
+import { SuiGrpcClient } from '@mysten/sui/grpc';
 import {
   normalizeStructTag,
   parseStructTag,
@@ -5,89 +6,55 @@ import {
   SuiObjectArg,
   SuiTxBlock,
   Transaction,
-  type SuiKit,
-  type SuiKitParams,
 } from '@scallop-io/sui-kit';
 import {
   MAX_LOCK_DURATION,
   UNLOCK_ROUND_DURATION,
 } from 'src/constants/index.js';
-import { ScallopParseError } from 'src/errors/index.js';
+import type { OnChainDataSource } from 'src/datasources/onchain.js';
 import { noopLogger, type Logger } from 'src/logger/index.js';
-import {
-  createRepositories,
-  type Repositories,
-} from 'src/repositories/wiring/registry.js';
-import { CoinWrappedType, PoolAddress } from 'src/types/index.js';
-import { findClosestUnlockRound } from 'src/utils/index.js';
-import { ScallopUtilsInterface } from './interface.js';
-import ScallopConstants, {
-  ScallopConstantsParams,
-} from './scallopConstants.js';
-import { newSuiKit } from './suiKit.js';
-import {
-  SuiKitTransactionExecutor,
-  type TransactionExecutor,
-} from './transactionExecutor.js';
-
-export type ScallopUtilsParams = {
-  pythEndpoints?: string[];
-  suiKit?: SuiKit;
-  tokensPerSecond?: number;
-  walletAddress?: string;
-  scallopConstants?: ScallopConstants;
-  logger?: Logger;
-} & SuiKitParams &
-  ScallopConstantsParams;
+import { createOnChainDataSource } from 'src/repositories/wiring/datasources.js';
+import { findClosestUnlockRound } from 'src/utils/vesca.js';
+import { ScallopUtilsInterface } from '../interface.js';
+import ScallopConstants from '../scallopConstants/index.js';
+import { CoinWrappedType, ScallopUtilsConstructorParams } from './types.js';
+import { PoolAddress } from 'src/repositories/poolAddresses/types.js';
 
 const DEFAULT_TOKENS_PER_SECOND = 10;
 
 class ScallopUtils implements ScallopUtilsInterface {
-  public pythEndpoints: string[];
-  public readonly suiKit: SuiKit;
+  public readonly onchain: OnChainDataSource;
   public walletAddress: string;
-  public readonly tokensPerSecond: number;
   public readonly constants: ScallopConstants;
-  public readonly timeout: number;
   public readonly logger: Logger;
 
-  /**
-   * Lazily-built, memoised repositories used by utils' own onchain reads (e.g.
-   * `getObligationCoinNames`). Built from `this` — the registry imports
-   * `ScallopUtils` type-only, so there is no runtime cycle, and the getter only
-   * constructs repos on first use.
-   */
-  private _repos?: Repositories;
-  private get repos(): Repositories {
-    return (this._repos ??= createRepositories({ utils: this }));
-  }
-
-  constructor(params: ScallopUtilsParams = {}) {
+  constructor(params: ScallopUtilsConstructorParams) {
     this.constants = params.scallopConstants ?? new ScallopConstants(params);
-    this.suiKit = params.suiKit ?? newSuiKit(params);
-    this.walletAddress = params.walletAddress ?? this.suiKit.currentAddress;
-    this.tokensPerSecond = params.tokensPerSecond ?? DEFAULT_TOKENS_PER_SECOND;
-
-    this.pythEndpoints = params.pythEndpoints ?? [
-      'https://hermes.pyth.network',
-    ];
-
-    this.timeout = params.axiosTimeout ?? 4000;
+    if (params.client) {
+      const {
+        client,
+        fullnodeUrl,
+        tokensPerSecond = DEFAULT_TOKENS_PER_SECOND,
+      } = params;
+      this.onchain = createOnChainDataSource(client, fullnodeUrl, {
+        tokensPerSecond,
+      });
+    } else {
+      const {
+        network,
+        fullnodeUrl,
+        tokensPerSecond = DEFAULT_TOKENS_PER_SECOND,
+      } = params;
+      const client = new SuiGrpcClient({
+        baseUrl: fullnodeUrl,
+        network,
+      });
+      this.onchain = createOnChainDataSource(client, fullnodeUrl, {
+        tokensPerSecond,
+      });
+    }
+    this.walletAddress = params.walletAddress;
     this.logger = params.logger ?? noopLogger;
-  }
-
-  /**
-   * The SDK-agnostic write-path signer/executor, memoised. Built from the raw
-   * `SuiKit`; all write callers go through this rather than touching the SDK
-   * directly, so the underlying SDK can be swapped in one place.
-   */
-  private _executor?: TransactionExecutor;
-  get executor(): TransactionExecutor {
-    return (this._executor ??= new SuiKitTransactionExecutor(this.suiKit));
-  }
-
-  get queryClient() {
-    return this.constants.queryClient;
   }
 
   // For backward compatibility with older sdk version
@@ -336,25 +303,92 @@ class ScallopUtils implements ScallopUtilsInterface {
   }
 
   /**
-   * Select coin id  that add up to the given amount as transaction arguments.
+   * Select coin ids by total amount or object count.
    *
    * @param ownerAddress - The address of the owner.
-   * @param amount - The amount that including coin decimals.
+   * @param amount - The amount including coin decimals.
+   * @param count - The number of coin objects to select.
    * @param coinType - The coin type, default is 0x2::SUI::SUI.
    * @return The selected transaction coin arguments.
    */
-  async selectCoins(
-    amount: number,
-    coinType: string = SUI_TYPE_ARG,
-    ownerAddress?: string
-  ) {
-    ownerAddress = ownerAddress ?? this.walletAddress;
-    const coins = await this.suiKit.suiInteractor.selectCoins(
-      ownerAddress,
-      amount,
-      coinType
-    );
-    return coins;
+  async selectCoins({
+    amount,
+    count,
+    coinType = SUI_TYPE_ARG,
+    ownerAddress = this.walletAddress,
+  }: {
+    coinType?: string;
+    ownerAddress?: string;
+  } & (
+    | {
+        amount: number;
+        count?: never;
+      }
+    | {
+        count: number;
+        amount?: never;
+      }
+  )) {
+    if (amount !== undefined && amount <= 0) {
+      throw new Error('selectCoins amount must be greater than 0.');
+    }
+    if (count !== undefined && count <= 0) {
+      throw new Error('selectCoins count must be greater than 0.');
+    }
+
+    const selectedCoins: {
+      objectId: string;
+      digest: string;
+      version: string;
+      balance: string;
+    }[] = [];
+    const targetAmount =
+      amount === undefined ? undefined : BigInt(Math.trunc(amount));
+    const targetCount = count ?? 0;
+    let totalAmount = 0n;
+    let hasNext = true;
+    let nextCursor: string | null | undefined = null;
+
+    while (
+      hasNext &&
+      (targetAmount === undefined
+        ? selectedCoins.length < targetCount
+        : totalAmount < targetAmount)
+    ) {
+      const { objects, hasNextPage, cursor } =
+        await this.onchain.client.listCoins({
+          owner: ownerAddress,
+          coinType,
+          cursor: nextCursor,
+        });
+
+      objects.sort((a, b) => Number(BigInt(b.balance) - BigInt(a.balance)));
+      for (const coinData of objects) {
+        selectedCoins.push({
+          objectId: coinData.objectId,
+          digest: coinData.digest,
+          version: coinData.version,
+          balance: coinData.balance,
+        });
+        totalAmount += BigInt(coinData.balance);
+
+        if (
+          targetAmount === undefined
+            ? selectedCoins.length >= targetCount
+            : totalAmount >= targetAmount
+        ) {
+          break;
+        }
+      }
+
+      nextCursor = cursor;
+      hasNext = hasNextPage;
+    }
+
+    if (!selectedCoins.length) {
+      throw new Error('No valid coins found for the transaction.');
+    }
+    return selectedCoins;
   }
 
   /**
@@ -372,11 +406,11 @@ class ScallopUtils implements ScallopUtilsInterface {
   ): Promise<void> {
     // merge to existing coins if exist
     try {
-      const existingCoins = await this.selectCoins(
-        Number.MAX_SAFE_INTEGER,
+      const existingCoins = await this.selectCoins({
+        amount: Number.MAX_SAFE_INTEGER,
         coinType,
-        sender
-      );
+        ownerAddress: sender,
+      });
 
       if (existingCoins.length > 0) {
         txBlock.mergeCoins(
@@ -387,46 +421,6 @@ class ScallopUtils implements ScallopUtilsInterface {
     } catch (_e) {
       // ignore
     }
-  }
-
-  /**
-   * Get all asset coin names in the obligation record by obligation id.
-   *
-   * @description
-   * This can often be used to determine which assets in an obligation require
-   * price updates before interacting with specific instructions of the Scallop contract.
-   *
-   * @param obligationId - The obligation id.
-   * @return Asset coin Names.
-   */
-  async getObligationCoinNames(obligationId: SuiObjectArg) {
-    const id =
-      typeof obligationId === 'string'
-        ? obligationId
-        : 'objectId' in obligationId
-          ? obligationId.objectId
-          : undefined;
-    if (id === undefined) {
-      throw new ScallopParseError(
-        'getObligationCoinNames expects an object id (string) or an object reference'
-      );
-    }
-    const obligation = await this.repos.obligation.getObligationData(id);
-    if (!obligation) return undefined;
-
-    const collateralCoinTypes = obligation.collaterals.map((collateral) => {
-      return collateral.type;
-    });
-    const debtCoinTypes = obligation.debts.map((debt) => {
-      return debt.type;
-    });
-    const obligationCoinTypes = [
-      ...new Set([...collateralCoinTypes, ...debtCoinTypes]),
-    ];
-    const obligationCoinNames = obligationCoinTypes.map((coinType) => {
-      return this.parseCoinNameFromType(coinType);
-    });
-    return obligationCoinNames;
   }
 
   /**

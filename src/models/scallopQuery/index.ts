@@ -30,32 +30,32 @@ import {
   SuiObjectData,
   SuiObjectRef,
 } from 'src/types/index.js';
-import { ScallopQueryInterface } from './interface.js';
-import ScallopUtils, { ScallopUtilsParams } from './scallopUtils.js';
+import { ScallopQueryInterface } from '../interface.js';
+import ScallopUtils from '../scallopUtils/index.js';
+import { ScallopQueryConstructorParams } from './types.js';
+import { pickRecord } from './utils.js';
 
-export type ScallopQueryParams = {
-  utils?: ScallopUtils;
-} & ScallopUtilsParams;
-
-/** Project a record down to the requested keys, dropping missing entries. */
-const pickRecord = <T>(
-  record: Record<string, T | undefined>,
-  names: string[]
-): Record<string, T> =>
-  names.reduce(
-    (acc, name) => {
-      const value = record[name];
-      if (value !== undefined) acc[name] = value;
-      return acc;
-    },
-    {} as Record<string, T>
-  );
+export type {
+  ScallopQueryConstructorParams,
+  ScallopQueryConstructorParams as ScallopQueryParams,
+} from './types.js';
 
 class ScallopQuery implements ScallopQueryInterface {
   public readonly utils: ScallopUtils;
+  public readonly repos: Repositories;
 
-  constructor(params: ScallopQueryParams = {}) {
-    this.utils = params.utils ?? new ScallopUtils(params);
+  constructor({
+    utils,
+    queryClient,
+    queryClientConfig,
+    ...scallopUtilsArgs
+  }: ScallopQueryConstructorParams) {
+    this.utils = utils ?? new ScallopUtils(scallopUtilsArgs);
+    this.repos = createRepositories({
+      utils: this.utils,
+      queryClient,
+      queryClientConfig,
+    });
   }
 
   get logger() {
@@ -79,27 +79,12 @@ class ScallopQuery implements ScallopQueryInterface {
     return this.utils.walletAddress;
   }
 
-  get suiKit() {
-    return this.utils.suiKit;
-  }
-
-  get executor() {
-    return this.utils.executor;
+  get onchain() {
+    return this.utils.onchain;
   }
 
   get address() {
     return this.utils.address;
-  }
-
-  /**
-   * The repositories registry — the clean read layer the facade is migrating
-   * onto. Built lazily from `this.utils` on first access (after `init()`), then
-   * memoised. Single-domain read methods delegate here; cross-domain assembly
-   * stays in the query services until Phase 3 (see PLAN.md).
-   */
-  private _repos?: Repositories;
-  get repos(): Repositories {
-    return (this._repos ??= createRepositories({ utils: this.utils }));
   }
 
   /* ==================== Core Query Methods ==================== */
@@ -1219,7 +1204,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * Query all address (lending pool, collateral pool, borrow dynamics, interest models, etc.) of all pool
    * @returns
    */
-  async getPoolAddresses(apiAddressId = this.address.getId()) {
+  async getPoolAddresses(apiAddressId = this.address.addressId) {
     if (!apiAddressId) {
       throw new ScallopParseError('apiAddressId is required');
     }

@@ -1,13 +1,9 @@
-import ScallopBuilder, { ScallopBuilderParams } from './scallopBuilder.js';
-import type { SuiTransactionBlockResponse } from '@scallop-io/sui-kit';
+import type { TransactionObjectArgument } from '@mysten/sui/transactions';
 import type {
-  Transaction,
-  TransactionObjectArgument,
-  TransactionResult,
-} from '@mysten/sui/transactions';
-import type { NetworkType, SuiObjectArg } from '@scallop-io/sui-kit';
-import type { ScallopTxBlock } from '../types/index.js';
-import { ScallopClientInterface } from './interface.js';
+  NetworkType,
+  SuiObjectArg,
+  SuiTransactionBlockResponse,
+} from '@scallop-io/sui-kit';
 import {
   BorrowService,
   CollateralService,
@@ -16,22 +12,14 @@ import {
   SpoolService,
   VeScaService,
 } from 'src/services/index.js';
-
-export type ScallopClientParams = {
-  networkType?: NetworkType;
-  builder?: ScallopBuilder;
-} & ScallopBuilderParams;
-
-type ScallopClientFnReturnType<T extends boolean> = T extends true
-  ? SuiTransactionBlockResponse
-  : Transaction;
-
-type ScallopClientVeScaReturnType<T extends boolean> = T extends true
-  ? SuiTransactionBlockResponse
-  : {
-      tx: Transaction;
-      scaCoin: TransactionResult;
-    };
+import type { ScallopTxBlock } from '../../types/index.js';
+import { ScallopClientInterface } from '../interface.js';
+import ScallopBuilder from '../scallopBuilder/index.js';
+import {
+  ScallopClientConstructorParams,
+  ScallopClientFnReturnType,
+  ScallopClientVeScaReturnType,
+} from './types.js';
 
 /**
  * @description
@@ -55,15 +43,19 @@ class ScallopClient implements ScallopClientInterface {
   public readonly referralService: ReferralService;
   public networkType: NetworkType;
 
-  public constructor(params: ScallopClientParams = {}) {
-    this.builder = params.builder ?? new ScallopBuilder(params);
+  public constructor({
+    builder,
+    networkType,
+    ...scallopBuilderArgs
+  }: ScallopClientConstructorParams) {
+    this.builder = builder ?? new ScallopBuilder(scallopBuilderArgs);
     this.collateralService = new CollateralService(this);
     this.lendingService = new LendingService(this);
     this.borrowService = new BorrowService(this);
     this.spoolService = new SpoolService(this);
     this.veScaService = new VeScaService(this);
     this.referralService = new ReferralService(this);
-    this.networkType = params.networkType ?? 'mainnet';
+    this.networkType = networkType ?? 'mainnet';
   }
 
   get query() {
@@ -83,11 +75,15 @@ class ScallopClient implements ScallopClientInterface {
   }
 
   get suiKit() {
-    return this.utils.suiKit;
+    return this.builder.suiKit;
+  }
+
+  get onchain() {
+    return this.utils.onchain;
   }
 
   get executor() {
-    return this.utils.executor;
+    return this.builder.executor;
   }
 
   get address() {
@@ -101,104 +97,6 @@ class ScallopClient implements ScallopClientInterface {
    */
   async init(force: boolean = false) {
     await this.builder.init(force);
-  }
-
-  /* ==================== Query Method ==================== */
-
-  /**
-   * Query market data.
-   * @deprecated use ScallopQuery instance instead
-   * @description
-   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
-   *
-   * @return Market data.
-   */
-  async queryMarket() {
-    return await this.query.getMarketPools();
-  }
-
-  /**
-   * Get obligations data.
-   * @deprecated use ScallopQuery instance instead
-   * @description
-   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
-   *
-   * @param ownerAddress - The owner address.
-   * @return Obligations data.
-   */
-  async getObligations(ownerAddress?: string) {
-    const owner = ownerAddress ?? this.walletAddress;
-    return await this.query.getObligations(owner);
-  }
-
-  /**
-   * Query obligation data.
-   * @deprecated use ScallopQuery instance instead
-   * @description
-   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
-   *
-   * @param obligationId - The obligation id.
-   * @return Obligation data.
-   */
-  async queryObligation(obligationId: string) {
-    return await this.query.queryObligation(obligationId);
-  }
-
-  /**
-   * Query all stake accounts data.
-   * @deprecated use ScallopQuery instance instead
-   * @description
-   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
-   *
-   * @param ownerAddress - The owner address.
-   * @return All stake accounts data.
-   */
-  async getAllStakeAccounts(ownerAddress?: string) {
-    const owner = ownerAddress ?? this.walletAddress;
-    return await this.query.getAllStakeAccounts(owner);
-  }
-
-  /**
-   * Query stake account data.
-   * @deprecated use ScallopQuery instance instead
-   * @description
-   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
-   *
-   * @param stakeMarketCoinName - Support stake market coin.
-   * @param ownerAddress - The owner address.
-   * @return Stake accounts data.
-   */
-  async getStakeAccounts(stakeMarketCoinName: string, ownerAddress?: string) {
-    const owner = ownerAddress ?? this.walletAddress;
-    return await this.query.getStakeAccounts(stakeMarketCoinName, owner);
-  }
-
-  /**
-   * Query stake pool data.
-   * @deprecated use ScallopQuery instance instead
-   *
-   * @description
-   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
-   *
-   * @param stakeMarketCoinName - Support stake market coin.
-   * @return Stake pool data.
-   */
-  async getStakePool(stakeMarketCoinName: string) {
-    return await this.query.getStakePool(stakeMarketCoinName);
-  }
-
-  /**
-   * Query reward pool data.
-   * @deprecated use ScallopQuery instance instead
-   *
-   * @description
-   * This method might be deprecated in the future, please use the {@link ScallopQuery} query instance instead.
-   *
-   * @param stakeMarketCoinName - Support stake market coin.
-   * @return Reward pool data.
-   */
-  async getStakeRewardPool(stakeMarketCoinName: string) {
-    return await this.query.getStakeRewardPool(stakeMarketCoinName);
   }
 
   /* ==================== Core Method ==================== */
@@ -310,35 +208,6 @@ class ScallopClient implements ScallopClientInterface {
   }
 
   /**
-   * @deprecated Use {@link supply} instead.
-   * Deposit asset into the specific pool.
-   *
-   * @param poolCoinName - Types of pool coin.
-   * @param amount - The amount of coins would deposit.
-   * @param sign - Decide to directly sign the transaction or return the transaction block.
-   * @param walletAddress - The wallet address of the owner.
-   * @return Transaction block response or transaction block.
-   */
-  async deposit(
-    poolCoinName: string,
-    amount: number
-  ): Promise<SuiTransactionBlockResponse>;
-  async deposit<S extends boolean>(
-    poolCoinName: string,
-    amount: number,
-    sign?: S,
-    walletAddress?: string
-  ): Promise<ScallopClientFnReturnType<S>>;
-  async deposit<S extends boolean>(
-    poolCoinName: string,
-    amount: number,
-    sign: S = true as S,
-    walletAddress?: string
-  ): Promise<ScallopClientFnReturnType<S>> {
-    return this.supply(poolCoinName, amount, sign, walletAddress);
-  }
-
-  /**
    * Supply asset into the specific lending pool.
    *
    * @param poolCoinName - Types of pool coin.
@@ -369,44 +238,6 @@ class ScallopClient implements ScallopClientInterface {
       sign,
       walletAddress
     ) as Promise<ScallopClientFnReturnType<S>>;
-  }
-
-  /**
-   * @deprecated Use {@link supplyAndStake}
-   * Deposit asset into the specific pool and Stake market coin into the corresponding spool.
-   *
-   * @param stakeCoinName - Types of stake coin.
-   * @param amount - The amount of coins would deposit.
-   * @param sign - Decide to directly sign the transaction or return the transaction block.
-   * @param stakeAccountId - The stake account object.
-   * @param walletAddress - The wallet address of the owner.
-   * @return Transaction block response or transaction block.
-   */
-  async depositAndStake(
-    stakeCoinName: string,
-    amount: number
-  ): Promise<SuiTransactionBlockResponse>;
-  async depositAndStake<S extends boolean>(
-    stakeCoinName: string,
-    amount: number,
-    sign?: S,
-    stakeAccountId?: string,
-    walletAddress?: string
-  ): Promise<ScallopClientFnReturnType<S>>;
-  async depositAndStake<S extends boolean>(
-    stakeCoinName: string,
-    amount: number,
-    sign: S = true as S,
-    stakeAccountId?: string,
-    walletAddress?: string
-  ): Promise<ScallopClientFnReturnType<S>> {
-    return this.supplyAndStake(
-      stakeCoinName,
-      amount,
-      sign,
-      stakeAccountId,
-      walletAddress
-    );
   }
 
   /**
