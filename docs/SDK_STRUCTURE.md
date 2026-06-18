@@ -337,8 +337,8 @@ Integration tests need a `.env` with `SECRET_KEY` (see `.env.example`). They use
 | A new read (indexer/API or RPC)          | `src/repositories/<domain>/helpers.ts` (+ `types.ts`/`utils.ts`), expose a method on `index.ts`   |
 | A new read domain                        | A new `src/repositories/<domain>/` folder + wire it in `repositories/wiring/registry.ts`          |
 | A new piece of write-side business logic | `src/services/client/<Name>Service.ts`                                                            |
-| Cross-domain read assembly               | `ScallopQuery` or `src/services/query/`                                                            |
-| A pure data-shape transform              | The domain's `repositories/<domain>/utils.ts` (or `src/mappers/` for shared gRPC/JSON-RPC shapes)  |
+| Cross-domain read assembly               | `ScallopQuery` or `src/services/query/`                                                           |
+| A pure data-shape transform              | The domain's `repositories/<domain>/utils.ts` (or `src/mappers/` for shared gRPC/JSON-RPC shapes) |
 | A new RPC/indexer error case             | Throw a typed `Scallop*Error` from `src/errors/` via `logError(...)`                              |
 | A new public type                        | `src/types/public/` (semver-governed)                                                             |
 | A new internal DTO                       | `src/types/internal/`                                                                             |
