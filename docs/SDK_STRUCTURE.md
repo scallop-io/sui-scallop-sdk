@@ -3,43 +3,42 @@
 A guided tour of how `@scallop-io/sui-scallop-sdk` is laid out. Read this first if you're new to the codebase or returning after a long break.
 
 > **Audience:** SDK contributors and integrators who want to understand the moving parts without reading every file.
-> **Companion docs:** [`SDK_STRUCTURE_REPORT.md`](SDK_STRUCTURE_REPORT.md) (problem statement) and [`SDK_STRUCTURE_FIX_PLAN.md`](SDK_STRUCTURE_FIX_PLAN.md) (workstreams + status).
+> **Companion docs:** [`SDK_STRUCTURE_REPORT.md`](SDK_STRUCTURE_REPORT.md) (problem statement) and [`SDK_STRUCTURE_FIX_PLAN.md`](SDK_STRUCTURE_FIX_PLAN.md) (workstreams + status). The read layer has its own contributor guide in [`../src/repositories/CLAUDE.md`](../src/repositories/CLAUDE.md).
 
 ---
 
 ## 1. The 30-second mental model
 
-The SDK has a stable public facade over a still-evolving internal split. Think in two paths:
+The SDK has a stable public facade over an internal split. Think in two paths:
 
 ```text
 Write path:
 ScallopClient method
-  -> client service
+  -> client service        (src/services/client/*)
   -> ScallopBuilder / ScallopTxBlock
-  -> TransactionExecutor (sign + execute, native CoreClient)
+  -> TransactionExecutor   (sign + execute, native CoreClient — owned by the builder)
   -> Sui transaction
 
 Read path:
 ScallopQuery method
-  -> read service
-  -> repository or lower-level query function
-  -> mapper / parser
+  -> repository            (src/repositories/<domain>/)
+  -> datasource            (rate-limited RPC, or indexer/API axios)
+  -> per-domain parse      (repo utils.ts / schema.ts / mapper.ts)
   -> typed return value
 ```
 
 Supporting pieces:
 
-- `ScallopConstants` owns protocol config: addresses, pool addresses, whitelist, decimals.
-- `ScallopAddress` is the address/HTTP adapter composed by `ScallopConstants`.
-- `ScallopIndexer` is the REST/indexer adapter.
-- `ScallopUtils` owns a raw `SuiKit` (read client + node url) and a
-  `TransactionExecutor` (write path). `ScallopSuiKit` was removed; reads go
-  through `OnChainDataSource` (rate-limited), writes through the executor.
-- `src/mappers/` is the transport boundary for Move JSON, JSON-RPC, and gRPC shape differences.
-- `src/services/portfolioCalculations.ts` holds pure math extracted from portfolio queries.
+- `ScallopConstants` owns protocol config: addresses, pool addresses, whitelist, decimals. It **composes** `ScallopAddress` (`constants.address`) and embeds its config sources + validator under `src/models/scallopConstants/config/`.
+- `ScallopAddress` is the address/HTTP adapter; it reads the Scallop API via `ApiDataSource`.
+- `ScallopUtils` owns an `OnChainDataSource` (`utils.onchain`) — a rate-limited Sui read client — plus `ScallopConstants`.
+- `ScallopBuilder` owns the raw `SuiKit` (`builder.suiKit`) and the write-path `TransactionExecutor` (`builder.executor`, a `SuiKitTransactionExecutor`).
+- `src/datasources/` is the raw transport layer (on-chain RPC, indexer, API). `ScallopSuiKit` and the `ScallopIndexer` model were both removed.
+- `src/mappers/` is now just `moveTypeMapper` (gRPC vs JSON-RPC `TypeName` differences); per-domain payload parsing lives inside each repository.
+- `src/services/query/portfolioCalculations.ts` holds pure math extracted from portfolio queries.
 - `src/errors/`, `src/logger/`, `src/types/public`, and `src/types/internal` are cross-cutting support layers.
 
-Important caveat: this is not a pure clean architecture yet. Some legacy query files still do orchestration, parsing, and calculation together. The current direction is facade -> service -> repository/adapter -> mapper, while keeping old public imports and method signatures working.
+The read path is now fully on the repository layer — the old `src/queries/*` files and the facade-adapter repositories are gone, and `ScallopQuery` delegates every domain to `repos.<domain>`. Public method signatures on `Scallop` / `ScallopClient` / `ScallopBuilder` / `ScallopQuery` / `ScallopUtils` are preserved across the v4 refactor.
 
 ---
 
@@ -49,20 +48,26 @@ These are the names you import. They form a dependency chain — each holds a re
 
 ```
 Scallop
-  └── ScallopClient        // signs & sends transactions, high-level user actions
-        └── ScallopBuilder // composes ScallopTxBlocks
-              └── ScallopQuery  // reads protocol state
-                    └── ScallopUtils  // type lookups, coin metadata, pyth, etc.
-                          ├── ScallopConstants  // pool addresses, whitelist, decimals
-                          │     └── ScallopAddress  // address registry + HTTP
-                          ├── SuiKit             // raw @scallop-io/sui-kit (read client + node url)
-                          ├── TransactionExecutor // write path: sign + execute (native CoreClient)
-                          └── ScallopIndexer     // Scallop REST indexer (axios)
+  └── ScallopClient        // write facade: signs & sends transactions, high-level user actions
+        └── ScallopBuilder // owns raw SuiKit + TransactionExecutor; composes ScallopTxBlocks
+              └── ScallopQuery  // read facade — delegates to the repository registry
+                    └── ScallopUtils  // type lookups, coin metadata, OnChainDataSource
+                          ├── OnChainDataSource   // rate-limited Sui read client (utils.onchain)
+                          └── ScallopConstants    // pool addresses, whitelist, decimals
+                                └── ScallopAddress // address registry + HTTP (ApiDataSource)
 ```
 
-**Init:** every model exposes `.init()`. You don't usually call it yourself — `Scallop.createScallopClient()` / `createScallopBuilder()` / `createScallopQuery()` handle it.
+The write-path transport hangs off the **builder**, not utils:
 
-**Parent accessors:** each model exposes its dependencies as getters (`client.builder`, `builder.query`, `query.utils`, `utils.constants`, `constants.address`). This makes the chain navigable without re-instantiating anything.
+```
+ScallopBuilder
+  ├── suiKit     // raw @scallop-io/sui-kit
+  └── executor   // SuiKitTransactionExecutor (memoised), native CoreClient write path
+```
+
+**Init:** every model exposes `.init()`. You don't usually call it yourself — `Scallop.createScallopClient()` / `createScallopBuilder()` / `createScallopQuery()` / `createScallopUtils()` handle it.
+
+**Parent accessors:** each model exposes its dependencies as getters (`client.builder`, `builder.query`, `query.utils`, `utils.constants`, `constants.address`). `ScallopClient` also forwards `suiKit` / `executor` / `onchain` to the builder/utils that own them. This makes the chain navigable without re-instantiating anything.
 
 > ⚠️ **v4 change:** `ScallopConstants` used to _extend_ `ScallopAddress`. As of v4 it **composes** it — reach the address adapter via `constants.address`. Most call sites are unaffected because `constants.get(...)`, `constants.getAddresses(...)`, etc. still work via forwarders.
 
@@ -73,42 +78,52 @@ Scallop
 ```
 src/
 ├── index.ts                 # Public root barrel — what's re-exported defines the SDK API
-├── models/                  # The facade classes (Scallop, ScallopClient, ScallopBuilder, ...)
+│
+├── models/                  # The facade classes, one folder per model
+│   ├── scallop.ts           # Scallop factory (createScallopClient/Builder/Query/Utils)
+│   ├── scallopClient/       # write facade + client-service wiring
+│   ├── scallopBuilder/      # owns raw SuiKit + TransactionExecutor; builds ScallopTxBlocks
+│   ├── scallopQuery/        # read facade — delegates to repositories (this.repos.<domain>)
+│   ├── scallopUtils/        # coin/type helpers; owns OnChainDataSource
+│   ├── scallopConstants/    # protocol config
+│   │   └── config/          # ScallopConfig, snapshot, ConfigValidator, *ConfigSource
+│   ├── scallopAddress/      # address registry + HTTP (reads API via ApiDataSource)
+│   ├── suiKit.ts            # newSuiKit() factory
+│   ├── transactionExecutor.ts  # SuiKitTransactionExecutor (CoreClient-style write path)
+│   └── interface.ts
 │
 ├── builders/                # Transaction-block builders
 │   ├── coreBuilder.ts       # supply, borrow, deposit collateral, ...
 │   ├── spoolBuilder.ts      # stake / unstake spool
-│   ├── borrowIncentiveBuilder.ts
-│   ├── vescaBuilder.ts
-│   ├── referralBuilder.ts
-│   ├── sCoinBuilder.ts
-│   ├── loyaltyProgramBuilder.ts
+│   ├── borrowIncentiveBuilder.ts, vescaBuilder.ts, referralBuilder.ts
+│   ├── sCoinBuilder.ts, loyaltyProgramBuilder.ts
 │   ├── oracles/             # pyth + xOracle price-feed builders
 │   ├── manifest.ts          # ⭐ Per-module method manifest
 │   ├── modules.ts           # ⭐ Per-domain module objects (tx.core, tx.spool, …)
 │   ├── verify.ts            # Runtime collision / presence checker for ScallopTxBlock
 │   └── index.ts             # newScallopTxBlock — Proxy that layers all builders
 │
-├── queries/                 # Lower-level read functions (called by services)
-│   ├── coreQuery.ts         # market pools, collaterals, lendings
-│   ├── borrowIncentiveQuery.ts
-│   ├── borrowLimitQuery.ts
-│   ├── supplyLimitQuery.ts
-│   ├── isolatedAssetQuery.ts
-│   ├── portfolioQuery.ts    # getUserPortfolio + getObligationAccount orchestration
-│   ├── xOracleQuery.ts
-│   ├── spoolQuery.ts
-│   └── ... (vescaQuery, referralQuery, priceQuery, sCoinQuery, ...)
+├── datasources/             # ⭐ Raw transport
+│   ├── onchain.ts           # OnChainDataSource — rate-limited Sui read client (new-gen SDK)
+│   ├── rateLimiter.ts       # token-bucket throttle (single point for all on-chain reads)
+│   ├── api.ts               # ApiDataSource — Scallop API (axios)
+│   └── indexer.ts           # IndexerDataSource extends ApiDataSource (indexer base url)
 │
-├── services/                # ⭐ Read-side business logic (extracted from ScallopQuery)
-│   ├── MarketService.ts
-│   ├── ObligationService.ts
-│   ├── LendingReadService.ts
-│   ├── SpoolReadService.ts
-│   ├── BorrowIncentiveService.ts
-│   ├── PriceService.ts
-│   ├── portfolioCalculations.ts   # Pure-math helpers (TVL, risk, available borrow/withdraw)
-│   └── client/              # Write-side business logic (extracted from ScallopClient)
+├── repositories/            # ⭐ The read layer — one folder per domain
+│   ├── base.ts              # BaseRepository (fetchWithCache, baseContext, metadata generic)
+│   ├── cache.ts             # shared @tanstack/query-core QueryClient
+│   ├── types.ts             # BaseContext, QuerySource ('onchain'|'api'|'api-first'), params
+│   ├── utils.ts             # runWithDataSourceFallback, logError, getDynamicField* helpers
+│   ├── market/ obligation/ spool/ price/ borrowIncentive/ coinBalance/
+│   ├── flashloan/ isolatedAssets/ xOracle/ veSca/ loyaltyProgram/
+│   ├── veScaLoyaltyProgram/ referral/ poolAddresses/
+│   │       each domain: index.ts + helpers.ts + types.ts (+ utils/schema/bcs/const/mapper as needed)
+│   └── wiring/              # registry.ts, datasources.ts, metadata.ts, source.ts
+│
+├── services/
+│   ├── query/
+│   │   └── portfolioCalculations.ts  # Pure-math helpers (TVL, risk, available borrow/withdraw)
+│   └── client/              # ⭐ Write-side business logic (extracted from ScallopClient)
 │       ├── LendingService.ts        # supply / withdraw / flashLoan
 │       ├── CollateralService.ts     # depositCollateral / withdrawCollateral
 │       ├── BorrowService.ts         # openObligation / borrow / repay
@@ -117,57 +132,30 @@ src/
 │       ├── ReferralService.ts
 │       └── types.ts                 # ClientServiceContext structural type
 │
-├── repositories/            # ⭐ Adapters: indexer-first / RPC-only data sources
-│   ├── marketRepository.ts          # interface
-│   ├── obligationRepository.ts      # interface
-│   ├── indexerMarketRepository.ts   # Scallop indexer impl
-│   ├── rpcMarketRepository.ts       # forced-RPC impl
-│   ├── scallopQueryMarketRepository.ts      # ScallopQuery-backed (default)
-│   └── scallopQueryObligationRepository.ts
-│
-├── mappers/                 # ⭐ Anti-corruption layer
+├── mappers/                 # ⭐ Anti-corruption layer (now minimal)
 │   ├── moveTypeMapper.ts            # Normalise gRPC vs JSON-RPC TypeName shapes
-│   ├── obligationMapper.ts
-│   ├── borrowIncentiveMapper.ts
-│   ├── marketMapper.ts
-│   └── spoolMapper.ts
-│
-├── config/                  # ⭐ Config-source composition
-│   ├── ScallopConfig.ts             # loadScallopConfigSnapshot()
-│   ├── ScallopConfigSnapshot.ts     # immutable snapshot type
-│   ├── ConfigValidator.ts           # assertConfigSnapshot() (powers strictInit)
-│   ├── AddressConfigSource.ts       # reads from ScallopAddress
-│   ├── PoolAddressConfigSource.ts
-│   └── WhitelistConfigSource.ts
-│
-├── context/                 # ⭐ ScallopContext — narrow structural type for services & tests
+│   └── index.ts                     # per-domain parsing lives in repositories/<domain>/
 │
 ├── errors/                  # ⭐ Typed error hierarchy
-│   ├── ScallopError.ts              # base
-│   ├── ScallopRpcError.ts
-│   ├── ScallopIndexerError.ts
-│   ├── ScallopParseError.ts         # thrown by mappers
-│   ├── ScallopConfigError.ts        # thrown by strictInit
-│   └── ScallopTransactionBuildError.ts
+│   ├── ScallopError (base), ScallopRpcError, ScallopIndexerError,
+│   ├── ScallopParseError, ScallopConfigError, ScallopTransactionBuildError
 │
 ├── logger/                  # ⭐ Logger abstraction (no console.* in internals)
-│   ├── Logger.ts
-│   ├── noopLogger.ts        # default
-│   └── consoleLogger.ts     # opt-in
+│   ├── Logger.ts, noopLogger.ts (default), consoleLogger.ts (opt-in)
 │
 ├── types/                   # ⭐ Public vs internal type boundary
 │   ├── public/              # The semver-governed type surface
 │   ├── internal/            # DTOs / transport types — NOT re-exported from root
-│   ├── builder/, query/, constant/  # Canonical type defs (still here for now)
+│   ├── builder/, query/, constant/  # Canonical type defs
 │   ├── address.ts, sui.ts, utils.ts
 │   └── index.ts             # Delegates to ./public
 │
 ├── utils/
-│   ├── querySource.ts       # ⭐ runWithSourceFallback + resolveQuerySource
 │   ├── core.ts              # parseObjectAs<T> (see gotcha in §7)
-│   ├── url.ts, indexer.ts, query.ts, math.ts, ...
+│   ├── vesca.ts             # partitionArray (chunk ids for getObjects ≤ 50/call), ...
+│   ├── url.ts, math.ts, ...
 │
-├── constants/               # queryKeys, API_BASE_URL, etc.
+├── constants/               # queryKeys, cache, rpc, API base url, ...
 └── client/, query/, builder/  # Subpath-export entry points (re-export from above)
 ```
 
@@ -191,7 +179,7 @@ Property lookup falls through from outermost (core) to innermost (vesca). All do
 - `GenerateCoreNormalMethod` — thin wrappers around Move calls. Synchronous. Returns a `TransactionResult`.
 - `GenerateCoreQuickMethod` — async helpers that auto-fetch coins/obligations, call the normal method, transfer leftovers back to the sender.
 
-**v4 added an explicit module view.** Alongside the flat methods, `tx.core`, `tx.spool`, `tx.vesca`, `tx.borrowIncentive`, `tx.referral`, `tx.loyalty`, `tx.scoin` expose the same functions grouped by domain. Function references match exactly (`tx.supplyQuick === tx.core.supplyQuick`). The grouping is non-breaking — flat methods still work and the deprecation will come in a later major.
+**v4 added an explicit module view.** Alongside the flat methods, `tx.core`, `tx.spool`, `tx.vesca`, `tx.borrowIncentive`, `tx.referral`, `tx.loyalty`, `tx.scoin` expose the same functions grouped by domain. Function references match exactly (`tx.supplyQuick === tx.core.supplyQuick`). The grouping is declared in [src/builders/manifest.ts](../src/builders/manifest.ts), assembled in [src/builders/modules.ts](../src/builders/modules.ts), and verified at runtime by [src/builders/verify.ts](../src/builders/verify.ts).
 
 **Naming convention for lending:** `supply` / `supplyQuick` / `depositCollateral` / `depositCollateralQuick` are canonical (Aave/Compound aligned). The legacy `deposit` / `depositQuick` / `addCollateral` / `addCollateralQuick` are `@deprecated`.
 
@@ -203,29 +191,25 @@ Property lookup falls through from outermost (core) to innermost (vesca). All do
 ScallopQuery.getMarketPools()
        │  (1-line delegation in v4)
        ▼
-MarketService.getMarketPools()
-       │  decides source (indexer-first w/ RPC fallback)
+this.repos.market.getMarkets(...)        ← createRepositories({ utils }) in repositories/wiring/registry.ts
+       │  picks a source via QuerySource (default 'api-first' for dual-source domains)
        ▼
-runWithSourceFallback()  ←  src/utils/querySource.ts
-       │  ├── primary  → IndexerMarketRepository.getMarketPools()
-       │  │                       │
-       │  │                       ▼
-       │  │              ScallopIndexer (axios)  → /pools
-       │  │                       │
-       │  │                       ▼
-       │  │              marketMapper.parsePools()
-      │  └── fallback → RpcMarketRepository.getMarketPools()
-       │                          │
-       │                          ▼
-       │                 OnChainDataSource (rate-limited)  → on-chain reads
-       │                          │
-       │                          ▼
-       │                 marketMapper.parsePools()
+runWithDataSourceFallback({ source, api, onchain })   ← src/repositories/utils.ts
+       │  ├── api      → getMarketsFromIndexer(ctx)
+       │  │                     │
+       │  │                     ▼
+       │  │            IndexerDataSource (axios) → parse in market/utils.ts + market/mapper.ts
+       │  └── onchain  → getMarketsFromOnChain(ctx)
+       │                        │
+       │                        ▼
+       │               OnChainDataSource (rate-limited) → parse
        ▼
 returns typed MarketPool[]
 ```
 
-If the indexer fails, fallback runs and the failure is logged via the injected `Logger` (default: `noopLogger`). Callers see no difference in shape.
+`'api-first'` tries the indexer/API, and on failure logs a warning via the injected `Logger` (default: `noopLogger`) and falls back to on-chain. The legacy facade flags (`source: 'rpc'|'indexer'|'indexer-first'`, `indexer: boolean`, `useOnChainQuery: boolean`) are normalised onto `QuerySource` by [src/repositories/wiring/source.ts](../src/repositories/wiring/source.ts). Callers see no difference in shape.
+
+Cross-domain assembly (e.g. obligation accounts needing market + price + spool) stays in `ScallopQuery` / `services/query/portfolioCalculations.ts`, not in a single repository.
 
 ---
 
@@ -235,21 +219,20 @@ If the indexer fails, fallback runs and the failure is logged via the injected `
 ScallopClient.supply(amount, coinName, ...)
        │  (1-line delegation in v4)
        ▼
-LendingService.supply({ client, builder, query, ... })   // ClientServiceContext
+LendingService.supply({ builder, query, ... })   // ClientServiceContext (structural)
        │
        ▼
 ScallopBuilder.createTxBlock()
        │
        ▼
-coreTxBlock.supplyQuick(...)   // GenerateCoreQuickMethod
-       │  auto-resolves coin objects, builds Move call
+coreTxBlock.supplyQuick(...)   // GenerateCoreQuickMethod — auto-resolves coin objects
        ▼
-executor.signAndSendTxn(txBlock)   // → CoreClient.signAndExecuteTransaction
+builder.executor.signAndSendTxn(txBlock)   // SuiKitTransactionExecutor → CoreClient.signAndExecuteTransaction
        ▼
 returns SuiTransactionBlockResponse
 ```
 
-Services accept a **structural** `ClientServiceContext` (see `src/services/client/types.ts`) — not the full `ScallopClient`. This is what makes them unit-testable without standing up a real Sui client.
+Client services accept a **structural** `ClientServiceContext` (see [src/services/client/types.ts](../src/services/client/types.ts)) — not the full `ScallopClient`. This is what makes them unit-testable without standing up a real Sui client. The write-path signer/executor lives on the builder (`builder.executor`), modelled on `@mysten/sui`'s `CoreClient`.
 
 ---
 
@@ -257,15 +240,13 @@ Services accept a **structural** `ClientServiceContext` (see `src/services/clien
 
 ### Errors
 
-New architecture-layer failures throw a subclass of `ScallopError`; some
-legacy builder/query/util paths still throw plain `Error` and are tracked as
-follow-up cleanup:
+All SDK-internal failures throw a subclass of `ScallopError`. The read layer routes every failure throw through `logError(ctx.logger, new Scallop*Error(...))`; only commented-out `market/` sCoin-swap-rate helpers still carry plain `throw new Error(...)`.
 
 | Class                          | When it fires                                               |
 | ------------------------------ | ----------------------------------------------------------- |
 | `ScallopRpcError`              | Sui RPC / gRPC failure                                      |
-| `ScallopIndexerError`          | Scallop indexer HTTP failure                                |
-| `ScallopParseError`            | A mapper rejected a payload shape                           |
+| `ScallopIndexerError`          | Scallop indexer / API HTTP failure                          |
+| `ScallopParseError`            | A parser/mapper rejected a payload shape                    |
 | `ScallopConfigError`           | `strictInit: true` and required addresses/whitelist missing |
 | `ScallopTransactionBuildError` | A tx-builder couldn't construct a Move call                 |
 
@@ -273,7 +254,7 @@ Each carries `cause`, `context`, and structured fields so callers can branch on 
 
 ### Logging
 
-Pass `{ logger }` to `Scallop`, `ScallopClient`, `ScallopQuery`, `ScallopUtils`, `ScallopAddress`, or `ScallopConstants`. The SDK never calls `console.*` internally (gated by `test/noConsole.spec.ts`). Default is `noopLogger` — silent. Use `consoleLogger` to opt in.
+Pass `{ logger }` to `Scallop`, `ScallopClient`, `ScallopQuery`, `ScallopUtils`, `ScallopAddress`, or `ScallopConstants`. The SDK never calls `console.*` internally (gated by `tests/noConsole.spec.ts`). Default is `noopLogger` — silent. Use `consoleLogger` to opt in.
 
 ### Config + strictInit
 
@@ -283,7 +264,7 @@ await constants.init();
 // throws ScallopConfigError if required core addresses or whitelist sets are missing
 ```
 
-The validation lives in `src/config/ConfigValidator.ts` and runs through the `AddressConfigSource` / `PoolAddressConfigSource` / `WhitelistConfigSource` boundaries.
+The validation lives in `src/models/scallopConstants/config/ConfigValidator.ts` (colocated with `ScallopConstants`) and runs through the `AddressConfigSource` / `PoolAddressConfigSource` / `WhitelistConfigSource` boundaries in the same `config/` folder. `constants.whitelist` and `constants.poolAddresses` are frozen immutable snapshots after `init()`.
 
 ### `parseObjectAs<T>` gotcha
 
@@ -291,7 +272,11 @@ The validation lives in `src/config/ConfigValidator.ts` and runs through the `Ad
 
 ### Query caching
 
-`ScallopQuery` uses `@tanstack/query-core`'s `QueryClient` for on-chain data. Cache keys are centralised in `src/constants/queryKeys.ts`.
+The repository layer uses `@tanstack/query-core`'s `QueryClient` (shared via `src/repositories/cache.ts`) for on-chain and indexer data. Every network read goes through `ctx.fetchWithCache({ queryKey, queryFn })`; cache keys are centralised in `src/constants/queryKeys.ts` (always include `node: onchain.url` in RPC keys).
+
+### Batching on-chain object reads
+
+`onchain.client.getObjects` accepts at most 50 ids per call. Helpers that fan out over many objects chunk the id list with `partitionArray(ids, 50)` (`src/utils/vesca.ts`) — see `price/`, `market/`, `spool/`, `poolAddresses/`.
 
 ---
 
@@ -299,61 +284,67 @@ The validation lives in `src/config/ConfigValidator.ts` and runs through the `Ad
 
 Consumers can import slim slices instead of the full barrel:
 
-| Subpath                               | Use for                                             |
-| ------------------------------------- | --------------------------------------------------- |
-| `@scallop-io/sui-scallop-sdk`         | Default — everything (heaviest)                     |
-| `@scallop-io/sui-scallop-sdk/client`  | Just `ScallopClient` + minimum deps                 |
-| `@scallop-io/sui-scallop-sdk/query`   | Just `ScallopQuery` + minimum deps                  |
-| `@scallop-io/sui-scallop-sdk/builder` | Just `ScallopBuilder` + minimum deps                |
-| `@scallop-io/sui-scallop-sdk/errors`  | Typed error classes                                 |
-| `@scallop-io/sui-scallop-sdk/logger`  | `Logger` interface, `noopLogger`, `consoleLogger`   |
-| `@scallop-io/sui-scallop-sdk/config`  | `ScallopConfigSnapshot`, validators, config sources |
-| `@scallop-io/sui-scallop-sdk/context` | `ScallopContext`                                    |
-| `@scallop-io/sui-scallop-sdk/mappers` | Pure mapping functions                              |
-| `@scallop-io/sui-scallop-sdk/types`   | Type-only import (no runtime)                       |
+| Subpath                               | Use for                                           |
+| ------------------------------------- | ------------------------------------------------- |
+| `@scallop-io/sui-scallop-sdk`         | Default — everything (heaviest)                   |
+| `@scallop-io/sui-scallop-sdk/client`  | Just `ScallopClient` + minimum deps               |
+| `@scallop-io/sui-scallop-sdk/query`   | Just `ScallopQuery` + minimum deps                |
+| `@scallop-io/sui-scallop-sdk/builder` | Just `ScallopBuilder` + minimum deps              |
+| `@scallop-io/sui-scallop-sdk/errors`  | Typed error classes                               |
+| `@scallop-io/sui-scallop-sdk/logger`  | `Logger` interface, `noopLogger`, `consoleLogger` |
+| `@scallop-io/sui-scallop-sdk/types`   | Type-only import (no runtime)                     |
 
-Each subpath ships ESM + CJS + matching `.d.ts` / `.d.cts`.
+Each subpath ships ESM + CJS + matching `.d.ts` / `.d.cts`. Entry points are registered in `tsup.config.ts` + `package.json` `exports`, with a smoke test in `tests/subpathExports.spec.ts`.
 
 ---
 
 ## 9. Testing layout
 
+Specs live under `tests/`, mirroring the `src/` tree (e.g. `tests/repositories/<domain>/index.spec.ts`, `tests/models/scallopConstants/...`, `tests/utils/...`). Source under `src/` stays spec-free. Specs import the code under test via the `src/` path alias (absolute), never relative.
+
 ```
-test/
-├── *.spec.ts                # ~21 unit specs, all network-free, <2s total
-├── scallopSdk.ts            # Shared test SDK setup (forced-address overrides)
-└── noConsole.spec.ts        # CI gate: blocks new console.* in SDK internals
+tests/
+├── repositories/<domain>/  # per-domain read-layer specs
+├── models/, builders/, datasources/, services/, utils/   # mirror src/
+├── integration/            # mainnet dry-run specs (need .env)
+├── scallopSdk.ts           # shared integration SDK fixture (forced-address overrides)
+├── mocks.ts                # shared fakes for unit specs
+├── subpathExports.spec.ts  # smoke test for every entry point
+└── noConsole.spec.ts       # CI gate: blocks new console.* in SDK internals
 ```
+
+`vitest.config.ts` defines two **projects**: `unit` (`tests/**/*.spec.ts` minus `tests/integration/**`, network-free) and `integration` (`tests/integration/**`, needs `.env`).
 
 | Script                          | What it runs                          | Needs network? |
 | ------------------------------- | ------------------------------------- | -------------- |
-| `pnpm test:typecheck`           | `tsc -p ./test`                       | No             |
+| `pnpm test:typecheck`           | `tsc -p ./tests`                      | No             |
 | `pnpm test:no-console`          | Just the no-console gate              | No             |
-| `pnpm test:unit`                | 21 spec files, 152 tests              | **No**         |
-| `pnpm test:query`               | Indexer/RPC query tests               | Yes            |
+| `pnpm test:unit`                | All `unit`-project specs              | **No**         |
+| `pnpm test:query`               | Indexer/RPC query test (integration)  | Yes            |
 | `pnpm test:integration`         | Mainnet dry-run tests                 | Yes            |
-| `pnpm test`                     | `test:typecheck && test:all`          | Yes            |
+| `pnpm test`                     | `test:typecheck` + all tests          | Yes            |
 | CI (`.github/workflows/ci.yml`) | typecheck → no-console → unit → build | No             |
 
-Integration tests need a `.env` with `SECRET_KEY` (see `.env.example`). They use `inspectTxn` / `devInspectTxn` (dry-run, no broadcast); only tests that explicitly call `signAndSendTxn` submit transactions.
+Integration tests need a `.env` with `SECRET_KEY` (see `.env.example`). They use `inspectTxn` / `devInspectTxn` (dry-run, no broadcast); only tests that explicitly call `signAndSendTxn` submit transactions. Unit specs must stay self-contained (build their own fakes) — never import `scallopSdk.ts`.
 
 ---
 
 ## 10. Adding new code — where does it go?
 
-| You're adding…                           | Put it in…                                                                                       |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| A new Move-call wrapper                  | `src/builders/<domain>Builder.ts` + register in `manifest.ts` & `modules.ts`                     |
-| A new read endpoint (indexer or RPC)     | `src/queries/<domain>Query.ts`, then expose via a service                                        |
-| A new piece of read-side business logic  | `src/services/<Name>Service.ts`                                                                  |
-| A new piece of write-side business logic | `src/services/client/<Name>Service.ts`                                                           |
-| A pure data-shape transform              | `src/mappers/<domain>Mapper.ts`                                                                  |
-| A new RPC/indexer error case             | Throw a typed `Scallop*Error` from `src/errors/`                                                 |
-| A new public type                        | `src/types/public/` (semver-governed)                                                            |
-| A new internal DTO                       | `src/types/internal/`                                                                            |
-| A new entry-point                        | Add to `tsup.config.ts` + `package.json` `exports` + smoke test in `test/subpathExports.spec.ts` |
+| You're adding…                           | Put it in…                                                                                        |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| A new Move-call wrapper                  | `src/builders/<domain>Builder.ts` + register in `manifest.ts` & `modules.ts`                      |
+| A new read (indexer/API or RPC)          | `src/repositories/<domain>/helpers.ts` (+ `types.ts`/`utils.ts`), expose a method on `index.ts`   |
+| A new read domain                        | A new `src/repositories/<domain>/` folder + wire it in `repositories/wiring/registry.ts`          |
+| A new piece of write-side business logic | `src/services/client/<Name>Service.ts`                                                            |
+| Cross-domain read assembly               | `ScallopQuery` or `src/services/query/`                                                            |
+| A pure data-shape transform              | The domain's `repositories/<domain>/utils.ts` (or `src/mappers/` for shared gRPC/JSON-RPC shapes)  |
+| A new RPC/indexer error case             | Throw a typed `Scallop*Error` from `src/errors/` via `logError(...)`                              |
+| A new public type                        | `src/types/public/` (semver-governed)                                                             |
+| A new internal DTO                       | `src/types/internal/`                                                                             |
+| A new entry-point                        | Add to `tsup.config.ts` + `package.json` `exports` + smoke test in `tests/subpathExports.spec.ts` |
 
-Then run `pnpm run test:typecheck && pnpm run test:unit && pnpm run build` before committing.
+Then run `pnpm run test:typecheck && pnpm run test:unit && pnpm run build` before committing. The read layer has a deeper contributor guide in [`../src/repositories/CLAUDE.md`](../src/repositories/CLAUDE.md).
 
 ---
 
@@ -362,6 +353,7 @@ Then run `pnpm run test:typecheck && pnpm run test:unit && pnpm run build` befor
 - [`V3_TO_V4.md`](V3_TO_V4.md) — upgrade guide with step-by-step v3 → v4 diffs
 - [`SDK_STRUCTURE_REPORT.md`](SDK_STRUCTURE_REPORT.md) — original problem statement
 - [`SDK_STRUCTURE_FIX_PLAN.md`](SDK_STRUCTURE_FIX_PLAN.md) — workstreams, execution status, remaining items
+- [`../src/repositories/CLAUDE.md`](../src/repositories/CLAUDE.md) — the read-layer contributor guide
 - [`../CHANGELOG.md`](../CHANGELOG.md) — v4.0.0 BREAKING CHANGES + Added sections
 - [`../.claude/CLAUDE.md`](../.claude/CLAUDE.md) — coding conventions for AI assistants
 - `node_modules/@mysten/*/docs/llms-index.md` — Sui SDK reference (read indexes first)
