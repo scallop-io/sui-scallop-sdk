@@ -9,12 +9,9 @@ export default defineConfig((options) => {
       index: 'src/index.ts',
       errors: 'src/errors/index.ts',
       logger: 'src/logger/index.ts',
-      config: 'src/config/index.ts',
-      context: 'src/context/index.ts',
       client: 'src/client/index.ts',
       query: 'src/query/index.ts',
       builder: 'src/builder/index.ts',
-      mappers: 'src/mappers/index.ts',
       types: 'src/types/public/index.ts',
     },
 
