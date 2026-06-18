@@ -40,16 +40,6 @@
       "import": "./dist/logger.js",
       "require": "./dist/logger.cjs"
     },
-    "./config": {
-      "types": "./dist/config.d.ts",
-      "import": "./dist/config.js",
-      "require": "./dist/config.cjs"
-    },
-    "./context": {
-      "types": "./dist/context.d.ts",
-      "import": "./dist/context.js",
-      "require": "./dist/context.cjs"
-    },
     "./client": {
       "types": "./dist/client.d.ts",
       "import": "./dist/client.js",
@@ -64,11 +54,6 @@
       "types": "./dist/builder.d.ts",
       "import": "./dist/builder.js",
       "require": "./dist/builder.cjs"
-    },
-    "./mappers": {
-      "types": "./dist/mappers.d.ts",
-      "import": "./dist/mappers.js",
-      "require": "./dist/mappers.cjs"
     },
     "./types": {
       "types": "./dist/types.d.ts",
@@ -90,11 +75,12 @@
     "watch:types": "tsc --watch",
     "watch": "pnpm run clean & pnpm run watch:types & pnpm run watch:tsup",
     "test": "pnpm test:typecheck && pnpm test:all",
-    "test:typecheck": "tsc -p ./test",
-    "test:unit": "vitest run test/mappers.spec.ts test/querySource.spec.ts test/scallopContext.spec.ts test/configSnapshot.spec.ts test/configSources.spec.ts test/txBlockManifest.spec.ts test/txBlockModules.spec.ts test/subpathExports.spec.ts test/strictInit.spec.ts test/utils-unit.spec.ts test/rate-limiter.spec.ts test/noConsole.spec.ts test/portfolioCalculations.spec.ts test/repositories.spec.ts test/clientServices.spec.ts test/marketService.spec.ts test/obligationService.spec.ts test/spoolReadService.spec.ts test/borrowIncentiveService.spec.ts test/lendingReadService.spec.ts test/priceService.spec.ts src/repositories/ src/datasources/",
-    "test:no-console": "vitest run test/noConsole.spec.ts",
-    "test:query": "vitest run test/query.spec.ts",
-    "test:integration": "vitest run test/address.spec.ts test/builder.spec.ts test/constants.spec.ts test/index.spec.ts test/indexer.spec.ts test/query.spec.ts test/utils.spec.ts",
+    "test:typecheck": "tsc -p ./tests",
+    "test:repo": "vitest run --project unit repositories",
+    "test:unit": "vitest run --project unit",
+    "test:no-console": "vitest run --project unit noConsole.spec.ts",
+    "test:query": "vitest run --project integration query.spec.ts",
+    "test:integration": "vitest run --project integration",
     "test:all": "vitest run",
     "test:watch": "vitest",
     "format:fix": "prettier --ignore-path 'dist/* docs/*' --write '**/*.{ts,json,md}'",
