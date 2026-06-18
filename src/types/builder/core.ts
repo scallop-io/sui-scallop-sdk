@@ -36,14 +36,6 @@ export type CoreNormalMethods = {
     obligationHotPotato: SuiObjectArg
   ) => void;
   openObligationEntry: () => void;
-  /**
-   * @deprecated Use {@link depositCollateral} instead.
-   */
-  addCollateral: (
-    obligation: SuiObjectArg,
-    coin: SuiObjectArg,
-    collateralCoinName: string
-  ) => void;
   depositCollateral: (
     obligation: SuiObjectArg,
     coin: SuiObjectArg,
@@ -55,10 +47,6 @@ export type CoreNormalMethods = {
     amount: number,
     collateralCoinName: string
   ) => TransactionResult;
-  /**
-   * @deprecated Use {@link supply} instead.
-   */
-  deposit: (coin: SuiObjectArg, poolCoinName: string) => TransactionResult;
   supply: (coin: SuiObjectArg, poolCoinName: string) => TransactionResult;
   depositEntry: (coin: SuiObjectArg, poolCoinName: string) => TransactionResult;
   withdraw: (
@@ -111,15 +99,6 @@ export type CoreNormalMethods = {
 };
 
 export type CoreQuickMethods = {
-  /**
-   * @deprecated Use {@link depositCollateralQuick} instead.
-   */
-  addCollateralQuick: (
-    amount: number,
-    collateralCoinName: string,
-    obligationId?: SuiObjectArg,
-    isSponsoredTx?: boolean
-  ) => Promise<void>;
   depositCollateralQuick: (
     amount: number,
     collateralCoinName: string,
@@ -162,15 +141,6 @@ export type CoreQuickMethods = {
       sponsoredFeeds?: string[];
       isSponsoredTx?: boolean;
     }
-  ) => Promise<TransactionResult>;
-  /**
-   * @deprecated Use {@link supplyQuick} instead.
-   */
-  depositQuick: (
-    amount: number,
-    poolCoinName: string,
-    returnSCoin?: boolean,
-    isSponsoredTx?: boolean
   ) => Promise<TransactionResult>;
   supplyQuick: (
     amount: number,

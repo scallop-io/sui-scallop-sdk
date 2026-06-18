@@ -126,13 +126,6 @@ export type ParsedBorrowIncentiveAccountData = {
 };
 
 /**
- * The query interface for `incentive_pools_query::incentive_pools_data` inspectTxn.
- */
-export interface BorrowIncentivePoolsQueryInterface {
-  incentive_pools: OriginBorrowIncentivePoolData[];
-}
-
-/**
  * The query interface for `incentive_account_query::incentive_account_data` inspectTxn.
  */
 export interface BorrowIncentiveAccountsQueryInterface {

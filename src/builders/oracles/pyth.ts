@@ -118,7 +118,7 @@ export const updatePythPriceFeeds = async (
     )
   );
 
-  const endpoints = builder.utils.pythEndpoints ?? [
+  const endpoints = builder.pythEndpoints ?? [
     ...builder.constants.whitelist.pythEndpoints,
   ];
 

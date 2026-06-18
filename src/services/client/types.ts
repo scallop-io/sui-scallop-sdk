@@ -1,14 +1,18 @@
-import type { SuiTransactionBlockResponse } from '@scallop-io/sui-kit';
+import { SuiClientTypes } from '@mysten/sui/client';
 import type { Transaction } from '@mysten/sui/transactions';
-import type ScallopBuilder from 'src/models/scallopBuilder.js';
-import type ScallopQuery from 'src/models/scallopQuery.js';
-import type ScallopUtils from 'src/models/scallopUtils.js';
-import type { TransactionExecutor } from 'src/models/transactionExecutor.js';
-import type ScallopConstants from 'src/models/scallopConstants.js';
+import { ScallopBuilder } from 'src/builder/index.js';
+import type ScallopConstants from 'src/models/scallopConstants/index.js';
+import type ScallopQuery from 'src/models/scallopQuery/index.js';
+import type ScallopUtils from 'src/models/scallopUtils/index.js';
+import type {
+  DefaultTxInclude,
+  TransactionExecutor,
+} from 'src/models/transactionExecutor.js';
 
-export type ClientTxResult<S extends boolean> = S extends true
-  ? SuiTransactionBlockResponse
-  : Transaction;
+export type ClientTxResult<
+  S extends boolean,
+  Include extends DefaultTxInclude = DefaultTxInclude,
+> = S extends true ? SuiClientTypes.TransactionResult<Include> : Transaction;
 
 /**
  * The exact surface that client-side application services consume. Derived

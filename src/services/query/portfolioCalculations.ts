@@ -1,6 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 import { normalizeStructTag, SUI_TYPE_ARG } from '@scallop-io/sui-kit';
-import { estimatedFactor, minBigNumber } from 'src/utils/index.js';
+import { estimatedFactor, minBigNumber } from 'src/utils/query.js';
 import type {
   BorrowIncentivePool,
   CoinAmounts,

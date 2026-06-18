@@ -13,7 +13,7 @@ import {
   ReferralTxBlock,
   SuiTxBlockWithReferralNormalMethods,
 } from 'src/types/builder/referral.js';
-import { requireSender } from 'src/utils/index.js';
+import { requireSender } from 'src/utils/builder.js';
 
 const generateReferralNormalMethod: GenerateReferralNormalMethod = ({
   builder,
@@ -124,11 +124,11 @@ const generateReferralQuickMethod: GenerateReferralQuickMethod = ({
           const rewardCoin = txBlock.claimReferralRevenue(veScaKey, coinName);
           try {
             // get the matching user coin if exists
-            const coins = await builder.suiKit.suiInteractor.selectCoins(
-              sender,
-              Infinity,
-              builder.utils.parseCoinType(coinName)
-            );
+            const coins = await builder.utils.selectCoins({
+              amount: Infinity, // Select all coins
+              coinType: builder.utils.parseCoinType(coinName),
+              ownerAddress: sender,
+            });
             txBlock.mergeCoins(rewardCoin, coins.slice(0, 500));
           } catch (_e) {
             // ignore

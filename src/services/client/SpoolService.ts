@@ -1,5 +1,5 @@
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
-import { requireSender } from 'src/utils/index.js';
+import { requireSender } from 'src/utils/builder.js';
 import type { ClientServiceContext, ClientTxResult } from './types.js';
 import { ScallopTransactionBuildError } from 'src/errors/index.js';
 
