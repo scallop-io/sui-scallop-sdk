@@ -1,6 +1,7 @@
 import { PoolAddress } from 'src/types/index.js';
 import { AddressesInterface } from 'src/types/address.js';
-import { BaseContext, BaseRepoArgs } from '../types.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { BaseContext, BaseRepoParams } from '../types.js';
 
 export type IsolatedAssetsMetadata = {
   addresses: Pick<AddressesInterface['core'], 'market'>;
@@ -11,12 +12,14 @@ export type IsolatedAssetsMetadata = {
 };
 
 export type IsolatedAssetsRepoContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: IsolatedAssetsMetadata;
 };
 
 // On-chain read: lists isolated-asset dynamic fields off the market object.
 // Touches only the market address + the rate-limited Sui client; no api/whitelist.
 export type IsolatedAssetsOnChainContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: Pick<IsolatedAssetsMetadata, 'addresses'>;
 };
 
@@ -26,6 +29,7 @@ export type IsolatedAssetsApiContext = {
   metadata: Pick<IsolatedAssetsMetadata, 'poolAddresses' | 'whitelist'>;
 };
 
-export type IsolatedAssetsRepoArgs = BaseRepoArgs & {
+export type IsolatedAssetsRepoParams = BaseRepoParams & {
+  onchain: OnChainDataSource;
   metadata: IsolatedAssetsMetadata;
 };

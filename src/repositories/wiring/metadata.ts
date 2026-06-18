@@ -1,4 +1,4 @@
-import type ScallopUtils from 'src/models/scallopUtils.js';
+import type ScallopUtils from 'src/models/scallopUtils/index.js';
 import type {
   MarketRepoAddressConfig,
   MarketRepoMetadata,

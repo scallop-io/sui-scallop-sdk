@@ -1,7 +1,8 @@
 import { BaseRepository } from '../base.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
 import { getVeScaKeyIdFromRefBindingsFromOnChain } from './helper.js';
 import {
-  ReferralRepoArgs,
+  ReferralRepoParams,
   ReferralRepoContext,
   ReferralRepoMetadata,
 } from './types.js';
@@ -10,12 +11,15 @@ export class ReferralRepository extends BaseRepository<
   ReferralRepoContext,
   ReferralRepoMetadata
 > {
-  constructor(args: ReferralRepoArgs) {
-    super(args);
+  private readonly onchain: OnChainDataSource;
+
+  constructor({ onchain, ...params }: ReferralRepoParams) {
+    super(params);
+    this.onchain = onchain;
   }
 
   get context() {
-    return this.baseContext;
+    return { ...this.baseContext, onchain: this.onchain };
   }
 
   getVeScaKeyIdFromReferralBindings(refereeAddress: string) {

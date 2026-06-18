@@ -5,13 +5,14 @@
  */
 
 import type { IndexerDataSource } from 'src/datasources/indexer.js';
+import type { OnChainDataSource } from 'src/datasources/onchain.js';
 import type { CoinPrices } from 'src/types/utils.js';
 import { BaseRepository } from '../base.js';
 import type { QuerySource } from '../utils.js';
 import { runWithDataSourceFallback } from '../utils.js';
 import type {
   SpoolReadArgs,
-  SpoolRepoArgs,
+  SpoolRepoParams,
   SpoolRepoContext,
   SpoolMetadata,
 } from './types.js';
@@ -30,16 +31,19 @@ export class SpoolRepository extends BaseRepository<
   SpoolMetadata
 > {
   private readonly indexer: IndexerDataSource;
+  private readonly onchain: OnChainDataSource;
 
-  constructor({ indexer, ...args }: SpoolRepoArgs) {
-    super(args);
+  constructor({ indexer, onchain, ...params }: SpoolRepoParams) {
+    super(params);
     this.indexer = indexer;
+    this.onchain = onchain;
   }
 
   get context() {
     return {
       ...this.baseContext,
       indexer: this.indexer,
+      onchain: this.onchain,
     };
   }
 

@@ -329,10 +329,13 @@ export const querySCoinTotalSupplyFromOnChain = async (
     );
   }
   const args = [
-    await getSharedObjectData(onchain, {
-      tx,
-      objectId: treasuryObject.object,
-    }),
+    await getSharedObjectData(
+      { onchain, fetchWithCache },
+      {
+        tx,
+        objectId: treasuryObject.object,
+      }
+    ),
   ];
   const typeArgs = [
     parseSCoinType(sCoinName),

@@ -11,9 +11,12 @@ import { SuiClientTypes } from '@mysten/sui/client';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { MAX_LOCK_DURATION } from 'src/constants/vesca.js';
 import { getSharedObjectData, parseObjectAs } from 'src/utils/object.js';
-import { logError, isObjectNotFoundError } from '../utils.js';
+import {
+  logError,
+  isObjectNotFoundError,
+  type OnChainReadContext,
+} from '../utils.js';
 import { ScallopRpcError } from 'src/errors/index.js';
-import { BaseContext } from '../types.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui/bcs';
 import { BigNumber } from 'bignumber.js';
@@ -90,11 +93,14 @@ const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
         })
       );
     }
-    return getSharedObjectData(onchain, {
-      tx,
-      mutable,
-      objectId: response.object,
-    });
+    return getSharedObjectData(
+      { onchain, fetchWithCache },
+      {
+        tx,
+        mutable,
+        objectId: response.object,
+      }
+    );
   };
 
   const [treasurySharedObject, configSharedObject] = await Promise.all([
@@ -255,7 +261,7 @@ export const getVeScasByAddressFromOnChain = async (
  * subscribed); real RPC/transport failures propagate.
  */
 export const isVeScaKeyInSubsTableFromOnChain = async (
-  ctx: Pick<BaseContext, 'onchain' | 'fetchWithCache'>,
+  ctx: OnChainReadContext,
   { veScaKey, tableId }: { veScaKey: string; tableId: string }
 ): Promise<boolean> => {
   const { onchain, fetchWithCache } = ctx;

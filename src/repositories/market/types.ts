@@ -1,8 +1,9 @@
 import type { IndexerDataSource } from 'src/datasources/indexer.js';
+import type { OnChainDataSource } from 'src/datasources/onchain.js';
 import type { CoinWrappedType, PoolAddress } from 'src/types/constant/index.js';
 import { SuiObjectData } from 'src/types/sui.js';
 import type { CoinPrices, OptionalKeys } from 'src/types/utils.js';
-import { BaseContext, BaseRepoArgs } from '../types.js';
+import { BaseContext, BaseRepoParams } from '../types.js';
 
 export type MarketRepoAddressConfig = {
   queryPackageId: string;
@@ -27,12 +28,14 @@ export type MarketRepoMetadata = {
 };
 
 export type MarketRepoContext = BaseContext & {
+  onchain: OnChainDataSource;
   indexer: IndexerDataSource;
   addresses: MarketRepoAddressConfig;
   metadata: MarketRepoMetadata;
 };
 
-export type MarketRepoArgs = BaseRepoArgs & {
+export type MarketRepoParams = BaseRepoParams & {
+  onchain: OnChainDataSource;
   indexer: IndexerDataSource;
   addresses: MarketRepoAddressConfig;
   metadata: MarketRepoMetadata;

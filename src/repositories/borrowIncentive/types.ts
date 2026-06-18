@@ -1,6 +1,7 @@
 import type { CoinPrices, OptionalKeys } from 'src/types/utils.js';
 import type { AddressesInterface } from 'src/types/address.js';
-import type { BaseContext, BaseRepoArgs } from '../types.js';
+import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { BaseContext, BaseRepoParams } from '../types.js';
 
 export interface BorrowIncentiveAccountKey {
   id: string;
@@ -159,6 +160,7 @@ export type BorrowIncentiveReadArgs = {
 };
 
 export type BorrowIncentiveRepoContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: BorrowIncentiveMetadata;
 };
 
@@ -169,6 +171,7 @@ export type BorrowIncentiveOnChainContext = Pick<
 >;
 
 export type GetBindedVeScaKeyContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: {
     addresses: BorrowIncentiveAddresses<'object' | 'incentiveAccounts'> & {
       core: { object: string };
@@ -177,6 +180,7 @@ export type GetBindedVeScaKeyContext = BaseContext & {
 };
 
 export type GetBindedObligationContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: {
     addresses: BorrowIncentiveAddresses<'object' | 'incentivePools'> & {
       vesca: { object: string };
@@ -184,6 +188,7 @@ export type GetBindedObligationContext = BaseContext & {
   };
 };
 
-export type BorrowIncentiveRepoArgs = BaseRepoArgs & {
+export type BorrowIncentiveRepoParams = BaseRepoParams & {
+  onchain: OnChainDataSource;
   metadata: BorrowIncentiveMetadata;
 };

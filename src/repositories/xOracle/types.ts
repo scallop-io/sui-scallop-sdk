@@ -1,4 +1,5 @@
-import { BaseContext, BaseRepoArgs } from '../types.js';
+import { BaseContext, BaseRepoParams } from '../types.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
 import { SUPPORTED_ORACLES } from './const.js';
 
 export type SupportedOracle = (typeof SUPPORTED_ORACLES)[number];
@@ -29,10 +30,12 @@ export type XOracleMetadata = {
 };
 
 export type XOracleRepoContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: XOracleMetadata;
 };
 
-export type XOracleRepoArgs = BaseRepoArgs & {
+export type XOracleRepoParams = BaseRepoParams & {
+  onchain: OnChainDataSource;
   metadata: XOracleMetadata;
 };
 

@@ -1,10 +1,13 @@
-import { BaseContext, BaseRepoArgs } from '../types.js';
+import { BaseContext, BaseRepoParams } from '../types.js';
+import { OnChainDataSource } from '../../datasources/onchain.js';
 
 export type FlashloanRepoContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: FlashloanMetadata;
 };
 
-export type FlashloanRepoArgs = BaseRepoArgs & {
+export type FlashloanRepoParams = BaseRepoParams & {
+  onchain: OnChainDataSource;
   metadata: FlashloanMetadata;
 };
 

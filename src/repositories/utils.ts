@@ -3,6 +3,16 @@ import { BaseContext, DataSourceFallbackArgs } from './types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { SuiClientTypes } from '@mysten/sui/client';
 import { ScallopError } from 'src/errors/index.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
+
+// `onchain` is no longer part of `BaseContext` — repos opt into it. This is the
+// shared context slice for any helper that performs an on-chain read
+// (`onchain` + `fetchWithCache`); exported so per-domain helpers reuse it
+// instead of re-deriving `Pick<BaseContext, 'onchain' | 'fetchWithCache'>`
+// (which no longer compiles now that `onchain` left `BaseContext`).
+export type OnChainReadContext = Pick<BaseContext, 'fetchWithCache'> & {
+  onchain: OnChainDataSource;
+};
 
 // Re-export so the many `import { QuerySource, runWithDataSourceFallback }
 // from '../utils.js'` call sites keep resolving after QuerySource moved to
@@ -60,7 +70,7 @@ export const runWithDataSourceFallback = async <T>(
 };
 
 export const getDynamicFieldWithCache = async (
-  ctx: Pick<BaseContext, 'onchain' | 'fetchWithCache'>,
+  ctx: OnChainReadContext,
   options: SuiClientTypes.GetDynamicFieldOptions
 ) => {
   return ctx.fetchWithCache({
@@ -115,7 +125,7 @@ export const isObjectNotFoundError = (error: unknown): boolean => {
  * for "is X bound?"-style reads whose public contract is value-or-`null`.
  */
 export const getDynamicFieldOrNull = async (
-  ctx: Pick<BaseContext, 'onchain' | 'fetchWithCache'>,
+  ctx: OnChainReadContext,
   options: SuiClientTypes.GetDynamicFieldOptions
 ) => {
   try {

@@ -1,8 +1,9 @@
 import type { IndexerDataSource } from 'src/datasources/indexer.js';
+import type { OnChainDataSource } from 'src/datasources/onchain.js';
 import type { PoolAddress } from 'src/types/constant/index.js';
 import type { SuiObjectData } from 'src/types/index.js';
 import type { CoinPrices, OptionalKeys } from 'src/types/utils.js';
-import type { BaseContext, BaseRepoArgs } from '../types.js';
+import type { BaseContext, BaseRepoParams } from '../types.js';
 
 export type SpoolMetadata = {
   whitelist: {
@@ -31,11 +32,13 @@ export type SpoolMetadata = {
 
 export type SpoolRepoContext = BaseContext & {
   indexer: IndexerDataSource;
+  onchain: OnChainDataSource;
   metadata: SpoolMetadata;
 };
 
-export type SpoolRepoArgs = BaseRepoArgs & {
+export type SpoolRepoParams = BaseRepoParams & {
   indexer: IndexerDataSource;
+  onchain: OnChainDataSource;
   metadata: SpoolMetadata;
 };
 

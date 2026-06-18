@@ -4,6 +4,7 @@
  */
 
 import { BaseRepository } from '../base.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
 import {
   getCoinAmountFromOnChain,
   getCoinAmountsFromOnChain,
@@ -16,20 +17,24 @@ import {
 import {
   CoinBalanceContext,
   CoinBalanceMetadata,
-  CoinBalanceRepoArgs,
+  CoinBalanceRepoParams,
 } from './types.js';
 
 export class CoinBalanceRepository extends BaseRepository<
   CoinBalanceContext,
   CoinBalanceMetadata
 > {
-  constructor(args: CoinBalanceRepoArgs) {
-    super(args);
+  private readonly onchain: OnChainDataSource;
+
+  constructor({ onchain, ...params }: CoinBalanceRepoParams) {
+    super(params);
+    this.onchain = onchain;
   }
 
   get context() {
     return {
       ...this.baseContext,
+      onchain: this.onchain,
       queryClient: this.queryClient,
     };
   }

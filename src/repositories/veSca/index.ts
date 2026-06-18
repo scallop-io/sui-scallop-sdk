@@ -1,22 +1,30 @@
 import { BaseRepository } from '../base.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
 import {
   getVeScaDataFromOnChain,
   getVeScasByAddressFromOnChain,
   getVeScaTreasuryInfoFromOnChain,
   isVeScaKeyInSubsTableFromOnChain,
 } from './helpers.js';
-import { VeScaRepoArgs, VeScaRepoContext, VeScaRepoMetadata } from './types.js';
+import {
+  VeScaRepoParams,
+  VeScaRepoContext,
+  VeScaRepoMetadata,
+} from './types.js';
 
 export class VeScaRepository extends BaseRepository<
   VeScaRepoContext,
   VeScaRepoMetadata
 > {
-  constructor(args: VeScaRepoArgs) {
-    super(args);
+  private readonly onchain: OnChainDataSource;
+
+  constructor({ onchain, ...params }: VeScaRepoParams) {
+    super(params);
+    this.onchain = onchain;
   }
 
   get context() {
-    return this.baseContext;
+    return { ...this.baseContext, onchain: this.onchain };
   }
 
   getVeSca(veScaKey: string) {

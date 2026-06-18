@@ -1,9 +1,10 @@
 import { normalizeStructTag } from '@mysten/sui/utils';
 import { queryKeys } from 'src/constants/queryKeys.js';
-import { mapSpoolData } from 'src/mappers/index.js';
+import { mapSpoolData } from './utils.js';
 import type { SuiObjectData } from 'src/types/index.js';
 import type { CoinPrices } from 'src/types/utils.js';
-import { parseObjectAs, partitionArray } from 'src/utils/index.js';
+import { parseObjectAs } from 'src/utils/object.js';
+import { partitionArray } from 'src/utils/array.js';
 import type {
   RequiredSpoolObjects,
   Spool,
@@ -15,7 +16,7 @@ import type {
   StakePool,
   StakeRewardPool,
 } from './types.js';
-import type { BaseContext } from '../types.js';
+import type { OnChainReadContext } from '../utils.js';
 import {
   calculateSpoolData,
   calculateSpoolRewardPoolData,
@@ -273,7 +274,7 @@ export const getSpoolRewardPoolsFromOnChain = async (
 };
 
 const queryStakeAccounts = async (
-  ctx: Pick<BaseContext, 'onchain' | 'fetchWithCache'>,
+  ctx: OnChainReadContext,
   { address, stakeAccountType }: { address: string; stakeAccountType: string }
 ) => {
   const { onchain, fetchWithCache } = ctx;

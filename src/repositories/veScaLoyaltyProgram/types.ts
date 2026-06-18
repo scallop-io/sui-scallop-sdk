@@ -1,5 +1,6 @@
 import { AddressesInterface } from 'src/types/address.js';
-import { BaseContext, BaseRepoArgs } from '../types.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { BaseContext, BaseRepoParams } from '../types.js';
 
 type VeScaKeys = 'tableId';
 type VeScaAddresses<T extends VeScaKeys = VeScaKeys> = {
@@ -17,19 +18,24 @@ export type VeScaLoyaltyProgramRepoMetadata = {
   addresses: VeScaAddresses & VeScaLoyaltyProgramAddresses;
 };
 
-export type QueryRewardPoolContext = BaseContext;
+export type QueryRewardPoolContext = BaseContext & {
+  onchain: OnChainDataSource;
+};
 
 export type QueryUserRewardContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: {
     addresses: VeScaLoyaltyProgramAddresses<'veScaRewardTableId'>;
   };
 };
 
 export type VeScaLoyaltyProgramRepoContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: VeScaLoyaltyProgramRepoMetadata;
 };
 
-export type VeScaLoyaltyProgramRepoArgs = BaseRepoArgs & {
+export type VeScaLoyaltyProgramRepoParams = BaseRepoParams & {
+  onchain: OnChainDataSource;
   metadata: VeScaLoyaltyProgramRepoMetadata;
 };
 

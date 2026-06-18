@@ -17,7 +17,7 @@ import {
   SUPPLY_LIMIT_TYPE,
 } from './const.js';
 import type { SuiObjectData } from 'src/types/index.js';
-import { partitionArray } from 'src/utils/index.js';
+import { partitionArray } from 'src/utils/array.js';
 
 export const getPoolAddressesFromApi = async (
   ctx: PoolAddressesApiContext,
