@@ -1,24 +1,18 @@
-import type {
-  FetchQueryOptions,
-  QueryClient,
-  QueryKey,
-} from '@tanstack/query-core';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { QueryClient } from '@tanstack/query-core';
 import { Logger } from 'src/logger/Logger.js';
+import { FetchWithCache } from 'src/utils/cache.js';
 
-export type BaseRepoArgs<Metadata = unknown> = {
+export type BaseRepoParams<Metadata = unknown> = {
   queryClient?: QueryClient;
   logger?: Logger;
-  onchain: OnChainDataSource;
-  metadata: Metadata;
+  // Optional at the base: not every repo has a metadata dependency (e.g. an
+  // api-only repo like addressApi). Domains that DO need it re-require it in
+  // their own `*RepoParams` (e.g. `BaseRepoParams & { metadata: MarketRepoMetadata }`),
+  // so the construction-time guarantee is preserved exactly where it matters.
+  metadata?: Metadata;
 };
 
-export type FetchWithCache = <T>(
-  options: FetchQueryOptions<T, Error, T, QueryKey>
-) => Promise<T>;
-
 export type BaseContext = {
-  onchain: OnChainDataSource;
   fetchWithCache: FetchWithCache;
   logger?: Logger;
 };

@@ -1,6 +1,11 @@
 import { BigNumber } from 'bignumber.js';
-import { parseMoveTypeName } from 'src/mappers/moveTypeMapper.js';
+import {
+  mapTypeNameField,
+  parseMoveTypeName,
+} from 'src/mappers/moveTypeMapper.js';
 import type {
+  BorrowIncentiveAccountsQueryInterface,
+  BorrowIncentivePoolsQueryInterface,
   CalculatedBorrowIncentivePoolPointData,
   OriginBorrowIncentiveAccountData,
   OriginBorrowIncentiveAccountPoolData,
@@ -177,5 +182,53 @@ export const parseOriginBorrowIncentiveAccountData = (
       },
       {} as Record<string, ParsedBorrowIncentiveAccountPoolData>
     ),
+  };
+};
+
+export const mapBorrowIncentivePoolsEvent = (
+  raw: BorrowIncentivePoolsQueryInterface | undefined
+) => {
+  if (!raw) return undefined;
+
+  return {
+    ...raw,
+    incentive_pools: (raw.incentive_pools ?? []).map((pool, poolIndex) => ({
+      ...pool,
+      pool_type: mapTypeNameField(
+        pool.pool_type,
+        `borrowIncentive.incentive_pools[${poolIndex}].pool_type`
+      ),
+      points: (pool.points ?? []).map((point, pointIndex) => ({
+        ...point,
+        point_type: mapTypeNameField(
+          point.point_type,
+          `borrowIncentive.incentive_pools[${poolIndex}].points[${pointIndex}].point_type`
+        ),
+      })),
+    })),
+  };
+};
+
+export const mapBorrowIncentiveAccountsEvent = (
+  raw: BorrowIncentiveAccountsQueryInterface | undefined
+) => {
+  if (!raw) return undefined;
+
+  return {
+    ...raw,
+    pool_records: (raw.pool_records ?? []).map((record, recordIndex) => ({
+      ...record,
+      pool_type: mapTypeNameField(
+        record.pool_type,
+        `borrowIncentive.pool_records[${recordIndex}].pool_type`
+      ),
+      points_list: (record.points_list ?? []).map((point, pointIndex) => ({
+        ...point,
+        point_type: mapTypeNameField(
+          point.point_type,
+          `borrowIncentive.pool_records[${recordIndex}].points_list[${pointIndex}].point_type`
+        ),
+      })),
+    })),
   };
 };

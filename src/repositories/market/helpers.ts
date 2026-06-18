@@ -23,7 +23,8 @@ import type {
 import { logError } from '../utils.js';
 import { ScallopRpcError, ScallopParseError } from 'src/errors/index.js';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
-import { partitionArray, parseObjectAs } from 'src/utils/index.js';
+import { partitionArray } from 'src/utils/array.js';
+import { parseObjectAs } from 'src/utils/object.js';
 import { getSharedObjectData } from 'src/utils/object.js';
 import { mapMarketEventToMarketData } from './mapper.js';
 import {
@@ -97,26 +98,14 @@ export const getMarketsFromOnChain = async (
 
   const tx = new SuiTxBlock();
   const queryTarget = `${packageId}::market_query::market_data`;
-  const marketObject = await fetchWithCache({
-    queryKey: queryKeys.rpc.getSharedObject({
+  const marketSharedObject = await getSharedObjectData(
+    { onchain, fetchWithCache },
+    {
+      tx,
+      mutable: true,
       objectId: marketId,
-      node: onchain.url,
-    }),
-    queryFn: () => onchain.getObject({ objectId: marketId }),
-  });
-  if (!marketObject.object) {
-    throw logError(
-      ctx.logger,
-      new ScallopRpcError(`Failed to fetch market object ${marketId}`, {
-        context: { marketId },
-      })
-    );
-  }
-  const marketSharedObject = await getSharedObjectData(onchain, {
-    tx,
-    mutable: true,
-    objectId: marketObject.object,
-  });
+    }
+  );
 
   const args = [marketSharedObject];
   tx.moveCall(queryTarget, args);

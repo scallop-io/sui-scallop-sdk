@@ -15,13 +15,11 @@ import { getDynamicFieldOrNull, logError } from '../utils.js';
 import { ScallopRpcError, ScallopParseError } from 'src/errors/index.js';
 import { bcs } from '@mysten/sui/bcs';
 import { queryKeys } from 'src/constants/queryKeys.js';
-import {
-  mapBorrowIncentiveAccountsEvent,
-  mapBorrowIncentivePoolsEvent,
-} from 'src/mappers/borrowIncentiveMapper.js';
 import type { OptionalKeys } from 'src/types/utils.js';
 import {
   calculateBorrowIncentivePoolPointData,
+  mapBorrowIncentiveAccountsEvent,
+  mapBorrowIncentivePoolsEvent,
   parseOriginBorrowIncentiveAccountData,
   parseOriginBorrowIncentivePoolData,
 } from './utils.js';
@@ -58,11 +56,14 @@ export const getBorrowIncentivePoolsFromOnChain = async (
       )
     );
   }
-  const incentivePoolsSharedObject = await getSharedObjectData(onchain, {
-    tx,
-    mutable: true,
-    objectId: incentivePoolsObject.object,
-  });
+  const incentivePoolsSharedObject = await getSharedObjectData(
+    { onchain, fetchWithCache },
+    {
+      tx,
+      mutable: true,
+      objectId: incentivePoolsObject.object,
+    }
+  );
 
   const args = [incentivePoolsSharedObject];
   tx.moveCall(queryTarget, args, []);
@@ -217,11 +218,14 @@ export const getBorrowIncentiveAccountsFromOnChain = async (
         })
       );
     }
-    return getSharedObjectData(onchain, {
-      tx,
-      mutable,
-      objectId: response.object,
-    });
+    return getSharedObjectData(
+      { onchain, fetchWithCache },
+      {
+        tx,
+        mutable,
+        objectId: response.object,
+      }
+    );
   };
 
   const [incentiveAccountVersion, obligationDataVersion] = await Promise.all([

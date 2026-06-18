@@ -1,7 +1,8 @@
+import { OnChainDataSource } from 'src/datasources/onchain.js';
 import { BaseRepository } from '../base.js';
 import { getLoyaltyProgramInfosOnChain } from './helpers.js';
 import {
-  LoyaltyProgramRepoArgs,
+  LoyaltyProgramRepoParams,
   LoyaltyProgramRepoContext,
   LoyaltyProgramRepoMetadata,
 } from './types.js';
@@ -10,12 +11,15 @@ export class LoyaltyProgramRepository extends BaseRepository<
   LoyaltyProgramRepoContext,
   LoyaltyProgramRepoMetadata
 > {
-  constructor(args: LoyaltyProgramRepoArgs) {
-    super(args);
+  private readonly onchain: OnChainDataSource;
+
+  constructor({ onchain, ...params }: LoyaltyProgramRepoParams) {
+    super(params);
+    this.onchain = onchain;
   }
 
   get context() {
-    return this.baseContext;
+    return { ...this.baseContext, onchain: this.onchain };
   }
 
   getLoyaltyProgramInfos(veScaKey?: string) {

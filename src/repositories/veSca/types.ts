@@ -1,6 +1,7 @@
 import { SuiObjectRef } from 'src/types/sui.js';
 import { AddressesInterface } from 'src/types/address.js';
-import { BaseContext, BaseRepoArgs } from '../types.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { BaseContext, BaseRepoParams } from '../types.js';
 
 // Derived from the canonical address schema (verbatim subset of the `vesca`
 // branch) so a rename/retype upstream is a compile error here.
@@ -20,6 +21,7 @@ export type VeScaRepoMetadata = {
 };
 
 export type VeScaRepoContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: VeScaRepoMetadata;
 };
 
@@ -29,20 +31,24 @@ export type VeScaRepoContext = BaseContext & {
  * since all it needs is `metadata.addresses.veSca.tableId`.
  */
 export type VeScaDataContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: { addresses: VeScaAddresses<'tableId'> };
 };
 
 /** Minimal context for reading all veScas owned by an address. */
 export type VeScasByAddressContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: { addresses: VeScaAddresses<'tableId' | 'object'> };
 };
 
 /** Minimal context for reading veSca treasury info. */
 export type VeScaTreasuryContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: { addresses: VeScaAddresses<'id' | 'config' | 'treasury'> };
 };
 
-export type VeScaRepoArgs = BaseRepoArgs & {
+export type VeScaRepoParams = BaseRepoParams & {
+  onchain: OnChainDataSource;
   metadata: VeScaRepoMetadata;
 };
 

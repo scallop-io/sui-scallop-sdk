@@ -1,6 +1,7 @@
 import type { QueryClient } from '@tanstack/query-core';
-import { BaseContext, BaseRepoArgs } from '../types.js';
+import { BaseContext, BaseRepoParams } from '../types.js';
 import { AddressesInterface } from 'src/types/address.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
 
 export type CoinBalanceMetadata = {
   whitelist: {
@@ -21,10 +22,12 @@ export type CoinBalanceMetadata = {
 };
 
 export type CoinBalanceContext = BaseContext & {
+  onchain: OnChainDataSource;
   queryClient: QueryClient;
   metadata: CoinBalanceMetadata;
 };
 
-export type CoinBalanceRepoArgs = BaseRepoArgs & {
+export type CoinBalanceRepoParams = BaseRepoParams & {
+  onchain: OnChainDataSource;
   metadata: CoinBalanceMetadata;
 };

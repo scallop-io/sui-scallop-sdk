@@ -8,6 +8,7 @@
  */
 
 import { IndexerDataSource } from 'src/datasources/indexer.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
 import {
   QuerySource,
   runWithDataSourceFallback,
@@ -26,7 +27,7 @@ import {
 import {
   MarketReadArgs,
   MarketRepoAddressConfig,
-  MarketRepoArgs,
+  MarketRepoParams,
   MarketRepoContext,
   MarketRepoMetadata,
 } from './types.js';
@@ -37,16 +38,19 @@ export class MarketRepository extends BaseRepository<
 > {
   private readonly indexer: IndexerDataSource;
   private readonly addresses: MarketRepoAddressConfig;
+  private readonly onchain: OnChainDataSource;
 
-  constructor({ indexer, addresses, ...args }: MarketRepoArgs) {
-    super(args);
+  constructor({ indexer, addresses, onchain, ...params }: MarketRepoParams) {
+    super(params);
     this.indexer = indexer;
     this.addresses = addresses;
+    this.onchain = onchain;
   }
 
   get context() {
     return {
       ...this.baseContext,
+      onchain: this.onchain,
       indexer: this.indexer,
       addresses: this.addresses,
     };

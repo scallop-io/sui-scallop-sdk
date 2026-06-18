@@ -1,5 +1,6 @@
 import { ApiDataSource } from 'src/datasources/api.js';
-import { BaseContext, BaseRepoArgs } from '../types.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { BaseContext, BaseRepoParams } from '../types.js';
 import { AddressesInterface } from 'src/types/address.js';
 
 type PoolAddressesAddresses = {
@@ -12,14 +13,16 @@ export type PoolAddressesRepoMetadata = {
   addresses: PoolAddressesAddresses;
 };
 
-export type PoolAddressesRepoArgs = BaseRepoArgs & {
+export type PoolAddressesRepoParams = BaseRepoParams & {
   metadata: PoolAddressesRepoMetadata;
   api: ApiDataSource;
+  onchain: OnChainDataSource;
 };
 
 export type PoolAddressesRepoContext = BaseContext & {
   metadata: PoolAddressesRepoMetadata;
   api: ApiDataSource;
+  onchain: OnChainDataSource;
 };
 
 /** Minimal context for the API-sourced pool-addresses read. */

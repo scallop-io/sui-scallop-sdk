@@ -1,11 +1,7 @@
-import type ScallopUtils from 'src/models/scallopUtils.js';
-import type { QueryClient } from '@tanstack/query-core';
+import type ScallopUtils from 'src/models/scallopUtils/index.js';
+import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
 import type { Logger } from 'src/logger/index.js';
-import {
-  createApiDataSource,
-  createIndexerDataSource,
-  createOnChainDataSource,
-} from './datasources.js';
+import { createApiDataSource, createIndexerDataSource } from './datasources.js';
 import {
   buildBorrowIncentiveMetadata,
   buildReferralMetadata,
@@ -37,15 +33,18 @@ import { VeScaLoyaltyProgramRepository } from '../veScaLoyaltyProgram/index.js';
 import { ReferralRepository } from '../referral/index.js';
 import { PoolAddressesRepository } from '../poolAddresses/index.js';
 import { PriceRepository } from '../price/index.js';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache.js';
 
 /**
  * Inputs the registry needs. `ScallopUtils` is the single hub — it exposes
- * `suiKit`, `tokensPerSecond`, `queryClient`, `logger`, `address`, and
- * `constants`, so the registry can derive every datasource + metadata bundle
+ * `onchain`, `queryClient`, `logger`, `address`, and `constants`, so the
+ * registry can derive every datasource + metadata bundle
  * from it.
  */
 export type RepositoryDeps = {
   utils: ScallopUtils;
+  queryClient?: QueryClient; // Optional override for the utils query client
+  queryClientConfig?: QueryClientConfig; // Optional override for the utils query client config
   /** Override the indexer base URL; defaults to the Scallop indexer. */
   indexerUrl?: string;
 };
@@ -77,13 +76,12 @@ export interface Repositories {
  * metadata is built at most once per domain.
  */
 export const createRepositories = (deps: RepositoryDeps): Repositories => {
-  const { utils, indexerUrl } = deps;
+  const { utils, indexerUrl, queryClientConfig = DEFAULT_CACHE_OPTIONS } = deps;
 
-  const onchain = createOnChainDataSource(utils.suiKit, {
-    tokensPerSecond: utils.tokensPerSecond,
-  });
+  const onchain = utils.onchain;
   const indexer = createIndexerDataSource(indexerUrl);
-  const queryClient: QueryClient = utils.queryClient;
+  const queryClient: QueryClient =
+    deps.queryClient ?? new QueryClient(queryClientConfig);
   const logger: Logger = utils.logger;
   const base = { onchain, queryClient, logger };
 

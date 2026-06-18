@@ -1,8 +1,9 @@
 import { ApiDataSource } from 'src/datasources/api.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
 import { BaseRepository } from '../base.js';
 import { QuerySource } from '../types.js';
 import {
-  PoolAddressesRepoArgs,
+  PoolAddressesRepoParams,
   PoolAddressesRepoContext,
   PoolAddressesRepoMetadata,
 } from './types.js';
@@ -17,15 +18,18 @@ export class PoolAddressesRepository extends BaseRepository<
   PoolAddressesRepoMetadata
 > {
   private readonly api: ApiDataSource;
-  constructor({ api, ...args }: PoolAddressesRepoArgs) {
-    super(args);
+  private readonly onchain: OnChainDataSource;
+  constructor({ api, onchain, ...params }: PoolAddressesRepoParams) {
+    super(params);
     this.api = api;
+    this.onchain = onchain;
   }
 
   get context() {
     return {
       ...this.baseContext,
       api: this.api,
+      onchain: this.onchain,
     };
   }
 

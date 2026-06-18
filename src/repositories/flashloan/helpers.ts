@@ -3,12 +3,12 @@ import { queryKeys } from 'src/constants/queryKeys.js';
 import { SuiObjectData } from 'src/types/sui.js';
 import { getDfObjectIdAndName, parseObjectAs } from 'src/utils/object.js';
 import { FlashloanRepoContext } from './types.js';
-import type { BaseContext } from '../types.js';
+import type { OnChainReadContext } from '../utils.js';
 import { bcs } from '@mysten/sui/bcs';
 import { FEE_DENOMINATOR, FLASHLOAN_FEES_TABLE_ID } from './const.js';
 
 const queryFlashloanFees = async (
-  ctx: BaseContext,
+  ctx: OnChainReadContext,
   {
     assetTypeMap,
   }: {

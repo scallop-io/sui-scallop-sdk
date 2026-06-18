@@ -1,4 +1,5 @@
 import { BaseRepository } from '../base.js';
+import type { OnChainDataSource } from 'src/datasources/onchain.js';
 import {
   getBindedObligation,
   getBindedVeScaKeyByObligationIdFromOnChain,
@@ -9,19 +10,22 @@ import {
   BorrowIncentiveRepoContext,
   BorrowIncentiveMetadata,
   BorrowIncentiveReadArgs,
-  BorrowIncentiveRepoArgs,
+  BorrowIncentiveRepoParams,
 } from './types.js';
 
 export class BorrowIncentiveRepository extends BaseRepository<
   BorrowIncentiveRepoContext,
   BorrowIncentiveMetadata
 > {
-  constructor(args: BorrowIncentiveRepoArgs) {
-    super(args);
+  private readonly onchain: OnChainDataSource;
+
+  constructor({ onchain, ...params }: BorrowIncentiveRepoParams) {
+    super(params);
+    this.onchain = onchain;
   }
 
   get context() {
-    return this.baseContext;
+    return { ...this.baseContext, onchain: this.onchain };
   }
 
   getBorrowIncentivePools(args: BorrowIncentiveReadArgs) {

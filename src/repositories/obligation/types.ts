@@ -1,4 +1,5 @@
-import { BaseContext, BaseRepoArgs } from '../types.js';
+import { BaseContext, BaseRepoParams } from '../types.js';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
 
 type ObligationKeys =
   | 'protocolObjectId'
@@ -12,15 +13,18 @@ export type ObligationRepoMetadata = {
   addresses: ObligationAddresses;
 };
 export type ObligationRepoContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: ObligationRepoMetadata;
 };
 
-export type ObligationRepoArgs = BaseRepoArgs & {
+export type ObligationRepoParams = BaseRepoParams & {
+  onchain: OnChainDataSource;
   metadata: ObligationRepoMetadata;
 };
 
 /** Minimal context for `queryObligationData`. */
 export type ObligationDataContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: {
     addresses: ObligationAddresses<'queryPackageId' | 'version' | 'market'>;
   };
@@ -28,6 +32,7 @@ export type ObligationDataContext = BaseContext & {
 
 /** Minimal context for listing obligations owned by an address. */
 export type ObligationsContext = BaseContext & {
+  onchain: OnChainDataSource;
   metadata: { addresses: ObligationAddresses<'protocolObjectId'> };
 };
 

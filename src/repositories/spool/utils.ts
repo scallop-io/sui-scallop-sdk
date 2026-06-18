@@ -13,6 +13,7 @@ import type {
 import { parseObjectAs } from 'src/utils/object.js';
 import { ScallopParseError } from 'src/errors/index.js';
 import { YEAR_IN_SECONDS } from './const.js';
+import { parseMoveTypeName } from 'src/mappers/moveTypeMapper.js';
 
 export const parseOriginSpoolData = (
   originSpoolData: OriginSpoolData
@@ -195,4 +196,20 @@ export const calculateSpoolRewardPoolData = (
     claimedRewardValue: claimedRewardValue.toNumber(),
     rewardPerSec: rewardPerSec.toNumber(),
   };
+};
+
+export const mapSpoolData = <T extends { stakeType: unknown }>(raw: T) => ({
+  ...raw,
+  stakeType: parseSpoolStakeType(raw.stakeType),
+});
+
+const parseSpoolStakeType = (stakeType: unknown) => {
+  try {
+    return parseMoveTypeName(stakeType);
+  } catch (cause) {
+    throw new ScallopParseError('Failed to map Move type at spool.stakeType', {
+      cause,
+      context: { path: 'spool.stakeType' },
+    });
+  }
 };

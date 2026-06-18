@@ -5,14 +5,13 @@ import {
   ObligationQueryInterface,
   ObligationsContext,
 } from './types.js';
-import type { BaseContext } from '../types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import {
   getObligationFromObligationKey,
   mapObligationEventToObligationData,
 } from './utils.js';
 import { getSharedObjectData, parseObjectAs } from 'src/utils/object.js';
-import { logError } from '../utils.js';
+import { logError, type OnChainReadContext } from '../utils.js';
 import { ScallopRpcError } from 'src/errors/index.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import type { SuiObjectData } from 'src/types/index.js';
@@ -98,11 +97,14 @@ export const queryObligationData = async (
       );
     }
 
-    return getSharedObjectData(onchain, {
-      tx,
-      mutable: false,
-      objectId: response.object,
-    });
+    return getSharedObjectData(
+      { onchain, fetchWithCache },
+      {
+        tx,
+        mutable: false,
+        objectId: response.object,
+      }
+    );
   };
 
   const args = await Promise.all([
@@ -153,7 +155,7 @@ export const queryObligationData = async (
  * the public `getObligationLocked` contract.
  */
 export const getObligationLockedFromOnChain = async (
-  ctx: Pick<BaseContext, 'onchain' | 'fetchWithCache'>,
+  ctx: OnChainReadContext,
   obligationId: string
 ): Promise<boolean> => {
   const { onchain, fetchWithCache } = ctx;
@@ -209,7 +211,7 @@ export const getObligationsFromOnChain = async (
  * (callers fall back to the id), so indices stay aligned with the input array.
  */
 export const getObligationObjectsFromOnChain = async (
-  ctx: Pick<BaseContext, 'onchain' | 'fetchWithCache'>,
+  ctx: OnChainReadContext,
   ids: string[]
 ): Promise<(SuiObjectData | null)[]> => {
   if (ids.length === 0) return [];
