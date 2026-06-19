@@ -9,6 +9,7 @@
 > 3. **Mutate `constants.whitelist` or `constants.poolAddresses` directly** (calling `.add()` / `.delete()` / `.clear()` on them).
 > 4. **Import from non-public paths** like `src/types/internal/`, deep internal modules.
 > 5. **Target Node < 22** (you can't — v4 requires Node 22+).
+> 6. **Use `Scallop.createScallopIndexer()`, `ScallopSuiKit`, or `ScallopAxios`** (all removed — see B6).
 
 This guide gives you the exact diff for each breaking change. For the _why_, see [`CHANGELOG.md`](../CHANGELOG.md). For the new SDK shape, see [`SDK_STRUCTURE.md`](SDK_STRUCTURE.md).
 
@@ -24,6 +25,8 @@ This guide gives you the exact diff for each breaking change. For the _why_, see
 □ Remove any code that mutates `constants.whitelist` / `constants.poolAddresses`
 □ If you subclass ScallopConstants, switch to composition (forward .address.* or accept ScallopAddress in ctor)
 □ Re-route any deep `src/types/internal/...` imports through the public barrel
+□ Replace `scallop.createScallopIndexer()` usage with `createScallopQuery()` + its read methods
+□ Drop any `.scallopSuiKit` access → `utils.onchain` (reads) / `builder.suiKit` / `builder.executor` (writes)
 □ Run typecheck + your tests
 ```
 
@@ -240,6 +243,40 @@ No code changes are needed — your existing `@mysten/sui` imports keep working.
 
 ---
 
+## B6 — Transport reshaped: `ScallopIndexer`, `ScallopSuiKit`, `ScallopAxios` removed
+
+### What changed
+
+v4 replaces the three legacy transport models with a small `src/datasources/` layer:
+
+- **`ScallopIndexer` model + `Scallop.createScallopIndexer()` are removed.** Indexer/API reads now flow through the repository layer behind `ScallopQuery`. Coin-price reads are exposed as `ScallopQuery` methods (`getPricesFromPyth(...)`, the indexer price reads) rather than on a standalone indexer object.
+- **`ScallopSuiKit` is removed.** Reads go through a rate-limited `OnChainDataSource` owned by `ScallopUtils` (`utils.onchain`). Writes go through a `TransactionExecutor` owned by `ScallopBuilder` (`builder.executor`), with the raw `SuiKit` still reachable at `builder.suiKit`.
+- **`ScallopAxios` is removed.** `ScallopAddress` reads the Scallop API through an `ApiDataSource`.
+
+`ScallopIndexerError` (the typed error) is **not** affected — only the `ScallopIndexer` _model_ is gone.
+
+### Impact
+
+| If your v3 code did…                               | …in v4…                                                                   |
+| -------------------------------------------------- | ------------------------------------------------------------------------- |
+| `await scallop.createScallopIndexer()`             | use `await scallop.createScallopQuery()` + its read methods               |
+| `indexer.getMarket()` / `indexer.getCoinPrices()`  | use the equivalent `ScallopQuery` reads (`getMarketPools`, price methods) |
+| accessed `.scallopSuiKit`                          | use `utils.onchain` (reads) or `builder.suiKit` / `builder.executor`      |
+| only called facade methods (`query.*`, `client.*`) | nothing — public read/write surfaces are unchanged                        |
+
+### Migration
+
+```diff
+- const indexer = await scallop.createScallopIndexer();
+- const pools = await indexer.getMarket();
++ const query = await scallop.createScallopQuery();
++ const pools = await query.getMarketPools();
+```
+
+> Internal-path note: importing from `src/utils/index.js`, `src/config/...`, `src/context/...`, or the per-domain mapper files is no longer possible — those modules were removed or relocated (utils barrel split into concrete modules, config sources moved under `ScallopConstants`). These were never part of the public surface; use the root barrel or the documented subpaths.
+
+---
+
 ## Optional: opt in to v4-only goodies
 
 These aren't required to upgrade, but you may want them:
@@ -264,7 +301,7 @@ Function references are identity-equal (`tx.supplyQuick === tx.core.supplyQuick`
 + import { ScallopClient } from '@scallop-io/sui-scallop-sdk/client';
 ```
 
-Available subpaths: `/client`, `/query`, `/builder`, `/errors`, `/logger`, `/config`, `/context`, `/mappers`, `/types`. Each ships ESM + CJS + matching `.d.ts`. See [`SDK_STRUCTURE.md` §8](SDK_STRUCTURE.md#8-subpath-exports).
+Available subpaths: `/client`, `/query`, `/builder`, `/errors`, `/logger`, `/types`. Each ships ESM + CJS + matching `.d.ts`. See [`SDK_STRUCTURE.md` §8](SDK_STRUCTURE.md#8-subpath-exports).
 
 ### 3. Typed errors
 
@@ -313,11 +350,16 @@ Defaults to `false` (best-effort init, same as v3).
 
 ---
 
+## Removed in v4
+
+- The long-deprecated aliases `deposit` / `depositQuick` / `addCollateral` / `addCollateralQuick` (and the client-level `deposit` / `addCollateral` / `depositAndStake`) were **removed in v4** — migrate to the canonical names (`supply` / `supplyQuick` / `depositCollateral` / `depositCollateralQuick`).
+
+---
+
 ## What didn't change
 
 - **All public method signatures and return shapes** on `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, `ScallopUtils`.
 - **All flat tx-block methods** — `tx.supplyQuick`, `tx.stake`, `tx.borrow`, etc. continue to work exactly as before.
-- **`@deprecated` aliases** like `tx.deposit`, `tx.addCollateral`, `client.addCollateral` are still present (planned removal in the next major after v4).
 - **The init flow** — `await scallop.createScallopClient()` etc. handle init automatically, same as v3.
 - **The `parseObjectAs<T>` gotcha** — see [`SDK_STRUCTURE.md` §7](SDK_STRUCTURE.md#7-cross-cutting-concerns) for the still-valid warning about `.value` field unwrapping.
 
