@@ -1,14 +1,14 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import { newCoreTxBlock } from './coreBuilder.js';
-import { newSpoolTxBlock } from './spoolBuilder.js';
-import { newBorrowIncentiveTxBlock } from './borrowIncentiveBuilder.js';
-import { newVeScaTxBlock } from './vescaBuilder.js';
+import { newCoreTxBlock } from './core/index.js';
+import { newSpoolTxBlock } from './spool/index.js';
+import { newBorrowIncentiveTxBlock } from './borrowIncentive/index.js';
+import { newVeScaTxBlock } from './vesca/index.js';
 import type { ScallopBuilder } from 'src/models/index.js';
 import type { ScallopTxBlock, ScallopTxBlockModules } from 'src/types/index.js';
-import { newReferralTxBlock } from './referralBuilder.js';
-import { newLoyaltyProgramTxBlock } from './loyaltyProgramBuilder.js';
-import { newSCoinTxBlock } from './sCoinBuilder.js';
+import { newReferralTxBlock } from './referral/index.js';
+import { newLoyaltyProgramTxBlock } from './loyaltyProgram/index.js';
+import { newSCoinTxBlock } from './sCoin/index.js';
 import { buildTxBlockModules, TX_BLOCK_MODULE_KEYS } from './modules.js';
 
 /**

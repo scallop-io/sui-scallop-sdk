@@ -12,10 +12,8 @@ export const CORE_NORMAL_METHODS = [
   'openObligation',
   'returnObligation',
   'openObligationEntry',
-  'addCollateral',
   'depositCollateral',
   'takeCollateral',
-  'deposit',
   'supply',
   'depositEntry',
   'withdraw',
@@ -30,12 +28,10 @@ export const CORE_NORMAL_METHODS = [
 ] as const;
 
 export const CORE_QUICK_METHODS = [
-  'addCollateralQuick',
   'depositCollateralQuick',
   'takeCollateralQuick',
   'borrowQuick',
   'borrowWithReferralQuick',
-  'depositQuick',
   'supplyQuick',
   'withdrawQuick',
   'repayQuick',

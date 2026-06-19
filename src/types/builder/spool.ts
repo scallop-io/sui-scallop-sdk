@@ -5,10 +5,30 @@ import type {
 } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
 import type { ScallopBuilder } from '../../models/index.js';
+import type { MoveCallContext } from '../../builders/context.js';
 import { SuiTxBlockWithSCoin } from './index.js';
 
 export type SpoolIds = {
   spoolPkg: string;
+};
+
+/**
+ * The explicit orchestration toolkit a spool quick method needs.
+ *
+ * @description
+ * Narrow context injected into {@link GenerateSpoolQuickMethod}. Built once from
+ * `builder` in the factory and passed (instead of `builder`) into the quick
+ * generator. Method signatures are taken via indexed-access types so they stay
+ * in sync with `ScallopBuilder`.
+ */
+export type SpoolActionContext = {
+  reads: {
+    getAllStakeAccounts: ScallopBuilder['query']['getAllStakeAccounts'];
+  };
+  coins: {
+    selectMarketCoin: ScallopBuilder['selectMarketCoin'];
+    selectSCoin: ScallopBuilder['selectSCoin'];
+  };
 };
 
 export type SpoolNormalMethods = {
@@ -54,11 +74,11 @@ export type SuiTxBlockWithSpoolNormalMethods = SuiKitTxBlock &
 export type SpoolTxBlock = SuiTxBlockWithSpoolNormalMethods & SpoolQuickMethods;
 
 export type GenerateSpoolNormalMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: MoveCallContext;
   txBlock: SuiKitTxBlock;
 }) => SpoolNormalMethods;
 
 export type GenerateSpoolQuickMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: SpoolActionContext;
   txBlock: SuiTxBlockWithSpoolNormalMethods;
 }) => SpoolQuickMethods;

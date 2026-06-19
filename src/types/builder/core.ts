@@ -9,7 +9,10 @@ import type {
   Transaction,
 } from '@mysten/sui/transactions';
 import { SuiTxBlockWithSpool } from './index.js';
-import { ScallopBuilder } from 'src/models/index.js';
+import type {
+  CoreActionContext,
+  MoveCallContext,
+} from 'src/builders/context.js';
 
 export type CoreIds = {
   protocolPkg: string;
@@ -188,11 +191,11 @@ export type SuiTxBlockWithCoreNormalMethods = SuiKitTxBlock &
 export type CoreTxBlock = SuiTxBlockWithCoreNormalMethods & CoreQuickMethods;
 
 export type GenerateCoreNormalMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: MoveCallContext;
   txBlock: SuiKitTxBlock;
 }) => CoreNormalMethods;
 
 export type GenerateCoreQuickMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: CoreActionContext;
   txBlock: SuiTxBlockWithCoreNormalMethods;
 }) => CoreQuickMethods;

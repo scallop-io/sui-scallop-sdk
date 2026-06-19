@@ -1,11 +1,5 @@
-import {
-  SUI_CLOCK_OBJECT_ID,
-  SuiTxBlock,
-  Transaction,
-  SuiTxBlock as SuiKitTxBlock,
-} from '@scallop-io/sui-kit';
+import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { SCA_COIN_TYPE } from 'src/constants/index.js';
-import { ScallopBuilder } from 'src/models/index.js';
 import {
   requireSender,
   checkLockSca,
@@ -14,22 +8,37 @@ import {
   checkRenewExpiredVeSca,
   checkVesca,
   getMoveCallTarget,
-} from 'src/utils/builder.js';
+} from '../../utils/builder.js';
 import type {
   TransactionObjectArgument,
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
+import type { ScallopAddress, ScallopBuilder } from 'src/models/index.js';
 import type {
-  AddressesInterface,
-  GenerateVeScaNormalMethod,
   GenerateVeScaQuickMethod,
   QuickMethodReturnType,
-  ScallopTxBlock,
-  SuiTxBlockWithVeScaNormalMethods,
   TransactionCommand,
-  VeScaTxBlock,
 } from 'src/types/index.js';
 import type { SuiObjectData } from 'src/types/index.js';
+
+/**
+ * The explicit orchestration toolkit a veSCA quick method needs.
+ *
+ * @description
+ * Narrow context injected into {@link generateQuickVeScaMethod}. Built once from
+ * `builder` in the factory and passed (instead of `builder`) into the quick
+ * generator. Method signatures are taken via indexed-access types so they stay
+ * in sync with `ScallopBuilder`.
+ */
+export type VeScaActionContext = {
+  address: Pick<ScallopAddress, 'get'>;
+  utils: ScallopBuilder['utils'];
+  reads: {
+    getVeSca: ScallopBuilder['query']['getVeSca'];
+    getVeScas: ScallopBuilder['query']['getVeScas'];
+    isVeScaKeyInSubsTable: ScallopBuilder['query']['repos']['veSca']['isVeScaKeyInSubsTable'];
+  };
+};
 
 /**
  * Check and get veSCA data from transaction block.
@@ -38,7 +47,7 @@ import type { SuiObjectData } from 'src/types/index.js';
  * If the veScaKey id is provided, directly return it.
  * Otherwise, automatically get veScaKey from the sender.
  *
- * @param builder - Scallop builder instance.
+ * @param ctx - veSCA action context (provides `reads.getVeSca` / `reads.getVeScas`).
  * @param txBlock - TxBlock created by SuiKit.
  * @param veScaKey - veSCA key.
  * @return veSCA key, ID, locked amount and unlock at timestamp.
@@ -46,14 +55,14 @@ import type { SuiObjectData } from 'src/types/index.js';
 
 export const requireVeSca = async (
   ...params: [
-    builder: ScallopBuilder,
+    ctx: VeScaActionContext,
     SuiTxBlock: SuiTxBlock,
     veScaKey?: SuiObjectData | string,
   ]
 ) => {
-  const [builder, txBlock, veScaKey] = params;
+  const [ctx, txBlock, veScaKey] = params;
   if (params.length === 3 && veScaKey && typeof veScaKey !== 'undefined') {
-    const veSca = await builder.query.getVeSca(veScaKey);
+    const veSca = await ctx.reads.getVeSca(veScaKey);
 
     if (!veSca) {
       return undefined;
@@ -63,7 +72,7 @@ export const requireVeSca = async (
   }
 
   const sender = requireSender(txBlock);
-  const veScas = await builder.query.getVeScas({ walletAddress: sender });
+  const veScas = await ctx.reads.getVeScas({ walletAddress: sender });
   if (veScas.length === 0) {
     return undefined;
   }
@@ -79,164 +88,19 @@ export const requireVeSca = async (
 };
 
 export const isInSubsTable = async (
-  ...params: [builder: ScallopBuilder, veScaKey: string, tableId: string]
+  ...params: [ctx: VeScaActionContext, veScaKey: string, tableId: string]
 ) => {
-  const [builder, veScaKey, tableId] = params;
+  const [ctx, veScaKey, tableId] = params;
   try {
-    return await builder.query.repos.veSca.isVeScaKeyInSubsTable(
-      veScaKey,
-      tableId
-    );
+    return await ctx.reads.isVeScaKeyInSubsTable(veScaKey, tableId);
   } catch (e) {
-    builder.utils.logger.error('isInSubsTable lookup failed', {
+    ctx.utils.logger.error('isInSubsTable lookup failed', {
       veScaKey,
       tableId,
       message: (e as Error)?.message,
     });
     return false;
   }
-};
-
-type VeScaProps = 'id' | 'table' | 'treasury' | 'config' | 'subsTable';
-
-/**
- * Generate veSCA normal methods.
- *
- * @param builder - Scallop builder instance.
- * @param txBlock - TxBlock created by SuiKit .
- * @return veSCA normal methods.
- */
-const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
-  builder,
-  txBlock,
-}) => {
-  const veScaIds: Pick<AddressesInterface['vesca'], VeScaProps> = {
-    id: builder.address.get('vesca.id'),
-    table: builder.address.get('vesca.table'),
-    treasury: builder.address.get('vesca.treasury'),
-    config: builder.address.get('vesca.config'),
-    subsTable: builder.address.get('vesca.subsTable'),
-  };
-
-  const clockObjectRef = txBlock.sharedObjectRef({
-    objectId: SUI_CLOCK_OBJECT_ID,
-    mutable: false,
-    initialSharedVersion: '1',
-  });
-
-  return {
-    lockSca: (scaCoin, unlockAtInSecondTimestamp) => {
-      return builder.moveCall(
-        txBlock,
-        `${veScaIds.id}::ve_sca::mint_ve_sca_key`,
-        [
-          veScaIds.config,
-          veScaIds.table,
-          veScaIds.treasury,
-          scaCoin,
-          unlockAtInSecondTimestamp,
-          clockObjectRef,
-        ],
-        []
-      );
-    },
-    extendLockPeriod: (veScaKey, newUnlockAtInSecondTimestamp) => {
-      builder.moveCall(
-        txBlock,
-        `${veScaIds.id}::ve_sca::extend_lock_period`,
-        [
-          veScaIds.config,
-          veScaKey,
-          veScaIds.table,
-          veScaIds.treasury,
-          newUnlockAtInSecondTimestamp,
-          clockObjectRef,
-        ],
-        []
-      );
-    },
-    extendLockAmount: (veScaKey, scaCoin) => {
-      builder.moveCall(
-        txBlock,
-        `${veScaIds.id}::ve_sca::lock_more_sca`,
-        [
-          veScaIds.config,
-          veScaKey,
-          veScaIds.table,
-          veScaIds.treasury,
-          scaCoin,
-          clockObjectRef,
-        ],
-        []
-      );
-    },
-    renewExpiredVeSca: (veScaKey, scaCoin, newUnlockAtInSecondTimestamp) => {
-      builder.moveCall(
-        txBlock,
-        `${veScaIds.id}::ve_sca::renew_expired_ve_sca`,
-        [
-          veScaIds.config,
-          veScaKey,
-          veScaIds.table,
-          veScaIds.treasury,
-          scaCoin,
-          newUnlockAtInSecondTimestamp,
-          clockObjectRef,
-        ],
-        []
-      );
-    },
-    redeemSca: (veScaKey) => {
-      return builder.moveCall(
-        txBlock,
-        `${veScaIds.id}::ve_sca::redeem`,
-        [
-          veScaIds.config,
-          veScaKey,
-          veScaIds.table,
-          veScaIds.treasury,
-          clockObjectRef,
-        ],
-        []
-      );
-    },
-    mintEmptyVeSca: () => {
-      return builder.moveCall(
-        txBlock,
-        `${veScaIds.id}::ve_sca::mint_ve_sca_placeholder_key`,
-        [veScaIds.config, veScaIds.table],
-        []
-      );
-    },
-    splitVeSca: (veScaKey, splitAmount) => {
-      return builder.moveCall(txBlock, `${veScaIds.id}::ve_sca::split`, [
-        veScaIds.config,
-        veScaKey,
-        veScaIds.table,
-        veScaIds.subsTable,
-        txBlock.pure.u64(splitAmount),
-      ]);
-    },
-    mergeVeSca: (targetKey, sourceKey) => {
-      return builder.moveCall(
-        txBlock,
-        `${veScaIds.id}::ve_sca::merge`,
-        [
-          veScaIds.config,
-          targetKey,
-          sourceKey,
-          veScaIds.table,
-          veScaIds.subsTable,
-          txBlock.sharedObjectRef({
-            objectId: SUI_CLOCK_OBJECT_ID,
-            mutable: false,
-            initialSharedVersion: '1',
-          }),
-        ],
-        []
-      );
-    },
-  };
 };
 
 /**
@@ -247,12 +111,12 @@ const generateNormalVeScaMethod: GenerateVeScaNormalMethod = ({
  * help users organize transaction blocks, include get veSca info, and transfer
  * coins to the sender. So, they are all asynchronous methods.
  *
- * @param builder - Scallop builder instance.
+ * @param ctx - veSCA action context (address, utils, reads).
  * @param txBlock - TxBlock created by SuiKit .
  * @return veSCA quick methods.
  */
-const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
-  builder,
+export const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
+  ctx,
   txBlock,
 }) => {
   return {
@@ -263,9 +127,9 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       veScaKey,
     }) => {
       const sender = requireSender(txBlock);
-      const veSca = await requireVeSca(builder, txBlock, veScaKey);
+      const veSca = await requireVeSca(ctx, txBlock, veScaKey);
 
-      const newUnlockAt = builder.utils.getUnlockAt(
+      const newUnlockAt = ctx.utils.getUnlockAt(
         lockPeriodInDays,
         veSca?.unlockAt
       );
@@ -285,7 +149,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         undefined;
       const transferObjects = [];
       if (amountOrCoin !== undefined && typeof amountOrCoin === 'number') {
-        const coins = await builder.utils.selectCoins({
+        const coins = await ctx.utils.selectCoins({
           amount: amountOrCoin,
           coinType: SCA_COIN_TYPE,
           ownerAddress: sender,
@@ -339,8 +203,8 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       veScaKey,
       autoCheck = true,
     }) => {
-      const veSca = await requireVeSca(builder, txBlock, veScaKey);
-      const newUnlockAt = builder.utils.getUnlockAt(
+      const veSca = await requireVeSca(ctx, txBlock, veScaKey);
+      const newUnlockAt = ctx.utils.getUnlockAt(
         lockPeriodInDays,
         veSca?.unlockAt
       );
@@ -358,12 +222,12 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       autoCheck = true,
     }) => {
       const sender = requireSender(txBlock);
-      const veSca = await requireVeSca(builder, txBlock, veScaKey);
+      const veSca = await requireVeSca(ctx, txBlock, veScaKey);
 
       if (autoCheck) checkExtendLockAmount(scaAmount, veSca?.unlockAt);
 
       if (veSca) {
-        const scaCoins = await builder.utils.selectCoins({
+        const scaCoins = await ctx.utils.selectCoins({
           amount: scaAmount,
           coinType: SCA_COIN_TYPE,
           ownerAddress: sender,
@@ -384,9 +248,9 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       autoCheck = true,
     }) => {
       const sender = requireSender(txBlock);
-      const veSca = await requireVeSca(builder, txBlock, veScaKey);
+      const veSca = await requireVeSca(ctx, txBlock, veScaKey);
 
-      const newUnlockAt = builder.utils.getUnlockAt(
+      const newUnlockAt = ctx.utils.getUnlockAt(
         lockPeriodInDays,
         veSca?.unlockAt
       );
@@ -399,7 +263,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           const unlockedSca = txBlock.redeemSca(veSca.keyId);
           transferObjects.push(unlockedSca);
         }
-        const scaCoins = await builder.utils.selectCoins({
+        const scaCoins = await ctx.utils.selectCoins({
           amount: scaAmount,
           coinType: SCA_COIN_TYPE,
           ownerAddress: sender,
@@ -422,7 +286,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       transferSca?: T;
     }) => {
       const sender = requireSender(txBlock);
-      const veSca = await requireVeSca(builder, txBlock, veScaKey);
+      const veSca = await requireVeSca(ctx, txBlock, veScaKey);
 
       checkVesca(veSca?.unlockAt);
 
@@ -445,9 +309,9 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       transferVeScaKey?: S;
     }) => {
       const isKeyInSubTable = await isInSubsTable(
-        builder,
+        ctx,
         veScaKey,
-        builder.address.get('vesca.subsTable')
+        ctx.address.get('vesca.subsTable')
       );
 
       const unstakeObligationBeforeStake = !!txBlock.txBlock
@@ -456,7 +320,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           (txn: TransactionCommand) =>
             txn.$kind === 'MoveCall' &&
             getMoveCallTarget(txn) ===
-              `${builder.address.get('borrowIncentive.id')}::user::unstake_v2`
+              `${ctx.address.get('borrowIncentive.id')}::user::unstake_v2`
         );
 
       if (isKeyInSubTable && !unstakeObligationBeforeStake) {
@@ -475,10 +339,10 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
     },
     mergeVeScaQuick: async ({ targetVeScaKey, sourceVeScaKey }) => {
       // check targetKey and sourceKey
-      const table = builder.address.get('vesca.subsTableId');
+      const table = ctx.address.get('vesca.subsTableId');
       const [isTargetInSubTable, isSourceInSubTable] = await Promise.all([
-        isInSubsTable(builder, targetVeScaKey, table),
-        isInSubsTable(builder, sourceVeScaKey, table),
+        isInSubsTable(ctx, targetVeScaKey, table),
+        isInSubsTable(ctx, sourceVeScaKey, table),
       ]);
 
       const unstakeObligationBeforeStake = !!txBlock.txBlock
@@ -487,7 +351,7 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           (txn: TransactionCommand) =>
             txn.$kind === 'MoveCall' &&
             getMoveCallTarget(txn) ===
-              `${builder.address.get('borrowIncentive.id')}::user::unstake_v2`
+              `${ctx.address.get('borrowIncentive.id')}::user::unstake_v2`
         );
 
       if (
@@ -500,8 +364,8 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       }
 
       const [sourceVesca, targetVesca] = await Promise.all([
-        builder.query.getVeSca(sourceVeScaKey),
-        builder.query.getVeSca(targetVeScaKey),
+        ctx.reads.getVeSca(sourceVeScaKey),
+        ctx.reads.getVeSca(targetVeScaKey),
       ]);
 
       if (!sourceVesca || !targetVesca) {
@@ -524,51 +388,4 @@ const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       return txBlock.mergeVeSca(targetVeScaKey, sourceVeScaKey);
     },
   };
-};
-
-/**
- * Create an enhanced transaction block instance for interaction with veSCA modules of the Scallop contract.
- *
- * @param builder - Scallop builder instance.
- * @param initTxBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
- * @return Scallop borrow incentive txBlock.
- */
-export const newVeScaTxBlock = (
-  builder: ScallopBuilder,
-  initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
-) => {
-  const txBlock =
-    initTxBlock instanceof Transaction
-      ? new SuiKitTxBlock(initTxBlock)
-      : initTxBlock
-        ? initTxBlock
-        : new SuiKitTxBlock();
-
-  const normalMethod = generateNormalVeScaMethod({
-    builder,
-    txBlock,
-  });
-
-  const normalTxBlock = new Proxy(txBlock, {
-    get: (target, prop) => {
-      if (prop in normalMethod) {
-        return Reflect.get(normalMethod, prop);
-      }
-      return Reflect.get(target, prop);
-    },
-  }) as SuiTxBlockWithVeScaNormalMethods;
-
-  const quickMethod = generateQuickVeScaMethod({
-    builder,
-    txBlock: normalTxBlock,
-  });
-
-  return new Proxy(normalTxBlock, {
-    get: (target, prop) => {
-      if (prop in quickMethod) {
-        return Reflect.get(quickMethod, prop);
-      }
-      return Reflect.get(target, prop);
-    },
-  }) as VeScaTxBlock;
 };
