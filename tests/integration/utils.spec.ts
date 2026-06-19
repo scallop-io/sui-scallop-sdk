@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { scallopSDK } from '../scallopSdk.js';
-import { ScallopUtils } from 'src/index.js';
+import { ScallopUtils } from 'src/entries/index.js';
 
 const ENABLE_LOG = false;
 let scallopUtils: ScallopUtils;

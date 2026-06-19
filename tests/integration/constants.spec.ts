@@ -5,7 +5,7 @@ import {
   TEST_ADDRESSES,
   WHITELIST,
   Whitelist,
-} from 'src/index.js';
+} from 'src/entries/index.js';
 import { scallopSDK } from '../scallopSdk.js';
 
 let scallopConstants: ScallopConstants;

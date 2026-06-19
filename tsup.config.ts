@@ -3,16 +3,18 @@ import { defineConfig } from 'tsup';
 export default defineConfig((options) => {
   const isProduction = options.env?.NODE_ENV === 'production';
   return {
-    // Multi-entry build. Root entry keeps the broad public surface for
-    // compatibility; subpath entries expose intentional stable areas.
+    // Multi-entry build. Every entry lives under `src/entries/` (thin
+    // re-exports) so the public surface is visually separate from internals —
+    // entry keys stay identical, so dist filenames + package.json exports are
+    // unchanged. Root entry keeps the broad public surface for compatibility.
     entry: {
-      index: 'src/index.ts',
-      errors: 'src/errors/index.ts',
-      logger: 'src/logger/index.ts',
-      client: 'src/client/index.ts',
-      query: 'src/query/index.ts',
-      builder: 'src/builder/index.ts',
-      types: 'src/types/public/index.ts',
+      index: 'src/entries/index.ts',
+      errors: 'src/entries/errors.ts',
+      logger: 'src/entries/logger.ts',
+      client: 'src/entries/client.ts',
+      query: 'src/entries/query.ts',
+      builder: 'src/entries/builder.ts',
+      types: 'src/entries/types.ts',
     },
 
     // Generate TypeScript declaration files (.d.ts) for type safety.

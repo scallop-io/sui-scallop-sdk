@@ -7,10 +7,10 @@ import {
   ScallopBuilder,
   UNLOCK_ROUND_DURATION,
   Vesca,
-} from 'src/index.js';
+} from 'src/entries/index.js';
 import { SuiTxBlock, Transaction } from '@scallop-io/sui-kit';
 import { scallopSDK } from '../scallopSdk.js';
-import { updateOracles } from 'src/builders/oracles/index.js';
+import { updateOracles } from 'src/txBuilders/oracles/index.js';
 
 const ENABLE_LOG = false;
 const COIN_NAME = 'sui';

@@ -1,6 +1,6 @@
 import { SuiClientTypes } from '@mysten/sui/client';
 import type { Transaction } from '@mysten/sui/transactions';
-import { ScallopBuilder } from 'src/builder/index.js';
+import type ScallopBuilder from 'src/models/scallopBuilder/index.js';
 import type ScallopConstants from 'src/models/scallopConstants/index.js';
 import type ScallopQuery from 'src/models/scallopQuery/index.js';
 import type ScallopUtils from 'src/models/scallopUtils/index.js';
