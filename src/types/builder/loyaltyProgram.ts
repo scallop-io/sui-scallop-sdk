@@ -3,8 +3,8 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   TransactionResult,
 } from '@scallop-io/sui-kit';
-import type { MoveCallContext } from 'src/builders/context.js';
-import type { LoyaltyProgramActionContext } from 'src/builders/loyaltyProgram/quick.js';
+import type { MoveCallContext } from 'src/txBuilders/context.js';
+import type { LoyaltyProgramActionContext } from 'src/txBuilders/loyaltyProgram/quick.js';
 
 export type LoyaltyProgramNormalMethods = {
   claimLoyaltyRevenue: (veScaKey: SuiObjectArg) => TransactionResult;

@@ -5,7 +5,7 @@ import {
 } from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models/index.js';
 import { BaseScallopTxBlock } from './index.js';
-import type { MoveCallContext } from 'src/builders/context.js';
+import type { MoveCallContext } from 'src/txBuilders/context.js';
 
 export type sCoinPkgIds = {
   pkgId: string;

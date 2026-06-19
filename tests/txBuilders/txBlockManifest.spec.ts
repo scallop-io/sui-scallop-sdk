@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { newScallopTxBlock } from 'src/builders/index.js';
+import { newScallopTxBlock } from 'src/txBuilders/index.js';
 import {
   TX_BLOCK_MANIFEST,
   detectManifestCollisions,
-} from 'src/builders/manifest.js';
-import { verifyTxBlockMethods } from 'src/builders/verify.js';
+} from 'src/txBuilders/manifest.js';
+import { verifyTxBlockMethods } from 'src/txBuilders/verify.js';
 import type { ScallopBuilder } from 'src/models/index.js';
 
 const DUMMY_ADDR = '0x1';

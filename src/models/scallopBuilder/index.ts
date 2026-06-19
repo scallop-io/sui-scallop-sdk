@@ -1,4 +1,4 @@
-import { newScallopTxBlock } from '../../builders/index.js';
+import { newScallopTxBlock } from '../../txBuilders/index.js';
 import { SuiKit, SuiTransactionBlockResponse } from '@scallop-io/sui-kit';
 import type {
   Transaction,

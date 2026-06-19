@@ -1,7 +1,7 @@
 import { SuiTxBlock as SuiKitTxBlock, SuiObjectArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import type { MoveCallContext } from 'src/builders/context.js';
-import type { VeScaActionContext } from 'src/builders/vesca/quick.js';
+import type { MoveCallContext } from 'src/txBuilders/context.js';
+import type { VeScaActionContext } from 'src/txBuilders/vesca/quick.js';
 import type { SuiObjectData } from '../sui.js';
 
 export type VeScaNormalMethods = {
