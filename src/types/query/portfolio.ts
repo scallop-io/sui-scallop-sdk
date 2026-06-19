@@ -69,6 +69,8 @@ export type ObligationAccount = {
   totalRewardedPools: number;
   collaterals: OptionalKeys<Record<string, ObligationCollateral>>;
   debts: OptionalKeys<Record<string, ObligationDebt>>;
+  // @deprecated: incentive info moved to 'debts' field
+  borrowIncentives: OptionalKeys<Record<string, ObligationBorrowIncentive>>;
 };
 
 export type ObligationCollateral = {

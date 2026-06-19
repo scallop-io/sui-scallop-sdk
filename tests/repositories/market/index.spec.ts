@@ -139,5 +139,20 @@ describe('MarketRepository', () => {
         metadata
       );
     });
+
+    it('getPoolSupplyLimit / getPoolBorrowLimit delegate with the bare poolName', () => {
+      vi.mocked(helpers.getSupplyLimit).mockResolvedValue('100' as never);
+      vi.mocked(helpers.getBorrowLimit).mockResolvedValue('50' as never);
+
+      makeRepo().getPoolSupplyLimit('sui');
+      makeRepo().getPoolBorrowLimit('sui');
+
+      expect(vi.mocked(helpers.getSupplyLimit).mock.calls[0][1]).toBe('sui');
+      expect(vi.mocked(helpers.getBorrowLimit).mock.calls[0][1]).toBe('sui');
+      // both resolve straight off the onchain context (no source routing)
+      expect(vi.mocked(helpers.getSupplyLimit).mock.calls[0][0].metadata).toBe(
+        metadata
+      );
+    });
   });
 });
