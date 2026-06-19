@@ -189,7 +189,7 @@ Public helpers:
 
 All previously monkey-patched indexer-fallback methods now run through this explicit strategy.
 
-#### Explicit tx-block composition ([`src/builders/`](src/builders/))
+#### Explicit tx-block composition ([`src/txBuilders/`](src/txBuilders/))
 
 The flat `ScallopTxBlock` proxy is still the default, but v4 adds a parallel **module view** alongside it:
 
@@ -214,6 +214,14 @@ console.log(tx.supplyQuick === tx.core.supplyQuick); // true
 | `modules.ts`                     | The per-domain module objects: `CoreModule`, `SpoolModule`, `BorrowIncentiveModule`, `VeScaModule`, `ReferralModule`, `LoyaltyModule`, `SCoinModule`.          |
 | `verify.ts`                      | Runtime collision/presence checker. Throws on tx-block construction if any builder exports an undeclared method or if two builders silently shadow each other. |
 | `index.ts` (`newScallopTxBlock`) | Layers a second `Proxy` exposing `tx.core` / `tx.spool` / `tx.vesca` / `tx.borrowIncentive` / `tx.referral` / `tx.loyalty` / `tx.scoin`.                       |
+
+**Per-domain folders + injected contexts.** Each domain now lives in its own folder under `src/txBuilders/<domain>/` (`core`, `spool`, `vesca`, `borrowIncentive`, `referral`, `sCoin`, `loyaltyProgram`) — the flat `coreBuilder.ts` / `spoolBuilder.ts` / `vescaBuilder.ts` / `borrowIncentiveBuilder.ts` / `referralBuilder.ts` / `sCoinBuilder.ts` / `loyaltyProgramBuilder.ts` files were removed. Every domain splits into:
+
+- `moveCalls.ts` — normal methods (pure Move-call construction).
+- `quick.ts` — quick methods (orchestration: coin selection, obligation/oracle fetch, leftover cleanup).
+- `index.ts` — the `new<Domain>TxBlock(builder, priorTxBlock?)` factory (proxy wiring).
+
+Generators no longer receive the whole `ScallopBuilder`. The factory builds two **narrow injected contexts** once (in [`src/txBuilders/context.ts`](src/txBuilders/context.ts)) and passes them down instead: a `MoveCallContext` (address reads + `moveCall` + parse helpers — deliberately I/O-free) into `moveCalls.ts`, and a domain `*ActionContext` (`reads` / `coins` / `oracles` / parse `utils`) into `quick.ts`. This mirrors what the repositories layer did — narrow declared dependencies instead of a facade grab-bag — so a normal method's signature now proves it cannot fetch. `manifest.ts` / `modules.ts` / `verify.ts` / `index.ts` stay at the `txBuilders/` root, and the flat-method + module-view surface and identity guarantees above are preserved unchanged.
 
 **Why this matters:** in the old flat surface, `stake` / `unstake` collided between spool and borrowIncentive — the workaround was inventing `stakeObligation` / `unstakeObligation`. The new module surface exposes the natural names (`tx.spool.stake` vs `tx.borrowIncentive.stake`) without ambiguity, and the verifier catches future collisions at startup instead of in production.
 
@@ -242,6 +250,8 @@ import type { MarketPool } from '@scallop-io/sui-scallop-sdk/types';
 ```
 
 The exported subpaths are `/client`, `/query`, `/builder`, `/errors`, `/logger`, and `/types`. Smoke tests in [`tests/subpathExports.spec.ts`](tests/subpathExports.spec.ts) verify each entry resolves at build time.
+
+Every entry's source is a thin re-export under [`src/entries/`](src/entries/) (`index`, `client`, `query`, `builder`, `errors`, `logger`, `types`) — collecting all public entry points in one folder so the public surface is visually distinct from internal layers. The former `src/index.ts` root barrel and the `src/client` / `src/query` / `src/builder` shim folders were removed; tsup entry keys (and therefore dist filenames + `package.json` `exports`) are unchanged.
 
 #### CI workflow
 
