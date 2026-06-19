@@ -77,7 +77,10 @@ ScallopBuilder
 
 ```
 src/
-├── index.ts                 # Public root barrel — what's re-exported defines the SDK API
+├── entries/                 # ⭐ Public entry points — every tsup entry, thin re-exports
+│   ├── index.ts             #   root barrel (the `.` export)
+│   ├── client.ts query.ts builder.ts   #   facade subpaths
+│   └── errors.ts logger.ts types.ts    #   cross-cutting subpaths
 │
 ├── models/                  # The facade classes, one folder per model
 │   ├── scallop.ts           # Scallop factory (createScallopClient/Builder/Query/Utils)
@@ -92,12 +95,12 @@ src/
 │   ├── transactionExecutor.ts  # SuiKitTransactionExecutor (CoreClient-style write path)
 │   └── interface.ts
 │
-├── builders/                # Transaction-block builders
-│   ├── coreBuilder.ts       # supply, borrow, deposit collateral, ...
-│   ├── spoolBuilder.ts      # stake / unstake spool
-│   ├── borrowIncentiveBuilder.ts, vescaBuilder.ts, referralBuilder.ts
-│   ├── sCoinBuilder.ts, loyaltyProgramBuilder.ts
+├── txBuilders/              # Transaction-block builders (write-path construction layer)
+│   ├── context.ts           # ⭐ Narrow injected contexts (MoveCallContext / *ActionContext)
+│   ├── core/ spool/ vesca/ borrowIncentive/ referral/ sCoin/ loyaltyProgram/
+│   │       each domain: moveCalls.ts (normal/pure) + quick.ts (orchestration) + index.ts (factory)
 │   ├── oracles/             # pyth + xOracle price-feed builders
+│   ├── utils.ts             # shared pure builder helpers (requireSender, …)
 │   ├── manifest.ts          # ⭐ Per-module method manifest
 │   ├── modules.ts           # ⭐ Per-domain module objects (tx.core, tx.spool, …)
 │   ├── verify.ts            # Runtime collision / presence checker for ScallopTxBlock
@@ -155,9 +158,10 @@ src/
 │   ├── vesca.ts             # partitionArray (chunk ids for getObjects ≤ 50/call), ...
 │   ├── url.ts, math.ts, ...
 │
-├── constants/               # queryKeys, cache, rpc, API base url, ...
-└── client/, query/, builder/  # Subpath-export entry points (re-export from above)
+└── constants/               # queryKeys, cache, rpc, API base url, ...
 ```
+
+All public entry points live under `src/entries/` (thin re-exports). Everything else is internal impl — so "is this public API?" is answerable by location.
 
 ⭐ = layer added or formalised in **v4.0.0**.
 
@@ -165,7 +169,7 @@ src/
 
 ## 4. The `ScallopTxBlock` — the Proxy-composed transaction block
 
-`ScallopBuilder.createTxBlock()` returns a `ScallopTxBlock`. It looks like one object, but is actually multiple builder-objects layered through a `Proxy` in [src/builders/index.ts](../src/builders/index.ts):
+`ScallopBuilder.createTxBlock()` returns a `ScallopTxBlock`. It looks like one object, but is actually multiple builder-objects layered through a `Proxy` in [src/txBuilders/index.ts](../src/txBuilders/index.ts):
 
 ```
 coreTxBlock  ←  spoolTxBlock  ←  sCoinTxBlock  ←  referralTxBlock
@@ -179,7 +183,9 @@ Property lookup falls through from outermost (core) to innermost (vesca). All do
 - `GenerateCoreNormalMethod` — thin wrappers around Move calls. Synchronous. Returns a `TransactionResult`.
 - `GenerateCoreQuickMethod` — async helpers that auto-fetch coins/obligations, call the normal method, transfer leftovers back to the sender.
 
-**v4 added an explicit module view.** Alongside the flat methods, `tx.core`, `tx.spool`, `tx.vesca`, `tx.borrowIncentive`, `tx.referral`, `tx.loyalty`, `tx.scoin` expose the same functions grouped by domain. Function references match exactly (`tx.supplyQuick === tx.core.supplyQuick`). The grouping is declared in [src/builders/manifest.ts](../src/builders/manifest.ts), assembled in [src/builders/modules.ts](../src/builders/modules.ts), and verified at runtime by [src/builders/verify.ts](../src/builders/verify.ts).
+**Per-domain folder layout (v4 builders refactor).** Each domain lives in `src/txBuilders/<domain>/` (`core`, `spool`, `vesca`, `borrowIncentive`, `referral`, `sCoin`, `loyaltyProgram`) split into `moveCalls.ts` (normal, pure construction), `quick.ts` (orchestration), and `index.ts` (the `new<Domain>TxBlock` factory). The factory builds two **narrow injected contexts** once — `MoveCallContext` (address reads + `moveCall` + parse helpers, no I/O) for `moveCalls.ts`, and a domain `*ActionContext` (`reads` / `coins` / `oracles` / parse `utils`) for `quick.ts` — instead of passing the whole `ScallopBuilder`. Contexts are defined in [src/txBuilders/context.ts](../src/txBuilders/context.ts); `manifest.ts` / `modules.ts` / `verify.ts` / `index.ts` stay at the `txBuilders/` root.
+
+**v4 added an explicit module view.** Alongside the flat methods, `tx.core`, `tx.spool`, `tx.vesca`, `tx.borrowIncentive`, `tx.referral`, `tx.loyalty`, `tx.scoin` expose the same functions grouped by domain. Function references match exactly (`tx.supplyQuick === tx.core.supplyQuick`). The grouping is declared in [src/txBuilders/manifest.ts](../src/txBuilders/manifest.ts), assembled in [src/txBuilders/modules.ts](../src/txBuilders/modules.ts), and verified at runtime by [src/txBuilders/verify.ts](../src/txBuilders/verify.ts).
 
 **Naming convention for lending:** `supply` / `supplyQuick` / `depositCollateral` / `depositCollateralQuick` are canonical (Aave/Compound aligned). The legacy `deposit` / `depositQuick` / `addCollateral` / `addCollateralQuick` are `@deprecated`.
 
@@ -294,7 +300,7 @@ Consumers can import slim slices instead of the full barrel:
 | `@scallop-io/sui-scallop-sdk/logger`  | `Logger` interface, `noopLogger`, `consoleLogger` |
 | `@scallop-io/sui-scallop-sdk/types`   | Type-only import (no runtime)                     |
 
-Each subpath ships ESM + CJS + matching `.d.ts` / `.d.cts`. Entry points are registered in `tsup.config.ts` + `package.json` `exports`, with a smoke test in `tests/subpathExports.spec.ts`.
+Each subpath ships ESM + CJS + matching `.d.ts` / `.d.cts`. Every entry's source is a thin re-export under [`src/entries/`](../src/entries/) (`index`, `client`, `query`, `builder`, `errors`, `logger`, `types`) — that folder _is_ the public surface; everything else under `src/` is internal. Entry points are registered in `tsup.config.ts` + `package.json` `exports`, with a smoke test in `tests/subpathExports.spec.ts`.
 
 ---
 
@@ -305,7 +311,7 @@ Specs live under `tests/`, mirroring the `src/` tree (e.g. `tests/repositories/<
 ```
 tests/
 ├── repositories/<domain>/  # per-domain read-layer specs
-├── models/, builders/, datasources/, services/, utils/   # mirror src/
+├── models/, txBuilders/, datasources/, services/, utils/   # mirror src/
 ├── integration/            # mainnet dry-run specs (need .env)
 ├── scallopSdk.ts           # shared integration SDK fixture (forced-address overrides)
 ├── mocks.ts                # shared fakes for unit specs
@@ -333,7 +339,8 @@ Integration tests need a `.env` with `SECRET_KEY` (see `.env.example`). They use
 
 | You're adding…                           | Put it in…                                                                                        |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| A new Move-call wrapper                  | `src/builders/<domain>Builder.ts` + register in `manifest.ts` & `modules.ts`                      |
+| A new normal (Move-call) method          | `src/txBuilders/<domain>/moveCalls.ts` + register in `manifest.ts` & `modules.ts`                 |
+| A new quick (orchestration) method       | `src/txBuilders/<domain>/quick.ts` + register in `manifest.ts` & `modules.ts`                     |
 | A new read (indexer/API or RPC)          | `src/repositories/<domain>/helpers.ts` (+ `types.ts`/`utils.ts`), expose a method on `index.ts`   |
 | A new read domain                        | A new `src/repositories/<domain>/` folder + wire it in `repositories/wiring/registry.ts`          |
 | A new piece of write-side business logic | `src/services/client/<Name>Service.ts`                                                            |
