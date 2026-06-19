@@ -12,7 +12,7 @@ import { SuiTxBlockWithSpool } from './index.js';
 import type {
   CoreActionContext,
   MoveCallContext,
-} from 'src/builders/context.js';
+} from 'src/txBuilders/context.js';
 
 export type CoreIds = {
   protocolPkg: string;

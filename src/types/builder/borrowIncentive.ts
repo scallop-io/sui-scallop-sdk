@@ -3,8 +3,8 @@ import type {
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import type { MoveCallContext } from 'src/builders/context.js';
-import type { BorrowIncentiveActionContext } from 'src/builders/borrowIncentive/quick.js';
+import type { MoveCallContext } from 'src/txBuilders/context.js';
+import type { BorrowIncentiveActionContext } from 'src/txBuilders/borrowIncentive/quick.js';
 
 export type BorrowIncentiveIds = {
   borrowIncentivePkg: string;

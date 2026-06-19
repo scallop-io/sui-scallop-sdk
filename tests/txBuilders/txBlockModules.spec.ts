@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { newScallopTxBlock } from 'src/builders/index.js';
+import { newScallopTxBlock } from 'src/txBuilders/index.js';
 import {
   buildTxBlockModules,
   TX_BLOCK_MODULE_KEYS,
-} from 'src/builders/modules.js';
+} from 'src/txBuilders/modules.js';
 import {
   CORE_NORMAL_METHODS,
   CORE_QUICK_METHODS,
@@ -13,7 +13,7 @@ import {
   REFERRAL_METHODS,
   LOYALTY_METHODS,
   SCOIN_METHODS,
-} from 'src/builders/manifest.js';
+} from 'src/txBuilders/manifest.js';
 import type { ScallopBuilder } from 'src/models/index.js';
 
 const DUMMY_ADDR = '0x1';

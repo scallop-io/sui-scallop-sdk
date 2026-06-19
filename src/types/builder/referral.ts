@@ -3,8 +3,8 @@ import {
   TransactionResult,
   SuiTxBlock as SuiKitTxBlock,
 } from '@scallop-io/sui-kit';
-import type { MoveCallContext } from 'src/builders/context.js';
-import type { ReferralActionContext } from 'src/builders/referral/quick.js';
+import type { MoveCallContext } from 'src/txBuilders/context.js';
+import type { ReferralActionContext } from 'src/txBuilders/referral/quick.js';
 
 export type ReferralIds = {
   referralPgkId: string;
