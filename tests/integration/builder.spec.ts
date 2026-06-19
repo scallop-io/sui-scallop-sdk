@@ -197,11 +197,11 @@ describe('Test Scallop Core Builder', () => {
     expect(txResult.effects?.status.success).toEqual(true);
   });
 
-  it('"depositQuick" should succeed', async () => {
+  it('"supplyQuick" should succeed', async () => {
     const tx = scallopBuilder.createTxBlock();
-    // Sender is required to invoke "depositQuick".
+    // Sender is required to invoke "supplyQuick".
     tx.setSender(sender);
-    const marketCoin = await tx.depositQuick(10 ** 7, SUPPLY_COIN_NAME);
+    const marketCoin = await tx.supplyQuick(10 ** 7, SUPPLY_COIN_NAME, false);
     tx.transferObjects([marketCoin], sender);
     const depositQuickResult = await scallopBuilder.suiKit.inspectTxn(tx);
     const txResult =
@@ -1212,8 +1212,8 @@ describe('Test sCoin Builder', () => {
     const tx = scallopBuilder.createTxBlock();
     tx.setSender(sender);
 
-    // depositQuick and mint sCoin
-    const marketCoin = await tx.depositQuick(COIN_AMOUNT, COIN_NAME, false);
+    // supplyQuick and mint sCoin
+    const marketCoin = await tx.supplyQuick(COIN_AMOUNT, COIN_NAME, false);
     const sCoin = tx.mintSCoin('ssui', marketCoin);
     tx.transferObjects([sCoin], sender);
 
@@ -1230,8 +1230,8 @@ describe('Test sCoin Builder', () => {
     const tx = scallopBuilder.createTxBlock();
     tx.setSender(sender);
 
-    // depositQuick and mint sCoin
-    const sCoin = await tx.depositQuick(COIN_AMOUNT, COIN_NAME);
+    // supplyQuick and mint sCoin
+    const sCoin = await tx.supplyQuick(COIN_AMOUNT, COIN_NAME);
 
     // burn minted sCoin
     const marketCoin = tx.burnSCoin('ssui', sCoin);
