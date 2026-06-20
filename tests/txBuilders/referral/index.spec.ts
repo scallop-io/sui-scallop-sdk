@@ -104,4 +104,13 @@ describe('referral quick methods', () => {
       SENDER
     );
   });
+
+  it('defaults the coin list to the lending whitelist when omitted', async () => {
+    const ctx = makeCtx(['sui']);
+    const tx = makeTxBlock();
+    await make(ctx, tx).claimReferralRevenueQuick('VK');
+
+    expect(tx.claimReferralRevenue).toHaveBeenCalledWith('VK', 'sui');
+    expect(tx.transferObjects).toHaveBeenCalledWith(['reward:sui'], SENDER);
+  });
 });
