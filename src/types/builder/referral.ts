@@ -29,7 +29,7 @@ export type ReferralNormalMethods = {
 export type ReferralQuickMethods = {
   claimReferralRevenueQuick: (
     veScaKey: SuiObjectArg,
-    coinNames: string[]
+    coinNames?: string[]
   ) => Promise<void>;
 };
 
