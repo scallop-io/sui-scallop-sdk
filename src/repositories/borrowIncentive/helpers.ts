@@ -152,6 +152,14 @@ export const getBorrowIncentivePoolsFromOnChain = async (
         poolCoinDecimal
       );
 
+      // A campaign is exhausted once every allocated point has been
+      // distributed (accumulatedPoints is min-capped at points). We still emit
+      // the pool point — the portfolio query needs it to surface users'
+      // already-accrued, unclaimed rewards — but zero out the APR so callers
+      // don't display a stale reward rate for an ended campaign.
+      const isExhausted =
+        poolPoint.points <= calculatedPoolPoint.accumulatedPoints;
+
       if (poolPoint.points > calculatedPoolPoint.accumulatedPoints) {
         borrowIncentivePoolPoints[coinName] = {
           symbol,
@@ -163,6 +171,7 @@ export const getBorrowIncentivePoolsFromOnChain = async (
           distributedPoint: poolPoint.distributedPoint,
           weightedAmount: poolPoint.weightedAmount,
           ...calculatedPoolPoint,
+          ...(isExhausted ? { rewardApr: 0 } : {}),
         };
       }
     }
