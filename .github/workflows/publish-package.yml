@@ -39,15 +39,23 @@ jobs:
 
       - name: Determine npm tag
         id: npm_tag
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [[ "${{ github.ref_name }}" == *"alpha."* ]]; then
+          REF="${{ github.ref_name }}"
+          if [[ "$REF" == *"alpha."* ]]; then
             echo "tag=alpha" >> $GITHUB_ENV
-          elif [[ "${{ github.ref_name }}" == *"rc."* ]]; then
+          elif [[ "$REF" == *"rc."* ]]; then
             echo "tag=rc" >> $GITHUB_ENV
-          elif [[ "${{ github.event.release.make_latest }}" == "true" ]]; then
-            echo "tag=latest" >> $GITHUB_ENV
           else
-            echo "tag=legacy" >> $GITHUB_ENV
+            # The release webhook payload has no reliable make_latest field,
+            # so ask the API which release is currently marked "latest".
+            LATEST=$(gh api "repos/${{ github.repository }}/releases/latest" --jq .tag_name)
+            if [[ "$REF" == "$LATEST" ]]; then
+              echo "tag=latest" >> $GITHUB_ENV
+            else
+              echo "tag=legacy" >> $GITHUB_ENV
+            fi
           fi
 
       # Publish to npmjs.com via OIDC — use npm (not pnpm) for OIDC token exchange
