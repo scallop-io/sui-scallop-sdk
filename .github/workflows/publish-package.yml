@@ -44,6 +44,8 @@ jobs:
             echo "tag=alpha" >> $GITHUB_ENV
           elif [[ "${{ github.ref_name }}" == *"rc."* ]]; then
             echo "tag=rc" >> $GITHUB_ENV
+          elif [[ "${{ github.event.release.make_latest }}" == "true" ]]; then
+            echo "tag=latest" >> $GITHUB_ENV
           else
             echo "tag=legacy" >> $GITHUB_ENV
           fi
