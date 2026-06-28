@@ -22,7 +22,7 @@ export type {
   OriginMarketCollateralData,
   ParsedMarketCollateralData,
   CalculatedMarketCollateralData,
-} from '../query/core.js';
+} from '../../repositories/market/types.js';
 
 export type {
   OriginSpoolData,
@@ -43,4 +43,4 @@ export type {
   OriginBorrowIncentiveAccountData,
   ParsedBorrowIncentiveAccountPoolData,
   ParsedBorrowIncentiveAccountData,
-} from '../query/borrowIncentive.js';
+} from '../../repositories/borrowIncentive/types.js';

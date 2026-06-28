@@ -3,10 +3,10 @@ import {
   QueryRewardPoolContext,
   QueryUserRewardContext,
   VeScaLoyaltyProgramRepoContext,
+  VeScaLoyaltyProgramInfo,
 } from './types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { VeScaRewardPoolSchema } from './schema.js';
-import { VeScaLoyaltyProgramInfo } from 'src/types/index.js';
 import { getVeScaDataFromOnChain } from '../veSca/helpers.js';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 import { logError } from '../utils.js';

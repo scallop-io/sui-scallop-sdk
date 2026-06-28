@@ -1,5 +1,5 @@
-import type { MarketPool } from './core.js';
-import type { Spool } from './spool.js';
+import type { MarketPool } from '../repositories/market.js';
+import type { Spool } from '../repositories/spool.js';
 
 type OptionalKeys<T> = {
   [K in keyof T]?: T[K];

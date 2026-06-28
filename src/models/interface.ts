@@ -6,10 +6,7 @@ import ScallopUtils from './scallopUtils/index.js';
 import { TransactionExecutor } from './transactionExecutor.js';
 
 export interface ScallopBaseInterface {
-  // client: ClientWithCoreApi;
-  // fullnodeUrl: string;
   walletAddress: string;
-  // constants: ScallopConstants;
   init: () => Promise<void>;
 }
 
