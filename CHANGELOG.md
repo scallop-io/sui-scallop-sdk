@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.1.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.0.0...v4.1.0) (2026-06-28)
+
+### Added
+
+- Export `SCA_COIN_TYPE` constant from the package root ([d8f818f](https://github.com/scallop-io/sui-scallop-sdk/commit/d8f818fed1f9c8e6ab7ba24e53a24219e0ae88c7))
+- Add deprecated `borrowIncentives` field to `ObligationAccount` (incentive info now lives on `debts`) ([a956f48](https://github.com/scallop-io/sui-scallop-sdk/commit/a956f48175c21f78ff7f5980e1194a86bc364eec))
+
+### Changed
+
+- `claimReferralRevenueQuick` `coinNames` parameter is now optional ([13b5763](https://github.com/scallop-io/sui-scallop-sdk/commit/13b5763f39123f4553f5e58d41446e3bf686d345))
+
+### Fixed
+
+- Builder now passes `fullnodeUrl` to SuiKit as a `fullnodeUrls` array, so the configured node is actually used ([37d7bb6](https://github.com/scallop-io/sui-scallop-sdk/commit/37d7bb6bbe00ae1c20b172e2d2d16b88d7762416))
+
 ## [4.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v3.0.2...v4.0.0) (2026-05-27)
 
 This release lands the full structural refactor of the SDK toward a **datasources → repositories → services → facade** internal architecture, while preserving the public method surface of `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, and `ScallopUtils`. See [`docs/SDK_STRUCTURE.md`](docs/SDK_STRUCTURE.md) for a 5-minute tour of the new layout. Commit SHAs are added at release tagging time.
