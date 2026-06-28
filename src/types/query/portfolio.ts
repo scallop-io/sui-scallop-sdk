@@ -1,5 +1,5 @@
-import type { MarketPool } from './core.js';
-import type { Spool } from './spool.js';
+import type { MarketPool } from '../repositories/market.js';
+import type { Spool } from '../repositories/spool.js';
 
 type OptionalKeys<T> = {
   [K in keyof T]?: T[K];
@@ -132,17 +132,4 @@ export type ObligationBorrowIncentive = {
   coinDecimal: number;
   coinPrice: number;
   rewards: ObligationBorrowIncentiveReward[];
-};
-
-export type TotalValueLocked = {
-  supplyLendingValue: number;
-  supplyCollateralValue: number;
-  supplyValue: number;
-  borrowValue: number;
-  totalValue: number;
-  supplyValueChangeRatio?: number;
-  supplyLendingValueChangeRatio?: number;
-  supplyCollateralValueChangeRatio?: number;
-  borrowValueChangeRatio?: number;
-  totalValueChangeRatio?: number;
 };

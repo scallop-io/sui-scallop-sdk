@@ -9,7 +9,10 @@ import type {
   Transaction,
 } from '@mysten/sui/transactions';
 import { SuiTxBlockWithSpool } from './index.js';
-import { ScallopBuilder } from 'src/models/index.js';
+import type {
+  CoreActionContext,
+  MoveCallContext,
+} from 'src/txBuilders/context.js';
 
 export type CoreIds = {
   protocolPkg: string;
@@ -36,14 +39,6 @@ export type CoreNormalMethods = {
     obligationHotPotato: SuiObjectArg
   ) => void;
   openObligationEntry: () => void;
-  /**
-   * @deprecated Use {@link depositCollateral} instead.
-   */
-  addCollateral: (
-    obligation: SuiObjectArg,
-    coin: SuiObjectArg,
-    collateralCoinName: string
-  ) => void;
   depositCollateral: (
     obligation: SuiObjectArg,
     coin: SuiObjectArg,
@@ -55,10 +50,6 @@ export type CoreNormalMethods = {
     amount: number,
     collateralCoinName: string
   ) => TransactionResult;
-  /**
-   * @deprecated Use {@link supply} instead.
-   */
-  deposit: (coin: SuiObjectArg, poolCoinName: string) => TransactionResult;
   supply: (coin: SuiObjectArg, poolCoinName: string) => TransactionResult;
   depositEntry: (coin: SuiObjectArg, poolCoinName: string) => TransactionResult;
   withdraw: (
@@ -111,15 +102,6 @@ export type CoreNormalMethods = {
 };
 
 export type CoreQuickMethods = {
-  /**
-   * @deprecated Use {@link depositCollateralQuick} instead.
-   */
-  addCollateralQuick: (
-    amount: number,
-    collateralCoinName: string,
-    obligationId?: SuiObjectArg,
-    isSponsoredTx?: boolean
-  ) => Promise<void>;
   depositCollateralQuick: (
     amount: number,
     collateralCoinName: string,
@@ -162,15 +144,6 @@ export type CoreQuickMethods = {
       sponsoredFeeds?: string[];
       isSponsoredTx?: boolean;
     }
-  ) => Promise<TransactionResult>;
-  /**
-   * @deprecated Use {@link supplyQuick} instead.
-   */
-  depositQuick: (
-    amount: number,
-    poolCoinName: string,
-    returnSCoin?: boolean,
-    isSponsoredTx?: boolean
   ) => Promise<TransactionResult>;
   supplyQuick: (
     amount: number,
@@ -218,11 +191,11 @@ export type SuiTxBlockWithCoreNormalMethods = SuiKitTxBlock &
 export type CoreTxBlock = SuiTxBlockWithCoreNormalMethods & CoreQuickMethods;
 
 export type GenerateCoreNormalMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: MoveCallContext;
   txBlock: SuiKitTxBlock;
 }) => CoreNormalMethods;
 
 export type GenerateCoreQuickMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: CoreActionContext;
   txBlock: SuiTxBlockWithCoreNormalMethods;
 }) => CoreQuickMethods;

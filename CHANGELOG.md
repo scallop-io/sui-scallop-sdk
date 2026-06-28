@@ -2,6 +2,331 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.1.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.0.0...v4.1.0) (2026-06-28)
+
+### Added
+
+- Export `SCA_COIN_TYPE` constant from the package root ([d8f818f](https://github.com/scallop-io/sui-scallop-sdk/commit/d8f818fed1f9c8e6ab7ba24e53a24219e0ae88c7))
+- Add deprecated `borrowIncentives` field to `ObligationAccount` (incentive info now lives on `debts`) ([a956f48](https://github.com/scallop-io/sui-scallop-sdk/commit/a956f48175c21f78ff7f5980e1194a86bc364eec))
+
+### Changed
+
+- `claimReferralRevenueQuick` `coinNames` parameter is now optional ([13b5763](https://github.com/scallop-io/sui-scallop-sdk/commit/13b5763f39123f4553f5e58d41446e3bf686d345))
+
+### Fixed
+
+- Builder now passes `fullnodeUrl` to SuiKit as a `fullnodeUrls` array, so the configured node is actually used ([37d7bb6](https://github.com/scallop-io/sui-scallop-sdk/commit/37d7bb6bbe00ae1c20b172e2d2d16b88d7762416))
+
+## [4.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v3.0.2...v4.0.0) (2026-05-27)
+
+This release lands the full structural refactor of the SDK toward a **datasources → repositories → services → facade** internal architecture, while preserving the public method surface of `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, and `ScallopUtils`. See [`docs/SDK_STRUCTURE.md`](docs/SDK_STRUCTURE.md) for a 5-minute tour of the new layout. Commit SHAs are added at release tagging time.
+
+**Upgrading from v3?** See [`docs/V3_TO_V4.md`](docs/V3_TO_V4.md) for the migration guide with step-by-step diffs.
+
+**TL;DR for upgraders:** if you were only consuming `Scallop`/`ScallopClient`/`ScallopBuilder`/`ScallopQuery` methods, your code keeps working. The breaking changes only bite if you (a) inherited from `ScallopConstants`, (b) used `instanceof ScallopAddress` against a `ScallopConstants` instance, (c) mutated `constants.whitelist` or `constants.poolAddresses` directly, (d) imported from non-public type paths, (e) relied on the SDK bundling `@mysten/sui` (now a peer dependency — install `@mysten/sui@^2` yourself), or (f) used `Scallop.createScallopIndexer()`, `ScallopSuiKit`, or `ScallopAxios` (all removed).
+
+---
+
+### ⚠ BREAKING CHANGES
+
+#### B1 — `ScallopConstants` composition (drops inheritance)
+
+`ScallopConstants` no longer **extends** `ScallopAddress`. It now **composes** the address adapter via a public `address` field. The full inheritance chain `ScallopConstants → ScallopAddress → ScallopAxios → ScallopQueryClient` is dismantled.
+
+- `instanceof ScallopAddress` against a `ScallopConstants` instance now returns `false`. Use `constants.address instanceof ScallopAddress` instead.
+- `utils.address` / `query.address` / `builder.address` / `client.address` now return the underlying `ScallopAddress` rather than the `ScallopConstants` instance. `.get(path)`, `.getAddresses(...)`, etc. continue to work because those methods live on `ScallopAddress` itself.
+- **Forwarders preserved on `ScallopConstants`** for back-compat: `get`, `set`, `getAddresses`, `setAddresses`, `getId`, `getAllAddresses`, `switchCurrentAddresses`, `queryClient`, `axiosClient`, `axiosInstance`, `scallopAxios`. So `constants.get('core.market')`, `constants.getAddresses()`, `constants.queryClient`, etc. all still work.
+- `ScallopConstantsParams` accepts a new optional `scallopAddress?: ScallopAddress` field for injecting a pre-built address adapter (useful for tests).
+
+→ See [`docs/V3_TO_V4.md` § B1](docs/V3_TO_V4.md#b1--scallopconstants-no-longer-extends-scallopaddress) for diffs covering `instanceof` checks, subclass refactors, and the new `scallopAddress` injection.
+
+#### B2 — `whitelist` and `poolAddresses` are now frozen immutable snapshots
+
+- Previously: `Proxy` getters that fell back to `DEFAULT_WHITELIST` on missing keys, and allowed mutation through `Set.add` / `Set.delete` (which silently affected the singleton state).
+- Now: plain frozen objects populated during `init()`. Every whitelist key is always present (missing entries default to empty `Set`s). Calling `.add()` / `.delete()` / `.clear()` throws `TypeError: Cannot mutate readonly ScallopConstants whitelist`.
+
+→ See [`docs/V3_TO_V4.md` § B2](docs/V3_TO_V4.md#b2--whitelist--pooladdresses-are-now-frozen-immutable-snapshots) for the `forceWhitelistInterface` / `forcePoolAddressInterface` recipe.
+
+#### B3 — Minimum Node 22
+
+`vitest.config.ts` declares Node 22+. tsup output targets the same. Older runtimes are no longer supported.
+
+#### B4 — Public type surface clarified
+
+- `src/types/index.ts` now delegates to `src/types/public/index.ts` — the explicit, semver-governed barrel.
+- New non-public DTO/transport types (e.g. `MoveTypeName`, `TypeNameField`) live under `src/types/internal/` and are **not** re-exported from the root.
+- Legacy `Origin*` / `Parsed*` / `Calculated*` DTOs remain reachable through `src/types/query/*` for back-compat, but internal code now imports them via `src/types/internal/`.
+
+If you import from the root `@scallop-io/sui-scallop-sdk` package, nothing changes. If you reached into `src/types/...` paths directly (not officially supported), some types have moved.
+
+#### B5 — `@mysten/sui` is now a peer dependency
+
+`@mysten/sui` moved from `dependencies` to `peerDependencies` (range `^2.0.0`). The SDK exchanges `Transaction` objects with your application code (e.g. `ScallopBuilder.createTxBlock()` returns a block you later sign/execute via `@mysten/sui`), so a **single shared copy** is required — two copies break `instanceof Transaction` checks and bcs serialization across the boundary.
+
+- **You must install `@mysten/sui@^2` in your own project.** npm 7+ and Bun auto-install peers; pnpm and yarn may require it explicitly.
+- A wide `^2.0.0` range lets it dedup with whatever `@mysten/sui` your app (and `@scallop-io/sui-kit`, which also depends on `^2.0.0`) already resolves.
+
+→ See [`docs/V3_TO_V4.md` § B5](docs/V3_TO_V4.md#b5--mystensui-is-now-a-peer-dependency).
+
+#### B6 — Transport models removed (`ScallopIndexer`, `ScallopSuiKit`, `ScallopAxios`)
+
+The three legacy transport models were replaced by a small `src/datasources/` layer:
+
+- `ScallopIndexer` model + `Scallop.createScallopIndexer()` removed — indexer/API reads now flow through the repository layer behind `ScallopQuery`; coin-price reads are exposed as `ScallopQuery` methods.
+- `ScallopSuiKit` removed — reads go through a rate-limited `OnChainDataSource` (`utils.onchain`); writes through a `TransactionExecutor` (`builder.executor`), with the raw `SuiKit` reachable at `builder.suiKit`.
+- `ScallopAxios` removed — `ScallopAddress` reads the Scallop API via an `ApiDataSource`.
+
+The typed `ScallopIndexerError` is unaffected (only the `ScallopIndexer` model is gone). Public read/write methods on the five facades are unchanged.
+
+→ See [`docs/V3_TO_V4.md` § B6](docs/V3_TO_V4.md#b6--transport-reshaped-scallopindexer-scallopsuikit-scallopaxios-removed).
+
+---
+
+### Added — Architecture layers (the substance of the refactor)
+
+The SDK internals are now layered. Each layer has a single responsibility and only depends on the layer below it.
+
+#### Datasources ([`src/datasources/`](src/datasources/)) — raw transport
+
+The single transport layer beneath the repositories. Replaces the removed `ScallopSuiKit` / `ScallopAxios`.
+
+| File             | Purpose                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------ |
+| `onchain.ts`     | `OnChainDataSource` — wraps the new-gen Sui client; every read is rate-limited       |
+| `rateLimiter.ts` | The shared token-bucket throttle — the single choke point for all on-chain reads     |
+| `api.ts`         | `ApiDataSource` — thin axios wrapper over the Scallop API                            |
+| `indexer.ts`     | `IndexerDataSource extends ApiDataSource` — defaults to the Scallop indexer base URL |
+
+#### Mappers ([`src/mappers/`](src/mappers/)) — shared shape normalisation
+
+Trimmed to the one cross-cutting transform: `moveTypeMapper.ts` normalises the `TypeName` field shape (`{ name: string }` vs raw `string`) across gRPC and JSON-RPC. Per-domain Move-JSON parsing now lives **inside each repository** (`repositories/<domain>/utils.ts` / `schema.ts` / `mapper.ts`) and throws `ScallopParseError` on bad input — the standalone `obligationMapper` / `borrowIncentiveMapper` / `marketMapper` / `spoolMapper` files were folded into their repositories.
+
+#### Errors ([`src/errors/`](src/errors/)) — typed error hierarchy
+
+All new SDK-internal failures throw a subclass of `ScallopError`. Each carries `cause`, `context`, and structured fields so callers can branch on type instead of string-matching.
+
+| Class                          | When it fires                                             |
+| ------------------------------ | --------------------------------------------------------- |
+| `ScallopRpcError`              | Sui RPC / gRPC failure                                    |
+| `ScallopIndexerError`          | Scallop indexer HTTP failure                              |
+| `ScallopParseError`            | Mapper rejected a payload shape                           |
+| `ScallopConfigError`           | `strictInit: true` + required addresses/whitelist missing |
+| `ScallopTransactionBuildError` | A tx-builder couldn't construct a Move call               |
+
+Mappers, config validation, and client services now throw typed errors. Some legacy builder/query/util paths still throw plain `Error` and remain follow-up work.
+
+#### Logger ([`src/logger/`](src/logger/)) — pluggable observability
+
+```ts
+import { consoleLogger, noopLogger } from '@scallop-io/sui-scallop-sdk/logger';
+
+const scallop = new Scallop({ logger: consoleLogger });
+```
+
+- `Logger` interface (`info`, `warn`, `error`, `debug`).
+- `noopLogger` — default. Silent.
+- `consoleLogger` — opt-in. Routes to `console.*`.
+- Accepted by `Scallop`, `ScallopClient`, `ScallopQuery`, `ScallopUtils`, `ScallopAddress`, `ScallopConstants`.
+- The SDK never calls `console.*` itself outside `consoleLogger.ts`. The `test:no-console` CI gate ([`tests/noConsole.spec.ts`](tests/noConsole.spec.ts)) enforces this on every commit.
+
+#### Config — typed snapshot + sources (now colocated under `ScallopConstants`)
+
+Config acquisition/validation lives in [`src/models/scallopConstants/config/`](src/models/scallopConstants/config/), colocated with its only consumer — the former top-level `src/config/` directory was removed.
+
+- `ScallopConfigSnapshot` — immutable, validated snapshot of addresses + pool-addresses + whitelist.
+- `AddressConfigSource`, `PoolAddressConfigSource`, `WhitelistConfigSource` — adapter interfaces with live and static implementations.
+- `loadScallopConfigSnapshot()` — assembles a snapshot from the three sources and optionally validates.
+- `ConfigValidator.assertConfigSnapshot()` — throws `ScallopConfigError` on missing required core addresses / whitelist sets.
+- **`strictInit` flag on `ScallopConstants`:**
+
+```ts
+const constants = new ScallopConstants({ strictInit: true });
+await constants.init(); // throws ScallopConfigError if required addresses/whitelist missing
+```
+
+Defaults to `false` — preserves best-effort init behaviour.
+
+#### Structural service contexts (replaces the standalone `ScallopContext`)
+
+The exploratory top-level `src/context/` module (`ScallopContext` / `createScallopContext` / `Scallop.getContext()`) was removed. Its goal — letting services and tests depend on a narrow shape instead of the full facade — is now served by per-layer structural contexts: client-side services accept a `ClientServiceContext` ([`src/services/client/types.ts`](src/services/client/types.ts)), and each repository takes a narrowed per-domain context. Both keep unit tests possible without standing up an entire `ScallopClient`.
+
+#### Repositories ([`src/repositories/`](src/repositories/)) — the read layer
+
+One folder per domain (`market/`, `obligation/`, `spool/`, `price/`, `borrowIncentive/`, `coinBalance/`, `flashloan/`, `isolatedAssets/`, `xOracle/`, `veSca/`, `loyaltyProgram/`, `veScaLoyaltyProgram/`, `referral/`, `poolAddresses/`). Each repository owns ONE domain's data access across both sources (indexer/API + on-chain) behind a single method.
+
+- `BaseRepository` ([`src/repositories/base.ts`](src/repositories/base.ts)) provides `fetchWithCache` (TanStack Query) + `baseContext`, with **no forced datasource coupling** — each repo declares the datasources it needs (`onchain` / `indexer` / `api`) in its own params/context, so api-only repos never see an on-chain client.
+- Source selection is a per-call `QuerySource` (`'onchain' | 'api' | 'api-first'`); `runWithDataSourceFallback` ([`src/repositories/utils.ts`](src/repositories/utils.ts)) tries the API first and falls back to on-chain (logging the fallback).
+- `wiring/` ([`src/repositories/wiring/`](src/repositories/wiring/)) builds the datasources + per-domain metadata and constructs a lazily-memoised repository registry from `ScallopUtils`. `wiring/source.ts` maps the legacy facade flags (`'rpc' | 'indexer' | 'indexer-first'`, `indexer`, `useOnChainQuery`) onto `QuerySource`.
+
+`ScallopQuery` builds the registry lazily and delegates **every** domain read to `repos.<domain>` — the old `src/queries/*` files and facade-adapter repositories are gone.
+
+#### Services ([`src/services/`](src/services/)) — business logic
+
+**Read side:** `ScallopQuery` delegates directly to the repository registry (`repos.<domain>`); the only surviving read-side service is the pure portfolio math below. The earlier per-domain read services (`MarketService`, `ObligationService`, `LendingReadService`, `SpoolReadService`, `BorrowIncentiveService`, `PriceService`) were collapsed into their repositories — cross-domain assembly that needs several repos stays in `ScallopQuery` / `services/query/`.
+
+**Write-side services** (under [`src/services/client/`](src/services/client/)) — each owns one domain's write flow:
+
+| Service             | Replaces logic in `ScallopClient` for                                                 |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| `LendingService`    | `supply`, `withdraw`, `flashLoan`, `supplyAndStake`                                   |
+| `CollateralService` | `depositCollateral`, `withdrawCollateral`                                             |
+| `BorrowService`     | `openObligation`, `borrow`, `repay`                                                   |
+| `SpoolService`      | `createStakeAccount`, `stake`, `unstake`, `unstakeAndWithdraw`, `claim`               |
+| `VeScaService`      | `stakeObligation`, `unstakeObligation`, `claimBorrowIncentive`, `claimAllUnlockedSca` |
+| `ReferralService`   | `bindToReferral` and related                                                          |
+
+All client-side services accept a structural `ClientServiceContext` (see [`src/services/client/types.ts`](src/services/client/types.ts)) instead of `ScallopClient` directly — this is what makes them unit-testable in isolation.
+
+#### Portfolio math ([`src/services/query/portfolioCalculations.ts`](src/services/query/portfolioCalculations.ts))
+
+Pure portfolio math extracted so it's unit-testable without mocking the whole `ScallopQuery` chain.
+
+Public helpers:
+
+- `calculateTotalValueLocked` — TVL aggregation across pools.
+- `parseLendingsForPortfolio`, `parseObligationAccountsForPortfolio`, `parseVeScasForPortfolio` — portfolio-shape transforms.
+- `aggregatePendingLendingRewards`, `aggregatePendingBorrowIncentiveRewards` — reward roll-up.
+- `summarisePortfolioTotals` — portfolio totals (deposited/borrowed/unhealthy/risk).
+- **Six new obligation-account helpers** (the per-coin math previously buried inside `getObligationAccount`):
+  - `buildObligationCollateralEntry` — collateral row + the three running-total contributions (`depositedValue`, `borrowCapacityValue`, `requiredCollateralValue`).
+  - `buildBorrowIncentiveRewards` — per-pool rewards list (veSCA boost, base/boosted APR, point-index growth). Takes a `toMarketCoinName` callback so the helper stays pure.
+  - `buildObligationDebtEntry` — debt row with borrow-index growth applied + weighted borrow value.
+  - `calculateObligationSummary` — risk-level (capped at 1, bad-debt → 1 when collateral is 0 and debt > 0), account balance, available/required/unhealthy collateral.
+  - `estimateAvailableWithdrawAmount` — applies cushion factor + caps to deposited / pool-deposit amount.
+  - `estimateAvailableBorrowAmount` — applies cushion factor on borrow amount + overshoot-adjusted `requiredRepayAmount` / `requiredRepayCoin`.
+
+`getUserPortfolio` and `getObligationAccount` on `ScallopQuery` ([`src/models/scallopQuery/`](src/models/scallopQuery/)) are now thin orchestration over these helpers — they fetch (via the repositories), then loop, then call the matching helper.
+
+#### Explicit query-source strategy ([`src/repositories/utils.ts`](src/repositories/utils.ts))
+
+- `runWithDataSourceFallback({ source, api, onchain, logger, label })` — runs `api()` for `'api'`; tries `api()` then falls back to `onchain()` for `'api-first'` (logging the fallback); or `onchain()` only for `'onchain'`.
+- The legacy facade vocabulary (`source: 'rpc' | 'indexer' | 'indexer-first'`, `indexer: boolean`, `useOnChainQuery: boolean`) is normalised onto `QuerySource` by [`src/repositories/wiring/source.ts`](src/repositories/wiring/source.ts).
+
+All previously monkey-patched indexer-fallback methods now run through this explicit strategy.
+
+#### Explicit tx-block composition ([`src/txBuilders/`](src/txBuilders/))
+
+The flat `ScallopTxBlock` proxy is still the default, but v4 adds a parallel **module view** alongside it:
+
+```ts
+const tx = builder.createTxBlock();
+
+// v3-compatible flat methods (still work)
+tx.supplyQuick(coinAmount, 'sui');
+tx.stake(stakeAccount, marketCoin, 'ssui');
+
+// v4 module-grouped (preferred, more discoverable)
+tx.core.supplyQuick(coinAmount, 'sui');
+tx.spool.stake(stakeAccount, marketCoin, 'ssui');
+
+// Identity guarantee — same function reference, two ways to reach it
+console.log(tx.supplyQuick === tx.core.supplyQuick); // true
+```
+
+| File                             | Purpose                                                                                                                                                        |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `manifest.ts`                    | Per-domain method manifest. Declares which module owns each method name.                                                                                       |
+| `modules.ts`                     | The per-domain module objects: `CoreModule`, `SpoolModule`, `BorrowIncentiveModule`, `VeScaModule`, `ReferralModule`, `LoyaltyModule`, `SCoinModule`.          |
+| `verify.ts`                      | Runtime collision/presence checker. Throws on tx-block construction if any builder exports an undeclared method or if two builders silently shadow each other. |
+| `index.ts` (`newScallopTxBlock`) | Layers a second `Proxy` exposing `tx.core` / `tx.spool` / `tx.vesca` / `tx.borrowIncentive` / `tx.referral` / `tx.loyalty` / `tx.scoin`.                       |
+
+**Per-domain folders + injected contexts.** Each domain now lives in its own folder under `src/txBuilders/<domain>/` (`core`, `spool`, `vesca`, `borrowIncentive`, `referral`, `sCoin`, `loyaltyProgram`) — the flat `coreBuilder.ts` / `spoolBuilder.ts` / `vescaBuilder.ts` / `borrowIncentiveBuilder.ts` / `referralBuilder.ts` / `sCoinBuilder.ts` / `loyaltyProgramBuilder.ts` files were removed. Every domain splits into:
+
+- `moveCalls.ts` — normal methods (pure Move-call construction).
+- `quick.ts` — quick methods (orchestration: coin selection, obligation/oracle fetch, leftover cleanup).
+- `index.ts` — the `new<Domain>TxBlock(builder, priorTxBlock?)` factory (proxy wiring).
+
+Generators no longer receive the whole `ScallopBuilder`. The factory builds two **narrow injected contexts** once (in [`src/txBuilders/context.ts`](src/txBuilders/context.ts)) and passes them down instead: a `MoveCallContext` (address reads + `moveCall` + parse helpers — deliberately I/O-free) into `moveCalls.ts`, and a domain `*ActionContext` (`reads` / `coins` / `oracles` / parse `utils`) into `quick.ts`. This mirrors what the repositories layer did — narrow declared dependencies instead of a facade grab-bag — so a normal method's signature now proves it cannot fetch. `manifest.ts` / `modules.ts` / `verify.ts` / `index.ts` stay at the `txBuilders/` root, and the flat-method + module-view surface and identity guarantees above are preserved unchanged.
+
+**Why this matters:** in the old flat surface, `stake` / `unstake` collided between spool and borrowIncentive — the workaround was inventing `stakeObligation` / `unstakeObligation`. The new module surface exposes the natural names (`tx.spool.stake` vs `tx.borrowIncentive.stake`) without ambiguity, and the verifier catches future collisions at startup instead of in production.
+
+#### Internal-DTO type boundary
+
+[`src/types/internal/dto.ts`](src/types/internal/dto.ts) re-exports the 21 `Origin*` / `Parsed*` / `Calculated*` DTOs from their current `src/types/query/{core,spool,borrowIncentive}.ts` locations. Internal callers now import DTOs via `src/types/internal/index.js` — the canonical defs still live in `src/types/query/*` for back-compat, and the physical relocation is a follow-up.
+
+---
+
+### Added — Build, packaging, CI
+
+#### Subpath exports
+
+Multi-entry `tsup` build with `package.json` `exports`. Each subpath ships ESM + CJS + matching `.d.ts` / `.d.cts`. Consumers can import slim slices instead of pulling the full barrel:
+
+```ts
+import { ScallopClient } from '@scallop-io/sui-scallop-sdk/client';
+import { ScallopQuery } from '@scallop-io/sui-scallop-sdk/query';
+import { ScallopBuilder } from '@scallop-io/sui-scallop-sdk/builder';
+import {
+  ScallopRpcError,
+  ScallopParseError,
+} from '@scallop-io/sui-scallop-sdk/errors';
+import { consoleLogger } from '@scallop-io/sui-scallop-sdk/logger';
+import type { MarketPool } from '@scallop-io/sui-scallop-sdk/types';
+```
+
+The exported subpaths are `/client`, `/query`, `/builder`, `/errors`, `/logger`, and `/types`. Smoke tests in [`tests/subpathExports.spec.ts`](tests/subpathExports.spec.ts) verify each entry resolves at build time.
+
+Every entry's source is a thin re-export under [`src/entries/`](src/entries/) (`index`, `client`, `query`, `builder`, `errors`, `logger`, `types`) — collecting all public entry points in one folder so the public surface is visually distinct from internal layers. The former `src/index.ts` root barrel and the `src/client` / `src/query` / `src/builder` shim folders were removed; tsup entry keys (and therefore dist filenames + `package.json` `exports`) are unchanged.
+
+#### CI workflow
+
+New [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push to `main` and every pull request:
+
+1. `pnpm install --frozen-lockfile --ignore-scripts`
+2. `pnpm test:typecheck` (`tsc -p ./tests`)
+3. `pnpm test:no-console` (blocks new `console.*` in SDK internals)
+4. `pnpm test:unit` (network-free unit suite)
+5. `pnpm build` (production tsup, multi-entry, ESM + CJS + types)
+
+Pinned to **pnpm 10.32.1** and **Node 22**. No network required at any step.
+
+#### Batched reads
+
+On-chain object reads are chunked at 50 ids per call (`partitionArray`), and indexer coin-price reads are batched in the `price` repository — cutting per-coin round-trips in portfolio aggregation. (The standalone `ScallopIndexer` model that previously hosted batched price fetches was removed — see breaking change **B6**.)
+
+---
+
+### Changed
+
+- `ScallopQuery.{queryMarket, getMarketPools, getMarketCollaterals, getMarketCollateral, getSpools, getSpool, getLendings, getLending, getObligations, queryObligation, getObligationAccounts, getObligationAccountsByIds, getObligationAccountById, getObligationAccount, getBorrowIncentivePools, getPriceFromPyth, getPricesFromPyth, getCoinPriceByIndexer, getCoinPricesByIndexer, getAllCoinPrices}` reduced to repository delegations (`repos.<domain>`). `getUserPortfolio` and `getObligationAccount` remain thin orchestration over the extracted portfolio helpers. Method signatures and return shapes preserved verbatim.
+- `ScallopClient.{supply, withdraw, flashLoan, depositCollateral, withdrawCollateral, openObligation, borrow, repay, supplyAndStake, createStakeAccount, stake, unstake, unstakeAndWithdraw, claim, stakeObligation, unstakeObligation, claimBorrowIncentive, claimAllUnlockedSca}` reduced to delegations into the matching client-side service. Public method signatures preserved.
+- `whitelist` and `poolAddresses` getters on `ScallopConstants` return immutable typed snapshots instead of `Proxy` instances. See **B2** above.
+- `.gitignore` — `docs/*` now ignored except `docs/*.md`, so structure docs are tracked while typedoc HTML output is not.
+- Lending API names: `supply` / `supplyQuick` / `depositCollateral` / `depositCollateralQuick` are now the canonical names. The legacy `deposit` / `depositQuick` / `addCollateral` / `addCollateralQuick` were deprecated in v3 and **removed in v4** (the tx-block no longer exposes them).
+
+---
+
+### Testing
+
+- **All specs relocated to [`tests/`](tests/), mirroring the `src/` tree** (e.g. `tests/repositories/<domain>/index.spec.ts`, `tests/models/scallopConstants/…`, `tests/utils/…`). Source under `src/` stays spec-free; specs import the code under test via the `src/` path alias.
+- **`vitest.config.ts`** at repo root defines two **projects**: `unit` (`tests/**/*.spec.ts` minus `tests/integration/**`, network-free) and `integration` (`tests/integration/**`, needs `.env`). Path alias `src/` → `./src`, 60 s timeout.
+- **Script split** in `package.json`:
+  - `test:typecheck` — `tsc -p ./tests`
+  - `test:no-console` — runs only the no-console gate
+  - `test:unit` — network-free unit project
+  - `test:query` — indexer/RPC query test (needs network)
+  - `test:integration` — mainnet dry-run tests (needs `.env` with `SECRET_KEY`)
+  - `test` — typecheck + all tests (full local run)
+- **New coverage** across the architecture: per-domain repository specs (`tests/repositories/<domain>/`), wiring (`registry`, `source`), datasources (rate limiter), config sources + `strictInit`, tx-block manifest/modules, subpath exports, the no-console gate, and the pure portfolio-math helpers.
+- **Integration specs** live in [`tests/integration/`](tests/integration/) and share the [`tests/scallopSdk.ts`](tests/scallopSdk.ts) fixture; unit specs stay self-contained.
+
+---
+
+### Documentation
+
+- New [`docs/SDK_STRUCTURE.md`](docs/SDK_STRUCTURE.md) — 5-minute developer onboarding tour with layer diagrams, directory map, read-path/write-path traces, cross-cutting concerns (errors, logger, config, `parseObjectAs` gotcha, caching), subpath-export table, "where does new code go?" decision table.
+- Migration guides — [`docs/V3_TO_V4.md`](docs/V3_TO_V4.md), [`docs/V2_TO_V4.md`](docs/V2_TO_V4.md), [`docs/V1_TO_V4.md`](docs/V1_TO_V4.md) — step-by-step upgrade diffs from each prior major line.
+- [`src/repositories/CLAUDE.md`](src/repositories/CLAUDE.md) — contributor guide for the read layer.
+- [`AGENTS.md`](AGENTS.md) and [`.claude/CLAUDE.md`](.claude/CLAUDE.md) refreshed for v4 — new commands, v4 breaking-change callouts, datasources/repositories/services/errors/logger/subpath sections, "where does new code go?" tables, link-throughs to `docs/SDK_STRUCTURE.md`.
+
+---
+
+### Known follow-ups (not in this release)
+
+- Physical relocation of the remaining `Origin*` / `Parsed*` / `Calculated*` DTOs into dedicated `src/types/internal/` files (some are still re-exported from `src/types/query/*`).
+- TSDoc `@deprecated` markers on the flat tx-block methods once the module-grouped API is publicly announced.
+- Conversion of the last legacy plain `Error` throws (only in commented-out `market/` sCoin-swap-rate helpers) to `ScallopError` subclasses.
+- Audit of remaining barrel re-exports for bundler chunk cycles.
 ## [3.0.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v3.0.2...v3.0.3) (2026-06-09)
 
 ### Fixed

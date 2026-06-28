@@ -85,5 +85,5 @@ const swusdtScointype = scallopConstants.coinTypes[sCoinName];
 - Get list of coin name that can be used as incentive reward for borrow incentive program
 
 ```typescript
-const supportedRewardsName = scallopConstants.supportedBorrowIncentiveRewards(); // return Set<string>
+const supportedRewardsName = scallopConstants.supportedBorrowIncentiveRewards; // Set<string>
 ```
