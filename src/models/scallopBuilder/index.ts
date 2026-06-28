@@ -47,7 +47,10 @@ class ScallopBuilder implements ScallopBuilderInterface {
     query,
     ...scallopQueryArgs
   }: ScallopBuilderConstructorParams) {
-    this.suiKit = new SuiKit(scallopQueryArgs);
+    this.suiKit = new SuiKit({
+      ...scallopQueryArgs,
+      fullnodeUrls: [scallopQueryArgs.fullnodeUrl],
+    });
     this.query =
       query ??
       new ScallopQuery({
