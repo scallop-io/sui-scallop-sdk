@@ -9,7 +9,7 @@ type ScallopBuilderBaseParams = {
   useOnChainXOracleList?: boolean;
   pythEndpoints: string[];
 } & Omit<ScallopQueryConstructorParams, 'walletAddress'> &
-  SuiKitParams;
+  Omit<SuiKitParams, 'fullnodeUrls'>;
 
 type ScallopBuilderWithQuery = ScallopBuilderBaseParams & {
   query: ScallopQuery;
