@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: pnpm/action-setup@v6.0.8
+        with:
+          version: 10.32.1
+
+      - uses: actions/setup-node@v6.4.0
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Typecheck (test/)
+        run: pnpm run test:typecheck
+
+      - name: No-console gate (SDK internals)
+        run: pnpm run test:no-console
+
+      - name: Unit tests (network-free)
+        run: pnpm run test:unit
+
+      - name: Production build
+        run: pnpm run build

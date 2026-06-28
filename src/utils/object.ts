@@ -1,7 +1,10 @@
-import type { SuiObjectData, SuiObjectRef } from 'src/types/index.js';
-import { ScallopSuiKit } from 'src/models/index.js';
-import { z } from 'zod';
+import { SuiClientTypes } from '@mysten/sui/client';
 import { SuiObjectArg, SuiTxBlock } from '@scallop-io/sui-kit';
+import { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { SuiObjectData, SuiObjectRef } from 'src/types/index.js';
+import { z } from 'zod';
+import { FetchWithCache } from './cache.js';
+import { queryKeys } from 'src/constants/queryKeys.js';
 
 const DYNAMIC_FIELD_TYPE_PREFIX =
   '0x0000000000000000000000000000000000000000000000000000000000000002::dynamic_field::Field';
@@ -128,33 +131,48 @@ export const asSharedObject = (
 };
 
 export const getSharedObjectData = async (
-  scallopSuiKit: ScallopSuiKit,
+  // Take the whole data source (not a destructured `getObject`): `getObject` is a
+  // class method that reads `this.client`, so destructuring it here would drop the
+  // `this` binding and throw "Cannot read properties of undefined (reading 'client')".
+  {
+    onchain,
+    fetchWithCache,
+  }: {
+    onchain: OnChainDataSource;
+    fetchWithCache: FetchWithCache;
+  },
   {
     tx,
-    object,
+    objectId,
     mutable = false,
+    include,
   }: {
     tx: SuiTxBlock;
-    object: string | SuiObjectData | SuiObjectRef | SuiObjectArg;
+    objectId: string | SuiObjectData | SuiObjectRef | SuiObjectArg;
     mutable?: boolean;
+    include?: SuiClientTypes.ObjectInclude;
   }
 ) => {
   let parsed;
   // Handle string
-  if (typeof object === 'string') {
-    const objectData = await scallopSuiKit.queryGetObject(object, {
-      json: true,
-      content: false,
+  if (typeof objectId === 'string') {
+    const objectData = await fetchWithCache({
+      queryKey: queryKeys.rpc.getSharedObject({ objectId, node: onchain.url }),
+      queryFn: () =>
+        onchain.getObject({
+          objectId,
+          include,
+        }),
     });
     if (!objectData?.object) {
       throw new Error('Failed to get object data');
     }
     parsed = parseObjectData(objectData.object);
-  } else if ('objectId' in object && 'owner' in object) {
-    parsed = parseObjectData(object);
+  } else if ('objectId' in objectId && 'owner' in objectId) {
+    parsed = parseObjectData(objectId);
   }
 
-  return asSharedObject(tx, { obj: parsed ?? object, mutable });
+  return asSharedObject(tx, { obj: parsed ?? objectId, mutable });
 };
 
 const dynamicFieldNameZod = z.union([

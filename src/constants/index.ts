@@ -1,4 +1,6 @@
+export * from './api.js';
 export * from './cache.js';
+export * from './coinType.js';
 export * from './common.js';
 export * from './queryKeys.js';
 export * from './rpc.js';

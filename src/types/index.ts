@@ -1,6 +1,5 @@
-export type * from './sui.js';
-export type * from './builder/index.js';
-export type * from './constant/index.js';
-export type * from './query/index.js';
-export type * from './address.js';
-export type * from './utils.js';
+// Root types barrel. Delegates to the public surface for back-compat — every
+// type previously reachable from `src/types/index.js` is still reachable here.
+// Internal-only types live under `src/types/internal/` and are intentionally
+// not re-exported via this barrel.
+export type * from './public/index.js';

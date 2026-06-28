@@ -69,18 +69,13 @@ Methods for interacting with the lending contract.
   );
   ```
 
-- Deposit Asset.
+- Supply Asset.
 
   ```typescript
-  // By default, the client's wallet address is used as the owner for deposit.
-  const depositResult = await client.deposit('sui', 2 * 10 ** 8);
-  // You can specify owner address then deposit.
-  const depositResult = await client.deposit(
-    'sui',
-    2 * 10 ** 8,
-    true,
-    '0x....'
-  );
+  // By default, the client's wallet address is used as the owner for supply.
+  const supplyResult = await client.supply('sui', 2 * 10 ** 8);
+  // You can specify owner address then supply.
+  const supplyResult = await client.supply('sui', 2 * 10 ** 8, true, '0x....');
   ```
 
 - Withdraw Asset.

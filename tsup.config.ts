@@ -3,9 +3,19 @@ import { defineConfig } from 'tsup';
 export default defineConfig((options) => {
   const isProduction = options.env?.NODE_ENV === 'production';
   return {
-    // Define entry points for your library.
-    // This typically points to your main source file, e.g., 'src/index.ts'.
-    entry: ['src/index.ts'],
+    // Multi-entry build. Every entry lives under `src/entries/` (thin
+    // re-exports) so the public surface is visually separate from internals —
+    // entry keys stay identical, so dist filenames + package.json exports are
+    // unchanged. Root entry keeps the broad public surface for compatibility.
+    entry: {
+      index: 'src/entries/index.ts',
+      errors: 'src/entries/errors.ts',
+      logger: 'src/entries/logger.ts',
+      client: 'src/entries/client.ts',
+      query: 'src/entries/query.ts',
+      builder: 'src/entries/builder.ts',
+      types: 'src/entries/types.ts',
+    },
 
     // Generate TypeScript declaration files (.d.ts) for type safety.
     dts: true,

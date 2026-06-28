@@ -3,7 +3,8 @@ import type {
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import type { ScallopBuilder } from '../../models/index.js';
+import type { MoveCallContext } from 'src/txBuilders/context.js';
+import type { BorrowIncentiveActionContext } from 'src/txBuilders/borrowIncentive/quick.js';
 
 export type BorrowIncentiveIds = {
   borrowIncentivePkg: string;
@@ -64,11 +65,11 @@ export type BorrowIncentiveTxBlock =
   SuiTxBlockWithBorrowIncentiveNormalMethods & BorrowIncentiveQuickMethods;
 
 export type GenerateBorrowIncentiveNormalMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: MoveCallContext;
   txBlock: SuiKitTxBlock;
 }) => BorrowIncentiveNormalMethods;
 
 export type GenerateBorrowIncentiveQuickMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: BorrowIncentiveActionContext;
   txBlock: SuiTxBlockWithBorrowIncentiveNormalMethods;
 }) => BorrowIncentiveQuickMethods;

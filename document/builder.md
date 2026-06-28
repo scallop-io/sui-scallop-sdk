@@ -26,7 +26,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   // Simply Create an account, but the object returned by the instruction needs to be processed.
   const [obligation, obligationKey, hotPotato] =
     scallopTxBlock.openObligation();
-  await scallopTxBlock.addCollateralQuick(amount, coinName, obligation);
+  await scallopTxBlock.depositCollateralQuick(amount, coinName, obligation);
   scallopTxBlock.returnObligation(obligation, hotPotato);
   scallopTxBlock.transferObjects([obligationKey], sender);
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
@@ -36,9 +36,9 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
 
   ```typescript
   const scallopTxBlock = scallopBuilder.createTxBlock();
-  // Sender is required to invoke "addCollateralQuick".
+  // Sender is required to invoke "depositCollateralQuick".
   scallopTxBlock.setSender(sender);
-  await scallopTxBlock.addCollateralQuick(10 ** 9, 'wusdc');
+  await scallopTxBlock.depositCollateralQuick(10 ** 9, 'wusdc');
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
@@ -46,7 +46,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
 
   ```typescript
   const scallopTxBlock = scallopBuilder.createTxBlock();
-  // Sender is required to invoke "removeCollateralQuick".
+  // Sender is required to invoke "takeCollateralQuick".
   scallopTxBlock.setSender(sender);
   const coin = await scallopTxBlock.takeCollateralQuick(10 ** 9, 'wusdc');
   scallopTxBlock.transferObjects([coin], sender);
@@ -57,9 +57,9 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
 
   ```typescript
   const scallopTxBlock = scallopBuilder.createTxBlock();
-  // Sender is required to invoke "depositQuick".
+  // Sender is required to invoke "supplyQuick".
   scallopTxBlock.setSender(sender);
-  const marketCoin = await scallopTxBlock.depositQuick(10 ** 9, 'wusdc');
+  const marketCoin = await scallopTxBlock.supplyQuick(10 ** 9, 'wusdc');
   scallopTxBlock.transferObjects([marketCoin], sender);
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
@@ -143,7 +143,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
    */
   const suiTxBlock = scallopTxBlock.txBlock;
   const [coin] = suiTxBlock.splitCoins(suiTxBlock.gas, [10 ** 6]);
-  const marketCoin = scallopTxBlock.deposit(coin, 'sui');
+  const marketCoin = scallopTxBlock.supply(coin, 'sui');
   suiTxBlock.transferObjects([marketCoin], suiTxBlock.pure.address(sender));
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
