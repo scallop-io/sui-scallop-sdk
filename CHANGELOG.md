@@ -327,6 +327,7 @@ On-chain object reads are chunked at 50 ids per call (`partitionArray`), and ind
 - TSDoc `@deprecated` markers on the flat tx-block methods once the module-grouped API is publicly announced.
 - Conversion of the last legacy plain `Error` throws (only in commented-out `market/` sCoin-swap-rate helpers) to `ScallopError` subclasses.
 - Audit of remaining barrel re-exports for bundler chunk cycles.
+
 ## [3.0.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v3.0.2...v3.0.3) (2026-06-09)
 
 ### Fixed
