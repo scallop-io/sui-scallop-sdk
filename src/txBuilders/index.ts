@@ -9,6 +9,7 @@ import type { ScallopTxBlock, ScallopTxBlockModules } from 'src/types/index.js';
 import { newReferralTxBlock } from './referral/index.js';
 import { newLoyaltyProgramTxBlock } from './loyaltyProgram/index.js';
 import { newSCoinTxBlock } from './sCoin/index.js';
+import { newObligationNamingTxBlock } from './obligationNaming/index.js';
 import { buildTxBlockModules, TX_BLOCK_MODULE_KEYS } from './modules.js';
 
 /**
@@ -29,7 +30,11 @@ export const newScallopTxBlock = (
   builder: ScallopBuilder,
   initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ): ScallopTxBlock => {
-  const vescaTxBlock = newVeScaTxBlock(builder, initTxBlock);
+  const obligationNamingTxBlock = newObligationNamingTxBlock(
+    builder,
+    initTxBlock
+  );
+  const vescaTxBlock = newVeScaTxBlock(builder, obligationNamingTxBlock);
   const loyaltyTxBlock = newLoyaltyProgramTxBlock(builder, vescaTxBlock);
   const borrowIncentiveTxBlock = newBorrowIncentiveTxBlock(
     builder,
@@ -54,6 +59,8 @@ export const newScallopTxBlock = (
         return Reflect.get(loyaltyTxBlock, prop);
       } else if (prop in sCoinTxBlock) {
         return Reflect.get(sCoinTxBlock, prop);
+      } else if (prop in obligationNamingTxBlock) {
+        return Reflect.get(obligationNamingTxBlock, prop);
       }
       return Reflect.get(target, prop);
     },

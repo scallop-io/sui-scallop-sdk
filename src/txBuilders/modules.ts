@@ -7,6 +7,7 @@ import {
   REFERRAL_METHODS,
   LOYALTY_METHODS,
   SCOIN_METHODS,
+  OBLIGATION_NAMING_METHODS,
 } from './manifest.js';
 import type { ScallopTxBlockModules } from 'src/types/index.js';
 
@@ -56,6 +57,10 @@ export const buildTxBlockModules = (
       LOYALTY_METHODS
     ),
     sCoin: pickMethods<ScallopTxBlockModules['sCoin']>(src, SCOIN_METHODS),
+    obligationNaming: pickMethods<ScallopTxBlockModules['obligationNaming']>(
+      src,
+      OBLIGATION_NAMING_METHODS
+    ),
   });
 };
 
@@ -67,4 +72,5 @@ export const TX_BLOCK_MODULE_KEYS = [
   'referral',
   'loyalty',
   'sCoin',
+  'obligationNaming',
 ] as const satisfies readonly (keyof ScallopTxBlockModules)[];

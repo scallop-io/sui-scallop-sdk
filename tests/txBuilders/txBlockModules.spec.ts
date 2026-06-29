@@ -58,6 +58,7 @@ describe('tx-block explicit modules', () => {
         'borrowIncentive',
         'core',
         'loyalty',
+        'obligationNaming',
         'referral',
         'sCoin',
         'spool',

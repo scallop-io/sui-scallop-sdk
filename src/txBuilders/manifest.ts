@@ -102,6 +102,11 @@ export const SCOIN_METHODS = [
   'burnSCoinQuick',
 ] as const;
 
+export const OBLIGATION_NAMING_METHODS = [
+  'setObligationName',
+  'removeObligationName',
+] as const;
+
 export type TxBlockModuleName =
   | 'core.normal'
   | 'core.quick'
@@ -110,7 +115,8 @@ export type TxBlockModuleName =
   | 'vesca'
   | 'referral'
   | 'loyalty'
-  | 'sCoin';
+  | 'sCoin'
+  | 'obligationNaming';
 
 export type TxBlockManifest = Record<TxBlockModuleName, readonly string[]>;
 
@@ -123,6 +129,7 @@ export const TX_BLOCK_MANIFEST: TxBlockManifest = {
   referral: REFERRAL_METHODS,
   loyalty: LOYALTY_METHODS,
   sCoin: SCOIN_METHODS,
+  obligationNaming: OBLIGATION_NAMING_METHODS,
 };
 
 /**

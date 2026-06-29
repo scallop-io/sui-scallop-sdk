@@ -14,6 +14,7 @@ import type {
   LoyaltyProgramQuickMethods,
 } from './loyaltyProgram.js';
 import type { sCoinNormalMethods, sCoinQuickMethods } from './sCoin.js';
+import type { ObligationNamingNormalMethods } from './obligationNaming.js';
 
 /**
  * Per-domain method bundles. Each bundle is the union of a module's normal
@@ -37,6 +38,7 @@ export type ReferralModule = ReferralNormalMethods & ReferralQuickMethods;
 export type LoyaltyModule = LoyaltyProgramNormalMethods &
   LoyaltyProgramQuickMethods;
 export type SCoinModule = sCoinNormalMethods & sCoinQuickMethods;
+export type ObligationNamingModule = ObligationNamingNormalMethods;
 
 export interface ScallopTxBlockModules {
   readonly core: CoreModule;
@@ -46,4 +48,5 @@ export interface ScallopTxBlockModules {
   readonly referral: ReferralModule;
   readonly loyalty: LoyaltyModule;
   readonly sCoin: SCoinModule;
+  readonly obligationNaming: ObligationNamingModule;
 }
