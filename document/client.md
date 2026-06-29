@@ -2,26 +2,27 @@
 
 ## Query Method
 
-Methods for quering on-chain data related to spool and lending contract.
-
-The query methods in the client have been migrated to the query instance. These methods may be removed from the client in the future.
+The query methods have been removed from the client and now live on the query instance, reachable via `client.query`. See [query.md](./query.md) for the full surface.
 
 - Get On-chain Data
 
   ```typescript
-  // Query market data.
-  const marketData = await client.queryMarket();
+  // The query instance is exposed on the client.
+  const query = client.query;
+
+  // Query market pools / collaterals.
+  const marketPools = await query.getMarketPools(['sui', 'wusdc']);
   // Get obligation data (requires obligation id).
-  const obligationsData = await client.getObligations();
-  const obligationData = await client.queryObligation(obligationsData[0].id);
+  const obligationsData = await query.getObligations();
+  const obligationData = await query.queryObligation(obligationsData[0].id);
   // Get all stake accounts data.
-  const allStakeAccountsData = await client.getAllStakeAccounts();
+  const allStakeAccountsData = await query.getAllStakeAccounts();
   // Get stake accounts data.
-  const stakeAccountsData = await client.getStakeAccounts('ssui');
+  const stakeAccountsData = await query.getStakeAccounts('ssui');
   // Get stake pool data.
-  const stakePoolData = await client.getStakePool('ssui');
+  const stakePoolData = await query.getStakePool('ssui');
   // Get reward pool data.
-  const rewardPoolData = await client.getStakeRewardPool('ssui');
+  const rewardPoolData = await query.getStakeRewardPool('ssui');
   ```
 
 ## Core Interaction Method

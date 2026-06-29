@@ -13,7 +13,6 @@ import { ScallopClientConstructorParams } from './scallopClient/types.js';
  * const scallopConstants = await sdk.getScallopConstants();
  * const scallopBuilder = await sdk.createScallopBuilder();
  * const scallopClient = await sdk.createScallopClient();
- * const scallopIndexer = await sdk.createScallopIndexer();
  * const scallopUtils = await sdk.createScallopUtils();
  * ```
  */

@@ -277,13 +277,13 @@
   ```typescript
   import { getSharedObjectData } from 'src/utils/index.js';
 
-  // Accepts object id string, SuiObjectData, SuiObjectRef, or SuiObjectArg.
-  const sharedObject = await getSharedObjectData(scallopSuiKit, {
-    tx,
-    object,
-    mutable,
-  });
+  // First arg is the read data source (`utils.onchain`) plus its cache helper;
+  // second arg carries the tx, the target `objectId`, and mutability.
+  const sharedObject = await getSharedObjectData(
+    { onchain: utils.onchain, fetchWithCache },
+    { tx, objectId, mutable: false }
+  );
   ```
 
-- For Sui kit v2 dynamic field responses, value fields are parsed from flattened json
+- For dynamic field responses, value fields are parsed from flattened json
   (for example `json.value` instead of older nested `json.fields.value`).
