@@ -14,6 +14,8 @@ export type * from './vesca.js';
 export type * from './loyaltyProgram.js';
 export type * from './sCoin.js';
 export type * from './modules.js';
+export type * from './referral.js';
+export type * from './obligationNaming.js';
 
 export type BaseScallopTxBlock = ReferralTxBlock &
   LoyaltyProgramTxBlock &

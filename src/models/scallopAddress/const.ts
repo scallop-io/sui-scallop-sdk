@@ -354,6 +354,10 @@ export const EMPTY_ADDRESSES: AddressesInterface = {
     veScaRewardPool: '',
     veScaRewardTableId: '',
   },
+  obligationNaming: {
+    id: '',
+    namingRegistry: '',
+  },
   scoin: {
     id: '',
     coins: {
