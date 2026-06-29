@@ -811,7 +811,8 @@ export const ADDRESS_INTERFACE = {
         '0x6547e143d406b5ccd5f46aae482497de279cc1a68c406f701df70a05f9212ab4',
       incentiveAccounts:
         '0xc4701fdbc1c92f9a636d334d66012b3027659e9fb8aff27279a82edfb6b77d02',
-      incentiveAccountsTableId: '',
+      incentiveAccountsTableId:
+        '0x654d17f0727366911aa3c6bb9f01dca757b677471032835839d17a77b26f7a99',
       config:
         '0xdf5d04b4691cc67e82fd4db8394d89ff44823a9de29716c924f74bb4f11cc1f7',
       version: '',
@@ -880,6 +881,10 @@ export const ADDRESS_INTERFACE = {
         '0x1b4f09e30dbb6e1442f6710c52568295d120cc4ff2ae02449a11070b3faf2c86',
       veScaRewardTableId:
         '0xb63dc27b258ae4066544f58a987931a5a2f78ebe872319381b62eb65c3ac5560',
+    },
+    obligationNaming: {
+      id: '',
+      namingRegistry: '',
     },
     scoin: {
       id: '0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c',
