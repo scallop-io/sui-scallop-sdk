@@ -11,7 +11,6 @@ export const queryKeys = {
     getPoolAddresses: () => ['api', 'getPoolAddresses'],
     getMarkets: () => ['api', 'getMarkets'],
     getSpools: () => ['api', 'getSpools'],
-    getBorrowIncentivePools: () => ['api', 'getBorrowIncentivePools'],
     getTotalValueLocked: () => ['api', 'getTotalValueLocked'],
   },
 
@@ -73,12 +72,6 @@ export const queryKeys = {
       'getAllCoinBalances',
       props,
     ],
-
-    getNormalizedMoveFunction: (
-      props?: QueryKeys.RPC.GetNormalizedMoveFunction
-    ) => {
-      return ['rpc', 'getNormalizedMoveCall', props];
-    },
   },
   oracle: {
     getPythLatestPriceFeeds: (endpoint?: string, priceIds?: string[]) => [
@@ -86,11 +79,6 @@ export const queryKeys = {
       'getPythPriceIds',
       priceIds,
       endpoint,
-    ],
-    getCoinPrices: (priceIds: string[]) => [
-      'oracle',
-      'getCoinPrices',
-      priceIds,
     ],
   },
 };
