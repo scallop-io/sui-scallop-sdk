@@ -1,7 +1,7 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models/index.js';
-import { LoyaltyProgramTxBlock, ScallopTxBlock } from 'src/types/index.js';
+import { ObligationNamingTxBlock, ScallopTxBlock } from 'src/types/index.js';
 import { generateObligationNamingNormalMethod } from './moveCalls.js';
 import type { MoveCallContext } from '../context.js';
 
@@ -42,5 +42,5 @@ export const newObligationNamingTxBlock = (
       }
       return Reflect.get(target, prop);
     },
-  }) as LoyaltyProgramTxBlock;
+  }) as ObligationNamingTxBlock;
 };

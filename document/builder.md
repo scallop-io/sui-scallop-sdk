@@ -326,3 +326,27 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
 
   await scallopTxBlock.burnSCoinQuick(sCoinName, 10 ** 9);
   ```
+
+## Organize transactions that name obligations
+
+The obligation-naming methods attach a human-readable name to an obligation
+through its obligation key. Both are normal (synchronous) Move-call methods and
+take the obligation key object (id, `SuiObjectRef`, or `SuiObjectArg`).
+
+- Set an obligation name.
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  // `obligationKey` is the key object returned by `openObligation()`
+  // (or an existing obligation key id from the wallet).
+  scallopTxBlock.setObligationName(obligationKey, 'My main position');
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+- Remove an obligation name.
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.removeObligationName(obligationKey);
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
