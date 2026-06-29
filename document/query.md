@@ -7,10 +7,6 @@
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // Deprecated but still available:
-  const marketData = await scallopQuery.queryMarket();
-
-  // Preferred APIs:
   const marketPools = await scallopQuery.getMarketPools(['sui', 'wusdc']);
   const suiMarketPool = await scallopQuery.getMarketPool('sui');
   const marketCollaterals = await scallopQuery.getMarketCollaterals([

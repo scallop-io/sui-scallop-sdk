@@ -126,7 +126,6 @@ Below we will give a brief introduction to these instances respectively, and int
 - [Use Scallop Address](./document/address.md)
 - [Use Scallop Builder](./document/builder.md)
 - [Use Scallop Utils](./document/utils.md)
-- [Use Scallop Indexer](./document/indexer.md)
 - [Use Scallop Constants](./document/constants.md)
 
 For the original codes, please refer to `test` folder.
