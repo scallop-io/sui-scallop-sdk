@@ -41,8 +41,8 @@ jobs:
         id: npm_tag
         env:
           GH_TOKEN: ${{ github.token }}
+          REF: ${{ github.ref_name }}
         run: |
-          REF="${{ github.ref_name }}"
           if [[ "$REF" == *"alpha."* ]]; then
             echo "tag=alpha" >> $GITHUB_ENV
           elif [[ "$REF" == *"rc."* ]]; then
