@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.2.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.1.2...v4.2.0) (2026-06-29)
+
+### Added
+
+- Obligation naming tx builder — `setObligationName` / `removeObligationName` methods, the `ObligationNamingTxBlock` type, and the `obligationNaming` address entry ([793a8db](https://github.com/scallop-io/sui-scallop-sdk/commit/793a8db))
+
 ## [4.1.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.0.0...v4.1.0) (2026-06-28)
 
 ### Added
