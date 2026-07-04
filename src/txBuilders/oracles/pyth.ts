@@ -125,11 +125,7 @@ export const updatePythPriceFeeds = async (
   // iterate through the endpoints
   for (const endpoint of endpoints) {
     try {
-      const pythConnection = new SuiPriceServiceConnection(endpoint, {
-        priceFeedRequestConfig: {
-          binary: true,
-        },
-      });
+      const pythConnection = new SuiPriceServiceConnection(endpoint);
       const priceUpdateData =
         await pythConnection.getPriceFeedsUpdateData(priceIds);
 
