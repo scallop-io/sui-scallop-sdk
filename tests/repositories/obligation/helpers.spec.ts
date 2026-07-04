@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getObligationLockedFromOnChain,
+  getObligationNamesFromOnChain,
   getObligationObjectsFromOnChain,
 } from 'src/repositories/obligation/helpers.js';
+import { bcs } from '@mysten/sui/bcs';
 
 // parseObjectAs returns the unwrapped `json` for non-dynamic-field objects, so a
 // minimal { objectId, type, json } stands in for a real SuiObjectData here.
@@ -72,5 +74,90 @@ describe('getObligationObjectsFromOnChain', () => {
       '0xC',
     ]);
     expect(result).toEqual([ok, null, { objectId: '0xC' }]);
+  });
+});
+
+describe('getObligationNamesFromOnChain', () => {
+  // computeNamingKey runs bcs.Address.serialize, so keys/owner must be valid
+  // 32-byte Sui addresses.
+  const addr = (n: number) => `0x${n.toString(16).padStart(64, '0')}`;
+  const KEY1 = addr(1);
+  const KEY2 = addr(2);
+  const OWNER = addr(0xabc);
+
+  // dynamicField.value.bcs is decoded bytes; parse a real bcs string from it
+  const nameField = (name: string) => ({
+    dynamicField: { value: { bcs: bcs.string().serialize(name).toBytes() } },
+  });
+
+  // First fetchWithCache call resolves the owned ObligationKey page; each
+  // subsequent call resolves (or throws) one key's naming dynamic field.
+  const makeNamingCtx = (keyIds: string[], fields: (() => unknown)[]) => {
+    const fetchWithCache = vi
+      .fn()
+      // queryObligationKeys — single page, no next cursor
+      .mockResolvedValueOnce({
+        objects: keyIds.map((objectId) => ({ objectId })),
+        hasNextPage: false,
+        cursor: null,
+      });
+    fields.forEach((f) =>
+      fetchWithCache.mockImplementationOnce(async () => f())
+    );
+    return {
+      onchain: { url: 'mock://node', client: {} },
+      fetchWithCache,
+      metadata: {
+        addresses: {
+          protocolObjectId: '0xpkg',
+          obligationNaming: { registryTableId: '0xREG' },
+        },
+      },
+    } as never;
+  };
+
+  it('maps each obligation id to its decoded name', async () => {
+    // intent: happy path — every key has a naming dynamic field
+    const ctx = makeNamingCtx(
+      [KEY1, KEY2],
+      [() => nameField('alpha'), () => nameField('beta')]
+    );
+    expect(await getObligationNamesFromOnChain(ctx, OWNER)).toEqual({
+      [KEY1]: 'alpha',
+      [KEY2]: 'beta',
+    });
+  });
+
+  it('skips a key whose dynamic-field fetch rejects instead of failing the batch', async () => {
+    // intent: a nameless obligation has no dynamic field (getDynamicField
+    // throws) — it must be dropped, not abort every other name
+    const ctx = makeNamingCtx(
+      [KEY1, KEY2],
+      [
+        () => nameField('alpha'),
+        () => {
+          throw new Error('dynamic field not found');
+        },
+      ]
+    );
+    expect(await getObligationNamesFromOnChain(ctx, OWNER)).toEqual({
+      [KEY1]: 'alpha',
+    });
+  });
+
+  it('returns {} (not throw) when every key fetch rejects', async () => {
+    // intent: an owner with no named obligations yields an empty map
+    const ctx = makeNamingCtx(
+      [KEY1, KEY2],
+      [
+        () => {
+          throw new Error('missing');
+        },
+        () => {
+          throw new Error('missing');
+        },
+      ]
+    );
+    expect(await getObligationNamesFromOnChain(ctx, OWNER)).toEqual({});
   });
 });

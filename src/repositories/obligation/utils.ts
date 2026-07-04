@@ -6,6 +6,8 @@ import {
 } from './types.js';
 import { mapTypeNameField } from 'src/mappers/moveTypeMapper.js';
 import { ScallopParseError } from 'src/errors/index.js';
+import { bcs } from '@mysten/sui/bcs';
+import { sha3_256 } from '@noble/hashes/sha3.js';
 
 export const getObligationFromObligationKey = (
   obligationKey: SuiClientTypes.Object<{ json: true }>
@@ -54,4 +56,24 @@ export const mapObligationEventToObligationData = (
       type: mapTypeNameField(debt.type, `obligation.debts[${index}].type`),
     })),
   };
+};
+
+/**
+ * Compute the naming key used by the obligation_naming contract.
+ * key = sha3_256(bcs(obligation_key_id) + bcs(sender))
+ */
+export const computeNamingKey = (
+  obligationKeyId: string,
+  owner: string
+): string => {
+  const keyBytes = bcs.Address.serialize(obligationKeyId).toBytes();
+  const ownerBytes = bcs.Address.serialize(owner).toBytes();
+  const combined = new Uint8Array(keyBytes.length + ownerBytes.length);
+  combined.set(keyBytes, 0);
+  combined.set(ownerBytes, keyBytes.length);
+  const hashBytes = sha3_256(combined);
+  const hash = Array.from(hashBytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  return `0x${hash}`;
 };

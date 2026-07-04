@@ -886,6 +886,8 @@ export const ADDRESS_INTERFACE = {
       id: '0x9d16020b034d14ccb622f450bbd449dae3bf235a7fc57b21689645fc1066ab74',
       namingRegistry:
         '0xe948aeff7fa931cb94e70b1bfc15581f34e459fb3747cf927a62697f9cab3671',
+      registryTableId:
+        '0x684f623918d58ce932dc45e2fc7e68d52738b48da7e08d87a5bfb4e2114c493f',
     },
     scoin: {
       id: '0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c',

@@ -94,6 +94,7 @@
     "doc": "typedoc --out docs src/index.ts"
   },
   "dependencies": {
+    "@noble/hashes": "^2.2.0",
     "@pythnetwork/pyth-sui-js": "3.0.0",
     "@scallop-io/sui-kit": "2.0.1",
     "@tanstack/query-core": "5.59.16",

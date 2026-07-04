@@ -6,11 +6,18 @@ type ObligationKeys =
   | 'queryPackageId'
   | 'version'
   | 'market';
+
+type ObligationNamingAddresses = {
+  obligationNaming: {
+    registryTableId: string;
+  };
+};
+
 export type ObligationAddresses<T extends ObligationKeys = ObligationKeys> =
   Record<T, string>;
 
 export type ObligationRepoMetadata = {
-  addresses: ObligationAddresses;
+  addresses: ObligationAddresses & ObligationNamingAddresses;
 };
 export type ObligationRepoContext = BaseContext & {
   onchain: OnChainDataSource;
@@ -27,6 +34,15 @@ export type ObligationDataContext = BaseContext & {
   onchain: OnChainDataSource;
   metadata: {
     addresses: ObligationAddresses<'queryPackageId' | 'version' | 'market'>;
+  };
+};
+
+/** Minimal context for `getObligationNameByObligationId`. */
+export type ObligationNamingContext = BaseContext & {
+  onchain: OnChainDataSource;
+  metadata: {
+    addresses: ObligationNamingAddresses &
+      Pick<ObligationAddresses, 'protocolObjectId'>;
   };
 };
 
