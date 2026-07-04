@@ -1,8 +1,8 @@
 import { AddressesInterface } from 'src/types/address.js';
 import { BaseContext, BaseRepoParams } from '../types.js';
-import { PriceServiceConnectionConfig } from '@pythnetwork/pyth-sui-js';
 import { IndexerDataSource } from 'src/datasources/indexer.js';
 import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { HermesClientConfig } from '@pythnetwork/pyth-sui-js';
 
 // Derived from the canonical `core.coins` value shape (single source of truth for
 // the per-coin oracle/treasury config). Kept as a dense `Record` (the schema's is
@@ -20,7 +20,7 @@ export type PriceRepositoryMetadata = {
 
 export type PriceApiConfig = {
   endpoint: string;
-  config: PriceServiceConnectionConfig;
+  config: HermesClientConfig;
 };
 
 export type PriceRepositoryContext = BaseContext & {
