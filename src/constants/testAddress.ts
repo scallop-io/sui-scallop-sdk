@@ -343,6 +343,8 @@ export const TEST_ADDRESSES: AddressesInterface = {
     id: '0x9d16020b034d14ccb622f450bbd449dae3bf235a7fc57b21689645fc1066ab74',
     namingRegistry:
       '0xe948aeff7fa931cb94e70b1bfc15581f34e459fb3747cf927a62697f9cab3671',
+    registryTableId:
+      '0x684f623918d58ce932dc45e2fc7e68d52738b48da7e08d87a5bfb4e2114c493f',
   },
   scoin: {
     id: '0xde8fe7f73fcaff729de640b1a67afff5028019aefa67c151250a8d47db37aa1c',

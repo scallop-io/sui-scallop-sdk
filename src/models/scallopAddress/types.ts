@@ -177,6 +177,7 @@ export interface AddressesInterface {
   obligationNaming: {
     id: string;
     namingRegistry: string;
+    registryTableId: string;
   };
   scoin: {
     id: string;
