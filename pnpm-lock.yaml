@@ -31,9 +31,12 @@ importers:
 
   .:
     dependencies:
+      '@noble/hashes':
+        specifier: ^2.2.0
+        version: 2.2.0
       '@pythnetwork/pyth-sui-js':
-        specifier: 2.2.0
-        version: 2.2.0(typescript@5.5.4)
+        specifier: 3.0.0
+        version: 3.0.0(axios@1.16.1)(typescript@5.5.4)
       '@scallop-io/sui-kit':
         specifier: 2.0.1
         version: 2.0.1(typescript@5.5.4)
@@ -74,6 +77,9 @@ importers:
       '@protobuf-ts/runtime-rpc':
         specifier: 2.11.1
         version: 2.11.1
+      '@pythnetwork/hermes-client':
+        specifier: 3.1.0
+        version: 3.1.0(axios@1.16.1)
       '@pythnetwork/price-service-client':
         specifier: 1.11.0
         version: 1.11.0
@@ -186,10 +192,6 @@ packages:
     resolution: {integrity: sha512-hnORnjP/1P/zFEndoeX+n+t1RwWRJiJpM/jO7FW32Kn9r5+sJB2JWOdYo4L6k78j15eCwY3Gm/7364B1EMwtNg==}
     engines: {node: '>=6.0.0'}
     hasBin: true
-
-  '@babel/runtime@7.29.2':
-    resolution: {integrity: sha512-JiDShH45zKHWyGe4ZNVRrCjBz8Nh9TMmZG1kh4QTK8hCBTWBi8Da+i7s1fJw7/lYpM4ccepSNfqzZ/QvABBi5g==}
-    engines: {node: '>=6.9.0'}
 
   '@babel/types@7.29.7':
     resolution: {integrity: sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/PrqghfdFWWasvnCdPfQXHrenDai+gyLARulZjZowCOj6fjT4pA==}
@@ -683,6 +685,10 @@ packages:
     resolution: {integrity: sha512-XlOlEbQcE9fmuXxrVTXCTlG2nlRXa9Rj3rr5Ue/+tX+nmkgbX720YHh0VR3hBF9xDvwnb8D2shVGOwNx+ulArw==}
     engines: {node: '>= 20.19.0'}
 
+  '@noble/hashes@2.2.0':
+    resolution: {integrity: sha512-IYqDGiTXab6FniAgnSdZwgWbomxpy9FtYvLKs7wCUs2a8RkITG+DFGO1DM9cr+E3/RgADRpFjrKVaJ1z6sjtEg==}
+    engines: {node: '>= 20.19.0'}
+
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -715,21 +721,22 @@ packages:
   '@protobuf-ts/runtime@2.11.1':
     resolution: {integrity: sha512-KuDaT1IfHkugM2pyz+FwiY80ejWrkH1pAtOBOZFuR6SXEFTsnb/jiQWQ1rCIrcKx2BtyxnxW6BWwsVSA/Ie+WQ==}
 
+  '@pythnetwork/hermes-client@3.1.0':
+    resolution: {integrity: sha512-KEILjOCtnq/CRfnmDSnNS3egBuSupDglAE/dIDy8Y9S+zMm69lFQJUP87fuymWdpkI0JKmGHWtVX6R9edEGNtA==}
+    engines: {node: ^24.0.0}
+
   '@pythnetwork/price-service-client@1.11.0':
     resolution: {integrity: sha512-5WFLEzHIHMDOKCLwsOfcAoxgsw6M79RYePU33rxY31kSOXeBn3WCnF3rQ/N28F8ppDJ0kx5V3Gfh2+A19hZ1/w==}
     engines: {node: ^24.0.0}
-    deprecated: This package is deprecated and is no longer maintained. Please use @pythnetwork/hermes-client instead.
-
-  '@pythnetwork/price-service-client@1.9.0':
-    resolution: {integrity: sha512-SLm3IFcfmy9iMqHeT4Ih6qMNZhJEefY14T9yTlpsH2D/FE5+BaGGnfcexUifVlfH6M7mwRC4hEFdNvZ6ebZjJg==}
     deprecated: This package is deprecated and is no longer maintained. Please use @pythnetwork/hermes-client instead.
 
   '@pythnetwork/price-service-sdk@1.9.0':
     resolution: {integrity: sha512-DX8N4VUqllyervqnCx/Z6Tjz130EcoczYYa96F1YjlbZf0rFyU8VCzX1yAf60q+b8EVcVFVeSkdzJTZD3n6+jQ==}
     engines: {node: '>=22.14.0'}
 
-  '@pythnetwork/pyth-sui-js@2.2.0':
-    resolution: {integrity: sha512-BH9oLZchSPXOBK1cmvT4foFELaOcAJJ6lAYXarnVeuBNZxTULBKPYLHuljbz0mqxrKZIVVT6FqqML2A78SlTSg==}
+  '@pythnetwork/pyth-sui-js@3.0.0':
+    resolution: {integrity: sha512-PXUqowHVFUTGTTyE2sEZSQI9d+Yz+cAYdffurxDlsKxM31cbd8xoyl9LFMs9i2qR398v749M1O0R8laS5eNPRA==}
+    engines: {node: ^24.0.0}
 
   '@repeaterjs/repeater@3.0.6':
     resolution: {integrity: sha512-Javneu5lsuhwNCryN+pXH93VPQ8g0dBX7wItHFgYiwQmzE1sVdg5tWHiOgHywzL2W21XQopa7IwIEnNbmeUJYA==}
@@ -1205,6 +1212,12 @@ packages:
     resolution: {integrity: sha512-Nst5JdK47VIl9UcGwtv2Rcgyn5lWtZ0/mhRQ4G8NN2isxpq2TO30iqHzmwoJycjWuyUfg3GFXqP/gFHXeV57IA==}
     engines: {node: '>=16.0.0'}
 
+  '@zodios/core@10.9.6':
+    resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
+    peerDependencies:
+      axios: '>=1.15.2'
+      zod: ^3.x
+
   JSONStream@1.3.5:
     resolution: {integrity: sha512-E+iruNOY8VV9s4JEbe1aNEm6MiszPRr/UfcHMz0TQh1BXSxHK+ASV1R6W4HpjBhSeS+54PIsAMCBmwD06LLsqQ==}
     hasBin: true
@@ -1305,9 +1318,6 @@ packages:
   available-typed-arrays@1.0.7:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
-
-  axios-retry@3.9.1:
-    resolution: {integrity: sha512-8PJDLJv7qTTMMwdnbMvrLYuvB47M81wRtxQmEdV5w4rgbTXTt+vtPkXwajOfOdSyv/wZICJOC+/UhXH4aQ/R+w==}
 
   axios-retry@4.5.0:
     resolution: {integrity: sha512-aR99oXhpEDGo0UuAlYcn2iGRds30k366Zfa05XWScR9QaQD4JYiP3/1Qt1u7YlefUOK+cn0CcwoL1oefavQUlQ==}
@@ -1816,6 +1826,14 @@ packages:
 
   eventemitter3@5.0.4:
     resolution: {integrity: sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw==}
+
+  eventsource-parser@3.1.0:
+    resolution: {integrity: sha512-kJezFj9YFAMLeORyi7aCLxLbD5/qWMQnoMVlVPyHIll7lgRJCc3JVln9Vgl9nwQi0YkMnhdGTMNn7CkRRAptMg==}
+    engines: {node: '>=18.0.0'}
+
+  eventsource@3.0.7:
+    resolution: {integrity: sha512-CRT1WTyuQoD771GW56XEZFQ/ZoSfWid1alKGDYMmkt2yl8UXrVR4pspqWNEcqKvVIzg6PAltWjxcSSPrboA4iA==}
+    engines: {node: '>=18.0.0'}
 
   execa@5.1.1:
     resolution: {integrity: sha512-8uSpZZocAZRBAPIEINJj3Lo9HyGitllczc27Eh5YYojjMFMn8yHMDMaUHE2Jqfq05D/wucwI4JGURyXt1vchyg==}
@@ -3725,8 +3743,6 @@ snapshots:
     dependencies:
       '@babel/types': 7.29.7
 
-  '@babel/runtime@7.29.2': {}
-
   '@babel/types@7.29.7':
     dependencies:
       '@babel/helper-string-parser': 7.29.7
@@ -4262,7 +4278,7 @@ snapshots:
       '@mysten/bcs': 2.0.3
       '@mysten/utils': 0.3.1
       '@noble/curves': 2.0.1
-      '@noble/hashes': 2.0.1
+      '@noble/hashes': 2.2.0
       '@protobuf-ts/grpcweb-transport': 2.11.1
       '@protobuf-ts/runtime': 2.11.1
       '@protobuf-ts/runtime-rpc': 2.11.1
@@ -4309,6 +4325,8 @@ snapshots:
 
   '@noble/hashes@2.0.1': {}
 
+  '@noble/hashes@2.2.0': {}
+
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
       '@nodelib/fs.stat': 2.0.5
@@ -4339,6 +4357,14 @@ snapshots:
 
   '@protobuf-ts/runtime@2.11.1': {}
 
+  '@pythnetwork/hermes-client@3.1.0(axios@1.16.1)':
+    dependencies:
+      '@zodios/core': 10.9.6(axios@1.16.1)(zod@3.25.76)
+      eventsource: 3.0.7
+      zod: 3.25.76
+    transitivePeerDependencies:
+      - axios
+
   '@pythnetwork/price-service-client@1.11.0':
     dependencies:
       '@pythnetwork/price-service-sdk': 1.9.0
@@ -4354,38 +4380,20 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@pythnetwork/price-service-client@1.9.0':
-    dependencies:
-      '@pythnetwork/price-service-sdk': 1.9.0
-      '@types/ws': 8.18.1
-      axios: 1.16.1
-      axios-retry: 3.9.1
-      isomorphic-ws: 4.0.1(ws@8.21.0)
-      ts-log: 2.2.7
-      ws: 8.21.0
-    transitivePeerDependencies:
-      - bufferutil
-      - debug
-      - supports-color
-      - utf-8-validate
-
   '@pythnetwork/price-service-sdk@1.9.0':
     dependencies:
       bn.js: 5.2.3
 
-  '@pythnetwork/pyth-sui-js@2.2.0(typescript@5.5.4)':
+  '@pythnetwork/pyth-sui-js@3.0.0(axios@1.16.1)(typescript@5.5.4)':
     dependencies:
       '@mysten/sui': 1.45.2(typescript@5.5.4)
-      '@pythnetwork/price-service-client': 1.9.0
+      '@pythnetwork/hermes-client': 3.1.0(axios@1.16.1)
       buffer: 6.0.3
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
       - '@gql.tada/vue-support'
-      - bufferutil
-      - debug
-      - supports-color
+      - axios
       - typescript
-      - utf-8-validate
 
   '@repeaterjs/repeater@3.0.6': {}
 
@@ -4855,6 +4863,11 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
+  '@zodios/core@10.9.6(axios@1.16.1)(zod@3.25.76)':
+    dependencies:
+      axios: 1.16.1
+      zod: 3.25.76
+
   JSONStream@1.3.5:
     dependencies:
       jsonparse: 1.3.1
@@ -4948,11 +4961,6 @@ snapshots:
   available-typed-arrays@1.0.7:
     dependencies:
       possible-typed-array-names: 1.1.0
-
-  axios-retry@3.9.1:
-    dependencies:
-      '@babel/runtime': 7.29.2
-      is-retry-allowed: 2.2.0
 
   axios-retry@4.5.0(axios@1.16.1):
     dependencies:
@@ -5529,6 +5537,12 @@ snapshots:
   esutils@2.0.3: {}
 
   eventemitter3@5.0.4: {}
+
+  eventsource-parser@3.1.0: {}
+
+  eventsource@3.0.7:
+    dependencies:
+      eventsource-parser: 3.1.0
 
   execa@5.1.1:
     dependencies:

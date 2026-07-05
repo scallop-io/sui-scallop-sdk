@@ -1,6 +1,6 @@
 # Migrating from v3 to v4
 
-> **TL;DR:** If you only call public methods on `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, or `ScallopUtils` — your code keeps working without changes. Bump the dep, run your tests, ship.
+> **TL;DR:** The **write / transaction** surface is unchanged — if you only call `supply`, `borrow`, `repay`, `stake`, `depositCollateral`, etc. on `ScallopClient`/`ScallopBuilder`, that code keeps working. **`ScallopBuilder` is fully unchanged.** But several **read methods were renamed or relocated** in v4 (`ScallopClient` reads, `ScallopQuery` price/market reads, and a few `ScallopUtils` helpers) — if you call any of those, you must update. See B7–B9.
 >
 > Keep reading if you do any of these:
 >
@@ -10,6 +10,9 @@
 > 4. **Import from non-public paths** like `src/types/internal/`, deep internal modules.
 > 5. **Target Node < 22** (you can't — v4 requires Node 22+).
 > 6. **Use `Scallop.createScallopIndexer()`, `ScallopSuiKit`, or `ScallopAxios`** (all removed — see B6).
+> 7. **Call read methods on `ScallopClient`** (`queryMarket`, `getObligations`, `getStakeAccounts`, …) — removed; call them on `client.query.*` instead (see B7).
+> 8. **Call price / market reads on `ScallopQuery`** (`getPriceFromPyth`, `getPricesFromPyth`, `getCoinPriceByIndexer`, `getCoinPricesByIndexer`, `queryMarket`, `getBindedObligationId`) — renamed or removed (see B8).
+> 9. **Call `getCoinPrices`, `getPythPrice`, or `getObligationCoinNames` on `ScallopUtils`** — removed (see B9).
 
 This guide gives you the exact diff for each breaking change. For the _why_, see [`CHANGELOG.md`](../CHANGELOG.md). For the new SDK shape, see [`SDK_STRUCTURE.md`](SDK_STRUCTURE.md).
 
@@ -27,6 +30,9 @@ This guide gives you the exact diff for each breaking change. For the _why_, see
 □ Re-route any deep `src/types/internal/...` imports through the public barrel
 □ Replace `scallop.createScallopIndexer()` usage with `createScallopQuery()` + its read methods
 □ Drop any `.scallopSuiKit` access → `utils.onchain` (reads) / `builder.suiKit` / `builder.executor` (writes)
+□ Move ScallopClient read calls to the query object: `client.queryMarket()` → `client.query.getMarketPools()`; `client.getObligations()` → `client.query.getObligations()` (B7)
+□ Rename ScallopQuery price/market reads: `getPriceFromPyth`→`getPythCoinPrice`, `getPricesFromPyth`→`getPythCoinPrices`, `getCoinPriceByIndexer`→`getIndexerCoinPrice`, `getCoinPricesByIndexer`→`getIndexerCoinPrices`, `queryMarket`→`getMarketPools` (B8)
+□ Replace removed ScallopUtils helpers: `getCoinPrices` / `getPythPrice` → `ScallopQuery` price reads; `getObligationCoinNames` → obligation query reads (B9)
 □ Run typecheck + your tests
 ```
 
@@ -40,19 +46,19 @@ This guide gives you the exact diff for each breaking change. For the _why_, see
 
 ### Impact matrix
 
-| If your v3 code did…                                                 | …in v4 you must…                                                  | Forwarder available?        |
-| -------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------- |
-| `constants.get('core.market')`                                       | nothing — keeps working                                           | ✅ yes                      |
-| `constants.getAddresses()`                                           | nothing                                                           | ✅ yes                      |
-| `constants.setAddresses(...)`                                        | nothing                                                           | ✅ yes                      |
-| `constants.read(addressId)`                                          | call `constants.address.read(addressId)`                          | ❌ removed (use `.address`) |
-| `constants.queryClient`                                              | nothing                                                           | ✅ yes                      |
-| `constants.axiosInstance`                                            | nothing                                                           | ✅ yes                      |
-| `constants.scallopAxios`                                             | nothing                                                           | ✅ yes                      |
-| `constants.switchCurrentAddresses('testnet')`                        | nothing                                                           | ✅ yes                      |
-| `constants instanceof ScallopAddress`                                | check `constants.address instanceof ScallopAddress`               | —                           |
-| `class MyConstants extends ScallopConstants` and then `super.read()` | replace `super.X()` with `this.address.X()`                       | —                           |
-| `utils.address.get('core.market')`                                   | nothing — `utils.address` now returns the _real_ `ScallopAddress` | —                           |
+| If your v3 code did…                                                 | …in v4 you must…                                                                                     | Forwarder available?        |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------- |
+| `constants.get('core.market')`                                       | nothing — keeps working                                                                              | ✅ yes                      |
+| `constants.getAddresses()`                                           | nothing                                                                                              | ✅ yes                      |
+| `constants.setAddresses(...)`                                        | nothing                                                                                              | ✅ yes                      |
+| `constants.read(addressId)`                                          | call `constants.address.read(addressId)`                                                             | ❌ removed (use `.address`) |
+| `constants.queryClient`                                              | removed with the `ScallopQueryClient` base class — read the API via `ScallopQuery` / `utils.onchain` | ❌ removed                  |
+| `constants.axiosInstance`                                            | removed with `ScallopAxios` (see B6)                                                                 | ❌ removed                  |
+| `constants.scallopAxios`                                             | removed with `ScallopAxios` (see B6)                                                                 | ❌ removed                  |
+| `constants.switchCurrentAddresses('testnet')`                        | nothing                                                                                              | ✅ yes                      |
+| `constants instanceof ScallopAddress`                                | check `constants.address instanceof ScallopAddress`                                                  | —                           |
+| `class MyConstants extends ScallopConstants` and then `super.read()` | replace `super.X()` with `this.address.X()`                                                          | —                           |
+| `utils.address.get('core.market')`                                   | nothing — `utils.address` now returns the _real_ `ScallopAddress`                                    | —                           |
 
 ### Migration — `instanceof` checks
 
@@ -249,7 +255,7 @@ No code changes are needed — your existing `@mysten/sui` imports keep working.
 
 v4 replaces the three legacy transport models with a small `src/datasources/` layer:
 
-- **`ScallopIndexer` model + `Scallop.createScallopIndexer()` are removed.** Indexer/API reads now flow through the repository layer behind `ScallopQuery`. Coin-price reads are exposed as `ScallopQuery` methods (`getPricesFromPyth(...)`, the indexer price reads) rather than on a standalone indexer object.
+- **`ScallopIndexer` model + `Scallop.createScallopIndexer()` are removed.** Indexer/API reads now flow through the repository layer behind `ScallopQuery`. Coin-price reads are exposed as `ScallopQuery` methods (`getPythCoinPrice(s)`, `getIndexerCoinPrice(s)` — see B8 for the v3 → v4 renames) rather than on a standalone indexer object.
 - **`ScallopSuiKit` is removed.** Reads go through a rate-limited `OnChainDataSource` owned by `ScallopUtils` (`utils.onchain`). Writes go through a `TransactionExecutor` owned by `ScallopBuilder` (`builder.executor`), with the raw `SuiKit` still reachable at `builder.suiKit`.
 - **`ScallopAxios` is removed.** `ScallopAddress` reads the Scallop API through an `ApiDataSource`.
 
@@ -274,6 +280,85 @@ v4 replaces the three legacy transport models with a small `src/datasources/` la
 ```
 
 > Internal-path note: importing from `src/utils/index.js`, `src/config/...`, `src/context/...`, or the per-domain mapper files is no longer possible — those modules were removed or relocated (utils barrel split into concrete modules, config sources moved under `ScallopConstants`). These were never part of the public surface; use the root barrel or the documented subpaths.
+
+---
+
+## B7 — `ScallopClient` read methods moved to `client.query.*`
+
+### What changed
+
+In v3, `ScallopClient` carried a set of read methods that were thin delegates to its internal `ScallopQuery` (`return this.query.<method>(...)`). v4 **removes those delegates** — read through the query object (`client.query`, which is still exposed) or a standalone `ScallopQuery`. Write methods (`supply`, `borrow`, `repay`, `stake`, `depositCollateral`, …) are unchanged.
+
+### Impact
+
+| v3 `ScallopClient` call         | v4 replacement                        |
+| ------------------------------- | ------------------------------------- |
+| `client.queryMarket()`          | `client.query.getMarketPools()` \*    |
+| `client.queryObligation(id)`    | `client.query.queryObligation(id)`    |
+| `client.getObligations(owner?)` | `client.query.getObligations(owner?)` |
+| `client.getAllStakeAccounts()`  | `client.query.getAllStakeAccounts()`  |
+| `client.getStakeAccounts(name)` | `client.query.getStakeAccounts(name)` |
+| `client.getStakePool(name)`     | `client.query.getStakePool(name)`     |
+| `client.getStakeRewardPool(n)`  | `client.query.getStakeRewardPool(n)`  |
+| `client.requireSender()`        | removed (was an internal helper)      |
+
+\* `queryMarket` was itself renamed to `getMarketPools` on `ScallopQuery` — see B8.
+
+### Migration
+
+```diff
+- const market = await client.queryMarket();
++ const market = await client.query.getMarketPools();
+
+- const obligations = await client.getObligations();
++ const obligations = await client.query.getObligations();
+```
+
+---
+
+## B8 — `ScallopQuery` price / market read renames
+
+### What changed
+
+v4 standardised the coin-price and market read names on `ScallopQuery`. The old names are **gone** (no deprecated aliases):
+
+| v3 `ScallopQuery` method | v4 name                |
+| ------------------------ | ---------------------- |
+| `getPriceFromPyth`       | `getPythCoinPrice`     |
+| `getPricesFromPyth`      | `getPythCoinPrices`    |
+| `getCoinPriceByIndexer`  | `getIndexerCoinPrice`  |
+| `getCoinPricesByIndexer` | `getIndexerCoinPrices` |
+| `queryMarket`            | `getMarketPools`       |
+| `getBindedObligationId`  | removed                |
+
+### Migration
+
+```diff
+- const price  = await query.getPriceFromPyth('sui');
++ const price  = await query.getPythCoinPrice('sui');
+
+- const prices = await query.getPricesFromPyth(['sui', 'usdc']);
++ const prices = await query.getPythCoinPrices(['sui', 'usdc']);
+
+- const market = await query.queryMarket();
++ const market = await query.getMarketPools();
+```
+
+---
+
+## B9 — `ScallopUtils` removed helpers
+
+### What changed
+
+Three public `ScallopUtils` methods were removed in v4; the work moved to `ScallopQuery` / the repository layer:
+
+| Removed v3 `ScallopUtils` method | v4 replacement                                              |
+| -------------------------------- | ----------------------------------------------------------- |
+| `getCoinPrices(...)`             | `query.getAllCoinPrices()` / `query.getPythCoinPrices(...)` |
+| `getPythPrice(...)`              | `query.getPythCoinPrice(...)`                               |
+| `getObligationCoinNames(...)`    | obligation reads on `ScallopQuery`                          |
+
+All the pure parsing/formatting helpers (`parseCoinName`, `parseSymbol`, `selectCoin`, `getCoinDecimal`, `isMarketCoin`, …) are unchanged.
 
 ---
 
@@ -358,10 +443,13 @@ Defaults to `false` (best-effort init, same as v3).
 
 ## What didn't change
 
-- **All public method signatures and return shapes** on `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, `ScallopUtils`.
-- **All flat tx-block methods** — `tx.supplyQuick`, `tx.stake`, `tx.borrow`, etc. continue to work exactly as before.
+- **The entire `ScallopBuilder` surface** — `createTxBlock()` and every builder method are identical to v3.
+- **All write / transaction methods** on `Scallop`, `ScallopClient` — `supply`, `borrow`, `repay`, `stake`, `depositCollateral`, `openObligation`, `flashLoan`, etc. keep the same signatures and return shapes.
+- **All flat tx-block methods** — `tx.supplyQuick`, `tx.stake`, `tx.borrow`, etc. continue to work exactly as before (except the long-deprecated `deposit` / `addCollateral` families removed below).
 - **The init flow** — `await scallop.createScallopClient()` etc. handle init automatically, same as v3.
 - **The `parseObjectAs<T>` gotcha** — see [`SDK_STRUCTURE.md` §7](SDK_STRUCTURE.md#7-cross-cutting-concerns) for the still-valid warning about `.value` field unwrapping.
+
+> **What _did_ change:** several **read** methods on `ScallopClient` (B7), `ScallopQuery` (B8), and `ScallopUtils` (B9) were renamed or relocated. If you call reads, check those sections.
 
 ---
 

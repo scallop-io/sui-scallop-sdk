@@ -17,6 +17,7 @@ import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import type { SuiObjectData } from 'src/types/index.js';
 import { MarketCollateral, MarketPool } from '../market/types.js';
 import { partitionArray } from 'src/utils/array.js';
+import { BigNumber } from 'bignumber.js';
 
 export const getPythPricesFromApi = async (
   ctx: PriceApiContext,
@@ -41,7 +42,11 @@ export const getPythPricesFromApi = async (
   );
 
   const client = new SuiPriceServiceConnection(endpoint, config);
-  const feeds = await client.getLatestPriceFeeds(priceFeedIds);
+  const { parsed: feeds } = await client.getLatestPriceUpdates(priceFeedIds, {
+    parsed: true,
+    ignoreInvalidPriceIds: true,
+  });
+
   if (!feeds) {
     throw logError(
       ctx.logger,
@@ -59,7 +64,7 @@ export const getPythPricesFromApi = async (
       for (const feed of feeds) {
         priceByFeedId.set(
           feed.id,
-          feed.getPriceUnchecked().getPriceAsNumberUnchecked()
+          BigNumber(feed.price.price).shiftedBy(feed.price.expo).toNumber()
         );
       }
 

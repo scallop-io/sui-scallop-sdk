@@ -94,7 +94,8 @@
     "doc": "typedoc --out docs src/index.ts"
   },
   "dependencies": {
-    "@pythnetwork/pyth-sui-js": "2.2.0",
+    "@noble/hashes": "^2.2.0",
+    "@pythnetwork/pyth-sui-js": "3.0.0",
     "@scallop-io/sui-kit": "2.0.1",
     "@tanstack/query-core": "5.59.16",
     "axios": "1.13.6",
@@ -113,6 +114,7 @@
     "@mysten/utils": "0.0.0",
     "@protobuf-ts/grpcweb-transport": "2.11.1",
     "@protobuf-ts/runtime-rpc": "2.11.1",
+    "@pythnetwork/hermes-client": "3.1.0",
     "@pythnetwork/price-service-client": "1.11.0",
     "@pythnetwork/price-service-sdk": "1.9.0",
     "@types/node": "20.19.37",

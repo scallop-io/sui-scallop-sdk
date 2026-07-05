@@ -357,6 +357,7 @@ export const EMPTY_ADDRESSES: AddressesInterface = {
   obligationNaming: {
     id: '',
     namingRegistry: '',
+    registryTableId: '',
   },
   scoin: {
     id: '',
