@@ -8,6 +8,7 @@ import { BaseRepository } from '../base.js';
 import { OnChainDataSource } from 'src/datasources/onchain.js';
 import {
   getObligationLockedFromOnChain,
+  getObligationNamesFromOnChain,
   getObligationObjectsFromOnChain,
   getObligationsFromOnChain,
   queryObligationData,
@@ -47,5 +48,9 @@ export class ObligationRepository extends BaseRepository<
 
   getObligationObjects(ids: string[]) {
     return getObligationObjectsFromOnChain(this.context, ids);
+  }
+
+  getObligationNames(address: string) {
+    return getObligationNamesFromOnChain(this.context, address);
   }
 }

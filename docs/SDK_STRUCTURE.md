@@ -38,7 +38,7 @@ Supporting pieces:
 - `src/services/query/portfolioCalculations.ts` holds pure math extracted from portfolio queries.
 - `src/errors/`, `src/logger/`, `src/types/public`, and `src/types/internal` are cross-cutting support layers.
 
-The read path is now fully on the repository layer — the old `src/queries/*` files and the facade-adapter repositories are gone, and `ScallopQuery` delegates every domain to `repos.<domain>`. Public method signatures on `Scallop` / `ScallopClient` / `ScallopBuilder` / `ScallopQuery` / `ScallopUtils` are preserved across the v4 refactor.
+The read path is now fully on the repository layer — the old `src/queries/*` files and the facade-adapter repositories are gone, and `ScallopQuery` delegates every domain to `repos.<domain>`. The **write / transaction** surface on `Scallop` / `ScallopClient` / `ScallopBuilder` is preserved across the v4 refactor; several **read** methods on `ScallopClient`, `ScallopQuery`, and `ScallopUtils` were renamed or relocated (see [`V3_TO_V4.md` §B7–B9](V3_TO_V4.md#b7--scallopclient-read-methods-moved-to-clientquery)).
 
 ---
 
@@ -97,9 +97,10 @@ src/
 │
 ├── txBuilders/              # Transaction-block builders (write-path construction layer)
 │   ├── context.ts           # ⭐ Narrow injected contexts (MoveCallContext / *ActionContext)
-│   ├── core/ spool/ vesca/ borrowIncentive/ referral/ sCoin/ loyaltyProgram/
+│   ├── core/ spool/ vesca/ borrowIncentive/ referral/ sCoin/ loyaltyProgram/ obligationNaming/
 │   │       each domain: moveCalls.ts (normal/pure) + quick.ts (orchestration) + index.ts (factory)
-│   ├── oracles/             # pyth + xOracle price-feed builders
+│   │       (obligationNaming is normal-only: moveCalls.ts + index.ts, no quick.ts)
+│   ├── oracles/             # pyth (pyth-sui-js@3 / hermes-client@3) + xOracle price-feed builders
 │   ├── utils.ts             # shared pure builder helpers (requireSender, …)
 │   ├── manifest.ts          # ⭐ Per-module method manifest
 │   ├── modules.ts           # ⭐ Per-domain module objects (tx.core, tx.spool, …)
@@ -174,20 +175,21 @@ All public entry points live under `src/entries/` (thin re-exports). Everything 
 ```
 coreTxBlock  ←  spoolTxBlock  ←  sCoinTxBlock  ←  referralTxBlock
             ←  borrowIncentiveTxBlock  ←  loyaltyTxBlock  ←  vescaTxBlock
+            ←  obligationNamingTxBlock
 ```
 
-Property lookup falls through from outermost (core) to innermost (vesca). All domain methods (`tx.supplyQuick`, `tx.stake`, `tx.borrowQuick`, `tx.lockSca`, `tx.bindToReferral`, …) live on the single returned object.
+Property lookup falls through from outermost (core) to innermost (obligationNaming). All domain methods (`tx.supplyQuick`, `tx.stake`, `tx.borrowQuick`, `tx.lockSca`, `tx.bindToReferral`, `tx.setObligationName`, …) live on the single returned object.
 
 **Two flavours per Move call:**
 
 - `GenerateCoreNormalMethod` — thin wrappers around Move calls. Synchronous. Returns a `TransactionResult`.
 - `GenerateCoreQuickMethod` — async helpers that auto-fetch coins/obligations, call the normal method, transfer leftovers back to the sender.
 
-**Per-domain folder layout (v4 builders refactor).** Each domain lives in `src/txBuilders/<domain>/` (`core`, `spool`, `vesca`, `borrowIncentive`, `referral`, `sCoin`, `loyaltyProgram`) split into `moveCalls.ts` (normal, pure construction), `quick.ts` (orchestration), and `index.ts` (the `new<Domain>TxBlock` factory). The factory builds two **narrow injected contexts** once — `MoveCallContext` (address reads + `moveCall` + parse helpers, no I/O) for `moveCalls.ts`, and a domain `*ActionContext` (`reads` / `coins` / `oracles` / parse `utils`) for `quick.ts` — instead of passing the whole `ScallopBuilder`. Contexts are defined in [src/txBuilders/context.ts](../src/txBuilders/context.ts); `manifest.ts` / `modules.ts` / `verify.ts` / `index.ts` stay at the `txBuilders/` root.
+**Per-domain folder layout (v4 builders refactor).** Each domain lives in `src/txBuilders/<domain>/` (`core`, `spool`, `vesca`, `borrowIncentive`, `referral`, `sCoin`, `loyaltyProgram`, `obligationNaming`) split into `moveCalls.ts` (normal, pure construction), `quick.ts` (orchestration), and `index.ts` (the `new<Domain>TxBlock` factory). The factory builds two **narrow injected contexts** once — `MoveCallContext` (address reads + `moveCall` + parse helpers, no I/O) for `moveCalls.ts`, and a domain `*ActionContext` (`reads` / `coins` / `oracles` / parse `utils`) for `quick.ts` — instead of passing the whole `ScallopBuilder`. Contexts are defined in [src/txBuilders/context.ts](../src/txBuilders/context.ts); `manifest.ts` / `modules.ts` / `verify.ts` / `index.ts` stay at the `txBuilders/` root. (`obligationNaming` is **normal-only** — `moveCalls.ts` + `index.ts`, no `quick.ts`; its factory builds only a `MoveCallContext`.)
 
-**v4 added an explicit module view.** Alongside the flat methods, `tx.core`, `tx.spool`, `tx.vesca`, `tx.borrowIncentive`, `tx.referral`, `tx.loyalty`, `tx.scoin` expose the same functions grouped by domain. Function references match exactly (`tx.supplyQuick === tx.core.supplyQuick`). The grouping is declared in [src/txBuilders/manifest.ts](../src/txBuilders/manifest.ts), assembled in [src/txBuilders/modules.ts](../src/txBuilders/modules.ts), and verified at runtime by [src/txBuilders/verify.ts](../src/txBuilders/verify.ts).
+**v4 added an explicit module view.** Alongside the flat methods, `tx.core`, `tx.spool`, `tx.vesca`, `tx.borrowIncentive`, `tx.referral`, `tx.loyalty`, `tx.scoin`, `tx.obligationNaming` expose the same functions grouped by domain. Function references match exactly (`tx.supplyQuick === tx.core.supplyQuick`). The grouping is declared in [src/txBuilders/manifest.ts](../src/txBuilders/manifest.ts), assembled in [src/txBuilders/modules.ts](../src/txBuilders/modules.ts), and verified at runtime by [src/txBuilders/verify.ts](../src/txBuilders/verify.ts).
 
-**Naming convention for lending:** `supply` / `supplyQuick` / `depositCollateral` / `depositCollateralQuick` are canonical (Aave/Compound aligned). The legacy `deposit` / `depositQuick` / `addCollateral` / `addCollateralQuick` are `@deprecated`.
+**Naming convention for lending:** `supply` / `supplyQuick` / `depositCollateral` / `depositCollateralQuick` are canonical (Aave/Compound aligned). The legacy `deposit` / `depositQuick` / `addCollateral` / `addCollateralQuick` were **removed in v4** (deprecated in v3).
 
 ---
 
@@ -351,16 +353,14 @@ Integration tests need a `.env` with `SECRET_KEY` (see `.env.example`). They use
 | A new internal DTO                       | `src/types/internal/`                                                                             |
 | A new entry-point                        | Add to `tsup.config.ts` + `package.json` `exports` + smoke test in `tests/subpathExports.spec.ts` |
 
-Then run `pnpm run test:typecheck && pnpm run test:unit && pnpm run build` before committing. The read layer has a deeper contributor guide in [`../src/repositories/CLAUDE.md`](../src/repositories/CLAUDE.md).
+Then run `pnpm run test:typecheck && pnpm run test:unit && pnpm run build` before committing.
 
 ---
 
 ## 11. Further reading
 
 - [`V3_TO_V4.md`](V3_TO_V4.md) — upgrade guide with step-by-step v3 → v4 diffs
-- [`SDK_STRUCTURE_REPORT.md`](SDK_STRUCTURE_REPORT.md) — original problem statement
-- [`SDK_STRUCTURE_FIX_PLAN.md`](SDK_STRUCTURE_FIX_PLAN.md) — workstreams, execution status, remaining items
-- [`../src/repositories/CLAUDE.md`](../src/repositories/CLAUDE.md) — the read-layer contributor guide
+- [`V2_TO_V4.md`](V2_TO_V4.md) — upgrade guide with step-by-step v2 → v4 diffs
 - [`../CHANGELOG.md`](../CHANGELOG.md) — v4.0.0 BREAKING CHANGES + Added sections
 - [`../.claude/CLAUDE.md`](../.claude/CLAUDE.md) — coding conventions for AI assistants
 - `node_modules/@mysten/*/docs/llms-index.md` — Sui SDK reference (read indexes first)

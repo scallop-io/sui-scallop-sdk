@@ -120,9 +120,11 @@ From v2 onward, your migration is exactly the v2 → v4 path. **See [`V2_TO_V4.m
 
 Across the entire v1 → v4 span, at the **facade method level**:
 
-- **Public method signatures and return shapes** on `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, `ScallopUtils` are preserved (modulo the v2.2.0 object-parameter change to _quick_ methods and the v3 result/object access changes inside what those methods return).
+- **The `ScallopBuilder` surface** and **all write / transaction methods** on `Scallop` / `ScallopClient` (`supply`, `borrow`, `repay`, `stake`, `depositCollateral`, …) are preserved (modulo the v2.2.0 object-parameter change to _quick_ methods and the v3 result/object access changes inside what those methods return).
 - **Flat tx-block methods** — `tx.supplyQuick`, `tx.stake`, `tx.borrow`, etc. continue to work.
 - **The init flow** — `await scallop.createScallopClient()` etc. handle init automatically.
+
+> **Read methods are not all preserved.** v4 renamed or relocated several reads on `ScallopClient`, `ScallopQuery`, and `ScallopUtils` (e.g. `client.queryMarket()` → `client.query.getMarketPools()`, `query.getPriceFromPyth` → `query.getPythCoinPrice`). See [`V3_TO_V4.md` → B7–B9](V3_TO_V4.md#b7--scallopclient-read-methods-moved-to-clientquery) for the full list.
 
 ---
 

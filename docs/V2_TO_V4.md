@@ -1,6 +1,6 @@
 # Migrating from v2 to v4
 
-> **TL;DR:** You're crossing **two** major releases (v3.0.0 → v4.0.0). The bulk of the work is the v2 → v3 jump: bump to `@mysten/sui@2` + `@scallop-io/sui-kit@2`, move to Node 22 / ESM, and — if you're below v2.2.0 — adopt object-param quick methods. If you only call public methods on `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, or `ScallopUtils`, the facade surface is unchanged across all three majors; most of the diff is dependency/runtime plus the v4 `@mysten/sui` peer-dep.
+> **TL;DR:** You're crossing **two** major releases (v3.0.0 → v4.0.0). The bulk of the work is the v2 → v3 jump: bump to `@mysten/sui@2` + `@scallop-io/sui-kit@2`, move to Node 22 / ESM, and — if you're below v2.2.0 — adopt object-param quick methods. The **write / transaction** surface (`supply`, `borrow`, `repay`, `stake`, `depositCollateral`, …) and **all of `ScallopBuilder`** are stable across all three majors. But v4 **renamed or relocated several read methods** on `ScallopClient`, `ScallopQuery`, and `ScallopUtils` — if you call reads, you must update (see Part B → B7–B9).
 >
 > Keep reading if you do any of these:
 >
@@ -9,6 +9,7 @@
 > 3. **Call quick methods with positional args** and you're on v2.0/v2.1 — v2.2.0 moved them to object params.
 > 4. **Subclass `ScallopConstants`, check `instanceof ScallopAddress`, mutate `whitelist`/`poolAddresses`, or use `ScallopIndexer` / `ScallopSuiKit` / `ScallopAxios`** — all reshaped in v4 (see Part B).
 > 5. **Target Node < 22** (you can't — v3+ requires Node 22+).
+> 6. **Call read methods on `ScallopClient` / `ScallopQuery` / `ScallopUtils`** (`queryMarket`, `getObligations`, `getPriceFromPyth`, `getCoinPrices`, …) — renamed or relocated in v4 (see Part B → B7–B9).
 
 This guide is split into the two hops. For the v3 → v4 details we link straight to [`V3_TO_V4.md`](V3_TO_V4.md) rather than re-pasting every diff. For the _why_, see [`CHANGELOG.md`](../CHANGELOG.md). For the new SDK shape, see [`SDK_STRUCTURE.md`](SDK_STRUCTURE.md).
 
@@ -30,6 +31,9 @@ This guide is split into the two hops. For the v3 → v4 details we link straigh
 □ Remove any code that mutates `constants.whitelist` / `constants.poolAddresses`                   (B2)
 □ Replace `scallop.createScallopIndexer()` → `createScallopQuery()` + its read methods             (B6)
 □ Drop `.scallopSuiKit` access → `utils.onchain` (reads) / `builder.suiKit` / `builder.executor`   (B6)
+□ Move ScallopClient read calls to `client.query.*` (queryMarket → query.getMarketPools, …)         (B7)
+□ Rename ScallopQuery reads: getPriceFromPyth→getPythCoinPrice, …ByIndexer→getIndexerCoinPrice, queryMarket→getMarketPools (B8)
+□ Replace removed ScallopUtils helpers: getCoinPrices / getPythPrice / getObligationCoinNames        (B9)
 □ Re-route any deep `src/types/internal/...` imports through the public barrel or /types           (B4)
 □ Run typecheck + your tests
 ```
@@ -147,6 +151,12 @@ These are the v4.0.0 breaking changes. Each is one line here; click through to [
 
 - **B6 — Transport reshaped.** `ScallopIndexer` (+ `Scallop.createScallopIndexer()`), `ScallopSuiKit`, and `ScallopAxios` were removed. Reads go through `utils.onchain` (`OnChainDataSource`); writes through `builder.executor` (`TransactionExecutor`) with raw `builder.suiKit`. Indexer/coin-price reads are now `ScallopQuery` methods. The `ScallopIndexerError` typed error is unaffected. → [V3_TO_V4.md#b6--transport-reshaped-scallopindexer-scallopsuikit-scallopaxios-removed](V3_TO_V4.md#b6--transport-reshaped-scallopindexer-scallopsuikit-scallopaxios-removed)
 
+- **B7 — `ScallopClient` read methods removed.** `queryMarket`, `queryObligation`, `getObligations`, `getAllStakeAccounts`, `getStakeAccounts`, `getStakePool`, `getStakeRewardPool` (and internal `requireSender`) were dropped from `ScallopClient`; call them on `client.query.*`. Write methods are unchanged. → [V3_TO_V4.md#b7--scallopclient-read-methods-moved-to-clientquery](V3_TO_V4.md#b7--scallopclient-read-methods-moved-to-clientquery)
+
+- **B8 — `ScallopQuery` price / market read renames.** `getPriceFromPyth`→`getPythCoinPrice`, `getPricesFromPyth`→`getPythCoinPrices`, `getCoinPriceByIndexer`→`getIndexerCoinPrice`, `getCoinPricesByIndexer`→`getIndexerCoinPrices`, `queryMarket`→`getMarketPools`; `getBindedObligationId` removed. (`getObligationName`/`getObligationNames` were already removed from `ScallopQuery` back in v3.) → [V3_TO_V4.md#b8--scallopquery-price--market-read-renames](V3_TO_V4.md#b8--scallopquery-price--market-read-renames)
+
+- **B9 — `ScallopUtils` helpers removed.** `getCoinPrices`, `getPythPrice`, `getObligationCoinNames` removed (use `ScallopQuery` reads); the pure parsing helpers are unchanged. → [V3_TO_V4.md#b9--scalloputils-removed-helpers](V3_TO_V4.md#b9--scalloputils-removed-helpers)
+
 ### v4 subpath exports
 
 v4 ships slim subpaths (ESM + CJS + `.d.ts`): `/client`, `/query`, `/builder`, `/errors`, `/logger`, `/types`.
@@ -169,10 +179,13 @@ Not required to upgrade — see [`V3_TO_V4.md` → "Optional: opt in to v4-only 
 
 ## What didn't change
 
-- **All public method signatures and return shapes** on `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, `ScallopUtils` — across v2, v3, and v4.
+- **The entire `ScallopBuilder` surface** — `createTxBlock()` and every builder method — across v2, v3, and v4.
+- **All write / transaction methods** on `Scallop`, `ScallopClient` — `supply`, `borrow`, `repay`, `stake`, `depositCollateral`, `openObligation`, `flashLoan`, etc. keep the same signatures and return shapes.
 - **All flat tx-block methods** — `tx.supplyQuick`, `tx.stake`, `tx.borrow`, etc. continue to work.
 - The long-deprecated aliases `tx.deposit`, `tx.addCollateral`, `client.deposit`, `client.addCollateral`, `client.depositAndStake`, etc. were **removed in v4** — migrate to the canonical names.
 - **The init flow** — `await scallop.createScallopClient()` etc. handle init automatically.
+
+> **What _did_ change on the read side:** v4 renamed/relocated read methods on `ScallopClient` (B7), `ScallopQuery` (B8), and `ScallopUtils` (B9). If you call reads, work through those sections.
 
 ---
 

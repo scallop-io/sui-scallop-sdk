@@ -2,11 +2,13 @@ import { SuiClientTypes } from '@mysten/sui/client';
 import {
   Obligation,
   ObligationDataContext,
+  ObligationNamingContext,
   ObligationQueryInterface,
   ObligationsContext,
 } from './types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import {
+  computeNamingKey,
   getObligationFromObligationKey,
   mapObligationEventToObligationData,
 } from './utils.js';
@@ -15,6 +17,8 @@ import { logError, type OnChainReadContext } from '../utils.js';
 import { ScallopRpcError } from 'src/errors/index.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import type { SuiObjectData } from 'src/types/index.js';
+import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
+import { bcs } from '@mysten/sui/bcs';
 
 const queryObligationKeys = async (
   ctx: ObligationsContext,
@@ -225,4 +229,59 @@ export const getObligationObjectsFromOnChain = async (
     queryFn: () => onchain.client.getObjects(options),
   });
   return objects.map((object) => (object instanceof Error ? null : object));
+};
+
+export const getObligationNamesFromOnChain = async (
+  ctx: ObligationNamingContext,
+  address: string
+) => {
+  const {
+    metadata: { addresses },
+    fetchWithCache,
+    onchain,
+  } = ctx;
+
+  const registryTableId = addresses.obligationNaming.registryTableId;
+
+  // Fetch all obligation keys for the given address
+  const keys = await queryObligationKeys(ctx, { address });
+
+  const results = await Promise.all(
+    keys.map(async (key) => {
+      const computedKey = computeNamingKey(key.objectId, address);
+      const options: SuiClientTypes.GetDynamicObjectFieldOptions<{
+        json: true;
+      }> = {
+        parentId: registryTableId,
+        name: encodeDynamicFieldNameForV2({
+          type: '0x2::object::ID',
+          value: computedKey,
+        }),
+        include: { json: true },
+      };
+
+      try {
+        const { dynamicField } = await fetchWithCache({
+          queryKey: queryKeys.rpc.getDynamicFieldObject({
+            ...options,
+            node: onchain.url,
+          }),
+          queryFn: () => onchain.client.getDynamicField(options),
+        });
+
+        return [
+          key.objectId,
+          bcs.string().parse(dynamicField.value.bcs),
+        ] as const;
+      } catch {
+        // Obligation has no name set (missing dynamic field) or the fetch
+        // failed — skip it instead of failing the whole batch.
+        return null;
+      }
+    })
+  );
+
+  return Object.fromEntries(
+    results.filter((r): r is readonly [string, string] => r !== null)
+  );
 };
