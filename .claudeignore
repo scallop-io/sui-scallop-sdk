@@ -1,0 +1,16 @@
+# Sensitive files
+.env
+.env.*
+*.key
+*.pem
+secrets/
+
+# Large/generated files
+node_modules/
+dist/
+pnpm-lock.yaml
+CHANGELOG.md
+*.log*
+
+# Git internals
+.git/

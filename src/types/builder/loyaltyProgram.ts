@@ -3,7 +3,8 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   TransactionResult,
 } from '@scallop-io/sui-kit';
-import { type ScallopBuilder } from 'src/models';
+import type { MoveCallContext } from 'src/txBuilders/context.js';
+import type { LoyaltyProgramActionContext } from 'src/txBuilders/loyaltyProgram/quick.js';
 
 export type LoyaltyProgramNormalMethods = {
   claimLoyaltyRevenue: (veScaKey: SuiObjectArg) => TransactionResult;
@@ -21,11 +22,11 @@ export type LoyaltyProgramTxBlock = SuiTxBlockWithLoyaltyProgramNormalMethods &
   LoyaltyProgramQuickMethods;
 
 export type GenerateLoyaltyProgramNormalMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: MoveCallContext;
   txBlock: SuiKitTxBlock;
 }) => LoyaltyProgramNormalMethods;
 
 export type GenerateLoyaltyProgramQuickMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: LoyaltyProgramActionContext;
   txBlock: SuiTxBlockWithLoyaltyProgramNormalMethods;
 }) => LoyaltyProgramQuickMethods;

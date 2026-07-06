@@ -1,0 +1,1341 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scallop SDK v4 — Developer Guide</title>
+<meta name="description" content="Interactive developer guide to @scallop-io/sui-scallop-sdk v4: how to use the SDK, how data is served, the architecture, and a full reference." />
+<style>
+/* ============================================================ THEME */
+:root{
+  --bg:#0a0e16; --bg-1:#0e1320; --bg-2:#141b2d; --bg-3:#1b2438;
+  --border:#23304d; --border-soft:#1a2236;
+  --text:#e7edf7; --dim:#9fb0cc; --faint:#6b7c9c;
+  --accent:#2dd4bf; --accent-2:#38bdf8; --accent-3:#a78bfa;
+  --gold:#fbbf24; --rose:#fb7185; --green:#34d399; --orange:#fb923c;
+  --code-bg:#0c111c;
+  --l-facade:#38bdf8; --l-service:#a78bfa; --l-repo:#2dd4bf; --l-data:#fbbf24; --l-chain:#fb7185; --l-cross:#94a3b8;
+  --shadow:0 10px 40px -12px rgba(0,0,0,.6);
+  --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --r:14px; --maxw:1180px;
+}
+html[data-theme="light"]{
+  --bg:#f5f7fb; --bg-1:#ffffff; --bg-2:#eef2f9; --bg-3:#e4eaf4;
+  --border:#d3dcec; --border-soft:#e4eaf4;
+  --text:#0e1726; --dim:#41526c; --faint:#71839f;
+  --shadow:0 10px 30px -14px rgba(20,40,80,.22);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.62;
+  -webkit-font-smoothing:antialiased;font-size:15.5px;
+  background-image:radial-gradient(900px 480px at 88% -10%,rgba(56,189,248,.10),transparent 60%),
+    radial-gradient(760px 480px at -6% 4%,rgba(45,212,191,.08),transparent 55%);
+  background-attachment:fixed;}
+a{color:var(--accent-2);text-decoration:none} a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.18;font-weight:680;letter-spacing:-.02em}
+h2{font-size:1.78rem;margin:.1em 0 .3em} h3{font-size:1.24rem;margin:1.5em 0 .45em}
+h4{font-size:1.02rem;margin:1.2em 0 .35em}
+p{color:var(--dim)} code{font-family:var(--mono)} .mono{font-family:var(--mono)}
+.accent{color:var(--accent)} .accent2{color:var(--accent-2)} .accent3{color:var(--accent-3)}
+.gold{color:var(--gold)} .rose{color:var(--rose)} .green{color:var(--green)}
+
+#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:200;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--accent-3));box-shadow:0 0 12px rgba(56,189,248,.6)}
+
+/* ============================================================ TOP BAR */
+.topbar{position:sticky;top:0;z-index:100;background:color-mix(in srgb,var(--bg) 86%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border-soft)}
+.topbar .inner{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:18px;padding:11px 22px}
+.brand{display:flex;align-items:center;gap:10px;flex:none}
+.brand .logo{width:32px;height:32px}
+.brand b{font-size:.98rem;letter-spacing:-.02em;line-height:1}
+.brand small{display:block;color:var(--faint);font-size:.66rem;text-transform:uppercase;letter-spacing:.08em}
+.vtabs{display:flex;gap:4px;margin-left:6px;flex-wrap:wrap}
+.vtab{cursor:pointer;border:1px solid transparent;background:transparent;color:var(--dim);font-family:inherit;
+  font-size:.86rem;font-weight:560;padding:8px 14px;border-radius:10px;transition:.15s;display:flex;gap:7px;align-items:center}
+.vtab:hover{color:var(--text);background:var(--bg-2)}
+.vtab.active{color:var(--text);background:var(--bg-2);border-color:var(--border);box-shadow:inset 0 -2px 0 var(--accent)}
+.vtab .em{font-size:.95rem;opacity:.9}
+.top-tools{margin-left:auto;display:flex;gap:7px;flex:none}
+.btn{cursor:pointer;border:1px solid var(--border);background:var(--bg-1);color:var(--dim);border-radius:9px;
+  padding:7px 11px;font-size:.76rem;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{color:var(--text);border-color:var(--accent)}
+@media(max-width:820px){.topbar .inner{flex-wrap:wrap;gap:8px}.vtab{padding:7px 10px;font-size:.8rem}.top-tools{order:3}}
+
+/* ============================================================ LAYOUT */
+.shell{display:grid;grid-template-columns:256px minmax(0,1fr);max-width:var(--maxw);margin:0 auto}
+@media(max-width:980px){.shell{grid-template-columns:1fr}}
+aside{position:sticky;top:58px;align-self:start;height:calc(100vh - 58px);overflow-y:auto;padding:24px 16px 60px;
+  border-right:1px solid var(--border-soft)}
+@media(max-width:980px){aside{display:none}}
+.toc-title{font-size:.66rem;text-transform:uppercase;letter-spacing:.13em;color:var(--accent);font-weight:700;margin:0 0 10px 10px}
+nav.toc a{display:block;color:var(--dim);padding:6px 11px;border-radius:8px;border-left:2px solid transparent;
+  font-size:.85rem;transition:.13s;cursor:pointer}
+nav.toc a:hover{background:var(--bg-2);color:var(--text)}
+nav.toc a.active{color:var(--accent);background:linear-gradient(90deg,rgba(45,212,191,.12),transparent);border-left-color:var(--accent)}
+main{padding:30px 40px 120px;min-width:0}
+@media(max-width:980px){main{padding:24px 18px 80px}}
+.view{display:none}.view.active{display:block;animation:vfade .3s ease}
+@keyframes vfade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+section{scroll-margin-top:74px;padding:22px 0;border-top:1px solid var(--border-soft)}
+section.first{border-top:none;padding-top:6px}
+.eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:7px}
+.lead{font-size:1.05rem;color:var(--dim);max-width:70ch}
+
+/* HERO */
+.hero h1{font-size:2.7rem;margin:.05em 0 .25em;letter-spacing:-.035em;
+  background:linear-gradient(120deg,#fff 8%,var(--accent) 55%,var(--accent-2) 96%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+html[data-theme="light"] .hero h1{background:linear-gradient(120deg,#0e1726,#0d9488 60%,#0284c7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero .lead{font-size:1.16rem;max-width:62ch}
+.stat-row{display:flex;flex-wrap:wrap;gap:13px;margin:24px 0 6px}
+.stat{flex:1 1 120px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r);padding:15px 17px}
+.stat .n{font-size:1.6rem;font-weight:760;letter-spacing:-.03em}.stat .l{font-size:.76rem;color:var(--faint);margin-top:2px}
+.jump{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:13px;margin-top:8px}
+.jcard{cursor:pointer;border:1px solid var(--border);border-radius:13px;padding:17px;background:var(--bg-1);transition:.16s}
+.jcard:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:var(--shadow)}
+.jcard .em{font-size:1.5rem}.jcard b{display:block;margin:7px 0 3px;font-size:1.02rem}
+.jcard p{font-size:.84rem;margin:0}
+
+/* PANELS / CARDS */
+.panel{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin:16px 0;box-shadow:var(--shadow)}
+.grid{display:grid;gap:15px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:820px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.callout{border-left:3px solid var(--accent);background:linear-gradient(90deg,rgba(45,212,191,.07),transparent);
+  border-radius:0 10px 10px 0;padding:13px 17px;margin:15px 0}
+.callout.warn{border-color:var(--gold);background:linear-gradient(90deg,rgba(251,191,36,.08),transparent)}
+.callout.info{border-color:var(--accent-2);background:linear-gradient(90deg,rgba(56,189,248,.08),transparent)}
+.callout.danger{border-color:var(--rose);background:linear-gradient(90deg,rgba(251,113,133,.08),transparent)}
+.callout b{color:var(--text)}
+.tag{display:inline-block;font-size:.69rem;font-family:var(--mono);padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--dim);background:var(--bg-2);white-space:nowrap;margin:1px}
+.tag.new{color:var(--green);border-color:rgba(52,211,153,.4)} .tag.del{color:var(--rose);border-color:rgba(251,113,133,.4);text-decoration:line-through}
+.pill{font-size:.66rem;font-weight:700;padding:3px 9px;border-radius:6px;letter-spacing:.03em;display:inline-block}
+mark{background:rgba(45,212,191,.22);color:var(--text);padding:0 4px;border-radius:4px}
+.kbd{font-family:var(--mono);font-size:.78rem;background:var(--bg-3);border:1px solid var(--border);border-radius:5px;padding:1px 6px}
+ul.clean{list-style:none;padding-left:0}
+ul.clean li{padding-left:22px;position:relative;margin:6px 0;color:var(--dim)}
+ul.clean li:before{content:"▸";position:absolute;left:3px;color:var(--accent)}
+.hr{height:1px;background:var(--border-soft);margin:20px 0;border:none}
+
+/* CODE */
+.code{position:relative;margin:13px 0;border:1px solid var(--border);border-radius:12px;background:var(--code-bg);overflow:hidden}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;border-bottom:1px solid var(--border-soft);
+  font-family:var(--mono);font-size:.71rem;color:var(--faint);background:rgba(255,255,255,.02)}
+.code-head .fname{color:var(--dim)}
+.code pre{margin:0;padding:14px 15px;overflow-x:auto;font-size:.82rem;line-height:1.6;font-family:var(--mono);color:#cdd6e6}
+.code .copy{cursor:pointer;border:1px solid var(--border);background:var(--bg-2);color:var(--dim);border-radius:6px;padding:3px 9px;font-size:.67rem;font-family:var(--mono)}
+.code .copy:hover{color:var(--accent)}
+.t-c{color:#5b6b85;font-style:italic}.t-k{color:#c792ea}.t-s{color:#c3e88d}.t-t{color:#82aaff}.t-n{color:#f78c6c}.t-f{color:#ffcb6b}
+pre.box{font-family:var(--mono);font-size:.8rem;color:var(--dim);line-height:1.65;margin:0;white-space:pre-wrap}
+
+/* TABS */
+.tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:0}
+.tabs button{cursor:pointer;border:1px solid var(--border);background:var(--bg-1);color:var(--dim);padding:7px 13px;
+  border-radius:9px 9px 0 0;font-family:inherit;font-size:.83rem;border-bottom:none;transition:.14s}
+.tabs button.active{color:var(--text);background:var(--bg-2);border-color:var(--accent)}
+.tabs button:hover{color:var(--text)}
+.tabpane{display:none;border:1px solid var(--border);border-radius:0 12px 12px 12px;padding:17px;background:var(--bg-1)}
+.tabpane.active{display:block;animation:vfade .22s ease}
+
+/* ACCORDION */
+.acc{border:1px solid var(--border);border-radius:11px;margin:9px 0;overflow:hidden;background:var(--bg-1)}
+.acc>summary{cursor:pointer;padding:13px 17px;font-weight:620;list-style:none;display:flex;align-items:center;gap:11px}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary:hover{background:var(--bg-2)}
+.acc>summary .chev{margin-left:auto;color:var(--faint);transition:transform .2s}
+.acc[open]>summary .chev{transform:rotate(90deg)}
+.acc[open]>summary{border-bottom:1px solid var(--border-soft);background:var(--bg-2)}
+.acc .body{padding:4px 17px 16px}
+.acc .num{font-family:var(--mono);font-size:.76rem;color:var(--accent);border:1px solid var(--border);border-radius:7px;padding:2px 8px}
+.acc .em{font-size:1.05rem}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:8px}
+th,td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--border-soft);vertical-align:top}
+th{color:var(--faint);font-weight:600;font-size:.71rem;text-transform:uppercase;letter-spacing:.05em}
+td.mono,th.mono{font-family:var(--mono);font-size:.79rem}
+tr:hover td{background:var(--bg-1)}
+.tbl-scroll{max-height:430px;overflow:auto;border:1px solid var(--border);border-radius:12px}
+.tbl-scroll th{position:sticky;top:0;background:var(--bg);z-index:1}
+
+/* INTERACTIVE STACK */
+.stack-wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:start}
+@media(max-width:880px){.stack-wrap{grid-template-columns:1fr}}
+.stack{display:flex;flex-direction:column;gap:9px}
+.layer{cursor:pointer;border:1px solid var(--border);border-radius:12px;padding:13px 15px;background:var(--bg-1);transition:.18s;position:relative;overflow:hidden}
+.layer:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--lc,var(--accent))}
+.layer:hover{transform:translateX(4px);border-color:var(--lc)}
+.layer.active{border-color:var(--lc);background:var(--bg-2);box-shadow:0 0 0 3px color-mix(in srgb,var(--lc) 18%,transparent)}
+.layer .ltitle{font-weight:660;display:flex;align-items:center;gap:9px}
+.layer .ltitle .ix{width:9px;height:9px;border-radius:3px;background:var(--lc)}
+.layer .lpath{font-family:var(--mono);font-size:.72rem;color:var(--faint);margin-top:3px}
+.flow-down{text-align:center;color:var(--faint);font-size:.95rem;line-height:1;margin:-2px 0}
+.detail{position:sticky;top:74px;border:1px solid var(--border);border-radius:14px;background:var(--bg-1);padding:18px;min-height:260px}
+.detail .dh{display:flex;align-items:center;gap:10px;margin-bottom:5px}.detail .dh .ix{width:12px;height:12px;border-radius:4px;background:var(--lc)}
+.detail h4{margin:0;font-size:1.12rem}.detail .resp{font-size:.81rem;color:var(--faint);margin-bottom:11px}
+.detail ul{margin:7px 0;padding-left:17px}.detail li{color:var(--dim);margin:5px 0;font-size:.88rem}
+.detail .files{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}
+.legend{display:flex;flex-wrap:wrap;gap:13px;margin:6px 0;font-size:.77rem;color:var(--dim)}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* FILE TREE */
+.tree-wrap{display:grid;grid-template-columns:.82fr 1.18fr;gap:16px}
+@media(max-width:880px){.tree-wrap{grid-template-columns:1fr}}
+.tree{font-family:var(--mono);font-size:.81rem;background:var(--code-bg);border:1px solid var(--border);border-radius:12px;padding:12px 8px}
+.tree .node{padding:5px 9px;border-radius:7px;cursor:pointer;color:var(--dim);transition:.12s;display:flex;gap:7px;align-items:baseline}
+.tree .node:hover{background:var(--bg-3);color:var(--text)}
+.tree .node.active{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--text)}
+.tree .node.dir{color:var(--accent-2);cursor:default}
+.tree .node .ann{margin-left:auto;color:var(--faint);font-size:.69rem;font-style:italic}
+.tree .indent{padding-left:20px}
+.file-detail{border:1px solid var(--border);border-radius:12px;background:var(--bg-1);padding:17px;min-height:240px}
+.file-detail h4{margin-top:0;font-family:var(--mono);font-size:.94rem}
+.file-detail .role{font-size:.72rem;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+
+/* FILTER + CHIPS */
+.filterbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 15px}
+.filterbar input{flex:1 1 200px;background:var(--bg-1);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:9px 13px;font-family:inherit;font-size:.85rem}
+.filterbar input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,212,191,.1)}
+.chip{cursor:pointer;border:1px solid var(--border);background:var(--bg-1);color:var(--dim);border-radius:999px;padding:6px 13px;font-size:.75rem;transition:.14s}
+.chip.active{color:#04221f;background:var(--accent);border-color:var(--accent);font-weight:600}
+html[data-theme="light"] .chip.active{color:#063}
+
+/* REPO CATALOG */
+.repo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px}
+.repo{border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--bg-1);transition:.15s}
+.repo:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+.repo h4{margin:0 0 3px;font-family:var(--mono);font-size:.9rem}
+.repo .src{font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:6px;display:inline-block;margin-bottom:7px}
+.src-dual{background:rgba(56,189,248,.14);color:var(--accent-2)}.src-onchain{background:rgba(251,113,133,.14);color:var(--rose)}.src-api{background:rgba(251,191,36,.14);color:var(--gold)}
+.repo p{font-size:.8rem;margin:5px 0 8px;color:var(--dim)}.repo .files{display:flex;flex-wrap:wrap;gap:3px}.repo .files .tag{font-size:.6rem;padding:1px 6px}
+
+/* FLOW + SEQ DIAGRAMS */
+.flow-controls{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:13px}
+.flow-svg{width:100%;height:auto;border:1px solid var(--border);border-radius:14px;background:var(--bg-1)}
+.fnode{fill:var(--bg-2);stroke:var(--border);stroke-width:1.5;transition:.3s}
+.fnode.on{fill:color-mix(in srgb,var(--accent) 22%,var(--bg-2));stroke:var(--accent)}
+.flabel{fill:var(--text);font-family:var(--sans);font-size:13px;font-weight:600}
+.fsub{fill:var(--faint);font-family:var(--mono);font-size:10.5px}
+.fedge{stroke:var(--border);stroke-width:2;fill:none;transition:.3s}.fedge.on{stroke:var(--accent)}
+.fdesc{border:1px solid var(--border);border-radius:10px;padding:12px 15px;background:var(--bg-2);margin-top:11px;min-height:50px;font-size:.87rem}
+/* funnel */
+.funnel{display:flex;flex-direction:column;gap:4px;align-items:center;margin:14px 0}
+.funnel .row{display:flex;align-items:center;gap:12px;width:100%;max-width:620px}
+.funnel .bar{border-radius:10px;padding:11px 16px;color:#04221f;font-weight:640;text-align:center;transition:.15s;font-size:.9rem}
+html[data-theme="light"] .funnel .bar{color:#04221f}
+.funnel .meta{flex:1;font-size:.83rem;color:var(--dim)}
+.funnel .meta b{color:var(--text)} .funnel .arrow{color:var(--faint);text-align:center;font-size:1.1rem;line-height:.4}
+
+/* RECIPES + DECISION */
+.decision{display:grid;grid-template-columns:1fr 1fr;gap:9px}@media(max-width:760px){.decision{grid-template-columns:1fr}}
+.dcard{border:1px solid var(--border);border-radius:11px;padding:13px 15px;background:var(--bg-1);cursor:pointer;transition:.15s}
+.dcard:hover{border-color:var(--accent);background:var(--bg-2)}.dcard b{display:block;margin-bottom:2px}
+.dcard .ans{font-family:var(--mono);font-size:.79rem;color:var(--accent);margin-top:6px;display:none}.dcard.show .ans{display:block;animation:vfade .2s}
+.footer{max-width:var(--maxw);margin:0 auto;padding:26px 40px 60px;color:var(--faint);font-size:.81rem;border-top:1px solid var(--border-soft)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:13px}@media(max-width:760px){.split{grid-template-columns:1fr}}
+.note{font-size:.83rem;color:var(--faint)}
+/* ROADMAP */
+.stepper{display:flex;flex-wrap:wrap;margin:16px 0 6px}
+.step{flex:1 1 0;min-width:122px;position:relative;padding:0 4px;text-align:center}
+.step .dot{width:18px;height:18px;border-radius:50%;margin:0 auto 8px;border:2px solid var(--border);background:var(--bg-1);position:relative;z-index:1}
+.step.done .dot{background:var(--green);border-color:var(--green)}
+.step.done .dot:after{content:"✓";color:#04221f;font-size:11px;font-weight:800;position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.step.cur .dot{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 22%,transparent)}
+.step.next .dot{background:var(--bg-1);border-color:var(--gold)}
+.step:not(:last-child):before{content:"";position:absolute;top:8px;left:50%;width:100%;height:2px;background:var(--border);z-index:0}
+.step.done:not(:last-child):before{background:var(--green)}
+.step .lbl{font-size:.75rem;color:var(--dim);font-weight:640;line-height:1.22}
+.step.cur .lbl{color:var(--accent)} .step.next .lbl{color:var(--gold)}
+.step .sub{font-size:.64rem;color:var(--faint);margin-top:1px}
+.ws-row{display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid var(--border);border-radius:11px;background:var(--bg-1);margin:7px 0}
+.ws-row .wsn{font-family:var(--mono);font-size:.72rem;color:var(--faint);flex:none;width:26px;text-align:center}
+.ws-row .wsx{flex:1;min-width:0}.ws-row .wst{font-weight:620}.ws-row .wsd{font-size:.82rem;color:var(--dim)}
+.status{flex:none;font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.status.done{background:rgba(52,211,153,.16);color:var(--green)} .status.ongoing{background:rgba(45,212,191,.16);color:var(--accent)} .status.next{background:rgba(251,191,36,.16);color:var(--gold)}
+.task-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(286px,1fr));gap:12px}
+.task{border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--bg-1);transition:.15s;display:flex;flex-direction:column}
+.task:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.task h4{margin:0 0 5px;font-size:.95rem}.task p{font-size:.81rem;margin:4px 0 8px;flex:1}
+.task .where{font-family:var(--mono);font-size:.69rem;color:var(--faint);margin-bottom:9px;word-break:break-word}
+.task .meta{display:flex;flex-wrap:wrap;gap:5px}
+.eff{font-size:.63rem;font-weight:700;padding:2px 8px;border-radius:6px}
+.eff.S{background:rgba(52,211,153,.16);color:var(--green)} .eff.M{background:rgba(251,191,36,.16);color:var(--gold)} .eff.L{background:rgba(251,113,133,.16);color:var(--rose)}
+.brk{font-size:.61rem;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(251,113,133,.16);color:var(--rose)}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<!-- ============================================================ TOP BAR -->
+<header class="topbar">
+  <div class="inner">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="48" y2="48"><stop stop-color="#2dd4bf"/><stop offset="1" stop-color="#38bdf8"/></linearGradient></defs>
+        <path d="M24 4C13 4 4 12 4 23c0 10 8 16 14 18 1 .4 1.6-.2 1.4-1.2-.5-2.5-1-5 .6-7 2-2.6 6-2.4 8.5-3.4C33 27 34 23 30 21c-3-1.5-7 .2-9-2-1.4-1.7-.2-4.6 2.4-5.4 4-1.2 9 .4 12 3.4.8.8 1.9.2 1.7-1C35.6 9.6 30.4 4 24 4Z" fill="url(#lg)"/>
+        <circle cx="17" cy="18" r="3" fill="#0a0e16"/></svg>
+      <div><b>Scallop SDK</b><small>v4 Dev Guide</small></div>
+    </div>
+    <nav class="vtabs" id="vtabs">
+      <button class="vtab active" data-view="start"><span class="em">🏁</span> Start</button>
+      <button class="vtab" data-view="use"><span class="em">🛠️</span> Use the SDK</button>
+      <button class="vtab" data-view="data"><span class="em">🔀</span> How data is served</button>
+      <button class="vtab" data-view="arch"><span class="em">🏛️</span> Architecture</button>
+      <button class="vtab" data-view="roadmap"><span class="em">🗺️</span> Roadmap</button>
+      <button class="vtab" data-view="ref"><span class="em">📚</span> Reference</button>
+    </nav>
+    <div class="top-tools">
+      <button class="btn" id="themeBtn" title="Toggle theme">◐</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <aside>
+    <div class="toc-title" id="tocTitle">On this page</div>
+    <nav class="toc" id="toc"></nav>
+  </aside>
+
+  <main>
+    <!-- ======================================================== VIEW: START -->
+    <div class="view active" data-view="start" id="view-start">
+      <section class="first hero" data-nav="Overview">
+        <div class="eyebrow">@scallop-io/sui-scallop-sdk · v4.0.0 · branch refactor-structure</div>
+        <h1>Scallop SDK Developer Guide</h1>
+        <p class="lead">Everything you need to <b>use</b> the SDK and <b>understand</b> how it works — organised into
+        focused areas so you read only what you need. New here? Start with the quickstart below, then jump to
+        <a data-goto="use">Use the SDK</a>.</p>
+        <div class="stat-row">
+          <div class="stat"><div class="n accent">3</div><div class="l">lines to first read</div></div>
+          <div class="stat"><div class="n accent2">14</div><div class="l">data domains</div></div>
+          <div class="stat"><div class="n accent3">2</div><div class="l">data sources (indexer + RPC)</div></div>
+          <div class="stat"><div class="n gold">1</div><div class="l">peer dep: @mysten/sui</div></div>
+        </div>
+      </section>
+
+      <section data-nav="The mental model">
+        <h2>The 30-second mental model</h2>
+        <p class="lead">Three facade objects cover almost everything you'll do:</p>
+        <div class="g3 grid">
+          <div class="panel" style="margin:0"><h4 style="margin-top:0" class="accent2">ScallopQuery</h4>
+            <p><b>Read</b> protocol state — markets, your obligations, prices, portfolio. Returns plain typed objects.</p></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0" class="accent3">ScallopClient</h4>
+            <p><b>Do</b> things in one call — supply, borrow, repay, stake. Builds, signs and sends a transaction.</p></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0" class="accent">ScallopBuilder</h4>
+            <p><b>Compose</b> custom transactions — chain multiple Move calls into one transaction block, then sign.</p></div>
+        </div>
+        <div class="callout info">When you call a read like <span class="mono">getMarketPools()</span>, the SDK fetches
+        from the <b>Scallop indexer</b> first (fast) and silently falls back to <b>Sui RPC</b> (authoritative) on failure,
+        normalises the shape, and hands you a typed result. The <a data-goto="data">How data is served</a> view shows that
+        pipeline end to end.</div>
+      </section>
+
+      <section data-nav="Install & quickstart">
+        <h2>Install &amp; 60-second quickstart</h2>
+        <div class="code" data-lang="bash"><script type="text/plain">pnpm add @scallop-io/sui-scallop-sdk @mysten/sui   # @mysten/sui is a peer dependency in v4</script></div>
+        <div class="code" data-lang="ts"><script type="text/plain">import { Scallop } from '@scallop-io/sui-scallop-sdk';
+
+const sdk = new Scallop({
+  addressId: '695fcdc084f790c04eb068dc',  // Scallop's published mainnet address bundle
+  networkType: 'mainnet',
+  secretKey: process.env.SECRET_KEY,       // only needed if you will SIGN transactions
+});
+
+// READ — no signing needed
+const query = await sdk.createScallopQuery();
+const pools = await query.getMarketPools(['sui', 'wusdc']);
+console.log(pools.sui.supplyApy, pools.sui.borrowApy);
+
+// WRITE — needs a secretKey; signs and sends in one call
+const client = await sdk.createScallopClient();
+const res = await client.supply('sui', 2 * 10 ** 9);   // supply 2 SUI (9 decimals)
+console.log(res.digest);</script></div>
+        <p class="note">Currently mainnet-only. Integration examples live in the repo's <span class="mono">test/</span>
+        folder and the <span class="mono">document/*.md</span> guides.</p>
+      </section>
+
+      <section data-nav="Where to go next">
+        <h2>Where to go next</h2>
+        <div class="jump">
+          <div class="jcard" data-goto="use"><div class="em">🛠️</div><b>Use the SDK</b><p>Init, read, write, build, and copy-paste recipes for every common task.</p></div>
+          <div class="jcard" data-goto="data"><div class="em">🔀</div><b>How data is served</b><p>What actually happens on a read — sources, fallback, caching, and how shapes are built.</p></div>
+          <div class="jcard" data-goto="arch"><div class="em">🏛️</div><b>Architecture</b><p>The layered design, the repository pattern, the wiring, and the patterns behind it.</p></div>
+          <div class="jcard" data-goto="ref"><div class="em">📚</div><b>Reference</b><p>Method→repo map, domain catalog, cross-cutting concerns, testing, glossary.</p></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ======================================================== VIEW: USE -->
+    <div class="view" data-view="use" id="view-use">
+      <section class="first" data-nav="Initialize">
+        <div class="eyebrow">Use the SDK</div>
+        <h2>Initialize</h2>
+        <p class="lead">One <span class="mono">Scallop</span> instance is the entry point. Its factory methods build
+        and <b>auto-initialize</b> the model you ask for.</p>
+
+        <div class="code" data-lang="ts"><script type="text/plain">import { Scallop } from '@scallop-io/sui-scallop-sdk';
+
+const sdk = new Scallop({
+  addressId: '695fcdc084f790c04eb068dc',
+  networkType: 'mainnet',
+  secretKey: process.env.SECRET_KEY,   // optional — required only to sign & send
+});
+
+// Factories run .init() for you and return a ready model:
+const query   = await sdk.createScallopQuery();
+const client  = await sdk.createScallopClient();
+const builder = await sdk.createScallopBuilder();
+const utils   = await sdk.createScallopUtils();
+
+// Or init once and pull everything off the client:
+await sdk.init();
+const { query, builder, constants, address, indexer } = sdk.client;</script></div>
+
+        <h4>Constructor parameters you'll actually use</h4>
+        <table>
+          <tr><th>param</th><th>type</th><th>purpose</th></tr>
+          <tr><td class="mono">addressId</td><td class="mono">string</td><td>Scallop's published address bundle id (mainnet).</td></tr>
+          <tr><td class="mono">networkType</td><td class="mono">'mainnet'</td><td>Network. Mainnet only today.</td></tr>
+          <tr><td class="mono">secretKey</td><td class="mono">string</td><td>Signer key — only needed for write paths that sign.</td></tr>
+          <tr><td class="mono">walletAddress</td><td class="mono">string</td><td>Default sender/owner for reads &amp; tx building when not signing.</td></tr>
+          <tr><td class="mono">logger</td><td class="mono">Logger</td><td>Opt into diagnostics — defaults to silent <span class="mono">noopLogger</span>.</td></tr>
+          <tr><td class="mono">queryClientConfig</td><td class="mono">object</td><td>Tune the TanStack cache (<span class="mono">staleTime</span>, <span class="mono">gcTime</span>).</td></tr>
+          <tr><td class="mono">force*Interface</td><td class="mono">object</td><td>Override addresses / pool addresses / whitelist (tests, custom deployments).</td></tr>
+        </table>
+        <div class="callout"><b>Read vs write:</b> reads need no key. To <b>sign &amp; send</b> you need
+        <span class="mono">secretKey</span>; to merely <b>build</b> a transaction for an external wallet to sign, you
+        don't — pass <span class="mono">sign: false</span> and you get back a transaction block.</div>
+      </section>
+
+      <section data-nav="Coin names & amounts">
+        <h2>Coin names &amp; amounts — read this once</h2>
+        <p class="lead">Two conventions trip up newcomers. Learn them now and every method makes sense.</p>
+        <div class="g2 grid">
+          <div class="panel" style="margin:0">
+            <h4 style="margin-top:0">Coin naming</h4>
+            <table>
+              <tr><th>kind</th><th>example</th><th>what it is</th></tr>
+              <tr><td>underlying coin</td><td class="mono accent">'sui'</td><td>the asset itself</td></tr>
+              <tr><td>wrapped variant</td><td class="mono accent">'wusdc'</td><td>e.g. Wormhole USDC vs native <span class="mono">'usdc'</span></td></tr>
+              <tr><td>market / sCoin</td><td class="mono accent2">'ssui'</td><td>interest-bearing receipt for supplied <span class="mono">'sui'</span></td></tr>
+            </table>
+            <p class="note">Supply/borrow/collateral methods take the <b>coin</b> name (<span class="mono">'sui'</span>).
+            Spool stake/unstake and sCoin methods take the <b>sCoin</b> name (<span class="mono">'ssui'</span>).</p>
+          </div>
+          <div class="panel" style="margin:0">
+            <h4 style="margin-top:0">Amounts are raw base units</h4>
+            <p>Every <span class="mono">amount</span> is an integer in the coin's smallest unit — <b>no decimals</b>.
+            Multiply by <span class="mono">10 ** decimals</span> yourself.</p>
+            <div class="code" data-lang="ts"><script type="text/plain">client.supply('sui',   2 * 10 ** 9);  // SUI has 9 decimals → 2 SUI
+client.supply('wusdc', 5 * 10 ** 6);  // USDC has 6 decimals → 5 USDC
+
+// don't know the decimals? ask:
+const d = utils.getCoinDecimal('sui'); // 9</script></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-nav="Read data (Query)">
+        <h2>Read data with <span class="mono" style="font-size:.82em">ScallopQuery</span></h2>
+        <p class="lead">All reads are <span class="mono">async</span> and return plain typed objects. Pick a domain.</p>
+        <div class="tabs" data-tabs="read">
+          <button class="active" data-tab="rmkt">Markets</button>
+          <button data-tab="rbal">Balances &amp; prices</button>
+          <button data-tab="rpos">Positions &amp; lending</button>
+          <button data-tab="rport">Portfolio &amp; TVL</button>
+          <button data-tab="rspool">Spool &amp; veSCA</button>
+        </div>
+        <div class="tabpane active" data-pane="rmkt">
+          <div class="code" data-lang="ts"><script type="text/plain">const marketPools       = await query.getMarketPools(['sui', 'wusdc']);
+const suiPool           = await query.getMarketPool('sui');
+const marketCollaterals = await query.getMarketCollaterals(['sui', 'wusdc']);
+const suiCollateral     = await query.getMarketCollateral('sui');
+
+const supplyLimit = await query.getPoolSupplyLimit('sui');
+const borrowLimit = await query.getPoolBorrowLimit('sui');
+const isIsolated  = await query.isIsolatedAsset('deep');</script></div>
+        </div>
+        <div class="tabpane" data-pane="rbal">
+          <div class="code" data-lang="ts"><script type="text/plain">const coinAmounts      = await query.getCoinAmounts();              // all whitelisted coins
+const suiAmount        = await query.getCoinAmount('sui');
+const marketCoinAmount = await query.getMarketCoinAmount('ssui');
+const sCoinAmount      = await query.getSCoinAmount('ssui', owner);
+
+const suiPrice  = await query.getPriceFromPyth('sui');              // number
+const prices    = await query.getPricesFromPyth(['sui', 'wusdc']); // Record<string, number>
+const allPrices = await query.getAllCoinPrices();</script></div>
+        </div>
+        <div class="tabpane" data-pane="rpos">
+          <div class="code" data-lang="ts"><script type="text/plain">const obligations    = await query.getObligations();                 // [{ id, keyId }, ...]
+const obligationData = await query.queryObligation(obligations[0].id);
+
+const lendings = await query.getLendings(['sui', 'wusdc']);          // supplied + staked + APRs
+const lending  = await query.getLending('sui');
+
+const accounts = await query.getObligationAccounts();                // collateral, debt, risk
+const account  = await query.getObligationAccount(obligations[0].id);</script></div>
+        </div>
+        <div class="tabpane" data-pane="rport">
+          <div class="code" data-lang="ts"><script type="text/plain">// One call assembles a user's whole position: lendings + borrowings + veSCA + totals.
+const portfolio = await query.getUserPortfolio({ walletAddress: '0x...' });
+
+const tvl = await query.getTvl();                                    // protocol TVL</script></div>
+          <p class="note"><span class="mono">getUserPortfolio</span> is the heavy composite read — it fetches several
+        domains in parallel, then assembles them with pure functions. See <a data-goto="data">How data is served</a>.</p>
+        </div>
+        <div class="tabpane" data-pane="rspool">
+          <div class="code" data-lang="ts"><script type="text/plain">const spools       = await query.getSpools(['ssui', 'swusdc']);
+const ssuiSpool    = await query.getSpool('ssui');
+const stakeAccts   = await query.getStakeAccounts('ssui');
+
+const treasury     = await query.getVeScaTreasuryInfo();
+const bound        = await query.getBindedObligation(veScaKey);      // or null
+const loyaltyInfos = await query.getLoyaltyProgramInfos();</script></div>
+        </div>
+      </section>
+
+      <section data-nav="Write actions (Client)">
+        <h2>Do actions with <span class="mono" style="font-size:.82em">ScallopClient</span></h2>
+        <p class="lead">High-level one-call actions. They build the transaction, then — by default — sign and send it.</p>
+        <div class="callout warn"><b>The <span class="mono">sign</span> flag.</b> Most write methods take
+          <span class="mono">sign</span> as the 3rd argument, defaulting to <span class="mono">true</span>.
+          <span class="mono">true</span> → signs &amp; sends, returns the transaction response.
+          <span class="mono">false</span> → returns an unsigned transaction block for you to sign with your own wallet.</div>
+        <div class="tabs" data-tabs="write">
+          <button class="active" data-tab="wlend">Supply / withdraw</button>
+          <button data-tab="wborrow">Collateral / borrow / repay</button>
+          <button data-tab="wspool">Stake / claim</button>
+          <button data-tab="wflash">Flash loan</button>
+        </div>
+        <div class="tabpane active" data-pane="wlend">
+          <div class="code" data-lang="ts"><script type="text/plain">// supply(coinName, amount, sign=true, ownerAddress?)
+const supplyRes   = await client.supply('sui', 2 * 10 ** 9);
+const withdrawRes = await client.withdraw('sui', 2 * 10 ** 9);
+
+// build only — hand the tx block to an external wallet:
+const txBlock = await client.supply('sui', 2 * 10 ** 9, false);</script></div>
+        </div>
+        <div class="tabpane" data-pane="wborrow">
+          <div class="code" data-lang="ts"><script type="text/plain">// Auto-creates an obligation if you don't have one yet:
+await client.depositCollateral('sui', 10 ** 9);
+
+const [ob] = await client.getObligations();
+await client.borrow('wusdc', 5 * 10 ** 6, true, ob.id, ob.keyId);
+await client.repay ('wusdc', 5 * 10 ** 6, true, ob.id);
+await client.withdrawCollateral('sui', 10 ** 9, true, ob.id, ob.keyId);</script></div>
+          <p class="note"><b>Borrow &amp; withdraw-collateral need fresh oracle prices.</b> The client/quick methods
+          update them for you automatically.</p>
+        </div>
+        <div class="tabpane" data-pane="wspool">
+          <div class="code" data-lang="ts"><script type="text/plain">await client.createStakeAccount('ssui');
+await client.stake  ('ssui', 10 ** 9);   // stake market coin into the spool
+await client.unstake('ssui', 10 ** 9);
+await client.claim  ('ssui');            // claim spool rewards</script></div>
+        </div>
+        <div class="tabpane" data-pane="wflash">
+          <div class="code" data-lang="ts"><script type="text/plain">// Borrow + use + repay atomically inside the callback:
+await client.flashLoan('sui', 10 ** 9, async (txBlock, coin) => {
+  // ...use `coin` (e.g. swap on a DEX via txBlock.moveCall(...)) and return what to repay
+  return coin;
+});</script></div>
+        </div>
+      </section>
+
+      <section data-nav="Build custom tx (Builder)">
+        <h2>Compose transactions with <span class="mono" style="font-size:.78em">ScallopBuilder</span></h2>
+        <p class="lead">When one action isn't enough, build a transaction block and chain calls. Two flavours per
+        operation:</p>
+        <div class="g2 grid">
+          <div class="panel" style="margin:0"><h4 style="margin-top:0"><span class="mono">…Quick</span> methods</h4>
+            <p>Async helpers that auto-fetch the coins/obligations they need, update prices, and clean up leftovers.
+            Start here.</p></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">Normal methods</h4>
+            <p>Thin, synchronous Move-call wrappers returning a <span class="mono">TransactionResult</span> you wire by
+            hand. Use for full control.</p></div>
+        </div>
+        <div class="code" data-lang="ts"><script type="text/plain">const tx = builder.createTxBlock();
+tx.setSender(sender);                          // required for *Quick methods
+
+// supply, then stake the resulting market coin, in ONE transaction:
+const marketCoin = await tx.supplyQuick(10 ** 9, 'sui');
+tx.transferObjects([marketCoin], sender);
+await builder.signAndSendTxBlock(tx);
+
+// module-grouped view is identical: tx.core.supplyQuick === tx.supplyQuick
+await tx.core.borrowQuick(5 * 10 ** 6, 'wusdc');
+await tx.spool.stakeQuick(10 ** 9, 'ssui');</script></div>
+        <details class="acc"><summary><span class="em">🔗</span> Open an obligation, deposit, and borrow in one tx <span class="chev">›</span></summary>
+          <div class="body"><div class="code" data-lang="ts"><script type="text/plain">const tx = builder.createTxBlock();
+tx.setSender(sender);
+const [obligation, obligationKey, hotPotato] = tx.openObligation();
+await tx.depositCollateralQuick(10 ** 9, 'sui', obligation);
+const borrowed = await tx.borrowQuick(5 * 10 ** 6, 'wusdc', obligation, obligationKey);
+tx.transferObjects([borrowed], sender);
+tx.returnObligation(obligation, hotPotato);
+tx.transferObjects([obligationKey], sender);
+await builder.signAndSendTxBlock(tx);</script></div></div></details>
+        <details class="acc"><summary><span class="em">🧩</span> Mix with a raw @mysten/sui Transaction <span class="chev">›</span></summary>
+          <div class="body"><p>The builder wraps a real <span class="mono">@mysten/sui</span> transaction at
+          <span class="mono">tx.txBlock</span> — use both together.</p>
+          <div class="code" data-lang="ts"><script type="text/plain">const tx = builder.createTxBlock();
+const sui = tx.txBlock;                           // the @mysten/sui Transaction
+const [coin] = sui.splitCoins(sui.gas, [10 ** 6]);
+const marketCoin = tx.supply(coin, 'sui');        // normal (sync) method
+sui.transferObjects([marketCoin], sui.pure.address(sender));
+await builder.signAndSendTxBlock(tx);</script></div></div></details>
+      </section>
+
+      <section data-nav="Recipes">
+        <h2>Recipes — copy, paste, adapt</h2>
+        <details class="acc"><summary><span class="num">R1</span> Supply an asset and start earning <span class="chev">›</span></summary>
+          <div class="body"><div class="code" data-lang="ts"><script type="text/plain">const client = await sdk.createScallopClient();
+const res = await client.supply('sui', 2 * 10 ** 9);   // signs + sends
+console.log('supplied, digest:', res.digest);</script></div></div></details>
+        <details class="acc"><summary><span class="num">R2</span> Open a leveraged position (collateral → borrow) <span class="chev">›</span></summary>
+          <div class="body"><div class="code" data-lang="ts"><script type="text/plain">await client.depositCollateral('sui', 10 ** 9);        // auto-creates obligation
+const [ob] = await client.getObligations();
+await client.borrow('wusdc', 5 * 10 ** 6, true, ob.id, ob.keyId);</script></div></div></details>
+        <details class="acc"><summary><span class="num">R3</span> Read a user's full portfolio for a dashboard <span class="chev">›</span></summary>
+          <div class="body"><div class="code" data-lang="ts"><script type="text/plain">const query = await sdk.createScallopQuery();
+const portfolio = await query.getUserPortfolio({ walletAddress: '0x...' });
+// portfolio.lendings / .borrowings / .pendingRewards / .totalSupplyValue ...</script></div></div></details>
+        <details class="acc"><summary><span class="num">R4</span> Lock SCA for veSCA <span class="chev">›</span></summary>
+          <div class="body"><div class="code" data-lang="ts"><script type="text/plain">const tx = builder.createTxBlock();
+tx.setSender(sender);
+await tx.lockScaQuick(10 * 10 ** 9, 7);    // 10 SCA (min), 7-day lock
+await builder.signAndSendTxBlock(tx);</script></div></div></details>
+        <details class="acc"><summary><span class="num">R5</span> Liquidate an underwater position <span class="chev">›</span></summary>
+          <div class="body"><div class="code" data-lang="ts"><script type="text/plain">const tx = builder.createTxBlock();
+tx.setSender(sender);
+const [extraDebt, collateral] = await tx.liquidateQuick(10 ** 6, 'wusdc', 'sui', obligationId);
+tx.transferObjects([extraDebt, collateral], sender);
+await builder.signAndSendTxBlock(tx);</script></div></div></details>
+      </section>
+
+      <section data-nav="Errors & logging">
+        <h2>Errors &amp; logging</h2>
+        <div class="g2 grid">
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">Branch on typed errors</h4>
+            <div class="code" data-lang="ts"><script type="text/plain">import { ScallopRpcError, ScallopParseError }
+  from '@scallop-io/sui-scallop-sdk/errors';
+try {
+  await client.supply('sui', 10 ** 9);
+} catch (e) {
+  if (e instanceof ScallopRpcError)   { /* e.cause, e.context */ }
+  if (e instanceof ScallopParseError) { /* bad payload shape */ }
+}</script></div></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">Turn on diagnostics</h4>
+            <p>The SDK is silent by default and never calls <span class="mono">console.*</span>. Opt in:</p>
+            <div class="code" data-lang="ts"><script type="text/plain">import { consoleLogger }
+  from '@scallop-io/sui-scallop-sdk/logger';
+const sdk = new Scallop({ logger: consoleLogger });
+// now indexer-fallback warnings, init diagnostics surface</script></div></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ======================================================== VIEW: DATA -->
+    <div class="view" data-view="data" id="view-data">
+      <section class="first" data-nav="The read pipeline">
+        <div class="eyebrow">How data is served</div>
+        <h2>What happens when you call a read</h2>
+        <p class="lead">A read travels through a fixed pipeline. Press <b>Play</b> to trace
+        <span class="mono">query.getMarketPools()</span>, or switch the data source to see how the same call resolves.</p>
+
+        <div class="flow-controls">
+          <button class="btn" id="flowPlay">▶ Play the read</button>
+          <span style="color:var(--faint);font-size:.8rem">source:</span>
+          <button class="chip active" data-src="api-first">api-first (default)</button>
+          <button class="chip" data-src="api">api</button>
+          <button class="chip" data-src="onchain">onchain</button>
+        </div>
+
+        <svg viewBox="0 0 920 360" class="flow-svg" id="readFlow" role="img" aria-label="read pipeline">
+          <g class="fstep" data-step="0"><rect class="fnode" x="330" y="14" width="260" height="50" rx="10"/>
+            <text class="flabel" x="460" y="36" text-anchor="middle">query.getMarketPools()</text>
+            <text class="fsub" x="460" y="52" text-anchor="middle">facade · thin delegate</text></g>
+          <line class="fedge" data-edge="0" x1="460" y1="64" x2="460" y2="92"/>
+          <g class="fstep" data-step="1"><rect class="fnode" x="330" y="94" width="260" height="50" rx="10"/>
+            <text class="flabel" x="460" y="116" text-anchor="middle">repos.market.getMarkets()</text>
+            <text class="fsub" x="460" y="132" text-anchor="middle">domain repository</text></g>
+          <line class="fedge" data-edge="1" x1="460" y1="144" x2="460" y2="172"/>
+          <g class="fstep" data-step="2"><rect class="fnode" x="318" y="174" width="284" height="50" rx="10"/>
+            <text class="flabel" x="460" y="196" text-anchor="middle">runWithDataSourceFallback()</text>
+            <text class="fsub" x="460" y="212" text-anchor="middle">choose source · cache via fetchWithCache</text></g>
+          <path class="fedge" data-edge="2a" d="M360 224 L200 224 L200 252"/>
+          <g class="fstep" data-step="3a"><rect class="fnode" x="70" y="254" width="260" height="50" rx="10"/>
+            <text class="flabel" x="200" y="274" text-anchor="middle">getMarketsFromIndexer</text>
+            <text class="fsub" x="200" y="290" text-anchor="middle">GET /api/market/migrate → map</text></g>
+          <line class="fedge" data-edge="3a" x1="200" y1="304" x2="200" y2="330"/>
+          <g class="fstep" data-step="4a"><rect class="fnode" x="70" y="330" width="260" height="24" rx="7"/>
+            <text class="fsub" x="200" y="346" text-anchor="middle" style="fill:var(--accent)">Scallop indexer (fast, aggregated)</text></g>
+          <path class="fedge" data-edge="2b" d="M560 224 L720 224 L720 252"/>
+          <g class="fstep" data-step="3b"><rect class="fnode" x="590" y="254" width="270" height="50" rx="10"/>
+            <text class="flabel" x="725" y="274" text-anchor="middle">getMarketsFromOnChain</text>
+            <text class="fsub" x="725" y="290" text-anchor="middle">moveCall → simulate → map → parse</text></g>
+          <line class="fedge" data-edge="3b" x1="725" y1="304" x2="725" y2="330"/>
+          <g class="fstep" data-step="4b"><rect class="fnode" x="590" y="330" width="270" height="24" rx="7"/>
+            <text class="fsub" x="725" y="346" text-anchor="middle" style="fill:var(--rose)">Sui fullnode (authoritative)</text></g>
+        </svg>
+        <div class="fdesc" id="flowDesc">Press <b>Play</b>. With <span class="mono">api-first</span> the indexer branch
+        runs first; on any error it transparently retries on-chain.</div>
+      </section>
+
+      <section data-nav="Where data comes from">
+        <h2>Where each read comes from</h2>
+        <p class="lead">Every domain declares a default source. Reads are <b>indexer-first</b> where an indexer endpoint
+        exists, and <b>on-chain</b> where the data is too live or too specific to aggregate.</p>
+        <div class="legend">
+          <span><i style="background:var(--accent-2)"></i> dual-source (indexer + RPC fallback)</span>
+          <span><i style="background:var(--rose)"></i> on-chain only</span>
+          <span><i style="background:var(--gold)"></i> api (Pyth/indexer)</span>
+        </div>
+        <table>
+          <tr><th>source</th><th>domains</th><th>why</th></tr>
+          <tr><td><span class="tag" style="color:var(--accent-2)">dual</span></td>
+            <td class="mono">market · spool</td><td>Heavily-read, aggregatable — indexer is fast; RPC is the safety net.</td></tr>
+          <tr><td><span class="tag" style="color:var(--gold)">api</span></td>
+            <td class="mono">price</td><td>Live oracle prices come straight from Pyth.</td></tr>
+          <tr><td><span class="tag" style="color:var(--rose)">onchain</span></td>
+            <td class="mono">obligation · coinBalance · borrowIncentive · veSca · isolatedAssets · xOracle · loyaltyProgram · referral · poolAddresses · flashloan</td>
+            <td>User-specific or low-latency-sensitive — read directly from the chain.</td></tr>
+        </table>
+        <div class="callout info"><b>You can override per call.</b> Methods accept legacy flags
+        (<span class="mono">source</span>, <span class="mono">indexer</span>, <span class="mono">useOnChainQuery</span>)
+        which normalise to one <span class="mono">QuerySource</span>: <span class="mono">'onchain' | 'api' | 'api-first'</span>.
+        Force on-chain when you need the absolute latest value, e.g. <span class="mono">query.isIsolatedAsset('deep', true)</span>.</div>
+      </section>
+
+      <section data-nav="Indexer-first fallback">
+        <h2>Indexer-first, with graceful fallback</h2>
+        <p class="lead">The choice of source is a Strategy. On <span class="mono">api-first</span> it tries the indexer,
+        logs a <span class="gold">warn</span> through your logger if it fails, and falls back to RPC — your code sees
+        the same shape either way.</p>
+        <div class="code" data-lang="ts"><script type="text/plain">// repositories/utils.ts — the whole fallback policy
+if (source === 'api')       return api();                 // indexer only
+if (source === 'api-first') {
+  try { return await api(); }                             // try indexer
+  catch (cause) {
+    logger?.warn(`[${label}] api failed, falling back to onchain`, { cause });
+    return onchain();                                     // graceful RPC fallback
+  }
+}
+return onchain();                                          // 'onchain' only</script></div>
+        <div class="split">
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">Indexer — fast &amp; aggregated</h4>
+            <p>Pre-computed, batched, cheap. Slightly behind head. Best default for dashboards and lists.</p></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">On-chain — authoritative &amp; live</h4>
+            <p>Read straight from Sui, exact to the latest checkpoint, but heavier. Force it when correctness beats speed.</p></div>
+        </div>
+      </section>
+
+      <section data-nav="Shape transformation">
+        <h2>How a raw payload becomes a typed object</h2>
+        <p class="lead">On-chain reads pass through a funnel: raw wire fields → normalised → parsed numbers → derived
+        metrics → the public shape you receive. Each stage is a pure function.</p>
+        <div class="funnel" id="funnel">
+          <div class="row"><div class="bar" style="background:#fb7185;width:100%">Move event JSON</div>
+            <div class="meta"><b>raw wire</b> — gRPC/JSON-RPC, stringy, nested <span class="mono">{ value }</span></div></div>
+          <div class="arrow">↓ <span class="mono" style="font-size:.74rem">mapper</span></div>
+          <div class="row"><div class="bar" style="background:#fb923c;width:88%">Origin*Data</div>
+            <div class="meta"><b>normalised</b> — one stable shape; gRPC vs JSON-RPC differences gone</div></div>
+          <div class="arrow">↓ <span class="mono" style="font-size:.74rem">parseOrigin*</span></div>
+          <div class="row"><div class="bar" style="background:#fbbf24;width:74%">Parsed*Data</div>
+            <div class="meta"><b>typed</b> — strings → numbers, scaled by decimals</div></div>
+          <div class="arrow">↓ <span class="mono" style="font-size:.74rem">calculate*</span></div>
+          <div class="row"><div class="bar" style="background:#2dd4bf;width:58%">Calculated*Data</div>
+            <div class="meta"><b>derived</b> — APR/APY, utilization, conversion rate</div></div>
+          <div class="arrow">↓ <span class="mono" style="font-size:.74rem">assemble</span></div>
+          <div class="row"><div class="bar" style="background:#38bdf8;width:40%">MarketPool</div>
+            <div class="meta"><b>public</b> — the typed object you receive</div></div>
+        </div>
+        <div class="callout warn"><b>Gotcha: <span class="mono">parseObjectAs&lt;T&gt;</span>.</b> When the on-chain JSON
+        has a <span class="mono">value</span> field it returns <span class="mono">fields.value</span> directly — not
+        <span class="mono">{ value }</span>. Zod schemas must match the <b>unwrapped</b> type. #1 source of empty-parse bugs.</div>
+      </section>
+
+      <section data-nav="Caching & dedup">
+        <h2>Caching &amp; request dedup</h2>
+        <p class="lead">Every network read flows through <span class="mono">fetchWithCache</span>, backed by a shared
+        TanStack <span class="mono">QueryClient</span>. Identical reads dedupe and serve from cache within
+        <span class="mono">staleTime</span>.</p>
+        <div class="g2 grid">
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">Keys are centralised</h4>
+            <p>All cache keys come from <span class="mono">constants/queryKeys.ts</span>, namespaced by source
+            (<span class="mono">queryKeys.api.*</span>, <span class="mono">queryKeys.rpc.*</span>) and including the
+            node URL so different fullnodes don't collide.</p></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">Tune it at construction</h4>
+            <div class="code" data-lang="ts"><script type="text/plain">new Scallop({
+  queryClientConfig: {
+    defaultOptions: { queries: {
+      staleTime: 30_000,   // serve cache for 30s
+      gcTime: Infinity,
+    }},
+  },
+});</script></div></div>
+        </div>
+      </section>
+
+      <section data-nav="Composite reads">
+        <h2>Composite reads: fetch in parallel, build pure</h2>
+        <p class="lead">Reads that span domains (lending, obligation accounts, portfolio) follow one shape: the facade
+        <b>fetches everything in parallel</b>, then a <b>pure builder</b> assembles the result — no I/O in the math.</p>
+        <div class="code" data-lang="ts"><script type="text/plain">// getUserPortfolio — orchestrate (I/O), then build (pure)
+const [lendings, obligationAccounts, veScas, { pools }, coinPrices] = await Promise.all([
+  this.getLendings(owner),            // each pool → buildLending(...)            [pure]
+  this.getObligationAccounts(owner),  // each obligation → buildObligationAccount [pure]
+  this.getVeScas({ walletAddress: owner, excludeEmpty: true }),
+  this.getMarket(),
+  this.getAllCoinPrices(...),
+]);
+return buildUserPortfolio({ lendings, obligationAccounts, veScas, coinPrices, marketPools: pools }); // [pure]</script></div>
+        <p class="note">The <span class="mono">build*</span> functions and all financial math live in
+        <span class="mono">services/query/portfolioCalculations.ts</span> and are unit-tested with plain objects — no
+        network. That's why they're pure.</p>
+      </section>
+    </div>
+
+    <!-- ======================================================== VIEW: ARCH -->
+    <div class="view" data-view="arch" id="view-arch">
+      <section class="first" data-nav="Layered architecture">
+        <div class="eyebrow">Architecture</div>
+        <h2>The layered architecture</h2>
+        <p class="lead">Five layers, dependencies pointing downward only. Click a layer to inspect its job and files.</p>
+        <div class="legend">
+          <span><i style="background:var(--l-facade)"></i> Facade</span><span><i style="background:var(--l-service)"></i> Services</span>
+          <span><i style="background:var(--l-repo)"></i> Repositories</span><span><i style="background:var(--l-data)"></i> Data sources</span>
+          <span><i style="background:var(--l-chain)"></i> Transport</span><span><i style="background:var(--l-cross)"></i> Cross-cutting</span>
+        </div>
+        <div class="stack-wrap" style="margin-top:12px">
+          <div class="stack" id="stack">
+            <div class="layer active" data-layer="facade" style="--lc:var(--l-facade)"><div class="ltitle"><span class="ix"></span> Facade — the public API</div><div class="lpath">src/models/ · ScallopQuery · ScallopClient · ScallopBuilder</div></div>
+            <div class="flow-down">↓ delegates to</div>
+            <div class="layer" data-layer="service" style="--lc:var(--l-service)"><div class="ltitle"><span class="ix"></span> Services — business logic</div><div class="lpath">src/services/client/* · services/query/portfolioCalculations.ts</div></div>
+            <div class="flow-down">↓ reads through</div>
+            <div class="layer" data-layer="repo" style="--lc:var(--l-repo)"><div class="ltitle"><span class="ix"></span> Repositories — per-domain read API</div><div class="lpath">src/repositories/&lt;domain&gt;/ · BaseRepository · wiring/</div></div>
+            <div class="flow-down">↓ fetches via</div>
+            <div class="layer" data-layer="data" style="--lc:var(--l-data)"><div class="ltitle"><span class="ix"></span> Data sources — raw I/O adapters</div><div class="lpath">src/datasources/ · OnChainDataSource · IndexerDataSource</div></div>
+            <div class="flow-down">↓ talks to</div>
+            <div class="layer" data-layer="chain" style="--lc:var(--l-chain)"><div class="ltitle"><span class="ix"></span> Transport — the network</div><div class="lpath">Sui fullnode (RPC/gRPC) · Scallop indexer (REST)</div></div>
+            <div class="flow-down" style="margin-top:5px">＋ across every layer</div>
+            <div class="layer" data-layer="cross" style="--lc:var(--l-cross)"><div class="ltitle"><span class="ix"></span> Cross-cutting</div><div class="lpath">mappers · errors · logger · config · types</div></div>
+          </div>
+          <div class="detail" id="layerDetail" style="--lc:var(--l-facade)"></div>
+        </div>
+        <div class="callout warn"><b>The golden rule:</b> a repository never imports a model. The single seam where
+        models meet repositories is <span class="mono">wiring/metadata.ts</span>, which projects the model surface into
+        plain data. That inversion is what makes the read layer testable without a network.</div>
+      </section>
+
+      <section data-nav="Model chain">
+        <h2>Model dependency chain</h2>
+        <p class="lead">The facade classes compose in a chain; each exposes the next via a getter, and
+        <span class="mono">.init()</span> cascades down.</p>
+        <pre class="box">Scallop
+ └─ ScallopClient            // write · sign · send
+     └─ ScallopBuilder       // tx blocks
+         └─ ScallopQuery     // read · owns the repository registry
+             └─ ScallopUtils  // the deps hub
+                 ├─ ScallopConstants  (composes ScallopAddress)
+                 ├─ ScallopSuiKit     (wraps @scallop-io/sui-kit)
+                 └─ ScallopIndexer    (REST indexer via axios)</pre>
+        <div class="callout warn"><b>v4 change:</b> <span class="mono">ScallopConstants</span> <b>composes</b>
+        <span class="mono">ScallopAddress</span> (no longer extends). Reach it via <span class="mono">constants.address</span>;
+        forwarders keep old calls working.</div>
+      </section>
+
+      <section data-nav="Repository anatomy">
+        <h2>Anatomy of a repository</h2>
+        <p class="lead">Every domain lives in <span class="mono">repositories/&lt;domain&gt;/</span> with the same file
+        set. Click a file (using <span class="accent">market</span> as the example).</p>
+        <div class="tree-wrap">
+          <div class="tree" id="tree">
+            <div class="node dir">📁 repositories/market/</div>
+            <div class="node indent active" data-file="index">📄 index.ts <span class="ann">repository class</span></div>
+            <div class="node indent" data-file="helpers">📄 helpers.ts <span class="ann">pure fetch fns</span></div>
+            <div class="node indent" data-file="types">📄 types.ts <span class="ann">contexts + DTOs</span></div>
+            <div class="node indent" data-file="utils">📄 utils.ts <span class="ann">pure transforms</span></div>
+            <div class="node indent" data-file="mapper">📄 mapper.ts <span class="ann">shape normaliser</span></div>
+            <div class="node indent" data-file="const">📄 const.ts <span class="ann">key-type strings</span></div>
+            <div class="node indent" data-file="spec">📄 index.spec.ts <span class="ann">co-located test</span></div>
+            <div class="hr" style="margin:9px 6px"></div>
+            <div class="node dir" style="font-size:.72rem">some domains also have:</div>
+            <div class="node indent" data-file="bcs">📄 bcs.ts <span class="ann">Move struct decode</span></div>
+            <div class="node indent" data-file="schema">📄 schema.ts <span class="ann">Zod validation</span></div>
+          </div>
+          <div class="file-detail" id="fileDetail"></div>
+        </div>
+        <div class="code" data-lang="ts"><script type="text/plain">export class MarketRepository extends BaseRepository<MarketRepoContext, MarketRepoMetadata> {
+  get context() { return { ...this.baseContext, indexer: this.indexer, addresses: this.addresses }; }
+
+  getMarkets({ coinPrices, source = 'api-first' }) {
+    return runWithDataSourceFallback({
+      source, label: 'MarketRepository.getMarkets', logger: this.logger,
+      api:     () => getMarketsFromIndexer(this.context, { coinPrices }),  // pure helper
+      onchain: () => getMarketsFromOnChain(this.context, { coinPrices }),  // pure helper
+    });
+  }
+}</script></div>
+      </section>
+
+      <section data-nav="BaseRepository">
+        <h2>The <span class="mono" style="font-size:.84em">BaseRepository</span> contract</h2>
+        <p class="lead">All fourteen repos extend one generic base — Template Method: the base owns cache/logger/onchain/metadata,
+        each domain fills the abstract <span class="mono">context</span>.</p>
+        <div class="code" data-lang="ts"><script type="text/plain">export abstract class BaseRepository<Context, Metadata = unknown> {
+  protected readonly queryClient: QueryClient;   // shared TanStack cache
+  protected readonly logger: Logger;             // noopLogger by default
+  protected readonly onchain: OnChainDataSource;
+  protected readonly metadata: Metadata;          // per-domain config from wiring
+
+  protected async fetchWithCache<T>(options): Promise<T> {
+    try { return await this.queryClient.fetchQuery(options); }
+    catch (error) { this.logger?.error('Error fetching query', { queryKey: options.queryKey }); throw error; }
+  }
+  get baseContext() { return { onchain: this.onchain, fetchWithCache: this.fetchWithCache.bind(this), logger: this.logger, metadata: this.metadata }; }
+  abstract get context(): Context & BaseContext;  // each domain widens baseContext
+}</script></div>
+      </section>
+
+      <section data-nav="Wiring & registry">
+        <h2>Wiring &amp; the composition root</h2>
+        <p class="lead">Repos are pure and model-agnostic, so <span class="mono">wiring/</span> assembles them. It's the
+        only place that knows both worlds.</p>
+        <div class="g4 grid">
+          <div class="panel" style="margin:0"><h4 style="margin-top:0" class="accent">registry.ts</h4><p>Lazy, memoised registry of all 14 repos.</p></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0" class="accent2">datasources.ts</h4><p>Model → datasource adapters.</p></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0" class="accent3">metadata.ts</h4><p>The seam: project models → plain data.</p></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0" class="gold">source.ts</h4><p>Normalise legacy flags → QuerySource.</p></div>
+        </div>
+        <div class="code" data-lang="ts"><script type="text/plain">export const createRepositories = (deps) => {
+  const onchain = createOnChainDataSource(deps.utils.scallopSuiKit);
+  const indexer = createIndexerDataSource(deps.indexerUrl);
+  const base = { onchain, queryClient: deps.utils.queryClient, logger: deps.utils.logger };
+  let market;                                              // private memo slot
+  return {
+    get market() {
+      return (market ??= new MarketRepository({            // built once, on first access
+        ...base, indexer,
+        metadata: buildMarketMetadata(deps.utils),         // <-- the model→repo seam
+      }));
+    },
+    // ...13 more
+  };
+};</script></div>
+        <p class="note">The facade owns it lazily: <span class="mono">get repos() { return (this._repos ??= createRepositories({ utils: this.utils })); }</span></p>
+      </section>
+
+      <section data-nav="Design patterns">
+        <h2>Design pattern catalog</h2>
+        <details class="acc"><summary><span class="num">01</span> Repository <span class="chev">›</span></summary><div class="body"><p>Per-domain class abstracting "how do I read this." <b>Lives in:</b> every <span class="mono">repositories/&lt;domain&gt;/index.ts</span>.</p></div></details>
+        <details class="acc"><summary><span class="num">02</span> Composition Root + lazy Registry <span class="chev">›</span></summary><div class="body"><p><span class="mono">createRepositories</span> builds the graph; getters memoise. <b>Lives in:</b> <span class="mono">wiring/registry.ts</span>.</p></div></details>
+        <details class="acc"><summary><span class="num">03</span> Strategy + graceful fallback <span class="chev">›</span></summary><div class="body"><p><span class="mono">runWithDataSourceFallback</span> picks api/api-first/onchain with a degrade path. <b>Lives in:</b> <span class="mono">repositories/utils.ts</span>.</p></div></details>
+        <details class="acc"><summary><span class="num">04</span> Anti-corruption layer <span class="chev">›</span></summary><div class="body"><p><span class="mono">mappers/</span> normalise gRPC vs JSON-RPC; <span class="mono">wiring/metadata.ts</span> keeps model types out of repos.</p></div></details>
+        <details class="acc"><summary><span class="num">05</span> Functional core, imperative shell <span class="chev">›</span></summary><div class="body"><p>Pure helpers + pure <span class="mono">build*</span>; thin async methods do the I/O. <b>Lives in:</b> <span class="mono">helpers.ts</span>, <span class="mono">portfolioCalculations.ts</span>.</p></div></details>
+        <details class="acc"><summary><span class="num">06</span> Structural dependency injection <span class="chev">›</span></summary><div class="body"><p><span class="mono">ClientServiceContext</span>, <span class="mono">BaseContext</span>, <span class="mono">*RepoContext</span> are interfaces — real object in prod, literal in tests.</p></div></details>
+        <details class="acc"><summary><span class="num">07</span> Template Method <span class="chev">›</span></summary><div class="body"><p><span class="mono">BaseRepository</span> implements caching + baseContext; abstract <span class="mono">context</span> is the hook.</p></div></details>
+        <details class="acc"><summary><span class="num">08</span> Adapter <span class="chev">›</span></summary><div class="body"><p><span class="mono">OnChainDataSource</span> narrows the Sui client; <span class="mono">datasources.ts</span> adapts <span class="mono">ScallopSuiKit</span>.</p></div></details>
+        <details class="acc"><summary><span class="num">09</span> Proxy composition <span class="chev">›</span></summary><div class="body"><p><span class="mono">createTxBlock()</span> layers 7 builders behind one Proxy. <b>Lives in:</b> <span class="mono">builders/index.ts</span>.</p></div></details>
+        <details class="acc"><summary><span class="num">10</span> Facade <span class="chev">›</span></summary><div class="body"><p>The models present a stable API; the whole refactor shipped with zero public signature changes.</p></div></details>
+      </section>
+    </div>
+
+    <!-- ======================================================== VIEW: ROADMAP -->
+    <div class="view" data-view="roadmap" id="view-roadmap">
+      <section class="first" data-nav="Where we are now">
+        <div class="eyebrow">Roadmap · status</div>
+        <h2>Where we are now</h2>
+        <p class="lead">The structural refactor shipped as <b>v4.0.0</b>. The read layer is fully migrated onto
+        <span class="mono">repositories/&lt;domain&gt;/</span> and the old <span class="mono">query/service</span>
+        stack is retired (commit <span class="mono">ac13acd</span>). What's left is polish and a future major-version
+        cleanup — listed as pickable tasks below.</p>
+
+        <div class="stat-row">
+          <div class="stat"><div class="n green">8<span style="font-size:1rem;color:var(--faint)">/9</span></div><div class="l">workstreams complete</div></div>
+          <div class="stat"><div class="n accent">14<span style="font-size:1rem;color:var(--faint)">/14</span></div><div class="l">domains on repositories/</div></div>
+          <div class="stat"><div class="n accent2">4<span style="font-size:1rem;color:var(--faint)">/4</span></div><div class="l">milestones shipped</div></div>
+          <div class="stat"><div class="n gold">0</div><div class="l">public API breaks</div></div>
+        </div>
+
+        <h4>The journey — and the marker for "you are here"</h4>
+        <div class="stepper">
+          <div class="step done"><div class="dot"></div><div class="lbl">Foundations</div><div class="sub">mappers · errors · logger</div></div>
+          <div class="step done"><div class="dot"></div><div class="lbl">Source strategy</div><div class="sub">QuerySource + fallback</div></div>
+          <div class="step done"><div class="dot"></div><div class="lbl">Context &amp; config</div><div class="sub">strictInit · composition</div></div>
+          <div class="step done"><div class="dot"></div><div class="lbl">Tx-block safety</div><div class="sub">manifest · modules</div></div>
+          <div class="step done"><div class="dot"></div><div class="lbl">Service + repo split</div><div class="sub">pure build fns</div></div>
+          <div class="step cur"><div class="dot"></div><div class="lbl">Repositories migration</div><div class="sub">◀ shipped on this branch</div></div>
+          <div class="step next"><div class="dot"></div><div class="lbl">Major-version cleanup</div><div class="sub">▶ next</div></div>
+        </div>
+        <div class="callout info"><b>Source of truth.</b> The canonical workstream tracker is
+        <a href="SDK_STRUCTURE_FIX_PLAN.md">docs/SDK_STRUCTURE_FIX_PLAN.md</a>; the original problem statement is
+        <a href="SDK_STRUCTURE_REPORT.md">docs/SDK_STRUCTURE_REPORT.md</a>. The day-to-day domain checklist lived in a
+        root <span class="mono">PLAN.md</span> that is intentionally git-ignored (local planning doc).</div>
+      </section>
+
+      <section data-nav="Workstream status">
+        <h2>The 9 workstreams</h2>
+        <p class="lead">The refactor was organised into nine workstreams. Eight are complete; WS7 (file-size /
+        cleanup) is the one still trickling.</p>
+        <div class="ws-row"><span class="wsn">1</span><div class="wsx"><div class="wst">Mapping &amp; anti-corruption</div><div class="wsd"><span class="mono">mappers/</span> normalise gRPC vs JSON-RPC; raw payloads no longer leak into logic.</div></div><span class="status done">done</span></div>
+        <div class="ws-row"><span class="wsn">2</span><div class="wsx"><div class="wst">Explicit data-source strategy</div><div class="wsd">Monkey-patched fallback replaced by <span class="mono">runWithDataSourceFallback</span> + <span class="mono">QuerySource</span>.</div></div><span class="status done">done</span></div>
+        <div class="ws-row"><span class="wsn">3</span><div class="wsx"><div class="wst">Typed errors &amp; logger</div><div class="wsd"><span class="mono">ScallopError</span> hierarchy + injectable <span class="mono">Logger</span>; no-console gate. <span class="gold">Legacy <span class="mono">Error</span> throws remain.</span></div></div><span class="status ongoing">90%</span></div>
+        <div class="ws-row"><span class="wsn">4</span><div class="wsx"><div class="wst">Context &amp; dependency boundary</div><div class="wsd"><span class="mono">ScallopContext</span> + structural <span class="mono">ClientServiceContext</span> for testable services.</div></div><span class="status done">done</span></div>
+        <div class="ws-row"><span class="wsn">5</span><div class="wsx"><div class="wst">Config &amp; constants refactor</div><div class="wsd"><span class="mono">strictInit</span> + config sources; <span class="mono">ScallopConstants</span> now composes <span class="mono">ScallopAddress</span> (v4.0.0).</div></div><span class="status done">done</span></div>
+        <div class="ws-row"><span class="wsn">6</span><div class="wsx"><div class="wst">Tx-block composition safety</div><div class="wsd"><span class="mono">manifest.ts</span> + <span class="mono">verify.ts</span> + explicit <span class="mono">tx.core</span>/<span class="mono">tx.spool</span> module view.</div></div><span class="status done">done</span></div>
+        <div class="ws-row"><span class="wsn">7</span><div class="wsx"><div class="wst">Split large services &amp; queries</div><div class="wsd">Read layer fully on <span class="mono">repositories/&lt;domain&gt;/</span>; client services extracted; <span class="mono">src/queries/</span> fully retired (builders + utils on repos). <span class="gold">File-size budget still open.</span></div></div><span class="status ongoing">ongoing</span></div>
+        <div class="ws-row"><span class="wsn">8</span><div class="wsx"><div class="wst">API surface &amp; package exports</div><div class="wsd"><span class="mono">types/public</span> vs <span class="mono">types/internal</span>; subpath exports. <span class="gold">Physical DTO relocation deferred to a major.</span></div></div><span class="status done">done</span></div>
+        <div class="ws-row"><span class="wsn">9</span><div class="wsx"><div class="wst">Test restructure</div><div class="wsd">unit / integration / query split, CI gate, no-console gate, co-located repo specs.</div></div><span class="status done">done</span></div>
+      </section>
+
+      <section data-nav="Up for grabs">
+        <h2>Up for grabs — pick a task</h2>
+        <p class="lead">Concrete, scoped work items derived from the plan's "still pending" list and real code signals.
+        Filter by area; <span class="rose">next-major</span> items are breaking and wait for the next major release.</p>
+        <div class="filterbar">
+          <input id="taskFilter" placeholder="Search tasks… e.g. 'error', 'docs', 'repo'" />
+          <button class="chip active" data-area="all">all</button>
+          <button class="chip" data-area="read-layer">read-layer</button>
+          <button class="chip" data-area="cleanup">cleanup</button>
+          <button class="chip" data-area="errors">errors</button>
+          <button class="chip" data-area="types">types</button>
+          <button class="chip" data-area="docs">docs</button>
+          <button class="chip" data-area="testing">testing</button>
+          <button class="chip" data-area="hardening">hardening</button>
+        </div>
+        <div class="task-grid" id="taskGrid"></div>
+        <div class="callout warn" style="margin-top:16px"><b>Compatibility policy for any task:</b> keep the public
+        signature, move the implementation, delegate, test both paths, and only remove the old method in a major
+        version. Run <span class="kbd">pnpm test:typecheck &amp;&amp; pnpm test:unit &amp;&amp; pnpm build</span> before committing.</div>
+      </section>
+    </div>
+
+    <!-- ======================================================== VIEW: REF -->
+    <div class="view" data-view="ref" id="view-ref">
+      <section class="first" data-nav="Method → repo map">
+        <div class="eyebrow">Reference</div>
+        <h2>Facade → repository method map</h2>
+        <p class="lead">Where a <span class="mono">ScallopQuery</span> read actually lands — extracted from
+        <span class="mono">scallopQuery.ts</span>. Filter it.</p>
+        <div class="filterbar"><input id="mmFilter" placeholder="Filter by method, repo, or domain… e.g. 'obligation', 'spool'" /></div>
+        <div class="tbl-scroll"><table id="mmTable"><thead><tr><th>ScallopQuery surface</th><th class="mono">→ repository call</th><th>domain</th></tr></thead><tbody>
+          <tr><td>getMarkets / getMarketPools</td><td class="mono">repos.market.getMarkets</td><td><span class="tag">market</span></td></tr>
+          <tr><td>getPoolSupplyLimit / getPoolBorrowLimit</td><td class="mono">repos.market.getPool*Limit</td><td><span class="tag">market</span></td></tr>
+          <tr><td>getObligations</td><td class="mono">repos.obligation.getObligations</td><td><span class="tag">obligation</span></td></tr>
+          <tr><td>queryObligation</td><td class="mono">repos.obligation.getObligationData</td><td><span class="tag">obligation</span></td></tr>
+          <tr><td>getCoinAmount(s)</td><td class="mono">repos.coinBalance.getCoinAmount(s)</td><td><span class="tag">coinBalance</span></td></tr>
+          <tr><td>getMarketCoinAmount(s)</td><td class="mono">repos.coinBalance.getMarketCoinAmount(s)</td><td><span class="tag">coinBalance</span></td></tr>
+          <tr><td>getSCoinAmount(s) / getSCoinTotalSupply</td><td class="mono">repos.coinBalance.getSCoin*</td><td><span class="tag">coinBalance</span></td></tr>
+          <tr><td>getFlashLoanFees</td><td class="mono">repos.flashloan.getFlashloanFees</td><td><span class="tag">flashloan</span></td></tr>
+          <tr><td>getPriceFromPyth / getCoinPrices</td><td class="mono">repos.price.getPricesFromPyth</td><td><span class="tag">price</span></td></tr>
+          <tr><td>getSpools / getSpool</td><td class="mono">repos.spool.getSpool(s)</td><td><span class="tag">spool</span></td></tr>
+          <tr><td>getStakeAccounts / getStakePool</td><td class="mono">repos.spool.getStake*</td><td><span class="tag">spool</span></td></tr>
+          <tr><td>getSpoolRewardPool(s)</td><td class="mono">repos.spool.getSpoolRewardPool(s)</td><td><span class="tag">spool</span></td></tr>
+          <tr><td>getBorrowIncentivePools / Accounts</td><td class="mono">repos.borrowIncentive.getBorrowIncentive*</td><td><span class="tag">borrowIncentive</span></td></tr>
+          <tr><td>getBindedObligation / getBindedVeScaKey</td><td class="mono">repos.borrowIncentive.getBinded*</td><td><span class="tag">borrowIncentive</span></td></tr>
+          <tr><td>isIsolatedAsset / getIsolatedAssets</td><td class="mono">repos.isolatedAssets.getIsolatedAssets</td><td><span class="tag">isolatedAssets</span></td></tr>
+          <tr><td>getVeSca / getVeScas / getVeScaTreasuryInfo</td><td class="mono">repos.veSca.*</td><td><span class="tag">veSca</span></td></tr>
+          <tr><td>getVeScaKeyIdFromReferralBindings</td><td class="mono">repos.referral.getVeScaKeyIdFromReferralBindings</td><td><span class="tag">referral</span></td></tr>
+          <tr><td>getLoyaltyProgramInfos</td><td class="mono">repos.loyaltyProgram.getLoyaltyProgramInfos</td><td><span class="tag">loyaltyProgram</span></td></tr>
+          <tr><td>getVeScaLoyaltyProgramInfos</td><td class="mono">repos.veScaLoyaltyProgram.getVeScaLoyaltyProgramInfos</td><td><span class="tag">veScaLoyaltyProgram</span></td></tr>
+          <tr><td>getPriceUpdatePolicies / getAssetOracles / aggIds</td><td class="mono">repos.xOracle.*</td><td><span class="tag">xOracle</span></td></tr>
+          <tr><td>getPoolAddresses</td><td class="mono">repos.poolAddresses.getPoolAddresses</td><td><span class="tag">poolAddresses</span></td></tr>
+          <tr><td>getLending(s) · getObligationAccount(s) · getUserPortfolio</td><td class="mono">orchestrate repos + build*() [pure]</td><td><span class="tag">composite</span></td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section data-nav="Repository catalog">
+        <h2>Domain repository catalog</h2>
+        <div class="filterbar">
+          <input id="repoFilter" placeholder="Search repositories… e.g. 'sca', 'oracle'" />
+          <button class="chip active" data-rsrc="all">all</button>
+          <button class="chip" data-rsrc="dual">dual</button>
+          <button class="chip" data-rsrc="onchain">on-chain</button>
+          <button class="chip" data-rsrc="api">api</button>
+        </div>
+        <div class="repo-grid" id="repoGrid"></div>
+      </section>
+
+      <section data-nav="Write-path internals">
+        <h2>Write-path internals</h2>
+        <p class="lead">Client write methods delegate to a service that receives a <b>structural</b> context — not the
+        whole client. Signing/broadcasting goes through <span class="mono">ctx.executor</span> (a <span class="mono">TransactionExecutor</span>;
+        <span class="mono">SuiKitTransactionExecutor</span> is the sui-kit impl), so the write path is SDK-agnostic and services
+        unit-test with a fake executor.</p>
+        <div class="code" data-lang="ts"><script type="text/plain">interface ClientServiceContext {
+  readonly walletAddress: string;
+  readonly builder:  Pick<ScallopBuilder, 'createTxBlock'>;
+  readonly query:    Pick<ScallopQuery, 'getObligations' | 'getStakeAccounts' | 'getVeScas' | ...>;
+  readonly utils:    Pick<ScallopUtils, 'parseCoinName' | 'parseMarketCoinName' | ...>;
+  readonly constants: Pick<ScallopConstants, 'whitelist'>;
+  readonly executor: TransactionExecutor;   // SDK-agnostic write-path seam
+}</script></div>
+        <div class="g3 grid">
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">6 client services</h4><p>Lending · Collateral · Borrow · Spool · VeSca · Referral — in <span class="mono">services/client/</span>.</p></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">ScallopTxBlock = Proxy</h4><p>7 builders behind one object. <span class="mono">tx.supplyQuick === tx.core.supplyQuick</span>.</p></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">Quick vs Normal</h4><p><span class="mono">…Quick</span> auto-fetch + clean up; normal = thin Move-call wrappers.</p></div>
+        </div>
+      </section>
+
+      <section data-nav="Cross-cutting">
+        <h2>Cross-cutting concerns</h2>
+        <div class="g2 grid">
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">Typed errors</h4>
+            <table>
+              <tr><th>class</th><th>fires when</th></tr>
+              <tr><td class="mono">ScallopRpcError</td><td>Sui RPC/gRPC failure</td></tr>
+              <tr><td class="mono">ScallopIndexerError</td><td>indexer HTTP failure</td></tr>
+              <tr><td class="mono">ScallopParseError</td><td>mapper rejected a shape</td></tr>
+              <tr><td class="mono">ScallopConfigError</td><td>strictInit + missing config</td></tr>
+              <tr><td class="mono">ScallopTransactionBuildError</td><td>tx builder failed</td></tr>
+            </table></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">Subpath exports</h4>
+            <table>
+              <tr><th>import</th><th>gives</th></tr>
+              <tr><td class="mono">/client · /query · /builder</td><td>one facade, slim</td></tr>
+              <tr><td class="mono">/errors · /logger</td><td>typed errors, logger</td></tr>
+              <tr><td class="mono">/config · /context</td><td>config + context</td></tr>
+              <tr><td class="mono">/mappers · /types</td><td>pure mappers · types only</td></tr>
+            </table></div>
+        </div>
+        <div class="callout"><b>No console.*</b> in SDK internals — enforced by <span class="mono">test/noConsole.spec.ts</span>.
+        <b>strictInit</b> throws <span class="mono">ScallopConfigError</span> on missing config (validation in
+        <span class="mono">config/ConfigValidator.ts</span>).</div>
+      </section>
+
+      <section data-nav="Where does code go?">
+        <h2>Where does my code go?</h2>
+        <p class="lead">Click to reveal. Then run <span class="kbd">pnpm test:typecheck &amp;&amp; pnpm test:unit &amp;&amp; pnpm build</span>.</p>
+        <div class="decision" id="decision">
+          <div class="dcard"><b>A new read for an existing domain</b><span class="ans">→ pure helper in <span class="mono">repositories/&lt;domain&gt;/helpers.ts</span> + method on <span class="mono">index.ts</span></span></div>
+          <div class="dcard"><b>A whole new readable domain</b><span class="ans">→ new <span class="mono">repositories/&lt;domain&gt;/</span> + register in <span class="mono">wiring/registry.ts</span> &amp; <span class="mono">metadata.ts</span></span></div>
+          <div class="dcard"><b>A pure financial calculation</b><span class="ans">→ <span class="mono">services/query/portfolioCalculations.ts</span> + a spec</span></div>
+          <div class="dcard"><b>A new write action</b><span class="ans">→ method on a <span class="mono">services/client/*Service.ts</span> + thin delegate on <span class="mono">ScallopClient</span></span></div>
+          <div class="dcard"><b>A new Move-call wrapper</b><span class="ans">→ <span class="mono">builders/&lt;domain&gt;Builder.ts</span> + register in <span class="mono">manifest.ts</span> &amp; <span class="mono">modules.ts</span></span></div>
+          <div class="dcard"><b>A payload-shape transform</b><span class="ans">→ <span class="mono">mappers/&lt;domain&gt;Mapper.ts</span>; throw <span class="mono">ScallopParseError</span></span></div>
+          <div class="dcard"><b>A new public type</b><span class="ans">→ <span class="mono">types/public/</span> (semver-governed)</span></div>
+          <div class="dcard"><b>A new entry point/subpath</b><span class="ans">→ <span class="mono">tsup.config.ts</span> + <span class="mono">package.json#exports</span> + smoke test</span></div>
+        </div>
+      </section>
+
+      <section data-nav="Testing & before/after">
+        <h2>Testing &amp; what changed</h2>
+        <div class="split">
+          <div>
+            <h4>Co-located, network-free specs</h4>
+            <p>Helpers are the network boundary — mock them, hand the repo a fake context, assert routing.</p>
+            <div class="code" data-lang="ts"><script type="text/plain">vi.mock('./helpers.js');
+const repo = new MarketRepository({ onchain, indexer, addresses, metadata, logger });
+await repo.getMarkets({ coinPrices: {}, source: 'api' });
+expect(getMarketsFromIndexer).toHaveBeenCalledOnce();
+expect(getMarketsFromOnChain).not.toHaveBeenCalled();</script></div>
+            <table>
+              <tr><th>script</th><th>net?</th></tr>
+              <tr><td class="mono">test:unit</td><td class="green">no</td></tr>
+              <tr><td class="mono">test:no-console</td><td class="green">no</td></tr>
+              <tr><td class="mono">test:query / test:integration</td><td class="rose">yes</td></tr>
+            </table>
+          </div>
+          <div>
+            <h4>Before → after</h4>
+            <p><b>Retired</b> (logic moved into <span class="mono">repositories/</span>):</p>
+            <p><span class="tag del">portfolioQuery.ts</span><span class="tag del">borrowIncentiveQuery.ts</span><span class="tag del">priceQuery.ts</span><span class="tag del">sCoinQuery.ts</span><span class="tag del">xOracleQuery.ts</span><span class="tag del">loyaltyProgramQuery.ts</span><span class="tag del">coreQuery.ts</span><span class="tag del">spoolQuery.ts</span><span class="tag del">vescaQuery.ts</span><span class="tag del">src/queries/ (whole folder)</span><span class="tag del">scallopCache.ts</span></p>
+            <p><b>Kept:</b> <span class="tag">mappers/</span> (shared anti-corruption). <span class="mono">src/queries/</span> is now <b>fully retired</b> — builders &amp; <span class="mono">ScallopUtils</span> read through repositories.</p>
+            <p><b>New layers:</b> <span class="tag new">repositories/ + wiring/</span><span class="tag new">datasources/ + rateLimiter</span><span class="tag new">services/</span><span class="tag new">TransactionExecutor</span><span class="tag new">config/</span><span class="tag new">errors/</span><span class="tag new">logger/</span></p>
+          </div>
+        </div>
+      </section>
+
+      <section data-nav="Glossary">
+        <h2>Glossary &amp; further reading</h2>
+        <div class="g2 grid">
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">Terms</h4>
+            <ul class="clean">
+              <li><b>Repository</b> — per-domain class that reads protocol state.</li>
+              <li><b>Context</b> — bundle of <span class="mono">onchain/indexer/fetchWithCache/logger/metadata</span> every helper gets.</li>
+              <li><b>Metadata</b> — per-domain plain config projected from the models.</li>
+              <li><b>QuerySource</b> — <span class="mono">'onchain' | 'api' | 'api-first'</span>.</li>
+              <li><b>Obligation</b> — a borrow position (collateral + debt).</li>
+              <li><b>sCoin / marketCoin</b> — interest-bearing receipt tokens (<span class="mono">'ssui'</span>).</li>
+              <li><b>veSCA</b> — vote-escrowed locked SCA.</li>
+            </ul></div>
+          <div class="panel" style="margin:0"><h4 style="margin-top:0">Companion docs</h4>
+            <ul class="clean">
+              <li><a href="../document/query.md">document/query.md</a> · <a href="../document/client.md">client.md</a> · <a href="../document/builder.md">builder.md</a></li>
+              <li><a href="V3_TO_V4.md">V3_TO_V4.md</a> — upgrade guide</li>
+              <li><a href="../AGENTS.md">AGENTS.md</a> · <a href="../CHANGELOG.md">CHANGELOG.md</a></li>
+            </ul>
+            <div class="callout info" style="margin-bottom:0"><b>Note:</b> the prose <span class="mono">SDK_STRUCTURE.md</span>
+            describes an earlier mid-refactor layout; this guide documents the current branch HEAD.</div></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="footer">Self-contained interactive guide for the <span class="mono">refactor-structure</span> branch of
+<span class="mono">@scallop-io/sui-scallop-sdk</span>. Open it offline, share it with the team.</div>
+
+<script>
+/* ===== data ===== */
+const LAYERS={
+  facade:{c:'--l-facade',title:'Facade — the public API',resp:'The stable surface you import. Thin delegation only.',
+    pts:['Preserves all public method signatures — the refactor was invisible to callers.','ScallopQuery owns the repository registry; ScallopClient owns write services.','Each model exposes the next via a getter; .init() cascades.'],files:['Scallop','ScallopClient','ScallopBuilder','ScallopQuery','ScallopUtils']},
+  service:{c:'--l-service',title:'Services — business logic',resp:'Logic that spans repositories or composes pure math.',
+    pts:['client/* services do write orchestration behind a structural context.','query/portfolioCalculations.ts holds pure build*/calculate* functions.','Composite reads (getUserPortfolio) live here as fetch-then-build.'],files:['LendingService','BorrowService','CollateralService','SpoolService','VeScaService','ReferralService','portfolioCalculations']},
+  repo:{c:'--l-repo',title:'Repositories — per-domain read API',resp:'One folder per domain; a tiny class over pure helpers.',
+    pts:['Extends BaseRepository<Context, Metadata>; exposes a typed context.','Dual-source domains use runWithDataSourceFallback; on-chain domains are one-liners.','Assembled lazily + memoised by wiring/registry.ts. Repos never import models.'],files:['base.ts','market/','obligation/','spool/','price/','…14 domains','wiring/']},
+  data:{c:'--l-data',title:'Data sources — raw I/O adapters',resp:'The only code that performs network I/O.',
+    pts:['OnChainDataSource narrows the Sui client to ~16 transport methods, rate-limited via datasources/rateLimiter.ts.','IndexerDataSource / ApiDataSource wrap axios.','wiring/datasources.ts maps a ScallopSuiKit onto an OnChainDataSource.'],files:['onchain.ts','indexer.ts','api.ts','rateLimiter.ts']},
+  chain:{c:'--l-chain',title:'Transport — the network',resp:'External systems the SDK reads from.',
+    pts:['Sui fullnode over JSON-RPC and gRPC (mappers absorb shape differences).','Scallop indexer REST for fast aggregated reads.','Reads cached by @tanstack/query-core keyed via constants/queryKeys.ts.'],files:['Sui RPC/gRPC','Scallop indexer']},
+  cross:{c:'--l-cross',title:'Cross-cutting — support layers',resp:'Concerns that touch every layer.',
+    pts:['mappers/ normalise wire shapes and throw ScallopParseError.','errors/ typed hierarchy; logger/ no-console; config/ strictInit.','types/public vs types/internal draws the semver boundary.'],files:['mappers','errors','logger','config','types']},
+};
+const FILES={
+  index:{role:'the repository class',name:'index.ts',body:'A small class extending <code>BaseRepository</code> that builds a <code>context</code> and exposes read methods. Each method picks a data source and delegates to a pure helper. Holds no logic itself.'},
+  helpers:{role:'pure fetch functions',name:'helpers.ts',body:'The workhorses: pure <code>fn(context, args)</code> like <code>getMarketsFromIndexer</code>/<code>getMarketsFromOnChain</code>. They cache, hit a data source, map + parse, return a typed shape. Pure ⇒ testable with a fake context.'},
+  types:{role:'contexts + DTOs',name:'types.ts',body:'The <code>*RepoContext</code> (and narrowed <code>*IndexerContext</code>/<code>*OnChainContext</code> via <code>Pick</code>), <code>*Args</code>/<code>*Metadata</code>, the raw <code>Origin*</code> DTOs, the <code>Parsed*</code>/<code>Calculated*</code> shapes, and public outputs like <code>MarketPool</code>.'},
+  utils:{role:'pure transforms',name:'utils.ts',body:'Pure math: <code>parseOriginMarketPoolData()</code> (strings→numbers) and <code>calculateMarketPoolData()</code> (APR/APY, utilization, conversion rate). Unit-tested in <code>utils.spec.ts</code>.'},
+  mapper:{role:'shape normaliser',name:'mapper.ts',body:'Domain-local anti-corruption: <code>mapMarketEventToMarketData()</code> flattens the gRPC/JSON-RPC event before parsing. Cross-domain mappers live in <code>src/mappers/</code>.'},
+  const:{role:'key-type strings',name:'const.ts',body:'Constant Move type strings for dynamic-field reads: <code>SUPPLY_LIMIT_KEY_TYPE</code>, <code>BORROW_LIMIT_KEY_TYPE</code>, <code>ISOLATED_ASSET_KEY_TYPE</code>.'},
+  spec:{role:'co-located test',name:'index.spec.ts',body:'Network-free unit test: mocks the helpers, builds the repo with a fake context, and asserts routing — including that <code>api-first</code> falls back to <code>onchain</code> and logs a warn.'},
+  bcs:{role:'Move struct decode',name:'bcs.ts',body:'BCS struct definitions to deserialize Move objects from raw bytes, e.g. <code>bcs.struct(\'VeSca\', { locked_amount: bcs.u64(), unlock_at: bcs.u64() })</code>. In 7 of 14 domains.'},
+  schema:{role:'Zod validation',name:'schema.ts',body:'Zod schemas validating parsed payloads (price, poolAddresses, loyaltyProgram). Mind the <code>parseObjectAs</code> unwrapping gotcha.'},
+};
+const REPOS=[
+  ['market','dual','Lending/borrow pools, collaterals, limits, isolated flags.',['index','helpers','types','utils','mapper','const']],
+  ['spool','dual','Staking spools, stake accounts, reward pools.',['index','helpers','types','utils']],
+  ['price','api','Pyth-sourced coin prices.',['index','helpers','types','schema']],
+  ['coinBalance','onchain','Wallet coin / sCoin / marketCoin balances + supply.',['index','helpers','types']],
+  ['obligation','onchain','Obligations by owner; raw obligation data by id.',['index','helpers','types','utils']],
+  ['borrowIncentive','onchain','Borrow-incentive pools & accounts, bindings.',['index','helpers','types','utils','bcs']],
+  ['isolatedAssets','onchain','Which assets are isolated.',['index','helpers','types','bcs','const']],
+  ['veSca','onchain','veSCA locks by key/address + treasury.',['index','helpers','types','bcs']],
+  ['loyaltyProgram','onchain','Loyalty program info & pending rewards.',['index','helpers','types','bcs','schema']],
+  ['xOracle','onchain','Price-update policies, oracles, aggregator ids.',['index','helpers','types','bcs','const']],
+  ['veScaLoyaltyProgram','onchain','veSCA loyalty program info.',['index','helpers','types','bcs','schema']],
+  ['referral','onchain','veSCA key id from referral bindings.',['index','helper','types','bcs']],
+  ['poolAddresses','onchain','Per-coin pool object-address bundles.',['index','helpers','types','schema','const']],
+  ['flashloan','onchain','Flash-loan fee rates.',['index','helpers','types']],
+];
+const TASKS=[
+  {t:'Trim oversized files under the 700-LOC budget',area:'cleanup',eff:'L',brk:false,where:'scallopQuery.ts · scallopClient.ts · portfolioCalculations.ts',d:'ScallopQuery (~1.1k) and ScallopClient (~1k) still exceed the file-size budget. Split further behind the existing facade — no signature changes.'},
+  {t:'Throw typed errors in legacy paths',area:'errors',eff:'M',brk:false,where:'builders/* · queries/* · utils/*',d:'Several legacy builder/query/util paths still throw plain Error. Convert to ScallopError subclasses (ScallopRpcError, ScallopTransactionBuildError) so callers can branch on type.'},  {t:'Restore getSCoinSwapRate on MarketRepository',area:'read-layer',eff:'S',brk:false,where:'repositories/market/index.ts · helpers.ts',d:'The sCoin→sCoin swap-rate method is currently commented out in the new market repo. Port it onto the dual-source runWithDataSourceFallback pattern.'},
+  {t:'Harden gRPC not-found detection',area:'hardening',eff:'S',brk:false,where:'repositories/utils.ts → isObjectNotFoundError',d:'The gRPC branch guards the not-found→null contract by string-matching the error message. Confirm the exact message against a mainnet probe of a known-unbound key and tighten.'},
+  {t:'Physically relocate internal DTOs',area:'types',eff:'M',brk:true,where:'types/query/* → types/internal/dto/',d:'Origin*/Parsed*/Calculated* DTOs are re-exported from types/internal but still defined in types/query/*. Move the canonical defs; leave a re-export shim.'},
+  {t:'Remove the dead withIndexerFallback helper',area:'cleanup',eff:'S',brk:true,where:'utils/* → withIndexerFallback / callMethodWithIndexerFallback',d:'Unused since the source-fallback migration. Remove once no SDK code references it (and drop its now-fixed test).'},
+  {t:'Mark flat tx-block methods @deprecated',area:'docs',eff:'S',brk:false,where:'builders/manifest.ts · modules.ts (TSDoc)',d:'Now that tx.core / tx.spool / … exist, annotate the flat aliases in TSDoc to steer new code to the module view.'},
+  {t:'Remove deprecated lending aliases',area:'cleanup',eff:'M',brk:true,where:'scallopClient.ts · coreBuilder.ts',d:'deposit / depositQuick / addCollateral / addCollateralQuick are @deprecated in favour of supply / depositCollateral. Remove in the next major.'},
+  {t:'Refresh the stale prose docs',area:'docs',eff:'S',brk:false,where:'docs/SDK_STRUCTURE.md',d:'SDK_STRUCTURE.md still describes the intermediate flat services/repositories layout. Align it with the domain-folder repositories on this branch.'},
+  {t:'Raise repository spec coverage',area:'testing',eff:'M',brk:false,where:'repositories/<domain>/*.spec.ts',d:'Ensure every domain repo + pure helper has a co-located, network-free spec; close any gaps surfaced by coverage.'},
+];
+const FLOW_DESC={
+  0:'<b>1 · Facade.</b> <code>query.getMarketPools()</code> is a thin delegate — no logic.',
+  1:'<b>2 · Repository.</b> <code>repos.market.getMarkets()</code> runs (legacy flags normalised to one QuerySource).',
+  2:'<b>3 · Strategy + cache.</b> <code>runWithDataSourceFallback</code> dispatches on source; every read is wrapped in <code>fetchWithCache</code>.',
+  '3a':'<b>4 · Indexer helper.</b> Cached GET, then field copy with metadata-derived prices/types.',
+  '3b':'<b>4 · On-chain helper.</b> Build a Move call → simulate → map the event → parse + calculate each pool.',
+  '4a':'<b>5 · Network.</b> The Scallop indexer answers — fast and aggregated. Done.',
+  '4b':'<b>5 · Network.</b> The Sui fullnode runs <code>market_query::market_data</code> — authoritative. Done.'
+};
+
+/* ===== helpers ===== */
+const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const KW=new Set(('const let var function return async await class extends new import export from type interface if else for of in throw try catch get set private readonly protected abstract public implements void this super null undefined true false as satisfies typeof keyof').split(' '));
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function highlight(src){
+  const re=/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`)|([A-Za-z_$][A-Za-z0-9_$]*)|(\d+(?:\.\d+)?)/g;
+  let out='',last=0,m;
+  while((m=re.exec(src))){ out+=esc(src.slice(last,m.index)); last=re.lastIndex;
+    if(m[1])out+='<span class="t-c">'+esc(m[1])+'</span>';
+    else if(m[2])out+='<span class="t-s">'+esc(m[2])+'</span>';
+    else if(m[3]){const w=m[3]; if(KW.has(w))out+='<span class="t-k">'+w+'</span>'; else if(/^[A-Z]/.test(w))out+='<span class="t-t">'+w+'</span>'; else out+=w;}
+    else if(m[4])out+='<span class="t-n">'+m[4]+'</span>'; }
+  out+=esc(src.slice(last));
+  return out.replace(/([A-Za-z_$][A-Za-z0-9_$]*)(\()/g,(_,n,p)=>KW.has(n)?_:'<span class="t-f">'+n+'</span>'+p);
+}
+function initCode(){
+  $$('.code[data-lang]').forEach(box=>{
+    const sc=box.querySelector('script[type="text/plain"]'); if(!sc)return;
+    const raw=sc.textContent.replace(/^\n/,'').replace(/\s+$/,''); const lang=box.dataset.lang||'ts';
+    box.innerHTML='<div class="code-head"><span class="fname">'+lang+'</span><button class="copy">copy</button></div><pre><code>'+highlight(raw)+'</code></pre>';
+    box.querySelector('.copy').addEventListener('click',e=>navigator.clipboard.writeText(raw).then(()=>{e.target.textContent='copied!';setTimeout(()=>e.target.textContent='copy',1200);}));
+  });
+}
+function renderLayer(k){const L=LAYERS[k],d=$('#layerDetail');d.style.setProperty('--lc','var('+L.c+')');
+  d.innerHTML='<div class="dh"><span class="ix"></span><h4>'+L.title+'</h4></div><div class="resp">'+L.resp+'</div><ul>'+L.pts.map(p=>'<li>'+p+'</li>').join('')+'</ul><div class="files">'+L.files.map(f=>'<span class="tag">'+f+'</span>').join('')+'</div>';}
+function initLayers(){renderLayer('facade');$$('#stack .layer').forEach(el=>el.addEventListener('click',()=>{$$('#stack .layer').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderLayer(el.dataset.layer);}));}
+function renderFile(k){const F=FILES[k],d=$('#fileDetail');d.innerHTML='<div class="role">'+F.role+'</div><h4>'+F.name+'</h4><p>'+F.body+'</p>';}
+function initTree(){renderFile('index');$$('#tree .node[data-file]').forEach(n=>n.addEventListener('click',()=>{$$('#tree .node').forEach(x=>x.classList.remove('active'));n.classList.add('active');renderFile(n.dataset.file);}));}
+function initTabs(){$$('.tabs').forEach(group=>{const scope=group.parentElement;group.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{group.querySelectorAll('button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');scope.querySelectorAll(':scope > .tabpane').forEach(p=>p.classList.remove('active'));const pane=scope.querySelector('.tabpane[data-pane="'+btn.dataset.tab+'"]');if(pane)pane.classList.add('active');}));});}
+function initRepos(){const grid=$('#repoGrid');const sc={dual:'src-dual',onchain:'src-onchain',api:'src-api'},sl={dual:'dual-source',onchain:'on-chain',api:'api'};
+  grid.innerHTML=REPOS.map(([n,s,desc,files])=>'<div class="repo" data-name="'+n.toLowerCase()+'" data-src="'+s+'"><h4>'+n+'/</h4><span class="src '+sc[s]+'">'+sl[s]+'</span><p>'+desc+'</p><div class="files">'+files.map(f=>'<span class="tag">'+f+'.ts</span>').join('')+'</div></div>').join('');
+  const apply=()=>{const q=($('#repoFilter').value||'').toLowerCase();const src=$('.chip.active[data-rsrc]').dataset.rsrc;
+    $$('#repoGrid .repo').forEach(c=>{const okQ=c.dataset.name.includes(q)||c.textContent.toLowerCase().includes(q);const okS=src==='all'||c.dataset.src===src;c.style.display=(okQ&&okS)?'':'none';});};
+  $('#repoFilter').addEventListener('input',apply);
+  $$('.chip[data-rsrc]').forEach(ch=>ch.addEventListener('click',()=>{$$('.chip[data-rsrc]').forEach(x=>x.classList.remove('active'));ch.classList.add('active');apply();}));}
+function initMethodMap(){$('#mmFilter').addEventListener('input',e=>{const q=e.target.value.toLowerCase();$$('#mmTable tbody tr').forEach(tr=>tr.style.display=tr.textContent.toLowerCase().includes(q)?'':'none');});}
+function initDecision(){$$('#decision .dcard').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('show')));}
+/* read flow */
+let flowTimer=null;
+function clearFlow(){$$('#readFlow .fstep').forEach(s=>{s.classList.remove('on');s.querySelector('.fnode')?.classList.remove('on');});$$('#readFlow .fedge').forEach(e=>e.classList.remove('on'));}
+function lightStep(id){const g=$('#readFlow .fstep[data-step="'+id+'"]');if(!g)return;g.classList.add('on');g.querySelector('.fnode')?.classList.add('on');$('#flowDesc').innerHTML=FLOW_DESC[id]||'';}
+function playFlow(){clearTimeout(flowTimer);flowTimer=null;clearFlow();
+  const src=$('.chip.active[data-src]').dataset.src;const steps=['0','1','2'];
+  if(src==='onchain')steps.push('3b','4b');else steps.push('3a','4a');
+  let i=0;const tick=()=>{ if(i>=steps.length){flowTimer=null; if(src==='api-first')$('#flowDesc').innerHTML+=' <span class="gold">(On failure here, api-first retries the on-chain branch.)</span>'; return;}
+    const id=steps[i];
+    if(id==='1')$('#readFlow .fedge[data-edge="0"]').classList.add('on');
+    if(id==='2')$('#readFlow .fedge[data-edge="1"]').classList.add('on');
+    if(id==='3a'){$('#readFlow .fedge[data-edge="2a"]').classList.add('on');$('#readFlow .fedge[data-edge="3a"]').classList.add('on');}
+    if(id==='3b'){$('#readFlow .fedge[data-edge="2b"]').classList.add('on');$('#readFlow .fedge[data-edge="3b"]').classList.add('on');}
+    lightStep(id);i++;flowTimer=setTimeout(tick,850);};
+  tick();}
+function initFlow(){$('#flowPlay').addEventListener('click',playFlow);
+  $$('.chip[data-src]').forEach(ch=>ch.addEventListener('click',()=>{$$('.chip[data-src]').forEach(x=>x.classList.remove('active'));ch.classList.add('active');clearTimeout(flowTimer);flowTimer=null;clearFlow();$('#flowDesc').innerHTML='Source set to <b>'+ch.dataset.src+'</b>. Press <b>Play</b> to trace it.';}));}
+
+function initRoadmap(){
+  const grid=$('#taskGrid'); if(!grid)return;
+  const lbl={S:'small',M:'medium',L:'large'};
+  grid.innerHTML=TASKS.map(t=>'<div class="task" data-area="'+t.area+'"><h4>'+t.t+'</h4><p>'+t.d+'</p><div class="where">📁 '+t.where+'</div><div class="meta"><span class="tag">'+t.area+'</span><span class="eff '+t.eff+'">'+lbl[t.eff]+' effort</span>'+(t.brk?'<span class="brk">next-major</span>':'')+'</div></div>').join('');
+  const apply=()=>{const q=($('#taskFilter').value||'').toLowerCase();const a=$('.chip.active[data-area]').dataset.area;
+    $$('#taskGrid .task').forEach(c=>{const okQ=c.textContent.toLowerCase().includes(q);const okA=a==='all'||c.dataset.area===a;c.style.display=(okQ&&okA)?'':'none';});};
+  $('#taskFilter').addEventListener('input',apply);
+  $$('.chip[data-area]').forEach(ch=>ch.addEventListener('click',()=>{$$('.chip[data-area]').forEach(x=>x.classList.remove('active'));ch.classList.add('active');apply();}));
+}
+/* ===== view router + per-view TOC + scrollspy ===== */
+let spyHandler=null;
+function buildTOC(view){
+  const sections=$$('#view-'+view+' section[data-nav]');
+  const toc=$('#toc');
+  toc.innerHTML=sections.map((s,i)=>{ if(!s.id)s.id=view+'-'+i; return '<a data-target="'+s.id+'">'+s.dataset.nav+'</a>';}).join('');
+  $$('#toc a').forEach(a=>a.addEventListener('click',()=>{const t=document.getElementById(a.dataset.target);if(t)t.scrollIntoView({behavior:'smooth'});}));
+  if(spyHandler)window.removeEventListener('scroll',spyHandler);
+  const links=$$('#toc a');
+  spyHandler=()=>{const y=window.scrollY+90;let idx=0;sections.forEach((s,i)=>{if(s.offsetTop<=y)idx=i;});links.forEach(l=>l.classList.remove('active'));links[idx]?.classList.add('active');
+    const h=document.documentElement;$('#progress').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';};
+  window.addEventListener('scroll',spyHandler,{passive:true});spyHandler();
+}
+function showView(v){
+  $$('.view').forEach(x=>x.classList.toggle('active',x.dataset.view===v));
+  $$('#vtabs .vtab').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+  buildTOC(v); window.scrollTo(0,0);
+  if(location.hash.slice(1)!==v)history.replaceState(null,'','#'+v);
+}
+function initRouter(){
+  $$('#vtabs .vtab').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+  $$('[data-goto]').forEach(el=>el.addEventListener('click',()=>showView(el.dataset.goto)));
+  const initial=['start','use','data','arch','roadmap','ref'].includes(location.hash.slice(1))?location.hash.slice(1):'start';
+  showView(initial);
+}
+function initChrome(){$('#themeBtn').addEventListener('click',()=>{const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';});}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  initCode();initLayers();initTree();initTabs();initRepos();initMethodMap();initDecision();initFlow();initRoadmap();initChrome();initRouter();
+});
+</script>
+</body>
+</html>

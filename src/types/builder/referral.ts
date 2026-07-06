@@ -3,7 +3,8 @@ import {
   TransactionResult,
   SuiTxBlock as SuiKitTxBlock,
 } from '@scallop-io/sui-kit';
-import { ScallopBuilder } from 'src/models';
+import type { MoveCallContext } from 'src/txBuilders/context.js';
+import type { ReferralActionContext } from 'src/txBuilders/referral/quick.js';
 
 export type ReferralIds = {
   referralPgkId: string;
@@ -22,12 +23,13 @@ export type ReferralNormalMethods = {
     veScaKey: SuiObjectArg,
     poolCoinName: string
   ) => TransactionResult;
+  unbindReferral: () => void;
 };
 
 export type ReferralQuickMethods = {
   claimReferralRevenueQuick: (
     veScaKey: SuiObjectArg,
-    coinNames: string[]
+    coinNames?: string[]
   ) => Promise<void>;
 };
 
@@ -37,11 +39,11 @@ export type ReferralTxBlock = SuiTxBlockWithReferralNormalMethods &
   ReferralQuickMethods;
 
 export type GenerateReferralNormalMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: MoveCallContext;
   txBlock: SuiKitTxBlock;
 }) => ReferralNormalMethods;
 
 export type GenerateReferralQuickMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: ReferralActionContext;
   txBlock: SuiTxBlockWithReferralNormalMethods;
 }) => ReferralQuickMethods;
