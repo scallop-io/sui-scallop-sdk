@@ -153,6 +153,31 @@ Common optional options:
 - `tokensPerSecond`: RPC read rate limit.
 - `usePythPullModel`, `useOnChainXOracleList`, `sponsoredFeeds`: tx-builder oracle behavior.
 
+### Overriding the underlying clients
+
+The SDK builds its own transport clients by default, but you can inject your own:
+
+- `suiClient` (`ClientWithCoreApi` from `@mysten/sui`): overrides the Sui RPC client used for on-chain reads. When omitted, the SDK builds a `SuiGrpcClient` from `network` + `fullnodeUrl`. Accepted by `ScallopUtils` / `ScallopQuery` / `ScallopBuilder` / `ScallopClient` / `Scallop`.
+- `httpClient` (`AxiosInstance`): overrides the HTTP client used for Scallop API / address-config fetches. When omitted, the SDK creates an Axios instance from the API `url` + `timeout`. Accepted anywhere `ScallopAddress` config flows (`Scallop`, `ScallopConstants`, `ScallopAddress`).
+- `client` (`ScallopClient`): only on the top-level `Scallop` constructor — reuse an already-built `ScallopClient` instead of constructing a new one. Unrelated to the two transport clients above.
+
+```ts
+import { Scallop } from '@scallop-io/sui-scallop-sdk';
+import { SuiClient } from '@mysten/sui/client';
+import axios from 'axios';
+
+const sdk = new Scallop({
+  addressId: '695fcdc084f790c04eb068dc',
+  network: 'mainnet',
+  fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
+  walletAddress: '0x...',
+  suiClient: new SuiClient({ url: 'https://fullnode.mainnet.sui.io:443' }), // custom Sui RPC client
+  httpClient: axios.create({ timeout: 15_000 }), // custom HTTP client for API/address fetches
+});
+```
+
+> Note: prior to v4.3.0 these were all named `client` and collided into an unusable intersection type. Use `suiClient` / `httpClient` (and the top-level `client`) on v4.3.0+.
+
 ## Query Examples
 
 ```ts
