@@ -2,16 +2,16 @@ import axios, { type AxiosInstance } from 'axios';
 
 export type ApiDataSourceParams = {
   url?: string;
-  client?: AxiosInstance;
+  httpClient?: AxiosInstance;
   timeout?: number;
 };
 
 export class ApiDataSource {
   private readonly client: AxiosInstance;
 
-  constructor({ url, client, timeout = 8000 }: ApiDataSourceParams = {}) {
+  constructor({ url, httpClient, timeout = 8000 }: ApiDataSourceParams = {}) {
     this.client =
-      client ??
+      httpClient ??
       axios.create({
         baseURL: url,
         headers: {

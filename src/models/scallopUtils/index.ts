@@ -30,13 +30,13 @@ class ScallopUtils implements ScallopUtilsInterface {
 
   constructor(params: ScallopUtilsConstructorParams) {
     this.constants = params.scallopConstants ?? new ScallopConstants(params);
-    if (params.client) {
+    if (params.suiClient) {
       const {
-        client,
+        suiClient,
         fullnodeUrl,
         tokensPerSecond = DEFAULT_TOKENS_PER_SECOND,
       } = params;
-      this.onchain = createOnChainDataSource(client, fullnodeUrl, {
+      this.onchain = createOnChainDataSource(suiClient, fullnodeUrl, {
         tokensPerSecond,
       });
     } else {
