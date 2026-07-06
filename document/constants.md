@@ -3,9 +3,9 @@
 ## Initialize class
 
 ```typescript
-const scallopConstants = new ScallopConstants(
-  addressId: '67c44a103fe1b8c454eb9699'
-);
+const scallopConstants = new ScallopConstants({
+  addressId: '695fcdc084f790c04eb068dc',
+});
 
 await scallopConstants.init();
 ```
@@ -13,11 +13,11 @@ await scallopConstants.init();
 - Overriding Pool Addresses value
 
 ```typescript
-const CUSTOM_POOL_ADDRESSES = (...); // Record<string, PoolAddress>
-const scallopConstants = new ScallopConstants(
-  addressId: '67c44a103fe1b8c454eb9699',
+const CUSTOM_POOL_ADDRESSES = {...}; // Record<string, PoolAddress>
+const scallopConstants = new ScallopConstants({
+  addressId: '695fcdc084f790c04eb068dc',
   forcePoolAddressInterface: CUSTOM_POOL_ADDRESSES,
-);
+});
 
 await scallopConstants.init();
 ```
@@ -25,11 +25,11 @@ await scallopConstants.init();
 - Overriding Whitelist value
 
 ```typescript
-const CUSTOM_WHITELIST = (...); // Whitelist
-const scallopConstants = new ScallopConstants(
-  addressId: '67c44a103fe1b8c454eb9699',
+const CUSTOM_WHITELIST = {...}; // Whitelist
+const scallopConstants = new ScallopConstants({
+  addressId: '695fcdc084f790c04eb068dc',
   forceWhitelistInterface: CUSTOM_WHITELIST,
-);
+});
 
 await scallopConstants.init();
 ```
@@ -37,14 +37,14 @@ await scallopConstants.init();
 - Setting default values
 
 ```typescript
-const scallopConstants = new ScallopConstants(
-  addressId: '67c44a103fe1b8c454eb9699',
+const scallopConstants = new ScallopConstants({
+  addressId: '695fcdc084f790c04eb068dc',
   defaultValues: {
     poolAddresses: [DEFAULT_POOL_ADDRESSES],
-    whitelist: [DEFEAULT_WHITELIST],
-    addresses: [DEFAULT_ADDRESSES]
-  }
-)
+    whitelist: [DEFAULT_WHITELIST],
+    addresses: [DEFAULT_ADDRESSES],
+  },
+});
 
 await scallopConstants.init();
 ```
@@ -85,5 +85,5 @@ const swusdtScointype = scallopConstants.coinTypes[sCoinName];
 - Get list of coin name that can be used as incentive reward for borrow incentive program
 
 ```typescript
-const supportedRewardsName = scallopConstants.supportedBorrowIncentiveRewards(); // return Set<string>
+const supportedRewardsName = scallopConstants.supportedBorrowIncentiveRewards; // Set<string>
 ```

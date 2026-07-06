@@ -1,5 +1,5 @@
-import ScallopClient, { ScallopClientParams } from './scallopClient';
-
+import ScallopClient from './scallopClient/index.js';
+import { ScallopClientConstructorParams } from './scallopClient/types.js';
 /**
  * @argument params - The parameters for the Scallop instance.
  * @argument cacheOptions - The cache options for the QueryClient.
@@ -10,21 +10,23 @@ import ScallopClient, { ScallopClientParams } from './scallopClient';
  * @example
  * ```typescript
  * const sdk = new Scallop(<parameters>);
- * const scallopAddress = await sdk.getScallopAddress();
+ * const scallopConstants = await sdk.getScallopConstants();
  * const scallopBuilder = await sdk.createScallopBuilder();
  * const scallopClient = await sdk.createScallopClient();
- * const scallopIndexer= await sdk.createScallopIndexer();
- * const scallopUtils= await sdk.createScallopUtils();
+ * const scallopUtils = await sdk.createScallopUtils();
  * ```
  */
 
-export type ScallopParams = {
+export type ScallopConstructorParams = {
   client?: ScallopClient;
-} & ScallopClientParams;
+} & ScallopClientConstructorParams;
 class Scallop {
   public readonly client: ScallopClient;
-  public constructor(params: ScallopParams) {
-    this.client = params.client ?? new ScallopClient(params);
+  public constructor({
+    client,
+    ...scallopClientArgs
+  }: ScallopConstructorParams) {
+    this.client = client ?? new ScallopClient(scallopClientArgs);
   }
 
   async init(force: boolean = false) {
@@ -69,16 +71,6 @@ class Scallop {
   async createScallopUtils() {
     await this.init();
     return this.client.utils;
-  }
-
-  /**
-   * Create a scallop indexer instance.
-   *
-   * @return Scallop Indexer.
-   */
-  async createScallopIndexer() {
-    await this.init();
-    return this.client.query.indexer;
   }
 
   /**

@@ -3,9 +3,16 @@ import type {
   SuiObjectArg,
   SuiTxArg,
 } from '@scallop-io/sui-kit';
-import type { Argument, TransactionResult } from '@mysten/sui/transactions';
-import { SuiTxBlockWithSpool } from '.';
-import { ScallopBuilder } from 'src/models';
+import type {
+  Argument,
+  TransactionResult,
+  Transaction,
+} from '@mysten/sui/transactions';
+import { SuiTxBlockWithSpool } from './index.js';
+import type {
+  CoreActionContext,
+  MoveCallContext,
+} from 'src/txBuilders/context.js';
 
 export type CoreIds = {
   protocolPkg: string;
@@ -16,6 +23,11 @@ export type CoreIds = {
 };
 
 export type NestedResult = Extract<Argument, { $kind: 'NestedResult' }>;
+
+/** Transaction command from getData().commands (MoveCall, TransferObjects, etc.) */
+export type TransactionCommand = ReturnType<
+  Transaction['getData']
+>['commands'][number];
 type Obligation = NestedResult;
 type ObligationKey = NestedResult;
 type ObligationHotPotato = NestedResult;
@@ -27,7 +39,7 @@ export type CoreNormalMethods = {
     obligationHotPotato: SuiObjectArg
   ) => void;
   openObligationEntry: () => void;
-  addCollateral: (
+  depositCollateral: (
     obligation: SuiObjectArg,
     coin: SuiObjectArg,
     collateralCoinName: string
@@ -38,7 +50,7 @@ export type CoreNormalMethods = {
     amount: number,
     collateralCoinName: string
   ) => TransactionResult;
-  deposit: (coin: SuiObjectArg, poolCoinName: string) => TransactionResult;
+  supply: (coin: SuiObjectArg, poolCoinName: string) => TransactionResult;
   depositEntry: (coin: SuiObjectArg, poolCoinName: string) => TransactionResult;
   withdraw: (
     marketCoin: SuiObjectArg,
@@ -81,37 +93,63 @@ export type CoreNormalMethods = {
     loan: SuiObjectArg,
     poolCoinName: string
   ) => void;
+  liquidate: (
+    obligation: SuiObjectArg,
+    coin: SuiObjectArg,
+    debtCoinName: string,
+    collateralCoinName: string
+  ) => [NestedResult, NestedResult];
 };
 
 export type CoreQuickMethods = {
-  addCollateralQuick: (
+  depositCollateralQuick: (
     amount: number,
     collateralCoinName: string,
-    obligationId?: SuiObjectArg
+    obligationId?: SuiObjectArg,
+    isSponsoredTx?: boolean
   ) => Promise<void>;
   takeCollateralQuick: (
     amount: number,
     collateralCoinName: string,
     obligationId?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligationKey?: SuiObjectArg,
+    updateOracleOptions?: {
+      usePythPullModel?: boolean;
+      useOnChainXOracleList?: boolean;
+      sponsoredFeeds?: string[];
+      isSponsoredTx?: boolean;
+    }
   ) => Promise<TransactionResult>;
   borrowQuick: (
     amount: number,
     poolCoinName: string,
     obligationId?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligationKey?: SuiObjectArg,
+    updateOracleOptions?: {
+      usePythPullModel?: boolean;
+      useOnChainXOracleList?: boolean;
+      sponsoredFeeds?: string[];
+      isSponsoredTx?: boolean;
+    }
   ) => Promise<TransactionResult>;
   borrowWithReferralQuick: (
     amount: number,
     poolCoinName: string,
     borrowReferral: SuiObjectArg,
     obligationId?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligationKey?: SuiObjectArg,
+    updateOracleOptions?: {
+      usePythPullModel?: boolean;
+      useOnChainXOracleList?: boolean;
+      sponsoredFeeds?: string[];
+      isSponsoredTx?: boolean;
+    }
   ) => Promise<TransactionResult>;
-  depositQuick: (
+  supplyQuick: (
     amount: number,
     poolCoinName: string,
-    returnSCoin?: boolean
+    returnSCoin?: boolean,
+    isSponsoredTx?: boolean
   ) => Promise<TransactionResult>;
   withdrawQuick: (
     amount: number,
@@ -120,9 +158,30 @@ export type CoreQuickMethods = {
   repayQuick: (
     amount: number,
     poolCoinName: string,
-    obligationId?: SuiObjectArg
+    obligationId?: SuiObjectArg,
+    isSponsoredTx?: boolean
   ) => Promise<void>;
-  updateAssetPricesQuick: (assetCoinNames?: string[]) => Promise<void>;
+  updateAssetPricesQuick: (
+    assetCoinNames?: string[],
+    updateOracleOptions?: {
+      usePythPullModel?: boolean;
+      useOnChainXOracleList?: boolean;
+      sponsoredFeeds?: string[];
+      isSponsoredTx?: boolean;
+    }
+  ) => Promise<void>;
+  liquidateQuick: (
+    amount: number,
+    debtCoinName: string,
+    collateralCoinName: string,
+    obligationId: SuiObjectArg,
+    updateOracleOptions?: {
+      usePythPullModel?: boolean;
+      useOnChainXOracleList?: boolean;
+      sponsoredFeeds?: string[];
+      isSponsoredTx?: boolean;
+    }
+  ) => Promise<[NestedResult, NestedResult]>;
 };
 
 export type SuiTxBlockWithCoreNormalMethods = SuiKitTxBlock &
@@ -132,11 +191,11 @@ export type SuiTxBlockWithCoreNormalMethods = SuiKitTxBlock &
 export type CoreTxBlock = SuiTxBlockWithCoreNormalMethods & CoreQuickMethods;
 
 export type GenerateCoreNormalMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: MoveCallContext;
   txBlock: SuiKitTxBlock;
 }) => CoreNormalMethods;
 
 export type GenerateCoreQuickMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: CoreActionContext;
   txBlock: SuiTxBlockWithCoreNormalMethods;
 }) => CoreQuickMethods;

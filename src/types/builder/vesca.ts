@@ -1,7 +1,8 @@
 import { SuiTxBlock as SuiKitTxBlock, SuiObjectArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import { ScallopBuilder } from 'src/models';
-import { SuiObjectData } from '@mysten/sui/client';
+import type { MoveCallContext } from 'src/txBuilders/context.js';
+import type { VeScaActionContext } from 'src/txBuilders/vesca/quick.js';
+import type { SuiObjectData } from '../sui.js';
 
 export type VeScaNormalMethods = {
   lockSca: (
@@ -94,11 +95,11 @@ export type SuiTxBlockWithVeScaNormalMethods = SuiKitTxBlock &
 export type VeScaTxBlock = SuiTxBlockWithVeScaNormalMethods & VeScaQuickMethods;
 
 export type GenerateVeScaNormalMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: MoveCallContext;
   txBlock: SuiKitTxBlock;
 }) => VeScaNormalMethods;
 
 export type GenerateVeScaQuickMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: VeScaActionContext;
   txBlock: SuiTxBlockWithVeScaNormalMethods;
 }) => VeScaQuickMethods;

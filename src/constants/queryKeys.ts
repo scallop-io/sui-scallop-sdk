@@ -1,4 +1,4 @@
-import { QueryKeys } from 'src/types/constant/queryKeys';
+import { QueryKeys } from 'src/types/constant/queryKeys.js';
 
 export const queryKeys = {
   api: {
@@ -9,9 +9,8 @@ export const queryKeys = {
     ],
     getWhiteList: () => ['api', 'getWhiteList'],
     getPoolAddresses: () => ['api', 'getPoolAddresses'],
-    getMarket: () => ['api', 'getMarket'],
+    getMarkets: () => ['api', 'getMarkets'],
     getSpools: () => ['api', 'getSpools'],
-    getBorrowIncentivePool: () => ['api', 'getBorrowIncentivePools'],
     getTotalValueLocked: () => ['api', 'getTotalValueLocked'],
   },
 
@@ -27,13 +26,15 @@ export const queryKeys = {
       'getObjects',
       props,
     ],
+    getSharedObject: (props?: QueryKeys.RPC.GetSharedObject) => [
+      'rpc',
+      'getSharedObject',
+      props,
+    ],
     getOwnedObjects: (props?: QueryKeys.RPC.GetOwnedObjects) => [
       'rpc',
       'getOwnedObjects',
-      {
-        ...props,
-        filter: JSON.stringify(props?.filter ?? undefined),
-      },
+      props,
     ],
     getDynamicFields: (props?: QueryKeys.RPC.GetDynamicFields) => [
       'rpc',
@@ -55,25 +56,29 @@ export const queryKeys = {
         refreshArgs: props?.refreshArgs
           ? JSON.stringify(props?.refreshArgs)
           : undefined,
-        vescaAmountArgs: props?.vescaAmountArgs
-          ? JSON.stringify(props?.vescaAmountArgs)
+        veScaAmountArgs: props?.veScaAmountArgs
+          ? JSON.stringify(props?.veScaAmountArgs)
           : undefined,
       },
     ],
 
+    getCoinBalance: (props?: QueryKeys.RPC.GetCoinBalance) => [
+      'rpc',
+      'getCoinBalance',
+      props,
+    ],
     getAllCoinBalances: (props?: QueryKeys.RPC.GetAllCoinBalances) => [
       'rpc',
       'getAllCoinBalances',
       props,
     ],
-
-    getNormalizedMoveFunction: (
-      props?: QueryKeys.RPC.GetNormalizedMoveFunction
-    ) => {
-      return ['rpc', 'getNormalizedMoveCall', props];
-    },
   },
   oracle: {
-    getPythLatestPriceFeeds: () => ['oracle', 'getPythPriceIds'],
+    getPythLatestPriceFeeds: (endpoint?: string, priceIds?: string[]) => [
+      'oracle',
+      'getPythPriceIds',
+      priceIds,
+      endpoint,
+    ],
   },
 };

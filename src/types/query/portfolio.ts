@@ -1,5 +1,5 @@
-import type { MarketPool } from './core';
-import type { Spool } from './spool';
+import type { MarketPool } from '../repositories/market.js';
+import type { Spool } from '../repositories/spool.js';
 
 type OptionalKeys<T> = {
   [K in keyof T]?: T[K];
@@ -69,6 +69,7 @@ export type ObligationAccount = {
   totalRewardedPools: number;
   collaterals: OptionalKeys<Record<string, ObligationCollateral>>;
   debts: OptionalKeys<Record<string, ObligationDebt>>;
+  // @deprecated: incentive info moved to 'debts' field
   borrowIncentives: OptionalKeys<Record<string, ObligationBorrowIncentive>>;
 };
 
@@ -106,6 +107,7 @@ export type ObligationDebt = {
   availableBorrowCoin: number;
   availableRepayAmount: number;
   availableRepayCoin: number;
+  rewards: ObligationBorrowIncentiveReward[];
 };
 
 export type ObligationBorrowIncentiveReward = {
@@ -117,7 +119,10 @@ export type ObligationBorrowIncentiveReward = {
   weightedBorrowAmount: number;
   availableClaimCoin: number;
   availableClaimAmount: number;
+  baseRewardApr: number;
   boostValue: number;
+  boostedRewardApr: number;
+  maxBoost: number;
 };
 
 export type ObligationBorrowIncentive = {
@@ -127,17 +132,4 @@ export type ObligationBorrowIncentive = {
   coinDecimal: number;
   coinPrice: number;
   rewards: ObligationBorrowIncentiveReward[];
-};
-
-export type TotalValueLocked = {
-  supplyLendingValue: number;
-  supplyCollateralValue: number;
-  supplyValue: number;
-  borrowValue: number;
-  totalValue: number;
-  supplyValueChangeRatio?: number;
-  supplyLendingValueChangeRatio?: number;
-  supplyCollateralValueChangeRatio?: number;
-  borrowValueChangeRatio?: number;
-  totalValueChangeRatio?: number;
 };

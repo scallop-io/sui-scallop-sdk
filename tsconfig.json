@@ -3,14 +3,17 @@
     "require": ["tsconfig-paths/register"]
   },
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "baseUrl": ".",
+    "paths": {
+      "src/*": ["./src/*"]
+    },
     "downlevelIteration": true,
     "rootDir": "src",
     "outDir": "dist",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "strict": true,
     "sourceMap": true,
     "declaration": true,
@@ -21,9 +24,9 @@
     "preserveSymlinks": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "noEmit": false,
-    "emitDeclarationOnly": true,
+    "noEmit": true,
     "incremental": false,
+    "types": ["node"],
     "typeRoots": ["./node_modules/@types"]
   },
   "include": ["./src/**/*"],
