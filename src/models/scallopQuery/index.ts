@@ -214,6 +214,16 @@ class ScallopQuery implements ScallopQueryInterface {
   }
 
   /**
+   * Get the on-chain names for an address's obligations.
+   *
+   * @param ownerAddress - The owner address.
+   * @return A map of obligation id to its registered name (unnamed obligations are omitted).
+   */
+  async getObligationNames(ownerAddress: string = this.walletAddress) {
+    return this.repos.obligation.getObligationNames(ownerAddress);
+  }
+
+  /**
    * Query obligation data.
    *
    * @param obligationId - The obligation id.
