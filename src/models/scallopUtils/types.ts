@@ -10,7 +10,7 @@ export type ScallopUtilsConstructorParams = {
   walletAddress: string;
   scallopConstants?: ScallopConstants;
   logger?: Logger;
-  client?: ClientWithCoreApi;
+  suiClient?: ClientWithCoreApi;
   tokensPerSecond?: number;
 } & {
   network: SuiClientTypes.Network;

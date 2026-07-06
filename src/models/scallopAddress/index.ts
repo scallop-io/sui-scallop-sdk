@@ -26,7 +26,7 @@ class ScallopAddress {
     addressId,
     url = API_BASE_URL,
     timeout,
-    client,
+    httpClient,
     network = 'mainnet',
     logger = noopLogger,
     forceAddressesInterface,
@@ -36,7 +36,7 @@ class ScallopAddress {
     this.network = network;
     this.logger = logger;
     this.addressApiRepo = new AddressApiRepository({
-      api: new ApiDataSource({ url, timeout, client }),
+      api: new ApiDataSource({ url, timeout, httpClient }),
     });
 
     if (forceAddressesInterface) {

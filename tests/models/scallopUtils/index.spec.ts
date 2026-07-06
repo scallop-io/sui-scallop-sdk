@@ -18,9 +18,9 @@ const createScallopUtilsWithCoins = (
   const utils = new ScallopUtils({
     walletAddress: '0xowner',
     scallopConstants: { queryClient: {} },
-    // New-gen transport methods live on `client.core`; the on-chain datasource
-    // wraps `client.core` (see wiring/datasources.ts).
-    client: { core: { listCoins } },
+    // New-gen transport methods live on `suiClient.core`; the on-chain datasource
+    // wraps `suiClient.core` (see wiring/datasources.ts).
+    suiClient: { core: { listCoins } },
     fullnodeUrl: 'mock://node',
   } as never);
   return { utils, listCoins };
