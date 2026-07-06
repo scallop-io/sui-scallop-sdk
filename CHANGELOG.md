@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.3.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.2.0...v4.3.0) (2026-07-06)
+
+### Added
+
+- `getObligationNames` — read an address's obligation names from the on-chain naming registry, plus the new `obligationNaming.registryTableId` address entry ([8b874b8](https://github.com/scallop-io/sui-scallop-sdk/commit/8b874b8165bd8d71514a338f8d9f3465a3c6d00f))
+
+### Changed
+
+- Migrate Pyth price fetching to the `pyth-sui-js` 3.0.0 Hermes client (`getLatestPriceUpdates`); `@pythnetwork/pyth-sui-js` bumped `2.2.0` → `3.0.0` and `PriceApiConfig.config` now takes `HermesClientConfig` ([bae3df5](https://github.com/scallop-io/sui-scallop-sdk/commit/bae3df5e0e8a654c2af6442f8e11c16bb5cd8afa))
+- Expose `getObligationNames` on `ScallopQuery` (previously reachable only via the internal obligation repository) ([1b6b944](https://github.com/scallop-io/sui-scallop-sdk/commit/1b6b944))
+- Rename overlapping `client` constructor params so they no longer collide: `ApiDataSourceParams.client` → `httpClient` (Axios instance) and `ScallopUtilsConstructorParams.client` → `suiClient` (`ClientWithCoreApi` Sui RPC client). `Scallop`'s top-level `client` (`ScallopClient`) is unchanged. The three names previously merged into a single `client` field typed as an impossible `ScallopClient & ClientWithCoreApi & AxiosInstance` intersection, so no value could be passed — this makes `httpClient`/`suiClient` usable ([94ebbb9](https://github.com/scallop-io/sui-scallop-sdk/commit/94ebbb9))
+
+### Removed
+
+- Remove unused query keys from `queryKeys` ([ec29973](https://github.com/scallop-io/sui-scallop-sdk/commit/ec29973f10013d4d500ac5fd389cf3bdcb85ff3d))
+
 ## [4.2.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.1.2...v4.2.0) (2026-06-29)
 
 ### Added
