@@ -12,6 +12,12 @@ export type ScallopUtilsConstructorParams = {
   logger?: Logger;
   suiClient?: ClientWithCoreApi;
   tokensPerSecond?: number;
+  /**
+   * Coalescing window (ms) for batched `getObject` reads. Default `0` (flush on
+   * the next macrotask); raise to batch reads spread over a few ms, or `null`
+   * for microtask-only. See `OnChainDataSource`.
+   */
+  objectBatchWindowMs?: number | null;
 } & {
   network: SuiClientTypes.Network;
   fullnodeUrl: string;

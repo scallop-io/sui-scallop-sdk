@@ -26,11 +26,6 @@ export const queryKeys = {
       'getObjects',
       props,
     ],
-    getSharedObject: (props?: QueryKeys.RPC.GetSharedObject) => [
-      'rpc',
-      'getSharedObject',
-      props,
-    ],
     getOwnedObjects: (props?: QueryKeys.RPC.GetOwnedObjects) => [
       'rpc',
       'getOwnedObjects',
@@ -72,12 +67,20 @@ export const queryKeys = {
       'getAllCoinBalances',
       props,
     ],
+    getCoinBalancesByTypes: (props?: QueryKeys.RPC.GetCoinBalancesByTypes) => [
+      'rpc',
+      'getCoinBalancesByTypes',
+      props,
+    ],
   },
   oracle: {
-    getPythLatestPriceFeeds: (endpoint?: string, priceIds?: string[]) => [
+    // Keyed on the full, sorted feed-id universe (not the requested subset), so
+    // every single/subset price read hits the same cache entry. A constants
+    // change that alters the feed set self-busts the cache.
+    getPythAllPriceFeeds: (endpoint?: string, sortedFeedIds?: string[]) => [
       'oracle',
-      'getPythPriceIds',
-      priceIds,
+      'getPythAllPriceFeeds',
+      sortedFeedIds,
       endpoint,
     ],
   },

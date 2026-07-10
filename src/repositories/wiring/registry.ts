@@ -1,7 +1,13 @@
 import type ScallopUtils from 'src/models/scallopUtils/index.js';
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
 import type { Logger } from 'src/logger/index.js';
-import { createApiDataSource, createIndexerDataSource } from './datasources.js';
+import {
+  createApiDataSource,
+  createGraphQLDataSource,
+  createIndexerDataSource,
+  MAINNET_GRAPHQL_URL,
+} from './datasources.js';
+import { SuiGraphQLClient } from '@mysten/sui/graphql';
 import {
   buildBorrowIncentiveMetadata,
   buildReferralMetadata,
@@ -47,6 +53,18 @@ export type RepositoryDeps = {
   queryClientConfig?: QueryClientConfig; // Optional override for the utils query client config
   /** Override the indexer base URL; defaults to the Scallop indexer. */
   indexerUrl?: string;
+  /** Cache lifetime (ms) for the full Pyth price-feed list. Defaults to 5_000. */
+  priceTimeout?: number;
+  /**
+   * Override the Sui GraphQL endpoint used for `coinBalance` balance reads.
+   * Defaults to mainnet. Ignored when `graphqlClient` is provided.
+   */
+  graphqlUrl?: string;
+  /**
+   * Inject a preconfigured `SuiGraphQLClient` for `coinBalance` balance reads
+   * (full transport override). Takes precedence over `graphqlUrl`.
+   */
+  graphqlClient?: SuiGraphQLClient;
 };
 
 /**
@@ -76,10 +94,28 @@ export interface Repositories {
  * metadata is built at most once per domain.
  */
 export const createRepositories = (deps: RepositoryDeps): Repositories => {
-  const { utils, indexerUrl, queryClientConfig = DEFAULT_CACHE_OPTIONS } = deps;
+  const {
+    utils,
+    indexerUrl,
+    priceTimeout,
+    graphqlUrl,
+    graphqlClient,
+    queryClientConfig = DEFAULT_CACHE_OPTIONS,
+  } = deps;
 
   const onchain = utils.onchain;
   const indexer = createIndexerDataSource(indexerUrl);
+  // GraphQL-backed transport for balance reads (gRPC balance service flaps).
+  // Resolve one client shared by the rate-limited datasource (getBalance/
+  // listBalances) and the raw typed-query path (multiGetBalances).
+  const resolvedGraphqlUrl = graphqlUrl ?? MAINNET_GRAPHQL_URL;
+  const resolvedGraphqlClient =
+    graphqlClient ??
+    new SuiGraphQLClient({ url: resolvedGraphqlUrl, network: 'mainnet' });
+  const balanceSource = createGraphQLDataSource({
+    client: resolvedGraphqlClient,
+    url: resolvedGraphqlUrl,
+  });
   const queryClient: QueryClient =
     deps.queryClient ?? new QueryClient(queryClientConfig);
   const logger: Logger = utils.logger;
@@ -112,6 +148,8 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
     get coinBalance() {
       return (coinBalance ??= new CoinBalanceRepository({
         ...base,
+        balanceSource,
+        graphqlClient: resolvedGraphqlClient,
         metadata: buildCoinBalanceMetadata(utils),
       }));
     },
@@ -181,6 +219,7 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
         ...base,
         indexer,
         metadata: buildPriceMetadata(utils),
+        priceTimeout,
       }));
     },
     get poolAddresses() {

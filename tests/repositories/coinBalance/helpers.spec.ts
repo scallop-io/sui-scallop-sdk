@@ -1,0 +1,309 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  getCoinAmountFromOnChain,
+  getCoinAmountsFromOnChain,
+  getCoinBalancesFromGraphQL,
+} from 'src/repositories/coinBalance/helpers.js';
+import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { SuiGraphQLClient } from '@mysten/sui/graphql';
+
+// Balance reads are GraphQL-first with a gRPC fallback (GRAPHQL_COINBALANCE_PLAN.md).
+// These specs pin that routing: the stable GraphQL source is used on the happy
+// path, and the gRPC source is only consulted when GraphQL throws.
+
+const SUI =
+  '0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI';
+
+// Pass-through fetchWithCache: exercise the real queryFn without caching/network.
+const fetchWithCache = vi.fn(
+  ({ queryFn }: { queryKey: unknown; queryFn: () => unknown }) => queryFn()
+);
+
+const logger = { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() };
+
+const makeSource = (
+  url: string,
+  impl: {
+    getBalance?: (...a: unknown[]) => unknown;
+    listBalances?: (...a: unknown[]) => unknown;
+  }
+) =>
+  ({
+    url,
+    client: {
+      getBalance: vi.fn(impl.getBalance),
+      listBalances: vi.fn(impl.listBalances),
+    },
+  }) as unknown as OnChainDataSource;
+
+const metadata = {
+  parseCoinType: (coinName: string) => (coinName === 'sui' ? SUI : undefined),
+  whitelist: { lending: new Set(['sui']) },
+} as never;
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe('coinBalance balance reads — GraphQL-first, gRPC fallback', () => {
+  it('getCoinAmount reads from the GraphQL balanceSource, not gRPC onchain', async () => {
+    const balanceSource = makeSource('mock://graphql', {
+      getBalance: () => ({ balance: { balance: '100', coinType: SUI } }),
+    });
+    const onchain = makeSource('mock://grpc', {
+      getBalance: () => ({ balance: { balance: '999', coinType: SUI } }),
+    });
+
+    const amount = await getCoinAmountFromOnChain(
+      { onchain, balanceSource, logger, fetchWithCache, metadata } as never,
+      { coinName: 'sui', address: '0xA' }
+    );
+
+    expect(amount).toBe(100);
+    expect(balanceSource.client.getBalance).toHaveBeenCalledTimes(1);
+    expect(onchain.client.getBalance).not.toHaveBeenCalled();
+    expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  it('falls back to gRPC onchain (and warns) when GraphQL getBalance throws', async () => {
+    const balanceSource = makeSource('mock://graphql', {
+      getBalance: () => {
+        throw new Error('graphql down');
+      },
+    });
+    const onchain = makeSource('mock://grpc', {
+      getBalance: () => ({ balance: { balance: '999', coinType: SUI } }),
+    });
+
+    const amount = await getCoinAmountFromOnChain(
+      { onchain, balanceSource, logger, fetchWithCache, metadata } as never,
+      { coinName: 'sui', address: '0xA' }
+    );
+
+    expect(amount).toBe(999);
+    expect(balanceSource.client.getBalance).toHaveBeenCalledTimes(1);
+    expect(onchain.client.getBalance).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('getCoinAmounts lists balances via the GraphQL client, not the gRPC lister', async () => {
+    // The GraphQL transport `listBalances` adapter ignores the cursor, so the
+    // list path issues its own paginated query via graphqlClient.query instead.
+    const query = vi.fn(async () => ({
+      data: {
+        address: {
+          balances: {
+            pageInfo: { hasNextPage: false, endCursor: null },
+            nodes: [
+              {
+                coinType: { repr: SUI },
+                totalBalance: '500',
+                addressBalance: '0',
+              },
+            ],
+          },
+        },
+      },
+    }));
+    const graphqlClient = { query } as unknown as SuiGraphQLClient;
+    const balanceSource = {
+      url: 'mock://graphql',
+    } as unknown as OnChainDataSource;
+    const onchain = makeSource('mock://grpc', { listBalances: vi.fn() });
+    const queryClient = { setQueryData: vi.fn() };
+
+    const amounts = await getCoinAmountsFromOnChain(
+      {
+        onchain,
+        balanceSource,
+        graphqlClient,
+        logger,
+        fetchWithCache,
+        metadata,
+        queryClient,
+      } as never,
+      { address: '0xA' }
+    );
+
+    expect(amounts).toEqual({ sui: 500 });
+    expect(query).toHaveBeenCalledTimes(1);
+    expect(onchain.client.listBalances).not.toHaveBeenCalled();
+  });
+
+  it('does not loop forever when the endpoint reports hasNextPage without advancing the cursor', async () => {
+    // Regression for the gRPC-adapter-style bug: hasNextPage=true but endCursor
+    // stays null. listAllBalancesViaGraphQL must break instead of spinning.
+    const query = vi.fn(async () => ({
+      data: {
+        address: {
+          balances: {
+            pageInfo: { hasNextPage: true, endCursor: null },
+            nodes: [
+              {
+                coinType: { repr: SUI },
+                totalBalance: '42',
+                addressBalance: '0',
+              },
+            ],
+          },
+        },
+      },
+    }));
+    const graphqlClient = { query } as unknown as SuiGraphQLClient;
+    const balanceSource = {
+      url: 'mock://graphql',
+    } as unknown as OnChainDataSource;
+    const onchain = makeSource('mock://grpc', { listBalances: vi.fn() });
+    const queryClient = { setQueryData: vi.fn() };
+
+    const amounts = await getCoinAmountsFromOnChain(
+      {
+        onchain,
+        balanceSource,
+        graphqlClient,
+        logger,
+        fetchWithCache,
+        metadata,
+        queryClient,
+      } as never,
+      { address: '0xA' }
+    );
+
+    expect(amounts).toEqual({ sui: 42 });
+    expect(query).toHaveBeenCalledTimes(1); // stopped after one page, no infinite loop
+  });
+
+  it('follows the cursor across pages and stops when hasNextPage is false', async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: {
+          address: {
+            balances: {
+              pageInfo: { hasNextPage: true, endCursor: 'CUR1' },
+              nodes: [
+                {
+                  coinType: { repr: SUI },
+                  totalBalance: '10',
+                  addressBalance: '0',
+                },
+              ],
+            },
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          address: {
+            balances: {
+              pageInfo: { hasNextPage: false, endCursor: null },
+              nodes: [
+                {
+                  coinType: {
+                    repr: '0xdead::b::B',
+                  },
+                  totalBalance: '20',
+                  addressBalance: '0',
+                },
+              ],
+            },
+          },
+        },
+      });
+    const graphqlClient = { query } as unknown as SuiGraphQLClient;
+    const balanceSource = {
+      url: 'mock://graphql',
+    } as unknown as OnChainDataSource;
+    const onchain = makeSource('mock://grpc', { listBalances: vi.fn() });
+    const queryClient = { setQueryData: vi.fn() };
+
+    // sui is in the lending whitelist → filtered to it; page 2 proves pagination ran.
+    const amounts = await getCoinAmountsFromOnChain(
+      {
+        onchain,
+        balanceSource,
+        graphqlClient,
+        logger,
+        fetchWithCache,
+        metadata,
+        queryClient,
+      } as never,
+      { address: '0xA' }
+    );
+
+    expect(amounts).toEqual({ sui: 10 });
+    expect(query).toHaveBeenCalledTimes(2);
+    expect(query.mock.calls[1][0].variables.cursor).toBe('CUR1');
+  });
+});
+
+describe('getCoinBalancesFromGraphQL — multiGetBalances', () => {
+  it('maps multiGetBalances entries by normalized coin type (balance = totalBalance)', async () => {
+    const query = vi.fn(async () => ({
+      data: {
+        address: {
+          multiGetBalances: [
+            {
+              coinType: { repr: SUI },
+              totalBalance: '700',
+              coinBalance: '500',
+              addressBalance: '200',
+            },
+          ],
+        },
+      },
+    }));
+    const graphqlClient = { query } as unknown as SuiGraphQLClient;
+    const balanceSource = {
+      url: 'mock://graphql',
+    } as unknown as OnChainDataSource;
+
+    const balances = await getCoinBalancesFromGraphQL(
+      { graphqlClient, balanceSource, fetchWithCache, logger } as never,
+      { coinTypes: [SUI], address: '0xA' }
+    );
+
+    // .balance mirrors the transport contract (total), coinBalance/addressBalance preserved
+    expect(balances[SUI]).toEqual({
+      coinType: SUI,
+      balance: '700',
+      coinBalance: '500',
+      addressBalance: '200',
+    });
+    expect(query).toHaveBeenCalledTimes(1);
+  });
+
+  it('throws (and logs) when GraphQL returns errors', async () => {
+    const query = vi.fn(async () => ({
+      errors: [{ message: 'boom' }],
+    }));
+    const graphqlClient = { query } as unknown as SuiGraphQLClient;
+    const balanceSource = {
+      url: 'mock://graphql',
+    } as unknown as OnChainDataSource;
+
+    await expect(
+      getCoinBalancesFromGraphQL(
+        { graphqlClient, balanceSource, fetchWithCache, logger } as never,
+        { coinTypes: [SUI], address: '0xA' }
+      )
+    ).rejects.toThrow(/multiGetBalances failed/);
+    expect(logger.error).toHaveBeenCalledTimes(1);
+  });
+
+  it('short-circuits to {} for an empty coinTypes list (no query)', async () => {
+    const query = vi.fn();
+    const graphqlClient = { query } as unknown as SuiGraphQLClient;
+    const balanceSource = {
+      url: 'mock://graphql',
+    } as unknown as OnChainDataSource;
+
+    const balances = await getCoinBalancesFromGraphQL(
+      { graphqlClient, balanceSource, fetchWithCache, logger } as never,
+      { coinTypes: [], address: '0xA' }
+    );
+
+    expect(balances).toEqual({});
+    expect(query).not.toHaveBeenCalled();
+  });
+});

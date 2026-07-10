@@ -157,7 +157,15 @@ export const getSharedObjectData = async (
   // Handle string
   if (typeof objectId === 'string') {
     const objectData = await fetchWithCache({
-      queryKey: queryKeys.rpc.getSharedObject({ objectId, node: onchain.url }),
+      // Canonical object-read key (include-aware) so this shared-object fetch
+      // shares one cache entry with plain `getObject` reads of the same object,
+      // letting `fetchWithCache` dedupe identical in-flight requests that were
+      // previously split across the `getObject`/`getSharedObject` namespaces.
+      queryKey: queryKeys.rpc.getObject({
+        objectId,
+        include,
+        node: onchain.url,
+      }),
       queryFn: () =>
         onchain.getObject({
           objectId,

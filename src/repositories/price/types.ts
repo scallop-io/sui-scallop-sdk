@@ -28,6 +28,8 @@ export type PriceRepositoryContext = BaseContext & {
   onchain: OnChainDataSource;
   indexer: IndexerDataSource;
   pythPriceServiceConfig: PriceApiConfig;
+  /** Cache lifetime (ms) for the full Pyth price-feed list. */
+  priceTimeout: number;
 };
 
 export type PriceRepositoryParams = BaseRepoParams & {
@@ -35,12 +37,18 @@ export type PriceRepositoryParams = BaseRepoParams & {
   indexer: IndexerDataSource;
   metadata: PriceRepositoryMetadata;
   pythPriceServiceConfig?: PriceApiConfig;
+  /** Cache lifetime (ms) for the full Pyth price-feed list. Defaults to 5_000. */
+  priceTimeout?: number;
 };
 
 /** Minimal context for the Pyth API price read. */
 export type PriceApiContext = Pick<
   PriceRepositoryContext,
-  'fetchWithCache' | 'metadata' | 'pythPriceServiceConfig' | 'logger'
+  | 'fetchWithCache'
+  | 'metadata'
+  | 'pythPriceServiceConfig'
+  | 'priceTimeout'
+  | 'logger'
 >;
 
 /** Minimal context for the on-chain Pyth feed-object price read. */

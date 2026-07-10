@@ -48,6 +48,9 @@ class ScallopQuery implements ScallopQueryInterface {
     utils,
     queryClient,
     queryClientConfig,
+    priceTimeout,
+    graphqlUrl,
+    graphqlClient,
     ...scallopUtilsArgs
   }: ScallopQueryConstructorParams) {
     this.utils = utils ?? new ScallopUtils(scallopUtilsArgs);
@@ -55,6 +58,9 @@ class ScallopQuery implements ScallopQueryInterface {
       utils: this.utils,
       queryClient,
       queryClientConfig,
+      priceTimeout,
+      graphqlUrl,
+      graphqlClient,
     });
   }
 
@@ -276,6 +282,7 @@ class ScallopQuery implements ScallopQueryInterface {
     assetCoinNames?: string[],
     ownerAddress: string = this.walletAddress
   ) {
+    if (!ownerAddress) return {}; // Handle empty address
     return await this.repos.coinBalance.getCoinAmounts({
       coinNames: assetCoinNames,
       address: ownerAddress,
@@ -300,6 +307,26 @@ class ScallopQuery implements ScallopQueryInterface {
   }
 
   /**
+   * Get balances for a specific set of coin types in one GraphQL round trip
+   * (`multiGetBalances`), instead of paging every balance. Returns a map keyed
+   * by normalized coin type; types absent on-chain are omitted. GraphQL-only.
+   *
+   * @param coinTypes - Fully-qualified coin types to query.
+   * @param ownerAddress - The owner address.
+   * @return Map of normalized coin type to its `Balance`.
+   */
+  async getCoinBalances(
+    coinTypes: string[],
+    ownerAddress: string = this.walletAddress
+  ) {
+    if (!ownerAddress) return {}; // Handle empty address
+    return await this.repos.coinBalance.getCoinBalances({
+      coinTypes,
+      address: ownerAddress,
+    });
+  }
+
+  /**
    * Get all market coin amounts.
    *
    * @param coinNames - Specific an array of support market coin name.
@@ -310,6 +337,7 @@ class ScallopQuery implements ScallopQueryInterface {
     marketCoinNames?: string[],
     ownerAddress: string = this.walletAddress
   ) {
+    if (!ownerAddress) return {}; // Handle empty address
     // Preserve the legacy default set: lending whitelist mapped to market-coin
     // names (the repo's own default is the sCoin whitelist, a different set).
     const names =
@@ -399,6 +427,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return All Stake accounts data.
    */
   async getAllStakeAccounts(ownerAddress: string = this.walletAddress) {
+    if (!ownerAddress) return {}; // Handle empty address
     return await this.repos.spool.getStakeAccounts({ address: ownerAddress });
   }
 
@@ -413,6 +442,7 @@ class ScallopQuery implements ScallopQueryInterface {
     stakeMarketCoinName: string,
     ownerAddress: string = this.walletAddress
   ) {
+    if (!ownerAddress) return []; // Handle empty address
     const allStakeAccount = await this.getAllStakeAccounts(ownerAddress);
     return allStakeAccount[stakeMarketCoinName] ?? [];
   }
@@ -672,6 +702,7 @@ class ScallopQuery implements ScallopQueryInterface {
       coinPrices?: CoinPrices;
     } & QueryOptions
   ): Promise<ObligationAccounts> {
+    if (!ownerAddress) return {}; // Handle empty address
     return runWithDataSourceFallback({
       source: fromQueryOptions(args),
       label: 'ScallopQuery.getObligationAccounts',
@@ -957,6 +988,7 @@ class ScallopQuery implements ScallopQueryInterface {
     walletAddress?: string;
     excludeEmpty?: boolean;
   } = {}) {
+    if (!walletAddress) return []; // Handle empty address
     return await this.repos.veSca.getVeScasByAddress({
       address: walletAddress,
       excludeEmpty,
@@ -979,6 +1011,7 @@ class ScallopQuery implements ScallopQueryInterface {
   async getVeScaKeyIdFromReferralBindings(
     walletAddress: string = this.walletAddress
   ) {
+    if (!walletAddress) return null; // Handle empty address
     return this.repos.referral.getVeScaKeyIdFromReferralBindings(walletAddress);
   }
 
@@ -1041,6 +1074,7 @@ class ScallopQuery implements ScallopQueryInterface {
     sCoinNames?: string[],
     ownerAddress: string = this.walletAddress
   ) {
+    if (!ownerAddress) return {}; // Handle empty address
     return await this.repos.coinBalance.getSCoinAmounts({
       sCoinNames,
       address: ownerAddress,
@@ -1229,6 +1263,9 @@ class ScallopQuery implements ScallopQueryInterface {
    */
   async getUserPortfolio(args?: { walletAddress?: string; indexer?: boolean }) {
     const walletAddress = args?.walletAddress ?? this.walletAddress;
+    if (!walletAddress) {
+      throw new ScallopParseError('walletAddress is required');
+    }
     const indexer = args?.indexer ?? false;
 
     const coinPrices = await this.getAllCoinPrices({ indexer });

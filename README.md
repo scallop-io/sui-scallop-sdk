@@ -148,6 +148,7 @@ Common optional options:
 
 - `pythEndpoints`: Pyth Hermes endpoints for price-update flows.
 - `queryClient` / `queryClientConfig`: custom `@tanstack/query-core` cache.
+- `priceTimeout`: cache lifetime (ms) for the full Pyth price-feed list. Default `5_000`. Within this window, single/subset price reads are served from one cached full-list fetch instead of re-hitting the Pyth API; a longer value cuts API traffic at the cost of price staleness.
 - `logger`: SDK logger. Default is silent `noopLogger`; pass `consoleLogger` to opt into console output.
 - `strictInit`: when `true`, `init()` throws `ScallopConfigError` if required config is missing.
 - `tokensPerSecond`: RPC read rate limit.

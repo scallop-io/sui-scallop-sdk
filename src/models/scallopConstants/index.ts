@@ -27,20 +27,36 @@ import {
   freezePoolAddresses,
   freezeWhitelist,
   isEmptyObject,
+  parseWhitelistParams,
 } from './utils.js';
 import { SuiClientTypes } from '@mysten/sui/client';
 
-/** Empty, fully-frozen state used before `init()` populates real data. */
-const createInitialState = (): ConstantsState => {
-  const whitelist = freezeWhitelist(cloneDefaultWhitelist());
-  const poolAddresses = freezePoolAddresses({});
+/**
+ * Fully-frozen state used before `init()` fetches remote data. When the caller
+ * supplies synchronous force interfaces (whitelist / pool addresses), apply them
+ * here so a freshly-constructed instance is immediately usable — otherwise the
+ * whitelist stays empty until async `init()` completes, and any query that runs
+ * against a not-yet-initialized instance (e.g. after an HMR-recreated client
+ * whose cached init is skipped) silently projects onto an empty coin list.
+ */
+const createInitialState = (overrides?: {
+  forceWhitelistInterface?: Whitelist | Record<string, unknown>;
+  forcePoolAddressInterface?: Record<string, PoolAddress>;
+  parseToOldMarketCoin?: (coinType: string) => string;
+}): ConstantsState => {
+  const whitelist = overrides?.forceWhitelistInterface
+    ? parseWhitelistParams(overrides.forceWhitelistInterface)
+    : freezeWhitelist(cloneDefaultWhitelist());
+  const poolAddresses = freezePoolAddresses(
+    overrides?.forcePoolAddressInterface ?? {}
+  );
   return {
     whitelist,
     poolAddresses,
     derived: deriveConstants({
       poolAddresses,
       whitelist,
-      parseToOldMarketCoin: () => '',
+      parseToOldMarketCoin: overrides?.parseToOldMarketCoin ?? (() => ''),
     }),
   };
 };
@@ -109,8 +125,8 @@ class ScallopConstants {
       logger = noopLogger,
       scallopAddress,
       defaultValues,
-      forcePoolAddressInterface: _forcePoolAddressInterface,
-      forceWhitelistInterface: _forceWhitelistInterface,
+      forcePoolAddressInterface,
+      forceWhitelistInterface,
       strictInit: _strictInit,
       urls: _urls,
       ...scallopAddressArgs
@@ -132,6 +148,18 @@ class ScallopConstants {
         logger: this.logger,
         defaultValues,
       });
+
+    // Apply synchronous force interfaces up front so the instance is usable
+    // before async `init()` runs (and even if `init()` is skipped for a
+    // recreated-but-cached client, e.g. on HMR). `init()` still refreshes/
+    // validates these against the network.
+    if (forceWhitelistInterface || forcePoolAddressInterface) {
+      this._state = createInitialState({
+        forceWhitelistInterface,
+        forcePoolAddressInterface,
+        parseToOldMarketCoin: (coinType) => this.parseToOldMarketCoin(coinType),
+      });
+    }
   }
 
   get url() {

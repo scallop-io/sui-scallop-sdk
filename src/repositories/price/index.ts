@@ -11,7 +11,7 @@ import { IndexerDataSource } from 'src/datasources/indexer.js';
 import { OnChainDataSource } from 'src/datasources/onchain.js';
 import { BaseRepository } from '../base.js';
 import { QuerySource, runWithDataSourceFallback } from '../utils.js';
-import { DEFAULT_PYTH_URL } from './const.js';
+import { DEFAULT_PRICE_TIMEOUT, DEFAULT_PYTH_URL } from './const.js';
 import {
   getPricesFromIndexer,
   getPythFeedObjectFromOnChain,
@@ -33,11 +33,13 @@ export class PriceRepository extends BaseRepository<
   private readonly config: PriceApiConfig;
   private readonly indexer: IndexerDataSource;
   private readonly onchain: OnChainDataSource;
+  private readonly priceTimeout: number;
 
   constructor({
     pythPriceServiceConfig,
     indexer,
     onchain,
+    priceTimeout,
     ...params
   }: PriceRepositoryParams) {
     super(params);
@@ -50,6 +52,7 @@ export class PriceRepository extends BaseRepository<
     };
     this.indexer = indexer;
     this.onchain = onchain;
+    this.priceTimeout = priceTimeout ?? DEFAULT_PRICE_TIMEOUT;
   }
 
   get context() {
@@ -58,6 +61,7 @@ export class PriceRepository extends BaseRepository<
       onchain: this.onchain,
       indexer: this.indexer,
       pythPriceServiceConfig: this.config,
+      priceTimeout: this.priceTimeout,
     };
   }
 

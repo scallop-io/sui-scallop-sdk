@@ -32,10 +32,10 @@ export namespace QueryKeys {
       objectId?: string;
       include?: SuiObjectDataOptions;
     };
-    export type GetSharedObject = BaseType & {
-      objectId?: string;
+    export type GetObjects = BaseType & {
+      objectIds?: string[];
+      include?: SuiObjectDataOptions;
     };
-    export type GetObjects = BaseType & SuiClientTypes.GetObjectsOptions;
     export type GetOwnedObjects = BaseType &
       Partial<SuiClientTypes.ListOwnedObjectsOptions>;
     export type GetDynamicFields = BaseType & Partial<GetDynamicFieldsParams>;
@@ -57,6 +57,10 @@ export namespace QueryKeys {
     };
     export type GetAllCoinBalances = BaseType & {
       activeAddress?: string;
+    };
+    export type GetCoinBalancesByTypes = BaseType & {
+      address?: string;
+      coinTypes?: string[];
     };
     export type GetNormalizedMoveFunction = BaseType & {
       target?: string;

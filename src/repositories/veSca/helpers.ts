@@ -79,7 +79,7 @@ const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
 
   const getArg = async (objectId: string, mutable: boolean) => {
     const response = await fetchWithCache({
-      queryKey: queryKeys.rpc.getSharedObject({
+      queryKey: queryKeys.rpc.getObject({
         node: onchain.url,
         objectId,
       }),
