@@ -144,7 +144,13 @@ class ScallopBuilder implements ScallopBuilderInterface {
         prev += Number(coin.balance);
         return prev;
       }, 0);
-      const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
+      // Pass coins by objectId (unpinned) so the tx builder resolves their
+      // current version at build time. Pinning listCoins' versions breaks when
+      // the coin index lags the object store ("provided version doesn't match").
+      const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
+        coins.map((coin) => coin.objectId),
+        amount
+      );
 
       return { takeCoin, leftCoin, totalAmount };
     }
@@ -176,7 +182,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
       return prev;
     }, 0);
     const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-      coins,
+      coins.map((coin) => coin.objectId),
       Math.min(amount, totalAmount)
     );
     return { takeCoin, leftCoin, totalAmount };
@@ -208,7 +214,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
       return prev;
     }, 0);
     const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-      coins,
+      coins.map((coin) => coin.objectId),
       Math.min(totalAmount, amount)
     );
     return {

@@ -154,8 +154,10 @@ export const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           coinType: SCA_COIN_TYPE,
           ownerAddress: sender,
         });
+        // Unpinned (objectId) so versions resolve at build time; pinning
+        // listCoins' versions breaks when the coin index lags the object store.
         const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-          coins,
+          coins.map((coin) => coin.objectId),
           amountOrCoin
         );
         scaCoin = takeCoin;
@@ -232,8 +234,10 @@ export const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           coinType: SCA_COIN_TYPE,
           ownerAddress: sender,
         });
+        // Unpinned (objectId) so versions resolve at build time; pinning
+        // listCoins' versions breaks when the coin index lags the object store.
         const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-          scaCoins,
+          scaCoins.map((coin) => coin.objectId),
           scaAmount
         );
 
@@ -268,8 +272,10 @@ export const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           coinType: SCA_COIN_TYPE,
           ownerAddress: sender,
         });
+        // Unpinned (objectId) so versions resolve at build time; pinning
+        // listCoins' versions breaks when the coin index lags the object store.
         const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-          scaCoins,
+          scaCoins.map((coin) => coin.objectId),
           scaAmount
         );
         transferObjects.push(leftCoin);
