@@ -27,57 +27,69 @@ export const getPythPricesFromApi = async (
     fetchWithCache,
     metadata: { addresses },
     pythPriceServiceConfig: { endpoint, config },
+    priceTimeout,
   } = ctx;
 
-  // Multiple coins can share the same feed — dedupe before hitting the API.
-  // A coin without a configured pyth feed maps to `undefined` and defaults to 0.
-  const feedIdByCoin = new Map<string, string | undefined>(
-    coinNames.map((coinName) => [
-      coinName,
-      addresses.coins[coinName]?.oracle?.pyth?.feed,
-    ])
-  );
-  const priceFeedIds = Array.from(new Set(feedIdByCoin.values())).filter(
-    (feedId): feedId is string => !!feedId
-  );
+  // Fetch the FULL universe of configured feeds — not just the requested
+  // coins' feeds — so every single/subset read shares one cache entry keyed on
+  // the same stable feed set. This is what collapses the duplicate-request
+  // spam: a `getPythCoinPrice('sui')` and a full `getPythCoinPrices()` resolve
+  // from the same cached fetch within `priceTimeout`.
+  const allFeedIds = Array.from(
+    new Set(
+      Object.values(addresses.coins)
+        .map((coin) => coin?.oracle?.pyth?.feed)
+        .filter((feed): feed is string => !!feed)
+    )
+  ).sort();
 
-  const client = new SuiPriceServiceConnection(endpoint, config);
-  const { parsed: feeds } = await client.getLatestPriceUpdates(priceFeedIds, {
-    parsed: true,
-    ignoreInvalidPriceIds: true,
-  });
+  // Feed the network fetch through the cache: the HTTP call now lives INSIDE
+  // `queryFn`, so TanStack Query provides in-flight dedup + `priceTimeout` TTL.
+  // Returns a stable `feedId -> price` map covering the whole universe.
+  const priceByFeedId = await fetchWithCache<Record<string, number>>({
+    queryKey: queryKeys.oracle.getPythAllPriceFeeds(endpoint, allFeedIds),
+    // staleTime: within this window, reads are served from cache (no refetch).
+    // gcTime must be >= staleTime so the entry isn't collected while still fresh.
+    staleTime: priceTimeout,
+    gcTime: priceTimeout,
+    queryFn: async () => {
+      const client = new SuiPriceServiceConnection(endpoint, config);
+      // NOTE: if the feed universe ever grows past Hermes' per-request limit,
+      // chunk `allFeedIds` here and merge the resulting maps.
+      const { parsed: feeds } = await client.getLatestPriceUpdates(allFeedIds, {
+        parsed: true,
+        ignoreInvalidPriceIds: true,
+      });
 
-  if (!feeds) {
-    throw logError(
-      ctx.logger,
-      new ScallopIndexerError('Failed to fetch price feeds from Pyth API', {
-        context: { endpoint, priceFeedIds },
-      })
-    );
-  }
-
-  return await fetchWithCache({
-    queryKey: queryKeys.oracle.getPythLatestPriceFeeds(endpoint, priceFeedIds),
-    queryFn: () => {
-      // Resolve each unique feed once, then fan back out to every coin.
-      const priceByFeedId = new Map<string, number>();
-      for (const feed of feeds) {
-        priceByFeedId.set(
-          feed.id,
-          BigNumber(feed.price.price).shiftedBy(feed.price.expo).toNumber()
+      if (!feeds) {
+        throw logError(
+          ctx.logger,
+          new ScallopIndexerError('Failed to fetch price feeds from Pyth API', {
+            context: { endpoint, priceFeedIds: allFeedIds },
+          })
         );
       }
 
-      // A coin with no configured feed, or a feed the API didn't return,
-      // defaults to a price of 0 rather than throwing.
       const prices: Record<string, number> = {};
-      for (const [coinName, feedId] of feedIdByCoin) {
-        prices[coinName] =
-          (feedId !== undefined ? priceByFeedId.get(feedId) : undefined) ?? 0;
+      for (const feed of feeds) {
+        prices[feed.id] = BigNumber(feed.price.price)
+          .shiftedBy(feed.price.expo)
+          .toNumber();
       }
       return prices;
     },
   });
+
+  // Fan the cached full-universe prices back out to the requested coins. A coin
+  // with no configured feed, or a feed the API didn't return, defaults to 0
+  // rather than throwing.
+  const prices: Record<string, number> = {};
+  for (const coinName of coinNames) {
+    const feedId = addresses.coins[coinName]?.oracle?.pyth?.feed;
+    prices[coinName] =
+      (feedId !== undefined ? priceByFeedId[feedId] : undefined) ?? 0;
+  }
+  return prices;
 };
 
 /**

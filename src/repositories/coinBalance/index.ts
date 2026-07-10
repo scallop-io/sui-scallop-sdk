@@ -5,9 +5,11 @@
 
 import { BaseRepository } from '../base.js';
 import { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { SuiGraphQLClient } from '@mysten/sui/graphql';
 import {
   getCoinAmountFromOnChain,
   getCoinAmountsFromOnChain,
+  getCoinBalancesFromGraphQL,
   getMarketCoinAmountFromOnChain,
   getMarketCoinAmountsFromOnChain,
   getSCoinAmountFromOnChain,
@@ -25,16 +27,27 @@ export class CoinBalanceRepository extends BaseRepository<
   CoinBalanceMetadata
 > {
   private readonly onchain: OnChainDataSource;
+  private readonly balanceSource: OnChainDataSource;
+  private readonly graphqlClient: SuiGraphQLClient;
 
-  constructor({ onchain, ...params }: CoinBalanceRepoParams) {
+  constructor({
+    onchain,
+    balanceSource,
+    graphqlClient,
+    ...params
+  }: CoinBalanceRepoParams) {
     super(params);
     this.onchain = onchain;
+    this.balanceSource = balanceSource;
+    this.graphqlClient = graphqlClient;
   }
 
   get context() {
     return {
       ...this.baseContext,
       onchain: this.onchain,
+      balanceSource: this.balanceSource,
+      graphqlClient: this.graphqlClient,
       queryClient: this.queryClient,
     };
   }
@@ -45,6 +58,16 @@ export class CoinBalanceRepository extends BaseRepository<
 
   getCoinAmount(args: { coinName: string; address: string }) {
     return getCoinAmountFromOnChain(this.context, args);
+  }
+
+  /**
+   * Fetch balances for a specific set of coin types in one GraphQL round trip
+   * (`multiGetBalances`), instead of paging every balance via `listBalances`.
+   * Returns a map keyed by normalized coin type; types absent on-chain are
+   * omitted. GraphQL-only (no gRPC fallback).
+   */
+  getCoinBalances(args: { coinTypes: string[]; address: string }) {
+    return getCoinBalancesFromGraphQL(this.context, args);
   }
 
   getSCoinAmounts(args: { sCoinNames?: string[]; address: string }) {

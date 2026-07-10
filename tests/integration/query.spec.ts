@@ -651,7 +651,7 @@ describe('Test All Coin Prices Query', () => {
 });
 
 describe('Test Address Query', () => {
-  it.skip('Should get pool Addresses', async () => {
+  it('Should get pool Addresses', async () => {
     const poolAddresses = await scallopQuery.getPoolAddresses();
     if (ENABLE_LOG) {
       console.info('Pool addresses:', poolAddresses);

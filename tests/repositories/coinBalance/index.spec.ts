@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('src/repositories/coinBalance/helpers.js', () => ({
   getCoinAmountFromOnChain: vi.fn(),
   getCoinAmountsFromOnChain: vi.fn(),
+  getCoinBalancesFromGraphQL: vi.fn(),
   getSCoinAmountsFromOnChain: vi.fn(),
   getSCoinAmountFromOnChain: vi.fn(),
   querySCoinTotalSupplyFromOnChain: vi.fn(),
@@ -15,12 +16,23 @@ vi.mock('src/repositories/coinBalance/helpers.js', () => ({
 import * as helpers from 'src/repositories/coinBalance/helpers.js';
 import { CoinBalanceRepository } from 'src/repositories/coinBalance/index.js';
 import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { SuiGraphQLClient } from '@mysten/sui/graphql';
 import type { CoinBalanceMetadata } from 'src/repositories/coinBalance/types.js';
 
 const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const balanceSource = {
+  url: 'mock://graphql',
+} as unknown as OnChainDataSource;
+const graphqlClient = { query: vi.fn() } as unknown as SuiGraphQLClient;
 const metadata = { tag: 'META' } as unknown as CoinBalanceMetadata;
 
-const makeRepo = () => new CoinBalanceRepository({ onchain, metadata });
+const makeRepo = () =>
+  new CoinBalanceRepository({
+    onchain,
+    balanceSource,
+    graphqlClient,
+    metadata,
+  });
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -35,7 +47,24 @@ describe('CoinBalanceRepository', () => {
     const ctx = vi.mocked(helpers.getCoinAmountsFromOnChain).mock.calls[0][0];
     expect(ctx.metadata).toBe(metadata);
     expect(ctx.onchain).toBe(onchain);
+    expect(ctx.balanceSource).toBe(balanceSource);
     expect(typeof ctx.fetchWithCache).toBe('function');
+  });
+
+  it('getCoinBalances delegates to the GraphQL helper with { coinTypes, address } and the graphql client', () => {
+    vi.mocked(helpers.getCoinBalancesFromGraphQL).mockResolvedValue(
+      {} as never
+    );
+    makeRepo().getCoinBalances({
+      coinTypes: ['0x2::sui::SUI'],
+      address: '0xA',
+    });
+
+    const [ctx, args] = vi.mocked(helpers.getCoinBalancesFromGraphQL).mock
+      .calls[0];
+    expect(ctx.graphqlClient).toBe(graphqlClient);
+    expect(ctx.balanceSource).toBe(balanceSource);
+    expect(args).toEqual({ coinTypes: ['0x2::sui::SUI'], address: '0xA' });
   });
 
   it('getCoinAmounts delegates with { coinNames, address }', () => {

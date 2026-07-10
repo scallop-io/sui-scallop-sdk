@@ -54,7 +54,11 @@ describe('OnChainDataSource rate limiting', () => {
       tokensPerSecond: 1,
     });
 
-    await ds.getObject({ objectId: '0xA' } as never);
+    // getObject now coalesces on a macrotask window, so drive the fake clock to
+    // flush the pending batch before the read resolves.
+    const first = ds.getObject({ objectId: '0xA' } as never);
+    await vi.advanceTimersByTimeAsync(1);
+    await first;
     expect(client.getObjects).toHaveBeenCalledTimes(1);
 
     const second = ds.getObject({ objectId: '0xA' } as never);
@@ -62,11 +66,108 @@ describe('OnChainDataSource rate limiting', () => {
     void second.then(() => {
       settled = true;
     });
-    await Promise.resolve();
+    // The flush fires, but the limiter has no token left — the batched
+    // getObjects stays pending until a token refills.
+    await vi.advanceTimersByTimeAsync(1);
     expect(settled).toBe(false);
+    expect(client.getObjects).toHaveBeenCalledTimes(1);
 
     await vi.advanceTimersByTimeAsync(1100);
     await second;
     expect(client.getObjects).toHaveBeenCalledTimes(2);
+  });
+
+  it('coalesces same-tick getObject reads into one deduped batch', async () => {
+    // intent: N single reads fired in one tick (incl. duplicates) must collapse
+    // into a SINGLE getObjects call carrying each id exactly once — this is the
+    // fix for the BatchGetObjects-of-1 spam.
+    const getObjects = vi.fn(
+      async ({ objectIds }: { objectIds: string[] }) => ({
+        objects: objectIds.map((objectId) => ({ objectId })),
+      })
+    );
+    const ds = new OnChainDataSource({
+      client: { getObjects } as never,
+      url: 'x',
+      tokensPerSecond: 100,
+    });
+
+    const batch = Promise.all([
+      ds.getObject({ objectId: '0xA' } as never),
+      ds.getObject({ objectId: '0xB' } as never),
+      ds.getObject({ objectId: '0xA' } as never), // byte-identical duplicate
+    ]);
+    await vi.advanceTimersByTimeAsync(1); // flush the coalescing window
+    const [a, b, aDup] = await batch;
+
+    // One network round-trip for all three reads.
+    expect(getObjects).toHaveBeenCalledTimes(1);
+    // Duplicate id deduped: the batch carries A and B once each.
+    expect(getObjects.mock.calls[0][0].objectIds).toEqual(['0xA', '0xB']);
+    // Each caller still receives its object; the duplicate shares A's result.
+    expect((a as { object: { objectId: string } }).object.objectId).toBe('0xA');
+    expect((b as { object: { objectId: string } }).object.objectId).toBe('0xB');
+    expect((aDup as { object: { objectId: string } }).object.objectId).toBe(
+      '0xA'
+    );
+  });
+
+  it('splits coalesced reads into separate batches per include selection', async () => {
+    // intent: getObjects carries one `include` per call, so reads requesting
+    // different fields cannot share a batch — but same-selection reads still do.
+    const getObjects = vi.fn(
+      async ({ objectIds }: { objectIds: string[] }) => ({
+        objects: objectIds.map((objectId) => ({ objectId })),
+      })
+    );
+    const ds = new OnChainDataSource({
+      client: { getObjects } as never,
+      url: 'x',
+      tokensPerSecond: 100,
+    });
+
+    const batch = Promise.all([
+      ds.getObject({ objectId: '0xA', include: { json: true } } as never),
+      ds.getObject({ objectId: '0xB', include: { json: true } } as never),
+      ds.getObject({ objectId: '0xC', include: { type: true } } as never),
+    ]);
+    await vi.advanceTimersByTimeAsync(1); // flush the coalescing window
+    await batch;
+
+    // Two batches: {json} group [A,B] and {type} group [C].
+    expect(getObjects).toHaveBeenCalledTimes(2);
+  });
+
+  it('coalesces reads scattered across await continuations (timer window)', async () => {
+    // intent: the regression this fixes — reads issued in DIFFERENT microtasks
+    // (each preceded by an awaited continuation, as when `fetchWithCache`
+    // interposes) still merge into ONE batch under the default macrotask window.
+    // A microtask-only flush would split these into three getObjects-of-1.
+    const getObjects = vi.fn(
+      async ({ objectIds }: { objectIds: string[] }) => ({
+        objects: objectIds.map((objectId) => ({ objectId })),
+      })
+    );
+    const ds = new OnChainDataSource({
+      client: { getObjects } as never,
+      url: 'x',
+      tokensPerSecond: 100,
+    });
+
+    const scattered = Promise.all(
+      ['0xA', '0xB', '0xC'].map(async (objectId) => {
+        await Promise.resolve(); // break the tick so each read lands in its own microtask
+        return ds.getObject({ objectId } as never);
+      })
+    );
+    await vi.advanceTimersByTimeAsync(1); // flush after all microtasks drain
+    await scattered;
+
+    expect(getObjects).toHaveBeenCalledTimes(1);
+    expect([...getObjects.mock.calls[0][0].objectIds].sort()).toEqual([
+      '0xA',
+      '0xB',
+      '0xC',
+    ]);
   });
 });

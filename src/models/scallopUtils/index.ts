@@ -35,15 +35,18 @@ class ScallopUtils implements ScallopUtilsInterface {
         suiClient,
         fullnodeUrl,
         tokensPerSecond = DEFAULT_TOKENS_PER_SECOND,
+        objectBatchWindowMs,
       } = params;
       this.onchain = createOnChainDataSource(suiClient, fullnodeUrl, {
         tokensPerSecond,
+        objectBatchWindowMs,
       });
     } else {
       const {
         network,
         fullnodeUrl,
         tokensPerSecond = DEFAULT_TOKENS_PER_SECOND,
+        objectBatchWindowMs,
       } = params;
       const client = new SuiGrpcClient({
         baseUrl: fullnodeUrl,
@@ -51,6 +54,7 @@ class ScallopUtils implements ScallopUtilsInterface {
       });
       this.onchain = createOnChainDataSource(client, fullnodeUrl, {
         tokensPerSecond,
+        objectBatchWindowMs,
       });
     }
     this.walletAddress = params.walletAddress;

@@ -41,7 +41,7 @@ export const getBorrowIncentivePoolsFromOnChain = async (
     objectId: borrowIncentive.incentivePools,
   };
   const incentivePoolsObject = await fetchWithCache({
-    queryKey: queryKeys.rpc.getSharedObject({
+    queryKey: queryKeys.rpc.getObject({
       ...fetchOptions,
       node: onchain.url,
     }),
@@ -213,7 +213,7 @@ export const getBorrowIncentiveAccountsFromOnChain = async (
 
   const getArg = async (objectId: string, mutable: boolean) => {
     const response = await fetchWithCache({
-      queryKey: queryKeys.rpc.getSharedObject({
+      queryKey: queryKeys.rpc.getObject({
         objectId,
         node: onchain.url,
       }),

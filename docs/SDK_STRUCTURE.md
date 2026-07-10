@@ -280,7 +280,9 @@ The validation lives in `src/models/scallopConstants/config/ConfigValidator.ts` 
 
 ### Query caching
 
-The repository layer uses `@tanstack/query-core`'s `QueryClient` (shared via `src/repositories/cache.ts`) for on-chain and indexer data. Every network read goes through `ctx.fetchWithCache({ queryKey, queryFn })`; cache keys are centralised in `src/constants/queryKeys.ts` (always include `node: onchain.url` in RPC keys).
+The repository layer uses `@tanstack/query-core`'s `QueryClient` (shared via `src/repositories/cache.ts`) for on-chain and indexer data. Every network read goes through `ctx.fetchWithCache({ queryKey, queryFn })`; cache keys are centralised in `src/constants/queryKeys.ts` (always include `node: onchain.url` in RPC keys). The network call **must live inside `queryFn`** so `fetchWithCache` provides both in-flight dedup and `staleTime` reuse — a fetch issued before `fetchWithCache` bypasses the cache entirely.
+
+**Pyth price reads** (`price/getPythPricesFromApi`) always fetch the full, sorted feed-id universe (from `addresses.coins[*].oracle.pyth.feed`) under one stable, subset-independent key (`queryKeys.oracle.getPythAllPriceFeeds`), then filter the cached `feedId → price` map down to the requested coins. So a single-coin `getPythCoinPrice('sui')` and a full `getPythCoinPrices()` share one cache entry. The entry's `staleTime`/`gcTime` is `priceTimeout` (default `5_000` ms, configurable via the `ScallopQuery`/`Scallop` constructor), so within that window all price reads are served from the one cached fetch. Coins with no configured feed default to `0`.
 
 ### Batching on-chain object reads
 
