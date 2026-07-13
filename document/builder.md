@@ -327,6 +327,106 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   await scallopTxBlock.burnSCoinQuick(sCoinName, 10 ** 9);
   ```
 
+## Organize transactions that interact with borrow incentive
+
+- Stake an obligation into the borrow incentive program.
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  // Obligation id/key are auto-detected from the sender when omitted.
+  await scallopTxBlock.stakeObligationQuick();
+  // Stake while binding a veSCA key for a boosted rate.
+  await scallopTxBlock.stakeObligationWithVeScaQuick(
+    obligationId,
+    obligationKey,
+    veScaKey
+  );
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+- Unstake an obligation from the borrow incentive program.
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  await scallopTxBlock.unstakeObligationQuick();
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+- Claim borrow incentive rewards.
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  const rewardCoin = await scallopTxBlock.claimBorrowIncentiveQuick(
+    'sui',
+    obligationId,
+    obligationKey
+  );
+  scallopTxBlock.transferObjects([rewardCoin], sender);
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+## Organize transactions that interact with referral
+
+- Bind the sender to a referrer's veSCA key.
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  scallopTxBlock.bindToReferral(referrerVeScaKeyId);
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+- Claim accrued referral revenue.
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  // coinNames defaults to the lending whitelist when omitted.
+  await scallopTxBlock.claimReferralRevenueQuick(veScaKey, ['sui', 'wusdc']);
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+- Burn a referral ticket.
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  scallopTxBlock.burnReferralTicket(ticket, 'sui');
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+## Organize transactions that interact with loyalty program
+
+- Claim loyalty program SCA revenue.
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  // veScaKey defaults to the sender's first veSCA account when omitted.
+  await scallopTxBlock.claimLoyaltyRevenueQuick(veScaKey);
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
+- Claim veSCA loyalty program reward (a new veSCA key).
+
+  ```typescript
+  const scallopTxBlock = scallopBuilder.createTxBlock();
+  scallopTxBlock.setSender(sender);
+
+  await scallopTxBlock.claimVeScaLoyaltyRewardQuick(veScaKey);
+  await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
+  ```
+
 ## Organize transactions that name obligations
 
 The obligation-naming methods attach a human-readable name to an obligation
