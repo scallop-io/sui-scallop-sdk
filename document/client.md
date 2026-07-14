@@ -165,6 +165,76 @@ Methods for interacting with the spool contract.
   const claimResult = await client.claim('ssui');
   ```
 
+## Referral Interaction Method
+
+Methods for interacting with the referral contract, reachable via `client.referralService`.
+
+- Bind a wallet to a referrer's veSCA key.
+
+  ```typescript
+  // Binds the signer to the referrer identified by their veSCA key id.
+  const bindResult = await client.referralService.bindToReferral(veScaKeyId);
+  ```
+
+- Claim referral revenue.
+
+  ```typescript
+  // Claims accrued referral revenue for the given veSCA key.
+  // When coinNames is omitted, it defaults to the lending whitelist.
+  const claimResult = await client.referralService.claimReferralRevenue(
+    veScaKey,
+    ['sui', 'wusdc']
+  );
+  ```
+
+- Burn a referral ticket.
+
+  ```typescript
+  // Burns a referral ticket for the given pool coin.
+  const burnResult = await client.referralService.burnReferralTicket(
+    ticket,
+    'sui'
+  );
+  ```
+
+## Borrow Incentive Method
+
+Methods for interacting with the borrow incentive contract.
+
+- Stake / unstake an obligation to earn borrow incentives.
+
+  ```typescript
+  // Requires the obligation id and key.
+  const obligationsData = await client.query.getObligations();
+  const stakeResult = await client.stakeObligation(
+    obligationsData[0].id,
+    obligationsData[0].keyId
+  );
+  // Unstake it again.
+  const unstakeResult = await client.unstakeObligation(
+    obligationsData[0].id,
+    obligationsData[0].keyId
+  );
+  ```
+
+- Claim borrow incentive rewards.
+
+  ```typescript
+  // Claims every reward coin with an available claim amount on the obligation.
+  const obligationsData = await client.query.getObligations();
+  const claimBorrowIncentiveResult = await client.claimBorrowIncentive(
+    obligationsData[0].id,
+    obligationsData[0].keyId
+  );
+  ```
+
+- Claim all unlocked SCA from expired veSCA accounts.
+
+  ```typescript
+  // Claim unlocked SCA from all of the sender's veSCA accounts.
+  const claimAllUnlockedScaResult = await client.claimAllUnlockedSca();
+  ```
+
 ## New sCoin Package Migration Method
 
 Methods for migrating to the new sCoin package

@@ -3,7 +3,6 @@
 A guided tour of how `@scallop-io/sui-scallop-sdk` is laid out. Read this first if you're new to the codebase or returning after a long break.
 
 > **Audience:** SDK contributors and integrators who want to understand the moving parts without reading every file.
-> **Companion docs:** [`SDK_STRUCTURE_REPORT.md`](SDK_STRUCTURE_REPORT.md) (problem statement) and [`SDK_STRUCTURE_FIX_PLAN.md`](SDK_STRUCTURE_FIX_PLAN.md) (workstreams + status). The read layer has its own contributor guide in [`../src/repositories/CLAUDE.md`](../src/repositories/CLAUDE.md).
 
 ---
 
