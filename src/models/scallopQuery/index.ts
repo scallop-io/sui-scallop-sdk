@@ -809,17 +809,30 @@ class ScallopQuery implements ScallopQueryInterface {
       market: { collaterals: MarketCollaterals; pools: MarketPools };
       coinPrices: CoinPrices;
       coinAmounts: CoinAmounts;
+    },
+    // When the caller batched the per-obligation devInspect queries up front
+    // (many obligations → one `simulateTransaction`), it passes the results here
+    // so this assembly reuses them instead of re-querying per obligation.
+    prefetched?: {
+      obligationQuery: Awaited<ReturnType<ScallopQuery['queryObligation']>>;
+      borrowIncentiveAccounts: Awaited<
+        ReturnType<ScallopQuery['getBorrowIncentiveAccounts']>
+      >;
     }
   ): Promise<ObligationAccount> {
     const { market, coinPrices, coinAmounts } = inputs;
     const [obligationQuery, borrowIncentivePools, borrowIncentiveAccounts] =
       await Promise.all([
-        this.queryObligation(obligation),
+        prefetched
+          ? Promise.resolve(prefetched.obligationQuery)
+          : this.queryObligation(obligation),
         this.getBorrowIncentivePools(undefined, {
           coinPrices,
           marketPools: market.pools,
         }),
-        this.getBorrowIncentiveAccounts(obligation),
+        prefetched
+          ? Promise.resolve(prefetched.borrowIncentiveAccounts)
+          : this.getBorrowIncentiveAccounts(obligation),
       ]);
 
     return buildObligationAccount({
@@ -862,16 +875,30 @@ class ScallopQuery implements ScallopQueryInterface {
       this.getObligations(ownerAddress),
     ]);
 
-    const obligationObjects = await this.repos.obligation.getObligationObjects(
-      obligations.map((obligation) => obligation.id)
-    );
+    const obligationIds = obligations.map((obligation) => obligation.id);
+    // Batch the per-obligation devInspect queries into one simulateTransaction
+    // each (one moveCall per obligation) instead of N round-trips per query.
+    const [obligationObjects, obligationDataMap, borrowIncentiveAccountsMap] =
+      await Promise.all([
+        this.repos.obligation.getObligationObjects(obligationIds),
+        this.repos.obligation.getObligationsData(obligationIds),
+        this.repos.borrowIncentive.getBorrowIncentiveAccountsBatch({
+          obligationIds,
+          coinNames: [...this.constants.whitelist.lending],
+        }),
+      ]);
     const obligationAccounts: ObligationAccounts = {};
     await Promise.allSettled(
       obligations.map(async (obligation, idx) => {
         obligationAccounts[obligation.keyId] =
           await this.assembleObligationAccount(
             obligationObjects[idx] ?? obligation.id,
-            { market, coinPrices, coinAmounts }
+            { market, coinPrices, coinAmounts },
+            {
+              obligationQuery: obligationDataMap[obligation.id],
+              borrowIncentiveAccounts:
+                borrowIncentiveAccountsMap[obligation.id] ?? {},
+            }
           );
       })
     );
@@ -892,12 +919,26 @@ class ScallopQuery implements ScallopQueryInterface {
       args,
       indexer
     );
+    // Batch the per-obligation devInspect queries up front (one
+    // simulateTransaction each) so the loop below reuses the results.
+    const [obligationDataMap, borrowIncentiveAccountsMap] = await Promise.all([
+      this.repos.obligation.getObligationsData(obligationIds),
+      this.repos.borrowIncentive.getBorrowIncentiveAccountsBatch({
+        obligationIds,
+        coinNames: [...this.constants.whitelist.lending],
+      }),
+    ]);
     const obligationAccounts: ObligationAccount[] = [];
     await Promise.allSettled(
       obligationIds.map(async (obligationId) => {
         const obligationAccount = await this.assembleObligationAccount(
           obligationId,
-          { market, coinPrices, coinAmounts: {} }
+          { market, coinPrices, coinAmounts: {} },
+          {
+            obligationQuery: obligationDataMap[obligationId],
+            borrowIncentiveAccounts:
+              borrowIncentiveAccountsMap[obligationId] ?? {},
+          }
         );
         if (obligationAccount) obligationAccounts.push(obligationAccount);
       })
