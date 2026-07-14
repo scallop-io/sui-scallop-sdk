@@ -12,6 +12,7 @@ import {
   getObligationObjectsFromOnChain,
   getObligationsFromOnChain,
   queryObligationData,
+  queryObligationsData,
 } from './helpers.js';
 import {
   ObligationRepoParams,
@@ -40,6 +41,15 @@ export class ObligationRepository extends BaseRepository<
 
   getObligationData(obligationId: string) {
     return queryObligationData(this.context, obligationId);
+  }
+
+  /**
+   * Batch-query obligation data for many ids in one `simulateTransaction`
+   * (one `moveCall` per obligation), returning a map keyed by obligation id.
+   * Falls back to per-obligation queries on a batch failure.
+   */
+  getObligationsData(obligationIds: string[]) {
+    return queryObligationsData(this.context, obligationIds);
   }
 
   getObligationLocked(obligationId: string) {

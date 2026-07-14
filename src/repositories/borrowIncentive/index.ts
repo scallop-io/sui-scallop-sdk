@@ -3,6 +3,7 @@ import type { OnChainDataSource } from 'src/datasources/onchain.js';
 import {
   getBindedObligation,
   getBindedVeScaKeyByObligationIdFromOnChain,
+  getBorrowIncentiveAccountsBatchFromOnChain,
   getBorrowIncentiveAccountsFromOnChain,
   getBorrowIncentivePoolsFromOnChain,
 } from './helpers.js';
@@ -37,6 +38,18 @@ export class BorrowIncentiveRepository extends BaseRepository<
     coinNames?: string[];
   }) {
     return getBorrowIncentiveAccountsFromOnChain(this.context, args);
+  }
+
+  /**
+   * Batch-query borrow-incentive accounts for many obligations in one
+   * `simulateTransaction`, returning a map keyed by obligation id. Falls back
+   * to per-obligation queries on a batch failure.
+   */
+  getBorrowIncentiveAccountsBatch(args: {
+    obligationIds: string[];
+    coinNames?: string[];
+  }) {
+    return getBorrowIncentiveAccountsBatchFromOnChain(this.context, args);
   }
 
   getBindedVeScaKey(obligationId: string) {

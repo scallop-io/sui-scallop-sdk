@@ -73,15 +73,14 @@ export const queryObligationData = async (
   const queryTarget = `${queryPackageId}::obligation_query::obligation_data`;
 
   const tx = new SuiTxBlock();
-  const getFetchOptions = (objectId: string) => {
-    return {
-      objectId,
-      include: {
-        json: false,
-        content: false,
-      },
-    };
-  };
+  // Ref-only read: `getSharedObjectData` needs just the object reference
+  // (objectId/version/owner), not `json`/`content`. Fetch with NO `include` so
+  // this shares one cache entry with the identical sibling reads in
+  // `veSca`/`borrowIncentive` `getArg` — the shared `version`/`market` objects
+  // are read across all three flows in one portfolio load, and a bespoke
+  // `{json:false,content:false}` selection forked the cache key (a distinct
+  // getObject key ⇒ redundant RPC) for zero payload benefit.
+  const getFetchOptions = (objectId: string) => ({ objectId });
 
   const getArg = async (objectId: string) => {
     const response = await fetchWithCache({
@@ -151,6 +150,134 @@ export const queryObligationData = async (
       | ObligationQueryInterface
       | undefined
   );
+};
+
+type ObligationDataResult = Awaited<ReturnType<typeof queryObligationData>>;
+
+/**
+ * Batched sibling of {@link queryObligationData}. `obligation_data` takes
+ * `(version, market, obligation, clock)` where only `obligation` varies, so N
+ * obligations collapse into ONE PTB of N `moveCall`s and a single
+ * `simulateTransaction` — instead of N devInspect round-trips — with the shared
+ * `version`/`market` args resolved once for the whole batch. `devInspect` emits
+ * events in command order, so `events[i]` maps back to `obligationIds[i]`.
+ *
+ * A whole-PTB abort (one bad obligation fails the transaction) or an event-count
+ * mismatch (can't safely position results) falls back to per-obligation queries,
+ * preserving the isolation the caller's `allSettled` loop previously had.
+ */
+export const queryObligationsData = async (
+  ctx: ObligationDataContext,
+  obligationIds: string[]
+): Promise<Record<string, ObligationDataResult>> => {
+  if (obligationIds.length === 0) return {};
+  // A single obligation has no batching upside — use the isolated path directly.
+  if (obligationIds.length === 1) {
+    const id = obligationIds[0];
+    return { [id]: await queryObligationData(ctx, id) };
+  }
+
+  try {
+    return await queryObligationsDataBatched(ctx, obligationIds);
+  } catch (error) {
+    ctx.logger?.warn(
+      'Batched obligation_data query failed; falling back to per-obligation',
+      {
+        obligations: obligationIds.length,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    );
+    const entries = await Promise.all(
+      obligationIds.map(async (id) => {
+        try {
+          return [id, await queryObligationData(ctx, id)] as const;
+        } catch {
+          return [id, undefined] as const;
+        }
+      })
+    );
+    return Object.fromEntries(entries);
+  }
+};
+
+const queryObligationsDataBatched = async (
+  ctx: ObligationDataContext,
+  obligationIds: string[]
+): Promise<Record<string, ObligationDataResult>> => {
+  const { onchain, fetchWithCache, metadata } = ctx;
+  const { queryPackageId, version, market } = metadata.addresses;
+  const queryTarget = `${queryPackageId}::obligation_query::obligation_data`;
+
+  const tx = new SuiTxBlock();
+  const getArg = async (objectId: string) => {
+    const response = await fetchWithCache({
+      queryKey: queryKeys.rpc.getObject({ objectId, node: onchain.url }),
+      queryFn: () => onchain.getObject({ objectId }),
+    });
+    if (!response.object) {
+      throw logError(
+        ctx.logger,
+        new ScallopRpcError(`Failed to fetch object ${objectId}`, {
+          context: { objectId },
+        })
+      );
+    }
+    return getSharedObjectData(
+      { onchain, fetchWithCache },
+      { tx, mutable: false, objectId: response.object }
+    );
+  };
+
+  // Shared args resolved ONCE; only the obligation arg differs per moveCall.
+  const [versionArg, marketArg] = await Promise.all([
+    getArg(version),
+    getArg(market),
+  ]);
+  const clock = tx.txBlock.object.clock();
+  const obligationArgs = await Promise.all(
+    obligationIds.map((objectId) => getArg(objectId))
+  );
+  for (const obligationArg of obligationArgs) {
+    tx.moveCall(queryTarget, [versionArg, marketArg, obligationArg, clock]);
+  }
+
+  const queryResult = await fetchWithCache({
+    queryKey: queryKeys.rpc.getInspectTxn({
+      queryTarget,
+      args: [version, market, ...obligationIds],
+      node: onchain.url,
+    }),
+    queryFn: () =>
+      onchain.client.simulateTransaction({
+        transaction: tx.txBlock,
+        include: { events: true },
+      }),
+  });
+
+  const transaction = queryResult.Transaction ?? queryResult.FailedTransaction;
+  if (!transaction.status.success) {
+    throw new ScallopRpcError(
+      `Batched obligation_data query failed: ${transaction.status.error?.message ?? 'unknown'}`,
+      { context: { obligationIds } }
+    );
+  }
+
+  const events = transaction.events ?? [];
+  // Positional mapping is only safe when every moveCall produced its event.
+  if (events.length !== obligationIds.length) {
+    throw new ScallopRpcError(
+      `Batched obligation_data returned ${events.length} events for ${obligationIds.length} obligations`,
+      { context: { obligationIds } }
+    );
+  }
+
+  const result: Record<string, ObligationDataResult> = {};
+  obligationIds.forEach((id, index) => {
+    result[id] = mapObligationEventToObligationData(
+      events[index]?.json as unknown as ObligationQueryInterface | undefined
+    );
+  });
+  return result;
 };
 
 /**

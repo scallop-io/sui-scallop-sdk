@@ -271,28 +271,186 @@ export const getBorrowIncentiveAccountsFromOnChain = async (
     ...metadata.whitelist.lending.values(),
   ];
 
-  if (!borrowIncentiveAccountsQueryData) {
-    return {};
+  return parseBorrowIncentiveAccountsQueryData(
+    metadata,
+    borrowIncentiveAccountsQueryData,
+    enabledCoinNames
+  );
+};
+
+/**
+ * Fold one obligation's `incentive_account_data` query result into the
+ * coin-name-keyed accounts map, keeping only whitelisted/enabled coins. Shared
+ * by the single and batched query paths so both parse identically.
+ */
+const parseBorrowIncentiveAccountsQueryData = (
+  metadata: BorrowIncentiveOnChainContext['metadata'],
+  queryData: ReturnType<typeof mapBorrowIncentiveAccountsEvent>,
+  enabledCoinNames: string[]
+): BorrowIncentiveAccounts => {
+  if (!queryData) return {};
+  return queryData.pool_records.reduce((accounts, accountData) => {
+    const parsedBorrowIncentiveAccount = parseOriginBorrowIncentiveAccountData(
+      metadata.parseCoinNameFromType,
+      accountData
+    );
+    const coinName = metadata.parseCoinNameFromType(
+      parsedBorrowIncentiveAccount.poolType
+    );
+    if (enabledCoinNames.includes(coinName)) {
+      accounts[coinName] = parsedBorrowIncentiveAccount;
+    }
+    return accounts;
+  }, {} as BorrowIncentiveAccounts);
+};
+
+/**
+ * Batched sibling of {@link getBorrowIncentiveAccountsFromOnChain}.
+ * `incentive_account_data` takes `(incentiveAccounts, obligation)` where only
+ * `obligation` varies, so N obligations collapse into ONE PTB of N `moveCall`s
+ * and a single `simulateTransaction`, with the shared `incentiveAccounts` arg
+ * resolved once. `events[i]` maps back to `obligationIds[i]`. A whole-PTB abort
+ * or event-count mismatch falls back to per-obligation queries.
+ */
+export const getBorrowIncentiveAccountsBatchFromOnChain = async (
+  ctx: BorrowIncentiveOnChainContext,
+  {
+    obligationIds,
+    coinNames,
+  }: { obligationIds: string[]; coinNames?: string[] }
+): Promise<Record<string, BorrowIncentiveAccounts>> => {
+  if (obligationIds.length === 0) return {};
+  if (obligationIds.length === 1) {
+    const id = obligationIds[0];
+    return {
+      [id]: await getBorrowIncentiveAccountsFromOnChain(ctx, {
+        obligationId: id,
+        coinNames,
+      }),
+    };
   }
 
-  return borrowIncentiveAccountsQueryData.pool_records.reduce(
-    (accounts, accountData) => {
-      const parsedBorrowIncentiveAccount =
-        parseOriginBorrowIncentiveAccountData(
-          metadata.parseCoinNameFromType,
-          accountData
-        );
-      const poolType = parsedBorrowIncentiveAccount.poolType;
-      const coinName = metadata.parseCoinNameFromType(poolType);
-
-      if (enabledCoinNames.includes(coinName)) {
-        accounts[coinName] = parsedBorrowIncentiveAccount;
+  try {
+    return await getBorrowIncentiveAccountsBatched(ctx, {
+      obligationIds,
+      coinNames,
+    });
+  } catch (error) {
+    ctx.logger?.warn(
+      'Batched incentive_account_data query failed; falling back to per-obligation',
+      {
+        obligations: obligationIds.length,
+        error: error instanceof Error ? error.message : String(error),
       }
+    );
+    const entries = await Promise.all(
+      obligationIds.map(async (id) => {
+        try {
+          return [
+            id,
+            await getBorrowIncentiveAccountsFromOnChain(ctx, {
+              obligationId: id,
+              coinNames,
+            }),
+          ] as const;
+        } catch {
+          return [id, {} as BorrowIncentiveAccounts] as const;
+        }
+      })
+    );
+    return Object.fromEntries(entries);
+  }
+};
 
-      return accounts;
-    },
-    {} as BorrowIncentiveAccounts
+const getBorrowIncentiveAccountsBatched = async (
+  ctx: BorrowIncentiveOnChainContext,
+  {
+    obligationIds,
+    coinNames,
+  }: { obligationIds: string[]; coinNames?: string[] }
+): Promise<Record<string, BorrowIncentiveAccounts>> => {
+  const { metadata, fetchWithCache, onchain } = ctx;
+  const { borrowIncentive } = metadata.addresses;
+  const queryTarget = `${borrowIncentive.query}::incentive_account_query::incentive_account_data`;
+  const tx = new SuiTxBlock();
+
+  const getArg = async (objectId: string, mutable: boolean) => {
+    const response = await fetchWithCache({
+      queryKey: queryKeys.rpc.getObject({ objectId, node: onchain.url }),
+      queryFn: () => onchain.getObject({ objectId }),
+    });
+    if (!response.object) {
+      throw logError(
+        ctx.logger,
+        new ScallopRpcError(`Failed to fetch object ${objectId}`, {
+          context: { objectId },
+        })
+      );
+    }
+    return getSharedObjectData(
+      { onchain, fetchWithCache },
+      { tx, mutable, objectId: response.object }
+    );
+  };
+
+  // Shared incentiveAccounts arg resolved ONCE; obligation arg differs per call.
+  const incentiveAccountArg = await getArg(
+    borrowIncentive.incentiveAccounts,
+    true
   );
+  const obligationArgs = await Promise.all(
+    obligationIds.map((id) => getArg(id, true))
+  );
+  for (const obligationArg of obligationArgs) {
+    tx.moveCall(queryTarget, [incentiveAccountArg, obligationArg], []);
+  }
+
+  const queryResult = await fetchWithCache({
+    queryKey: queryKeys.rpc.getInspectTxn({
+      queryTarget,
+      args: [borrowIncentive.incentiveAccounts, ...obligationIds],
+      node: onchain.url,
+    }),
+    queryFn: () =>
+      onchain.client.simulateTransaction({
+        transaction: tx.txBlock,
+        include: { events: true },
+      }),
+  });
+
+  const data = queryResult?.Transaction ?? queryResult?.FailedTransaction;
+  if (!data?.status?.success) {
+    throw new ScallopRpcError(
+      `Batched incentive_account_data query failed: ${data?.status?.error?.message ?? 'unknown'}`,
+      { context: { obligationIds } }
+    );
+  }
+
+  const events = data.events ?? [];
+  if (events.length !== obligationIds.length) {
+    throw new ScallopRpcError(
+      `Batched incentive_account_data returned ${events.length} events for ${obligationIds.length} obligations`,
+      { context: { obligationIds } }
+    );
+  }
+
+  const enabledCoinNames = coinNames ?? [
+    ...metadata.whitelist.lending.values(),
+  ];
+  const result: Record<string, BorrowIncentiveAccounts> = {};
+  obligationIds.forEach((id, index) => {
+    const queryData = mapBorrowIncentiveAccountsEvent(
+      events[index]?.json as unknown as
+        | BorrowIncentiveAccountsQueryInterface
+        | undefined
+    );
+    result[id] = parseBorrowIncentiveAccountsQueryData(
+      metadata,
+      queryData,
+      enabledCoinNames
+    );
+  });
+  return result;
 };
 
 export const getBindedVeScaKeyByObligationIdFromOnChain = async (
