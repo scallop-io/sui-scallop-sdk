@@ -109,6 +109,15 @@
   );
   ```
 
+- Get the on-chain names registered for an address's obligations.
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  // Map of obligation id to its registered name (unnamed obligations are omitted).
+  const obligationNames = await scallopQuery.getObligationNames();
+  ```
+
 - Get TVL.
 
   ```typescript
