@@ -7,7 +7,6 @@ type ScallopBuilderBaseParams = {
   usePythPullModel?: boolean;
   sponsoredFeeds?: string[];
   useOnChainXOracleList?: boolean;
-  pythEndpoints: string[];
 } & Omit<ScallopQueryConstructorParams, 'walletAddress'> &
   Omit<SuiKitParams, 'fullnodeUrls'>;
 
@@ -22,12 +21,12 @@ type ScallopBuilderWithWalletAddress = ScallopBuilderBaseParams & {
 
 type ScallopBuilderWithSecretKey = ScallopBuilderBaseParams & {
   secretKey: string | undefined;
-  walletAddress?: string;
+  walletAddress?: never;
 };
 
 type ScallopBuilderWithMnemonics = ScallopBuilderBaseParams & {
   mnemonics: string | undefined;
-  walletAddress?: string;
+  walletAddress?: never;
 };
 
 export type ScallopBuilderConstructorParams =

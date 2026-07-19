@@ -19,6 +19,7 @@ import {
 } from '../transactionExecutor.js';
 import ScallopQuery from '../scallopQuery/index.js';
 import { ScallopBuilderConstructorParams } from './types.js';
+import { DEFAULT_PYTH_URL } from 'src/repositories/price/const.js';
 
 /**
  * @descriptionr
@@ -38,13 +39,15 @@ class ScallopBuilder implements ScallopBuilderInterface {
   public readonly sponsoredFeeds: string[];
   public readonly suiKit: SuiKit;
   public readonly pythEndpoints: string[];
+  /** Pyth (Hermes) API access token, forwarded to the pyth oracle rule. */
+  public readonly pythApiKey?: string;
 
   public constructor({
     usePythPullModel = true,
     useOnChainXOracleList = true,
     sponsoredFeeds = [],
-    pythEndpoints = [],
     query,
+    pythEndpoints = [DEFAULT_PYTH_URL],
     ...scallopQueryArgs
   }: ScallopBuilderConstructorParams) {
     this.suiKit = new SuiKit({
@@ -55,6 +58,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
       query ??
       new ScallopQuery({
         ...scallopQueryArgs,
+        pythEndpoints,
         walletAddress:
           scallopQueryArgs.walletAddress ?? this.suiKit.currentAddress,
       });
@@ -62,6 +66,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
     this.useOnChainXOracleList = useOnChainXOracleList;
     this.sponsoredFeeds = sponsoredFeeds;
     this.pythEndpoints = pythEndpoints;
+    this.pythApiKey = scallopQueryArgs.pythApiKey;
   }
 
   /**
