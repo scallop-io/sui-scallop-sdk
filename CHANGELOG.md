@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.4.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.3.0...v4.4.0) (2026-07-20)
+
+### Added
+
+- GraphQL-backed coin balance reads — new `getCoinBalances` on `ScallopQuery`, plus `graphqlUrl` / `graphqlClient` / `priceTimeout` constructor options and a cached Pyth price-feed universe on `ScallopConstants` ([3306f86](https://github.com/scallop-io/sui-scallop-sdk/commit/3306f8636cfb189bcc780ac72e3289765f3de77f))
+- Keyless indexer Pyth price path — prices resolve from the Scallop indexer (or Pyth Hermes when `pythApiKey` is set) with a per-coin on-chain fallback, plus new `pythApiKey` / `pythEndpoints` builder options ([2074619](https://github.com/scallop-io/sui-scallop-sdk/commit/20746197d0fce905bfb37937417fa0f1dda1d9be))
+- `onchain` datasource accessor on `ScallopQuery` ([ebb6564](https://github.com/scallop-io/sui-scallop-sdk/commit/ebb65649793e3cba73280d1b57e3f2b014b1b673))
+
+### Changed
+
+- Moved `@scallop-io/sui-kit` and `@tanstack/query-core` to peer dependencies and bumped `@mysten/sui` to `>=2.20` — consumers must now provide these packages themselves ([56f02dc](https://github.com/scallop-io/sui-scallop-sdk/commit/56f02dc29f5365da175c2433ad090df44453cb73))
+- Batched per-obligation `devInspect` reads into a single `simulateTransaction` for obligation and borrow-incentive queries ([c917263](https://github.com/scallop-io/sui-scallop-sdk/commit/c917263f44fa14ca579a5c6575b170687b1614a2))
+- Promoted GraphQL balance reads to a first-class, self-caching `GraphQLDataSource` (owns `multiGetBalances`); removed the disabled GraphQL→gRPC balance fallback and the redundant raw GraphQL client handoff to `coinBalance` ([952cc3f](https://github.com/scallop-io/sui-scallop-sdk/commit/952cc3f4d664e013d306cbf1ff265c2754b61710))
+- Refactored on-chain oracle `set_price` updates into a per-provider rule registry (Pyth / Supra / Switchboard) and upgraded `@pythnetwork/pyth-sui-js` `3.0.0` → `4.0.0` ([8c2f80d](https://github.com/scallop-io/sui-scallop-sdk/commit/8c2f80dbf85c66a563267ef1d137dda663e79a2f))
+
+### Fixed
+
+- Builder now passes unpinned coin objectIds so object versions resolve at build time ([be544db](https://github.com/scallop-io/sui-scallop-sdk/commit/be544db459f30312f8937706a48a1d959a800dcc))
+
 ## [4.3.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.2.0...v4.3.0) (2026-07-06)
 
 ### Added
