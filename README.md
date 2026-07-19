@@ -94,7 +94,7 @@ const sdk = new Scallop({
   network: 'mainnet',
   fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
   secretKey: process.env.SECRET_KEY,
-  pythEndpoints: ['https://hermes.pyth.network'],
+  pythEndpoints: ['https://pyth.dourolabs.app/hermes'],
 });
 
 const client = await sdk.createScallopClient();
@@ -112,7 +112,7 @@ const sdk = new Scallop({
   network: 'mainnet',
   fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
   walletAddress: '0x...',
-  pythEndpoints: ['https://hermes.pyth.network'],
+  pythEndpoints: ['https://pyth.dourolabs.app/hermes'],
 });
 
 const query = await sdk.createScallopQuery();
@@ -146,7 +146,8 @@ Common required options:
 
 Common optional options:
 
-- `pythEndpoints`: Pyth Hermes endpoints for price-update flows.
+- `pythEndpoints`: Pyth Hermes endpoints for price-update flows. Default `https://pyth.dourolabs.app/hermes`.
+- `pythApiKey`: Pyth (Hermes) API access token. The hosted Pyth endpoint now requires a key. When set, Pyth coin prices are read **directly from the Pyth API** (sent as the Hermes `accessToken`); when omitted, prices are read from the **Scallop indexer** instead. Either way, `getPythCoinPrice(s)` falls back to on-chain feed objects if the API source fails.
 - `queryClient` / `queryClientConfig`: custom `@tanstack/query-core` cache.
 - `priceTimeout`: cache lifetime (ms) for the full Pyth price-feed list. Default `5_000`. Within this window, single/subset price reads are served from one cached full-list fetch instead of re-hitting the Pyth API; a longer value cuts API traffic at the cost of price staleness.
 - `logger`: SDK logger. Default is silent `noopLogger`; pass `consoleLogger` to opt into console output.

@@ -33,7 +33,7 @@ Supporting pieces:
 - `ScallopAddress` is the address/HTTP adapter; it reads the Scallop API via `ApiDataSource`.
 - `ScallopUtils` owns an `OnChainDataSource` (`utils.onchain`) — a rate-limited Sui read client — plus `ScallopConstants`.
 - `ScallopBuilder` owns the raw `SuiKit` (`builder.suiKit`) and the write-path `TransactionExecutor` (`builder.executor`, a `SuiKitTransactionExecutor`).
-- `src/datasources/` is the raw transport layer (on-chain RPC, indexer, API). `ScallopSuiKit` and the `ScallopIndexer` model were both removed.
+- `src/datasources/` is the raw transport layer (on-chain RPC, indexer, API, and a Sui GraphQL source for reads with no gRPC equivalent). `ScallopSuiKit` and the `ScallopIndexer` model were both removed.
 - `src/mappers/` is now just `moveTypeMapper` (gRPC vs JSON-RPC `TypeName` differences); per-domain payload parsing lives inside each repository.
 - `src/services/query/portfolioCalculations.ts` holds pure math extracted from portfolio queries.
 - `src/errors/`, `src/logger/`, `src/types/public`, and `src/types/internal` are cross-cutting support layers.
@@ -100,7 +100,9 @@ src/
 │   ├── core/ spool/ vesca/ borrowIncentive/ referral/ sCoin/ loyaltyProgram/ obligationNaming/
 │   │       each domain: moveCalls.ts (normal/pure) + quick.ts (orchestration) + index.ts (factory)
 │   │       (obligationNaming is normal-only: moveCalls.ts + index.ts, no quick.ts)
-│   ├── oracles/             # pyth (pyth-sui-js@3 / hermes-client@3) + xOracle price-feed builders
+│   │   core/oracles/        # xOracle price-feed orchestration (feeds the *Quick methods)
+│   │       index.ts (updateOracles + OracleActionContext) + rules/ provider registry:
+│   │       rules/{pyth,pythAccumulator,supra,switchboard}.ts, registry.ts, types.ts
 │   ├── utils.ts             # shared pure builder helpers (requireSender, …)
 │   ├── manifest.ts          # ⭐ Per-module method manifest
 │   ├── modules.ts           # ⭐ Per-domain module objects (tx.core, tx.spool, …)
@@ -111,7 +113,9 @@ src/
 │   ├── onchain.ts           # OnChainDataSource — rate-limited Sui read client (new-gen SDK)
 │   ├── rateLimiter.ts       # token-bucket throttle (single point for all on-chain reads)
 │   ├── api.ts               # ApiDataSource — Scallop API (axios)
-│   └── indexer.ts           # IndexerDataSource extends ApiDataSource (indexer base url)
+│   ├── indexer.ts           # IndexerDataSource extends ApiDataSource (indexer base url)
+│   └── graphql.ts           # GraphQLDataSource — Sui GraphQL, self-caching; balance reads
+│                            #   with no gRPC equivalent (multiGetBalances → coinBalance)
 │
 ├── repositories/            # ⭐ The read layer — one folder per domain
 │   ├── base.ts              # BaseRepository (fetchWithCache, baseContext, metadata generic)
@@ -282,7 +286,7 @@ The validation lives in `src/models/scallopConstants/config/ConfigValidator.ts` 
 
 The repository layer uses `@tanstack/query-core`'s `QueryClient` (shared via `src/repositories/cache.ts`) for on-chain and indexer data. Every network read goes through `ctx.fetchWithCache({ queryKey, queryFn })`; cache keys are centralised in `src/constants/queryKeys.ts` (always include `node: onchain.url` in RPC keys). The network call **must live inside `queryFn`** so `fetchWithCache` provides both in-flight dedup and `staleTime` reuse — a fetch issued before `fetchWithCache` bypasses the cache entirely.
 
-**Pyth price reads** (`price/getPythPricesFromApi`) always fetch the full, sorted feed-id universe (from `addresses.coins[*].oracle.pyth.feed`) under one stable, subset-independent key (`queryKeys.oracle.getPythAllPriceFeeds`), then filter the cached `feedId → price` map down to the requested coins. So a single-coin `getPythCoinPrice('sui')` and a full `getPythCoinPrices()` share one cache entry. The entry's `staleTime`/`gcTime` is `priceTimeout` (default `5_000` ms, configurable via the `ScallopQuery`/`Scallop` constructor), so within that window all price reads are served from the one cached fetch. Coins with no configured feed default to `0`.
+**Pyth price reads** (`price/helpers.ts` — `getPythPricesFromPythApi` / `getPythPricesFromIndexerApi`) always fetch the full, sorted feed-id universe (from `addresses.coins[*].oracle.pyth.feed`) under one stable, subset-independent key (`queryKeys.oracle.getPythAllPriceFeeds`), then filter the cached `feedId → price` map down to the requested coins. So a single-coin `getPythCoinPrice('sui')` and a full `getPythCoinPrices()` share one cache entry. The entry's `staleTime`/`gcTime` is `priceTimeout` (default `5_000` ms, configurable via the `ScallopQuery`/`Scallop` constructor), so within that window all price reads are served from the one cached fetch. Coins with no configured feed default to `0`.
 
 ### Batching on-chain object reads
 
