@@ -8,9 +8,8 @@ import {
   UNLOCK_ROUND_DURATION,
   Vesca,
 } from 'src/entries/index.js';
-import { SuiTxBlock, Transaction } from '@scallop-io/sui-kit';
+import { Transaction } from '@scallop-io/sui-kit';
 import { scallopSDK } from '../scallopSdk.js';
-import { updateOracles } from 'src/txBuilders/oracles/index.js';
 
 const ENABLE_LOG = false;
 const COIN_NAME = 'sui';
@@ -108,7 +107,7 @@ const createRandomWalletAccountBuilder = async () => {
     addressId: '695fcdc084f790c04eb068dc',
     secretKey: '',
     network: 'mainnet',
-    pythEndpoints: ['https://hermes.pyth.network'],
+    pythEndpoints: ['https://pyth.dourolabs.app/hermes'],
     walletAddress: '',
     fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
   });
@@ -1294,9 +1293,9 @@ describe('Test XOracle V2', () => {
 
   it('Should updates oracles success', async () => {
     const coins = ['sui', 'sca', 'usdc', 'deep'] as string[];
-    const txb = new SuiTxBlock();
+    const txb = scallopBuilder.createTxBlock();
 
-    await updateOracles(scallopBuilder, txb, coins);
+    await txb.updateAssetPricesQuick(coins);
 
     // v2: Use suiKit.inspectTxn which calls client.core.simulateTransaction
     const resp = await scallopBuilder.suiKit.inspectTxn(txb);

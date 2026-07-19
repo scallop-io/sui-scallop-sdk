@@ -10,7 +10,7 @@ vi.mock('@pythnetwork/pyth-sui-js', () => ({
 }));
 
 import { QueryClient } from '@tanstack/query-core';
-import { getPythPricesFromApi } from 'src/repositories/price/helpers.js';
+import { getPythPricesFromPythApi } from 'src/repositories/price/helpers.js';
 import { createFetchWithCache } from 'src/utils/cache.js';
 import { DEFAULT_PYTH_URL } from 'src/repositories/price/const.js';
 import type { PriceApiContext } from 'src/repositories/price/types.js';
@@ -37,6 +37,7 @@ const makeCtx = (priceTimeout: number): PriceApiContext => {
   const queryClient = new QueryClient();
   return {
     fetchWithCache: createFetchWithCache(queryClient, logger),
+    indexer: {} as never,
     metadata: { addresses },
     pythPriceServiceConfig: { endpoint: DEFAULT_PYTH_URL, config: {} },
     priceTimeout,
@@ -55,11 +56,11 @@ const mockFeeds = () =>
 
 beforeEach(() => vi.clearAllMocks());
 
-describe('getPythPricesFromApi', () => {
+describe('getPythPricesFromPythApi', () => {
   it('fetches the FULL sorted feed universe even for a single-coin request', async () => {
     mockFeeds();
     const ctx = makeCtx(5_000);
-    const prices = await getPythPricesFromApi(ctx, ['sui']);
+    const prices = await getPythPricesFromPythApi(ctx, ['sui']);
 
     expect(getLatestPriceUpdates).toHaveBeenCalledTimes(1);
     // Full universe, sorted — not just [FEED_B] for 'sui'.
@@ -71,8 +72,8 @@ describe('getPythPricesFromApi', () => {
     mockFeeds();
     const ctx = makeCtx(5_000);
     const [single, subset] = await Promise.all([
-      getPythPricesFromApi(ctx, ['sui']),
-      getPythPricesFromApi(ctx, ['sui', 'usdc']),
+      getPythPricesFromPythApi(ctx, ['sui']),
+      getPythPricesFromPythApi(ctx, ['sui', 'usdc']),
     ]);
 
     // In-flight dedup: the concurrent callers share one fetch.
@@ -84,8 +85,8 @@ describe('getPythPricesFromApi', () => {
   it('serves a second read within priceTimeout from cache (no refetch)', async () => {
     mockFeeds();
     const ctx = makeCtx(5_000);
-    await getPythPricesFromApi(ctx, ['sui']);
-    await getPythPricesFromApi(ctx, ['usdc']);
+    await getPythPricesFromPythApi(ctx, ['sui']);
+    await getPythPricesFromPythApi(ctx, ['usdc']);
 
     expect(getLatestPriceUpdates).toHaveBeenCalledTimes(1);
   });
@@ -93,8 +94,8 @@ describe('getPythPricesFromApi', () => {
   it('refetches when the cache is stale (priceTimeout = 0)', async () => {
     mockFeeds();
     const ctx = makeCtx(0);
-    await getPythPricesFromApi(ctx, ['sui']);
-    await getPythPricesFromApi(ctx, ['sui']);
+    await getPythPricesFromPythApi(ctx, ['sui']);
+    await getPythPricesFromPythApi(ctx, ['sui']);
 
     // staleTime 0 → every read is stale → each refetches.
     expect(getLatestPriceUpdates).toHaveBeenCalledTimes(2);
@@ -103,7 +104,7 @@ describe('getPythPricesFromApi', () => {
   it('defaults coins with no configured feed to 0 and omits them from the fetch', async () => {
     mockFeeds();
     const ctx = makeCtx(5_000);
-    const prices = await getPythPricesFromApi(ctx, ['sui', 'nofeed']);
+    const prices = await getPythPricesFromPythApi(ctx, ['sui', 'nofeed']);
 
     expect(prices).toEqual({ sui: 2.5, nofeed: 0 });
     // 'nofeed' has no feed id, so it never enters the requested id set.
@@ -115,7 +116,7 @@ describe('getPythPricesFromApi', () => {
       parsed: [{ id: FEED_A, price: { price: '100000000', expo: -8 } }],
     });
     const ctx = makeCtx(5_000);
-    const prices = await getPythPricesFromApi(ctx, ['sui', 'usdc']);
+    const prices = await getPythPricesFromPythApi(ctx, ['sui', 'usdc']);
 
     expect(prices).toEqual({ sui: 0, usdc: 1 });
   });

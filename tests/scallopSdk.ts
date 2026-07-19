@@ -12,7 +12,7 @@ export const scallopSDK = new Scallop({
   forceAddressesInterface: ADDRESS_INTERFACE,
   forcePoolAddressInterface: POOL_ADDRESSES,
   forceWhitelistInterface: WHITELIST,
-  pythEndpoints: ['https://hermes.pyth.network'],
+  pythEndpoints: ['https://pyth.dourolabs.app/hermes'],
   fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
   queryClientConfig: {
     defaultOptions: {
