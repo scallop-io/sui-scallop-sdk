@@ -93,6 +93,10 @@ class ScallopQuery implements ScallopQueryInterface {
     return this.utils.address;
   }
 
+  get onchain() {
+    return this.utils.onchain;
+  }
+
   /* ==================== Core Query Methods ==================== */
 
   /**
