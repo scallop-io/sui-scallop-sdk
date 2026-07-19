@@ -1,29 +1,34 @@
 import { SuiClientTypes } from '@mysten/sui/client';
-import {
-  PriceApiContext,
-  PriceIndexerContext,
-  PriceOnChainContext,
-} from './types.js';
+import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
+import { BigNumber } from 'bignumber.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
-import { PriceFeedObjectSchema } from './schema.js';
-import { calculatePrice } from './utils.js';
-import { logError, type OnChainReadContext } from '../utils.js';
 import {
   ScallopIndexerError,
   ScallopParseError,
   ScallopRpcError,
 } from 'src/errors/index.js';
-import { SuiPriceServiceConnection } from '@pythnetwork/pyth-sui-js';
 import type { SuiObjectData } from 'src/types/index.js';
-import { MarketCollateral, MarketPool } from '../market/types.js';
 import { partitionArray } from 'src/utils/array.js';
-import { BigNumber } from 'bignumber.js';
+import { MarketCollateral, MarketPool } from '../market/types.js';
+import { logError, type OnChainReadContext } from '../utils.js';
+import {
+  IndexerApiResponse,
+  IndexerApiResponseType,
+  PriceFeedObjectSchema,
+} from './schema.js';
+import {
+  PriceApiContext,
+  PriceIndexerContext,
+  PriceOnChainContext,
+} from './types.js';
+import { calculatePrice } from './utils.js';
 
-export const getPythPricesFromApi = async (
+export const getPythPricesFromPythApi = async (
   ctx: PriceApiContext,
   coinNames: string[]
 ) => {
   const {
+    logger,
     fetchWithCache,
     metadata: { addresses },
     pythPriceServiceConfig: { endpoint, config },
@@ -63,7 +68,7 @@ export const getPythPricesFromApi = async (
 
       if (!feeds) {
         throw logError(
-          ctx.logger,
+          logger,
           new ScallopIndexerError('Failed to fetch price feeds from Pyth API', {
             context: { endpoint, priceFeedIds: allFeedIds },
           })
@@ -90,6 +95,66 @@ export const getPythPricesFromApi = async (
       (feedId !== undefined ? priceByFeedId[feedId] : undefined) ?? 0;
   }
   return prices;
+};
+
+export const getPythPricesFromIndexerApi = async (
+  ctx: PriceApiContext,
+  coinNames: string[]
+) => {
+  const {
+    logger,
+    indexer,
+    fetchWithCache,
+    priceTimeout,
+    metadata: { addresses },
+  } = ctx;
+
+  const allFeedIds = Array.from(
+    new Set(
+      Object.values(addresses.coins)
+        .map((coin) => coin?.oracle?.pyth?.feed)
+        .filter((feed): feed is string => !!feed)
+    )
+  ).sort();
+
+  // Fetch prices from indexer (keyed by coinType, covering the full universe)
+  const path = '/api/price/pyth';
+  try {
+    const { prices: priceByCoinType } =
+      await fetchWithCache<IndexerApiResponseType>({
+        queryKey: queryKeys.oracle.getPythAllPriceFeeds(
+          indexer.url,
+          allFeedIds
+        ),
+        // staleTime: within this window, reads are served from cache (no refetch).
+        // gcTime must be >= staleTime so the entry isn't collected while still fresh.
+        staleTime: priceTimeout,
+        gcTime: priceTimeout,
+        queryFn: async () => IndexerApiResponse.parse(await indexer.get(path)),
+      });
+
+    // Map the prices to the requested coin names, defaulting to 0 if the coin
+    // has no pool coinType or the indexer didn't return a feed for it.
+    return coinNames.reduce<Record<string, number>>((acc, coinName) => {
+      const coinType = addresses.coins[coinName].coinType;
+      const feed = coinType ? priceByCoinType[coinType] : undefined;
+      acc[coinName] = feed
+        ? BigNumber(feed.price).shiftedBy(feed.expo).toNumber()
+        : 0;
+      return acc;
+    }, {});
+  } catch (e) {
+    throw logError(
+      logger,
+      new ScallopIndexerError('Failed to fetch price feeds from Pyth API', {
+        context: {
+          endpoint: `${indexer.url}${path}`,
+          coinNames,
+          message: (e as Error).message,
+        },
+      })
+    );
+  }
 };
 
 /**
