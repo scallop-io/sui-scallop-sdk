@@ -388,13 +388,18 @@ export const getObligationNamesFromOnChain = async (
       };
 
       try {
-        const { dynamicField } = await fetchWithCache({
-          queryKey: queryKeys.rpc.getDynamicFieldObject({
-            ...options,
-            node: onchain.url,
-          }),
-          queryFn: () => onchain.client.getDynamicField(options),
-        });
+        const { dynamicField } = await fetchWithCache(
+          {
+            queryKey: queryKeys.rpc.getDynamicFieldObject({
+              ...options,
+              node: onchain.url,
+            }),
+            queryFn: () => onchain.client.getDynamicField(options),
+          },
+          // An unnamed obligation legitimately has no dynamic field; the miss is
+          // handled below, so don't log it as an error.
+          { logErrors: false }
+        );
 
         return [
           key.objectId,

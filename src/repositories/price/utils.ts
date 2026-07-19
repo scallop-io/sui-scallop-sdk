@@ -16,6 +16,6 @@ export const calculatePrice = ({
   const expoSign = expo.negative ? -1 : 1;
   const priceSign = price.negative ? -1 : 1;
   return BigNumber(price.magnitude)
-    .multipliedBy(BigNumber(10).shiftedBy(expoSign * +expo.magnitude))
+    .shiftedBy(expoSign * +expo.magnitude)
     .multipliedBy(priceSign);
 };
