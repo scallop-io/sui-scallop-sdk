@@ -5,7 +5,7 @@
 
 import { BaseRepository } from '../base.js';
 import { OnChainDataSource } from 'src/datasources/onchain.js';
-import type { SuiGraphQLClient } from '@mysten/sui/graphql';
+import { GraphQLDataSource } from 'src/datasources/graphql.js';
 import {
   getCoinAmountFromOnChain,
   getCoinAmountsFromOnChain,
@@ -27,19 +27,12 @@ export class CoinBalanceRepository extends BaseRepository<
   CoinBalanceMetadata
 > {
   private readonly onchain: OnChainDataSource;
-  private readonly balanceSource: OnChainDataSource;
-  private readonly graphqlClient: SuiGraphQLClient;
+  private readonly balanceSource: GraphQLDataSource;
 
-  constructor({
-    onchain,
-    balanceSource,
-    graphqlClient,
-    ...params
-  }: CoinBalanceRepoParams) {
+  constructor({ onchain, balanceSource, ...params }: CoinBalanceRepoParams) {
     super(params);
     this.onchain = onchain;
     this.balanceSource = balanceSource;
-    this.graphqlClient = graphqlClient;
   }
 
   get context() {
@@ -47,7 +40,6 @@ export class CoinBalanceRepository extends BaseRepository<
       ...this.baseContext,
       onchain: this.onchain,
       balanceSource: this.balanceSource,
-      graphqlClient: this.graphqlClient,
       queryClient: this.queryClient,
     };
   }

@@ -5,7 +5,6 @@ import { normalizeStructTag } from '@mysten/sui/utils';
 import { SuiClientTypes } from '@mysten/sui/client';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import type { QueryClient } from '@tanstack/query-core';
-import type { SuiGraphQLClient } from '@mysten/sui/graphql';
 import type { OnChainDataSource } from 'src/datasources/onchain.js';
 import { getSharedObjectData } from 'src/utils/object.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
@@ -195,7 +194,6 @@ const updateCachedBalance = (
 
 const getUserBalancesFromOnChain = async (
   ctx: BalanceSourcesCtx & {
-    graphqlClient: SuiGraphQLClient;
     queryClient: QueryClient;
   },
   address: string
@@ -239,114 +237,27 @@ const getUserBalancesFromOnChain = async (
 };
 
 /**
- * GraphQL `multiGetBalances`: fetch balances for a KNOWN set of coin types in one
- * round trip. Unlike `listBalances` (all balances, paginated, no coin filter),
- * this targets exactly the requested types. GraphQL-only — gRPC has no multi-coin
- * balance call, so there's no fallback here (callers wanting a fallback can use
- * getCoinAmounts). Typed via explicit `.query<Result, Variables>()` generics
- * against the hand-written result type below.
+ * Fetch balances for a KNOWN set of coin types in one round trip. Thin delegate
+ * to the GraphQL datasource — the typed `multiGetBalances` query, its self-cache,
+ * and rate-limiting all live in {@link GraphQLDataSource}. Returns a map keyed by
+ * normalized coin type; types absent on-chain are omitted. GraphQL-only (gRPC has
+ * no multi-coin balance call, so no fallback; callers wanting one use
+ * getCoinAmounts).
  */
-const COIN_BALANCES_BY_TYPES_QUERY = /* GraphQL */ `
-  query CoinBalancesByTypes($address: SuiAddress!, $coinTypes: [String!]!) {
-    address(address: $address) {
-      multiGetBalances(keys: $coinTypes) {
-        coinType {
-          repr
-        }
-        totalBalance
-        coinBalance
-        addressBalance
-      }
-    }
-  }
-`;
-
-type MultiGetBalancesResult = {
-  address: {
-    multiGetBalances: {
-      coinType: { repr: string };
-      totalBalance: string | null;
-      coinBalance: string | null;
-      addressBalance: string | null;
-    }[];
-  } | null;
-};
-
-type MultiGetBalancesVariables = {
-  address: string;
-  coinTypes: string[];
-};
-
-/**
- * Fetch balances for a specific set of coin types via GraphQL `multiGetBalances`.
- * Returns a map keyed by normalized coin type; `.balance` mirrors the transport
- * `Balance` contract (total balance), so downstream `.balance` reads match the
- * `listBalances` path. Coin types absent on-chain are simply omitted from the map.
- */
-export const getCoinBalancesFromGraphQL = async (
-  ctx: Pick<
-    CoinBalanceContext,
-    'graphqlClient' | 'balanceSource' | 'fetchWithCache' | 'logger'
-  >,
+export const getCoinBalancesFromGraphQL = (
+  ctx: Pick<CoinBalanceContext, 'balanceSource'>,
   readArgs: {
     coinTypes: string[];
     address: string;
   }
-): Promise<Record<string, SuiClientTypes.Balance>> => {
-  const { graphqlClient, balanceSource, fetchWithCache, logger } = ctx;
-  const { address, coinTypes } = readArgs;
-  if (!coinTypes.length) return {};
-
-  const normalizedTypes = coinTypes.map((t) => normalizeStructTag(t));
-
-  const entries = await fetchWithCache({
-    queryKey: queryKeys.rpc.getCoinBalancesByTypes({
-      node: balanceSource.url,
-      address,
-      coinTypes: [...normalizedTypes].sort(),
-    }),
-    queryFn: async () => {
-      const resp = await graphqlClient.query<
-        MultiGetBalancesResult,
-        MultiGetBalancesVariables
-      >({
-        query: COIN_BALANCES_BY_TYPES_QUERY,
-        variables: { address, coinTypes: normalizedTypes },
-      });
-      if (resp.errors?.length) {
-        throw logError(
-          logger,
-          new ScallopRpcError(
-            `GraphQL multiGetBalances failed: ${resp.errors[0].message}`,
-            { context: { address, coinTypes: normalizedTypes } }
-          )
-        );
-      }
-      return resp.data?.address?.multiGetBalances ?? [];
-    },
-  });
-
-  return entries.reduce(
-    (acc, entry) => {
-      const coinType = normalizeStructTag(entry.coinType.repr);
-      acc[coinType] = {
-        coinType,
-        balance: entry.totalBalance ?? '0',
-        coinBalance: entry.coinBalance ?? '0',
-        addressBalance: entry.addressBalance ?? '0',
-      };
-      return acc;
-    },
-    {} as Record<string, SuiClientTypes.Balance>
-  );
-};
+): Promise<Record<string, SuiClientTypes.Balance>> =>
+  ctx.balanceSource.multiGetBalances(readArgs.address, readArgs.coinTypes);
 
 export const getCoinAmountsFromOnChain = async (
   ctx: Pick<
     CoinBalanceContext,
     | 'onchain'
     | 'balanceSource'
-    | 'graphqlClient'
     | 'logger'
     | 'fetchWithCache'
     | 'metadata'
@@ -361,7 +272,6 @@ export const getCoinAmountsFromOnChain = async (
     fetchWithCache,
     onchain,
     balanceSource,
-    graphqlClient,
     logger,
     metadata,
     queryClient,
@@ -376,7 +286,7 @@ export const getCoinAmountsFromOnChain = async (
     }),
     queryFn: () =>
       getUserBalancesFromOnChain(
-        { onchain, balanceSource, graphqlClient, logger, queryClient },
+        { onchain, balanceSource, logger, queryClient },
         address
       ),
   });
@@ -432,7 +342,6 @@ export const getSCoinAmountsFromOnChain = async (
     CoinBalanceContext,
     | 'onchain'
     | 'balanceSource'
-    | 'graphqlClient'
     | 'logger'
     | 'fetchWithCache'
     | 'metadata'
@@ -447,7 +356,6 @@ export const getSCoinAmountsFromOnChain = async (
     fetchWithCache,
     onchain,
     balanceSource,
-    graphqlClient,
     logger,
     metadata,
     queryClient,
@@ -462,7 +370,7 @@ export const getSCoinAmountsFromOnChain = async (
     }),
     queryFn: () =>
       getUserBalancesFromOnChain(
-        { onchain, balanceSource, graphqlClient, logger, queryClient },
+        { onchain, balanceSource, logger, queryClient },
         address
       ),
   });
@@ -516,7 +424,6 @@ export const getMarketCoinAmountsFromOnChain = async (
     CoinBalanceContext,
     | 'onchain'
     | 'balanceSource'
-    | 'graphqlClient'
     | 'logger'
     | 'fetchWithCache'
     | 'metadata'
@@ -531,7 +438,6 @@ export const getMarketCoinAmountsFromOnChain = async (
     fetchWithCache,
     onchain,
     balanceSource,
-    graphqlClient,
     logger,
     metadata,
     queryClient,
@@ -546,7 +452,7 @@ export const getMarketCoinAmountsFromOnChain = async (
     }),
     queryFn: () =>
       getUserBalancesFromOnChain(
-        { onchain, balanceSource, graphqlClient, logger, queryClient },
+        { onchain, balanceSource, logger, queryClient },
         address
       ),
   });

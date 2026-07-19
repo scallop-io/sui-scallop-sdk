@@ -1,8 +1,8 @@
 import type { QueryClient } from '@tanstack/query-core';
-import type { SuiGraphQLClient } from '@mysten/sui/graphql';
 import { BaseContext, BaseRepoParams } from '../types.js';
 import { AddressesInterface } from 'src/types/address.js';
 import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GraphQLDataSource } from 'src/datasources/graphql.js';
 
 export type CoinBalanceMetadata = {
   whitelist: {
@@ -25,25 +25,18 @@ export type CoinBalanceMetadata = {
 export type CoinBalanceContext = BaseContext & {
   onchain: OnChainDataSource;
   /**
-   * GraphQL-backed transport used as the PRIMARY source for balance reads
-   * (getBalance/listBalances); the gRPC `onchain` above is the fallback. See
-   * GRAPHQL_COINBALANCE_PLAN.md — the gRPC balance service flaps, GraphQL is
-   * stable.
+   * GraphQL-backed, self-caching balance datasource. Owns `multiGetBalances`
+   * (fetch a known set of coin types in one round trip) and namespaces the
+   * per-coin balance cache via its `.url`. The gRPC `onchain` above stays the
+   * source for the paged `listBalances`/`getBalance` reads.
    */
-  balanceSource: OnChainDataSource;
-  /**
-   * Raw GraphQL client for typed queries that have no transport-method
-   * equivalent — currently `multiGetBalances` (fetch a known set of coin types
-   * in one round trip, vs. paging all balances via `listBalances`).
-   */
-  graphqlClient: SuiGraphQLClient;
+  balanceSource: GraphQLDataSource;
   queryClient: QueryClient;
   metadata: CoinBalanceMetadata;
 };
 
 export type CoinBalanceRepoParams = BaseRepoParams & {
   onchain: OnChainDataSource;
-  balanceSource: OnChainDataSource;
-  graphqlClient: SuiGraphQLClient;
+  balanceSource: GraphQLDataSource;
   metadata: CoinBalanceMetadata;
 };

@@ -65,6 +65,16 @@ export type RepositoryDeps = {
    * (full transport override). Takes precedence over `graphqlUrl`.
    */
   graphqlClient?: SuiGraphQLClient;
+  /**
+   * Pyth API access token. When set, Pyth prices are read directly from the
+   * Pyth (Hermes) API; otherwise they come from the Scallop indexer.
+   */
+  pythApiKey?: string;
+  /**
+   * Pyth (Hermes) endpoints. The first is used as the default price-read
+   * endpoint when no explicit `pythPriceServiceConfig` is supplied.
+   */
+  pythEndpoints?: string[];
 };
 
 /**
@@ -100,26 +110,26 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
     priceTimeout,
     graphqlUrl,
     graphqlClient,
+    pythApiKey,
+    pythEndpoints,
     queryClientConfig = DEFAULT_CACHE_OPTIONS,
   } = deps;
 
   const onchain = utils.onchain;
   const indexer = createIndexerDataSource(indexerUrl);
-  // GraphQL-backed transport for balance reads (gRPC balance service flaps).
-  // Resolve one client shared by the rate-limited datasource (getBalance/
-  // listBalances) and the raw typed-query path (multiGetBalances).
-  const resolvedGraphqlUrl = graphqlUrl ?? MAINNET_GRAPHQL_URL;
-  const resolvedGraphqlClient =
-    graphqlClient ??
-    new SuiGraphQLClient({ url: resolvedGraphqlUrl, network: 'mainnet' });
-  const balanceSource = createGraphQLDataSource({
-    client: resolvedGraphqlClient,
-    url: resolvedGraphqlUrl,
-  });
   const queryClient: QueryClient =
     deps.queryClient ?? new QueryClient(queryClientConfig);
   const logger: Logger = utils.logger;
   const base = { onchain, queryClient, logger };
+  // GraphQL-backed, self-caching balance datasource (the gRPC balance service
+  // flaps; GraphQL is stable). Owns `multiGetBalances`. Pass an explicit client
+  // or url to override; both default to mainnet.
+  const balanceSource = createGraphQLDataSource({
+    client: graphqlClient,
+    url: graphqlUrl ?? MAINNET_GRAPHQL_URL,
+    queryClient,
+    logger,
+  });
 
   let market: MarketRepository | undefined;
   let coinBalance: CoinBalanceRepository | undefined;
@@ -149,7 +159,6 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
       return (coinBalance ??= new CoinBalanceRepository({
         ...base,
         balanceSource,
-        graphqlClient: resolvedGraphqlClient,
         metadata: buildCoinBalanceMetadata(utils),
       }));
     },
@@ -220,6 +229,8 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
         indexer,
         metadata: buildPriceMetadata(utils),
         priceTimeout,
+        pythApiKey,
+        pythEndpoints,
       }));
     },
     get poolAddresses() {

@@ -19,4 +19,10 @@ export type ScallopQueryConstructorParams = {
    * (full transport override). Takes precedence over `graphqlUrl`.
    */
   graphqlClient?: SuiGraphQLClient;
+  pythApiKey?: string;
+  /**
+   * Pyth (Hermes) endpoints. The first is used as the default price-read
+   * endpoint when no explicit `pythPriceServiceConfig` is supplied.
+   */
+  pythEndpoints?: string[];
 } & ScallopUtilsConstructorParams;
