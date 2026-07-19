@@ -1,0 +1,104 @@
+import { describe, it, expect } from 'vitest';
+import { keccak_256 } from '@noble/hashes/sha3.js';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import {
+  parsePythAccumulatorUpdate,
+  slicePythAccumulatorUpdate,
+  feedIdOf,
+} from 'src/txBuilders/core/oracles/rules/pythAccumulator.js';
+
+// The full-feed accumulator update our indexer parses from the Pyth API (all
+// lending-pool feeds). only-sui is the direct-from-Pyth single-feed payload.
+const loadFixture = (name: string): Buffer => {
+  const path = fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url));
+  return Buffer.from(JSON.parse(readFileSync(path, 'utf8'))[0].data);
+};
+
+// The asset under test: SUI. `feedObject` is the on-chain PriceInfoObject the
+// feed maps to — it is NOT encoded in the payload (resolved on-chain), so it is
+// documented here as the association, not asserted against the bytes.
+const SUI = {
+  feed: '23d7315113f5b1d3ba7a83604c44b94d79f4fd69af77f804fc7f920a6dc65744',
+  feedObject:
+    '0x801dbc2f0053d34734814b2d6df491ce7807a725fe9a01ad74a07e9c51396c37',
+};
+
+// --- Pyth merkle helpers (keccak-160, 0x00 leaf prefix / 0x01 sorted-node) ---
+const k160 = (b: Uint8Array): Buffer =>
+  Buffer.from(keccak_256(b)).subarray(0, 20);
+const leafHash = (msg: Buffer): Buffer =>
+  k160(Buffer.concat([Buffer.from([0]), msg]));
+const nodeHash = (a: Buffer, b: Buffer): Buffer => {
+  const [x, y] = Buffer.compare(a, b) <= 0 ? [a, b] : [b, a];
+  return k160(Buffer.concat([Buffer.from([1]), x, y]));
+};
+
+/** Extract the keccak-160 merkle root from the AUWV message in the VAA payload. */
+const merkleRootFromVaa = (vaa: Buffer): Buffer => {
+  let o = 1 + 4; // version + guardianSetIndex
+  const numSigs = vaa[o++];
+  o += numSigs * 66; // guardian signatures
+  o += 4 + 4 + 2 + 32 + 8 + 1; // ts, nonce, emitterChain, emitterAddr, seq, consistency
+  const payload = vaa.subarray(o); // 'AUWV'(4) type(1) slot(8) ringSize(4) root(20)
+  return payload.subarray(4 + 1 + 8 + 4, 4 + 1 + 8 + 4 + 20);
+};
+
+const proofVerifies = (msg: Buffer, proof: Buffer, root: Buffer): boolean => {
+  let h = leafHash(msg);
+  for (let i = 0; i < proof.length; i += 20)
+    h = nodeHash(h, proof.subarray(i, i + 20));
+  return Buffer.compare(h, root) === 0;
+};
+
+describe('pyth accumulator slicing (full indexer feed -> single asset)', () => {
+  const fullFeed = loadFixture('all-feed.json');
+
+  it('parses the full feed and every per-feed proof verifies against the one VAA root', () => {
+    // intent: proves the shared-root/per-feed-proof model our slicing relies on
+    const { vaa, updates } = parsePythAccumulatorUpdate(fullFeed);
+    const root = merkleRootFromVaa(vaa);
+    expect(updates.length).toBeGreaterThan(1);
+    for (const u of updates) {
+      expect(proofVerifies(u.message, u.proof, root)).toBe(true);
+    }
+    // the asset under test is one of the feeds carried by the full payload
+    expect(updates.map((u) => feedIdOf(u.message))).toContain(SUI.feed);
+  });
+
+  it('slices the full feed down to SUI, preserving the VAA/root and its proof', () => {
+    // intent: a subset carved from the full feed is a valid, verifiable PNAU
+    const original = parsePythAccumulatorUpdate(fullFeed);
+    const sliced = slicePythAccumulatorUpdate(fullFeed, [SUI.feed]);
+    const reparsed = parsePythAccumulatorUpdate(sliced);
+
+    expect(sliced.subarray(0, 4).toString('latin1')).toBe('PNAU');
+    expect(reparsed.updates).toHaveLength(1);
+    expect(feedIdOf(reparsed.updates[0].message)).toBe(SUI.feed);
+    // same VAA (same merkle root) must be carried through unchanged
+    expect(Buffer.compare(reparsed.vaa, original.vaa)).toBe(0);
+    // and the SUI proof still validates against that root
+    expect(
+      proofVerifies(
+        reparsed.updates[0].message,
+        reparsed.updates[0].proof,
+        merkleRootFromVaa(reparsed.vaa)
+      )
+    ).toBe(true);
+    // slicing shrinks the payload (dropped the other feeds' message+proof)
+    expect(sliced.length).toBeLessThan(fullFeed.length);
+  });
+
+  it('accepts a 0x-prefixed / upper-case feed id', () => {
+    const sliced = slicePythAccumulatorUpdate(fullFeed, [
+      `0x${SUI.feed.toUpperCase()}`,
+    ]);
+    expect(parsePythAccumulatorUpdate(sliced).updates).toHaveLength(1);
+  });
+
+  it('yields an empty update (numUpdates=0) when no feed matches', () => {
+    const sliced = slicePythAccumulatorUpdate(fullFeed, ['ab'.repeat(32)]);
+    expect(parsePythAccumulatorUpdate(sliced).updates).toHaveLength(0);
+    expect(sliced.subarray(0, 4).toString('latin1')).toBe('PNAU');
+  });
+});

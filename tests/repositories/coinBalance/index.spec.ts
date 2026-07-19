@@ -16,21 +16,20 @@ vi.mock('src/repositories/coinBalance/helpers.js', () => ({
 import * as helpers from 'src/repositories/coinBalance/helpers.js';
 import { CoinBalanceRepository } from 'src/repositories/coinBalance/index.js';
 import type { OnChainDataSource } from 'src/datasources/onchain.js';
-import type { SuiGraphQLClient } from '@mysten/sui/graphql';
+import type { GraphQLDataSource } from 'src/datasources/graphql.js';
 import type { CoinBalanceMetadata } from 'src/repositories/coinBalance/types.js';
 
 const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
 const balanceSource = {
   url: 'mock://graphql',
-} as unknown as OnChainDataSource;
-const graphqlClient = { query: vi.fn() } as unknown as SuiGraphQLClient;
+  multiGetBalances: vi.fn(),
+} as unknown as GraphQLDataSource;
 const metadata = { tag: 'META' } as unknown as CoinBalanceMetadata;
 
 const makeRepo = () =>
   new CoinBalanceRepository({
     onchain,
     balanceSource,
-    graphqlClient,
     metadata,
   });
 
@@ -51,7 +50,7 @@ describe('CoinBalanceRepository', () => {
     expect(typeof ctx.fetchWithCache).toBe('function');
   });
 
-  it('getCoinBalances delegates to the GraphQL helper with { coinTypes, address } and the graphql client', () => {
+  it('getCoinBalances delegates to the GraphQL helper with { coinTypes, address } and the balance datasource', () => {
     vi.mocked(helpers.getCoinBalancesFromGraphQL).mockResolvedValue(
       {} as never
     );
@@ -62,7 +61,6 @@ describe('CoinBalanceRepository', () => {
 
     const [ctx, args] = vi.mocked(helpers.getCoinBalancesFromGraphQL).mock
       .calls[0];
-    expect(ctx.graphqlClient).toBe(graphqlClient);
     expect(ctx.balanceSource).toBe(balanceSource);
     expect(args).toEqual({ coinTypes: ['0x2::sui::SUI'], address: '0xA' });
   });
