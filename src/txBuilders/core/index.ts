@@ -56,7 +56,12 @@ export const newCoreTxBlock = (
         ...(builder.constants.whitelist.pythEndpoints ?? []),
       ],
       pythApiKey: builder.pythApiKey,
-      indexer: builder.query.repos.price.indexerDataSource,
+      // Lazy: only the keyless Pyth pull path reads this, so defer resolution to
+      // call time (mirrors `getAssetOracles`) instead of touching `query.repos`
+      // at tx-block construction.
+      get indexer() {
+        return builder.query.repos.price.indexerDataSource;
+      },
     },
     address: builder.address,
     moveCall: builder.moveCall.bind(builder),
