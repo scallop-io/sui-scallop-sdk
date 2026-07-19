@@ -1,12 +1,17 @@
 import { ClientWithCoreApi } from '@mysten/sui/client';
 import { SuiGraphQLClient } from '@mysten/sui/graphql';
+import type { QueryClient } from '@tanstack/query-core';
+import type { Logger } from 'src/logger/index.js';
 import { API_BASE_URL, SDK_API_BASE_URL } from 'src/constants/api.js';
 import { ApiDataSource } from 'src/datasources/api.js';
 import { IndexerDataSource } from 'src/datasources/indexer.js';
 import { OnChainDataSource } from 'src/datasources/onchain.js';
+import {
+  GraphQLDataSource,
+  MAINNET_GRAPHQL_URL,
+} from 'src/datasources/graphql.js';
 
-/** Default Sui GraphQL endpoint. Mainnet only for now. */
-export const MAINNET_GRAPHQL_URL = 'https://graphql.mainnet.sui.io/graphql';
+export { MAINNET_GRAPHQL_URL };
 
 /**
  * The on-chain datasource is the only repo datasource that needs to be instantiated with a client,
@@ -30,27 +35,20 @@ export const createOnChainDataSource = (
   });
 
 /**
- * GraphQL-backed on-chain datasource. `SuiGraphQLClient` implements the same
- * `TransportMethods` surface (getBalance/listBalances/…) and exposes `.core`, so
- * it drops straight into `createOnChainDataSource`. Used only where the GraphQL
- * balance service is more stable than gRPC (currently `coinBalance`). Pass a
- * prebuilt `client` to fully override transport, or `url` to point at a
- * non-default endpoint; both default to mainnet.
+ * GraphQL-backed balance datasource. Owns the typed GraphQL queries with no gRPC
+ * transport-method equivalent (currently `multiGetBalances`) and self-caches
+ * every read. Used only where the GraphQL balance service is more stable than
+ * gRPC (currently `coinBalance`). Pass a prebuilt `client` to fully override
+ * transport, or `url` to point at a non-default endpoint; both default to
+ * mainnet. `queryClient` backs the datasource's own read cache.
  */
-export const createGraphQLDataSource = (
-  opts: {
-    client?: SuiGraphQLClient;
-    url?: string;
-    tokensPerSecond?: number;
-  } = {}
-): OnChainDataSource => {
-  const url = opts.url ?? MAINNET_GRAPHQL_URL;
-  const client =
-    opts.client ?? new SuiGraphQLClient({ url, network: 'mainnet' });
-  return createOnChainDataSource(client, url, {
-    tokensPerSecond: opts.tokensPerSecond,
-  });
-};
+export const createGraphQLDataSource = (opts: {
+  client?: SuiGraphQLClient;
+  url?: string;
+  queryClient: QueryClient;
+  logger?: Logger;
+  tokensPerSecond?: number;
+}): GraphQLDataSource => new GraphQLDataSource(opts);
 
 /**
  * The indexer base URL defaults to `SDK_API_BASE_URL` inside `IndexerDataSource`.

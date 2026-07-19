@@ -51,6 +51,8 @@ class ScallopQuery implements ScallopQueryInterface {
     priceTimeout,
     graphqlUrl,
     graphqlClient,
+    pythApiKey,
+    pythEndpoints,
     ...scallopUtilsArgs
   }: ScallopQueryConstructorParams) {
     this.utils = utils ?? new ScallopUtils(scallopUtilsArgs);
@@ -61,6 +63,8 @@ class ScallopQuery implements ScallopQueryInterface {
       priceTimeout,
       graphqlUrl,
       graphqlClient,
+      pythApiKey,
+      pythEndpoints,
     });
   }
 
@@ -83,10 +87,6 @@ class ScallopQuery implements ScallopQueryInterface {
 
   get walletAddress() {
     return this.utils.walletAddress;
-  }
-
-  get onchain() {
-    return this.utils.onchain;
   }
 
   get address() {
