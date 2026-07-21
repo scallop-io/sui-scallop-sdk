@@ -75,6 +75,12 @@ export type RepositoryDeps = {
    * endpoint when no explicit `pythPriceServiceConfig` is supplied.
    */
   pythEndpoints?: string[];
+  /**
+   * On-chain read transport. `'graphql'` flips `preferGraphql` on, so the
+   * heavy dynamic-field repos issue native nested GraphQL queries (with gRPC
+   * fallback) instead of the Core multi-call fan-out. Defaults to `'grpc'`.
+   */
+  readTransport?: 'grpc' | 'graphql';
 };
 
 /**
@@ -112,6 +118,7 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
     graphqlClient,
     pythApiKey,
     pythEndpoints,
+    readTransport,
     queryClientConfig = DEFAULT_CACHE_OPTIONS,
   } = deps;
 
@@ -121,10 +128,15 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
     deps.queryClient ?? new QueryClient(queryClientConfig);
   const logger: Logger = utils.logger;
   const base = { onchain, queryClient, logger };
-  // GraphQL-backed, self-caching balance datasource (the gRPC balance service
-  // flaps; GraphQL is stable). Owns `multiGetBalances`. Pass an explicit client
-  // or url to override; both default to mainnet.
-  const balanceSource = createGraphQLDataSource({
+  // Whether the heavy dynamic-field repos should prefer native nested GraphQL
+  // queries (with gRPC fallback) over the Core multi-call fan-out. Only on when
+  // the GraphQL read transport is selected.
+  const preferGraphql = readTransport === 'graphql';
+  // GraphQL-backed, self-caching datasource. Owns `multiGetBalances` (the gRPC
+  // balance service flaps; GraphQL is stable) plus the Tier-2 native nested
+  // queries used when `preferGraphql`. Pass an explicit client or url to
+  // override; both default to mainnet.
+  const graphqlSource = createGraphQLDataSource({
     client: graphqlClient,
     url: graphqlUrl ?? MAINNET_GRAPHQL_URL,
     queryClient,
@@ -158,19 +170,24 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
     get coinBalance() {
       return (coinBalance ??= new CoinBalanceRepository({
         ...base,
-        balanceSource,
+        balanceSource: graphqlSource,
+        preferGraphql,
         metadata: buildCoinBalanceMetadata(utils),
       }));
     },
     get flashloan() {
       return (flashloan ??= new FlashloanRepository({
         ...base,
+        graphql: graphqlSource,
+        preferGraphql,
         metadata: buildFlashloanMetadata(utils),
       }));
     },
     get obligation() {
       return (obligation ??= new ObligationRepository({
         ...base,
+        graphql: graphqlSource,
+        preferGraphql,
         metadata: buildObligationMetadata(utils),
       }));
     },
@@ -189,6 +206,7 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
     get veSca() {
       return (veSca ??= new VeScaRepository({
         ...base,
+        preferGraphql,
         metadata: buildVeScaMetadata(utils),
       }));
     },
@@ -237,6 +255,8 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
       return (poolAddresses ??= new PoolAddressesRepository({
         ...base,
         api: createApiDataSource(),
+        graphql: graphqlSource,
+        preferGraphql,
         metadata: buildPoolAddressesMetadata(utils),
       }));
     },
