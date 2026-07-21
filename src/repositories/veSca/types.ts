@@ -50,6 +50,13 @@ export type VeScaTreasuryContext = BaseContext & {
 export type VeScaRepoParams = BaseRepoParams & {
   onchain: OnChainDataSource;
   metadata: VeScaRepoMetadata;
+  /**
+   * Prefer the batched veSca read (derive field ids + one `getObjects`) over the
+   * per-key `getDynamicField` fan-out. Enabled under the GraphQL transport; the
+   * batch is transport-agnostic (it rides `onchain.getObjects`) but stays opt-in
+   * so the proven gRPC default path is unchanged.
+   */
+  preferGraphql?: boolean;
 };
 
 export type VeSca = {
