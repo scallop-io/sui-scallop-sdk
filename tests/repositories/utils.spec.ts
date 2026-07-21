@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   logError,
   runWithDataSourceFallback,
+  runWithGraphQLFallback,
   isObjectNotFoundError,
   getDynamicFieldWithCache,
   getDynamicFieldOrNull,
@@ -139,6 +140,93 @@ describe('runWithDataSourceFallback', () => {
 
     expect(logger.warn).toHaveBeenCalledWith(
       '[L] api failed, falling back to onchain',
+      { cause: 'plain string' }
+    );
+  });
+});
+
+describe('runWithGraphQLFallback', () => {
+  it('runs onchain() only when preferGraphql is false', async () => {
+    const graphql = vi.fn().mockResolvedValue('GQL');
+    const onchain = vi.fn().mockResolvedValue('CHAIN');
+
+    const res = await runWithGraphQLFallback({
+      preferGraphql: false,
+      label: 't',
+      graphql,
+      onchain,
+    });
+
+    expect(res).toBe('CHAIN');
+    expect(graphql).not.toHaveBeenCalled();
+    expect(onchain).toHaveBeenCalledOnce();
+  });
+
+  it('runs onchain() when preferGraphql is true but no graphql fn is given', async () => {
+    const onchain = vi.fn().mockResolvedValue('CHAIN');
+
+    const res = await runWithGraphQLFallback({
+      preferGraphql: true,
+      label: 't',
+      onchain,
+    });
+
+    expect(res).toBe('CHAIN');
+    expect(onchain).toHaveBeenCalledOnce();
+  });
+
+  it('returns graphql() result when preferGraphql and graphql succeeds', async () => {
+    const graphql = vi.fn().mockResolvedValue('GQL');
+    const onchain = vi.fn().mockResolvedValue('CHAIN');
+
+    const res = await runWithGraphQLFallback({
+      preferGraphql: true,
+      label: 't',
+      graphql,
+      onchain,
+    });
+
+    expect(res).toBe('GQL');
+    expect(onchain).not.toHaveBeenCalled();
+  });
+
+  it('falls back to onchain() and warns when graphql throws', async () => {
+    const logger = makeLogger();
+    const graphql = vi.fn().mockRejectedValue(new Error('graphql down'));
+    const onchain = vi.fn().mockResolvedValue('CHAIN');
+
+    const res = await runWithGraphQLFallback({
+      preferGraphql: true,
+      label: 'PoolAddresses.get',
+      logger: logger as never,
+      graphql,
+      onchain,
+    });
+
+    expect(res).toBe('CHAIN');
+    expect(graphql).toHaveBeenCalledOnce();
+    expect(onchain).toHaveBeenCalledOnce();
+    expect(logger.warn).toHaveBeenCalledWith(
+      '[PoolAddresses.get] graphql failed, falling back to onchain',
+      { cause: 'graphql down' }
+    );
+  });
+
+  it('stringifies a non-Error graphql rejection in the warn cause', async () => {
+    const logger = makeLogger();
+    const graphql = vi.fn().mockRejectedValue('plain string');
+    const onchain = vi.fn().mockResolvedValue('CHAIN');
+
+    await runWithGraphQLFallback({
+      preferGraphql: true,
+      label: 'L',
+      logger: logger as never,
+      graphql,
+      onchain,
+    });
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      '[L] graphql failed, falling back to onchain',
       { cause: 'plain string' }
     );
   });
