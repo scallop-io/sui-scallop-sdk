@@ -22,7 +22,11 @@ export { MAINNET_GRAPHQL_URL };
 export const createOnChainDataSource = (
   client: ClientWithCoreApi,
   url: string, // for cache keys
-  options?: { tokensPerSecond?: number; objectBatchWindowMs?: number | null }
+  options?: {
+    tokensPerSecond?: number;
+    objectBatchWindowMs?: number | null;
+    maxObjectsPerBatch?: number;
+  }
 ): OnChainDataSource =>
   new OnChainDataSource({
     // new-gen transport methods (getObjects/simulateTransaction/…) live on `.core`
@@ -32,6 +36,9 @@ export const createOnChainDataSource = (
     // (the old ScallopSuiKit query path is gone).
     tokensPerSecond: options?.tokensPerSecond,
     objectBatchWindowMs: options?.objectBatchWindowMs,
+    // Set (to a sub-50 cap) only for the GraphQL transport, whose query-payload
+    // limit rejects large multiGetObjects requests.
+    maxObjectsPerBatch: options?.maxObjectsPerBatch,
   });
 
 /**
