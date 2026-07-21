@@ -1,22 +1,19 @@
 import { CoinBalanceContext } from './types.js';
-import { logError, runWithDataSourceFallback } from '../utils.js';
+import {
+  logError,
+  runWithDataSourceFallback,
+  runWithGraphQLFallback,
+} from '../utils.js';
 import { ScallopRpcError, ScallopParseError } from 'src/errors/index.js';
 import { normalizeStructTag } from '@mysten/sui/utils';
 import { SuiClientTypes } from '@mysten/sui/client';
 import { queryKeys } from 'src/constants/queryKeys.js';
-import type { QueryClient } from '@tanstack/query-core';
 import type { OnChainDataSource } from 'src/datasources/onchain.js';
 import { getSharedObjectData } from 'src/utils/object.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui/bcs';
 import { BigNumber } from 'bignumber.js';
 
-/**
- * Balance reads run GraphQL-first with a gRPC fallback: the gRPC balance service
- * flaps (see GRAPHQL_COINBALANCE_PLAN.md / misc/poc.ts), GraphQL is stable. Both
- * sources share the `OnChainDataSource` transport interface, so the same read
- * body runs against either.
- */
 type BalanceSourcesCtx = Pick<
   CoinBalanceContext,
   'onchain' | 'balanceSource' | 'logger'
@@ -40,209 +37,11 @@ const getUserBalanceFromOnChain = async (
 };
 
 /**
- * Page through every balance for `address` on a single transport (gRPC fallback
- * path). NOTE: do NOT use this against the GraphQL `balanceSource` — the
- * `@mysten/sui` GraphQL `listBalances` adapter drops the cursor/limit (see
- * `graphql/core.mjs`), so it always returns the first page with `hasNextPage`
- * possibly `true`, which makes this loop spin forever. The GraphQL primary uses
- * {@link listAllBalancesViaGraphQL} instead, which paginates correctly.
- */
-const listAllBalances = async (
-  src: OnChainDataSource,
-  address: string
-): Promise<SuiClientTypes.Balance[]> => {
-  const allBalances: SuiClientTypes.Balance[] = [];
-  let cursor: string | null = null;
-  let hasNextPage = true;
-
-  while (hasNextPage) {
-    const result = await src.client.listBalances({
-      owner: address,
-      cursor,
-      limit: 50,
-    });
-    allBalances.push(...(result.balances ?? []));
-    hasNextPage = result.hasNextPage;
-    cursor = result.cursor;
-  }
-
-  return allBalances;
-};
-
-// /**
-//  * GraphQL-native paginated "list all balances". We issue the query ourselves
-//  * (with `$cursor`/`$limit`) rather than going through `balanceSource.client.
-//  * listBalances`, because that adapter ignores the cursor and can't advance past
-//  * page one. Mapping mirrors the adapter's transport shape (`balance` = total,
-//  * `coinBalance` = total − addressBalance).
-//  */
-// const ALL_BALANCES_QUERY = /* GraphQL */ `
-//   query AllBalances($owner: SuiAddress!, $limit: Int, $cursor: String) {
-//     address(address: $owner) {
-//       balances(first: $limit, after: $cursor) {
-//         pageInfo {
-//           hasNextPage
-//           endCursor
-//         }
-//         nodes {
-//           coinType {
-//             repr
-//           }
-//           coinBalance
-//           totalBalance
-//           addressBalance
-//         }
-//       }
-//     }
-//   }
-// `;
-
-// type AllBalancesResult = {
-//   address: {
-//     balances: {
-//       pageInfo: { hasNextPage: boolean; endCursor: string | null };
-//       nodes: {
-//         coinType: { repr: string } | null;
-//         coinBalance: string | null;
-//         totalBalance: string | null;
-//         addressBalance: string | null;
-//       }[];
-//     };
-//   } | null;
-// };
-
-// type AllBalancesVariables = {
-//   owner: string;
-//   limit?: number | null;
-//   cursor?: string | null;
-// };
-
-// const BALANCES_PAGE_LIMIT = 50;
-
-// const listAllBalancesViaGraphQL = async (
-//   graphqlClient: SuiGraphQLClient,
-//   address: string
-// ): Promise<SuiClientTypes.Balance[]> => {
-//   const allBalances: SuiClientTypes.Balance[] = [];
-//   let cursor: string | null = null;
-//   let hasNextPage = true;
-
-//   while (hasNextPage) {
-//     const resp: GraphQLQueryResult<AllBalancesResult> =
-//       await graphqlClient.query<AllBalancesResult, AllBalancesVariables>({
-//         query: ALL_BALANCES_QUERY,
-//         variables: { owner: address, limit: BALANCES_PAGE_LIMIT, cursor },
-//       });
-//     if (resp.errors?.length) {
-//       // Fail loud → runWithDataSourceFallback drops to the gRPC lister.
-//       throw new ScallopRpcError(
-//         `GraphQL listBalances failed: ${resp.errors[0].message}`,
-//         { context: { address } }
-//       );
-//     }
-
-//     const connection = resp.data?.address?.balances;
-//     if (!connection) break;
-
-//     for (const node of connection.nodes) {
-//       const coinType = node.coinType?.repr;
-//       if (!coinType) continue;
-//       const addressBalance = BigInt(node.addressBalance ?? '0');
-//       const coinBalance = BigInt(node.coinBalance ?? '0');
-//       allBalances.push({
-//         coinType,
-//         balance: node.totalBalance ?? '0',
-//         coinBalance: coinBalance.toString(),
-//         addressBalance: addressBalance.toString(),
-//       });
-//     }
-
-//     hasNextPage = connection.pageInfo.hasNextPage;
-//     cursor = connection.pageInfo.endCursor;
-//     // Safety net: if the endpoint ever claims another page without advancing the
-//     // cursor, stop instead of looping forever.
-//     if (hasNextPage && !cursor) break;
-//   }
-
-//   return allBalances;
-// };
-
-const updateCachedBalance = (
-  queryClient: QueryClient,
-  {
-    balance,
-    coinType,
-    address,
-    node,
-  }: {
-    balance: SuiClientTypes.Balance;
-    coinType: string;
-    address: string;
-    node: string;
-  }
-) => {
-  const key = queryKeys.rpc.getCoinBalance({
-    node,
-    address,
-    coinType,
-  });
-
-  queryClient.setQueryData<SuiClientTypes.Balance>(key, balance, {
-    updatedAt: Date.now(),
-  });
-};
-
-const getUserBalancesFromOnChain = async (
-  ctx: BalanceSourcesCtx & {
-    queryClient: QueryClient;
-  },
-  address: string
-) => {
-  const { onchain, balanceSource, logger, queryClient } = ctx;
-
-  // GraphQL-first, gRPC fallback across the whole paged read. The GraphQL primary
-  // paginates via its own cursor-aware query (the transport `listBalances`
-  // adapter can't advance pages); on any failure we restart from the gRPC lister.
-  const allBalances = await runWithDataSourceFallback({
-    source: 'onchain',
-    // api: () => listAllBalancesViaGraphQL(graphqlClient, address),
-    onchain: () => listAllBalances(onchain, address),
-    label: 'coinBalance:listBalances',
-    logger,
-  });
-
-  if (!allBalances.length) return {};
-
-  const balances = allBalances.reduce(
-    (acc, curr) => {
-      if (curr.balance !== '0') {
-        const coinType = normalizeStructTag(curr.coinType);
-        acc[coinType] = curr;
-        // Cache per-coin entries under the canonical balance-source namespace so
-        // a later single-coin read hits this cache (see the getCoinBalance keys
-        // below, also keyed on balanceSource.url).
-        updateCachedBalance(queryClient, {
-          balance: curr,
-          coinType,
-          address,
-          node: balanceSource.url,
-        });
-      }
-      return acc;
-    },
-    {} as Record<string, SuiClientTypes.Balance>
-  );
-
-  return balances;
-};
-
-/**
  * Fetch balances for a KNOWN set of coin types in one round trip. Thin delegate
  * to the GraphQL datasource — the typed `multiGetBalances` query, its self-cache,
  * and rate-limiting all live in {@link GraphQLDataSource}. Returns a map keyed by
  * normalized coin type; types absent on-chain are omitted. GraphQL-only (gRPC has
- * no multi-coin balance call, so no fallback; callers wanting one use
- * getCoinAmounts).
+ * no multi-coin balance call).
  */
 export const getCoinBalancesFromGraphQL = (
   ctx: Pick<CoinBalanceContext, 'balanceSource'>,
@@ -253,56 +52,108 @@ export const getCoinBalancesFromGraphQL = (
 ): Promise<Record<string, SuiClientTypes.Balance>> =>
   ctx.balanceSource.multiGetBalances(readArgs.address, readArgs.coinTypes);
 
+/**
+ * Page every balance the address holds on a single transport, into a map keyed
+ * by normalized coin type. gRPC fallback for {@link getAmountsByCoinType}.
+ *
+ * Includes a cursor-advance safety net: if the endpoint reports another page but
+ * doesn't advance the cursor, stop. gRPC pages correctly; the `@mysten/sui`
+ * GraphQL `listBalances` adapter ignores the cursor and would otherwise loop
+ * forever (it just re-returns page one).
+ */
+const listAllBalancesAsMap = async (
+  onchain: OnChainDataSource,
+  address: string
+): Promise<Record<string, SuiClientTypes.Balance>> => {
+  const map: Record<string, SuiClientTypes.Balance> = {};
+  let cursor: string | null = null;
+  let hasNextPage = true;
+
+  while (hasNextPage) {
+    const result = await onchain.client.listBalances({
+      owner: address,
+      cursor,
+      limit: 50,
+    });
+    for (const balance of result.balances ?? []) {
+      map[normalizeStructTag(balance.coinType)] = balance;
+    }
+    const nextCursor = result.cursor;
+    hasNextPage = result.hasNextPage;
+    if (hasNextPage && (nextCursor == null || nextCursor === cursor)) break;
+    cursor = nextCursor;
+  }
+
+  return map;
+};
+
+/**
+ * Resolve a `coinName → amount` dense map. Balance reads are GraphQL-first (the
+ * gRPC balance service flaps): try `multiGetBalances` for exactly the mapped coin
+ * types in ONE round trip, and on failure fall back to the gRPC
+ * `listBalances`-everything path (then filter). Names with no coin type — or
+ * types absent on-chain — default to `0`, preserving the legacy `getCoinAmounts`
+ * contract. Shared by the coin / sCoin / marketCoin amount readers.
+ */
+const getAmountsByCoinType = async (
+  ctx: Pick<
+    CoinBalanceContext,
+    'balanceSource' | 'onchain' | 'logger' | 'preferGraphql'
+  >,
+  {
+    address,
+    coinTypeByName,
+  }: {
+    address: string;
+    coinTypeByName: Record<string, string | undefined>;
+  }
+): Promise<Record<string, number>> => {
+  const coinTypes = [
+    ...new Set(Object.values(coinTypeByName).filter((t): t is string => !!t)),
+  ];
+  const balances = coinTypes.length
+    ? await runWithGraphQLFallback({
+        // Follow the selected read transport: GraphQL `multiGetBalances` on the
+        // graphql transport, else the gRPC fullnode (fresh right after a write).
+        preferGraphql: ctx.preferGraphql,
+        graphql: () => getCoinBalancesFromGraphQL(ctx, { address, coinTypes }),
+        onchain: () => listAllBalancesAsMap(ctx.onchain, address),
+        label: 'coinBalance:getCoinAmounts',
+        logger: ctx.logger,
+      })
+    : {};
+
+  return Object.entries(coinTypeByName).reduce(
+    (acc, [coinName, coinType]) => {
+      acc[coinName] = coinType
+        ? Number(balances[normalizeStructTag(coinType)]?.balance ?? 0)
+        : 0;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+};
+
 export const getCoinAmountsFromOnChain = async (
   ctx: Pick<
     CoinBalanceContext,
-    | 'onchain'
-    | 'balanceSource'
-    | 'logger'
-    | 'fetchWithCache'
-    | 'metadata'
-    | 'queryClient'
+    'balanceSource' | 'metadata' | 'onchain' | 'logger' | 'preferGraphql'
   >,
   readArgs: {
     coinNames?: string[];
     address: string;
   }
 ) => {
-  const {
-    fetchWithCache,
-    onchain,
-    balanceSource,
-    logger,
-    metadata,
-    queryClient,
-  } = ctx;
+  const { metadata } = ctx;
   const { address, coinNames = [...metadata.whitelist.lending.values()] } =
     readArgs;
 
-  const balances = await fetchWithCache({
-    queryKey: queryKeys.rpc.getAllCoinBalances({
-      node: balanceSource.url,
-      activeAddress: address,
-    }),
-    queryFn: () =>
-      getUserBalancesFromOnChain(
-        { onchain, balanceSource, logger, queryClient },
-        address
-      ),
+  return getAmountsByCoinType(ctx, {
+    address,
+    coinTypeByName: Object.fromEntries(
+      coinNames.map((coinName) => [coinName, metadata.parseCoinType(coinName)])
+    ),
   });
-
-  // Dense map: every requested coin is present, defaulting to 0 (matches the
-  // legacy getCoinAmounts contract — number values, no dropped keys).
-  const filteredBalances = coinNames.reduce(
-    (acc, coinName) => {
-      const coinType = metadata.parseCoinType(coinName);
-      acc[coinName] = coinType ? Number(balances[coinType]?.balance ?? 0) : 0;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
-
-  return filteredBalances;
 };
 
 export const getCoinAmountFromOnChain = async (
@@ -340,51 +191,26 @@ export const getCoinAmountFromOnChain = async (
 export const getSCoinAmountsFromOnChain = async (
   ctx: Pick<
     CoinBalanceContext,
-    | 'onchain'
-    | 'balanceSource'
-    | 'logger'
-    | 'fetchWithCache'
-    | 'metadata'
-    | 'queryClient'
+    'balanceSource' | 'metadata' | 'onchain' | 'logger' | 'preferGraphql'
   >,
   readArgs: {
     sCoinNames?: string[];
     address: string;
   }
 ) => {
-  const {
-    fetchWithCache,
-    onchain,
-    balanceSource,
-    logger,
-    metadata,
-    queryClient,
-  } = ctx;
+  const { metadata } = ctx;
   const { address, sCoinNames = [...metadata.whitelist.scoin.values()] } =
     readArgs;
 
-  const balances = await fetchWithCache({
-    queryKey: queryKeys.rpc.getAllCoinBalances({
-      node: balanceSource.url,
-      activeAddress: address,
-    }),
-    queryFn: () =>
-      getUserBalancesFromOnChain(
-        { onchain, balanceSource, logger, queryClient },
-        address
-      ),
+  return getAmountsByCoinType(ctx, {
+    address,
+    coinTypeByName: Object.fromEntries(
+      sCoinNames.map((sCoinName) => [
+        sCoinName,
+        metadata.parseSCoinType(sCoinName),
+      ])
+    ),
   });
-
-  const filteredBalances = sCoinNames.reduce(
-    (acc, coinName) => {
-      const sCoinType = metadata.parseSCoinType(coinName);
-      acc[coinName] = sCoinType ? Number(balances[sCoinType]?.balance ?? 0) : 0;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
-
-  return filteredBalances;
 };
 
 export const getSCoinAmountFromOnChain = async (
@@ -422,53 +248,26 @@ export const getSCoinAmountFromOnChain = async (
 export const getMarketCoinAmountsFromOnChain = async (
   ctx: Pick<
     CoinBalanceContext,
-    | 'onchain'
-    | 'balanceSource'
-    | 'logger'
-    | 'fetchWithCache'
-    | 'metadata'
-    | 'queryClient'
+    'balanceSource' | 'metadata' | 'onchain' | 'logger' | 'preferGraphql'
   >,
   readArgs: {
     marketCoinNames?: string[];
     address: string;
   }
 ) => {
-  const {
-    fetchWithCache,
-    onchain,
-    balanceSource,
-    logger,
-    metadata,
-    queryClient,
-  } = ctx;
+  const { metadata } = ctx;
   const { address, marketCoinNames = [...metadata.whitelist.scoin.values()] } =
     readArgs;
 
-  const balances = await fetchWithCache({
-    queryKey: queryKeys.rpc.getAllCoinBalances({
-      node: balanceSource.url,
-      activeAddress: address,
-    }),
-    queryFn: () =>
-      getUserBalancesFromOnChain(
-        { onchain, balanceSource, logger, queryClient },
-        address
-      ),
+  return getAmountsByCoinType(ctx, {
+    address,
+    coinTypeByName: Object.fromEntries(
+      marketCoinNames.map((marketCoinName) => [
+        marketCoinName,
+        metadata.parseMarketCoinType(marketCoinName),
+      ])
+    ),
   });
-
-  const filteredBalances = marketCoinNames.reduce(
-    (acc, coinName) => {
-      const marketCoinType = metadata.parseMarketCoinType(coinName);
-      acc[coinName] = marketCoinType
-        ? Number(balances[marketCoinType]?.balance ?? 0)
-        : 0;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
-
-  return filteredBalances;
 };
 
 export const getMarketCoinAmountFromOnChain = async (

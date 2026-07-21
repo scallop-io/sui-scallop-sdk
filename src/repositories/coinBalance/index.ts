@@ -28,11 +28,18 @@ export class CoinBalanceRepository extends BaseRepository<
 > {
   private readonly onchain: OnChainDataSource;
   private readonly balanceSource: GraphQLDataSource;
+  private readonly preferGraphql: boolean;
 
-  constructor({ onchain, balanceSource, ...params }: CoinBalanceRepoParams) {
+  constructor({
+    onchain,
+    balanceSource,
+    preferGraphql,
+    ...params
+  }: CoinBalanceRepoParams) {
     super(params);
     this.onchain = onchain;
     this.balanceSource = balanceSource;
+    this.preferGraphql = preferGraphql;
   }
 
   get context() {
@@ -40,6 +47,7 @@ export class CoinBalanceRepository extends BaseRepository<
       ...this.baseContext,
       onchain: this.onchain,
       balanceSource: this.balanceSource,
+      preferGraphql: this.preferGraphql,
       queryClient: this.queryClient,
     };
   }
