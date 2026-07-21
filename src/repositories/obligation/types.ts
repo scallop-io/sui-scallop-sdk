@@ -1,5 +1,6 @@
 import { BaseContext, BaseRepoParams } from '../types.js';
 import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GraphQLDataSource } from 'src/datasources/graphql.js';
 
 type ObligationKeys =
   | 'protocolObjectId'
@@ -22,11 +23,15 @@ export type ObligationRepoMetadata = {
 export type ObligationRepoContext = BaseContext & {
   onchain: OnChainDataSource;
   metadata: ObligationRepoMetadata;
+  graphql?: GraphQLDataSource;
+  preferGraphql?: boolean;
 };
 
 export type ObligationRepoParams = BaseRepoParams & {
   onchain: OnChainDataSource;
   metadata: ObligationRepoMetadata;
+  graphql?: GraphQLDataSource;
+  preferGraphql?: boolean;
 };
 
 /** Minimal context for `queryObligationData`. */
@@ -44,6 +49,13 @@ export type ObligationNamingContext = BaseContext & {
     addresses: ObligationNamingAddresses &
       Pick<ObligationAddresses, 'protocolObjectId'>;
   };
+  graphql?: GraphQLDataSource;
+  preferGraphql?: boolean;
+};
+
+/** Naming context with a required GraphQL source, for the aliased-batch read. */
+export type ObligationNamingGraphQLContext = ObligationNamingContext & {
+  graphql: GraphQLDataSource;
 };
 
 /** Minimal context for listing obligations owned by an address. */

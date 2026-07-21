@@ -1,5 +1,6 @@
 import { ApiDataSource } from 'src/datasources/api.js';
 import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GraphQLDataSource } from 'src/datasources/graphql.js';
 import { BaseRepository } from '../base.js';
 import { QuerySource } from '../types.js';
 import {
@@ -7,9 +8,10 @@ import {
   PoolAddressesRepoContext,
   PoolAddressesRepoMetadata,
 } from './types.js';
-import { runWithDataSourceFallback } from '../utils.js';
+import { runWithDataSourceFallback, runWithGraphQLFallback } from '../utils.js';
 import {
   getPoolAddressesFromApi,
+  getPoolAddressesFromGraphQL,
   getPoolAddressesFromOnChain,
 } from './helpers.js';
 
@@ -19,10 +21,20 @@ export class PoolAddressesRepository extends BaseRepository<
 > {
   private readonly api: ApiDataSource;
   private readonly onchain: OnChainDataSource;
-  constructor({ api, onchain, ...params }: PoolAddressesRepoParams) {
+  private readonly graphql?: GraphQLDataSource;
+  private readonly preferGraphql: boolean;
+  constructor({
+    api,
+    onchain,
+    graphql,
+    preferGraphql = false,
+    ...params
+  }: PoolAddressesRepoParams) {
     super(params);
     this.api = api;
     this.onchain = onchain;
+    this.graphql = graphql;
+    this.preferGraphql = preferGraphql;
   }
 
   get context() {
@@ -30,13 +42,17 @@ export class PoolAddressesRepository extends BaseRepository<
       ...this.baseContext,
       api: this.api,
       onchain: this.onchain,
+      graphql: this.graphql,
+      preferGraphql: this.preferGraphql,
     };
   }
 
   /**
    * Get pool addresses from the API, or rebuild them from on-chain data.
    * Both paths derive coin config from the repo metadata; `source` selects
-   * which (defaults to the API).
+   * which (defaults to the API). Under the GraphQL transport, the on-chain
+   * rebuild prefers a native nested GraphQL query and falls back to the gRPC
+   * multi-call path on failure.
    */
   getPoolAddresses({
     poolNames,
@@ -45,12 +61,24 @@ export class PoolAddressesRepository extends BaseRepository<
     poolNames?: string[];
     source?: QuerySource;
   }) {
+    const ctx = this.context;
+    const graphql = this.graphql;
     return runWithDataSourceFallback({
       source,
       label: 'PoolAddressesRepository.getPoolAddresses',
       logger: this.logger,
-      api: () => getPoolAddressesFromApi(this.context, { poolNames }),
-      onchain: () => getPoolAddressesFromOnChain(this.context, { poolNames }),
+      api: () => getPoolAddressesFromApi(ctx, { poolNames }),
+      onchain: () =>
+        runWithGraphQLFallback({
+          preferGraphql: this.preferGraphql,
+          logger: this.logger,
+          label: 'PoolAddressesRepository.getPoolAddresses',
+          graphql: graphql
+            ? () =>
+                getPoolAddressesFromGraphQL({ ...ctx, graphql }, { poolNames })
+            : undefined,
+          onchain: () => getPoolAddressesFromOnChain(ctx, { poolNames }),
+        }),
     });
   }
 }
