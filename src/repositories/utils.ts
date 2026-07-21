@@ -69,6 +69,46 @@ export const runWithDataSourceFallback = async <T>(
   return args.onchain();
 };
 
+export type GraphQLFallbackArgs<T> = {
+  /**
+   * Whether the GraphQL read transport is active. Only when `true` (and a
+   * `graphql` fn is supplied) is the native GraphQL path attempted; otherwise
+   * `onchain()` runs directly. Wired from `readTransport === 'graphql'`.
+   */
+  preferGraphql?: boolean;
+  /** Native nested-GraphQL implementation (fewer round trips). Optional. */
+  graphql?: () => Promise<T>;
+  /** gRPC/Core multi-call implementation — the fallback and the default path. */
+  onchain: () => Promise<T>;
+  label: string;
+  logger?: Logger;
+};
+
+/**
+ * Prefer a native GraphQL query when the GraphQL transport is active, else fall
+ * back to the gRPC/Core `onchain()` path. A GraphQL failure logs a warning (via
+ * the injected `logger`) and falls back to `onchain()` — so an imperfect or
+ * unavailable GraphQL query never breaks the read, it only loses the round-trip
+ * optimization. Mirrors {@link runWithDataSourceFallback}'s api/onchain policy
+ * one layer down (transport choice, not datasource choice).
+ */
+export const runWithGraphQLFallback = async <T>(
+  args: GraphQLFallbackArgs<T>
+): Promise<T> => {
+  if (args.preferGraphql && args.graphql) {
+    try {
+      return await args.graphql();
+    } catch (cause) {
+      args.logger?.warn(
+        `[${args.label}] graphql failed, falling back to onchain`,
+        { cause: cause instanceof Error ? cause.message : String(cause) }
+      );
+      return args.onchain();
+    }
+  }
+  return args.onchain();
+};
+
 export const getDynamicFieldWithCache = async (
   ctx: OnChainReadContext,
   options: SuiClientTypes.GetDynamicFieldOptions

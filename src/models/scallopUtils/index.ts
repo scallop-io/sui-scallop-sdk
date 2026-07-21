@@ -1,4 +1,5 @@
 import { SuiGrpcClient } from '@mysten/sui/grpc';
+import { SuiGraphQLClient } from '@mysten/sui/graphql';
 import {
   normalizeStructTag,
   parseStructTag,
@@ -13,7 +14,11 @@ import {
 } from 'src/constants/index.js';
 import type { OnChainDataSource } from 'src/datasources/onchain.js';
 import { noopLogger, type Logger } from 'src/logger/index.js';
-import { createOnChainDataSource } from 'src/repositories/wiring/datasources.js';
+import {
+  createOnChainDataSource,
+  MAINNET_GRAPHQL_URL,
+} from 'src/repositories/wiring/datasources.js';
+import { DEFAULT_GRAPHQL_MAX_OBJECTS_PER_BATCH } from 'src/datasources/onchain.js';
 import { findClosestUnlockRound } from 'src/utils/vesca.js';
 import { ScallopUtilsInterface } from '../interface.js';
 import ScallopConstants from '../scallopConstants/index.js';
@@ -40,6 +45,31 @@ class ScallopUtils implements ScallopUtilsInterface {
       this.onchain = createOnChainDataSource(suiClient, fullnodeUrl, {
         tokensPerSecond,
         objectBatchWindowMs,
+      });
+    } else if (params.readTransport === 'graphql') {
+      // GraphQL read transport (opt-in). Note: an injected `graphqlClient`
+      // alone does NOT flip transport — it configures the GraphQL balance
+      // datasource (existing behavior). Only `readTransport: 'graphql'` moves
+      // the whole on-chain read path onto GraphQL.
+      // The Sui Core API is transport-agnostic, so
+      // `SuiGraphQLClient.core` satisfies every method `OnChainDataSource`
+      // calls — repo reads run over GraphQL unchanged. The GraphQL endpoint is
+      // its own URL (distinct from the gRPC `fullnodeUrl`); use it as the
+      // cache-key namespace so gRPC and GraphQL entries never collide.
+      const {
+        network,
+        graphqlUrl = MAINNET_GRAPHQL_URL,
+        graphqlClient,
+        tokensPerSecond = DEFAULT_TOKENS_PER_SECOND,
+        objectBatchWindowMs,
+      } = params;
+      const client =
+        graphqlClient ?? new SuiGraphQLClient({ url: graphqlUrl, network });
+      this.onchain = createOnChainDataSource(client, graphqlUrl, {
+        tokensPerSecond,
+        objectBatchWindowMs,
+        // GraphQL rejects large multiGetObjects payloads — cap ids per batch.
+        maxObjectsPerBatch: DEFAULT_GRAPHQL_MAX_OBJECTS_PER_BATCH,
       });
     } else {
       const {
