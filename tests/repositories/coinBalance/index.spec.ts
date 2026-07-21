@@ -26,11 +26,12 @@ const balanceSource = {
 } as unknown as GraphQLDataSource;
 const metadata = { tag: 'META' } as unknown as CoinBalanceMetadata;
 
-const makeRepo = () =>
+const makeRepo = (preferGraphql = true) =>
   new CoinBalanceRepository({
     onchain,
     balanceSource,
     metadata,
+    preferGraphql,
   });
 
 beforeEach(() => {
@@ -38,16 +39,25 @@ beforeEach(() => {
 });
 
 describe('CoinBalanceRepository', () => {
-  it('exposes the injected metadata and base datasource on its context', () => {
-    // intent: a CoinBalanceRepoParams guarantees metadata; the getter must surface it (regression for the `?? {}` bug)
+  it('exposes the injected metadata and balance datasource on its context', () => {
+    // intent: a CoinBalanceRepoParams guarantees metadata; the getter must surface it (regression for the `?? {}` bug).
+    // getCoinAmounts now reads via multiGetBalances, so it needs metadata + balanceSource.
     vi.mocked(helpers.getCoinAmountsFromOnChain).mockResolvedValue({} as never);
     makeRepo().getCoinAmounts({ address: '0xA' });
 
     const ctx = vi.mocked(helpers.getCoinAmountsFromOnChain).mock.calls[0][0];
     expect(ctx.metadata).toBe(metadata);
-    expect(ctx.onchain).toBe(onchain);
     expect(ctx.balanceSource).toBe(balanceSource);
-    expect(typeof ctx.fetchWithCache).toBe('function');
+  });
+
+  it('forwards preferGraphql onto the context so balances follow the read transport', () => {
+    // intent: on the gRPC transport (preferGraphql=false) balances must read the
+    // fullnode, not the lagging GraphQL indexer — the fix for stale post-write balances.
+    vi.mocked(helpers.getCoinAmountsFromOnChain).mockResolvedValue({} as never);
+    makeRepo(false).getCoinAmounts({ address: '0xA' });
+
+    const ctx = vi.mocked(helpers.getCoinAmountsFromOnChain).mock.calls[0][0];
+    expect(ctx.preferGraphql).toBe(false);
   });
 
   it('getCoinBalances delegates to the GraphQL helper with { coinTypes, address } and the balance datasource', () => {
