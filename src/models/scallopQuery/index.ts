@@ -55,7 +55,12 @@ class ScallopQuery implements ScallopQueryInterface {
     pythEndpoints,
     ...scallopUtilsArgs
   }: ScallopQueryConstructorParams) {
-    this.utils = utils ?? new ScallopUtils(scallopUtilsArgs);
+    // `graphqlUrl` / `graphqlClient` are destructured out for the registry
+    // below, so re-supply them to `ScallopUtils` — the `readTransport: 'graphql'`
+    // read-client branch needs them to honor a custom GraphQL endpoint/client.
+    this.utils =
+      utils ??
+      new ScallopUtils({ ...scallopUtilsArgs, graphqlUrl, graphqlClient });
     this.repos = createRepositories({
       utils: this.utils,
       queryClient,
@@ -65,6 +70,8 @@ class ScallopQuery implements ScallopQueryInterface {
       graphqlClient,
       pythApiKey,
       pythEndpoints,
+      // Gates Tier-2 native GraphQL queries (preferGraphql) in the registry.
+      readTransport: scallopUtilsArgs.readTransport,
     });
   }
 
@@ -630,14 +637,17 @@ class ScallopQuery implements ScallopQueryInterface {
       args?.coinPrices ??
       (await this.getPythCoinPrices({ coinNames: names })) ??
       {};
+
     const marketPools =
       args?.marketPools ??
       (await this.getMarketPools(names, { ...args, coinPrices })).pools;
+
     const spools = await this.getSpools(stakeMarketCoinNames, {
       ...args,
       marketPools,
       coinPrices,
     });
+
     const [coinAmounts, marketCoinAmounts, sCoinAmounts, allStakeAccounts] =
       await Promise.all([
         this.getCoinAmounts(names, ownerAddress),

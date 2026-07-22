@@ -146,6 +146,8 @@ Common required options:
 
 Common optional options:
 
+- `readTransport`: on-chain read transport, `'grpc'` (default) or `'graphql'`. The Sui Core API is transport-agnostic, so every read works over either. `'graphql'` builds a `SuiGraphQLClient` against `graphqlUrl` (see below) and routes all repository reads through it; some heavy dynamic-field reads (e.g. pool addresses, xOracle, veSCA) additionally use single nested GraphQL queries instead of the gRPC multi-call fan-out, falling back to gRPC on failure. Ignored when an explicit `suiClient` is injected.
+- `graphqlUrl` / `graphqlClient`: Sui GraphQL endpoint / preconfigured `SuiGraphQLClient`. Used both by the GraphQL read transport (`readTransport: 'graphql'`) and the GraphQL balance datasource. Default endpoint is mainnet; `graphqlClient` takes precedence over `graphqlUrl`. Note: injecting `graphqlClient` alone configures balances only — it does **not** flip the read transport; set `readTransport: 'graphql'` for that.
 - `pythEndpoints`: Pyth Hermes endpoints for price-update flows. Default `https://pyth.dourolabs.app/hermes`.
 - `pythApiKey`: Pyth (Hermes) API access token. The hosted Pyth endpoint now requires a key. When set, Pyth coin prices are read **directly from the Pyth API** (sent as the Hermes `accessToken`); when omitted, prices are read from the **Scallop indexer** instead. Either way, `getPythCoinPrice(s)` falls back to on-chain feed objects if the API source fails.
 - `queryClient` / `queryClientConfig`: custom `@tanstack/query-core` cache.

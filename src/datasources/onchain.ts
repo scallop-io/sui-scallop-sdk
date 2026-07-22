@@ -47,7 +47,24 @@ type OnChainDataSourceParams = {
    * latency per read. Default {@link DEFAULT_OBJECT_BATCH_WINDOW_MS}.
    */
   objectBatchWindowMs?: number | null;
+  /**
+   * Max object ids per underlying `getObjects` call. The GraphQL transport caps
+   * a single query payload at ~5000 bytes, so a 50-id MultiGetObjects request is
+   * rejected ("Query payload too large"). Set this below 50 for GraphQL; a
+   * larger request is transparently split into ordered sub-batches and merged.
+   * Omit (gRPC) to keep the native 50-id limit. See
+   * {@link DEFAULT_GRAPHQL_MAX_OBJECTS_PER_BATCH}.
+   */
+  maxObjectsPerBatch?: number;
 };
+
+/**
+ * Object-id cap per `getObjects` under the Sui GraphQL transport. The endpoint
+ * rejects query payloads over ~5000 bytes; at ~68 bytes/id in the request plus
+ * the selection-set overhead, 50 ids overflow. 25 keeps every batch comfortably
+ * under the cap with margin for the largest `include` selections.
+ */
+export const DEFAULT_GRAPHQL_MAX_OBJECTS_PER_BATCH = 25;
 
 /**
  * Default coalescing window (ms). `0` flushes on the next macrotask
@@ -115,6 +132,43 @@ const withRateLimit = (
   });
 
 /**
+ * Wrap `getObjects` so any request whose `objectIds` exceed `maxPerBatch` is
+ * split into ordered sub-batches, each issued as its own `getObjects` (still
+ * rate-limited, since `client` is already the rate-limited proxy) and the
+ * `objects` arrays concatenated back in the original id order — preserving the
+ * per-object `Error` entries. This keeps every underlying request under the
+ * GraphQL transport's query-payload cap. All other methods pass through.
+ */
+const withObjectBatchLimit = (
+  client: OnChainDataSourceClient,
+  maxPerBatch: number
+): OnChainDataSourceClient =>
+  new Proxy(client, {
+    get(target, prop, receiver) {
+      if (prop !== 'getObjects') return Reflect.get(target, prop, receiver);
+      return async (
+        options: Parameters<OnChainDataSourceClient['getObjects']>[0]
+      ) => {
+        const objectIds = options?.objectIds ?? [];
+        if (objectIds.length <= maxPerBatch) {
+          return target.getObjects(options);
+        }
+        const merged: Awaited<
+          ReturnType<OnChainDataSourceClient['getObjects']>
+        >['objects'] = [];
+        for (const chunk of partitionArray(objectIds, maxPerBatch)) {
+          const { objects } = await target.getObjects({
+            ...options,
+            objectIds: chunk,
+          });
+          merged.push(...objects);
+        }
+        return { objects: merged };
+      };
+    },
+  });
+
+/**
  * multiGetObjects caps a single request at 50 ids. `getObject` coalescing chunks
  * deduped ids to this bound before issuing each batch.
  */
@@ -172,8 +226,15 @@ export class OnChainDataSource {
     url,
     tokensPerSecond,
     objectBatchWindowMs = DEFAULT_OBJECT_BATCH_WINDOW_MS,
+    maxObjectsPerBatch,
   }: OnChainDataSourceParams) {
-    this.client = withRateLimit(client, new RateLimiter(tokensPerSecond));
+    const rateLimited = withRateLimit(client, new RateLimiter(tokensPerSecond));
+    // Split oversized getObjects requests only when a cap is set (GraphQL); gRPC
+    // keeps the native 50-id limit and skips the extra proxy entirely.
+    this.client =
+      maxObjectsPerBatch === undefined
+        ? rateLimited
+        : withObjectBatchLimit(rateLimited, maxObjectsPerBatch);
     this.url = url;
     this.objectBatchWindowMs = objectBatchWindowMs;
   }
