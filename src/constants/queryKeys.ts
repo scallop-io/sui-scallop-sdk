@@ -41,6 +41,14 @@ export const queryKeys = {
       'getDynamicFieldObject',
       props,
     ],
+    getDynamicFieldsWithValues: (
+      props?: QueryKeys.RPC.GetDynamicFieldsWithValues
+    ) => ['rpc', 'getDynamicFieldsWithValues', props],
+    getMultiDynamicFields: (props?: QueryKeys.RPC.GetMultiDynamicFields) => [
+      'rpc',
+      'getMultiDynamicFields',
+      props,
+    ],
     getTotalVeScaTreasuryAmount: (
       props?: QueryKeys.RPC.getTotalVeScaTreasuryAmount
     ) => [

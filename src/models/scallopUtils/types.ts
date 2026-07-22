@@ -1,5 +1,6 @@
 import { Logger } from 'src/logger/Logger.js';
 import { ClientWithCoreApi, SuiClientTypes } from '@mysten/sui/client';
+import type { SuiGraphQLClient } from '@mysten/sui/graphql';
 import { ScallopConstantsConstructorParams } from '../scallopConstants/types.js';
 import ScallopConstants from '../scallopConstants/index.js';
 import ScallopAddress from '../scallopAddress/index.js';
@@ -11,6 +12,25 @@ export type ScallopUtilsConstructorParams = {
   scallopConstants?: ScallopConstants;
   logger?: Logger;
   suiClient?: ClientWithCoreApi;
+  /**
+   * On-chain read transport when no explicit `suiClient` is injected.
+   * `'grpc'` (default) builds a `SuiGrpcClient` against `fullnodeUrl`;
+   * `'graphql'` builds a `SuiGraphQLClient` against `graphqlUrl`. Because the
+   * Sui Core API is transport-agnostic, every repository read works over either.
+   */
+  readTransport?: 'grpc' | 'graphql';
+  /**
+   * Sui GraphQL endpoint. Used to build the read client when
+   * `readTransport: 'graphql'`, and by the GraphQL balance datasource. Defaults
+   * to mainnet. Ignored when `graphqlClient` is provided.
+   */
+  graphqlUrl?: string;
+  /**
+   * Preconfigured `SuiGraphQLClient` (full transport override). Takes precedence
+   * over `graphqlUrl` for both the read client (`readTransport: 'graphql'`) and
+   * the GraphQL balance datasource.
+   */
+  graphqlClient?: SuiGraphQLClient;
   tokensPerSecond?: number;
   /**
    * Coalescing window (ms) for batched `getObject` reads. Default `0` (flush on

@@ -80,3 +80,126 @@ describe('GraphQLDataSource.multiGetBalances', () => {
     expect(client.query).toHaveBeenCalledTimes(1);
   });
 });
+
+// A valid 32-byte Sui address — deriveDynamicFieldID normalizes the parent id.
+const PARENT_ID =
+  '0x0000000000000000000000000000000000000000000000000000000000000002';
+// valid base64 for a dynamic-field name key (deriveDynamicFieldID needs to
+// decode name.bcs); exact bytes are irrelevant to these assertions.
+const NAME_BCS = 'AQID';
+const moveValueNode = (repr: string, json: unknown) => ({
+  name: { bcs: NAME_BCS, type: { repr: '0x1::type_name::TypeName' } },
+  value: {
+    __typename: 'MoveValue',
+    bcs: NAME_BCS,
+    json,
+    type: { repr },
+  },
+});
+const moveObjectNode = (repr: string, address: string) => ({
+  name: { bcs: NAME_BCS, type: { repr: '0x1::type_name::TypeName' } },
+  value: {
+    __typename: 'MoveObject',
+    address,
+    contents: { bcs: NAME_BCS, json: { k: 1 }, type: { repr } },
+  },
+});
+const page = (
+  nodes: unknown[],
+  { hasNextPage = false, endCursor = null as string | null } = {}
+) => ({
+  data: {
+    address: { dynamicFields: { pageInfo: { hasNextPage, endCursor }, nodes } },
+  },
+});
+
+describe('GraphQLDataSource.listDynamicFieldsWithValues', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('normalizes MoveValue and MoveObject nodes with inline values', async () => {
+    // intent: values come back inline (no separate getObjects); object fields expose childId
+    const client = makeClient(() =>
+      page([
+        moveValueNode('bool', true),
+        moveObjectNode('0x2::coin::Coin', '0xchild'),
+      ])
+    );
+    const fields = await makeDs(client).listDynamicFieldsWithValues(PARENT_ID);
+
+    expect(fields).toHaveLength(2);
+    expect(fields[0]).toMatchObject({
+      valueType: 'bool',
+      isDynamicObject: false,
+      valueJson: true,
+    });
+    expect(typeof fields[0].fieldId).toBe('string');
+    expect(fields[1]).toMatchObject({
+      isDynamicObject: true,
+      childId: '0xchild',
+      valueType: '0x2::coin::Coin',
+    });
+  });
+
+  it('pages the connection until hasNextPage is false', async () => {
+    // intent: a full table walk follows the cursor, concatenating every page
+    const client = makeClient((arg: unknown) => {
+      const { variables } = arg as { variables: { cursor: string | null } };
+      return variables.cursor === null
+        ? page([moveValueNode('bool', true)], {
+            hasNextPage: true,
+            endCursor: 'c1',
+          })
+        : page([moveValueNode('bool', false)], { hasNextPage: false });
+    });
+    const fields = await makeDs(client).listDynamicFieldsWithValues(PARENT_ID);
+    expect(fields).toHaveLength(2);
+    expect(client.query).toHaveBeenCalledTimes(2);
+  });
+
+  it('throws a ScallopRpcError when the GraphQL response carries errors', async () => {
+    // intent: fail loud so the GraphQL-fallback layer switches to the gRPC path
+    const client = makeClient(() => ({ errors: [{ message: 'boom' }] }));
+    await expect(
+      makeDs(client).listDynamicFieldsWithValues(PARENT_ID)
+    ).rejects.toBeInstanceOf(ScallopRpcError);
+  });
+});
+
+describe('GraphQLDataSource.multiGetDynamicFields', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  const name = (bcsB64: string) => ({ type: '0x2::object::ID', bcs: bcsB64 });
+
+  it('returns results aligned to input order, null for a missing field', async () => {
+    // intent: aliases map back to positions; an absent field (null alias) → null
+    const client = makeClient(() => ({
+      data: {
+        address: {
+          f0: moveValueNode('0x1::string::String', 'alpha'),
+          f1: null,
+        },
+      },
+    }));
+    const res = await makeDs(client).multiGetDynamicFields(PARENT_ID, [
+      name(NAME_BCS),
+      name('BQYH'),
+    ]);
+    expect(res).toHaveLength(2);
+    expect(res[0]).toMatchObject({ valueJson: 'alpha' });
+    expect(res[1]).toBeNull();
+  });
+
+  it('short-circuits an empty names list without hitting the transport', async () => {
+    const client = makeClient(() => ({ data: null }));
+    const res = await makeDs(client).multiGetDynamicFields(PARENT_ID, []);
+    expect(res).toEqual([]);
+    expect(client.query).not.toHaveBeenCalled();
+  });
+
+  it('throws a ScallopRpcError when the GraphQL response carries errors', async () => {
+    const client = makeClient(() => ({ errors: [{ message: 'boom' }] }));
+    await expect(
+      makeDs(client).multiGetDynamicFields(PARENT_ID, [name(NAME_BCS)])
+    ).rejects.toBeInstanceOf(ScallopRpcError);
+  });
+});

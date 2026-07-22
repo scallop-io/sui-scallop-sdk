@@ -39,6 +39,20 @@ export namespace QueryKeys {
     export type GetOwnedObjects = BaseType &
       Partial<SuiClientTypes.ListOwnedObjectsOptions>;
     export type GetDynamicFields = BaseType & Partial<GetDynamicFieldsParams>;
+    // Native GraphQL dynamic-field read that returns names + inline values in one
+    // paged query (Tier-2 optimization). Distinct cache entity from the
+    // value-less `GetDynamicFields`, so it gets its own key.
+    export type GetDynamicFieldsWithValues = BaseType & {
+      parentId?: string;
+      includeValue?: boolean;
+    };
+    // Native GraphQL aliased-batch dynamic-field read: N specific fields by name
+    // in one query (Tier-2, for owner-key → global-table lookups). `names` is the
+    // ordered list of base64 name bcs, so the cache key is order-sensitive.
+    export type GetMultiDynamicFields = BaseType & {
+      parentId?: string;
+      names?: string[];
+    };
     export type GetDynamicFieldObject = BaseType &
       Partial<GetDynamicFieldObjectParams>;
     export type getTotalVeScaTreasuryAmount = BaseType & {

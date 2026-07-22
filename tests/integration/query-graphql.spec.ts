@@ -6,7 +6,7 @@ import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 import { parseObjectAs } from 'src/utils/object.js';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { z as zod } from 'zod';
-import { scallopSDK } from '../scallopSdk.js';
+import { graphQLScallopSDK } from '../scallopSdk.js';
 
 const ENABLE_LOG = false;
 // let obligationId: string | null;
@@ -21,7 +21,7 @@ let sender: string;
 
 beforeAll(async () => {
   console.log('start beforeAll');
-  scallopQuery = await scallopSDK.createScallopQuery();
+  scallopQuery = await graphQLScallopSDK.createScallopQuery();
   sender = scallopQuery.walletAddress;
   console.log('end beforeAll');
   console.log(`Your wallet: ${sender}`);

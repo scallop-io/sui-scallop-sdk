@@ -12,8 +12,30 @@ export const scallopSDK = new Scallop({
   forceAddressesInterface: ADDRESS_INTERFACE,
   forcePoolAddressInterface: POOL_ADDRESSES,
   forceWhitelistInterface: WHITELIST,
-  pythEndpoints: ['https://pyth.dourolabs.app/hermes'],
+  // pythEndpoints: ['https://pyth.dourolabs.app/hermes'],
+  pythEndpoints: ['https://hermes.pyth.network'],
   fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
+  readTransport: 'grpc',
+  queryClientConfig: {
+    defaultOptions: {
+      queries: {
+        staleTime: Infinity,
+        gcTime: Infinity,
+      },
+    },
+  },
+});
+
+export const graphQLScallopSDK = new Scallop({
+  addressId: '695fcdc084f790c04eb068dc',
+  secretKey: process.env.SECRET_KEY,
+  network: NETWORK,
+  forceAddressesInterface: ADDRESS_INTERFACE,
+  forcePoolAddressInterface: POOL_ADDRESSES,
+  forceWhitelistInterface: WHITELIST,
+  pythEndpoints: ['https://hermes.pyth.network'],
+  fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
+  readTransport: 'graphql',
   queryClientConfig: {
     defaultOptions: {
       queries: {

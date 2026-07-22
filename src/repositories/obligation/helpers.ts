@@ -3,9 +3,11 @@ import {
   Obligation,
   ObligationDataContext,
   ObligationNamingContext,
+  ObligationNamingGraphQLContext,
   ObligationQueryInterface,
   ObligationsContext,
 } from './types.js';
+import { fromBase64, toBase64 } from '@mysten/sui/utils';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import {
   computeNamingKey,
@@ -416,4 +418,49 @@ export const getObligationNamesFromOnChain = async (
   return Object.fromEntries(
     results.filter((r): r is readonly [string, string] => r !== null)
   );
+};
+
+/**
+ * Native-GraphQL twin of {@link getObligationNamesFromOnChain}. The on-chain
+ * path issues one `getDynamicField` per obligation key against the GLOBAL naming
+ * registry (N round trips); this fetches all of them by name in a single aliased
+ * GraphQL query (N→1). A full table scan is NOT used — the registry holds every
+ * obligation's name, so scanning it to find one owner's few names would be far
+ * worse. Output (obligationId → name, unnamed omitted) is identical.
+ */
+export const getObligationNamesFromGraphQL = async (
+  ctx: ObligationNamingGraphQLContext,
+  address: string
+): Promise<Record<string, string>> => {
+  const {
+    metadata: { addresses },
+    graphql,
+  } = ctx;
+  const registryTableId = addresses.obligationNaming.registryTableId;
+
+  const keys = await queryObligationKeys(ctx, { address });
+  if (keys.length === 0) return {};
+
+  const names = keys.map((key) => {
+    const encoded = encodeDynamicFieldNameForV2({
+      type: '0x2::object::ID',
+      value: computeNamingKey(key.objectId, address),
+    });
+    return { type: encoded.type, bcs: toBase64(encoded.bcs) };
+  });
+
+  const fields = await graphql.multiGetDynamicFields(registryTableId, names);
+
+  const results: Record<string, string> = {};
+  fields.forEach((field, index) => {
+    if (!field || field.valueBcs === null) return; // unnamed obligation
+    try {
+      results[keys[index].objectId] = bcs
+        .string()
+        .parse(fromBase64(field.valueBcs));
+    } catch {
+      // Skip a field whose value doesn't parse as a name string.
+    }
+  });
+  return results;
 };

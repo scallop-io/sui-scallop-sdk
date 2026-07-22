@@ -6,8 +6,10 @@
 
 import { BaseRepository } from '../base.js';
 import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GraphQLDataSource } from 'src/datasources/graphql.js';
 import {
   getObligationLockedFromOnChain,
+  getObligationNamesFromGraphQL,
   getObligationNamesFromOnChain,
   getObligationObjectsFromOnChain,
   getObligationsFromOnChain,
@@ -19,20 +21,35 @@ import {
   ObligationRepoContext,
   ObligationRepoMetadata,
 } from './types.js';
+import { runWithGraphQLFallback } from '../utils.js';
 
 export class ObligationRepository extends BaseRepository<
   ObligationRepoContext,
   ObligationRepoMetadata
 > {
   private readonly onchain: OnChainDataSource;
+  private readonly graphql?: GraphQLDataSource;
+  private readonly preferGraphql: boolean;
 
-  constructor({ onchain, ...params }: ObligationRepoParams) {
+  constructor({
+    onchain,
+    graphql,
+    preferGraphql = false,
+    ...params
+  }: ObligationRepoParams) {
     super(params);
     this.onchain = onchain;
+    this.graphql = graphql;
+    this.preferGraphql = preferGraphql;
   }
 
   get context() {
-    return { ...this.baseContext, onchain: this.onchain };
+    return {
+      ...this.baseContext,
+      onchain: this.onchain,
+      graphql: this.graphql,
+      preferGraphql: this.preferGraphql,
+    };
   }
 
   getObligations(address: string) {
@@ -61,6 +78,16 @@ export class ObligationRepository extends BaseRepository<
   }
 
   getObligationNames(address: string) {
-    return getObligationNamesFromOnChain(this.context, address);
+    const ctx = this.context;
+    const graphql = this.graphql;
+    return runWithGraphQLFallback({
+      preferGraphql: this.preferGraphql,
+      logger: this.logger,
+      label: 'ObligationRepository.getObligationNames',
+      graphql: graphql
+        ? () => getObligationNamesFromGraphQL({ ...ctx, graphql }, address)
+        : undefined,
+      onchain: () => getObligationNamesFromOnChain(ctx, address),
+    });
   }
 }
