@@ -32,7 +32,7 @@ export const getBorrowIncentivePoolsFromOnChain = async (
   ctx: BorrowIncentiveOnChainContext,
   { coinNames, coinPrices }: BorrowIncentiveReadArgs
 ): Promise<BorrowIncentivePools> => {
-  const { onchain, metadata, fetchWithCache } = ctx;
+  const { grpc, metadata, fetchWithCache } = ctx;
   const { borrowIncentive } = metadata.addresses;
   const tx = new SuiTxBlock();
   const queryTarget = `${borrowIncentive.query}::incentive_pools_query::incentive_pools_data`;
@@ -43,9 +43,9 @@ export const getBorrowIncentivePoolsFromOnChain = async (
   const incentivePoolsObject = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject({
       ...fetchOptions,
-      node: onchain.url,
+      node: grpc.url,
     }),
-    queryFn: () => onchain.getObject(fetchOptions),
+    queryFn: () => grpc.getObject(fetchOptions),
   });
   if (!incentivePoolsObject.object) {
     throw logError(
@@ -57,7 +57,7 @@ export const getBorrowIncentivePoolsFromOnChain = async (
     );
   }
   const incentivePoolsSharedObject = await getSharedObjectData(
-    { onchain, fetchWithCache },
+    { grpc, fetchWithCache },
     {
       tx,
       mutable: true,
@@ -72,10 +72,10 @@ export const getBorrowIncentivePoolsFromOnChain = async (
     queryKey: queryKeys.rpc.getInspectTxn({
       queryTarget,
       args: [borrowIncentive.incentivePools],
-      node: onchain.url,
+      node: grpc.url,
     }),
     queryFn: () =>
-      onchain.client.simulateTransaction({
+      grpc.client.simulateTransaction({
         transaction: tx.txBlock,
         include: {
           events: true,
@@ -206,7 +206,7 @@ export const getBorrowIncentiveAccountsFromOnChain = async (
     coinNames?: string[];
   }
 ): Promise<BorrowIncentiveAccounts> => {
-  const { metadata, fetchWithCache, onchain } = ctx;
+  const { metadata, fetchWithCache, grpc } = ctx;
   const { borrowIncentive } = metadata.addresses;
   const tx = new SuiTxBlock();
   const queryTarget = `${borrowIncentive.query}::incentive_account_query::incentive_account_data`;
@@ -215,9 +215,9 @@ export const getBorrowIncentiveAccountsFromOnChain = async (
     const response = await fetchWithCache({
       queryKey: queryKeys.rpc.getObject({
         objectId,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.getObject({ objectId }),
+      queryFn: () => grpc.getObject({ objectId }),
     });
     if (!response.object) {
       throw logError(
@@ -228,7 +228,7 @@ export const getBorrowIncentiveAccountsFromOnChain = async (
       );
     }
     return getSharedObjectData(
-      { onchain, fetchWithCache },
+      { grpc, fetchWithCache },
       {
         tx,
         mutable,
@@ -249,10 +249,10 @@ export const getBorrowIncentiveAccountsFromOnChain = async (
     queryKey: queryKeys.rpc.getInspectTxn({
       queryTarget,
       args: [borrowIncentive.incentiveAccounts, obligationId],
-      node: onchain.url,
+      node: grpc.url,
     }),
     queryFn: () =>
-      onchain.client.simulateTransaction({
+      grpc.client.simulateTransaction({
         transaction: tx.txBlock,
         include: {
           events: true,
@@ -369,15 +369,15 @@ const getBorrowIncentiveAccountsBatched = async (
     coinNames,
   }: { obligationIds: string[]; coinNames?: string[] }
 ): Promise<Record<string, BorrowIncentiveAccounts>> => {
-  const { metadata, fetchWithCache, onchain } = ctx;
+  const { metadata, fetchWithCache, grpc } = ctx;
   const { borrowIncentive } = metadata.addresses;
   const queryTarget = `${borrowIncentive.query}::incentive_account_query::incentive_account_data`;
   const tx = new SuiTxBlock();
 
   const getArg = async (objectId: string, mutable: boolean) => {
     const response = await fetchWithCache({
-      queryKey: queryKeys.rpc.getObject({ objectId, node: onchain.url }),
-      queryFn: () => onchain.getObject({ objectId }),
+      queryKey: queryKeys.rpc.getObject({ objectId, node: grpc.url }),
+      queryFn: () => grpc.getObject({ objectId }),
     });
     if (!response.object) {
       throw logError(
@@ -388,7 +388,7 @@ const getBorrowIncentiveAccountsBatched = async (
       );
     }
     return getSharedObjectData(
-      { onchain, fetchWithCache },
+      { grpc, fetchWithCache },
       { tx, mutable, objectId: response.object }
     );
   };
@@ -409,10 +409,10 @@ const getBorrowIncentiveAccountsBatched = async (
     queryKey: queryKeys.rpc.getInspectTxn({
       queryTarget,
       args: [borrowIncentive.incentiveAccounts, ...obligationIds],
-      node: onchain.url,
+      node: grpc.url,
     }),
     queryFn: () =>
-      onchain.client.simulateTransaction({
+      grpc.client.simulateTransaction({
         transaction: tx.txBlock,
         include: { events: true },
       }),
@@ -458,7 +458,7 @@ export const getBindedVeScaKeyByObligationIdFromOnChain = async (
   obligationId: string
 ) => {
   const {
-    onchain,
+    grpc,
     fetchWithCache,
     metadata: { addresses },
   } = ctx;
@@ -474,7 +474,7 @@ export const getBindedVeScaKeyByObligationIdFromOnChain = async (
   };
   const incentiveAccountsObject = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject(fetchOptions),
-    queryFn: () => onchain.getObject(fetchOptions),
+    queryFn: () => grpc.getObject(fetchOptions),
   });
   if (!incentiveAccountsObject.object) {
     throw logError(
@@ -507,7 +507,7 @@ export const getBindedObligation = async (
   veScaKey: string
 ) => {
   const {
-    onchain,
+    grpc,
     fetchWithCache,
     metadata: { addresses },
   } = ctx;
@@ -521,7 +521,7 @@ export const getBindedObligation = async (
   };
   const incentivePoolsObject = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject(fetchOptions),
-    queryFn: () => onchain.getObject(fetchOptions),
+    queryFn: () => grpc.getObject(fetchOptions),
   });
 
   if (!incentivePoolsObject.object) {

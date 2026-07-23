@@ -120,8 +120,7 @@ export class PythOracleRule extends BaseOracleRule {
   }: PrepareParams): Promise<void> {
     const { logger, suiKit, address, pythEndpoints, pythApiKey } = this.ctx;
     // Pull-model: update every candidate. Push-model: only feeds that are NOT
-    // sponsored (sponsored feeds are updated out-of-band). Mirrors the legacy
-    // per-coin gating in the old orchestrator.
+    // sponsored (sponsored feeds are updated out-of-band).
     const needToUpdate = assetCoinNames.filter(
       (coin) => usePythPullModel || !sponsoredFeeds.has(coin)
     );

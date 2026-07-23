@@ -82,7 +82,7 @@ const queryDynamicValueObjectIds = async (
     coinTypeKeys: ReadonlySet<string>;
   }
 ): Promise<Record<string, string>> => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const result: Record<string, string> = {};
   let cursor: string | null | undefined = null;
   let hasNextPage = false;
@@ -96,9 +96,9 @@ const queryDynamicValueObjectIds = async (
     const resp = await fetchWithCache({
       queryKey: queryKeys.rpc.getDynamicFields({
         ...options,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.client.listDynamicFields(options),
+      queryFn: () => grpc.client.listDynamicFields(options),
     });
 
     for (const field of resp.dynamicFields) {
@@ -120,7 +120,7 @@ const queryDynamicValueObjects = async (
   ctx: PoolAddressesOnChainContext,
   requests: Record<string, Record<string, string>>
 ): Promise<Record<string, Record<string, DynamicValueObject | undefined>>> => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const objectIds = [
     ...new Set(Object.values(requests).flatMap((ids) => Object.values(ids))),
   ];
@@ -130,10 +130,10 @@ const queryDynamicValueObjects = async (
     const { objects } = await fetchWithCache({
       queryKey: queryKeys.rpc.getObjects({
         objectIds: batch,
-        node: onchain.url,
+        node: grpc.url,
       }),
       queryFn: () =>
-        onchain.client.getObjects({
+        grpc.client.getObjects({
           objectIds: batch,
           include: { json: true },
         }),
@@ -171,7 +171,7 @@ const queryFlashloanFeeObjectIds = async (
   coinTypes: Set<string>,
   flashLoanFeesTableId: string
 ): Promise<Record<string, string>> => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const result: Record<string, string> = {};
 
   let cursor: string | null | undefined = null;
@@ -186,9 +186,9 @@ const queryFlashloanFeeObjectIds = async (
     const resp = await fetchWithCache({
       queryKey: queryKeys.rpc.getDynamicFields({
         ...options,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.client.listDynamicFields(options),
+      queryFn: () => grpc.client.listDynamicFields(options),
     });
     if (!resp) break;
 
@@ -213,11 +213,11 @@ const queryFlashloanFeeObjectIds = async (
  * Fetch + parse the market object and pull out the sub-table parent ids that
  * every per-pool resolution walks. Shared by the on-chain and GraphQL rebuild
  * paths so they agree on the same table ids. The market read itself is
- * transport-agnostic (`onchain.getObject` works over gRPC or GraphQL Core).
+ * transport-agnostic (`grpc.getObject` works over gRPC or GraphQL Core).
  */
 const fetchMarketSubTables = async (ctx: PoolAddressesOnChainContext) => {
   const {
-    onchain,
+    grpc,
     fetchWithCache,
     metadata: { addresses },
   } = ctx;
@@ -230,9 +230,9 @@ const fetchMarketSubTables = async (ctx: PoolAddressesOnChainContext) => {
   const { object } = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject({
       ...marketFetchOptions,
-      node: onchain.url,
+      node: grpc.url,
     }),
-    queryFn: () => onchain.getObject(marketFetchOptions),
+    queryFn: () => grpc.getObject(marketFetchOptions),
   });
 
   const parsed = MarketObjectJsonSchema.safeParse(object?.json);

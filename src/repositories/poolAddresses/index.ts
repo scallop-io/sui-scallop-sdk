@@ -1,5 +1,5 @@
 import { ApiDataSource } from 'src/datasources/api.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { GraphQLDataSource } from 'src/datasources/graphql.js';
 import { BaseRepository } from '../base.js';
 import { QuerySource } from '../types.js';
@@ -8,7 +8,7 @@ import {
   PoolAddressesRepoContext,
   PoolAddressesRepoMetadata,
 } from './types.js';
-import { runWithDataSourceFallback, runWithGraphQLFallback } from '../utils.js';
+import { runWithDataSourceFallback, runByReadTransport } from '../utils.js';
 import {
   getPoolAddressesFromApi,
   getPoolAddressesFromGraphQL,
@@ -20,19 +20,19 @@ export class PoolAddressesRepository extends BaseRepository<
   PoolAddressesRepoMetadata
 > {
   private readonly api: ApiDataSource;
-  private readonly onchain: OnChainDataSource;
+  private readonly grpc: GrpcDataSource;
   private readonly graphql?: GraphQLDataSource;
   private readonly preferGraphql: boolean;
   constructor({
     api,
-    onchain,
+    grpc,
     graphql,
     preferGraphql = false,
     ...params
   }: PoolAddressesRepoParams) {
     super(params);
     this.api = api;
-    this.onchain = onchain;
+    this.grpc = grpc;
     this.graphql = graphql;
     this.preferGraphql = preferGraphql;
   }
@@ -41,7 +41,7 @@ export class PoolAddressesRepository extends BaseRepository<
     return {
       ...this.baseContext,
       api: this.api,
-      onchain: this.onchain,
+      grpc: this.grpc,
       graphql: this.graphql,
       preferGraphql: this.preferGraphql,
     };
@@ -69,7 +69,7 @@ export class PoolAddressesRepository extends BaseRepository<
       logger: this.logger,
       api: () => getPoolAddressesFromApi(ctx, { poolNames }),
       onchain: () =>
-        runWithGraphQLFallback({
+        runByReadTransport({
           preferGraphql: this.preferGraphql,
           logger: this.logger,
           label: 'PoolAddressesRepository.getPoolAddresses',

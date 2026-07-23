@@ -1,6 +1,6 @@
 import { SuiClientTypes } from '@mysten/sui/client';
 import { SuiObjectArg, SuiTxBlock } from '@scallop-io/sui-kit';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { SuiObjectData, SuiObjectRef } from 'src/types/index.js';
 import { z } from 'zod';
 import { FetchWithCache } from './cache.js';
@@ -135,10 +135,10 @@ export const getSharedObjectData = async (
   // class method that reads `this.client`, so destructuring it here would drop the
   // `this` binding and throw "Cannot read properties of undefined (reading 'client')".
   {
-    onchain,
+    grpc,
     fetchWithCache,
   }: {
-    onchain: OnChainDataSource;
+    grpc: GrpcDataSource;
     fetchWithCache: FetchWithCache;
   },
   {
@@ -159,15 +159,14 @@ export const getSharedObjectData = async (
     const objectData = await fetchWithCache({
       // Canonical object-read key (include-aware) so this shared-object fetch
       // shares one cache entry with plain `getObject` reads of the same object,
-      // letting `fetchWithCache` dedupe identical in-flight requests that were
-      // previously split across the `getObject`/`getSharedObject` namespaces.
+      // letting `fetchWithCache` dedupe identical in-flight requests.
       queryKey: queryKeys.rpc.getObject({
         objectId,
         include,
-        node: onchain.url,
+        node: grpc.url,
       }),
       queryFn: () =>
-        onchain.getObject({
+        grpc.getObject({
           objectId,
           include,
         }),

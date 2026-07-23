@@ -18,6 +18,7 @@ import {
   TransactionExecutor,
 } from '../transactionExecutor.js';
 import ScallopQuery from '../scallopQuery/index.js';
+import type { ScallopQueryConstructorParams } from '../scallopQuery/types.js';
 import { ScallopBuilderConstructorParams } from './types.js';
 import { DEFAULT_PYTH_URL } from 'src/repositories/price/const.js';
 
@@ -52,16 +53,21 @@ class ScallopBuilder implements ScallopBuilderInterface {
   }: ScallopBuilderConstructorParams) {
     this.suiKit = new SuiKit({
       ...scallopQueryArgs,
-      fullnodeUrls: [scallopQueryArgs.fullnodeUrl],
+      ...(scallopQueryArgs.fullnodeUrl
+        ? { fullnodeUrls: [scallopQueryArgs.fullnodeUrl] }
+        : {}),
     });
     this.query =
       query ??
+      // Cast: object spread widens the `readTransport` discriminant, so TS can no
+      // longer prove the `SuiGrpcTransport | SuiGraphqlTransport` union here even
+      // though the incoming params were validated at the public entry point.
       new ScallopQuery({
         ...scallopQueryArgs,
         pythEndpoints,
         walletAddress:
           scallopQueryArgs.walletAddress ?? this.suiKit.currentAddress,
-      });
+      } as ScallopQueryConstructorParams);
     this.usePythPullModel = usePythPullModel;
     this.useOnChainXOracleList = useOnChainXOracleList;
     this.sponsoredFeeds = sponsoredFeeds;
@@ -91,8 +97,8 @@ class ScallopBuilder implements ScallopBuilderInterface {
     return this.utils.walletAddress;
   }
 
-  get onchain() {
-    return this.utils.onchain;
+  get grpc() {
+    return this.query.grpc;
   }
 
   get address() {

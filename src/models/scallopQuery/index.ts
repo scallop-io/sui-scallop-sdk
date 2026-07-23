@@ -1,5 +1,9 @@
+import { SuiGraphQLClient } from '@mysten/sui/graphql';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
+import { getJsonRpcFullnodeUrl } from '@mysten/sui/jsonRpc';
 import { SuiObjectArg } from '@scallop-io/sui-kit';
 import { BigNumber } from 'bignumber.js';
+import { MAINNET_GRAPHQL_URL } from 'src/datasources/graphql.js';
 import { ScallopParseError } from 'src/errors/index.js';
 import { runWithDataSourceFallback } from 'src/repositories/utils.js';
 import {
@@ -40,38 +44,60 @@ export type {
   ScallopQueryConstructorParams as ScallopQueryParams,
 } from './types.js';
 
+const initReadClients = (args: ScallopQueryConstructorParams) => {
+  const network = 'mainnet';
+  if (args.readTransport === 'graphql') {
+    return {
+      core: new SuiGrpcClient({
+        baseUrl: args.fullnodeUrl ?? getJsonRpcFullnodeUrl(network),
+        network,
+      }),
+      graphql: args.graphqlClient
+        ? args.graphqlClient
+        : new SuiGraphQLClient({
+            url: args.graphqlUrl,
+            network,
+          }),
+    };
+  } else {
+    return {
+      core: args.suiClient
+        ? args.suiClient
+        : new SuiGrpcClient({
+            baseUrl: args.fullnodeUrl,
+            network,
+          }),
+      graphql: new SuiGraphQLClient({
+        url: MAINNET_GRAPHQL_URL,
+        network,
+      }),
+    };
+  }
+};
+
 class ScallopQuery implements ScallopQueryInterface {
   public readonly utils: ScallopUtils;
   public readonly repos: Repositories;
+  public readonly grpc: SuiGrpcClient;
 
-  constructor({
-    utils,
-    queryClient,
-    queryClientConfig,
-    priceTimeout,
-    graphqlUrl,
-    graphqlClient,
-    pythApiKey,
-    pythEndpoints,
-    ...scallopUtilsArgs
-  }: ScallopQueryConstructorParams) {
-    // `graphqlUrl` / `graphqlClient` are destructured out for the registry
-    // below, so re-supply them to `ScallopUtils` — the `readTransport: 'graphql'`
-    // read-client branch needs them to honor a custom GraphQL endpoint/client.
+  constructor({ utils, ...args }: ScallopQueryConstructorParams) {
+    const { core, graphql } = initReadClients(args);
+    this.grpc = core;
     this.utils =
       utils ??
-      new ScallopUtils({ ...scallopUtilsArgs, graphqlUrl, graphqlClient });
+      new ScallopUtils({
+        ...args,
+        // The Core read path is always gRPC — ScallopUtils calls Core primitives
+        // (e.g. `listCoins` in `selectCoins`), so it must hold the gRPC `core`
+        // client, never the GraphQL client, regardless of `readTransport`.
+        coreClient: args.coreClient ?? core,
+      });
+
     this.repos = createRepositories({
+      core,
+      graphql,
       utils: this.utils,
-      queryClient,
-      queryClientConfig,
-      priceTimeout,
-      graphqlUrl,
-      graphqlClient,
-      pythApiKey,
-      pythEndpoints,
-      // Gates Tier-2 native GraphQL queries (preferGraphql) in the registry.
-      readTransport: scallopUtilsArgs.readTransport,
+      ...args,
     });
   }
 
@@ -98,10 +124,6 @@ class ScallopQuery implements ScallopQueryInterface {
 
   get address() {
     return this.utils.address;
-  }
-
-  get onchain() {
-    return this.utils.onchain;
   }
 
   /* ==================== Core Query Methods ==================== */
@@ -1307,7 +1329,7 @@ class ScallopQuery implements ScallopQueryInterface {
     if (!apiAddressId) {
       throw new ScallopParseError('apiAddressId is required');
     }
-    // NOTE: `apiAddressId` no longer routes the fetch — the repo's API path uses
+    // NOTE: `apiAddressId` doesn't route the fetch — the repo's API path uses
     // the fixed pool-addresses endpoint and the on-chain path rebuilds from the
     // current address config. The param is kept for signature compatibility.
     return this.repos.poolAddresses.getPoolAddresses({});

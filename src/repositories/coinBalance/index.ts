@@ -4,7 +4,7 @@
  */
 
 import { BaseRepository } from '../base.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { GraphQLDataSource } from 'src/datasources/graphql.js';
 import {
   getCoinAmountFromOnChain,
@@ -26,18 +26,18 @@ export class CoinBalanceRepository extends BaseRepository<
   CoinBalanceContext,
   CoinBalanceMetadata
 > {
-  private readonly onchain: OnChainDataSource;
+  private readonly grpc: GrpcDataSource;
   private readonly balanceSource: GraphQLDataSource;
   private readonly preferGraphql: boolean;
 
   constructor({
-    onchain,
+    grpc,
     balanceSource,
     preferGraphql,
     ...params
   }: CoinBalanceRepoParams) {
     super(params);
-    this.onchain = onchain;
+    this.grpc = grpc;
     this.balanceSource = balanceSource;
     this.preferGraphql = preferGraphql;
   }
@@ -45,7 +45,7 @@ export class CoinBalanceRepository extends BaseRepository<
   get context() {
     return {
       ...this.baseContext,
-      onchain: this.onchain,
+      grpc: this.grpc,
       balanceSource: this.balanceSource,
       preferGraphql: this.preferGraphql,
       queryClient: this.queryClient,

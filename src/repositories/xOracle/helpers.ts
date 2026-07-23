@@ -21,7 +21,7 @@ const queryUpdatePolicyRules = async (
   ctx: XOracleUpdatePolicyRulesContext,
   vecSetId: string
 ): Promise<Record<string, SupportedOracle[]>> => {
-  const { onchain, fetchWithCache, metadata } = ctx;
+  const { grpc, fetchWithCache, metadata } = ctx;
   const { addresses, parseCoinNameFromType } = metadata;
   const limit = 50;
 
@@ -49,9 +49,9 @@ const queryUpdatePolicyRules = async (
     const { dynamicFields, cursor, hasNextPage } = await fetchWithCache({
       queryKey: queryKeys.rpc.getDynamicFields({
         ...fetchOptions,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.client.listDynamicFields(fetchOptions),
+      queryFn: () => grpc.client.listDynamicFields(fetchOptions),
     });
 
     nextCursor = cursor;
@@ -115,11 +115,9 @@ export const getAssetOraclesFromOnChain = async (
 };
 
 /**
- * Primary/secondary price-update-policy dynamic fields.
- *
- * NOTE: the return shape changed from the legacy `getPriceUpdatePolicies`
- * (which leaked `SuiObjectResponse`). This returns the new-gen client's
- * dynamic-field result (or `null` when the policy rules key isn't present).
+ * Primary/secondary price-update-policy dynamic fields. Returns the gRPC
+ * client's dynamic-field result (or `null` when the policy rules key isn't
+ * present).
  */
 export const getPriceUpdatePoliciesFromOnChain = async (
   ctx: XOraclePriceUpdatePolicyContext
@@ -264,7 +262,7 @@ const querySwitchboardRegistryAggs = async (
   registryTableId: string,
   missingCoinTypes: ReadonlyMap<string, { idx: number; coinName: string }>
 ): Promise<Record<string, string>> => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const result: Record<string, string> = {};
   let cursor: string | null | undefined = null;
   let hasNextPage = false;
@@ -280,9 +278,9 @@ const querySwitchboardRegistryAggs = async (
     const resp = await fetchWithCache({
       queryKey: queryKeys.rpc.getDynamicFields({
         ...options,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.client.listDynamicFields(options),
+      queryFn: () => grpc.client.listDynamicFields(options),
     });
 
     for (const field of resp.dynamicFields) {

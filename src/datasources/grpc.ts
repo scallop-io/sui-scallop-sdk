@@ -2,33 +2,21 @@ import type { SuiClientTypes } from '@mysten/sui/client';
 import { RateLimiter } from './rateLimiter.js';
 import { partitionArray } from 'src/utils/array.js';
 import type { SuiObjectData } from 'src/types/index.js';
+import { recordRpcCall } from './rpcStats.js';
+import { ClientWithCoreMethods, CORE_METHODS } from 'src/datasources/types.js';
 
-const _METHODS = [
-  'getObjects',
-  'listOwnedObjects',
-  'listCoins',
-  'listDynamicFields',
-  'getDynamicField',
-  'getBalance',
-  'listBalances',
-  'getCoinMetadata',
-  'getTransaction',
-  'getReferenceGasPrice',
-  'getCurrentSystemState',
-  'getProtocolConfig',
-  'getChainIdentifier',
-  'defaultNameServiceName',
-  'getMoveFunction',
-  'simulateTransaction',
-] as const satisfies readonly (keyof SuiClientTypes.TransportMethods)[];
+// Re-exported so existing importers keep resolving these from `onchain.js`; the
+// accounting itself now lives in the shared `rpcStats` module (also fed by the
+// GraphQL datasource) so stats span both transports.
+export {
+  getRpcStats,
+  resetRpcStats,
+  collectRpcStats,
+  type RpcCallStat,
+} from './rpcStats.js';
 
-type OnChainDataSourceClient = Pick<
-  SuiClientTypes.TransportMethods,
-  (typeof _METHODS)[number]
->;
-
-type OnChainDataSourceParams = {
-  client: OnChainDataSourceClient;
+type GrpcDataSourceParams = {
+  client: ClientWithCoreMethods;
   url: string;
   /**
    * Transport throughput cap (token-bucket). The SDK's policy default lives in
@@ -82,32 +70,26 @@ export const DEFAULT_OBJECT_BATCH_WINDOW_MS = 0;
  * datasource was given (jsonRpc or gRPC), so the limiter applies regardless of
  * the underlying SDK transport.
  */
-const RATE_LIMITED_METHODS = new Set<string>(_METHODS);
+const RATE_LIMITED_METHODS = new Set<string>(CORE_METHODS);
 
 /**
- * Opt-in debug accounting for on-chain RPC volume. The proxy records, per
- * transport method, how many throttled calls were made and how long they spent
- * waiting on the rate limiter. Always counting is negligible overhead (a Map
- * write); read it from tests via {@link getRpcStats} to find which queries spend
- * the token budget, then {@link resetRpcStats} between cases. Not part of the
- * public API surface.
+ * Coarse per-call cardinality for accounting — how many logical items a single
+ * request carried. `getObjects` batches many ids, so its cardinality is the id
+ * count; `listBalances` returns a page (record it as one page); everything else
+ * is a single-item request. Never returns identifiers, only a count.
  */
-export type RpcCallStat = { calls: number; waitMs: number };
-const rpcStats = new Map<string, RpcCallStat>();
-export const getRpcStats = (): Map<string, RpcCallStat> =>
-  new Map([...rpcStats].map(([k, v]) => [k, { ...v }]));
-export const resetRpcStats = (): void => rpcStats.clear();
-const recordRpcCall = (method: string, waitMs: number) => {
-  const stat = rpcStats.get(method) ?? { calls: 0, waitMs: 0 };
-  stat.calls += 1;
-  stat.waitMs += waitMs;
-  rpcStats.set(method, stat);
+const cardinalityOf = (method: string, args: unknown[]): number => {
+  const first = args[0] as { objectIds?: unknown[] } | undefined;
+  if (method === 'getObjects' && Array.isArray(first?.objectIds)) {
+    return first.objectIds.length;
+  }
+  return 1;
 };
 
 const withRateLimit = (
-  client: OnChainDataSourceClient,
+  client: ClientWithCoreMethods,
   limiter: RateLimiter
-): OnChainDataSourceClient =>
+): ClientWithCoreMethods =>
   new Proxy(client, {
     get(target, prop, receiver) {
       const value = Reflect.get(target, prop, receiver);
@@ -122,7 +104,12 @@ const withRateLimit = (
           const start = Date.now();
           return limiter.execute(() => {
             // Time from call to token acquisition = throttle wait for this call.
-            recordRpcCall(prop, Date.now() - start);
+            recordRpcCall(
+              'onchain',
+              prop,
+              Date.now() - start,
+              cardinalityOf(prop, args)
+            );
             return fn(...args);
           });
         };
@@ -140,21 +127,21 @@ const withRateLimit = (
  * GraphQL transport's query-payload cap. All other methods pass through.
  */
 const withObjectBatchLimit = (
-  client: OnChainDataSourceClient,
+  client: ClientWithCoreMethods,
   maxPerBatch: number
-): OnChainDataSourceClient =>
+): ClientWithCoreMethods =>
   new Proxy(client, {
     get(target, prop, receiver) {
       if (prop !== 'getObjects') return Reflect.get(target, prop, receiver);
       return async (
-        options: Parameters<OnChainDataSourceClient['getObjects']>[0]
+        options: Parameters<ClientWithCoreMethods['getObjects']>[0]
       ) => {
         const objectIds = options?.objectIds ?? [];
         if (objectIds.length <= maxPerBatch) {
           return target.getObjects(options);
         }
         const merged: Awaited<
-          ReturnType<OnChainDataSourceClient['getObjects']>
+          ReturnType<ClientWithCoreMethods['getObjects']>
         >['objects'] = [];
         for (const chunk of partitionArray(objectIds, maxPerBatch)) {
           const { objects } = await target.getObjects({
@@ -205,8 +192,10 @@ const includeSignature = (
   );
 };
 
-export class OnChainDataSource {
-  public readonly client: OnChainDataSourceClient;
+const DEFAULT_TOKENS_PER_SECOND = 10;
+
+export class GrpcDataSource {
+  public readonly client: ClientWithCoreMethods;
   public readonly url: string;
 
   /**
@@ -224,10 +213,10 @@ export class OnChainDataSource {
   constructor({
     client,
     url,
-    tokensPerSecond,
+    tokensPerSecond = DEFAULT_TOKENS_PER_SECOND,
     objectBatchWindowMs = DEFAULT_OBJECT_BATCH_WINDOW_MS,
     maxObjectsPerBatch,
-  }: OnChainDataSourceParams) {
+  }: GrpcDataSourceParams) {
     const rateLimited = withRateLimit(client, new RateLimiter(tokensPerSecond));
     // Split oversized getObjects requests only when a cap is set (GraphQL); gRPC
     // keeps the native 50-id limit and skips the extra proxy entirely.

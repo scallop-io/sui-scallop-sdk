@@ -5,7 +5,7 @@
  */
 
 import type { IndexerDataSource } from 'src/datasources/indexer.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { CoinPrices } from 'src/types/utils.js';
 import { BaseRepository } from '../base.js';
 import type { QuerySource } from '../utils.js';
@@ -31,19 +31,19 @@ export class SpoolRepository extends BaseRepository<
   SpoolMetadata
 > {
   private readonly indexer: IndexerDataSource;
-  private readonly onchain: OnChainDataSource;
+  private readonly grpc: GrpcDataSource;
 
-  constructor({ indexer, onchain, ...params }: SpoolRepoParams) {
+  constructor({ indexer, grpc, ...params }: SpoolRepoParams) {
     super(params);
     this.indexer = indexer;
-    this.onchain = onchain;
+    this.grpc = grpc;
   }
 
   get context() {
     return {
       ...this.baseContext,
       indexer: this.indexer,
-      onchain: this.onchain,
+      grpc: this.grpc,
     };
   }
 

@@ -1,6 +1,6 @@
 import { SuiObjectRef } from 'src/types/sui.js';
 import { AddressesInterface } from 'src/types/address.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { BaseContext, BaseRepoParams } from '../types.js';
 
 // Derived from the canonical address schema (verbatim subset of the `vesca`
@@ -21,7 +21,7 @@ export type VeScaRepoMetadata = {
 };
 
 export type VeScaRepoContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: VeScaRepoMetadata;
 };
 
@@ -31,24 +31,24 @@ export type VeScaRepoContext = BaseContext & {
  * since all it needs is `metadata.addresses.veSca.tableId`.
  */
 export type VeScaDataContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: { addresses: VeScaAddresses<'tableId'> };
 };
 
 /** Minimal context for reading all veScas owned by an address. */
 export type VeScasByAddressContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: { addresses: VeScaAddresses<'tableId' | 'object'> };
 };
 
 /** Minimal context for reading veSca treasury info. */
 export type VeScaTreasuryContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: { addresses: VeScaAddresses<'id' | 'config' | 'treasury'> };
 };
 
 export type VeScaRepoParams = BaseRepoParams & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: VeScaRepoMetadata;
   /**
    * Prefer the batched veSca read (derive field ids + one `getObjects`) over the

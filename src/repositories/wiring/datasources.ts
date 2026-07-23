@@ -5,7 +5,7 @@ import type { Logger } from 'src/logger/index.js';
 import { API_BASE_URL, SDK_API_BASE_URL } from 'src/constants/api.js';
 import { ApiDataSource } from 'src/datasources/api.js';
 import { IndexerDataSource } from 'src/datasources/indexer.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import {
   GraphQLDataSource,
   MAINNET_GRAPHQL_URL,
@@ -19,7 +19,7 @@ export { MAINNET_GRAPHQL_URL };
  * are just thin wrappers around fetch, so they don't need a client and can be instantiated with
  * just a URL (which defaults to the appropriate base URL if not provided).
  */
-export const createOnChainDataSource = (
+export const createGrpcDataSource = (
   client: ClientWithCoreApi,
   url: string, // for cache keys
   options?: {
@@ -27,13 +27,12 @@ export const createOnChainDataSource = (
     objectBatchWindowMs?: number | null;
     maxObjectsPerBatch?: number;
   }
-): OnChainDataSource =>
-  new OnChainDataSource({
-    // new-gen transport methods (getObjects/simulateTransaction/…) live on `.core`
+): GrpcDataSource =>
+  new GrpcDataSource({
+    // transport methods (getObjects/simulateTransaction/…) live on `.core`
     client: client.core,
     url,
-    // The datasource is now the single rate-limit point for every repo read
-    // (the old ScallopSuiKit query path is gone).
+    // The datasource is the single rate-limit point for every repo read.
     tokensPerSecond: options?.tokensPerSecond,
     objectBatchWindowMs: options?.objectBatchWindowMs,
     // Set (to a sub-50 cap) only for the GraphQL transport, whose query-payload

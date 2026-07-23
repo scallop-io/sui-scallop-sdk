@@ -24,19 +24,19 @@ class ScallopAddress {
 
   constructor({
     addressId,
-    url = API_BASE_URL,
+    apiDataSourceUrl = API_BASE_URL,
     timeout,
     httpClient,
     network = 'mainnet',
     logger = noopLogger,
     forceAddressesInterface,
   }: ScallopAddressConstructorParams) {
-    this.url = url;
+    this.url = apiDataSourceUrl;
     this.addressId = addressId;
     this.network = network;
     this.logger = logger;
     this.addressApiRepo = new AddressApiRepository({
-      api: new ApiDataSource({ url, timeout, httpClient }),
+      api: new ApiDataSource({ url: apiDataSourceUrl, timeout, httpClient }),
     });
 
     if (forceAddressesInterface) {

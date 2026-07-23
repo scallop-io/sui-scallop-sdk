@@ -38,8 +38,7 @@ export type LiveConstantsSourceDeps = {
 
 /**
  * Live adapter over `ScallopAddress` + its cached axios client. Holds the
- * try/catch → `defaultValues` fallback that used to live inline in
- * `ScallopConstants.readWhiteList` / `readPoolAddresses`.
+ * try/catch → `defaultValues` fallback for `readWhiteList` / `readPoolAddresses`.
  */
 export const createLiveConstantsSource = ({
   address,

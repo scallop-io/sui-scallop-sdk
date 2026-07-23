@@ -15,7 +15,7 @@ import {
   mapObligationEventToObligationData,
 } from './utils.js';
 import { getSharedObjectData, parseObjectAs } from 'src/utils/object.js';
-import { logError, type OnChainReadContext } from '../utils.js';
+import { logError, type GrpcReadContext } from '../utils.js';
 import { ScallopRpcError } from 'src/errors/index.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import type { SuiObjectData } from 'src/types/index.js';
@@ -30,7 +30,7 @@ const queryObligationKeys = async (
     address: string;
   }
 ) => {
-  const { onchain, metadata, fetchWithCache } = ctx;
+  const { grpc, metadata, fetchWithCache } = ctx;
   const structType = `${metadata.addresses.protocolObjectId}::obligation::ObligationKey`;
 
   const objects: SuiClientTypes.Object<{ json: true }>[] = [];
@@ -50,8 +50,13 @@ const queryObligationKeys = async (
 
     const response =
       await fetchWithCache<SuiClientTypes.ListOwnedObjectsResponse>({
-        queryKey: queryKeys.rpc.getOwnedObjects(options),
-        queryFn: () => onchain.client.listOwnedObjects(options),
+        // Namespace by node so reads against different fullnodes sharing one
+        // QueryClient can't collide (matches the veSca owned-object key shape).
+        queryKey: queryKeys.rpc.getOwnedObjects({
+          ...options,
+          node: grpc.url,
+        }),
+        queryFn: () => grpc.client.listOwnedObjects(options),
       });
 
     objects.push(...response.objects);
@@ -70,7 +75,7 @@ export const queryObligationData = async (
   ctx: ObligationDataContext,
   obligationId: string
 ) => {
-  const { onchain, fetchWithCache, metadata } = ctx;
+  const { grpc, fetchWithCache, metadata } = ctx;
   const { queryPackageId, version, market } = metadata.addresses;
   const queryTarget = `${queryPackageId}::obligation_query::obligation_data`;
 
@@ -88,9 +93,9 @@ export const queryObligationData = async (
     const response = await fetchWithCache({
       queryKey: queryKeys.rpc.getObject({
         ...getFetchOptions(objectId),
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.getObject(getFetchOptions(objectId)),
+      queryFn: () => grpc.getObject(getFetchOptions(objectId)),
     });
 
     if (!response.object) {
@@ -103,7 +108,7 @@ export const queryObligationData = async (
     }
 
     return getSharedObjectData(
-      { onchain, fetchWithCache },
+      { grpc, fetchWithCache },
       {
         tx,
         mutable: false,
@@ -124,10 +129,10 @@ export const queryObligationData = async (
     queryKey: queryKeys.rpc.getInspectTxn({
       queryTarget,
       args: queryArgs,
-      node: onchain.url,
+      node: grpc.url,
     }),
     queryFn: () =>
-      onchain.client.simulateTransaction({
+      grpc.client.simulateTransaction({
         transaction: tx.txBlock,
         include: {
           events: true,
@@ -166,7 +171,7 @@ type ObligationDataResult = Awaited<ReturnType<typeof queryObligationData>>;
  *
  * A whole-PTB abort (one bad obligation fails the transaction) or an event-count
  * mismatch (can't safely position results) falls back to per-obligation queries,
- * preserving the isolation the caller's `allSettled` loop previously had.
+ * preserving the isolation of the caller's `allSettled` loop.
  */
 export const queryObligationsData = async (
   ctx: ObligationDataContext,
@@ -206,15 +211,15 @@ const queryObligationsDataBatched = async (
   ctx: ObligationDataContext,
   obligationIds: string[]
 ): Promise<Record<string, ObligationDataResult>> => {
-  const { onchain, fetchWithCache, metadata } = ctx;
+  const { grpc, fetchWithCache, metadata } = ctx;
   const { queryPackageId, version, market } = metadata.addresses;
   const queryTarget = `${queryPackageId}::obligation_query::obligation_data`;
 
   const tx = new SuiTxBlock();
   const getArg = async (objectId: string) => {
     const response = await fetchWithCache({
-      queryKey: queryKeys.rpc.getObject({ objectId, node: onchain.url }),
-      queryFn: () => onchain.getObject({ objectId }),
+      queryKey: queryKeys.rpc.getObject({ objectId, node: grpc.url }),
+      queryFn: () => grpc.getObject({ objectId }),
     });
     if (!response.object) {
       throw logError(
@@ -225,7 +230,7 @@ const queryObligationsDataBatched = async (
       );
     }
     return getSharedObjectData(
-      { onchain, fetchWithCache },
+      { grpc, fetchWithCache },
       { tx, mutable: false, objectId: response.object }
     );
   };
@@ -247,10 +252,10 @@ const queryObligationsDataBatched = async (
     queryKey: queryKeys.rpc.getInspectTxn({
       queryTarget,
       args: [version, market, ...obligationIds],
-      node: onchain.url,
+      node: grpc.url,
     }),
     queryFn: () =>
-      onchain.client.simulateTransaction({
+      grpc.client.simulateTransaction({
         transaction: tx.txBlock,
         include: { events: true },
       }),
@@ -288,10 +293,10 @@ const queryObligationsDataBatched = async (
  * the public `getObligationLocked` contract.
  */
 export const getObligationLockedFromOnChain = async (
-  ctx: OnChainReadContext,
+  ctx: GrpcReadContext,
   obligationId: string
 ): Promise<boolean> => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const options: SuiClientTypes.GetObjectOptions<{ json: true }> = {
     objectId: obligationId,
     include: {
@@ -300,7 +305,7 @@ export const getObligationLockedFromOnChain = async (
   };
   const obligationObject = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject(options),
-    queryFn: () => onchain.getObject(options),
+    queryFn: () => grpc.getObject(options),
   });
 
   const fields = parseObjectAs<{ lock_key?: unknown }>(obligationObject.object);
@@ -344,18 +349,18 @@ export const getObligationsFromOnChain = async (
  * (callers fall back to the id), so indices stay aligned with the input array.
  */
 export const getObligationObjectsFromOnChain = async (
-  ctx: OnChainReadContext,
+  ctx: GrpcReadContext,
   ids: string[]
 ): Promise<(SuiObjectData | null)[]> => {
   if (ids.length === 0) return [];
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const options: SuiClientTypes.GetObjectsOptions<{ json: true }> = {
     objectIds: ids,
     include: { json: true },
   };
   const { objects } = await fetchWithCache({
-    queryKey: queryKeys.rpc.getObjects({ objectIds: ids, node: onchain.url }),
-    queryFn: () => onchain.client.getObjects(options),
+    queryKey: queryKeys.rpc.getObjects({ objectIds: ids, node: grpc.url }),
+    queryFn: () => grpc.client.getObjects(options),
   });
   return objects.map((object) => (object instanceof Error ? null : object));
 };
@@ -367,7 +372,7 @@ export const getObligationNamesFromOnChain = async (
   const {
     metadata: { addresses },
     fetchWithCache,
-    onchain,
+    grpc,
   } = ctx;
 
   const registryTableId = addresses.obligationNaming.registryTableId;
@@ -394,9 +399,9 @@ export const getObligationNamesFromOnChain = async (
           {
             queryKey: queryKeys.rpc.getDynamicFieldObject({
               ...options,
-              node: onchain.url,
+              node: grpc.url,
             }),
-            queryFn: () => onchain.client.getDynamicField(options),
+            queryFn: () => grpc.client.getDynamicField(options),
           },
           // An unnamed obligation legitimately has no dynamic field; the miss is
           // handled below, so don't log it as an error.

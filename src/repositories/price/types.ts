@@ -1,7 +1,7 @@
 import { AddressesInterface } from 'src/types/address.js';
 import { BaseContext, BaseRepoParams } from '../types.js';
 import { IndexerDataSource } from 'src/datasources/indexer.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { HermesClientConfig } from '@pythnetwork/pyth-sui-js';
 
 // Derived from the canonical `core.coins` value shape (single source of truth for
@@ -26,7 +26,7 @@ export type PriceApiConfig = {
 
 export type PriceRepositoryContext = BaseContext & {
   metadata: PriceRepositoryMetadata;
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   indexer: IndexerDataSource;
   pythPriceServiceConfig: PriceApiConfig;
   /** Cache lifetime (ms) for the full Pyth price-feed list. */
@@ -39,7 +39,7 @@ export type PriceRepositoryContext = BaseContext & {
 };
 
 export type PriceRepositoryParams = BaseRepoParams & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   indexer: IndexerDataSource;
   metadata: PriceRepositoryMetadata;
   pythPriceServiceConfig?: PriceApiConfig;
@@ -72,7 +72,7 @@ export type PriceApiContext = Pick<
 /** Minimal context for the on-chain Pyth feed-object price read. */
 export type PriceOnChainContext = Pick<
   PriceRepositoryContext,
-  'onchain' | 'fetchWithCache' | 'metadata' | 'logger'
+  'grpc' | 'fetchWithCache' | 'metadata' | 'logger'
 >;
 
 /** Minimal context for the indexer coin-price read. */

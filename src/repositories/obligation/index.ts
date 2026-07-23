@@ -5,7 +5,7 @@
  */
 
 import { BaseRepository } from '../base.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { GraphQLDataSource } from 'src/datasources/graphql.js';
 import {
   getObligationLockedFromOnChain,
@@ -21,24 +21,24 @@ import {
   ObligationRepoContext,
   ObligationRepoMetadata,
 } from './types.js';
-import { runWithGraphQLFallback } from '../utils.js';
+import { runByReadTransport } from '../utils.js';
 
 export class ObligationRepository extends BaseRepository<
   ObligationRepoContext,
   ObligationRepoMetadata
 > {
-  private readonly onchain: OnChainDataSource;
+  private readonly grpc: GrpcDataSource;
   private readonly graphql?: GraphQLDataSource;
   private readonly preferGraphql: boolean;
 
   constructor({
-    onchain,
+    grpc,
     graphql,
     preferGraphql = false,
     ...params
   }: ObligationRepoParams) {
     super(params);
-    this.onchain = onchain;
+    this.grpc = grpc;
     this.graphql = graphql;
     this.preferGraphql = preferGraphql;
   }
@@ -46,7 +46,7 @@ export class ObligationRepository extends BaseRepository<
   get context() {
     return {
       ...this.baseContext,
-      onchain: this.onchain,
+      grpc: this.grpc,
       graphql: this.graphql,
       preferGraphql: this.preferGraphql,
     };
@@ -80,7 +80,7 @@ export class ObligationRepository extends BaseRepository<
   getObligationNames(address: string) {
     const ctx = this.context;
     const graphql = this.graphql;
-    return runWithGraphQLFallback({
+    return runByReadTransport({
       preferGraphql: this.preferGraphql,
       logger: this.logger,
       label: 'ObligationRepository.getObligationNames',

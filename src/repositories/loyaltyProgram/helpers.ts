@@ -17,7 +17,7 @@ const queryRewardPool = async (
   ctx: QueryRewardPoolContext,
   rewardPoolId: string
 ) => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
 
   // Fetch the rewardPool object
   const fetchOptions: SuiClientTypes.GetObjectOptions<{ json: true }> = {
@@ -30,9 +30,9 @@ const queryRewardPool = async (
   const { object: rewardPoolObject } = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject({
       ...fetchOptions,
-      node: onchain.url,
+      node: grpc.url,
     }),
-    queryFn: () => onchain.getObject(fetchOptions),
+    queryFn: () => grpc.getObject(fetchOptions),
   });
 
   if (!rewardPoolObject) {
@@ -57,7 +57,7 @@ const queryUserRewardAmount = async (
     tableId: string;
   }
 ) => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
 
   const fetchOptions: SuiClientTypes.GetDynamicFieldOptions = {
     parentId: tableId,
@@ -72,9 +72,9 @@ const queryUserRewardAmount = async (
   } = await fetchWithCache({
     queryKey: queryKeys.rpc.getDynamicFieldObject({
       ...fetchOptions,
-      node: onchain.url,
+      node: grpc.url,
     }),
-    queryFn: () => onchain.client.getDynamicField(fetchOptions),
+    queryFn: () => grpc.client.getDynamicField(fetchOptions),
   });
 
   return BigNumber(UserRewardBcs.parse(value.bcs)).shiftedBy(-9).toNumber();

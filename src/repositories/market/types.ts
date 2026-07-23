@@ -1,5 +1,5 @@
 import type { IndexerDataSource } from 'src/datasources/indexer.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { CoinWrappedType, PoolAddress } from 'src/types/constant/index.js';
 import { SuiObjectData } from 'src/types/sui.js';
 import type { CoinPrices, OptionalKeys } from 'src/types/utils.js';
@@ -28,14 +28,14 @@ export type MarketRepoMetadata = {
 };
 
 export type MarketRepoContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   indexer: IndexerDataSource;
   addresses: MarketRepoAddressConfig;
   metadata: MarketRepoMetadata;
 };
 
 export type MarketRepoParams = BaseRepoParams & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   indexer: IndexerDataSource;
   addresses: MarketRepoAddressConfig;
   metadata: MarketRepoMetadata;
@@ -50,7 +50,7 @@ export type MarketIndexerContext = Pick<
 /** Minimal context for on-chain market reads (no indexer). */
 export type MarketOnChainContext = Pick<
   MarketRepoContext,
-  'onchain' | 'addresses' | 'fetchWithCache' | 'metadata' | 'logger'
+  'grpc' | 'addresses' | 'fetchWithCache' | 'metadata' | 'logger'
 >;
 
 export type BalanceSheet = {

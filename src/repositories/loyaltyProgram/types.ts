@@ -1,5 +1,5 @@
 import { AddressesInterface } from 'src/types/address.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { BaseContext, BaseRepoParams } from '../types.js';
 
 type LoyaltyProgramKeys = 'rewardPool';
@@ -14,19 +14,19 @@ export type LoyaltyProgramRepoMetadata = {
 };
 
 export type QueryRewardPoolContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
 };
 export type QueryUserRewardContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
 };
 
 export type LoyaltyProgramRepoContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: LoyaltyProgramRepoMetadata;
 };
 
 export type LoyaltyProgramRepoParams = BaseRepoParams & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: LoyaltyProgramRepoMetadata;
 };
 

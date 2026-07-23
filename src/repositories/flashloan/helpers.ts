@@ -3,20 +3,20 @@ import { queryKeys } from 'src/constants/queryKeys.js';
 import { SuiObjectData } from 'src/types/sui.js';
 import { getDfObjectIdAndName, parseObjectAs } from 'src/utils/object.js';
 import { FlashloanGraphQLContext, FlashloanRepoContext } from './types.js';
-import type { OnChainReadContext } from '../utils.js';
+import type { GrpcReadContext } from '../utils.js';
 import { bcs } from '@mysten/sui/bcs';
 import { fromBase64 } from '@mysten/sui/utils';
 import { FEE_DENOMINATOR, FLASHLOAN_FEES_TABLE_ID } from './const.js';
 
 const queryFlashloanFees = async (
-  ctx: OnChainReadContext,
+  ctx: GrpcReadContext,
   {
     assetTypeMap,
   }: {
     assetTypeMap: Record<string, string>;
   }
 ) => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
 
   let cursor: string | null | undefined = null;
   let nextPage: boolean = false;
@@ -30,7 +30,7 @@ const queryFlashloanFees = async (
     };
     const resp = await fetchWithCache({
       queryKey: queryKeys.rpc.getDynamicFields(inputs),
-      queryFn: () => onchain.client.listDynamicFields(inputs),
+      queryFn: () => grpc.client.listDynamicFields(inputs),
     });
 
     if (!resp) break;
@@ -59,11 +59,11 @@ const queryFlashloanFees = async (
 
   const { objects: flashloanFeeObjects } = await fetchWithCache({
     queryKey: queryKeys.rpc.getObjects({
-      node: onchain.url,
+      node: grpc.url,
       objectIds: ids,
     }),
     queryFn: () =>
-      onchain.client.getObjects({
+      grpc.client.getObjects({
         objectIds: ids,
         include,
       }),

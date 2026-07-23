@@ -14,7 +14,7 @@ import { getSharedObjectData, parseObjectAs } from 'src/utils/object.js';
 import {
   logError,
   isObjectNotFoundError,
-  type OnChainReadContext,
+  type GrpcReadContext,
 } from '../utils.js';
 import { ScallopRpcError } from 'src/errors/index.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
@@ -28,7 +28,7 @@ const queryVeScaKeysByAddress = async (
   address: string
 ) => {
   const {
-    onchain,
+    grpc,
     fetchWithCache,
     metadata: { addresses },
   } = ctx;
@@ -51,9 +51,9 @@ const queryVeScaKeysByAddress = async (
     const response = await fetchWithCache({
       queryKey: queryKeys.rpc.getOwnedObjects({
         ...options,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.client.listOwnedObjects<{ json: true }>(options),
+      queryFn: () => grpc.client.listOwnedObjects<{ json: true }>(options),
     });
 
     objects.push(...response.objects);
@@ -71,7 +71,7 @@ const queryVeScaKeysByAddress = async (
 
 const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
   const {
-    onchain,
+    grpc,
     fetchWithCache,
     metadata: { addresses },
   } = ctx;
@@ -82,10 +82,10 @@ const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
   const getArg = async (objectId: string, mutable: boolean) => {
     const response = await fetchWithCache({
       queryKey: queryKeys.rpc.getObject({
-        node: onchain.url,
+        node: grpc.url,
         objectId,
       }),
-      queryFn: () => onchain.getObject({ objectId }),
+      queryFn: () => grpc.getObject({ objectId }),
     });
     if (!response.object) {
       throw logError(
@@ -96,7 +96,7 @@ const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
       );
     }
     return getSharedObjectData(
-      { onchain, fetchWithCache },
+      { grpc, fetchWithCache },
       {
         tx,
         mutable,
@@ -129,10 +129,10 @@ const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
     queryKey: queryKeys.rpc.getTotalVeScaTreasuryAmount({
       refreshArgs,
       veScaAmountArgs,
-      node: onchain.url,
+      node: grpc.url,
     }),
     queryFn: () =>
-      onchain.client.simulateTransaction<{ commandResults: true }>({
+      grpc.client.simulateTransaction<{ commandResults: true }>({
         transaction: tx.txBlock,
         include: {
           commandResults: true,
@@ -203,7 +203,7 @@ export const getVeScaDataFromOnChain = async (
   veScaKey: string
 ) => {
   const {
-    onchain,
+    grpc,
     metadata: { addresses },
     fetchWithCache,
   } = ctx;
@@ -218,13 +218,13 @@ export const getVeScaDataFromOnChain = async (
   const { dynamicField } = await fetchWithCache({
     queryKey: queryKeys.rpc.getDynamicFieldObject({
       ...fetchOptions,
-      node: onchain.url,
+      node: grpc.url,
     }),
-    queryFn: () => onchain.client.getDynamicField(fetchOptions),
+    queryFn: () => grpc.client.getDynamicField(fetchOptions),
   });
 
-  // veSca key not bound to a veSca object → no data (matches the old query's
-  // graceful `undefined` rather than throwing on a missing dynamic field).
+  // veSca key not bound to a veSca object → no data (return `undefined`
+  // gracefully rather than throwing on a missing dynamic field).
   if (!dynamicField?.value?.bcs) return undefined;
 
   // Parse bcs value
@@ -276,7 +276,7 @@ export const getVeScasByAddressFromOnChain = async (
  * table), it derives each field id offline (`deriveDynamicFieldID`) and fetches
  * them all in one chunked `getObjects` — N→1 while preserving each field
  * object's `version`/`digest` (needed as a tx-building ref). Transport-agnostic
- * (rides `onchain.getObjects`), so it also benefits gRPC when opted in.
+ * (rides `grpc.getObjects`), so it also benefits gRPC when opted in.
  */
 export const getVeScasByAddressBatchedFromOnChain = async (
   ctx: VeScasByAddressContext,
@@ -289,7 +289,7 @@ export const getVeScasByAddressBatchedFromOnChain = async (
   }
 ): Promise<VeSca[]> => {
   const {
-    onchain,
+    grpc,
     fetchWithCache,
     metadata: { addresses },
   } = ctx;
@@ -328,10 +328,10 @@ export const getVeScasByAddressBatchedFromOnChain = async (
     const { objects } = await fetchWithCache({
       queryKey: queryKeys.rpc.getObjects({
         objectIds: chunk,
-        node: onchain.url,
+        node: grpc.url,
       }),
       queryFn: () =>
-        onchain.client.getObjects<{ content: true }>({
+        grpc.client.getObjects<{ content: true }>({
           objectIds: chunk,
           include: { content: true },
         }),
@@ -376,10 +376,10 @@ export const getVeScasByAddressBatchedFromOnChain = async (
  * subscribed); real RPC/transport failures propagate.
  */
 export const isVeScaKeyInSubsTableFromOnChain = async (
-  ctx: OnChainReadContext,
+  ctx: GrpcReadContext,
   { veScaKey, tableId }: { veScaKey: string; tableId: string }
 ): Promise<boolean> => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const name = {
     type: '0x2::object::ID',
     value: veScaKey,
@@ -389,15 +389,15 @@ export const isVeScaKeyInSubsTableFromOnChain = async (
     queryKey: queryKeys.rpc.getDynamicFieldObject({
       parentId: tableId,
       name,
-      node: onchain.url,
+      node: grpc.url,
     }),
     queryFn: async () => {
       try {
-        const { dynamicField } = await onchain.client.getDynamicField({
+        const { dynamicField } = await grpc.client.getDynamicField({
           parentId: tableId,
           name: encodeDynamicFieldNameForV2(name),
         });
-        return await onchain.getObject({
+        return await grpc.getObject({
           objectId: dynamicField.fieldId,
           include: { json: true },
         });
@@ -417,7 +417,7 @@ export const getVeScaTreasuryInfoFromOnChain = async (
   ctx: VeScaTreasuryContext
 ) => {
   const {
-    onchain,
+    grpc,
     metadata: { addresses },
     fetchWithCache,
   } = ctx;
@@ -431,9 +431,9 @@ export const getVeScaTreasuryInfoFromOnChain = async (
   const treasuryObject = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject({
       ...fetchOptions,
-      node: onchain.url,
+      node: grpc.url,
     }),
-    queryFn: () => onchain.getObject(fetchOptions),
+    queryFn: () => grpc.getObject(fetchOptions),
   });
 
   const fields = parseObjectAs<VeScaTreasuryFields>(treasuryObject.object);

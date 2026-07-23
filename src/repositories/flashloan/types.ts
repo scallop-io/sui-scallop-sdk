@@ -1,16 +1,16 @@
 import { BaseContext, BaseRepoParams } from '../types.js';
-import { OnChainDataSource } from '../../datasources/onchain.js';
+import { GrpcDataSource } from '../../datasources/grpc.js';
 import { GraphQLDataSource } from '../../datasources/graphql.js';
 
 export type FlashloanRepoContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: FlashloanMetadata;
   graphql?: GraphQLDataSource;
   preferGraphql?: boolean;
 };
 
 export type FlashloanRepoParams = BaseRepoParams & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: FlashloanMetadata;
   graphql?: GraphQLDataSource;
   preferGraphql?: boolean;

@@ -10,7 +10,7 @@ import { PoolAddress } from 'src/types/index.js';
 
 const queryIsolatedAssets = async (ctx: IsolatedAssetsOnChainContext) => {
   const {
-    onchain,
+    grpc,
     fetchWithCache,
     metadata: { addresses },
   } = ctx;
@@ -43,9 +43,9 @@ const queryIsolatedAssets = async (ctx: IsolatedAssetsOnChainContext) => {
     } = await fetchWithCache({
       queryKey: queryKeys.rpc.getDynamicFields({
         ...options,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.client.listDynamicFields(options),
+      queryFn: () => grpc.client.listDynamicFields(options),
     });
 
     const coinTypes = dynamicFields
