@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { QueryClient } from '@tanstack/query-core';
-import { GraphQLDataSource } from 'src/datasources/graphql.js';
+import { GraphQLDataSource } from 'src/datasources/graphql/index.js';
 import { ScallopRpcError } from 'src/errors/index.js';
 import { getRpcStats, resetRpcStats } from 'src/datasources/rpcStats.js';
 

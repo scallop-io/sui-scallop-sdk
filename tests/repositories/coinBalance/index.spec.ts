@@ -16,7 +16,7 @@ vi.mock('src/repositories/coinBalance/helpers.js', () => ({
 import * as helpers from 'src/repositories/coinBalance/helpers.js';
 import { CoinBalanceRepository } from 'src/repositories/coinBalance/index.js';
 import type { GrpcDataSource } from 'src/datasources/grpc.js';
-import type { GraphQLDataSource } from 'src/datasources/graphql.js';
+import type { GraphQLDataSource } from 'src/datasources/graphql/index.js';
 import type { CoinBalanceMetadata } from 'src/repositories/coinBalance/types.js';
 
 const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;

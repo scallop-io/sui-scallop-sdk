@@ -1,6 +1,6 @@
 import { BaseContext, BaseRepoParams } from '../types.js';
 import { GrpcDataSource } from '../../datasources/grpc.js';
-import { GraphQLDataSource } from '../../datasources/graphql.js';
+import { GraphQLDataSource } from '../../datasources/graphql/index.js';
 
 export type FlashloanRepoContext = BaseContext & {
   grpc: GrpcDataSource;
