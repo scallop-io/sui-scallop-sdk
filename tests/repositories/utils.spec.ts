@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   logError,
   runWithDataSourceFallback,
-  runWithGraphQLFallback,
+  runByReadTransport,
   isObjectNotFoundError,
   getDynamicFieldWithCache,
   getDynamicFieldOrNull,
@@ -145,12 +145,12 @@ describe('runWithDataSourceFallback', () => {
   });
 });
 
-describe('runWithGraphQLFallback', () => {
+describe('runByReadTransport', () => {
   it('runs onchain() only when preferGraphql is false', async () => {
     const graphql = vi.fn().mockResolvedValue('GQL');
     const onchain = vi.fn().mockResolvedValue('CHAIN');
 
-    const res = await runWithGraphQLFallback({
+    const res = await runByReadTransport({
       preferGraphql: false,
       label: 't',
       graphql,
@@ -165,7 +165,7 @@ describe('runWithGraphQLFallback', () => {
   it('runs onchain() when preferGraphql is true but no graphql fn is given', async () => {
     const onchain = vi.fn().mockResolvedValue('CHAIN');
 
-    const res = await runWithGraphQLFallback({
+    const res = await runByReadTransport({
       preferGraphql: true,
       label: 't',
       onchain,
@@ -179,7 +179,7 @@ describe('runWithGraphQLFallback', () => {
     const graphql = vi.fn().mockResolvedValue('GQL');
     const onchain = vi.fn().mockResolvedValue('CHAIN');
 
-    const res = await runWithGraphQLFallback({
+    const res = await runByReadTransport({
       preferGraphql: true,
       label: 't',
       graphql,
@@ -190,45 +190,24 @@ describe('runWithGraphQLFallback', () => {
     expect(onchain).not.toHaveBeenCalled();
   });
 
-  it('falls back to onchain() and warns when graphql throws', async () => {
-    const logger = makeLogger();
+  it('propagates a graphql error WITHOUT falling back to onchain (fail loud)', async () => {
+    // intent: strict transport — on the graphql transport a failed native query
+    // surfaces its error instead of silently degrading to the Core path, so a
+    // broken query is visible rather than masked as a perf regression.
     const graphql = vi.fn().mockRejectedValue(new Error('graphql down'));
     const onchain = vi.fn().mockResolvedValue('CHAIN');
 
-    const res = await runWithGraphQLFallback({
-      preferGraphql: true,
-      label: 'PoolAddresses.get',
-      logger: logger as never,
-      graphql,
-      onchain,
-    });
+    await expect(
+      runByReadTransport({
+        preferGraphql: true,
+        label: 'PoolAddresses.get',
+        graphql,
+        onchain,
+      })
+    ).rejects.toThrow('graphql down');
 
-    expect(res).toBe('CHAIN');
     expect(graphql).toHaveBeenCalledOnce();
-    expect(onchain).toHaveBeenCalledOnce();
-    expect(logger.warn).toHaveBeenCalledWith(
-      '[PoolAddresses.get] graphql failed, falling back to onchain',
-      { cause: 'graphql down' }
-    );
-  });
-
-  it('stringifies a non-Error graphql rejection in the warn cause', async () => {
-    const logger = makeLogger();
-    const graphql = vi.fn().mockRejectedValue('plain string');
-    const onchain = vi.fn().mockResolvedValue('CHAIN');
-
-    await runWithGraphQLFallback({
-      preferGraphql: true,
-      label: 'L',
-      logger: logger as never,
-      graphql,
-      onchain,
-    });
-
-    expect(logger.warn).toHaveBeenCalledWith(
-      '[L] graphql failed, falling back to onchain',
-      { cause: 'plain string' }
-    );
+    expect(onchain).not.toHaveBeenCalled();
   });
 });
 
@@ -270,7 +249,7 @@ describe('getDynamicFieldWithCache', () => {
   it('delegates to ctx.fetchWithCache and returns its result', async () => {
     const fetchWithCache = vi.fn().mockResolvedValue('CACHED');
     const ctx = {
-      onchain: { url: 'mock://node', client: { getDynamicField: vi.fn() } },
+      grpc: { url: 'mock://node', client: { getDynamicField: vi.fn() } },
       fetchWithCache,
     };
 
@@ -287,7 +266,7 @@ describe('getDynamicFieldWithCache', () => {
       async ({ queryFn }: { queryFn: () => unknown }) => queryFn()
     );
     const ctx = {
-      onchain: { url: 'mock://node', client: { getDynamicField } },
+      grpc: { url: 'mock://node', client: { getDynamicField } },
       fetchWithCache,
     };
 
@@ -303,7 +282,7 @@ describe('getDynamicFieldOrNull', () => {
 
   it('returns the field when present', async () => {
     const ctx = {
-      onchain: { url: 'mock://node', client: { getDynamicField: vi.fn() } },
+      grpc: { url: 'mock://node', client: { getDynamicField: vi.fn() } },
       fetchWithCache: vi.fn().mockResolvedValue('FIELD'),
     };
 
@@ -314,7 +293,7 @@ describe('getDynamicFieldOrNull', () => {
 
   it('returns null when the field is absent (not-found code)', async () => {
     const ctx = {
-      onchain: { url: 'mock://node', client: { getDynamicField: vi.fn() } },
+      grpc: { url: 'mock://node', client: { getDynamicField: vi.fn() } },
       fetchWithCache: vi
         .fn()
         .mockRejectedValue(
@@ -329,7 +308,7 @@ describe('getDynamicFieldOrNull', () => {
 
   it('returns null when the field is absent (not-found message)', async () => {
     const ctx = {
-      onchain: { url: 'mock://node', client: { getDynamicField: vi.fn() } },
+      grpc: { url: 'mock://node', client: { getDynamicField: vi.fn() } },
       fetchWithCache: vi
         .fn()
         .mockRejectedValue(new Error('Object does not exist')),
@@ -342,7 +321,7 @@ describe('getDynamicFieldOrNull', () => {
 
   it('rethrows a real (non-not-found) error', async () => {
     const ctx = {
-      onchain: { url: 'mock://node', client: { getDynamicField: vi.fn() } },
+      grpc: { url: 'mock://node', client: { getDynamicField: vi.fn() } },
       fetchWithCache: vi.fn().mockRejectedValue(new Error('network timeout')),
     };
 

@@ -12,18 +12,18 @@ vi.mock('src/repositories/price/helpers.js', () => ({
 import * as helpers from 'src/repositories/price/helpers.js';
 import { PriceRepository } from 'src/repositories/price/index.js';
 import { DEFAULT_PYTH_URL } from 'src/repositories/price/const.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { PriceRepositoryMetadata } from 'src/repositories/price/types.js';
 import { IndexerDataSource } from 'src/datasources/indexer.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const indexer = {} as unknown as IndexerDataSource;
 const metadata = { tag: 'META' } as unknown as PriceRepositoryMetadata;
 const logger = { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() };
 
 const makeRepo = (pythApiKey?: string) =>
   new PriceRepository({
-    onchain,
+    grpc: onchain,
     indexer,
     metadata,
     logger: logger as never,

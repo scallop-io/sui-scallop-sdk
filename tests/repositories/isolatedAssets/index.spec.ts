@@ -7,15 +7,19 @@ vi.mock('src/repositories/isolatedAssets/helpers.js', () => ({
 
 import * as helpers from 'src/repositories/isolatedAssets/helpers.js';
 import { IsolatedAssetsRepository } from 'src/repositories/isolatedAssets/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { IsolatedAssetsMetadata } from 'src/repositories/isolatedAssets/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const metadata = { tag: 'META' } as unknown as IsolatedAssetsMetadata;
 const logger = { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() };
 
 const makeRepo = () =>
-  new IsolatedAssetsRepository({ onchain, metadata, logger: logger as never });
+  new IsolatedAssetsRepository({
+    grpc: onchain,
+    metadata,
+    logger: logger as never,
+  });
 
 beforeEach(() => vi.clearAllMocks());
 

@@ -6,13 +6,14 @@ vi.mock('src/repositories/loyaltyProgram/helpers.js', () => ({
 
 import * as helpers from 'src/repositories/loyaltyProgram/helpers.js';
 import { LoyaltyProgramRepository } from 'src/repositories/loyaltyProgram/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { LoyaltyProgramRepoMetadata } from 'src/repositories/loyaltyProgram/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const metadata = { tag: 'META' } as unknown as LoyaltyProgramRepoMetadata;
 
-const makeRepo = () => new LoyaltyProgramRepository({ onchain, metadata });
+const makeRepo = () =>
+  new LoyaltyProgramRepository({ grpc: onchain, metadata });
 
 beforeEach(() => vi.clearAllMocks());
 

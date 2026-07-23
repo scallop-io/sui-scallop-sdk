@@ -9,13 +9,14 @@ vi.mock('src/repositories/borrowIncentive/helpers.js', () => ({
 
 import * as helpers from 'src/repositories/borrowIncentive/helpers.js';
 import { BorrowIncentiveRepository } from 'src/repositories/borrowIncentive/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { BorrowIncentiveMetadata } from 'src/repositories/borrowIncentive/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const metadata = { tag: 'META' } as unknown as BorrowIncentiveMetadata;
 
-const makeRepo = () => new BorrowIncentiveRepository({ onchain, metadata });
+const makeRepo = () =>
+  new BorrowIncentiveRepository({ grpc: onchain, metadata });
 
 beforeEach(() => vi.clearAllMocks());
 

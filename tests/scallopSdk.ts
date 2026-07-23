@@ -34,8 +34,9 @@ export const graphQLScallopSDK = new Scallop({
   forcePoolAddressInterface: POOL_ADDRESSES,
   forceWhitelistInterface: WHITELIST,
   pythEndpoints: ['https://hermes.pyth.network'],
-  fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
   readTransport: 'graphql',
+  fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
+  graphqlUrl: 'https://graphql.mainnet.sui.io/graphql',
   queryClientConfig: {
     defaultOptions: {
       queries: {

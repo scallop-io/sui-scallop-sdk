@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { QueryClient } from '@tanstack/query-core';
 import { GraphQLDataSource } from 'src/datasources/graphql.js';
 import { ScallopRpcError } from 'src/errors/index.js';
+import { getRpcStats, resetRpcStats } from 'src/datasources/rpcStats.js';
 
 // A fake SuiGraphQLClient — only `.query` is exercised. Cast to the client shape
 // at the constructor call site.
@@ -78,6 +79,26 @@ describe('GraphQLDataSource.multiGetBalances', () => {
     await ds.multiGetBalances('0xA', ['0x2::sui::SUI']);
     await ds.multiGetBalances('0xA', ['0x2::sui::SUI']);
     expect(client.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('records the request under the graphql transport with coin-type cardinality', async () => {
+    // intent: GraphQL reads must show up in the shared accounting under their own
+    // transport (not the on-chain one), so a portfolio scope can attribute them.
+    resetRpcStats();
+    const client = makeClient(() => ({
+      data: {
+        address: { multiGetBalances: [balanceNode('0x2::sui::SUI', '1')] },
+      },
+    }));
+    await makeDs(client).multiGetBalances('0xA', [
+      '0x2::sui::SUI',
+      '0x2::coin::FOO',
+    ]);
+
+    const stat = getRpcStats().get('graphql:multiGetBalances');
+    expect(stat?.calls).toBe(1);
+    expect(stat?.cardinality).toBe(2);
+    expect(getRpcStats().get('onchain:multiGetBalances')).toBeUndefined();
   });
 });
 

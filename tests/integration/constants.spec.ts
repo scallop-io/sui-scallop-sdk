@@ -75,7 +75,7 @@ describe('Test Scallop Constants default values', () => {
 });
 
 // SKIPPED — the multi-URL fallback (`urls: { addresses, poolAddresses, whitelist }`)
-// is no longer wired post-v4: `ScallopAddress` builds a single-URL `ApiDataSource`
+// isn't wired: `ScallopAddress` builds a single-URL `ApiDataSource`
 // and ignores `urls`. Re-enable (and re-wire) if multi-endpoint failover returns.
 describe.skip('Test Scallop Constants url list', () => {
   it('Should try all the available urls on error', async () => {
