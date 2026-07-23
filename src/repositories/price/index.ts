@@ -8,7 +8,7 @@
  */
 
 import { IndexerDataSource } from 'src/datasources/indexer.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { BaseRepository } from '../base.js';
 import { QuerySource, runWithDataSourceFallback } from '../utils.js';
 import { DEFAULT_PRICE_TIMEOUT, DEFAULT_PYTH_URL } from './const.js';
@@ -33,14 +33,14 @@ export class PriceRepository extends BaseRepository<
 > {
   private readonly config: PriceApiConfig;
   private readonly indexer: IndexerDataSource;
-  private readonly onchain: OnChainDataSource;
+  private readonly grpc: GrpcDataSource;
   private readonly priceTimeout: number;
   private readonly pythApiKey?: string;
 
   constructor({
     pythPriceServiceConfig,
     indexer,
-    onchain,
+    grpc,
     priceTimeout,
     pythApiKey,
     pythEndpoints,
@@ -63,7 +63,7 @@ export class PriceRepository extends BaseRepository<
       ? { ...config, config: { ...config.config, accessToken: pythApiKey } }
       : config;
     this.indexer = indexer;
-    this.onchain = onchain;
+    this.grpc = grpc;
     this.priceTimeout = priceTimeout ?? DEFAULT_PRICE_TIMEOUT;
   }
 
@@ -75,7 +75,7 @@ export class PriceRepository extends BaseRepository<
   get context() {
     return {
       ...this.baseContext,
-      onchain: this.onchain,
+      grpc: this.grpc,
       indexer: this.indexer,
       pythPriceServiceConfig: this.config,
       priceTimeout: this.priceTimeout,

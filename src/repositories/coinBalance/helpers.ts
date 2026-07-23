@@ -2,13 +2,13 @@ import { CoinBalanceContext } from './types.js';
 import {
   logError,
   runWithDataSourceFallback,
-  runWithGraphQLFallback,
+  runByReadTransport,
 } from '../utils.js';
 import { ScallopRpcError, ScallopParseError } from 'src/errors/index.js';
 import { normalizeStructTag } from '@mysten/sui/utils';
 import { SuiClientTypes } from '@mysten/sui/client';
 import { queryKeys } from 'src/constants/queryKeys.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import { getSharedObjectData } from 'src/utils/object.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui/bcs';
@@ -16,21 +16,21 @@ import { BigNumber } from 'bignumber.js';
 
 type BalanceSourcesCtx = Pick<
   CoinBalanceContext,
-  'onchain' | 'balanceSource' | 'logger'
+  'grpc' | 'balanceSource' | 'logger'
 >;
 
 const getUserBalanceFromOnChain = async (
   ctx: BalanceSourcesCtx,
   { address, coinType }: { address: string; coinType: string }
 ) => {
-  const { onchain, logger } = ctx;
-  const read = (src: OnChainDataSource) => async () =>
+  const { grpc, logger } = ctx;
+  const read = (src: GrpcDataSource) => async () =>
     (await src.client.getBalance({ owner: address, coinType })).balance;
 
   return runWithDataSourceFallback({
     source: 'onchain',
     // api: read(balanceSource),
-    onchain: read(onchain),
+    onchain: read(grpc),
     label: 'coinBalance:getBalance',
     logger,
   });
@@ -62,7 +62,7 @@ export const getCoinBalancesFromGraphQL = (
  * forever (it just re-returns page one).
  */
 const listAllBalancesAsMap = async (
-  onchain: OnChainDataSource,
+  grpc: GrpcDataSource,
   address: string
 ): Promise<Record<string, SuiClientTypes.Balance>> => {
   const map: Record<string, SuiClientTypes.Balance> = {};
@@ -70,7 +70,7 @@ const listAllBalancesAsMap = async (
   let hasNextPage = true;
 
   while (hasNextPage) {
-    const result = await onchain.client.listBalances({
+    const result = await grpc.client.listBalances({
       owner: address,
       cursor,
       limit: 50,
@@ -88,17 +88,43 @@ const listAllBalancesAsMap = async (
 };
 
 /**
- * Resolve a `coinName → amount` dense map. Balance reads are GraphQL-first (the
- * gRPC balance service flaps): try `multiGetBalances` for exactly the mapped coin
- * types in ONE round trip, and on failure fall back to the gRPC
- * `listBalances`-everything path (then filter). Names with no coin type — or
- * types absent on-chain — default to `0`, preserving the legacy `getCoinAmounts`
- * contract. Shared by the coin / sCoin / marketCoin amount readers.
+ * The full gRPC wallet-balance scan, memoised under one stable key so concurrent
+ * amount readers (`getCoinAmounts` / `getSCoinAmounts` / `getMarketCoinAmounts`)
+ * for the same `node + address` share a SINGLE page sequence instead of each
+ * re-scanning every balance. The network paging stays inside `queryFn` so
+ * TanStack also dedupes in-flight callers, and the key is namespaced by the
+ * fullnode url (a different node is a different snapshot).
+ *
+ * Mutations (supply/withdraw/…) that change wallet balances must invalidate the
+ * `queryKeys.rpc.getAllCoinBalances` prefix alongside the existing per-coin
+ * `getCoinBalance` keys, or a stale snapshot can survive a write.
+ */
+const getAllBalancesFromOnChain = (
+  ctx: Pick<CoinBalanceContext, 'grpc' | 'fetchWithCache'>,
+  address: string
+): Promise<Record<string, SuiClientTypes.Balance>> =>
+  ctx.fetchWithCache({
+    queryKey: queryKeys.rpc.getAllCoinBalances({
+      node: ctx.grpc.url,
+      activeAddress: address,
+    }),
+    queryFn: () => listAllBalancesAsMap(ctx.grpc, address),
+  });
+
+/**
+ * Resolve a `coinName → amount` dense map, reading balances strictly by
+ * transport (no cross-transport fallback): on the GraphQL transport,
+ * `multiGetBalances` for exactly the mapped coin types in ONE round trip; on the
+ * gRPC transport, the shared `listBalances`-everything snapshot (then filter),
+ * which is fresh right after a write. A transport error propagates. Names with
+ * no coin type — or types absent on-chain — default to `0`, preserving the
+ * legacy `getCoinAmounts` contract. Shared by the coin / sCoin / marketCoin
+ * amount readers.
  */
 const getAmountsByCoinType = async (
   ctx: Pick<
     CoinBalanceContext,
-    'balanceSource' | 'onchain' | 'logger' | 'preferGraphql'
+    'balanceSource' | 'grpc' | 'logger' | 'preferGraphql' | 'fetchWithCache'
   >,
   {
     address,
@@ -112,12 +138,15 @@ const getAmountsByCoinType = async (
     ...new Set(Object.values(coinTypeByName).filter((t): t is string => !!t)),
   ];
   const balances = coinTypes.length
-    ? await runWithGraphQLFallback({
+    ? await runByReadTransport({
         // Follow the selected read transport: GraphQL `multiGetBalances` on the
-        // graphql transport, else the gRPC fullnode (fresh right after a write).
+        // graphql transport, else the shared gRPC snapshot. That snapshot is
+        // memoised for the 5s cache TTL (see `getAllBalancesFromOnChain`), so a
+        // read within ~5s of a write can return a stale balance unless the
+        // `getAllCoinBalances` prefix is invalidated.
         preferGraphql: ctx.preferGraphql,
         graphql: () => getCoinBalancesFromGraphQL(ctx, { address, coinTypes }),
-        onchain: () => listAllBalancesAsMap(ctx.onchain, address),
+        onchain: () => getAllBalancesFromOnChain(ctx, address),
         label: 'coinBalance:getCoinAmounts',
         logger: ctx.logger,
       })
@@ -137,7 +166,12 @@ const getAmountsByCoinType = async (
 export const getCoinAmountsFromOnChain = async (
   ctx: Pick<
     CoinBalanceContext,
-    'balanceSource' | 'metadata' | 'onchain' | 'logger' | 'preferGraphql'
+    | 'balanceSource'
+    | 'metadata'
+    | 'grpc'
+    | 'logger'
+    | 'preferGraphql'
+    | 'fetchWithCache'
   >,
   readArgs: {
     coinNames?: string[];
@@ -159,14 +193,14 @@ export const getCoinAmountsFromOnChain = async (
 export const getCoinAmountFromOnChain = async (
   ctx: Pick<
     CoinBalanceContext,
-    'onchain' | 'balanceSource' | 'logger' | 'fetchWithCache' | 'metadata'
+    'grpc' | 'balanceSource' | 'logger' | 'fetchWithCache' | 'metadata'
   >,
   readArgs: {
     coinName: string;
     address: string;
   }
 ): Promise<number> => {
-  const { fetchWithCache, onchain, balanceSource, logger, metadata } = ctx;
+  const { fetchWithCache, grpc, balanceSource, logger, metadata } = ctx;
   const { address, coinName } = readArgs;
 
   const coinType = metadata.parseCoinType(coinName);
@@ -180,7 +214,7 @@ export const getCoinAmountFromOnChain = async (
     }),
     queryFn: () =>
       getUserBalanceFromOnChain(
-        { onchain, balanceSource, logger },
+        { grpc, balanceSource, logger },
         { address, coinType }
       ),
   });
@@ -191,7 +225,12 @@ export const getCoinAmountFromOnChain = async (
 export const getSCoinAmountsFromOnChain = async (
   ctx: Pick<
     CoinBalanceContext,
-    'balanceSource' | 'metadata' | 'onchain' | 'logger' | 'preferGraphql'
+    | 'balanceSource'
+    | 'metadata'
+    | 'grpc'
+    | 'logger'
+    | 'preferGraphql'
+    | 'fetchWithCache'
   >,
   readArgs: {
     sCoinNames?: string[];
@@ -216,14 +255,14 @@ export const getSCoinAmountsFromOnChain = async (
 export const getSCoinAmountFromOnChain = async (
   ctx: Pick<
     CoinBalanceContext,
-    'onchain' | 'balanceSource' | 'logger' | 'fetchWithCache' | 'metadata'
+    'grpc' | 'balanceSource' | 'logger' | 'fetchWithCache' | 'metadata'
   >,
   readArgs: {
     sCoinName: string;
     address: string;
   }
 ) => {
-  const { fetchWithCache, onchain, balanceSource, logger, metadata } = ctx;
+  const { fetchWithCache, grpc, balanceSource, logger, metadata } = ctx;
   const { address, sCoinName } = readArgs;
 
   const sCoinType = metadata.parseSCoinType(sCoinName);
@@ -237,7 +276,7 @@ export const getSCoinAmountFromOnChain = async (
     }),
     queryFn: () =>
       getUserBalanceFromOnChain(
-        { onchain, balanceSource, logger },
+        { grpc, balanceSource, logger },
         { address, coinType: sCoinType }
       ),
   });
@@ -248,7 +287,12 @@ export const getSCoinAmountFromOnChain = async (
 export const getMarketCoinAmountsFromOnChain = async (
   ctx: Pick<
     CoinBalanceContext,
-    'balanceSource' | 'metadata' | 'onchain' | 'logger' | 'preferGraphql'
+    | 'balanceSource'
+    | 'metadata'
+    | 'grpc'
+    | 'logger'
+    | 'preferGraphql'
+    | 'fetchWithCache'
   >,
   readArgs: {
     marketCoinNames?: string[];
@@ -273,14 +317,14 @@ export const getMarketCoinAmountsFromOnChain = async (
 export const getMarketCoinAmountFromOnChain = async (
   ctx: Pick<
     CoinBalanceContext,
-    'onchain' | 'balanceSource' | 'logger' | 'fetchWithCache' | 'metadata'
+    'grpc' | 'balanceSource' | 'logger' | 'fetchWithCache' | 'metadata'
   >,
   readArgs: {
     marketCoinName: string;
     address: string;
   }
 ) => {
-  const { fetchWithCache, onchain, balanceSource, logger, metadata } = ctx;
+  const { fetchWithCache, grpc, balanceSource, logger, metadata } = ctx;
   const { address, marketCoinName } = readArgs;
 
   const marketCoinType = metadata.parseMarketCoinType(marketCoinName);
@@ -294,7 +338,7 @@ export const getMarketCoinAmountFromOnChain = async (
     }),
     queryFn: () =>
       getUserBalanceFromOnChain(
-        { onchain, balanceSource, logger },
+        { grpc, balanceSource, logger },
         { address, coinType: marketCoinType }
       ),
   });
@@ -305,11 +349,11 @@ export const getMarketCoinAmountFromOnChain = async (
 export const querySCoinTotalSupplyFromOnChain = async (
   ctx: Pick<
     CoinBalanceContext,
-    'onchain' | 'fetchWithCache' | 'metadata' | 'logger'
+    'grpc' | 'fetchWithCache' | 'metadata' | 'logger'
   >,
   sCoinName: string
 ) => {
-  const { onchain, metadata, fetchWithCache } = ctx;
+  const { grpc, metadata, fetchWithCache } = ctx;
   const {
     getCoinDecimal,
     parseSCoinType,
@@ -336,9 +380,9 @@ export const querySCoinTotalSupplyFromOnChain = async (
   const treasuryObject = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject({
       objectId: treasury,
-      node: onchain.url,
+      node: grpc.url,
     }),
-    queryFn: () => onchain.getObject({ objectId: treasury }),
+    queryFn: () => grpc.getObject({ objectId: treasury }),
   });
   if (!treasuryObject.object) {
     throw logError(
@@ -350,7 +394,7 @@ export const querySCoinTotalSupplyFromOnChain = async (
   }
   const args = [
     await getSharedObjectData(
-      { onchain, fetchWithCache },
+      { grpc, fetchWithCache },
       {
         tx,
         objectId: treasuryObject.object,
@@ -379,11 +423,11 @@ export const querySCoinTotalSupplyFromOnChain = async (
       queryTarget,
       args,
       typeArgs,
-      node: onchain.url,
+      node: grpc.url,
       ...include,
     }),
     queryFn: () =>
-      onchain.client.simulateTransaction<{ commandResults: true }>({
+      grpc.client.simulateTransaction<{ commandResults: true }>({
         ...include,
         transaction: tx.txBlock,
       }),

@@ -12,6 +12,7 @@ import { queryKeys } from 'src/constants/queryKeys.js';
 import { createFetchWithCache, type FetchWithCache } from 'src/utils/cache.js';
 import { Logger, noopLogger } from 'src/logger/index.js';
 import { ScallopRpcError } from 'src/errors/index.js';
+import { recordRpcCall } from './rpcStats.js';
 
 /**
  * Max coin types per `multiGetBalances` query. The Sui GraphQL endpoint caps a
@@ -187,7 +188,7 @@ export type GraphQLDataSourceParams = {
 };
 
 /**
- * GraphQL-backed balance datasource. Unlike {@link OnChainDataSource} (a thin
+ * GraphQL-backed balance datasource. Unlike {@link GrpcDataSource} (a thin
  * rate-limited transport wrapper), this owns the typed GraphQL queries that have
  * no gRPC transport-method equivalent — currently `multiGetBalances` — and is
  * self-caching: every read is memoised through its own `fetchWithCache` and
@@ -214,6 +215,24 @@ export class GraphQLDataSource {
     this.logger = logger;
     this.fetchWithCache = createFetchWithCache(queryClient, logger);
     this.limiter = new RateLimiter(tokensPerSecond);
+  }
+
+  /**
+   * Run one throttled GraphQL request, recording it in the shared RPC accounting
+   * under the `graphql` transport (mirrors the on-chain proxy). `waitMs` is the
+   * time spent waiting for a rate-limit token; `cardinality` is how many logical
+   * items the request carried (coin types, field names) — `1` for a page read.
+   */
+  private recordedExecute<T>(
+    method: string,
+    cardinality: number,
+    fn: () => Promise<T>
+  ): Promise<T> {
+    const start = Date.now();
+    return this.limiter.execute(() => {
+      recordRpcCall('graphql', method, Date.now() - start, cardinality);
+      return fn();
+    });
   }
 
   /**
@@ -246,24 +265,28 @@ export class GraphQLDataSource {
           normalizedTypes,
           MAX_COIN_TYPES_PER_BALANCE_QUERY
         )) {
-          const batch = await this.limiter.execute(async () => {
-            const resp = await this.client.query<
-              MultiGetBalancesResult,
-              MultiGetBalancesVariables
-            >({
-              query: COIN_BALANCES_BY_TYPES_QUERY,
-              variables: { address, coinTypes: chunk },
-            });
-            if (resp.errors?.length) {
-              const error = new ScallopRpcError(
-                `GraphQL multiGetBalances failed: ${resp.errors[0].message}`,
-                { context: { address, coinTypes: chunk } }
-              );
-              this.logger.error(error.message, error.context);
-              throw error;
+          const batch = await this.recordedExecute(
+            'multiGetBalances',
+            chunk.length,
+            async () => {
+              const resp = await this.client.query<
+                MultiGetBalancesResult,
+                MultiGetBalancesVariables
+              >({
+                query: COIN_BALANCES_BY_TYPES_QUERY,
+                variables: { address, coinTypes: chunk },
+              });
+              if (resp.errors?.length) {
+                const error = new ScallopRpcError(
+                  `GraphQL multiGetBalances failed: ${resp.errors[0].message}`,
+                  { context: { address, coinTypes: chunk } }
+                );
+                this.logger.error(error.message, error.context);
+                throw error;
+              }
+              return resp.data?.address?.multiGetBalances ?? [];
             }
-            return resp.data?.address?.multiGetBalances ?? [];
-          });
+          );
           all.push(...batch);
         }
         return all;
@@ -310,14 +333,17 @@ export class GraphQLDataSource {
         let cursor: string | null = null;
 
         do {
-          const resp = await this.limiter.execute(() =>
-            this.client.query<
-              DynamicFieldsQueryResult,
-              DynamicFieldsQueryVariables
-            >({
-              query: DYNAMIC_FIELDS_WITH_VALUES_QUERY,
-              variables: { parentId, first: pageLimit, cursor },
-            })
+          const resp = await this.recordedExecute(
+            'listDynamicFieldsWithValues',
+            1,
+            () =>
+              this.client.query<
+                DynamicFieldsQueryResult,
+                DynamicFieldsQueryVariables
+              >({
+                query: DYNAMIC_FIELDS_WITH_VALUES_QUERY,
+                variables: { parentId, first: pageLimit, cursor },
+              })
           );
           if (resp.errors?.length) {
             const error = new ScallopRpcError(
@@ -375,36 +401,40 @@ export class GraphQLDataSource {
             names: chunk.map((n) => `${n.type}:${n.bcs}`),
           }),
           queryFn: () =>
-            this.limiter.execute(async () => {
-              const query = buildAliasedDynamicFieldQuery(chunk.length);
-              const variables: Record<string, string> = { parentId };
-              chunk.forEach((name, i) => {
-                variables[`t${i}`] = name.type;
-                variables[`b${i}`] = name.bcs;
-              });
+            this.recordedExecute(
+              'multiGetDynamicFields',
+              chunk.length,
+              async () => {
+                const query = buildAliasedDynamicFieldQuery(chunk.length);
+                const variables: Record<string, string> = { parentId };
+                chunk.forEach((name, i) => {
+                  variables[`t${i}`] = name.type;
+                  variables[`b${i}`] = name.bcs;
+                });
 
-              const resp = await this.client.query<
-                Record<string, Record<string, unknown> | null>,
-                Record<string, string>
-              >({ query, variables });
-              if (resp.errors?.length) {
-                const error = new ScallopRpcError(
-                  `GraphQL multiGetDynamicFields failed: ${resp.errors[0].message}`,
-                  { context: { parentId } }
-                );
-                this.logger.error(error.message, error.context);
-                throw error;
+                const resp = await this.client.query<
+                  Record<string, Record<string, unknown> | null>,
+                  Record<string, string>
+                >({ query, variables });
+                if (resp.errors?.length) {
+                  const error = new ScallopRpcError(
+                    `GraphQL multiGetDynamicFields failed: ${resp.errors[0].message}`,
+                    { context: { parentId } }
+                  );
+                  this.logger.error(error.message, error.context);
+                  throw error;
+                }
+
+                const address = resp.data?.address as
+                  | Record<string, DynamicFieldNode | null>
+                  | null
+                  | undefined;
+                return chunk.map((_name, i) => {
+                  const node = address?.[`f${i}`] ?? null;
+                  return node ? normalizeDynamicField(parentId, node) : null;
+                });
               }
-
-              const address = resp.data?.address as
-                | Record<string, DynamicFieldNode | null>
-                | null
-                | undefined;
-              return chunk.map((_name, i) => {
-                const node = address?.[`f${i}`] ?? null;
-                return node ? normalizeDynamicField(parentId, node) : null;
-              });
-            }),
+            ),
         })
       )
     );

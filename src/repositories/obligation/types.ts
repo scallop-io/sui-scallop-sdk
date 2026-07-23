@@ -1,5 +1,5 @@
 import { BaseContext, BaseRepoParams } from '../types.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { GraphQLDataSource } from 'src/datasources/graphql.js';
 
 type ObligationKeys =
@@ -21,14 +21,14 @@ export type ObligationRepoMetadata = {
   addresses: ObligationAddresses & ObligationNamingAddresses;
 };
 export type ObligationRepoContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: ObligationRepoMetadata;
   graphql?: GraphQLDataSource;
   preferGraphql?: boolean;
 };
 
 export type ObligationRepoParams = BaseRepoParams & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: ObligationRepoMetadata;
   graphql?: GraphQLDataSource;
   preferGraphql?: boolean;
@@ -36,7 +36,7 @@ export type ObligationRepoParams = BaseRepoParams & {
 
 /** Minimal context for `queryObligationData`. */
 export type ObligationDataContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: {
     addresses: ObligationAddresses<'queryPackageId' | 'version' | 'market'>;
   };
@@ -44,7 +44,7 @@ export type ObligationDataContext = BaseContext & {
 
 /** Minimal context for `getObligationNameByObligationId`. */
 export type ObligationNamingContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: {
     addresses: ObligationNamingAddresses &
       Pick<ObligationAddresses, 'protocolObjectId'>;
@@ -60,7 +60,7 @@ export type ObligationNamingGraphQLContext = ObligationNamingContext & {
 
 /** Minimal context for listing obligations owned by an address. */
 export type ObligationsContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: { addresses: ObligationAddresses<'protocolObjectId'> };
 };
 

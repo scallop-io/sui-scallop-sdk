@@ -10,7 +10,7 @@ import {
 import type { SuiObjectData } from 'src/types/index.js';
 import { partitionArray } from 'src/utils/array.js';
 import { MarketCollateral, MarketPool } from '../market/types.js';
-import { logError, type OnChainReadContext } from '../utils.js';
+import { logError, type GrpcReadContext } from '../utils.js';
 import {
   IndexerApiResponse,
   IndexerApiResponseType,
@@ -163,17 +163,17 @@ export const getPythPricesFromIndexerApi = async (
  * read the legacy `ScallopUtils.getPythPrice` did via `queryGetObject`.
  */
 export const getPythFeedObjectFromOnChain = async (
-  ctx: OnChainReadContext,
+  ctx: GrpcReadContext,
   feedObjectId: string
 ): Promise<SuiObjectData | null> => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const options: SuiClientTypes.GetObjectOptions<{ json: true }> = {
     objectId: feedObjectId,
     include: { json: true },
   };
   const { object } = await fetchWithCache({
-    queryKey: queryKeys.rpc.getObject({ ...options, node: onchain.url }),
-    queryFn: () => onchain.getObject(options),
+    queryKey: queryKeys.rpc.getObject({ ...options, node: grpc.url }),
+    queryFn: () => grpc.getObject(options),
   });
   return object ?? null;
 };
@@ -185,18 +185,18 @@ export const getPythFeedObjectFromOnChain = async (
  * the successfully-fetched objects.
  */
 export const getPythFeedObjectsFromOnChain = async (
-  ctx: OnChainReadContext,
+  ctx: GrpcReadContext,
   feedObjectIds: string[]
 ): Promise<SuiObjectData[]> => {
   if (feedObjectIds.length === 0) return [];
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const options: SuiClientTypes.GetObjectsOptions<{ json: true }> = {
     objectIds: feedObjectIds,
     include: { json: true },
   };
   const { objects } = await fetchWithCache({
-    queryKey: queryKeys.rpc.getObjects({ ...options, node: onchain.url }),
-    queryFn: () => onchain.client.getObjects(options),
+    queryKey: queryKeys.rpc.getObjects({ ...options, node: grpc.url }),
+    queryFn: () => grpc.client.getObjects(options),
   });
   return objects.filter((o): o is SuiObjectData => !(o instanceof Error));
 };
@@ -206,7 +206,7 @@ export const getPythPricesFromOnChain = async (
   coinNames: string[]
 ) => {
   const {
-    onchain,
+    grpc,
     fetchWithCache,
     metadata: { addresses },
   } = ctx;
@@ -238,9 +238,9 @@ export const getPythPricesFromOnChain = async (
     const { objects: priceFeedObjects } = await fetchWithCache({
       queryKey: queryKeys.rpc.getObjects({
         ...fetchOptions,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.client.getObjects(fetchOptions),
+      queryFn: () => grpc.client.getObjects(fetchOptions),
     });
 
     for (const priceFeedObject of priceFeedObjects) {

@@ -1,5 +1,3 @@
-import { SuiGrpcClient } from '@mysten/sui/grpc';
-import { SuiGraphQLClient } from '@mysten/sui/graphql';
 import {
   normalizeStructTag,
   parseStructTag,
@@ -12,86 +10,29 @@ import {
   MAX_LOCK_DURATION,
   UNLOCK_ROUND_DURATION,
 } from 'src/constants/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import { ClientWithCoreMethods } from 'src/datasources/types.js';
 import { noopLogger, type Logger } from 'src/logger/index.js';
-import {
-  createOnChainDataSource,
-  MAINNET_GRAPHQL_URL,
-} from 'src/repositories/wiring/datasources.js';
-import { DEFAULT_GRAPHQL_MAX_OBJECTS_PER_BATCH } from 'src/datasources/onchain.js';
+import { PoolAddress } from 'src/repositories/poolAddresses/types.js';
 import { findClosestUnlockRound } from 'src/utils/vesca.js';
 import { ScallopUtilsInterface } from '../interface.js';
 import ScallopConstants from '../scallopConstants/index.js';
 import { CoinWrappedType, ScallopUtilsConstructorParams } from './types.js';
-import { PoolAddress } from 'src/repositories/poolAddresses/types.js';
-
-const DEFAULT_TOKENS_PER_SECOND = 10;
 
 class ScallopUtils implements ScallopUtilsInterface {
-  public readonly onchain: OnChainDataSource;
+  public readonly client: ClientWithCoreMethods;
   public walletAddress: string;
   public readonly constants: ScallopConstants;
   public readonly logger: Logger;
 
-  constructor(params: ScallopUtilsConstructorParams) {
+  constructor({ coreClient, ...params }: ScallopUtilsConstructorParams) {
     this.constants = params.scallopConstants ?? new ScallopConstants(params);
-    if (params.suiClient) {
-      const {
-        suiClient,
-        fullnodeUrl,
-        tokensPerSecond = DEFAULT_TOKENS_PER_SECOND,
-        objectBatchWindowMs,
-      } = params;
-      this.onchain = createOnChainDataSource(suiClient, fullnodeUrl, {
-        tokensPerSecond,
-        objectBatchWindowMs,
-      });
-    } else if (params.readTransport === 'graphql') {
-      // GraphQL read transport (opt-in). Note: an injected `graphqlClient`
-      // alone does NOT flip transport — it configures the GraphQL balance
-      // datasource (existing behavior). Only `readTransport: 'graphql'` moves
-      // the whole on-chain read path onto GraphQL.
-      // The Sui Core API is transport-agnostic, so
-      // `SuiGraphQLClient.core` satisfies every method `OnChainDataSource`
-      // calls — repo reads run over GraphQL unchanged. The GraphQL endpoint is
-      // its own URL (distinct from the gRPC `fullnodeUrl`); use it as the
-      // cache-key namespace so gRPC and GraphQL entries never collide.
-      const {
-        network,
-        graphqlUrl = MAINNET_GRAPHQL_URL,
-        graphqlClient,
-        tokensPerSecond = DEFAULT_TOKENS_PER_SECOND,
-        objectBatchWindowMs,
-      } = params;
-      const client =
-        graphqlClient ?? new SuiGraphQLClient({ url: graphqlUrl, network });
-      this.onchain = createOnChainDataSource(client, graphqlUrl, {
-        tokensPerSecond,
-        objectBatchWindowMs,
-        // GraphQL rejects large multiGetObjects payloads — cap ids per batch.
-        maxObjectsPerBatch: DEFAULT_GRAPHQL_MAX_OBJECTS_PER_BATCH,
-      });
-    } else {
-      const {
-        network,
-        fullnodeUrl,
-        tokensPerSecond = DEFAULT_TOKENS_PER_SECOND,
-        objectBatchWindowMs,
-      } = params;
-      const client = new SuiGrpcClient({
-        baseUrl: fullnodeUrl,
-        network,
-      });
-      this.onchain = createOnChainDataSource(client, fullnodeUrl, {
-        tokensPerSecond,
-        objectBatchWindowMs,
-      });
-    }
     this.walletAddress = params.walletAddress;
     this.logger = params.logger ?? noopLogger;
+
+    this.client = coreClient;
   }
 
-  // For backward compatibility with older sdk version
+  // Convenience accessor forwarding to `constants.address`.
   get address() {
     return this.constants.address;
   }
@@ -389,12 +330,11 @@ class ScallopUtils implements ScallopUtilsInterface {
         ? selectedCoins.length < targetCount
         : totalAmount < targetAmount)
     ) {
-      const { objects, hasNextPage, cursor } =
-        await this.onchain.client.listCoins({
-          owner: ownerAddress,
-          coinType,
-          cursor: nextCursor,
-        });
+      const { objects, hasNextPage, cursor } = await this.client.listCoins({
+        owner: ownerAddress,
+        coinType,
+        cursor: nextCursor,
+      });
 
       objects.sort((a, b) => Number(BigInt(b.balance) - BigInt(a.balance)));
       for (const coinData of objects) {

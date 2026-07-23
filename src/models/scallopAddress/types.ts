@@ -20,7 +20,7 @@ export type ScallopAddressConstructorParams = {
   logger?: Logger;
   queryClient?: QueryClient;
   queryClientConfig?: QueryClientConfig;
-} & ApiDataSourceParams;
+} & Omit<ApiDataSourceParams, 'url'> & { apiDataSourceUrl?: string };
 
 export type ScallopAddressInterface = {
   api: ApiDataSource;

@@ -1,5 +1,5 @@
 import { BaseRepository } from '../base.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { getVeScaKeyIdFromRefBindingsFromOnChain } from './helper.js';
 import {
   ReferralRepoParams,
@@ -11,15 +11,15 @@ export class ReferralRepository extends BaseRepository<
   ReferralRepoContext,
   ReferralRepoMetadata
 > {
-  private readonly onchain: OnChainDataSource;
+  private readonly grpc: GrpcDataSource;
 
-  constructor({ onchain, ...params }: ReferralRepoParams) {
+  constructor({ grpc, ...params }: ReferralRepoParams) {
     super(params);
-    this.onchain = onchain;
+    this.grpc = grpc;
   }
 
   get context() {
-    return { ...this.baseContext, onchain: this.onchain };
+    return { ...this.baseContext, grpc: this.grpc };
   }
 
   getVeScaKeyIdFromReferralBindings(refereeAddress: string) {

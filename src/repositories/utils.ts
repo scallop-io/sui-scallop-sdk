@@ -3,20 +3,16 @@ import { BaseContext, DataSourceFallbackArgs } from './types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { SuiClientTypes } from '@mysten/sui/client';
 import { ScallopError } from 'src/errors/index.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 
-// `onchain` is no longer part of `BaseContext` — repos opt into it. This is the
-// shared context slice for any helper that performs an on-chain read
-// (`onchain` + `fetchWithCache`); exported so per-domain helpers reuse it
-// instead of re-deriving `Pick<BaseContext, 'onchain' | 'fetchWithCache'>`
-// (which no longer compiles now that `onchain` left `BaseContext`).
-export type OnChainReadContext = Pick<BaseContext, 'fetchWithCache'> & {
-  onchain: OnChainDataSource;
+// Shared context slice for helpers that perform a gRPC read (`grpc` +
+// `fetchWithCache`); exported so per-domain helpers reuse it.
+export type GrpcReadContext = Pick<BaseContext, 'fetchWithCache'> & {
+  grpc: GrpcDataSource;
 };
 
-// Re-export so the many `import { QuerySource, runWithDataSourceFallback }
-// from '../utils.js'` call sites keep resolving after QuerySource moved to
-// `./types.js` (the `util.ts`→`utils.ts`/`type.ts`→`types.ts` split).
+// Re-export so `import { QuerySource, runWithDataSourceFallback } from
+// '../utils.js'` call sites resolve; `QuerySource` is defined in `./types.js`.
 export type { QuerySource } from './types.js';
 
 /**
@@ -69,62 +65,62 @@ export const runWithDataSourceFallback = async <T>(
   return args.onchain();
 };
 
-export type GraphQLFallbackArgs<T> = {
+export type ReadTransportArgs<T> = {
   /**
-   * Whether the GraphQL read transport is active. Only when `true` (and a
-   * `graphql` fn is supplied) is the native GraphQL path attempted; otherwise
-   * `onchain()` runs directly. Wired from `readTransport === 'graphql'`.
+   * Whether the GraphQL read transport is active. When `true` (and a `graphql`
+   * fn is supplied) the native GraphQL path runs; otherwise `onchain()` runs.
+   * Wired from `readTransport === 'graphql'`.
    */
   preferGraphql?: boolean;
   /** Native nested-GraphQL implementation (fewer round trips). Optional. */
   graphql?: () => Promise<T>;
-  /** gRPC/Core multi-call implementation — the fallback and the default path. */
+  /** gRPC/Core multi-call implementation — the default (grpc-transport) path. */
   onchain: () => Promise<T>;
+  /** Retained for call-site clarity and future diagnostics (see below). */
   label: string;
+  /**
+   * Retained for parity with {@link DataSourceFallbackArgs} and future
+   * diagnostics. Unused today: without a fallback there is nothing to warn
+   * about — a failing transport propagates its own error.
+   */
   logger?: Logger;
 };
 
 /**
- * Prefer a native GraphQL query when the GraphQL transport is active, else fall
- * back to the gRPC/Core `onchain()` path. A GraphQL failure logs a warning (via
- * the injected `logger`) and falls back to `onchain()` — so an imperfect or
- * unavailable GraphQL query never breaks the read, it only loses the round-trip
- * optimization. Mirrors {@link runWithDataSourceFallback}'s api/onchain policy
- * one layer down (transport choice, not datasource choice).
+ * Select the read path strictly by transport: the native GraphQL query when the
+ * GraphQL transport is active (and a `graphql` fn is supplied), else the
+ * gRPC/Core `onchain()` path. There is **no automatic fallback** — a failing
+ * GraphQL query propagates its error rather than silently degrading to the Core
+ * multi-call path, so `readTransport: 'graphql'` means all-GraphQL and
+ * `'grpc'` means all-gRPC. Failing loud surfaces a broken native query instead
+ * of masking it as a silent perf regression. (`label` is retained for call-site
+ * clarity and future diagnostics.)
  */
-export const runWithGraphQLFallback = async <T>(
-  args: GraphQLFallbackArgs<T>
+export const runByReadTransport = async <T>(
+  args: ReadTransportArgs<T>
 ): Promise<T> => {
   if (args.preferGraphql && args.graphql) {
-    try {
-      return await args.graphql();
-    } catch (cause) {
-      args.logger?.warn(
-        `[${args.label}] graphql failed, falling back to onchain`,
-        { cause: cause instanceof Error ? cause.message : String(cause) }
-      );
-      return args.onchain();
-    }
+    return args.graphql();
   }
   return args.onchain();
 };
 
 export const getDynamicFieldWithCache = async (
-  ctx: OnChainReadContext,
+  ctx: GrpcReadContext,
   options: SuiClientTypes.GetDynamicFieldOptions
 ) => {
   return ctx.fetchWithCache({
     queryKey: queryKeys.rpc.getDynamicFieldObject({
       ...options,
-      node: ctx.onchain.url,
+      node: ctx.grpc.url,
     }),
-    queryFn: () => ctx.onchain.client.getDynamicField(options),
+    queryFn: () => ctx.grpc.client.getDynamicField(options),
   });
 };
 
 /**
- * Object-level "not found" codes the new-gen Sui client raises on a missing
- * object / dynamic field.
+ * Object-level "not found" codes the Sui client raises on a missing object /
+ * dynamic field.
  */
 const OBJECT_NOT_FOUND_CODES = new Set([
   'notExists',
@@ -165,7 +161,7 @@ export const isObjectNotFoundError = (error: unknown): boolean => {
  * for "is X bound?"-style reads whose public contract is value-or-`null`.
  */
 export const getDynamicFieldOrNull = async (
-  ctx: OnChainReadContext,
+  ctx: GrpcReadContext,
   options: SuiClientTypes.GetDynamicFieldOptions
 ) => {
   try {

@@ -1,5 +1,5 @@
 import { BaseRepository } from '../base.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import {
   getVeScaDataFromOnChain,
   getVeScasByAddressBatchedFromOnChain,
@@ -12,23 +12,23 @@ import {
   VeScaRepoContext,
   VeScaRepoMetadata,
 } from './types.js';
-import { runWithGraphQLFallback } from '../utils.js';
+import { runByReadTransport } from '../utils.js';
 
 export class VeScaRepository extends BaseRepository<
   VeScaRepoContext,
   VeScaRepoMetadata
 > {
-  private readonly onchain: OnChainDataSource;
+  private readonly grpc: GrpcDataSource;
   private readonly preferGraphql: boolean;
 
-  constructor({ onchain, preferGraphql = false, ...params }: VeScaRepoParams) {
+  constructor({ grpc, preferGraphql = false, ...params }: VeScaRepoParams) {
     super(params);
-    this.onchain = onchain;
+    this.grpc = grpc;
     this.preferGraphql = preferGraphql;
   }
 
   get context() {
-    return { ...this.baseContext, onchain: this.onchain };
+    return { ...this.baseContext, grpc: this.grpc };
   }
 
   getVeSca(veScaKey: string) {
@@ -45,7 +45,7 @@ export class VeScaRepository extends BaseRepository<
     const ctx = this.context;
     // Under the GraphQL transport, prefer the batched derive-ids + one
     // `getObjects` read (N→1); fall back to the per-key `getDynamicField` path.
-    return runWithGraphQLFallback({
+    return runByReadTransport({
       preferGraphql: this.preferGraphql,
       logger: this.logger,
       label: 'VeScaRepository.getVeScasByAddress',

@@ -1,5 +1,6 @@
 import ScallopClient from './scallopClient/index.js';
 import { ScallopClientConstructorParams } from './scallopClient/types.js';
+import type { DistributiveMerge } from 'src/types/utils.js';
 /**
  * @argument params - The parameters for the Scallop instance.
  * @argument cacheOptions - The cache options for the QueryClient.
@@ -17,9 +18,15 @@ import { ScallopClientConstructorParams } from './scallopClient/types.js';
  * ```
  */
 
-export type ScallopConstructorParams = {
-  client?: ScallopClient;
-} & ScallopClientConstructorParams;
+// `DistributiveMerge` keeps the `readTransport` transport union at the top level
+// so `readTransport: 'graphql'` + `suiClient` (and vice-versa) is rejected here
+// at the public entry point. See `src/types/utils.ts`.
+export type ScallopConstructorParams = DistributiveMerge<
+  ScallopClientConstructorParams,
+  {
+    client?: ScallopClient;
+  }
+>;
 class Scallop {
   public readonly client: ScallopClient;
   public constructor({

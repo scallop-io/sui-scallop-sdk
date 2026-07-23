@@ -1,5 +1,5 @@
 import { BaseRepository } from '../base.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import {
   getBindedObligation,
   getBindedVeScaKeyByObligationIdFromOnChain,
@@ -18,15 +18,15 @@ export class BorrowIncentiveRepository extends BaseRepository<
   BorrowIncentiveRepoContext,
   BorrowIncentiveMetadata
 > {
-  private readonly onchain: OnChainDataSource;
+  private readonly grpc: GrpcDataSource;
 
-  constructor({ onchain, ...params }: BorrowIncentiveRepoParams) {
+  constructor({ grpc, ...params }: BorrowIncentiveRepoParams) {
     super(params);
-    this.onchain = onchain;
+    this.grpc = grpc;
   }
 
   get context() {
-    return { ...this.baseContext, onchain: this.onchain };
+    return { ...this.baseContext, grpc: this.grpc };
   }
 
   getBorrowIncentivePools(args: BorrowIncentiveReadArgs) {

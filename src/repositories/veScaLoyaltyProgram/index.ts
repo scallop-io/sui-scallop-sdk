@@ -1,4 +1,4 @@
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { BaseRepository } from '../base.js';
 import { getVeScaLoyaltyProgramInfosOnChain } from './helpers.js';
 import {
@@ -11,15 +11,15 @@ export class VeScaLoyaltyProgramRepository extends BaseRepository<
   VeScaLoyaltyProgramRepoContext,
   VeScaLoyaltyProgramRepoMetadata
 > {
-  private readonly onchain: OnChainDataSource;
+  private readonly grpc: GrpcDataSource;
 
-  constructor({ onchain, ...params }: VeScaLoyaltyProgramRepoParams) {
+  constructor({ grpc, ...params }: VeScaLoyaltyProgramRepoParams) {
     super(params);
-    this.onchain = onchain;
+    this.grpc = grpc;
   }
 
   get context() {
-    return { ...this.baseContext, onchain: this.onchain };
+    return { ...this.baseContext, grpc: this.grpc };
   }
 
   getVeScaLoyaltyProgramInfos(veScaKey?: string) {

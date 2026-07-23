@@ -26,8 +26,7 @@ import { ScallopConfigError } from 'src/errors/index.js';
  * expects. Repos never import the models — everything they need flows through here.
  *
  * Helpers are arrow-wrapped (not passed by reference) so they keep ScallopUtils'
- * `this` binding. Address ids come from `utils.address.get(path)` — paths mirror
- * the ones the old query layer used.
+ * `this` binding. Address ids come from `utils.address.get(path)`.
  */
 
 export const buildMarketMetadata = (

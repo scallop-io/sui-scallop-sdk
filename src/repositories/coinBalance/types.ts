@@ -1,7 +1,7 @@
 import type { QueryClient } from '@tanstack/query-core';
 import { BaseContext, BaseRepoParams } from '../types.js';
 import { AddressesInterface } from 'src/types/address.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { GraphQLDataSource } from 'src/datasources/graphql.js';
 
 export type CoinBalanceMetadata = {
@@ -23,7 +23,7 @@ export type CoinBalanceMetadata = {
 };
 
 export type CoinBalanceContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   /**
    * GraphQL-backed, self-caching balance datasource. Owns `multiGetBalances`
    * (fetch a known set of coin types in one round trip) and namespaces the
@@ -44,7 +44,7 @@ export type CoinBalanceContext = BaseContext & {
 };
 
 export type CoinBalanceRepoParams = BaseRepoParams & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   balanceSource: GraphQLDataSource;
   metadata: CoinBalanceMetadata;
   preferGraphql: boolean;
