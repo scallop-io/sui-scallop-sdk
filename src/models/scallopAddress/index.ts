@@ -5,6 +5,7 @@ import { noopLogger, type Logger } from 'src/logger/index.js';
 import { AddressApiRepository } from 'src/repositories/addressApi/index.js';
 import {
   AddressesInterface,
+  AddressPathValue,
   AddressStringPath,
   ScallopAddressConstructorParams,
 } from './types.js';
@@ -108,7 +109,16 @@ class ScallopAddress {
    * @param path - The path of the address to get.
    * @return The address at the provided path.
    */
-  public get(path: AddressStringPath) {
+  // Generic over the specific `path` so the return type is the precise value at
+  // that path (a leaf `string`, or a sub-object) instead of `any`. This is what
+  // makes a structural misuse — e.g. dropping a leaf string into a metadata field
+  // typed as `{ registryTableId: string }` — a compile error rather than a silent
+  // runtime `undefined`. The `any`/cast inside is confined to the dynamic dotted
+  // traversal, which no static type can express; only the *return* is recovered.
+  public get<P extends AddressStringPath>(
+    path: P
+  ): AddressPathValue<AddressesInterface, P> {
+    type Value = AddressPathValue<AddressesInterface, P>;
     if (this.currentAddresses) {
       const value = path
         .split('.')
@@ -117,11 +127,11 @@ class ScallopAddress {
             typeof nestedAddressObj === 'object'
               ? nestedAddressObj[key]
               : nestedAddressObj,
-          this.currentAddresses
+          this.currentAddresses as any
         );
-      return value || undefined;
+      return (value || undefined) as Value;
     } else {
-      return undefined;
+      return undefined as Value;
     }
   }
 
