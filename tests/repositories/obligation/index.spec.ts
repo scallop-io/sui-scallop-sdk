@@ -8,13 +8,13 @@ vi.mock('src/repositories/obligation/helpers.js', () => ({
 
 import * as helpers from 'src/repositories/obligation/helpers.js';
 import { ObligationRepository } from 'src/repositories/obligation/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { ObligationRepoMetadata } from 'src/repositories/obligation/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const metadata = { tag: 'META' } as unknown as ObligationRepoMetadata;
 
-const makeRepo = () => new ObligationRepository({ onchain, metadata });
+const makeRepo = () => new ObligationRepository({ grpc: onchain, metadata });
 
 beforeEach(() => vi.clearAllMocks());
 

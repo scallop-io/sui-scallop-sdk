@@ -6,13 +6,13 @@ vi.mock('src/repositories/flashloan/helpers.js', () => ({
 
 import * as helpers from 'src/repositories/flashloan/helpers.js';
 import { FlashloanRepository } from 'src/repositories/flashloan/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { FlashloanMetadata } from 'src/repositories/flashloan/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const metadata = { tag: 'META' } as unknown as FlashloanMetadata;
 
-const makeRepo = () => new FlashloanRepository({ onchain, metadata });
+const makeRepo = () => new FlashloanRepository({ grpc: onchain, metadata });
 
 beforeEach(() => vi.clearAllMocks());
 

@@ -8,13 +8,13 @@ vi.mock('src/repositories/xOracle/helpers.js', () => ({
 
 import * as helpers from 'src/repositories/xOracle/helpers.js';
 import { XOracleRepository } from 'src/repositories/xOracle/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { XOracleMetadata } from 'src/repositories/xOracle/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const metadata = { tag: 'META' } as unknown as XOracleMetadata;
 
-const makeRepo = () => new XOracleRepository({ onchain, metadata });
+const makeRepo = () => new XOracleRepository({ grpc: onchain, metadata });
 
 beforeEach(() => vi.clearAllMocks());
 
@@ -26,7 +26,7 @@ describe('XOracleRepository', () => {
     makeRepo().getAssetOracles();
     const ctx = vi.mocked(helpers.getAssetOraclesFromOnChain).mock.calls[0][0];
     expect(ctx.metadata).toBe(metadata);
-    expect(ctx.onchain).toBe(onchain);
+    expect(ctx.grpc).toBe(onchain);
   });
 
   it('returns the helper result unchanged', async () => {

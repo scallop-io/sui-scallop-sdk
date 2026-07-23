@@ -14,14 +14,14 @@ vi.mock('src/repositories/market/helpers.js', () => ({
 
 import * as helpers from 'src/repositories/market/helpers.js';
 import { MarketRepository } from 'src/repositories/market/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { IndexerDataSource } from 'src/datasources/indexer.js';
 import type {
   MarketRepoAddressConfig,
   MarketRepoMetadata,
 } from 'src/repositories/market/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const indexer = {} as unknown as IndexerDataSource;
 const addresses = { market: '0xMARKET' } as unknown as MarketRepoAddressConfig;
 const metadata = { tag: 'META' } as unknown as MarketRepoMetadata;
@@ -29,7 +29,7 @@ const logger = { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() };
 
 const makeRepo = () =>
   new MarketRepository({
-    onchain,
+    grpc: onchain,
     indexer,
     addresses,
     metadata,
@@ -56,7 +56,7 @@ describe('MarketRepository', () => {
         string,
         unknown
       >;
-      expect(ctx.onchain).toBe(onchain);
+      expect(ctx.grpc).toBe(onchain);
       expect(ctx.indexer).toBe(indexer);
       expect(ctx.addresses).toBe(addresses);
       expect(ctx.metadata).toBe(metadata);

@@ -22,7 +22,7 @@ const makeCtx = (fetchResult: unknown, reject = false) => {
     ? vi.fn().mockRejectedValue(fetchResult)
     : vi.fn().mockResolvedValue(fetchResult);
   return {
-    onchain: { url: 'mock://node', client: {}, getObject: vi.fn() },
+    grpc: { url: 'mock://node', client: {}, getObject: vi.fn() },
     fetchWithCache,
   } as never;
 };
@@ -107,7 +107,7 @@ describe('getVeScasByAddressBatchedFromOnChain', () => {
       }
     );
     return {
-      onchain: { url: 'mock://node', client: {} },
+      grpc: { url: 'mock://node', client: {} },
       fetchWithCache,
       metadata: {
         addresses: {
@@ -137,7 +137,7 @@ describe('getVeScasByAddressBatchedFromOnChain', () => {
 
   it('returns [] when the address owns no veSca keys', async () => {
     const ctx = {
-      onchain: { url: 'mock://node', client: {} },
+      grpc: { url: 'mock://node', client: {} },
       fetchWithCache: vi
         .fn()
         .mockResolvedValue({ objects: [], hasNextPage: false, cursor: null }),

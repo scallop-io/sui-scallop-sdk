@@ -66,7 +66,7 @@ const makeCtx = (simulate: (args: string[]) => unknown) => {
     debug: vi.fn(),
   };
   const ctx = {
-    onchain: { url: 'mock://node', getObject: vi.fn(), client: {} },
+    grpc: { url: 'mock://node', getObject: vi.fn(), client: {} },
     fetchWithCache,
     logger,
     metadata: {

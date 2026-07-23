@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
+import {
+  getRpcStats,
+  resetRpcStats,
+  collectRpcStats,
+} from 'src/datasources/rpcStats.js';
 
 // A fake transport client whose methods resolve immediately; we only assert the
 // rate limiter gates them, so the actual payloads are irrelevant.
@@ -11,14 +16,14 @@ const makeClient = () => {
   return { getObjects, simulateTransaction };
 };
 
-describe('OnChainDataSource rate limiting', () => {
+describe('GrpcDataSource rate limiting', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
   it('throttles direct client method calls beyond the per-second budget', async () => {
     // intent: repo reads hit onchain.client.<m> directly — those MUST be limited
     const client = makeClient();
-    const ds = new OnChainDataSource({
+    const ds = new GrpcDataSource({
       client: client as never,
       url: 'x',
       tokensPerSecond: 2,
@@ -48,7 +53,7 @@ describe('OnChainDataSource rate limiting', () => {
   it('routes the getObject convenience through the same limiter', async () => {
     // intent: getObject calls this.client.getObjects, so it shares the budget
     const client = makeClient();
-    const ds = new OnChainDataSource({
+    const ds = new GrpcDataSource({
       client: client as never,
       url: 'x',
       tokensPerSecond: 1,
@@ -86,7 +91,7 @@ describe('OnChainDataSource rate limiting', () => {
         objects: objectIds.map((objectId) => ({ objectId })),
       })
     );
-    const ds = new OnChainDataSource({
+    const ds = new GrpcDataSource({
       client: { getObjects } as never,
       url: 'x',
       tokensPerSecond: 100,
@@ -120,7 +125,7 @@ describe('OnChainDataSource rate limiting', () => {
         objects: objectIds.map((objectId) => ({ objectId })),
       })
     );
-    const ds = new OnChainDataSource({
+    const ds = new GrpcDataSource({
       client: { getObjects } as never,
       url: 'x',
       tokensPerSecond: 100,
@@ -148,7 +153,7 @@ describe('OnChainDataSource rate limiting', () => {
         objects: objectIds.map((objectId) => ({ objectId })),
       })
     );
-    const ds = new OnChainDataSource({
+    const ds = new GrpcDataSource({
       client: { getObjects } as never,
       url: 'x',
       tokensPerSecond: 100,
@@ -169,5 +174,51 @@ describe('OnChainDataSource rate limiting', () => {
       '0xB',
       '0xC',
     ]);
+  });
+});
+
+describe('GrpcDataSource RPC accounting', () => {
+  beforeEach(() => resetRpcStats());
+
+  it('records calls under the onchain transport with getObjects cardinality = id count', async () => {
+    // intent: attribution must distinguish "one batched request of N" from "N of
+    // 1" — so getObjects cardinality is the number of ids the request carried.
+    const getObjects = vi.fn(
+      async ({ objectIds }: { objectIds: string[] }) => ({
+        objects: objectIds.map((objectId) => ({ objectId })),
+      })
+    );
+    const ds = new GrpcDataSource({
+      client: { getObjects } as never,
+      url: 'x',
+      tokensPerSecond: 1000,
+    });
+
+    await ds.client.getObjects({ objectIds: ['0xA', '0xB', '0xC'] } as never);
+
+    const stat = getRpcStats().get('onchain:getObjects');
+    expect(stat?.calls).toBe(1);
+    expect(stat?.cardinality).toBe(3);
+  });
+
+  it('scopes a facade call to exactly the requests made inside it', async () => {
+    // intent: collectRpcStats answers "which facade call emitted this RPC" —
+    // requests outside the scope must not leak into its stats.
+    const getObjects = vi.fn(async () => ({ objects: [{ objectId: '0xA' }] }));
+    const ds = new GrpcDataSource({
+      client: { getObjects } as never,
+      url: 'x',
+      tokensPerSecond: 1000,
+    });
+
+    await ds.client.getObjects({ objectIds: ['0xA'] } as never); // outside scope
+    const { stats } = await collectRpcStats(async () => {
+      await ds.client.getObjects({ objectIds: ['0xB'] } as never);
+      await ds.client.getObjects({ objectIds: ['0xC'] } as never);
+    });
+
+    // The scope saw only its two calls; the global map saw all three.
+    expect(stats.get('onchain:getObjects')?.calls).toBe(2);
+    expect(getRpcStats().get('onchain:getObjects')?.calls).toBe(3);
   });
 });
