@@ -91,7 +91,7 @@
     "release:major": "standard-version -r major",
     "release:minor": "standard-version -r minor",
     "release:patch": "standard-version -r patch",
-    "doc": "typedoc --out docs src/index.ts"
+    "doc": "typedoc --out docs src/types/index.ts"
   },
   "dependencies": {
     "@noble/hashes": "^2.2.0",
@@ -136,7 +136,7 @@
     "standard-version": "9.5.0",
     "tsconfig-paths": "4.2.0",
     "tsup": "7.3.0",
-    "typedoc": "0.26.11",
+    "typedoc": "0.28.20",
     "typescript": "5.5.4",
     "valibot": "1.3.1",
     "vite": "6.4.1",
