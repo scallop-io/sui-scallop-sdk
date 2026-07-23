@@ -1,5 +1,5 @@
+import { ClientWithCoreApi } from '@mysten/sui/client';
 import { SuiGraphQLClient } from '@mysten/sui/graphql';
-import { SuiGrpcClient } from '@mysten/sui/grpc';
 import { getJsonRpcFullnodeUrl } from '@mysten/sui/jsonRpc';
 import { QueryClient } from '@tanstack/query-core';
 import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache.js';
@@ -26,6 +26,7 @@ import {
   createIndexerDataSource,
   MAINNET_GRAPHQL_URL,
 } from './datasources.js';
+import { DEFAULT_GRAPHQL_MAX_OBJECTS_PER_BATCH } from 'src/datasources/grpc.js';
 import {
   buildBorrowIncentiveMetadata,
   buildCoinBalanceMetadata,
@@ -47,12 +48,17 @@ import { ScallopUtils } from 'src/models/index.js';
 
 /**
  * Inputs the registry needs. `ScallopUtils` is the single hub — it exposes
- * `grpc`, `queryClient`, `logger`, `address`, and `constants`, so the
- * registry can derive every datasource + metadata bundle
- * from it.
+ * `queryClient`, `logger`, `address`, and `constants`, so the registry can
+ * derive every datasource + metadata bundle from it.
+ *
+ * `core` is the transport-selected Core read client — a `SuiGrpcClient` on
+ * the `'grpc'` transport, a `SuiGraphQLClient` on `'graphql'` (see
+ * `ScallopQuery.initReadClients`). Both satisfy `ClientWithCoreApi`
+ * (`.core: CoreClient`, the full `TransportMethods` surface), which is all
+ * `createGrpcDataSource` needs — the Core datasource is transport-agnostic.
  */
 export type RepositoryDeps = {
-  core: SuiGrpcClient;
+  core: ClientWithCoreApi;
   fullnodeUrl?: string;
   graphql: SuiGraphQLClient;
   graphqlUrl?: string;
@@ -96,7 +102,7 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
     objectBatchWindowMs,
     priceTimeout,
     pythApiKey,
-    pythEndpoints,
+    pythEndpoint,
     queryClientConfig = DEFAULT_CACHE_OPTIONS,
     readTransport,
     tokensPerSecond,
@@ -106,12 +112,25 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
   const indexer = createIndexerDataSource(indexerUrl);
   const queryClient: QueryClient =
     deps.queryClient ?? new QueryClient(queryClientConfig);
+  // On the graphql transport `core` is the GraphQL client (see
+  // `ScallopQuery.initReadClients`), so the Core datasource's cache-key
+  // namespace must be the GraphQL endpoint, not a gRPC fullnode string — two
+  // callers on different `graphqlUrl`s but the same default `fullnodeUrl`
+  // would otherwise collide on the same cache keys. `maxObjectsPerBatch` caps
+  // `getObjects` batches under GraphQL's ~5000-byte query-payload limit; gRPC
+  // keeps its native 50-id limit (cap omitted).
   const grpcSource = createGrpcDataSource(
     core,
-    fullnodeUrl ?? getJsonRpcFullnodeUrl('mainnet'),
+    readTransport === 'graphql'
+      ? (graphqlUrl ?? MAINNET_GRAPHQL_URL)
+      : (fullnodeUrl ?? getJsonRpcFullnodeUrl('mainnet')),
     {
       tokensPerSecond,
       objectBatchWindowMs,
+      maxObjectsPerBatch:
+        readTransport === 'graphql'
+          ? DEFAULT_GRAPHQL_MAX_OBJECTS_PER_BATCH
+          : undefined,
     }
   );
   const base = { grpc: grpcSource, queryClient, logger };
@@ -239,7 +258,7 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
         metadata: buildPriceMetadata(utils),
         priceTimeout,
         pythApiKey,
-        pythEndpoints,
+        pythEndpoint,
       }));
     },
     get poolAddresses() {

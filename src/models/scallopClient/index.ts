@@ -78,8 +78,8 @@ class ScallopClient implements ScallopClientInterface {
     return this.builder.suiKit;
   }
 
-  get grpc() {
-    return this.query.grpc;
+  get coreClient() {
+    return this.query.coreClient;
   }
 
   get executor() {

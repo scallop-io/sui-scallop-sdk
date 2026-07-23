@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SuiGrpcClient } from '@mysten/sui/grpc';
+import { SuiGraphQLClient } from '@mysten/sui/graphql';
 import ScallopQuery from 'src/models/scallopQuery/index.js';
 
 // Construction is network-free: `initReadClients` builds lazy `SuiGrpcClient` /
@@ -12,28 +13,31 @@ const baseParams = {
 };
 
 describe('ScallopQuery Core read-client wiring', () => {
-  it('grpc transport: ScallopUtils holds the gRPC Core client', () => {
+  it('grpc transport: Core client is a SuiGrpcClient, and ScallopUtils holds that same client', () => {
     const query = new ScallopQuery({
       ...baseParams,
       fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
     } as never);
-    expect(query.grpc).toBeInstanceOf(SuiGrpcClient);
-    // The Core read path is always gRPC — `utils.client` is that same client.
-    expect(query.utils.client).toBe(query.grpc);
+    expect(query.coreClient).toBeInstanceOf(SuiGrpcClient);
+    // Regression guard (bug #2): ScallopUtils must hold the SAME client the
+    // active transport selected, never a mismatched one — `selectCoins` calls
+    // Core primitives (`listCoins`) directly on `utils.client`.
+    expect(query.utils.client).toBe(query.coreClient);
   });
 
-  it('graphql transport: ScallopUtils still holds the gRPC Core client, not the GraphQL client', () => {
-    // Regression: `coreClient` used to be routed to the GraphQL client when
-    // `readTransport: 'graphql'` (`readTransport === 'grpc' ? core : graphql`),
-    // so `utils.client` became a `SuiGraphQLClient` with no `listCoins`. That
-    // broke `selectCoins` — and therefore every write / *Quick flow — on the
-    // graphql transport. The Core path is always gRPC regardless of transport.
+  it('graphql transport: Core reads run over the GraphQL client, and ScallopUtils holds that same client', () => {
+    // Both `SuiGrpcClient` and `SuiGraphQLClient` implement the full Core
+    // `TransportMethods` surface via `.core` (`ClientWithCoreApi`), so on the
+    // graphql transport the Core read path is backed by the GraphQL client
+    // itself, not a separate gRPC client (see llm-docs/REPO_GRAPHQL_SUPPORT.md).
     const query = new ScallopQuery({
       ...baseParams,
       readTransport: 'graphql',
       graphqlUrl: 'https://graphql.mainnet.sui.io/graphql',
     } as never);
-    expect(query.grpc).toBeInstanceOf(SuiGrpcClient);
-    expect(query.utils.client).toBe(query.grpc);
+    expect(query.coreClient).toBeInstanceOf(SuiGraphQLClient);
+    // Regression guard (bug #2): ScallopUtils must hold the SAME client the
+    // active transport selected, never a mismatched one.
+    expect(query.utils.client).toBe(query.coreClient);
   });
 });
