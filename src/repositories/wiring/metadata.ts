@@ -102,7 +102,9 @@ export const buildObligationMetadata = (
     queryPackageId: utils.address.get('core.packages.query.id'),
     version: utils.address.get('core.version'),
     market: utils.address.get('core.market'),
-    obligationNaming: utils.address.get('obligationNaming.registryTableId'),
+    obligationNaming: {
+      registryTableId: utils.address.get('obligationNaming.registryTableId'),
+    },
   },
 });
 
