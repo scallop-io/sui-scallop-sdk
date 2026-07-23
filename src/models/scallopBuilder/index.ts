@@ -39,7 +39,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
   public readonly useOnChainXOracleList: boolean;
   public readonly sponsoredFeeds: string[];
   public readonly suiKit: SuiKit;
-  public readonly pythEndpoints: string[];
+  public readonly pythEndpoint: string;
   /** Pyth (Hermes) API access token, forwarded to the pyth oracle rule. */
   public readonly pythApiKey?: string;
 
@@ -48,9 +48,11 @@ class ScallopBuilder implements ScallopBuilderInterface {
     useOnChainXOracleList = true,
     sponsoredFeeds = [],
     query,
-    pythEndpoints = [DEFAULT_PYTH_URL],
+    pythEndpoints,
+    pythEndpoint = pythEndpoints?.[0] ?? DEFAULT_PYTH_URL,
     ...scallopQueryArgs
   }: ScallopBuilderConstructorParams) {
+    this.pythEndpoint = pythEndpoint;
     this.suiKit = new SuiKit({
       ...scallopQueryArgs,
       ...(scallopQueryArgs.fullnodeUrl
@@ -64,14 +66,13 @@ class ScallopBuilder implements ScallopBuilderInterface {
       // though the incoming params were validated at the public entry point.
       new ScallopQuery({
         ...scallopQueryArgs,
-        pythEndpoints,
+        pythEndpoint,
         walletAddress:
           scallopQueryArgs.walletAddress ?? this.suiKit.currentAddress,
       } as ScallopQueryConstructorParams);
     this.usePythPullModel = usePythPullModel;
     this.useOnChainXOracleList = useOnChainXOracleList;
     this.sponsoredFeeds = sponsoredFeeds;
-    this.pythEndpoints = pythEndpoints;
     this.pythApiKey = scallopQueryArgs.pythApiKey;
   }
 

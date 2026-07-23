@@ -30,18 +30,24 @@ type SuiGrpcTransport = {
 );
 
 /**
- * GraphQL read transport. Core reads and **all writes still go over gRPC** via
- * `fullnodeUrl` (defaults to the mainnet fullnode when omitted);
- * `readTransport: 'graphql'` only makes balance reads and the Tier-2
- * dynamic-field repos (pool addresses, xOracle, veSCA, …) prefer native GraphQL
- * queries. Configure the GraphQL endpoint with `graphqlClient` (preferred) or
- * `graphqlUrl`. Injecting a gRPC `suiClient` is not supported in this mode — the
- * Core client is always built from `fullnodeUrl`.
+ * GraphQL read transport. Core reads run over the GraphQL client itself — both
+ * `SuiGrpcClient` and `SuiGraphQLClient` satisfy `ClientWithCoreApi` and
+ * implement the same Core `TransportMethods` (incl. `simulateTransaction`), so
+ * swapping the Core client swaps the whole read path, no per-repo GraphQL
+ * queries required (see `llm-docs/REPO_GRAPHQL_SUPPORT.md`). `preferGraphql`
+ * additionally makes the Tier-2 dynamic-field repos (pool addresses, xOracle,
+ * veSCA, …) prefer their native fewer-round-trip GraphQL queries over the
+ * generic Core path — an optimization, not a correctness requirement.
+ * **Writes still go over gRPC** via `fullnodeUrl` (defaults to the mainnet
+ * fullnode when omitted) — the write path (`SuiKit` / `builder.executor`) is
+ * independent of `ScallopQuery`'s read transport. Configure the GraphQL
+ * endpoint with `graphqlClient` (preferred) or `graphqlUrl`. Injecting a gRPC
+ * `suiClient` is not supported in this mode.
  */
 type SuiGraphqlTransport = {
   readTransport: 'graphql';
   suiClient?: never;
-  /** gRPC fullnode for the Core read path + writes. Defaults to mainnet. */
+  /** gRPC fullnode for writes only. Defaults to mainnet. */
   fullnodeUrl?: string;
 } & (
   | {
@@ -69,10 +75,12 @@ export type ScallopQueryBaseParams = {
   priceTimeout?: number;
   pythApiKey?: string;
   /**
+   * @deprecated Use `pythEndpoint` instead.
    * Pyth (Hermes) endpoints. The first is used as the default price-read
    * endpoint when no explicit `pythPriceServiceConfig` is supplied.
    */
   pythEndpoints?: string[];
+  pythEndpoint?: string;
   queryClient?: QueryClient;
   queryClientConfig?: QueryClientConfig;
   readTransport?: 'grpc' | 'graphql';

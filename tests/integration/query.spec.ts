@@ -492,7 +492,7 @@ describe('Test Loyalty Program Query', () => {
     // Fetch the raw user-reward dynamic-field object via the native core client
     // (the SDK now reads on-chain through @mysten/sui's CoreClient, not SuiKit's
     // legacy query wrappers).
-    const core = scallopQuery.grpc;
+    const core = scallopQuery.coreClient;
     let rawObject: SuiObjectData | null = null;
     try {
       const { dynamicField } = await core.getDynamicField({
