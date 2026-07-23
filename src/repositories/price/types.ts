@@ -51,10 +51,12 @@ export type PriceRepositoryParams = BaseRepoParams & {
    */
   pythApiKey?: string;
   /**
+   * @deprecated Use pythEndpoint instead
    * Pyth (Hermes) endpoints. The first is used as the default price-read
    * endpoint when no explicit `pythPriceServiceConfig` is supplied.
    */
   pythEndpoints?: string[];
+  pythEndpoint?: string;
 };
 
 /** Minimal context for the Pyth API price read. */

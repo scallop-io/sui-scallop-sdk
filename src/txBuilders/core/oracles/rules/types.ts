@@ -24,9 +24,7 @@ export type OracleRuleContext = {
   logger: Logger;
   // Pyth pull model only:
   suiKit: SuiKit;
-  /** Preserves the legacy `builder.pythEndpoints ?? whitelist` resolution. */
-  pythEndpoints: string[];
-  fallbackPythEndpoints: string[];
+  pythEndpoint: string;
   /** Pyth (Hermes) API access token; sent as `accessToken` when set. */
   pythApiKey?: string;
   /**

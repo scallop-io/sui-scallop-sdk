@@ -14,8 +14,8 @@ import {
   type PrepareParams,
   type SetPriceParams,
 } from './types.js';
+import { LEGACY_PYTH_HERMES_ENDPOINT } from 'src/repositories/price/const.js';
 
-const LEGACY_PYTH_HERMES_ENDPOINT = 'https://hermes.pyth.network';
 type ObjectId = string;
 
 /**
@@ -118,7 +118,7 @@ export class PythOracleRule extends BaseOracleRule {
     sponsoredFeeds,
     isSponsoredTx,
   }: PrepareParams): Promise<void> {
-    const { logger, suiKit, address, pythEndpoints, pythApiKey } = this.ctx;
+    const { logger, suiKit, address, pythEndpoint, pythApiKey } = this.ctx;
     // Pull-model: update every candidate. Push-model: only feeds that are NOT
     // sponsored (sponsored feeds are updated out-of-band).
     const needToUpdate = assetCoinNames.filter(
@@ -140,8 +140,6 @@ export class PythOracleRule extends BaseOracleRule {
       )
     );
 
-    const endpoints = pythEndpoints;
-
     // Push the accumulator update(s) on-chain — sponsored (Scallop pays the
     // per-feed base fee) or self-funded. Shared by both source paths below.
     const pushUpdate = (priceUpdateData: Buffer[]) =>
@@ -158,24 +156,20 @@ export class PythOracleRule extends BaseOracleRule {
           );
 
     // If API key provided or still using old hermes endpoint, use the pyth client SDK instead
-    if (pythApiKey || endpoints[0] === LEGACY_PYTH_HERMES_ENDPOINT) {
-      // With an API key: fetch VAAs directly from Pyth (Hermes), trying each
-      // endpoint until one succeeds.
-      for (const endpoint of endpoints) {
-        try {
-          const pythConnection = new SuiPriceServiceConnection(endpoint, {
-            accessToken: pythApiKey,
-          });
-          const response =
-            await pythConnection.getPriceFeedsUpdateData(priceIds);
-          await pushUpdate(response);
-          return;
-        } catch (e) {
-          logger.warn('pyth price-feed update failed; trying next endpoint', {
-            endpoint,
-            message: (e as Error)?.message,
-          });
-        }
+    if (pythApiKey || pythEndpoint === LEGACY_PYTH_HERMES_ENDPOINT) {
+      // With an API key: fetch VAAs directly from Pyth (Hermes)
+      try {
+        const pythConnection = new SuiPriceServiceConnection(pythEndpoint, {
+          accessToken: pythApiKey,
+        });
+        const response = await pythConnection.getPriceFeedsUpdateData(priceIds);
+        await pushUpdate(response);
+        return;
+      } catch (e) {
+        logger.warn('pyth price-feed update failed', {
+          pythEndpoint,
+          message: (e as Error)?.message,
+        });
       }
     } else {
       // No API key: pull the price-update payload from the Scallop indexer,

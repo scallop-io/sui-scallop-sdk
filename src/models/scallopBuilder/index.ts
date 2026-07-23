@@ -98,8 +98,8 @@ class ScallopBuilder implements ScallopBuilderInterface {
     return this.utils.walletAddress;
   }
 
-  get grpc() {
-    return this.query.grpc;
+  get coreClient() {
+    return this.query.coreClient;
   }
 
   get address() {
