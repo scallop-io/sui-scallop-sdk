@@ -2,7 +2,7 @@ import type { QueryClient } from '@tanstack/query-core';
 import { BaseContext, BaseRepoParams } from '../types.js';
 import { AddressesInterface } from 'src/types/address.js';
 import { GrpcDataSource } from 'src/datasources/grpc.js';
-import { GraphQLDataSource } from 'src/datasources/graphql.js';
+import { GraphQLDataSource } from 'src/datasources/graphql/index.js';
 
 export type CoinBalanceMetadata = {
   whitelist: {

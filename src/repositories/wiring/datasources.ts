@@ -9,7 +9,7 @@ import { GrpcDataSource } from 'src/datasources/grpc.js';
 import {
   GraphQLDataSource,
   MAINNET_GRAPHQL_URL,
-} from 'src/datasources/graphql.js';
+} from 'src/datasources/graphql/index.js';
 
 export { MAINNET_GRAPHQL_URL };
 

@@ -1,6 +1,6 @@
 import { BaseContext, BaseRepoParams } from '../types.js';
 import { GrpcDataSource } from 'src/datasources/grpc.js';
-import { GraphQLDataSource } from 'src/datasources/graphql.js';
+import { GraphQLDataSource } from 'src/datasources/graphql/index.js';
 
 type ObligationKeys =
   | 'protocolObjectId'

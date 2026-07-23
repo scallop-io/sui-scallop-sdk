@@ -9,7 +9,7 @@ import {
 } from 'src/repositories/coinBalance/helpers.js';
 import type { CoinBalanceMetadata } from 'src/repositories/coinBalance/types.js';
 import type { GrpcDataSource } from 'src/datasources/grpc.js';
-import type { GraphQLDataSource } from 'src/datasources/graphql.js';
+import type { GraphQLDataSource } from 'src/datasources/graphql/index.js';
 
 // A balance node in the transport shape listBalances returns.
 const bal = (coinType: string, balance: string) => ({

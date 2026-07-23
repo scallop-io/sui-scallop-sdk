@@ -7,7 +7,7 @@ import {
   PoolAddressesGraphQLContext,
   PoolAddressesOnChainContext,
 } from './types.js';
-import type { GraphQLDynamicField } from 'src/datasources/graphql.js';
+import type { GraphQLDynamicField } from 'src/datasources/graphql/types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { MarketObjectJsonSchema } from './schema.js';
 import { logError } from '../utils.js';

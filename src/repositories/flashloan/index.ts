@@ -4,7 +4,7 @@
 
 import { BaseRepository } from '../base.js';
 import { GrpcDataSource } from '../../datasources/grpc.js';
-import { GraphQLDataSource } from '../../datasources/graphql.js';
+import { GraphQLDataSource } from '../../datasources/graphql/index.js';
 import {
   getFlashloanFeesFromGraphQL,
   getFlashloanFeesFromOnChain,

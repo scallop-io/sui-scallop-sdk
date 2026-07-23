@@ -1,6 +1,6 @@
 import { ApiDataSource } from 'src/datasources/api.js';
 import { GrpcDataSource } from 'src/datasources/grpc.js';
-import { GraphQLDataSource } from 'src/datasources/graphql.js';
+import { GraphQLDataSource } from 'src/datasources/graphql/index.js';
 import { BaseRepository } from '../base.js';
 import { QuerySource } from '../types.js';
 import {

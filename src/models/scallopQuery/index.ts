@@ -1,9 +1,8 @@
 import { SuiGraphQLClient } from '@mysten/sui/graphql';
 import { SuiGrpcClient } from '@mysten/sui/grpc';
-import { getJsonRpcFullnodeUrl } from '@mysten/sui/jsonRpc';
 import { SuiObjectArg } from '@scallop-io/sui-kit';
 import { BigNumber } from 'bignumber.js';
-import { MAINNET_GRAPHQL_URL } from 'src/datasources/graphql.js';
+import { MAINNET_GRAPHQL_URL } from 'src/datasources/graphql/index.js';
 import { ScallopParseError } from 'src/errors/index.js';
 import { runWithDataSourceFallback } from 'src/repositories/utils.js';
 import {
@@ -47,17 +46,23 @@ export type {
 const initReadClients = (args: ScallopQueryConstructorParams) => {
   const network = 'mainnet';
   if (args.readTransport === 'graphql') {
-    return {
-      core: new SuiGrpcClient({
-        baseUrl: args.fullnodeUrl ?? getJsonRpcFullnodeUrl(network),
+    // Both `SuiGrpcClient` and `SuiGraphQLClient` extend `@mysten/sui`'s
+    // `BaseClient` (`abstract core: CoreClient`) and `CoreClient` itself
+    // `implements SuiClientTypes.TransportMethods` — so the two clients'
+    // `.core` are interchangeable for every Core read, including
+    // `simulateTransaction`. In graphql mode the Core read path is therefore
+    // backed by the GraphQL client itself, not a separate gRPC client — full
+    // read-transport switchability, not just the opportunistic native-query
+    // optimization. See llm-docs/REPO_GRAPHQL_SUPPORT.md.
+    const graphqlClient =
+      args.graphqlClient ??
+      new SuiGraphQLClient({
+        url: args.graphqlUrl,
         network,
-      }),
-      graphql: args.graphqlClient
-        ? args.graphqlClient
-        : new SuiGraphQLClient({
-            url: args.graphqlUrl,
-            network,
-          }),
+      });
+    return {
+      core: graphqlClient,
+      graphql: graphqlClient,
     };
   } else {
     return {
@@ -78,18 +83,18 @@ const initReadClients = (args: ScallopQueryConstructorParams) => {
 class ScallopQuery implements ScallopQueryInterface {
   public readonly utils: ScallopUtils;
   public readonly repos: Repositories;
-  public readonly grpc: SuiGrpcClient;
+  public readonly coreClient: SuiGrpcClient | SuiGraphQLClient;
 
   constructor({ utils, ...args }: ScallopQueryConstructorParams) {
     const { core, graphql } = initReadClients(args);
-    this.grpc = core;
+    this.coreClient = core;
     this.utils =
       utils ??
       new ScallopUtils({
         ...args,
-        // The Core read path is always gRPC — ScallopUtils calls Core primitives
-        // (e.g. `listCoins` in `selectCoins`), so it must hold the gRPC `core`
-        // client, never the GraphQL client, regardless of `readTransport`.
+        // ScallopUtils calls Core primitives directly (e.g. `listCoins` in
+        // `selectCoins`), so it must hold the SAME client the active
+        // transport selected — `core` above, never a mismatched one.
         coreClient: args.coreClient ?? core,
       });
 

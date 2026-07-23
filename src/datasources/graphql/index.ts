@@ -7,12 +7,25 @@ import {
 } from '@mysten/sui/utils';
 import { partitionArray } from 'src/utils/array.js';
 import type { QueryClient } from '@tanstack/query-core';
-import { RateLimiter } from './rateLimiter.js';
+import { RateLimiter } from '../rateLimiter.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { createFetchWithCache, type FetchWithCache } from 'src/utils/cache.js';
 import { Logger, noopLogger } from 'src/logger/index.js';
 import { ScallopRpcError } from 'src/errors/index.js';
-import { recordRpcCall } from './rpcStats.js';
+import { recordRpcCall } from '../rpcStats.js';
+import {
+  MultiGetBalancesResult,
+  MultiGetBalancesVariables,
+  GraphQLDynamicField,
+  DynamicFieldsQueryResult,
+  DynamicFieldsQueryVariables,
+  DynamicFieldValueNode,
+} from 'src/datasources/graphql/types.js';
+import {
+  COIN_BALANCES_BY_TYPES_QUERY,
+  DYNAMIC_FIELD_NODE_SELECTION,
+  DYNAMIC_FIELDS_WITH_VALUES_QUERY,
+} from 'src/datasources/graphql/queries.js';
 
 /**
  * Max coin types per `multiGetBalances` query. The Sui GraphQL endpoint caps a
@@ -24,156 +37,6 @@ const MAX_COIN_TYPES_PER_BALANCE_QUERY = 15;
 
 /** Default Sui GraphQL endpoint. Mainnet only for now. */
 export const MAINNET_GRAPHQL_URL = 'https://graphql.mainnet.sui.io/graphql';
-
-/**
- * Fetch balances for a specific set of coin types in one round trip
- * (`multiGetBalances`), instead of paging every balance via `listBalances`.
- * gRPC has no multi-coin balance call, so this is a GraphQL-only read.
- */
-const COIN_BALANCES_BY_TYPES_QUERY = /* GraphQL */ `
-  query CoinBalancesByTypes($address: SuiAddress!, $coinTypes: [String!]!) {
-    address(address: $address) {
-      multiGetBalances(keys: $coinTypes) {
-        coinType {
-          repr
-        }
-        totalBalance
-        coinBalance
-        addressBalance
-      }
-    }
-  }
-`;
-
-type MultiGetBalancesResult = {
-  address: {
-    multiGetBalances: {
-      coinType: { repr: string };
-      totalBalance: string | null;
-      coinBalance: string | null;
-      addressBalance: string | null;
-    }[];
-  } | null;
-};
-
-type MultiGetBalancesVariables = {
-  address: string;
-  coinTypes: string[];
-};
-
-/**
- * Enumerate an object's dynamic fields WITH their values inline, in one paged
- * query. gRPC's `listDynamicFields` returns only field metadata (forcing a
- * second `getObjects` per value); GraphQL returns name + value together, so a
- * table walk collapses from "list ids + batch-fetch values" into a single paged
- * read. Mirrors the SDK's own `GetDynamicFieldsDocument` (see
- * `@mysten/sui/dist/graphql/generated/queries`) with `includeValue: true`,
- * requesting both `bcs` (for BCS parsers) and `json` (for shape-based parsers).
- */
-const DYNAMIC_FIELDS_WITH_VALUES_QUERY = /* GraphQL */ `
-  query DynamicFieldsWithValues(
-    $parentId: SuiAddress!
-    $first: Int
-    $cursor: String
-  ) {
-    address(address: $parentId) {
-      dynamicFields(first: $first, after: $cursor) {
-        pageInfo {
-          hasNextPage
-          endCursor
-        }
-        nodes {
-          name {
-            bcs
-            type {
-              repr
-            }
-          }
-          value {
-            __typename
-            ... on MoveValue {
-              bcs
-              json
-              type {
-                repr
-              }
-            }
-            ... on MoveObject {
-              address
-              contents {
-                bcs
-                json
-                type {
-                  repr
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-
-// Single shape with all selected fields optional, discriminated at runtime on
-// `__typename`. A proper `MoveValue | MoveObject | Other` union would defeat
-// narrowing here (an `{ __typename: string }` member widens the discriminant),
-// so we keep one shape and branch on the string.
-type DynamicFieldValueNode = {
-  __typename: string;
-  // MoveValue
-  bcs?: string | null;
-  json?: unknown;
-  type?: { repr: string } | null;
-  // MoveObject
-  address?: string;
-  contents?: {
-    bcs: string | null;
-    json: unknown;
-    type: { repr: string } | null;
-  } | null;
-} | null;
-
-type DynamicFieldsQueryResult = {
-  address: {
-    dynamicFields: {
-      pageInfo: { hasNextPage: boolean; endCursor: string | null };
-      nodes: {
-        name: { bcs: string; type: { repr: string } | null } | null;
-        value: DynamicFieldValueNode;
-      }[];
-    } | null;
-  } | null;
-};
-
-type DynamicFieldsQueryVariables = {
-  parentId: string;
-  first: number;
-  cursor: string | null;
-};
-
-/**
- * One normalized dynamic-field entry with its value resolved inline. `fieldId`
- * is derived exactly as the Sui SDK's own GraphQL Core does
- * (`deriveDynamicFieldID`), so it matches the `fieldId` a gRPC
- * `listDynamicFields` would return for the same field.
- */
-export type GraphQLDynamicField = {
-  /** Derived dynamic-field object id (matches Core `listDynamicFields`). */
-  fieldId: string;
-  /** Field key: Move type repr + base64 BCS bytes of the name. */
-  name: { type: string; bcs: string };
-  /** Value Move type repr. */
-  valueType: string;
-  /** True for dynamic OBJECT fields (value is a separately-stored object). */
-  isDynamicObject: boolean;
-  /** Referenced object id, for dynamic object fields only. */
-  childId?: string;
-  /** Base64 BCS of the value (`MoveValue.bcs` / `MoveObject.contents.bcs`). */
-  valueBcs: string | null;
-  /** JSON of the value (`MoveValue.json` / `MoveObject.contents.json`). */
-  valueJson: unknown;
-};
 
 export type GraphQLDataSourceParams = {
   /** Preconfigured client (full transport override). Takes precedence over `url`. */
@@ -451,39 +314,6 @@ type DynamicFieldNode = {
   name: { bcs: string; type: { repr: string } | null } | null;
   value: DynamicFieldValueNode;
 };
-
-/**
- * The name+value sub-selection shared by the single-field alias reads. Requests
- * both `bcs` (for BCS parsers) and `json` (for shape-based parsers).
- */
-const DYNAMIC_FIELD_NODE_SELECTION = /* GraphQL */ `
-  name {
-    bcs
-    type {
-      repr
-    }
-  }
-  value {
-    __typename
-    ... on MoveValue {
-      bcs
-      json
-      type {
-        repr
-      }
-    }
-    ... on MoveObject {
-      address
-      contents {
-        bcs
-        json
-        type {
-          repr
-        }
-      }
-    }
-  }
-`;
 
 /**
  * Build an aliased query fetching `count` dynamic fields by name in one request:
