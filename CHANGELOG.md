@@ -60,9 +60,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [4.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v3.0.2...v4.0.0) (2026-05-27)
 
-This release lands the full structural refactor of the SDK toward a **datasources → repositories → services → facade** internal architecture, while preserving the public method surface of `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, and `ScallopUtils`. See [`docs/SDK_STRUCTURE.md`](docs/SDK_STRUCTURE.md) for a 5-minute tour of the new layout. Commit SHAs are added at release tagging time.
+This release lands the full structural refactor of the SDK toward a **datasources → repositories → services → facade** internal architecture, while preserving the public method surface of `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, and `ScallopUtils`. See [`llm-docs/SDK_STRUCTURE.md`](llm-docs/SDK_STRUCTURE.md) for a 5-minute tour of the new layout. Commit SHAs are added at release tagging time.
 
-**Upgrading from v3?** See [`docs/V3_TO_V4.md`](docs/V3_TO_V4.md) for the migration guide with step-by-step diffs.
+**Upgrading from v3?** See [`llm-docs/V3_TO_V4.md`](llm-docs/V3_TO_V4.md) for the migration guide with step-by-step diffs.
 
 **TL;DR for upgraders:** if you were only consuming `Scallop`/`ScallopClient`/`ScallopBuilder`/`ScallopQuery` methods, your code keeps working. The breaking changes only bite if you (a) inherited from `ScallopConstants`, (b) used `instanceof ScallopAddress` against a `ScallopConstants` instance, (c) mutated `constants.whitelist` or `constants.poolAddresses` directly, (d) imported from non-public type paths, (e) relied on the SDK bundling `@mysten/sui` (now a peer dependency — install `@mysten/sui@^2` yourself), or (f) used `Scallop.createScallopIndexer()`, `ScallopSuiKit`, or `ScallopAxios` (all removed).
 
@@ -79,14 +79,14 @@ This release lands the full structural refactor of the SDK toward a **datasource
 - **Forwarders preserved on `ScallopConstants`** for back-compat: `get`, `set`, `getAddresses`, `setAddresses`, `getId`, `getAllAddresses`, `switchCurrentAddresses`, `queryClient`, `axiosClient`, `axiosInstance`, `scallopAxios`. So `constants.get('core.market')`, `constants.getAddresses()`, `constants.queryClient`, etc. all still work.
 - `ScallopConstantsParams` accepts a new optional `scallopAddress?: ScallopAddress` field for injecting a pre-built address adapter (useful for tests).
 
-→ See [`docs/V3_TO_V4.md` § B1](docs/V3_TO_V4.md#b1--scallopconstants-no-longer-extends-scallopaddress) for diffs covering `instanceof` checks, subclass refactors, and the new `scallopAddress` injection.
+→ See [`llm-docs/V3_TO_V4.md` § B1](llm-docs/V3_TO_V4.md#b1--scallopconstants-no-longer-extends-scallopaddress) for diffs covering `instanceof` checks, subclass refactors, and the new `scallopAddress` injection.
 
 #### B2 — `whitelist` and `poolAddresses` are now frozen immutable snapshots
 
 - Previously: `Proxy` getters that fell back to `DEFAULT_WHITELIST` on missing keys, and allowed mutation through `Set.add` / `Set.delete` (which silently affected the singleton state).
 - Now: plain frozen objects populated during `init()`. Every whitelist key is always present (missing entries default to empty `Set`s). Calling `.add()` / `.delete()` / `.clear()` throws `TypeError: Cannot mutate readonly ScallopConstants whitelist`.
 
-→ See [`docs/V3_TO_V4.md` § B2](docs/V3_TO_V4.md#b2--whitelist--pooladdresses-are-now-frozen-immutable-snapshots) for the `forceWhitelistInterface` / `forcePoolAddressInterface` recipe.
+→ See [`llm-docs/V3_TO_V4.md` § B2](llm-docs/V3_TO_V4.md#b2--whitelist--pooladdresses-are-now-frozen-immutable-snapshots) for the `forceWhitelistInterface` / `forcePoolAddressInterface` recipe.
 
 #### B3 — Minimum Node 22
 
@@ -107,7 +107,7 @@ If you import from the root `@scallop-io/sui-scallop-sdk` package, nothing chang
 - **You must install `@mysten/sui@^2` in your own project.** npm 7+ and Bun auto-install peers; pnpm and yarn may require it explicitly.
 - A wide `^2.0.0` range lets it dedup with whatever `@mysten/sui` your app (and `@scallop-io/sui-kit`, which also depends on `^2.0.0`) already resolves.
 
-→ See [`docs/V3_TO_V4.md` § B5](docs/V3_TO_V4.md#b5--mystensui-is-now-a-peer-dependency).
+→ See [`llm-docs/V3_TO_V4.md` § B5](llm-docs/V3_TO_V4.md#b5--mystensui-is-now-a-peer-dependency).
 
 #### B6 — Transport models removed (`ScallopIndexer`, `ScallopSuiKit`, `ScallopAxios`)
 
@@ -119,7 +119,7 @@ The three legacy transport models were replaced by a small `src/datasources/` la
 
 The typed `ScallopIndexerError` is unaffected (only the `ScallopIndexer` model is gone). Public read/write methods on the five facades are unchanged.
 
-→ See [`docs/V3_TO_V4.md` § B6](docs/V3_TO_V4.md#b6--transport-reshaped-scallopindexer-scallopsuikit-scallopaxios-removed).
+→ See [`llm-docs/V3_TO_V4.md` § B6](llm-docs/V3_TO_V4.md#b6--transport-reshaped-scallopindexer-scallopsuikit-scallopaxios-removed).
 
 ---
 
@@ -355,10 +355,10 @@ On-chain object reads are chunked at 50 ids per call (`partitionArray`), and ind
 
 ### Documentation
 
-- New [`docs/SDK_STRUCTURE.md`](docs/SDK_STRUCTURE.md) — 5-minute developer onboarding tour with layer diagrams, directory map, read-path/write-path traces, cross-cutting concerns (errors, logger, config, `parseObjectAs` gotcha, caching), subpath-export table, "where does new code go?" decision table.
-- Migration guides — [`docs/V3_TO_V4.md`](docs/V3_TO_V4.md), [`docs/V2_TO_V4.md`](docs/V2_TO_V4.md), [`docs/V1_TO_V4.md`](docs/V1_TO_V4.md) — step-by-step upgrade diffs from each prior major line.
+- New [`llm-docs/SDK_STRUCTURE.md`](llm-docs/SDK_STRUCTURE.md) — 5-minute developer onboarding tour with layer diagrams, directory map, read-path/write-path traces, cross-cutting concerns (errors, logger, config, `parseObjectAs` gotcha, caching), subpath-export table, "where does new code go?" decision table.
+- Migration guides — [`llm-docs/V3_TO_V4.md`](llm-docs/V3_TO_V4.md), [`llm-docs/V2_TO_V4.md`](llm-docs/V2_TO_V4.md), [`llm-docs/V1_TO_V4.md`](llm-docs/V1_TO_V4.md) — step-by-step upgrade diffs from each prior major line.
 - [`src/repositories/CLAUDE.md`](src/repositories/CLAUDE.md) — contributor guide for the read layer.
-- [`AGENTS.md`](AGENTS.md) and [`.claude/CLAUDE.md`](.claude/CLAUDE.md) refreshed for v4 — new commands, v4 breaking-change callouts, datasources/repositories/services/errors/logger/subpath sections, "where does new code go?" tables, link-throughs to `docs/SDK_STRUCTURE.md`.
+- [`AGENTS.md`](AGENTS.md) and [`.claude/CLAUDE.md`](.claude/CLAUDE.md) refreshed for v4 — new commands, v4 breaking-change callouts, datasources/repositories/services/errors/logger/subpath sections, "where does new code go?" tables, link-throughs to `llm-docs/SDK_STRUCTURE.md`.
 
 ---
 

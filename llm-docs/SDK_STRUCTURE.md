@@ -3,7 +3,6 @@
 A guided tour of how `@scallop-io/sui-scallop-sdk` is laid out. Read this first if you're new to the codebase or returning after a long break.
 
 > **Audience:** SDK contributors and integrators who want to understand the moving parts without reading every file.
-> **Companion docs:** [`SDK_STRUCTURE_REPORT.md`](SDK_STRUCTURE_REPORT.md) (problem statement) and [`SDK_STRUCTURE_FIX_PLAN.md`](SDK_STRUCTURE_FIX_PLAN.md) (workstreams + status). The read layer has its own contributor guide in [`../src/repositories/CLAUDE.md`](../src/repositories/CLAUDE.md).
 
 ---
 
@@ -31,10 +30,10 @@ Supporting pieces:
 
 - `ScallopConstants` owns protocol config: addresses, pool addresses, whitelist, decimals. It **composes** `ScallopAddress` (`constants.address`) and embeds its config sources + validator under `src/models/scallopConstants/config/`.
 - `ScallopAddress` is the address/HTTP adapter; it reads the Scallop API via `ApiDataSource`.
-- `ScallopUtils` holds the resolved Core read client (`utils.client`, a `ClientWithCoreMethods`) plus `ScallopConstants`. `ScallopQuery` owns the raw Sui gRPC Core client (`query.grpc`, a `SuiGrpcClient`); the rate-limited `GrpcDataSource` that wraps it is built inside the repository registry.
-- `ScallopBuilder` owns the raw `SuiKit` (`builder.suiKit`) and the write-path `TransactionExecutor` (`builder.executor`, a `SuiKitTransactionExecutor`).
+- `ScallopUtils` holds the resolved Core read client (`utils.client`, a `ClientWithCoreMethods`) plus `ScallopConstants`. `ScallopQuery` owns the transport-selected Core client (`query.grpc`, a `SuiGrpcClient | SuiGraphQLClient` — a `SuiGrpcClient` on the `'grpc'` transport, a `SuiGraphQLClient` on `'graphql'`); the rate-limited `GrpcDataSource` that wraps it is built inside the repository registry.
+- `ScallopBuilder` owns the raw `SuiKit` (`builder.suiKit`) and the write-path `TransactionExecutor` (`builder.executor`, a `SuiKitTransactionExecutor`) — **always gRPC**, independent of `ScallopQuery`'s read transport.
 - `src/datasources/` is the raw transport layer (on-chain RPC, indexer, API, and a Sui GraphQL source for reads with no gRPC equivalent). `ScallopSuiKit` and the `ScallopIndexer` model were both removed.
-- **The Core read path is always gRPC.** The registry's `GrpcDataSource` (wrapping `query.grpc`) calls the Sui **Core API** (`getObjects`, `getDynamicField`, `listOwnedObjects`, `getBalance`, `simulateTransaction`, …) over gRPC — it is never routed over GraphQL. A separate `GraphQLDataSource` owns only the GraphQL-**native** primitives that have no single-round-trip Core equivalent (`multiGetBalances`, `listDynamicFieldsWithValues`, `multiGetDynamicFields`). Passing `readTransport: 'graphql'` to `Scallop`/`ScallopQuery` no longer moves Core reads onto GraphQL; it only flips `preferGraphql`, so the heavy dynamic-field walkers (`poolAddresses`, `xOracle`, `veSca` family, `obligation` names, `flashloan`, `borrowIncentive` bindings) that *have* a native GraphQL query prefer it instead of the gRPC multi-call fan-out. Selection is strict by transport — no automatic fallback to the gRPC Core path (`runByReadTransport` in `repositories/utils.ts`); a failing native GraphQL query propagates. See [`GRAPHQL_SUPPORT.md`](GRAPHQL_SUPPORT.md).
+- **The Core read path follows the selected transport — both transports are full, correctness-equivalent implementations, not just an optimization.** In `@mysten/sui`, `BaseClient` declares `abstract core: CoreClient`, and `CoreClient` (`@mysten/sui`'s `src/client/core.ts`) `implements SuiClientTypes.TransportMethods` — the full Core API, including `simulateTransaction`. **Both** `SuiGrpcClient` and `SuiGraphQLClient` extend `BaseClient`, so both are `ClientWithCoreApi` and expose an **interchangeable `.core`** (`GrpcCoreClient` vs `GraphQLCoreClient`, each a concrete `CoreClient`). `ScallopQuery.initReadClients` swaps the Core client wholesale per `readTransport`: on `'grpc'` it's a `SuiGrpcClient` built from `fullnodeUrl`; on `'graphql'` it's the `SuiGraphQLClient` itself (built from `graphqlUrl`/`graphqlClient`) — so **every** Core read (`getObjects`, `getDynamicField`, `listOwnedObjects`, `getBalance`, `simulateTransaction`, …) runs over GraphQL end-to-end in graphql mode, no per-repo GraphQL reimplementation needed. The registry's `GrpcDataSource` (wrapping whichever client `query.grpc` holds) is transport-agnostic for exactly this reason (`createGrpcDataSource` wraps `client.core`, not the client directly) — it also caps `getObjects` batches under GraphQL's ~5000-byte query-payload limit (`maxObjectsPerBatch`, only set on `'graphql'`) and namespaces its query-cache keys by the active endpoint (`graphqlUrl` vs `fullnodeUrl`). A separate `GraphQLDataSource` additionally owns GraphQL-**native** primitives with no single-round-trip Core equivalent (`multiGetBalances`, `listDynamicFieldsWithValues`, `multiGetDynamicFields`); `readTransport: 'graphql'` also flips `preferGraphql`, so the Tier-2 dynamic-field walkers (`poolAddresses`, `xOracle`, `veSca` family, `obligation` names, `flashloan`, `borrowIncentive` bindings) prefer those fewer-round-trip native queries over the generic Core path — an **optimization on top of** the full transport switch, not the mechanism providing it. Selection there is strict by transport — no automatic fallback (`runByReadTransport` in `repositories/utils.ts`); a failing native GraphQL query propagates. **Writes are unaffected** — `builder.executor` / `SuiKit` always use gRPC via `fullnodeUrl`, regardless of `ScallopQuery`'s `readTransport`. See [`GRAPHQL_SUPPORT.md`](GRAPHQL_SUPPORT.md) and [`REPO_GRAPHQL_SUPPORT.md`](REPO_GRAPHQL_SUPPORT.md) (implementation plan / rationale).
 - `src/mappers/` is now just `moveTypeMapper` (gRPC vs JSON-RPC `TypeName` differences); per-domain payload parsing lives inside each repository.
 - `src/services/query/portfolioCalculations.ts` holds pure math extracted from portfolio queries.
 - `src/errors/`, `src/logger/`, `src/types/public`, and `src/types/internal` are cross-cutting support layers.
@@ -51,7 +50,7 @@ These are the names you import. They form a dependency chain — each holds a re
 Scallop
   └── ScallopClient        // write facade: signs & sends transactions, high-level user actions
         └── ScallopBuilder // owns raw SuiKit + TransactionExecutor; composes ScallopTxBlocks
-              └── ScallopQuery  // read facade — owns query.grpc (SuiGrpcClient); delegates to the repository registry
+              └── ScallopQuery  // read facade — owns query.grpc (transport-selected Core client); delegates to the repository registry
                     └── ScallopUtils  // type lookups, coin metadata; holds utils.client (resolved Core read client)
                           └── ScallopConstants    // pool addresses, whitelist, decimals
                                 └── ScallopAddress // address registry + HTTP (ApiDataSource)
@@ -368,5 +367,5 @@ Then run `pnpm run test:typecheck && pnpm run test:unit && pnpm run build` befor
 - [`V3_TO_V4.md`](V3_TO_V4.md) — upgrade guide with step-by-step v3 → v4 diffs
 - [`V2_TO_V4.md`](V2_TO_V4.md) — upgrade guide with step-by-step v2 → v4 diffs
 - [`../CHANGELOG.md`](../CHANGELOG.md) — v4.0.0 BREAKING CHANGES + Added sections
-- [`../.claude/CLAUDE.md`](../.claude/CLAUDE.md) — coding conventions for AI assistants
+- [`../CLAUDE.md`](../CLAUDE.md) — coding conventions for AI assistants
 - `node_modules/@mysten/*/docs/llms-index.md` — Sui SDK reference (read indexes first)

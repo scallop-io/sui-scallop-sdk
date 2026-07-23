@@ -21,7 +21,7 @@ Current package: `@scallop-io/sui-scallop-sdk` v4.x. ESM package, Node `>=22`, p
 ## Install
 
 ```bash
-pnpm add @scallop-io/sui-scallop-sdk @mysten/sui
+pnpm add @scallop-io/sui-scallop-sdk @mysten/sui @tanstack/query-core
 ```
 
 ## Public Entry Points
@@ -87,6 +87,7 @@ Important v4 details:
 Mainnet example:
 
 ### gRPC
+
 ```ts
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
@@ -377,7 +378,7 @@ Integration/query/full test runs require local environment variables such as `SE
 
 ## More Docs
 
-- Contributor architecture: [`docs/SDK_STRUCTURE.md`](docs/SDK_STRUCTURE.md)
+- Contributor architecture: [`llm-docs/SDK_STRUCTURE.md`](llm-docs/SDK_STRUCTURE.md)
 - Client guide: [`document/client.md`](document/client.md)
 - Query guide: [`document/query.md`](document/query.md)
 - Address guide: [`document/address.md`](document/address.md)
