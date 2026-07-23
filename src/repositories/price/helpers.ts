@@ -136,7 +136,7 @@ export const getPythPricesFromIndexerApi = async (
     // Map the prices to the requested coin names, defaulting to 0 if the coin
     // has no pool coinType or the indexer didn't return a feed for it.
     return coinNames.reduce<Record<string, number>>((acc, coinName) => {
-      const coinType = addresses.coins[coinName].coinType;
+      const coinType = addresses.coins[coinName]?.coinType;
       const feed = coinType ? priceByCoinType[coinType] : undefined;
       acc[coinName] = feed
         ? BigNumber(feed.price).shiftedBy(feed.expo).toNumber()
@@ -146,13 +146,16 @@ export const getPythPricesFromIndexerApi = async (
   } catch (e) {
     throw logError(
       logger,
-      new ScallopIndexerError('Failed to fetch price feeds from Pyth API', {
-        context: {
-          endpoint: `${indexer.url}${path}`,
-          coinNames,
-          message: (e as Error).message,
-        },
-      })
+      new ScallopIndexerError(
+        'Failed to fetch price feeds from Scallop Indexer',
+        {
+          context: {
+            endpoint: `${indexer.url}${path}`,
+            coinNames,
+            message: (e as Error).message,
+          },
+        }
+      )
     );
   }
 };
