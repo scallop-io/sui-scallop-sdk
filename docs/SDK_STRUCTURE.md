@@ -31,10 +31,10 @@ Supporting pieces:
 
 - `ScallopConstants` owns protocol config: addresses, pool addresses, whitelist, decimals. It **composes** `ScallopAddress` (`constants.address`) and embeds its config sources + validator under `src/models/scallopConstants/config/`.
 - `ScallopAddress` is the address/HTTP adapter; it reads the Scallop API via `ApiDataSource`.
-- `ScallopUtils` owns an `OnChainDataSource` (`utils.onchain`) — a rate-limited Sui read client — plus `ScallopConstants`.
+- `ScallopUtils` holds the resolved Core read client (`utils.client`, a `ClientWithCoreMethods`) plus `ScallopConstants`. `ScallopQuery` owns the raw Sui gRPC Core client (`query.grpc`, a `SuiGrpcClient`); the rate-limited `GrpcDataSource` that wraps it is built inside the repository registry.
 - `ScallopBuilder` owns the raw `SuiKit` (`builder.suiKit`) and the write-path `TransactionExecutor` (`builder.executor`, a `SuiKitTransactionExecutor`).
 - `src/datasources/` is the raw transport layer (on-chain RPC, indexer, API, and a Sui GraphQL source for reads with no gRPC equivalent). `ScallopSuiKit` and the `ScallopIndexer` model were both removed.
-- **Read transport is switchable.** `OnChainDataSource` only calls the transport-agnostic Sui **Core API**, so it wraps either a `SuiGrpcClient` (default) or a `SuiGraphQLClient`. Pass `readTransport: 'graphql'` to `Scallop`/`ScallopQuery` (or inject a `suiClient`) to move all repository reads onto GraphQL. Under GraphQL, the heavy dynamic-field walkers (`poolAddresses`, `xOracle`, `veSca` family, `obligation` names, `flashloan`, `borrowIncentive` bindings) additionally issue single **native nested GraphQL queries** (owned by `GraphQLDataSource`) instead of the gRPC multi-call fan-out, gated behind `preferGraphql` and falling back to the gRPC Core path on failure (`runWithGraphQLFallback` in `repositories/utils.ts`).
+- **The Core read path is always gRPC.** The registry's `GrpcDataSource` (wrapping `query.grpc`) calls the Sui **Core API** (`getObjects`, `getDynamicField`, `listOwnedObjects`, `getBalance`, `simulateTransaction`, …) over gRPC — it is never routed over GraphQL. A separate `GraphQLDataSource` owns only the GraphQL-**native** primitives that have no single-round-trip Core equivalent (`multiGetBalances`, `listDynamicFieldsWithValues`, `multiGetDynamicFields`). Passing `readTransport: 'graphql'` to `Scallop`/`ScallopQuery` no longer moves Core reads onto GraphQL; it only flips `preferGraphql`, so the heavy dynamic-field walkers (`poolAddresses`, `xOracle`, `veSca` family, `obligation` names, `flashloan`, `borrowIncentive` bindings) that *have* a native GraphQL query prefer it instead of the gRPC multi-call fan-out. Selection is strict by transport — no automatic fallback to the gRPC Core path (`runByReadTransport` in `repositories/utils.ts`); a failing native GraphQL query propagates. See [`GRAPHQL_SUPPORT.md`](GRAPHQL_SUPPORT.md).
 - `src/mappers/` is now just `moveTypeMapper` (gRPC vs JSON-RPC `TypeName` differences); per-domain payload parsing lives inside each repository.
 - `src/services/query/portfolioCalculations.ts` holds pure math extracted from portfolio queries.
 - `src/errors/`, `src/logger/`, `src/types/public`, and `src/types/internal` are cross-cutting support layers.
@@ -51,9 +51,8 @@ These are the names you import. They form a dependency chain — each holds a re
 Scallop
   └── ScallopClient        // write facade: signs & sends transactions, high-level user actions
         └── ScallopBuilder // owns raw SuiKit + TransactionExecutor; composes ScallopTxBlocks
-              └── ScallopQuery  // read facade — delegates to the repository registry
-                    └── ScallopUtils  // type lookups, coin metadata, OnChainDataSource
-                          ├── OnChainDataSource   // rate-limited Sui read client (utils.onchain)
+              └── ScallopQuery  // read facade — owns query.grpc (SuiGrpcClient); delegates to the repository registry
+                    └── ScallopUtils  // type lookups, coin metadata; holds utils.client (resolved Core read client)
                           └── ScallopConstants    // pool addresses, whitelist, decimals
                                 └── ScallopAddress // address registry + HTTP (ApiDataSource)
 ```
@@ -68,7 +67,7 @@ ScallopBuilder
 
 **Init:** every model exposes `.init()`. You don't usually call it yourself — `Scallop.createScallopClient()` / `createScallopBuilder()` / `createScallopQuery()` / `createScallopUtils()` handle it.
 
-**Parent accessors:** each model exposes its dependencies as getters (`client.builder`, `builder.query`, `query.utils`, `utils.constants`, `constants.address`). `ScallopClient` also forwards `suiKit` / `executor` / `onchain` to the builder/utils that own them. This makes the chain navigable without re-instantiating anything.
+**Parent accessors:** each model exposes its dependencies as getters (`client.builder`, `builder.query`, `query.utils`, `utils.constants`, `constants.address`). `ScallopClient` also forwards `suiKit` / `executor` to the builder and `grpc` to the query that own them. This makes the chain navigable without re-instantiating anything.
 
 > ⚠️ **v4 change:** `ScallopConstants` used to _extend_ `ScallopAddress`. As of v4 it **composes** it — reach the address adapter via `constants.address`. Most call sites are unaffected because `constants.get(...)`, `constants.getAddresses(...)`, etc. still work via forwarders.
 
@@ -88,7 +87,7 @@ src/
 │   ├── scallopClient/       # write facade + client-service wiring
 │   ├── scallopBuilder/      # owns raw SuiKit + TransactionExecutor; builds ScallopTxBlocks
 │   ├── scallopQuery/        # read facade — delegates to repositories (this.repos.<domain>)
-│   ├── scallopUtils/        # coin/type helpers; owns OnChainDataSource
+│   ├── scallopUtils/        # coin/type helpers; holds the resolved Core read client (utils.client)
 │   ├── scallopConstants/    # protocol config
 │   │   └── config/          # ScallopConfig, snapshot, ConfigValidator, *ConfigSource
 │   ├── scallopAddress/      # address registry + HTTP (reads API via ApiDataSource)
@@ -111,7 +110,7 @@ src/
 │   └── index.ts             # newScallopTxBlock — Proxy that layers all builders
 │
 ├── datasources/             # ⭐ Raw transport
-│   ├── onchain.ts           # OnChainDataSource — rate-limited Sui read client (new-gen SDK)
+│   ├── grpc.ts              # GrpcDataSource — rate-limited Sui gRPC read client (new-gen SDK)
 │   ├── rateLimiter.ts       # token-bucket throttle (single point for all on-chain reads)
 │   ├── api.ts               # ApiDataSource — Scallop API (axios)
 │   ├── indexer.ts           # IndexerDataSource extends ApiDataSource (indexer base url)
@@ -204,7 +203,7 @@ Property lookup falls through from outermost (core) to innermost (obligationNami
 ScallopQuery.getMarketPools()
        │  (1-line delegation in v4)
        ▼
-this.repos.market.getMarkets(...)        ← createRepositories({ utils }) in repositories/wiring/registry.ts
+this.repos.market.getMarkets(...)        ← createRepositories({ core, graphql, utils, ... }) in repositories/wiring/registry.ts
        │  picks a source via QuerySource (default 'api-first' for dual-source domains)
        ▼
 runWithDataSourceFallback({ source, api, onchain })   ← src/repositories/utils.ts
@@ -215,7 +214,7 @@ runWithDataSourceFallback({ source, api, onchain })   ← src/repositories/utils
        │  └── onchain  → getMarketsFromOnChain(ctx)
        │                        │
        │                        ▼
-       │               OnChainDataSource (rate-limited) → parse
+       │               GrpcDataSource (rate-limited) → parse
        ▼
 returns typed MarketPool[]
 ```
@@ -285,13 +284,13 @@ The validation lives in `src/models/scallopConstants/config/ConfigValidator.ts` 
 
 ### Query caching
 
-The repository layer uses `@tanstack/query-core`'s `QueryClient` (shared via `src/repositories/cache.ts`) for on-chain and indexer data. Every network read goes through `ctx.fetchWithCache({ queryKey, queryFn })`; cache keys are centralised in `src/constants/queryKeys.ts` (always include `node: onchain.url` in RPC keys). The network call **must live inside `queryFn`** so `fetchWithCache` provides both in-flight dedup and `staleTime` reuse — a fetch issued before `fetchWithCache` bypasses the cache entirely.
+The repository layer uses `@tanstack/query-core`'s `QueryClient` (shared via `src/repositories/cache.ts`) for on-chain and indexer data. Every network read goes through `ctx.fetchWithCache({ queryKey, queryFn })`; cache keys are centralised in `src/constants/queryKeys.ts` (always include `node: grpc.url` in RPC keys). The network call **must live inside `queryFn`** so `fetchWithCache` provides both in-flight dedup and `staleTime` reuse — a fetch issued before `fetchWithCache` bypasses the cache entirely.
 
 **Pyth price reads** (`price/helpers.ts` — `getPythPricesFromPythApi` / `getPythPricesFromIndexerApi`) always fetch the full, sorted feed-id universe (from `addresses.coins[*].oracle.pyth.feed`) under one stable, subset-independent key (`queryKeys.oracle.getPythAllPriceFeeds`), then filter the cached `feedId → price` map down to the requested coins. So a single-coin `getPythCoinPrice('sui')` and a full `getPythCoinPrices()` share one cache entry. The entry's `staleTime`/`gcTime` is `priceTimeout` (default `5_000` ms, configurable via the `ScallopQuery`/`Scallop` constructor), so within that window all price reads are served from the one cached fetch. Coins with no configured feed default to `0`.
 
 ### Batching on-chain object reads
 
-`onchain.client.getObjects` accepts at most 50 ids per call. Helpers that fan out over many objects chunk the id list with `partitionArray(ids, 50)` (`src/utils/vesca.ts`) — see `price/`, `market/`, `spool/`, `poolAddresses/`.
+`grpc.client.getObjects` accepts at most 50 ids per call. Helpers that fan out over many objects chunk the id list with `partitionArray(ids, 50)` (`src/utils/vesca.ts`) — see `price/`, `market/`, `spool/`, `poolAddresses/`.
 
 ---
 
