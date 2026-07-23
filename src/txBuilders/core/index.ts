@@ -48,13 +48,7 @@ export const newCoreTxBlock = (
       moveCall: builder.moveCall.bind(builder),
       logger: builder.utils.logger,
       suiKit: builder.suiKit,
-      // Preserve the legacy `builder.pythEndpoints ?? whitelist` resolution.
-      // Guarded spread: the whitelist is read eagerly at construction (the old
-      // code read it lazily in the pull path), so tolerate a missing list.
-      pythEndpoints: builder.pythEndpoints,
-      fallbackPythEndpoints: [
-        ...(builder.constants.whitelist.pythEndpoints ?? []),
-      ],
+      pythEndpoint: builder.pythEndpoint,
       pythApiKey: builder.pythApiKey,
       // Lazy: only the keyless Pyth pull path reads this, so defer resolution to
       // call time (mirrors `getAssetOracles`) instead of touching `query.repos`

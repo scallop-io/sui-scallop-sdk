@@ -1,4 +1,5 @@
 export const DEFAULT_PYTH_URL = 'https://pyth.dourolabs.app/hermes' as const;
+export const LEGACY_PYTH_HERMES_ENDPOINT = 'https://hermes.pyth.network';
 
 /**
  * Default cache lifetime (ms) for the full Pyth price-feed list. Within this

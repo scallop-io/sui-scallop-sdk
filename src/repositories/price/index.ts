@@ -11,7 +11,11 @@ import { IndexerDataSource } from 'src/datasources/indexer.js';
 import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { BaseRepository } from '../base.js';
 import { QuerySource, runWithDataSourceFallback } from '../utils.js';
-import { DEFAULT_PRICE_TIMEOUT, DEFAULT_PYTH_URL } from './const.js';
+import {
+  DEFAULT_PRICE_TIMEOUT,
+  DEFAULT_PYTH_URL,
+  LEGACY_PYTH_HERMES_ENDPOINT,
+} from './const.js';
 import {
   getPricesFromIndexer,
   getPythFeedObjectFromOnChain,
@@ -36,6 +40,7 @@ export class PriceRepository extends BaseRepository<
   private readonly grpc: GrpcDataSource;
   private readonly priceTimeout: number;
   private readonly pythApiKey?: string;
+  private readonly pythEndpoint: string;
 
   constructor({
     pythPriceServiceConfig,
@@ -44,15 +49,17 @@ export class PriceRepository extends BaseRepository<
     priceTimeout,
     pythApiKey,
     pythEndpoints,
+    pythEndpoint = pythEndpoints?.[0] ?? DEFAULT_PYTH_URL,
     ...params
   }: PriceRepositoryParams) {
     super(params);
     this.pythApiKey = pythApiKey;
+    this.pythEndpoint = pythEndpoint;
     // Default the price-read endpoint to the builder's first configured
     // `pythEndpoints` entry, falling back to DEFAULT_PYTH_URL. An explicit
     // `pythPriceServiceConfig` still takes precedence over both.
     const config = pythPriceServiceConfig ?? {
-      endpoint: pythEndpoints?.[0] ?? DEFAULT_PYTH_URL,
+      endpoint: this.pythEndpoint,
       config: {
         timeout: 4_000,
         httpRetries: 1,
@@ -106,9 +113,10 @@ export class PriceRepository extends BaseRepository<
    * enrichment is best-effort — if it fails, the API result (with `0`s) stands.
    */
   private async getPricesFromApi(coinNames: string[]) {
-    const prices = this.pythApiKey
-      ? await getPythPricesFromPythApi(this.context, coinNames)
-      : await getPythPricesFromIndexerApi(this.context, coinNames);
+    const prices =
+      this.pythEndpoint === LEGACY_PYTH_HERMES_ENDPOINT || !!this.pythApiKey
+        ? await getPythPricesFromPythApi(this.context, coinNames)
+        : await getPythPricesFromIndexerApi(this.context, coinNames);
 
     const missing = coinNames.filter((coinName) => !prices[coinName]);
     if (missing.length === 0) return prices;
