@@ -59,10 +59,18 @@ const fakeUtils = {
 
 // Core (gRPC) + GraphQL clients are separate registry deps now. The registry
 // builds its datasources from these at construction; the fakes only need the
-// shape the datasource factories touch eagerly (`core.core`).
+// shape the datasource factories touch eagerly (`core.core`). GrpcDataSource's
+// constructor asserts `core.core` exposes every CORE_METHOD, so stub them.
+const fakeCoreClient = {
+  getObjects: () => {},
+  listOwnedObjects: () => {},
+  listCoins: () => {},
+  listDynamicFields: () => {},
+  getDynamicField: () => {},
+};
 const fakeDeps = {
   utils: fakeUtils,
-  core: { core: {} },
+  core: { core: fakeCoreClient },
   graphql: {},
 } as unknown as Parameters<typeof createRepositories>[0];
 

@@ -11,7 +11,11 @@ import { queryKeys } from 'src/constants/queryKeys.js';
 import { bcs } from '@mysten/sui/bcs';
 import { prepend0x } from './utils.js';
 import { PricePolicyRulesVecSet } from './bcs.js';
-import { getDynamicFieldOrNull, logError } from '../utils.js';
+import {
+  getDynamicFieldOrNull,
+  logError,
+  type DynamicFieldsWithValuePage,
+} from '../utils.js';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 import { ScallopParseError, ScallopRpcError } from 'src/errors/index.js';
 
@@ -268,25 +272,25 @@ const querySwitchboardRegistryAggs = async (
   let hasNextPage = false;
 
   do {
-    const options: SuiClientTypes.ListDynamicFieldsOptions = {
+    const options: SuiClientTypes.ListDynamicFieldsOptions & {
+      include: { value: true };
+    } = {
       parentId: registryTableId,
       cursor,
       limit: 50,
-      // @ts-ignore - Supported on grpc implementation
       include: { value: true },
     };
-    const resp = await fetchWithCache({
+    const resp: DynamicFieldsWithValuePage = await fetchWithCache({
       queryKey: queryKeys.rpc.getDynamicFields({
         ...options,
         node: grpc.url,
       }),
-      queryFn: () => grpc.client.listDynamicFields(options),
+      queryFn: () => grpc.client.listDynamicFields<{ value: true }>(options),
     });
 
     for (const field of resp.dynamicFields) {
       const coinTypeKey = parseRegistryCoinTypeKey(field);
       if (!coinTypeKey || !missingCoinTypes.has(coinTypeKey)) continue;
-      // @ts-ignore - value is supported on grpc implementation
       const valueBcs = field.value?.bcs;
       if (valueBcs) {
         result[coinTypeKey] = bcs.Address.parse(valueBcs);

@@ -6,6 +6,7 @@ import { API_BASE_URL, SDK_API_BASE_URL } from 'src/constants/api.js';
 import { ApiDataSource } from 'src/datasources/api.js';
 import { IndexerDataSource } from 'src/datasources/indexer.js';
 import { GrpcDataSource } from 'src/datasources/grpc.js';
+import type { SuiGrpcClient } from '@mysten/sui/grpc';
 import {
   GraphQLDataSource,
   MAINNET_GRAPHQL_URL,
@@ -29,8 +30,12 @@ export const createGrpcDataSource = (
   }
 ): GrpcDataSource =>
   new GrpcDataSource({
-    // transport methods (getObjects/simulateTransaction/…) live on `.core`
-    client: client.core,
+    // transport methods (getObjects/simulateTransaction/…) live on `.core`.
+    // `.core.listDynamicFields` is typed metadata-only but forwards `options`
+    // (incl. `include: { value: true }`) to the underlying include-capable
+    // client method on both transports, so we assert the richer
+    // `SuiGrpcClient` shape here — the single place that assertion lives.
+    client: client.core as unknown as SuiGrpcClient,
     url,
     // The datasource is the single rate-limit point for every repo read.
     tokensPerSecond: options?.tokensPerSecond,

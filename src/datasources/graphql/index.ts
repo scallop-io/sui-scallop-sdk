@@ -17,15 +17,13 @@ import {
   MultiGetBalancesResult,
   MultiGetBalancesVariables,
   GraphQLDynamicField,
-  DynamicFieldsQueryResult,
-  DynamicFieldsQueryVariables,
   DynamicFieldValueNode,
 } from 'src/datasources/graphql/types.js';
 import {
   COIN_BALANCES_BY_TYPES_QUERY,
   DYNAMIC_FIELD_NODE_SELECTION,
-  DYNAMIC_FIELDS_WITH_VALUES_QUERY,
 } from 'src/datasources/graphql/queries.js';
+import type { OnChainDataSource } from 'src/datasources/onchain.js';
 
 /**
  * Max coin types per `multiGetBalances` query. The Sui GraphQL endpoint caps a
@@ -58,7 +56,7 @@ export type GraphQLDataSourceParams = {
  * throttled through a shared `RateLimiter`. Used where the GraphQL balance
  * service is more stable than gRPC (currently `coinBalance`).
  */
-export class GraphQLDataSource {
+export class GraphQLDataSource implements OnChainDataSource<SuiGraphQLClient> {
   public readonly client: SuiGraphQLClient;
   public readonly url: string;
   private readonly fetchWithCache: FetchWithCache;
@@ -78,6 +76,19 @@ export class GraphQLDataSource {
     this.logger = logger;
     this.fetchWithCache = createFetchWithCache(queryClient, logger);
     this.limiter = new RateLimiter(tokensPerSecond);
+  }
+
+  /**
+   * Object read, delegated straight to the underlying client (which resolves it
+   * through GraphQL Core). Present so this datasource satisfies
+   * {@link OnChainDataSource} alongside {@link GrpcDataSource}; unlike the gRPC
+   * datasource it does NOT coalesce — this source's hot path is balance reads,
+   * not object fetches, so the request-batching buffer would be dead weight here.
+   */
+  getObject<Include extends SuiClientTypes.ObjectInclude = {}>(
+    options: SuiClientTypes.GetObjectOptions<Include>
+  ): Promise<SuiClientTypes.GetObjectResponse<Include>> {
+    return this.client.getObject(options);
   }
 
   /**
@@ -169,70 +180,6 @@ export class GraphQLDataSource {
       },
       {} as Record<string, SuiClientTypes.Balance>
     );
-  }
-
-  /**
-   * List ALL dynamic fields of `parentId` with their values inline, paging the
-   * GraphQL connection internally. The whole scan is memoised under one stable
-   * cache key (like the Pyth full-feed read) so repeated table walks in a tick
-   * share it. Each page is throttled through the shared rate limiter.
-   *
-   * Returns entries whose `fieldId` matches what a gRPC `listDynamicFields`
-   * would return, so callers can swap their "list ids + batch-fetch values"
-   * two-step for this single read without changing the field ids they persist.
-   */
-  async listDynamicFieldsWithValues(
-    parentId: string,
-    { pageLimit = 50 }: { pageLimit?: number } = {}
-  ): Promise<GraphQLDynamicField[]> {
-    return this.fetchWithCache({
-      queryKey: queryKeys.rpc.getDynamicFieldsWithValues({
-        node: this.url,
-        parentId,
-        includeValue: true,
-      }),
-      queryFn: async () => {
-        const fields: GraphQLDynamicField[] = [];
-        let cursor: string | null = null;
-
-        do {
-          const resp = await this.recordedExecute(
-            'listDynamicFieldsWithValues',
-            1,
-            () =>
-              this.client.query<
-                DynamicFieldsQueryResult,
-                DynamicFieldsQueryVariables
-              >({
-                query: DYNAMIC_FIELDS_WITH_VALUES_QUERY,
-                variables: { parentId, first: pageLimit, cursor },
-              })
-          );
-          if (resp.errors?.length) {
-            const error = new ScallopRpcError(
-              `GraphQL listDynamicFieldsWithValues failed: ${resp.errors[0].message}`,
-              { context: { parentId } }
-            );
-            this.logger.error(error.message, error.context);
-            throw error;
-          }
-
-          const connection = resp.data?.address?.dynamicFields;
-          if (!connection) break;
-
-          for (const node of connection.nodes) {
-            const normalized = normalizeDynamicField(parentId, node);
-            if (normalized) fields.push(normalized);
-          }
-
-          cursor = connection.pageInfo.hasNextPage
-            ? connection.pageInfo.endCursor
-            : null;
-        } while (cursor);
-
-        return fields;
-      },
-    });
   }
 
   /**

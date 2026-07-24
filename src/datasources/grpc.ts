@@ -3,7 +3,12 @@ import { RateLimiter } from './rateLimiter.js';
 import { partitionArray } from 'src/utils/array.js';
 import type { SuiObjectData } from 'src/types/index.js';
 import { recordRpcCall } from './rpcStats.js';
-import { ClientWithCoreMethods, CORE_METHODS } from 'src/datasources/types.js';
+import {
+  CORE_METHODS,
+  type OnChainDataSource,
+} from 'src/datasources/onchain.js';
+import { CORE_METHODS as RATE_LIMITED_METHOD_NAMES } from 'src/datasources/types.js';
+import type { SuiGrpcClient } from '@mysten/sui/grpc';
 
 // Re-exported so existing importers keep resolving these from `onchain.js`; the
 // accounting itself now lives in the shared `rpcStats` module (also fed by the
@@ -16,7 +21,7 @@ export {
 } from './rpcStats.js';
 
 type GrpcDataSourceParams = {
-  client: ClientWithCoreMethods;
+  client: SuiGrpcClient;
   url: string;
   /**
    * Transport throughput cap (token-bucket). The SDK's policy default lives in
@@ -70,7 +75,10 @@ export const DEFAULT_OBJECT_BATCH_WINDOW_MS = 0;
  * datasource was given (jsonRpc or gRPC), so the limiter applies regardless of
  * the underlying SDK transport.
  */
-const RATE_LIMITED_METHODS = new Set<string>(CORE_METHODS);
+// Throttle the FULL transport read surface (getObjects, listBalances,
+// simulateTransaction, …), not just the `onchain.CORE_METHODS` existence-check
+// subset — every on-chain read must share the one rate limiter.
+const RATE_LIMITED_METHODS = new Set<string>(RATE_LIMITED_METHOD_NAMES);
 
 /**
  * Coarse per-call cardinality for accounting — how many logical items a single
@@ -87,9 +95,9 @@ const cardinalityOf = (method: string, args: unknown[]): number => {
 };
 
 const withRateLimit = (
-  client: ClientWithCoreMethods,
+  client: SuiGrpcClient,
   limiter: RateLimiter
-): ClientWithCoreMethods =>
+): SuiGrpcClient =>
   new Proxy(client, {
     get(target, prop, receiver) {
       const value = Reflect.get(target, prop, receiver);
@@ -127,21 +135,19 @@ const withRateLimit = (
  * GraphQL transport's query-payload cap. All other methods pass through.
  */
 const withObjectBatchLimit = (
-  client: ClientWithCoreMethods,
+  client: SuiGrpcClient,
   maxPerBatch: number
-): ClientWithCoreMethods =>
+): SuiGrpcClient =>
   new Proxy(client, {
     get(target, prop, receiver) {
       if (prop !== 'getObjects') return Reflect.get(target, prop, receiver);
-      return async (
-        options: Parameters<ClientWithCoreMethods['getObjects']>[0]
-      ) => {
+      return async (options: Parameters<SuiGrpcClient['getObjects']>[0]) => {
         const objectIds = options?.objectIds ?? [];
         if (objectIds.length <= maxPerBatch) {
           return target.getObjects(options);
         }
         const merged: Awaited<
-          ReturnType<ClientWithCoreMethods['getObjects']>
+          ReturnType<SuiGrpcClient['getObjects']>
         >['objects'] = [];
         for (const chunk of partitionArray(objectIds, maxPerBatch)) {
           const { objects } = await target.getObjects({
@@ -194,8 +200,8 @@ const includeSignature = (
 
 const DEFAULT_TOKENS_PER_SECOND = 10;
 
-export class GrpcDataSource {
-  public readonly client: ClientWithCoreMethods;
+export class GrpcDataSource implements OnChainDataSource<SuiGrpcClient> {
+  public readonly client: SuiGrpcClient;
   public readonly url: string;
 
   /**
@@ -226,6 +232,14 @@ export class GrpcDataSource {
         : withObjectBatchLimit(rateLimited, maxObjectsPerBatch);
     this.url = url;
     this.objectBatchWindowMs = objectBatchWindowMs;
+
+    CORE_METHODS.forEach((method) => {
+      if (typeof this.client[method] !== 'function') {
+        throw new Error(
+          `GrpcDataSource: client is missing required method ${method}`
+        );
+      }
+    });
   }
 
   /**

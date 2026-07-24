@@ -118,6 +118,56 @@ export const getDynamicFieldWithCache = async (
   });
 };
 
+/** One dynamic-field entry with its value resolved inline (`value.bcs`). */
+export type DynamicFieldWithValue = SuiClientTypes.DynamicFieldEntry & {
+  value: SuiClientTypes.DynamicFieldValue;
+};
+
+/** One page of {@link DynamicFieldWithValue} entries from `listDynamicFields`. */
+export type DynamicFieldsWithValuePage = {
+  dynamicFields: DynamicFieldWithValue[];
+  hasNextPage: boolean;
+  cursor: string | null;
+};
+
+/**
+ * List ALL dynamic fields of `parentId` with their values inline, paging the
+ * Core `listDynamicFields` connection internally with `include: { value: true }`.
+ * Transport-agnostic: on the gRPC transport the value rides in the gRPC response;
+ * on GraphQL the Core client resolves it via the SDK's own paged query — so this
+ * needs no bespoke GraphQL query. The whole scan is memoised under one stable
+ * cache key so repeated table walks in a tick share it, and each page is
+ * throttled by the datasource's shared rate limiter.
+ */
+export const listDynamicFieldsWithValues = async (
+  ctx: GrpcReadContext,
+  parentId: string,
+  { pageLimit = 50 }: { pageLimit?: number } = {}
+): Promise<DynamicFieldWithValue[]> =>
+  ctx.fetchWithCache({
+    queryKey: queryKeys.rpc.getDynamicFieldsWithValues({
+      node: ctx.grpc.url,
+      parentId,
+      includeValue: true,
+    }),
+    queryFn: async () => {
+      const fields: DynamicFieldWithValue[] = [];
+      let cursor: string | null = null;
+      do {
+        const resp: DynamicFieldsWithValuePage =
+          await ctx.grpc.client.listDynamicFields<{ value: true }>({
+            parentId,
+            limit: pageLimit,
+            cursor,
+            include: { value: true },
+          });
+        fields.push(...resp.dynamicFields);
+        cursor = resp.hasNextPage ? resp.cursor : null;
+      } while (cursor);
+      return fields;
+    },
+  });
+
 /**
  * Object-level "not found" codes the Sui client raises on a missing object /
  * dynamic field.

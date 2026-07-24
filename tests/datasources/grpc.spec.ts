@@ -8,12 +8,29 @@ import {
 
 // A fake transport client whose methods resolve immediately; we only assert the
 // rate limiter gates them, so the actual payloads are irrelevant.
+// The GrpcDataSource constructor asserts the client exposes every CORE_METHOD;
+// these stubs satisfy that guard for tests that only exercise getObjects.
+const coreStubs = () => ({
+  listOwnedObjects: vi.fn(),
+  listCoins: vi.fn(),
+  listDynamicFields: vi.fn(),
+  getDynamicField: vi.fn(),
+});
+
 const makeClient = () => {
   const getObjects = vi.fn(async () => ({ objects: [{ objectId: '0xA' }] }));
   const simulateTransaction = vi.fn(async () => ({ ok: true }));
-  // The test client only implements the two methods these cases exercise; it's
-  // cast to the client shape at the constructor call site.
-  return { getObjects, simulateTransaction };
+  // GrpcDataSource's constructor asserts the client exposes every CORE_METHOD,
+  // so stub the rest (unused by these cases) to pass that guard; cast to the
+  // client shape at the constructor call site.
+  return {
+    getObjects,
+    simulateTransaction,
+    listOwnedObjects: vi.fn(),
+    listCoins: vi.fn(),
+    listDynamicFields: vi.fn(),
+    getDynamicField: vi.fn(),
+  };
 };
 
 describe('GrpcDataSource rate limiting', () => {
@@ -92,7 +109,7 @@ describe('GrpcDataSource rate limiting', () => {
       })
     );
     const ds = new GrpcDataSource({
-      client: { getObjects } as never,
+      client: { getObjects, ...coreStubs() } as never,
       url: 'x',
       tokensPerSecond: 100,
     });
@@ -126,7 +143,7 @@ describe('GrpcDataSource rate limiting', () => {
       })
     );
     const ds = new GrpcDataSource({
-      client: { getObjects } as never,
+      client: { getObjects, ...coreStubs() } as never,
       url: 'x',
       tokensPerSecond: 100,
     });
@@ -154,7 +171,7 @@ describe('GrpcDataSource rate limiting', () => {
       })
     );
     const ds = new GrpcDataSource({
-      client: { getObjects } as never,
+      client: { getObjects, ...coreStubs() } as never,
       url: 'x',
       tokensPerSecond: 100,
     });
@@ -189,7 +206,7 @@ describe('GrpcDataSource RPC accounting', () => {
       })
     );
     const ds = new GrpcDataSource({
-      client: { getObjects } as never,
+      client: { getObjects, ...coreStubs() } as never,
       url: 'x',
       tokensPerSecond: 1000,
     });
@@ -206,7 +223,7 @@ describe('GrpcDataSource RPC accounting', () => {
     // requests outside the scope must not leak into its stats.
     const getObjects = vi.fn(async () => ({ objects: [{ objectId: '0xA' }] }));
     const ds = new GrpcDataSource({
-      client: { getObjects } as never,
+      client: { getObjects, ...coreStubs() } as never,
       url: 'x',
       tokensPerSecond: 1000,
     });

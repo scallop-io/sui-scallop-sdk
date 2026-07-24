@@ -6,6 +6,7 @@ import {
   isObjectNotFoundError,
   getDynamicFieldWithCache,
   getDynamicFieldOrNull,
+  listDynamicFieldsWithValues,
 } from 'src/repositories/utils.js';
 import { ScallopRpcError } from 'src/errors/index.js';
 
@@ -274,6 +275,71 @@ describe('getDynamicFieldWithCache', () => {
 
     expect(res).toBe('DF');
     expect(getDynamicField).toHaveBeenCalledWith(options);
+  });
+});
+
+describe('listDynamicFieldsWithValues', () => {
+  const entry = (fieldId: string) => ({
+    $kind: 'DynamicField',
+    fieldId,
+    type: '0x2::dynamic_field::Field<u64,bool>',
+    name: { type: 'u64', bcs: new Uint8Array([1]) },
+    valueType: 'bool',
+    value: { type: 'bool', bcs: new Uint8Array([1]) },
+  });
+
+  it('pages listDynamicFields until hasNextPage is false, concatenating entries', async () => {
+    // intent: a full table walk follows the cursor across pages
+    const listDynamicFields = vi
+      .fn()
+      .mockResolvedValueOnce({
+        dynamicFields: [entry('0xa')],
+        hasNextPage: true,
+        cursor: 'c1',
+      })
+      .mockResolvedValueOnce({
+        dynamicFields: [entry('0xb')],
+        hasNextPage: false,
+        cursor: null,
+      });
+    // passthrough cache: run the queryFn the cache layer would memoize
+    const fetchWithCache = vi.fn(
+      async ({ queryFn }: { queryFn: () => unknown }) => queryFn()
+    );
+    const ctx = {
+      grpc: { url: 'mock://node', client: { listDynamicFields } },
+      fetchWithCache,
+    };
+
+    const fields = await listDynamicFieldsWithValues(ctx as never, '0xparent');
+
+    expect(fields.map((f) => f.fieldId)).toEqual(['0xa', '0xb']);
+    expect(listDynamicFields).toHaveBeenCalledTimes(2);
+  });
+
+  it('requests values inline via include: { value: true }', async () => {
+    // intent: the scan must carry the inline value so callers avoid a second getObjects
+    const listDynamicFields = vi.fn().mockResolvedValue({
+      dynamicFields: [entry('0xa')],
+      hasNextPage: false,
+      cursor: null,
+    });
+    const fetchWithCache = vi.fn(
+      async ({ queryFn }: { queryFn: () => unknown }) => queryFn()
+    );
+    const ctx = {
+      grpc: { url: 'mock://node', client: { listDynamicFields } },
+      fetchWithCache,
+    };
+
+    await listDynamicFieldsWithValues(ctx as never, '0xparent');
+
+    expect(listDynamicFields).toHaveBeenCalledWith(
+      expect.objectContaining({
+        parentId: '0xparent',
+        include: { value: true },
+      })
+    );
   });
 });
 
