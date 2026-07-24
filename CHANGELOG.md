@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.4.0...v5.0.0) (2026-07-25)
+
+### Added
+
+- Switchable read transport — `ScallopQuery` / `ScallopBuilder` accept `readTransport: 'grpc' | 'graphql'` plus `graphqlUrl` / `graphqlClient`, routing Core reads (balances, and dynamic-field-heavy repos like `poolAddresses` / `flashloan` / `obligation`) over native Sui GraphQL when enabled ([630c2b0](https://github.com/scallop-io/sui-scallop-sdk/commit/630c2b026d6fa47cd9f626f046768d3b48095f50), [7d2283a](https://github.com/scallop-io/sui-scallop-sdk/commit/7d2283a520a2c1af8d62bfef84a4799b1a79930b), [a1f8a5d](https://github.com/scallop-io/sui-scallop-sdk/commit/a1f8a5d46aea67202817e2a2035642259531cecf))
+- Request-coalescing on-chain object reads — same-tick `getObject` calls sharing an `include` selection are batched into a single `getObjects` call ([09c8ea2](https://github.com/scallop-io/sui-scallop-sdk/commit/09c8ea23c1e7d85eb3f50ba6f012a02635303c31))
+- `OnChainDataSource` — a shared `{ client, url, getObject }` shape both the gRPC and GraphQL datasources implement, unifying on-chain reads across transports ([8ae45b6](https://github.com/scallop-io/sui-scallop-sdk/commit/8ae45b63ea8b2f2790ac320fe5c027703ae9a213))
+
+### Changed
+
+- **BREAKING:** Replaced the single on-chain datasource with split gRPC + GraphQL read transports ([8dedca8](https://github.com/scallop-io/sui-scallop-sdk/commit/8dedca8740616b3c1fe590f6a406841063e9aef4))
+- **BREAKING:** `ScallopQuery.grpc` / `ScallopClient.grpc` / `ScallopBuilder.grpc` renamed to `coreClient` ([981c558](https://github.com/scallop-io/sui-scallop-sdk/commit/981c558def5ab5dc4632d9a96329237cb523e491))
+- **BREAKING:** `GrpcDataSource.client` is now typed as the full `SuiGrpcClient` (previously a narrower `ClientWithCoreMethods`) ([8ae45b6](https://github.com/scallop-io/sui-scallop-sdk/commit/8ae45b63ea8b2f2790ac320fe5c027703ae9a213))
+- **BREAKING:** Bumped the minimum `@mysten/sui` peer dependency to `>=2.22.0` ([64e2313](https://github.com/scallop-io/sui-scallop-sdk/commit/64e2313ef2176697fff64f67dc712bbf9d7d880a))
+- `ScallopAddress.get()` is now generic over the dotted path, returning the precise leaf/sub-object type instead of `any` ([1e5ded6](https://github.com/scallop-io/sui-scallop-sdk/commit/1e5ded6d6423a19191b5b6daca33846c220eec7e))
+
+### Deprecated
+
+- `pythEndpoints: string[]` on `ScallopBuilder` / `ScallopQuery` / `PriceRepository` is deprecated in favor of a single `pythEndpoint: string` (the first entry is still used as the default) ([c1b0d9d](https://github.com/scallop-io/sui-scallop-sdk/commit/c1b0d9d4718f50a6bfafe67071a64908f19287b5))
+
+### Removed
+
+- **BREAKING:** `GraphQLDataSource.listDynamicFieldsWithValues` (custom hand-written query) — superseded by Core's own include-capable `listDynamicFields` (`include: { value: true }`), supported natively by both transports ([8ae45b6](https://github.com/scallop-io/sui-scallop-sdk/commit/8ae45b63ea8b2f2790ac320fe5c027703ae9a213))
+
+### Fixed
+
+- `buildObligationMetadata` now nests `registryTableId` under `obligationNaming` correctly instead of assigning the bare string, fixing the obligation naming-registry lookup ([6d29a70](https://github.com/scallop-io/sui-scallop-sdk/commit/6d29a704a1916b382a8dc79b2a2ddc2258815856))
+- Guarded against a missing coin address entry when mapping indexer Pyth prices, and corrected an error message that mislabeled Scallop Indexer failures as Pyth API failures ([f764a2d](https://github.com/scallop-io/sui-scallop-sdk/commit/f764a2d6b6da6d6c4765c6522b4333b21205db27))
+
 ## [4.4.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.3.0...v4.4.0) (2026-07-20)
 
 ### Added
