@@ -33,28 +33,10 @@ type DynamicFieldValueNode = {
   } | null;
 } | null;
 
-type DynamicFieldsQueryResult = {
-  address: {
-    dynamicFields: {
-      pageInfo: { hasNextPage: boolean; endCursor: string | null };
-      nodes: {
-        name: { bcs: string; type: { repr: string } | null } | null;
-        value: DynamicFieldValueNode;
-      }[];
-    } | null;
-  } | null;
-};
-
-type DynamicFieldsQueryVariables = {
-  parentId: string;
-  first: number;
-  cursor: string | null;
-};
-
 /**
  * One normalized dynamic-field entry with its value resolved inline. `fieldId`
  * is derived exactly as the Sui SDK's own GraphQL Core does
- * (`deriveDynamicFieldID`), so it matches the `fieldId` a gRPC
+ * (`deriveDynamicFieldID`), so it matches the `fieldId` that Core
  * `listDynamicFields` would return for the same field.
  */
 type GraphQLDynamicField = {
@@ -78,7 +60,5 @@ export type {
   MultiGetBalancesResult,
   MultiGetBalancesVariables,
   DynamicFieldValueNode,
-  DynamicFieldsQueryResult,
-  DynamicFieldsQueryVariables,
   GraphQLDynamicField,
 };

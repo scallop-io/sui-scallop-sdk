@@ -1,16 +1,18 @@
 import { SuiClientTypes } from '@mysten/sui/client';
 import { bcs } from '@mysten/sui/bcs';
-import { fromBase64 } from '@mysten/sui/utils';
 import {
   PoolAddress,
   PoolAddressesApiContext,
   PoolAddressesGraphQLContext,
   PoolAddressesOnChainContext,
 } from './types.js';
-import type { GraphQLDynamicField } from 'src/datasources/graphql/types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { MarketObjectJsonSchema } from './schema.js';
-import { logError } from '../utils.js';
+import {
+  logError,
+  listDynamicFieldsWithValues,
+  type DynamicFieldWithValue,
+} from '../utils.js';
 import { ScallopParseError, ScallopRpcError } from 'src/errors/index.js';
 import {
   ADDRESS_TYPE,
@@ -463,26 +465,6 @@ export const getPoolAddressesFromOnChain = async (
 };
 
 /**
- * GraphQL twin of {@link parseDynamicFieldCoinTypeKey}: reads the coinType key
- * from a native GraphQL dynamic field. Same BCS shapes (`TypeName` struct for
- * `type_name::TypeName` keys, raw `string` otherwise); only the input differs
- * (base64 `name.bcs` here vs the transport `DynamicFieldEntry` there).
- */
-const parseGraphQLCoinTypeKey = (
-  field: GraphQLDynamicField
-): string | undefined => {
-  try {
-    const bytes = fromBase64(field.name.bcs);
-    if (field.name.type.includes('::type_name::TypeName')) {
-      return bcs.struct('TypeName', { name: bcs.string() }).parse(bytes).name;
-    }
-    return bcs.string().parse(bytes);
-  } catch {
-    return undefined;
-  }
-};
-
-/**
  * Native-GraphQL twin of {@link getPoolAddressesFromOnChain}. Where the on-chain
  * path issues ~11 paged `listDynamicFields` scans + a batched `getObjects` for
  * the values, this issues one `listDynamicFieldsWithValues` scan per source
@@ -500,7 +482,6 @@ export const getPoolAddressesFromGraphQL = async (
   }
 ): Promise<Record<string, PoolAddress>> => {
   const {
-    graphql,
     metadata: { addresses },
   } = ctx;
   const { core, spool, scoin } = addresses;
@@ -530,26 +511,26 @@ export const getPoolAddressesFromGraphQL = async (
     marketDynFields,
     flashloanFields,
   ] = await Promise.all([
-    graphql.listDynamicFieldsWithValues(balanceSheetParentId),
-    graphql.listDynamicFieldsWithValues(collateralStatsParentId),
-    graphql.listDynamicFieldsWithValues(borrowDynamicsParentId),
-    graphql.listDynamicFieldsWithValues(interestModelParentId),
-    graphql.listDynamicFieldsWithValues(riskModelParentId),
+    listDynamicFieldsWithValues(ctx, balanceSheetParentId),
+    listDynamicFieldsWithValues(ctx, collateralStatsParentId),
+    listDynamicFieldsWithValues(ctx, borrowDynamicsParentId),
+    listDynamicFieldsWithValues(ctx, interestModelParentId),
+    listDynamicFieldsWithValues(ctx, riskModelParentId),
     // One scan of the market covers borrowFee / supplyLimit / borrowLimit /
     // isolatedAsset (all keyed directly on the market object).
-    graphql.listDynamicFieldsWithValues(market),
-    graphql.listDynamicFieldsWithValues(flashLoanFeesTableId),
+    listDynamicFieldsWithValues(ctx, market),
+    listDynamicFieldsWithValues(ctx, flashLoanFeesTableId),
   ]);
 
   // coinTypeKey → dynamic-field object id, for fields of a given name type.
   const idsByType = (
-    fields: GraphQLDynamicField[],
+    fields: DynamicFieldWithValue[],
     type: string
   ): Record<string, string> => {
     const out: Record<string, string> = {};
     for (const field of fields) {
       if (field.name.type !== type) continue;
-      const key = parseGraphQLCoinTypeKey(field);
+      const key = parseDynamicFieldCoinTypeKey(field);
       if (key && coinTypeKeys.has(key)) out[key] = field.fieldId;
     }
     return out;
@@ -570,10 +551,12 @@ export const getPoolAddressesFromGraphQL = async (
   const isIsolated: Record<string, boolean> = {};
   for (const field of marketDynFields) {
     if (field.name.type !== ISOLATED_ASSET_KEY) continue;
-    const key = parseGraphQLCoinTypeKey(field);
+    const key = parseDynamicFieldCoinTypeKey(field);
     if (key && coinTypeKeys.has(key)) {
       isolatedAssetKey[key] = field.fieldId;
-      isIsolated[key] = Boolean(field.valueJson);
+      // Inline value is a bare `bool` MoveValue (see isolatedAssets/bcs.ts),
+      // parsed from BCS — the same flag the on-chain path reads off the Field.
+      isIsolated[key] = bcs.bool().parse(field.value.bcs);
     }
   }
 
@@ -581,7 +564,7 @@ export const getPoolAddressesFromGraphQL = async (
   // → fee object id.
   const flashloanFeeObjectIds: Record<string, string> = {};
   for (const field of flashloanFields) {
-    const key = parseGraphQLCoinTypeKey(field);
+    const key = parseDynamicFieldCoinTypeKey(field);
     if (!key) continue;
     const assetType = `0x${key}`;
     if (coinTypesFull.has(assetType)) {

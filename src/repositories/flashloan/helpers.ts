@@ -3,9 +3,8 @@ import { queryKeys } from 'src/constants/queryKeys.js';
 import { SuiObjectData } from 'src/types/sui.js';
 import { getDfObjectIdAndName, parseObjectAs } from 'src/utils/object.js';
 import { FlashloanGraphQLContext, FlashloanRepoContext } from './types.js';
-import type { GrpcReadContext } from '../utils.js';
+import { listDynamicFieldsWithValues, type GrpcReadContext } from '../utils.js';
 import { bcs } from '@mysten/sui/bcs';
-import { fromBase64 } from '@mysten/sui/utils';
 import { FEE_DENOMINATOR, FLASHLOAN_FEES_TABLE_ID } from './const.js';
 
 const queryFlashloanFees = async (
@@ -117,7 +116,7 @@ export const getFlashloanFeesFromGraphQL = async (
   ctx: FlashloanGraphQLContext,
   { assetNames }: { assetNames: string[] }
 ): Promise<Record<string, number>> => {
-  const { metadata, graphql } = ctx;
+  const { metadata } = ctx;
   const assetNamesSet = new Set(assetNames);
   const assetTypeMap = Object.fromEntries(
     [...metadata.coinTypeToCoinNameMap.entries()].filter(([, coinName]) =>
@@ -125,7 +124,8 @@ export const getFlashloanFeesFromGraphQL = async (
     )
   );
 
-  const fields = await graphql.listDynamicFieldsWithValues(
+  const fields = await listDynamicFieldsWithValues(
+    ctx,
     FLASHLOAN_FEES_TABLE_ID
   );
 
@@ -133,15 +133,16 @@ export const getFlashloanFeesFromGraphQL = async (
     (prev, field) => {
       let assetType: string;
       try {
-        assetType = `0x${bcs.string().parse(fromBase64(field.name.bcs))}`;
+        assetType = `0x${bcs.string().parse(field.name.bcs)}`;
       } catch {
         return prev;
       }
       const assetName = assetTypeMap[assetType];
       if (!assetName) return prev;
 
-      // The fee value is a scalar numerator; GraphQL returns it inline as json.
-      const feeNumerator = Number(field.valueJson);
+      // Fee value is a scalar `u64` numerator, read inline from BCS — the same
+      // numerator the on-chain path parses off the fetched Field object.
+      const feeNumerator = Number(bcs.u64().parse(field.value.bcs));
       if (Number.isNaN(feeNumerator)) return prev;
       prev[assetName] = feeNumerator / FEE_DENOMINATOR;
       return prev;
