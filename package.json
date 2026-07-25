@@ -91,7 +91,7 @@
     "release:major": "standard-version -r major",
     "release:minor": "standard-version -r minor",
     "release:patch": "standard-version -r patch",
-    "doc": "typedoc --out docs src/types/index.ts"
+    "doc": "typedoc --out docs --cleanOutputDir false src/entries/index.ts"
   },
   "dependencies": {
     "@noble/hashes": "^2.2.0",
