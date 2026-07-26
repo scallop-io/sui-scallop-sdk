@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.1.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.0.0...v5.1.0) (2026-07-26)
+
+### Changed
+
+- Bumped the minimum `@tanstack/query-core` peer dependency to `>=5.95.2` (was `>=5.59.16`) ([0ad1378](https://github.com/scallop-io/sui-scallop-sdk/commit/0ad137842a492f18eb4e2245f2c8fced683308c3))
+- On-chain object-read coalescing now merges same-tick reads whose `include` selection is a subset of another pending request's into one shared `getObjects` call, instead of issuing a separate call per distinct selection ([998ad50](https://github.com/scallop-io/sui-scallop-sdk/commit/998ad50104862cb2cd91f04bebb23df98da49126))
+- Dynamic-field value reads now route through the shared object-read coalescer instead of each issuing its own single-object request ([157c285](https://github.com/scallop-io/sui-scallop-sdk/commit/157c285fca427c28ef5971ad78fb899a81db96c1))
+
+### Fixed
+
+- `RateLimiter` no longer hangs indefinitely on a non-finite (`Infinity`/`NaN`) or sub-1 capacity — non-finite capacities correctly disable throttling, and sub-1 finite capacities now throw at construction instead of silently deadlocking every read ([38f0888](https://github.com/scallop-io/sui-scallop-sdk/commit/38f0888b4c19f27961dc92741f47e0650799a8ae))
+- `ScallopAddress` / `ScallopConstants` now honor a `defaultValues.addresses` seed synchronously and refresh it in the background, instead of ignoring it and blocking every read on a network refetch ([fcf1338](https://github.com/scallop-io/sui-scallop-sdk/commit/fcf1338a52a2b57daabf066f710f75492474b0f1))
+
 ## [5.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.4.0...v5.0.0) (2026-07-25)
 
 ### Added
