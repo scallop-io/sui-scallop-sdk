@@ -198,6 +198,26 @@ const includeSignature = (
   );
 };
 
+/**
+ * The field names an `include` actually asks for. A key set to `false` (or absent)
+ * is not requested, so only truthy entries count.
+ */
+const requestedFields = (
+  include: SuiClientTypes.ObjectInclude | undefined
+): Set<string> => {
+  if (!include) return new Set();
+  const record = include as Record<string, unknown>;
+  return new Set(Object.keys(record).filter((key) => Boolean(record[key])));
+};
+
+/** Whether every field `subset` asks for is also asked for by `superset`. */
+const isFieldSubset = (subset: Set<string>, superset: Set<string>): boolean => {
+  for (const field of subset) {
+    if (!superset.has(field)) return false;
+  }
+  return true;
+};
+
 const DEFAULT_TOKENS_PER_SECOND = 10;
 
 export class GrpcDataSource implements OnChainDataSource<SuiGrpcClient> {
@@ -318,9 +338,55 @@ export class GrpcDataSource implements OnChainDataSource<SuiGrpcClient> {
       }
     }
 
-    for (const group of groups.values()) {
+    for (const group of this.mergeSubsetGroups(groups)) {
       void this.dispatchObjectGroup(group);
     }
+  }
+
+  /**
+   * Fold each include-group into a richer group that already asks for everything
+   * it needs, so one request serves both.
+   *
+   * Grouping strictly by `include` signature meant two readers of the SAME object
+   * in the same tick still cost two requests whenever their field selections
+   * differed — e.g. `getSharedObjectData` (no `include`, metadata only) alongside a
+   * repo read of the same object with `{ content: true }`. Measured on a cold dapp
+   * load: the same object fetched by three separate `BatchGetObjects` calls, one of
+   * them a 644-byte metadata-only request for ids another call had already pulled
+   * with contents.
+   *
+   * Merging is safe precisely because it is confined to one flush: every read in
+   * the batch was issued in the same tick, so they share freshness expectations.
+   * A subset group's waiters simply receive objects carrying extra fields they did
+   * not ask for — fields they will not read. Nothing is cached across time here,
+   * so no reader can be handed a staler object than it would have gotten anyway.
+   */
+  private mergeSubsetGroups(
+    groups: Map<string, PendingObjectRead[]>
+  ): PendingObjectRead[][] {
+    if (groups.size < 2) return [...groups.values()];
+
+    // Widest selection first, so a subset always finds the richest host available.
+    const ordered = [...groups.values()].sort(
+      (a, b) =>
+        requestedFields(b[0].include).size - requestedFields(a[0].include).size
+    );
+
+    const hosts: { fields: Set<string>; reads: PendingObjectRead[] }[] = [];
+    for (const group of ordered) {
+      const fields = requestedFields(group[0].include);
+      const host = hosts.find((candidate) =>
+        isFieldSubset(fields, candidate.fields)
+      );
+      if (host) {
+        // Dispatch under the host's richer `include`; the extra fields are ignored.
+        host.reads.push(...group);
+      } else {
+        hosts.push({ fields, reads: [...group] });
+      }
+    }
+
+    return hosts.map(({ reads }) => reads);
   }
 
   /**

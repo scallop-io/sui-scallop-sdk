@@ -239,3 +239,98 @@ describe('GrpcDataSource RPC accounting', () => {
     expect(getRpcStats().get('onchain:getObjects')?.calls).toBe(3);
   });
 });
+
+describe('getObject coalescing across include selections', () => {
+  const makeDataSource = () => {
+    const getObjects = vi.fn(
+      async ({ objectIds }: { objectIds: string[] }) => ({
+        objects: objectIds.map((objectId) => ({ objectId })),
+      })
+    );
+    const ds = new GrpcDataSource({
+      client: { getObjects, ...coreStubs() } as never,
+      url: 'x',
+      tokensPerSecond: 1000,
+    });
+    return { ds, getObjects };
+  };
+
+  it('folds a metadata-only read into a concurrent richer read of the same object', async () => {
+    // intent: this is the duplicate-fetch case measured on a cold dapp load —
+    // `getSharedObjectData` (no include) racing a repo read that already pulls
+    // contents for the same id. One request must serve both.
+    const { ds, getObjects } = makeDataSource();
+
+    await Promise.all([
+      ds.getObject({ objectId: '0xA' }),
+      ds.getObject({ objectId: '0xA', include: { content: true } } as never),
+    ]);
+
+    expect(getObjects).toHaveBeenCalledTimes(1);
+    // And it must be dispatched with the RICHER include, or the other caller would
+    // silently get an object missing the field it asked for.
+    expect(getObjects.mock.calls[0][0]).toMatchObject({
+      include: { content: true },
+    });
+  });
+
+  it('keeps genuinely disjoint selections in separate requests', async () => {
+    // intent: neither selection covers the other, so merging would drop a field.
+    const { ds, getObjects } = makeDataSource();
+
+    await Promise.all([
+      ds.getObject({ objectId: '0xA', include: { content: true } } as never),
+      ds.getObject({ objectId: '0xA', include: { json: true } } as never),
+    ]);
+
+    expect(getObjects).toHaveBeenCalledTimes(2);
+  });
+
+  it('folds several subsets into one widest selection', async () => {
+    const { ds, getObjects } = makeDataSource();
+
+    await Promise.all([
+      ds.getObject({ objectId: '0xA' }),
+      ds.getObject({ objectId: '0xB', include: { json: true } } as never),
+      ds.getObject({
+        objectId: '0xA',
+        include: { content: true, json: true },
+      } as never),
+    ]);
+
+    expect(getObjects).toHaveBeenCalledTimes(1);
+    const call = getObjects.mock.calls[0][0] as {
+      objectIds: string[];
+      include: Record<string, boolean>;
+    };
+    expect(call.include).toMatchObject({ content: true, json: true });
+    // Deduped to the distinct ids, in first-seen order.
+    expect(call.objectIds).toEqual(['0xA', '0xB']);
+  });
+
+  it('treats an explicitly false field as not requested', async () => {
+    // intent: `{ content: false }` asks for nothing, so it is a subset of `{}` and
+    // must not fork a second request.
+    const { ds, getObjects } = makeDataSource();
+
+    await Promise.all([
+      ds.getObject({ objectId: '0xA' }),
+      ds.getObject({ objectId: '0xA', include: { content: false } } as never),
+    ]);
+
+    expect(getObjects).toHaveBeenCalledTimes(1);
+  });
+
+  it('resolves every merged waiter with its object', async () => {
+    // intent: merging must not lose waiters — the subset caller still gets a result.
+    const { ds } = makeDataSource();
+
+    const [plain, rich] = await Promise.all([
+      ds.getObject({ objectId: '0xA' }),
+      ds.getObject({ objectId: '0xA', include: { content: true } } as never),
+    ]);
+
+    expect(plain.object).toMatchObject({ objectId: '0xA' });
+    expect(rich.object).toMatchObject({ objectId: '0xA' });
+  });
+});
