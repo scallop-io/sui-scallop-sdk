@@ -13,6 +13,7 @@ import { prepend0x } from './utils.js';
 import { PricePolicyRulesVecSet } from './bcs.js';
 import {
   getDynamicFieldOrNull,
+  getDynamicFieldValueBcsOrNull,
   logError,
   type DynamicFieldsWithValuePage,
 } from '../utils.js';
@@ -222,14 +223,14 @@ export const getOnDemandAggObjectIdsFromOnChain = async (
           })
         );
       }
-      const result = await getDynamicFieldOrNull(ctx, {
+      const valueBcs = await getDynamicFieldValueBcsOrNull(ctx, {
         parentId: registryTableId,
         name: encodeDynamicFieldNameForV2({
           type: '0x1::type_name::TypeName',
           value: { name: coinType.slice(2) },
         }),
       });
-      if (!result) {
+      if (!valueBcs) {
         throw logError(
           ctx.logger,
           new ScallopRpcError(`No on-demand aggregator found for ${coinType}`, {
@@ -239,7 +240,7 @@ export const getOnDemandAggObjectIdsFromOnChain = async (
       }
       // The registry value is the aggregator object id (an address).
       // UNVERIFIED: confirm the bcs shape against a live registry entry.
-      registeredAggs[idx] = bcs.Address.parse(result.dynamicField.value.bcs);
+      registeredAggs[idx] = bcs.Address.parse(valueBcs);
     })
   );
 

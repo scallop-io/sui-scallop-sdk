@@ -1,5 +1,5 @@
 import { SuiClientTypes } from '@mysten/sui/client';
-import { getDynamicFieldOrNull } from '../utils.js';
+import { getDynamicFieldValueBcsOrNull } from '../utils.js';
 import { ReferralBindingContext } from './types.js';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 import { ReferrerVeScaKeyBcs } from './bcs.js';
@@ -18,7 +18,7 @@ export const getVeScaKeyIdFromRefBindingsFromOnChain = async (
       value: refereeAddress,
     }),
   };
-  const result = await getDynamicFieldOrNull(ctx, fetchOptions);
-  if (!result) return null;
-  return ReferrerVeScaKeyBcs.parse(result.dynamicField.value.bcs);
+  const valueBcs = await getDynamicFieldValueBcsOrNull(ctx, fetchOptions);
+  if (!valueBcs) return null;
+  return ReferrerVeScaKeyBcs.parse(valueBcs);
 };

@@ -6,8 +6,10 @@ import {
   isObjectNotFoundError,
   getDynamicFieldWithCache,
   getDynamicFieldOrNull,
+  getDynamicFieldValueBcsOrNull,
   listDynamicFieldsWithValues,
 } from 'src/repositories/utils.js';
+import { deriveDynamicFieldID } from '@mysten/sui/utils';
 import { ScallopRpcError } from 'src/errors/index.js';
 
 const makeLogger = () => ({
@@ -393,6 +395,117 @@ describe('getDynamicFieldOrNull', () => {
 
     await expect(
       getDynamicFieldOrNull(ctx as never, options as never)
+    ).rejects.toThrow('network timeout');
+  });
+});
+
+describe('getDynamicFieldValueBcsOrNull', () => {
+  const PARENT_ID = `0x${'ab'.repeat(32)}`;
+  const NAME_TYPE = 'address';
+  // Arbitrary bytes standing in for a serialized field name.
+  const NAME_BCS = new Uint8Array([1, 2, 3]);
+  const VALUE_BCS = new Uint8Array([9, 8, 7, 6]);
+
+  const options = {
+    parentId: PARENT_ID,
+    name: { type: NAME_TYPE, bcs: NAME_BCS },
+  };
+
+  /** `Field<Name, Value>` content: 32-byte UID, then name, then value. */
+  const makeContent = (nameBcs: Uint8Array, valueBcs: Uint8Array) =>
+    new Uint8Array([...new Uint8Array(32).fill(7), ...nameBcs, ...valueBcs]);
+
+  const makeCtx = (
+    getObject: ReturnType<typeof vi.fn>,
+    getDynamicField = vi.fn()
+  ) => ({
+    grpc: {
+      url: 'https://node.example',
+      getObject,
+      client: { getDynamicField },
+    },
+    fetchWithCache: (o: { queryFn: () => unknown }) => o.queryFn(),
+  });
+
+  it('reads the derived field object via the coalescer, not getDynamicField', async () => {
+    const getObject = vi.fn().mockResolvedValue({
+      object: { content: makeContent(NAME_BCS, VALUE_BCS) },
+    });
+    const getDynamicField = vi.fn();
+    const ctx = makeCtx(getObject, getDynamicField);
+
+    const result = await getDynamicFieldValueBcsOrNull(
+      ctx as never,
+      options as never
+    );
+
+    // The whole point of F4: the read goes through `grpc.getObject` so it joins the
+    // shared batch, instead of becoming its own single-object request.
+    expect(getObject).toHaveBeenCalledTimes(1);
+    expect(getDynamicField).not.toHaveBeenCalled();
+    expect(result).toEqual(VALUE_BCS);
+
+    // And it must ask for the locally derived child id — the same id the transport
+    // would have resolved server-side.
+    const expectedId = deriveDynamicFieldID(PARENT_ID, NAME_TYPE, NAME_BCS);
+    expect(getObject.mock.calls[0][0]).toMatchObject({ objectId: expectedId });
+  });
+
+  it('slices the value at 32 + name length, so name size shifts the offset', async () => {
+    // A longer name must push the value start out by exactly that much; a fixed
+    // offset would silently return the wrong bytes here.
+    const longName = new Uint8Array([1, 2, 3, 4, 5, 6, 7]);
+    const getObject = vi.fn().mockResolvedValue({
+      object: { content: makeContent(longName, VALUE_BCS) },
+    });
+
+    const result = await getDynamicFieldValueBcsOrNull(
+      makeCtx(getObject) as never,
+      { parentId: PARENT_ID, name: { type: NAME_TYPE, bcs: longName } } as never
+    );
+
+    expect(result).toEqual(VALUE_BCS);
+  });
+
+  it('falls back to the transport when content is shorter than the offset', async () => {
+    // Layout is not what we assume — correctness must win over batching.
+    const getObject = vi
+      .fn()
+      .mockResolvedValue({ object: { content: new Uint8Array(4) } });
+    const getDynamicField = vi
+      .fn()
+      .mockResolvedValue({ dynamicField: { value: { bcs: VALUE_BCS } } });
+
+    const result = await getDynamicFieldValueBcsOrNull(
+      makeCtx(getObject, getDynamicField) as never,
+      options as never
+    );
+
+    expect(getDynamicField).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(VALUE_BCS);
+  });
+
+  it('resolves to null when the field object does not exist', async () => {
+    const getObject = vi
+      .fn()
+      .mockRejectedValue(new Error('Object does not exist'));
+
+    const result = await getDynamicFieldValueBcsOrNull(
+      makeCtx(getObject) as never,
+      options as never
+    );
+
+    expect(result).toBeNull();
+  });
+
+  it('propagates real transport failures instead of reporting absence', async () => {
+    const getObject = vi.fn().mockRejectedValue(new Error('network timeout'));
+
+    await expect(
+      getDynamicFieldValueBcsOrNull(
+        makeCtx(getObject) as never,
+        options as never
+      )
     ).rejects.toThrow('network timeout');
   });
 });
