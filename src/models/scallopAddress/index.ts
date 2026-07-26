@@ -23,6 +23,18 @@ class ScallopAddress {
     AddressesInterface
   >();
 
+  /**
+   * Networks whose addresses came from `defaultValues` rather than the API.
+   *
+   * Seeded addresses are usable immediately but NOT authoritative — contract
+   * addresses change on protocol upgrades, so a bundled snapshot must never be
+   * the last word. `ensureAddresses` uses this to serve the seed without blocking
+   * while refreshing in the background, and `read()` clears the marks once real
+   * addresses land. Contrast `forceAddressesInterface`, which is authoritative by
+   * definition and so is never marked (and never refreshed).
+   */
+  private readonly seededNetworks = new Set<SuiClientTypes.Network>();
+
   constructor({
     addressId,
     apiDataSourceUrl = API_BASE_URL,
@@ -31,6 +43,7 @@ class ScallopAddress {
     network = 'mainnet',
     logger = noopLogger,
     forceAddressesInterface,
+    defaultValues,
   }: ScallopAddressConstructorParams) {
     this.url = apiDataSourceUrl;
     this.addressId = addressId;
@@ -40,13 +53,30 @@ class ScallopAddress {
       api: new ApiDataSource({ url: apiDataSourceUrl, timeout, httpClient }),
     });
 
+    // Seed before forcing so a force interface always wins for the same network.
+    if (defaultValues?.addresses) {
+      this.initializeForcedAddresses(defaultValues.addresses, { seeded: true });
+    }
+
     if (forceAddressesInterface) {
       this.initializeForcedAddresses(forceAddressesInterface);
     }
   }
 
+  /**
+   * Whether `network`'s addresses are still the un-refreshed `defaultValues`
+   * seed. Lets callers distinguish "must fetch before proceeding" from "may
+   * proceed now and refresh in the background".
+   */
+  public isSeeded(network: SuiClientTypes.Network = this.network): boolean {
+    return this.seededNetworks.has(network);
+  }
+
   private initializeForcedAddresses(
-    forcedAddresses: Partial<Record<SuiClientTypes.Network, AddressesInterface>>
+    forcedAddresses: Partial<
+      Record<SuiClientTypes.Network, AddressesInterface>
+    >,
+    { seeded = false }: { seeded?: boolean } = {}
   ): void {
     const validNetworks: SuiClientTypes.Network[] = [
       'localnet',
@@ -66,6 +96,13 @@ class ScallopAddress {
       if (validNetworks.includes(network as SuiClientTypes.Network)) {
         const typedNetwork = network as SuiClientTypes.Network;
         this.addressMap.set(typedNetwork, addresses);
+
+        if (seeded) {
+          this.seededNetworks.add(typedNetwork);
+        } else {
+          // A force interface supersedes any seed for this network.
+          this.seededNetworks.delete(typedNetwork);
+        }
 
         if (typedNetwork === this.network) {
           this.currentAddresses = addresses;
@@ -93,6 +130,9 @@ class ScallopAddress {
         if (network === this.network) this.currentAddresses = addresses;
 
         this.addressMap.set(network, addresses);
+        // These are authoritative now, so the network no longer counts as seeded
+        // and will not be refreshed again by `ensureAddresses`.
+        this.seededNetworks.delete(network);
       }
     }
     if (this.addressId !== response.id) {
