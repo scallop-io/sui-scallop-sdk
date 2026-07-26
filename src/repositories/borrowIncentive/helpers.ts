@@ -11,7 +11,7 @@ import type {
   GetBindedObligationContext,
 } from './types.js';
 import { getSharedObjectData, parseObjectAs } from 'src/utils/object.js';
-import { getDynamicFieldOrNull, logError } from '../utils.js';
+import { getDynamicFieldValueBcsOrNull, logError } from '../utils.js';
 import { ScallopRpcError, ScallopParseError } from 'src/errors/index.js';
 import { bcs } from '@mysten/sui/bcs';
 import { queryKeys } from 'src/constants/queryKeys.js';
@@ -489,16 +489,16 @@ export const getBindedVeScaKeyByObligationIdFromOnChain = async (
     incentiveAccountsObject.object
   ).accounts.id;
 
-  const result = await getDynamicFieldOrNull(ctx, {
+  const valueBcs = await getDynamicFieldValueBcsOrNull(ctx, {
     parentId: incentiveAccountsTableId,
     name: encodeDynamicFieldNameForV2({
       type: `${borrowIncentive.object}::typed_id::TypedID<${core.object}::obligation::Obligation>`,
       value: obligationId,
     }),
   });
-  if (!result) return null;
+  if (!valueBcs) return null;
 
-  const parsed = IncentiveAccountBcs.parse(result.dynamicField.value.bcs);
+  const parsed = IncentiveAccountBcs.parse(valueBcs);
   return parsed.binded_ve_sca_key;
 };
 
@@ -541,14 +541,14 @@ export const getBindedObligation = async (
 
   // look up the veSca key in the bind table → bound obligation id
   const keyType = `${borrowIncentive.object}::typed_id::TypedID<${vesca.object}::ve_sca::VeScaKey>`;
-  const result = await getDynamicFieldOrNull(ctx, {
+  const valueBcs = await getDynamicFieldValueBcsOrNull(ctx, {
     parentId: veScaBindTableId,
     name: encodeDynamicFieldNameForV2({
       type: keyType,
       value: veScaKey,
     }),
   });
-  if (!result) return null;
+  if (!valueBcs) return null;
 
-  return bcs.Address.parse(result.dynamicField.value.bcs);
+  return bcs.Address.parse(valueBcs);
 };
