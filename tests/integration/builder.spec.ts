@@ -282,14 +282,13 @@ describe('Test Scallop Core Builder', () => {
     ))!;
 
     const FLASHLOAN_FEE = Math.ceil(0.07 * FLASHLOAN_AMOUNT);
-    const { takeCoin, leftCoin } = (await scallopBuilder.selectCoin(
+    const { takeCoin } = (await scallopBuilder.selectCoin(
       tx,
       SUPPLY_COIN_NAME,
       FLASHLOAN_FEE
     ))!;
 
     tx.mergeCoins(coin, [takeCoin]);
-    tx.transferObjects([leftCoin!], sender);
     tx.repayFlashLoan(coin, loan, SUPPLY_COIN_NAME);
     const borrowFlashLoanResult = await scallopBuilder.suiKit.inspectTxn(tx);
     const txResult =
@@ -357,16 +356,12 @@ describe('Test Scallop Core Builder', () => {
     const collateralCoinName = 'sui';
     const liquidationAmount = 10 ** 6;
 
-    const { takeCoin, leftCoin } = await scallopBuilder.selectCoin(
+    const { takeCoin } = await scallopBuilder.selectCoin(
       tx,
       debtCoinName,
       liquidationAmount,
       sender
     );
-
-    if (leftCoin) {
-      tx.transferObjects([leftCoin], sender);
-    }
 
     const obligationSharedObject = tx.object(obligationId);
 

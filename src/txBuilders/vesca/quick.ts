@@ -1,4 +1,5 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
+import { coinWithBalance } from '@mysten/sui/transactions';
 import { SCA_COIN_TYPE } from 'src/constants/index.js';
 import {
   requireSender,
@@ -149,19 +150,11 @@ export const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         undefined;
       const transferObjects = [];
       if (amountOrCoin !== undefined && typeof amountOrCoin === 'number') {
-        const coins = await ctx.utils.selectCoins({
-          amount: amountOrCoin,
-          coinType: SCA_COIN_TYPE,
-          ownerAddress: sender,
+        const takeCoin = coinWithBalance({
+          type: SCA_COIN_TYPE,
+          balance: amountOrCoin,
         });
-        // Unpinned (objectId) so versions resolve at build time; pinning
-        // listCoins' versions breaks when the coin index lags the object store.
-        const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-          coins.map((coin) => coin.objectId),
-          amountOrCoin
-        );
         scaCoin = takeCoin;
-        transferObjects.push(leftCoin);
       } else {
         // With amountOrCoin is SuiObjectArg, we cannot validate the minimum sca amount for locking and topup
         scaCoin = amountOrCoin;
@@ -223,26 +216,18 @@ export const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       veScaKey,
       autoCheck = true,
     }) => {
-      const sender = requireSender(txBlock);
+      // const sender = requireSender(txBlock);
       const veSca = await requireVeSca(ctx, txBlock, veScaKey);
 
       if (autoCheck) checkExtendLockAmount(scaAmount, veSca?.unlockAt);
 
       if (veSca) {
-        const scaCoins = await ctx.utils.selectCoins({
-          amount: scaAmount,
-          coinType: SCA_COIN_TYPE,
-          ownerAddress: sender,
+        const takeCoin = coinWithBalance({
+          type: SCA_COIN_TYPE,
+          balance: scaAmount,
         });
-        // Unpinned (objectId) so versions resolve at build time; pinning
-        // listCoins' versions breaks when the coin index lags the object store.
-        const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-          scaCoins.map((coin) => coin.objectId),
-          scaAmount
-        );
 
         txBlock.extendLockAmount(veSca.keyId, takeCoin);
-        txBlock.transferObjects([leftCoin], sender);
       }
     },
     renewExpiredVeScaQuick: async ({
@@ -267,18 +252,10 @@ export const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           const unlockedSca = txBlock.redeemSca(veSca.keyId);
           transferObjects.push(unlockedSca);
         }
-        const scaCoins = await ctx.utils.selectCoins({
-          amount: scaAmount,
-          coinType: SCA_COIN_TYPE,
-          ownerAddress: sender,
+        const takeCoin = coinWithBalance({
+          type: SCA_COIN_TYPE,
+          balance: scaAmount,
         });
-        // Unpinned (objectId) so versions resolve at build time; pinning
-        // listCoins' versions breaks when the coin index lags the object store.
-        const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-          scaCoins.map((coin) => coin.objectId),
-          scaAmount
-        );
-        transferObjects.push(leftCoin);
 
         txBlock.renewExpiredVeSca(veSca.keyId, takeCoin, newUnlockAt);
         txBlock.transferObjects(transferObjects, sender);
