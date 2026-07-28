@@ -1,6 +1,6 @@
 {
   "name": "@scallop-io/sui-scallop-sdk",
-  "version": "5.1.0",
+  "version": "5.1.1-alpha.1",
   "description": "Typescript sdk for interacting with Scallop contract on SUI",
   "keywords": [
     "sui",
@@ -102,7 +102,7 @@
   },
   "peerDependencies": {
     "@mysten/sui": ">=2.22.0",
-    "@scallop-io/sui-kit": ">=2.2.0",
+    "@scallop-io/sui-kit": "~2.2.0",
     "@tanstack/query-core": ">=5.95.2"
   },
   "devDependencies": {
@@ -117,7 +117,7 @@
     "@pythnetwork/hermes-client": "3.1.0",
     "@pythnetwork/price-service-client": "1.11.0",
     "@pythnetwork/price-service-sdk": "1.9.0",
-    "@scallop-io/sui-kit": ">=2.2.0",
+    "@scallop-io/sui-kit": "2.2.0",
     "@types/node": "20.19.37",
     "@typescript-eslint/eslint-plugin": "8.57.2",
     "@typescript-eslint/parser": "8.10.0",
