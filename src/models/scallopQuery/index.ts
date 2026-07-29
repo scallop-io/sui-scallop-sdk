@@ -1,5 +1,8 @@
+import { SuiGraphQLClient } from '@mysten/sui/graphql';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
 import { SuiObjectArg } from '@scallop-io/sui-kit';
 import { BigNumber } from 'bignumber.js';
+import { MAINNET_GRAPHQL_URL } from 'src/datasources/graphql/index.js';
 import { ScallopParseError } from 'src/errors/index.js';
 import { runWithDataSourceFallback } from 'src/repositories/utils.js';
 import {
@@ -40,21 +43,66 @@ export type {
   ScallopQueryConstructorParams as ScallopQueryParams,
 } from './types.js';
 
+const initReadClients = (args: ScallopQueryConstructorParams) => {
+  const network = 'mainnet';
+  if (args.readTransport === 'graphql') {
+    // Both `SuiGrpcClient` and `SuiGraphQLClient` extend `@mysten/sui`'s
+    // `BaseClient` (`abstract core: CoreClient`) and `CoreClient` itself
+    // `implements SuiClientTypes.TransportMethods` — so the two clients'
+    // `.core` are interchangeable for every Core read, including
+    // `simulateTransaction`. In graphql mode the Core read path is therefore
+    // backed by the GraphQL client itself, not a separate gRPC client — full
+    // read-transport switchability, not just the opportunistic native-query
+    // optimization. See llm-docs/REPO_GRAPHQL_SUPPORT.md.
+    const graphqlClient =
+      args.graphqlClient ??
+      new SuiGraphQLClient({
+        url: args.graphqlUrl,
+        network,
+      });
+    return {
+      core: graphqlClient,
+      graphql: graphqlClient,
+    };
+  } else {
+    return {
+      core: args.suiClient
+        ? args.suiClient
+        : new SuiGrpcClient({
+            baseUrl: args.fullnodeUrl,
+            network,
+          }),
+      graphql: new SuiGraphQLClient({
+        url: MAINNET_GRAPHQL_URL,
+        network,
+      }),
+    };
+  }
+};
+
 class ScallopQuery implements ScallopQueryInterface {
   public readonly utils: ScallopUtils;
   public readonly repos: Repositories;
+  public readonly coreClient: SuiGrpcClient | SuiGraphQLClient;
 
-  constructor({
-    utils,
-    queryClient,
-    queryClientConfig,
-    ...scallopUtilsArgs
-  }: ScallopQueryConstructorParams) {
-    this.utils = utils ?? new ScallopUtils(scallopUtilsArgs);
+  constructor({ utils, ...args }: ScallopQueryConstructorParams) {
+    const { core, graphql } = initReadClients(args);
+    this.coreClient = core;
+    this.utils =
+      utils ??
+      new ScallopUtils({
+        ...args,
+        // ScallopUtils calls Core primitives directly (e.g. `listCoins` in
+        // `selectCoins`), so it must hold the SAME client the active
+        // transport selected — `core` above, never a mismatched one.
+        coreClient: args.coreClient ?? core,
+      });
+
     this.repos = createRepositories({
+      core,
+      graphql,
       utils: this.utils,
-      queryClient,
-      queryClientConfig,
+      ...args,
     });
   }
 
@@ -77,10 +125,6 @@ class ScallopQuery implements ScallopQueryInterface {
 
   get walletAddress() {
     return this.utils.walletAddress;
-  }
-
-  get onchain() {
-    return this.utils.onchain;
   }
 
   get address() {
@@ -276,6 +320,7 @@ class ScallopQuery implements ScallopQueryInterface {
     assetCoinNames?: string[],
     ownerAddress: string = this.walletAddress
   ) {
+    if (!ownerAddress) return {}; // Handle empty address
     return await this.repos.coinBalance.getCoinAmounts({
       coinNames: assetCoinNames,
       address: ownerAddress,
@@ -300,6 +345,26 @@ class ScallopQuery implements ScallopQueryInterface {
   }
 
   /**
+   * Get balances for a specific set of coin types in one GraphQL round trip
+   * (`multiGetBalances`), instead of paging every balance. Returns a map keyed
+   * by normalized coin type; types absent on-chain are omitted. GraphQL-only.
+   *
+   * @param coinTypes - Fully-qualified coin types to query.
+   * @param ownerAddress - The owner address.
+   * @return Map of normalized coin type to its `Balance`.
+   */
+  async getCoinBalances(
+    coinTypes: string[],
+    ownerAddress: string = this.walletAddress
+  ) {
+    if (!ownerAddress) return {}; // Handle empty address
+    return await this.repos.coinBalance.getCoinBalances({
+      coinTypes,
+      address: ownerAddress,
+    });
+  }
+
+  /**
    * Get all market coin amounts.
    *
    * @param coinNames - Specific an array of support market coin name.
@@ -310,6 +375,7 @@ class ScallopQuery implements ScallopQueryInterface {
     marketCoinNames?: string[],
     ownerAddress: string = this.walletAddress
   ) {
+    if (!ownerAddress) return {}; // Handle empty address
     // Preserve the legacy default set: lending whitelist mapped to market-coin
     // names (the repo's own default is the sCoin whitelist, a different set).
     const names =
@@ -399,6 +465,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return All Stake accounts data.
    */
   async getAllStakeAccounts(ownerAddress: string = this.walletAddress) {
+    if (!ownerAddress) return {}; // Handle empty address
     return await this.repos.spool.getStakeAccounts({ address: ownerAddress });
   }
 
@@ -413,6 +480,7 @@ class ScallopQuery implements ScallopQueryInterface {
     stakeMarketCoinName: string,
     ownerAddress: string = this.walletAddress
   ) {
+    if (!ownerAddress) return []; // Handle empty address
     const allStakeAccount = await this.getAllStakeAccounts(ownerAddress);
     return allStakeAccount[stakeMarketCoinName] ?? [];
   }
@@ -596,14 +664,17 @@ class ScallopQuery implements ScallopQueryInterface {
       args?.coinPrices ??
       (await this.getPythCoinPrices({ coinNames: names })) ??
       {};
+
     const marketPools =
       args?.marketPools ??
       (await this.getMarketPools(names, { ...args, coinPrices })).pools;
+
     const spools = await this.getSpools(stakeMarketCoinNames, {
       ...args,
       marketPools,
       coinPrices,
     });
+
     const [coinAmounts, marketCoinAmounts, sCoinAmounts, allStakeAccounts] =
       await Promise.all([
         this.getCoinAmounts(names, ownerAddress),
@@ -672,6 +743,7 @@ class ScallopQuery implements ScallopQueryInterface {
       coinPrices?: CoinPrices;
     } & QueryOptions
   ): Promise<ObligationAccounts> {
+    if (!ownerAddress) return {}; // Handle empty address
     return runWithDataSourceFallback({
       source: fromQueryOptions(args),
       label: 'ScallopQuery.getObligationAccounts',
@@ -778,17 +850,30 @@ class ScallopQuery implements ScallopQueryInterface {
       market: { collaterals: MarketCollaterals; pools: MarketPools };
       coinPrices: CoinPrices;
       coinAmounts: CoinAmounts;
+    },
+    // When the caller batched the per-obligation devInspect queries up front
+    // (many obligations → one `simulateTransaction`), it passes the results here
+    // so this assembly reuses them instead of re-querying per obligation.
+    prefetched?: {
+      obligationQuery: Awaited<ReturnType<ScallopQuery['queryObligation']>>;
+      borrowIncentiveAccounts: Awaited<
+        ReturnType<ScallopQuery['getBorrowIncentiveAccounts']>
+      >;
     }
   ): Promise<ObligationAccount> {
     const { market, coinPrices, coinAmounts } = inputs;
     const [obligationQuery, borrowIncentivePools, borrowIncentiveAccounts] =
       await Promise.all([
-        this.queryObligation(obligation),
+        prefetched
+          ? Promise.resolve(prefetched.obligationQuery)
+          : this.queryObligation(obligation),
         this.getBorrowIncentivePools(undefined, {
           coinPrices,
           marketPools: market.pools,
         }),
-        this.getBorrowIncentiveAccounts(obligation),
+        prefetched
+          ? Promise.resolve(prefetched.borrowIncentiveAccounts)
+          : this.getBorrowIncentiveAccounts(obligation),
       ]);
 
     return buildObligationAccount({
@@ -831,16 +916,30 @@ class ScallopQuery implements ScallopQueryInterface {
       this.getObligations(ownerAddress),
     ]);
 
-    const obligationObjects = await this.repos.obligation.getObligationObjects(
-      obligations.map((obligation) => obligation.id)
-    );
+    const obligationIds = obligations.map((obligation) => obligation.id);
+    // Batch the per-obligation devInspect queries into one simulateTransaction
+    // each (one moveCall per obligation) instead of N round-trips per query.
+    const [obligationObjects, obligationDataMap, borrowIncentiveAccountsMap] =
+      await Promise.all([
+        this.repos.obligation.getObligationObjects(obligationIds),
+        this.repos.obligation.getObligationsData(obligationIds),
+        this.repos.borrowIncentive.getBorrowIncentiveAccountsBatch({
+          obligationIds,
+          coinNames: [...this.constants.whitelist.lending],
+        }),
+      ]);
     const obligationAccounts: ObligationAccounts = {};
     await Promise.allSettled(
       obligations.map(async (obligation, idx) => {
         obligationAccounts[obligation.keyId] =
           await this.assembleObligationAccount(
             obligationObjects[idx] ?? obligation.id,
-            { market, coinPrices, coinAmounts }
+            { market, coinPrices, coinAmounts },
+            {
+              obligationQuery: obligationDataMap[obligation.id],
+              borrowIncentiveAccounts:
+                borrowIncentiveAccountsMap[obligation.id] ?? {},
+            }
           );
       })
     );
@@ -861,12 +960,26 @@ class ScallopQuery implements ScallopQueryInterface {
       args,
       indexer
     );
+    // Batch the per-obligation devInspect queries up front (one
+    // simulateTransaction each) so the loop below reuses the results.
+    const [obligationDataMap, borrowIncentiveAccountsMap] = await Promise.all([
+      this.repos.obligation.getObligationsData(obligationIds),
+      this.repos.borrowIncentive.getBorrowIncentiveAccountsBatch({
+        obligationIds,
+        coinNames: [...this.constants.whitelist.lending],
+      }),
+    ]);
     const obligationAccounts: ObligationAccount[] = [];
     await Promise.allSettled(
       obligationIds.map(async (obligationId) => {
         const obligationAccount = await this.assembleObligationAccount(
           obligationId,
-          { market, coinPrices, coinAmounts: {} }
+          { market, coinPrices, coinAmounts: {} },
+          {
+            obligationQuery: obligationDataMap[obligationId],
+            borrowIncentiveAccounts:
+              borrowIncentiveAccountsMap[obligationId] ?? {},
+          }
         );
         if (obligationAccount) obligationAccounts.push(obligationAccount);
       })
@@ -957,6 +1070,7 @@ class ScallopQuery implements ScallopQueryInterface {
     walletAddress?: string;
     excludeEmpty?: boolean;
   } = {}) {
+    if (!walletAddress) return []; // Handle empty address
     return await this.repos.veSca.getVeScasByAddress({
       address: walletAddress,
       excludeEmpty,
@@ -979,6 +1093,7 @@ class ScallopQuery implements ScallopQueryInterface {
   async getVeScaKeyIdFromReferralBindings(
     walletAddress: string = this.walletAddress
   ) {
+    if (!walletAddress) return null; // Handle empty address
     return this.repos.referral.getVeScaKeyIdFromReferralBindings(walletAddress);
   }
 
@@ -1041,6 +1156,7 @@ class ScallopQuery implements ScallopQueryInterface {
     sCoinNames?: string[],
     ownerAddress: string = this.walletAddress
   ) {
+    if (!ownerAddress) return {}; // Handle empty address
     return await this.repos.coinBalance.getSCoinAmounts({
       sCoinNames,
       address: ownerAddress,
@@ -1218,7 +1334,7 @@ class ScallopQuery implements ScallopQueryInterface {
     if (!apiAddressId) {
       throw new ScallopParseError('apiAddressId is required');
     }
-    // NOTE: `apiAddressId` no longer routes the fetch — the repo's API path uses
+    // NOTE: `apiAddressId` doesn't route the fetch — the repo's API path uses
     // the fixed pool-addresses endpoint and the on-chain path rebuilds from the
     // current address config. The param is kept for signature compatibility.
     return this.repos.poolAddresses.getPoolAddresses({});
@@ -1229,6 +1345,9 @@ class ScallopQuery implements ScallopQueryInterface {
    */
   async getUserPortfolio(args?: { walletAddress?: string; indexer?: boolean }) {
     const walletAddress = args?.walletAddress ?? this.walletAddress;
+    if (!walletAddress) {
+      throw new ScallopParseError('walletAddress is required');
+    }
     const indexer = args?.indexer ?? false;
 
     const coinPrices = await this.getAllCoinPrices({ indexer });

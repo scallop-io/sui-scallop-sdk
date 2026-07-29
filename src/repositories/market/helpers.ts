@@ -93,13 +93,13 @@ export const getMarketsFromOnChain = async (
   ctx: MarketOnChainContext,
   { coinPrices, poolCoinNames, collateralCoinNames }: MarketReadArgs
 ): Promise<Markets> => {
-  const { onchain, addresses, fetchWithCache } = ctx;
+  const { grpc, addresses, fetchWithCache } = ctx;
   const { queryPackageId: packageId, market: marketId } = addresses;
 
   const tx = new SuiTxBlock();
   const queryTarget = `${packageId}::market_query::market_data`;
   const marketSharedObject = await getSharedObjectData(
-    { onchain, fetchWithCache },
+    { grpc, fetchWithCache },
     {
       tx,
       mutable: true,
@@ -117,10 +117,10 @@ export const getMarketsFromOnChain = async (
         typeof arg === 'object' && 'objectId' in arg ? arg.objectId : arg
       ),
       typeArgs: [],
-      node: onchain.url,
+      node: grpc.url,
     }),
     queryFn: () =>
-      onchain.client.simulateTransaction({
+      grpc.client.simulateTransaction({
         transaction: tx.txBlock,
         include: {
           // effects: true,
@@ -598,7 +598,7 @@ const parseMarketPoolObjects = async (
 };
 
 const queryRequiredMarketObjects = async (
-  { onchain, metadata, fetchWithCache }: MarketOnChainContext,
+  { grpc, metadata, fetchWithCache }: MarketOnChainContext,
   poolCoinNames: string[],
   keys: readonly MarketObjectKey[] = MARKET_OBJECT_KEYS
 ): Promise<RequiredMarketObjects> => {
@@ -619,10 +619,10 @@ const queryRequiredMarketObjects = async (
     const response = await fetchWithCache({
       queryKey: queryKeys.rpc.getObjects({
         objectIds: batch,
-        node: onchain.url,
+        node: grpc.url,
       }),
       queryFn: () =>
-        onchain.client.getObjects({
+        grpc.client.getObjects({
           objectIds: batch,
           include: { json: true },
         }),
@@ -699,7 +699,7 @@ const getMarketDynamicFieldString = async (
 };
 
 const getMarketDynamicFieldObject = (
-  { onchain, addresses, metadata, fetchWithCache }: MarketOnChainContext,
+  { grpc, addresses, metadata, fetchWithCache }: MarketOnChainContext,
   keyType: string,
   poolName: string
 ): Promise<SuiObjectResponse | null> => {
@@ -713,16 +713,16 @@ const getMarketDynamicFieldObject = (
     queryKey: queryKeys.rpc.getDynamicFieldObject({
       parentId: addresses.market,
       name,
-      node: onchain.url,
+      node: grpc.url,
     }),
     queryFn: async () => {
       try {
-        const { dynamicField } = await onchain.client.getDynamicField({
+        const { dynamicField } = await grpc.client.getDynamicField({
           parentId: addresses.market,
           name: encodeDynamicFieldNameForV2(name),
         });
 
-        return await onchain.getObject({
+        return await grpc.getObject({
           objectId: dynamicField.fieldId,
           include: { json: true },
         });

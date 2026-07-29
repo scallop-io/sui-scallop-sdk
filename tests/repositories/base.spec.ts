@@ -76,6 +76,7 @@ describe('BaseRepository', () => {
 
       expect(logger.error).toHaveBeenCalledWith('Error fetching query', {
         queryKey: ['boom-key'],
+        message: 'fetch failed',
       });
     });
   });

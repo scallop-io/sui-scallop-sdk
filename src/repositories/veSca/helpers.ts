@@ -14,11 +14,13 @@ import { getSharedObjectData, parseObjectAs } from 'src/utils/object.js';
 import {
   logError,
   isObjectNotFoundError,
-  type OnChainReadContext,
+  type GrpcReadContext,
 } from '../utils.js';
 import { ScallopRpcError } from 'src/errors/index.js';
 import { SuiTxBlock } from '@scallop-io/sui-kit';
 import { bcs } from '@mysten/sui/bcs';
+import { deriveDynamicFieldID } from '@mysten/sui/utils';
+import { partitionArray } from 'src/utils/array.js';
 import { BigNumber } from 'bignumber.js';
 
 const queryVeScaKeysByAddress = async (
@@ -26,7 +28,7 @@ const queryVeScaKeysByAddress = async (
   address: string
 ) => {
   const {
-    onchain,
+    grpc,
     fetchWithCache,
     metadata: { addresses },
   } = ctx;
@@ -49,9 +51,9 @@ const queryVeScaKeysByAddress = async (
     const response = await fetchWithCache({
       queryKey: queryKeys.rpc.getOwnedObjects({
         ...options,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.client.listOwnedObjects<{ json: true }>(options),
+      queryFn: () => grpc.client.listOwnedObjects<{ json: true }>(options),
     });
 
     objects.push(...response.objects);
@@ -69,7 +71,7 @@ const queryVeScaKeysByAddress = async (
 
 const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
   const {
-    onchain,
+    grpc,
     fetchWithCache,
     metadata: { addresses },
   } = ctx;
@@ -79,11 +81,11 @@ const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
 
   const getArg = async (objectId: string, mutable: boolean) => {
     const response = await fetchWithCache({
-      queryKey: queryKeys.rpc.getSharedObject({
-        node: onchain.url,
+      queryKey: queryKeys.rpc.getObject({
+        node: grpc.url,
         objectId,
       }),
-      queryFn: () => onchain.getObject({ objectId }),
+      queryFn: () => grpc.getObject({ objectId }),
     });
     if (!response.object) {
       throw logError(
@@ -94,7 +96,7 @@ const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
       );
     }
     return getSharedObjectData(
-      { onchain, fetchWithCache },
+      { grpc, fetchWithCache },
       {
         tx,
         mutable,
@@ -127,10 +129,10 @@ const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
     queryKey: queryKeys.rpc.getTotalVeScaTreasuryAmount({
       refreshArgs,
       veScaAmountArgs,
-      node: onchain.url,
+      node: grpc.url,
     }),
     queryFn: () =>
-      onchain.client.simulateTransaction<{ commandResults: true }>({
+      grpc.client.simulateTransaction<{ commandResults: true }>({
         transaction: tx.txBlock,
         include: {
           commandResults: true,
@@ -162,12 +164,46 @@ const queryTreasuryTotalVeSca = async (ctx: VeScaTreasuryContext) => {
   return bcs.u64().parse(resultBcs);
 };
 
+/**
+ * Pure veSca math shared by the per-key and batched reads: turn a raw
+ * `{ locked_amount, unlock_at }` value + the field object's ref into a `VeSca`.
+ * Kept side-effect-free so both read paths produce identical results.
+ */
+const computeVeSca = (params: {
+  keyId: string;
+  fieldId: string;
+  ref: { version: string; digest: string };
+  lockedAmount: string | number;
+  unlockAt: string | number;
+}): VeSca => {
+  const { keyId, fieldId, ref, lockedAmount, unlockAt } = params;
+  const remainingLockPeriodInMilliseconds = Math.max(
+    +unlockAt * 1000 - Date.now(),
+    0
+  );
+  const lockedScaAmount = String(lockedAmount);
+  const lockedScaCoin = BigNumber(lockedAmount).shiftedBy(-9).toNumber();
+  const currentVeScaBalance =
+    lockedScaCoin *
+    (Math.floor(remainingLockPeriodInMilliseconds / 1000) / MAX_LOCK_DURATION);
+
+  return {
+    id: fieldId,
+    keyId,
+    object: { objectId: fieldId, version: ref.version, digest: ref.digest },
+    lockedScaAmount,
+    lockedScaCoin,
+    currentVeScaBalance,
+    unlockAt: BigNumber(Number(unlockAt) * 1000).toNumber(),
+  } as VeSca;
+};
+
 export const getVeScaDataFromOnChain = async (
   ctx: VeScaDataContext,
   veScaKey: string
 ) => {
   const {
-    onchain,
+    grpc,
     metadata: { addresses },
     fetchWithCache,
   } = ctx;
@@ -182,44 +218,25 @@ export const getVeScaDataFromOnChain = async (
   const { dynamicField } = await fetchWithCache({
     queryKey: queryKeys.rpc.getDynamicFieldObject({
       ...fetchOptions,
-      node: onchain.url,
+      node: grpc.url,
     }),
-    queryFn: () => onchain.client.getDynamicField(fetchOptions),
+    queryFn: () => grpc.client.getDynamicField(fetchOptions),
   });
 
-  // veSca key not bound to a veSca object → no data (matches the old query's
-  // graceful `undefined` rather than throwing on a missing dynamic field).
+  // veSca key not bound to a veSca object → no data (return `undefined`
+  // gracefully rather than throwing on a missing dynamic field).
   if (!dynamicField?.value?.bcs) return undefined;
 
   // Parse bcs value
-  const valueBcs = dynamicField.value.bcs;
-  const parsed = VeScaBcs.parse(valueBcs);
+  const parsed = VeScaBcs.parse(dynamicField.value.bcs);
 
-  const remainingLockPeriodInMilliseconds = Math.max(
-    +parsed.unlock_at * 1000 - Date.now(),
-    0
-  );
-  const lockedScaAmount = String(parsed.locked_amount);
-  const lockedScaCoin = BigNumber(parsed.locked_amount)
-    .shiftedBy(-9)
-    .toNumber();
-  const currentVeScaBalance =
-    lockedScaCoin *
-    (Math.floor(remainingLockPeriodInMilliseconds / 1000) / MAX_LOCK_DURATION);
-
-  return {
-    id: dynamicField.fieldId,
+  return computeVeSca({
     keyId: veScaKey,
-    object: {
-      objectId: dynamicField.fieldId,
-      version: dynamicField.version,
-      digest: dynamicField.digest,
-    },
-    lockedScaAmount,
-    lockedScaCoin,
-    currentVeScaBalance,
-    unlockAt: BigNumber(Number(parsed.unlock_at) * 1000).toNumber(),
-  } as VeSca;
+    fieldId: dynamicField.fieldId,
+    ref: { version: dynamicField.version, digest: dynamicField.digest },
+    lockedAmount: parsed.locked_amount,
+    unlockAt: parsed.unlock_at,
+  });
 };
 
 export const getVeScasByAddressFromOnChain = async (
@@ -254,6 +271,104 @@ export const getVeScasByAddressFromOnChain = async (
 };
 
 /**
+ * Batched twin of {@link getVeScasByAddressFromOnChain}. Instead of one
+ * `getDynamicField` per owned key (N round trips against the global veSca
+ * table), it derives each field id offline (`deriveDynamicFieldID`) and fetches
+ * them all in one chunked `getObjects` — N→1 while preserving each field
+ * object's `version`/`digest` (needed as a tx-building ref). Transport-agnostic
+ * (rides `grpc.getObjects`), so it also benefits gRPC when opted in.
+ */
+export const getVeScasByAddressBatchedFromOnChain = async (
+  ctx: VeScasByAddressContext,
+  {
+    address,
+    excludeEmpty,
+  }: {
+    address: string;
+    excludeEmpty: boolean;
+  }
+): Promise<VeSca[]> => {
+  const {
+    grpc,
+    fetchWithCache,
+    metadata: { addresses },
+  } = ctx;
+  const tableId = addresses.veSca.tableId;
+
+  const veScaKeys = await queryVeScaKeysByAddress(ctx, address);
+  if (veScaKeys.length === 0) return [];
+
+  // Derive the dynamic-field object id for each owned key (same derivation the
+  // transport's getDynamicField uses), so we can batch-fetch them directly.
+  // `nameBcs` is the BCS of the `0x2::object::ID` key (a 32-byte address).
+  const fields = veScaKeys.map((key) => {
+    const nameBcs = encodeDynamicFieldNameForV2({
+      type: '0x2::object::ID',
+      value: key.objectId,
+    }).bcs;
+    return {
+      keyId: key.objectId,
+      nameByteLength: nameBcs.length,
+      fieldId: deriveDynamicFieldID(
+        tableId,
+        '0x2::object::ID',
+        nameBcs
+      ) as string,
+    };
+  });
+
+  const objectById: Record<
+    string,
+    SuiClientTypes.Object<{ content: true }>
+  > = {};
+  for (const chunk of partitionArray(
+    fields.map((f) => f.fieldId),
+    50
+  )) {
+    const { objects } = await fetchWithCache({
+      queryKey: queryKeys.rpc.getObjects({
+        objectIds: chunk,
+        node: grpc.url,
+      }),
+      queryFn: () =>
+        grpc.client.getObjects<{ content: true }>({
+          objectIds: chunk,
+          include: { content: true },
+        }),
+    });
+    for (const object of objects) {
+      if (!(object instanceof Error)) objectById[object.objectId] = object;
+    }
+  }
+
+  const veScas = fields
+    .map(({ keyId, fieldId, nameByteLength }) => {
+      const object = objectById[fieldId];
+      const content = object?.content;
+      if (!content) return undefined; // key not bound → no data
+      // The field object is a `Field<UID, Name, Value>`; the stored value bytes
+      // follow the 32-byte UID and the name. Slicing + VeScaBcs.parse mirrors the
+      // transport's own getDynamicField (byte-identical to the per-key path),
+      // avoiding any JSON-shape drift.
+      const parsed = VeScaBcs.parse(content.slice(32 + nameByteLength));
+      return computeVeSca({
+        keyId,
+        fieldId,
+        ref: { version: object.version, digest: object.digest },
+        lockedAmount: parsed.locked_amount,
+        unlockAt: parsed.unlock_at,
+      });
+    })
+    .filter((v): v is VeSca => !!v);
+
+  veScas.sort((a, b) => b.currentVeScaBalance - a.currentVeScaBalance);
+
+  return excludeEmpty
+    ? veScas.filter((v) => v.lockedScaAmount !== '0')
+    : veScas;
+};
+
+/**
  * Whether `veScaKey` is present (and non-empty) in the given subscription table.
  * Ports the legacy `vescaBuilder.isInSubsTable` read: resolve the dynamic field
  * for the key, fetch its object json, and check the VecSet `contents` is
@@ -261,10 +376,10 @@ export const getVeScasByAddressFromOnChain = async (
  * subscribed); real RPC/transport failures propagate.
  */
 export const isVeScaKeyInSubsTableFromOnChain = async (
-  ctx: OnChainReadContext,
+  ctx: GrpcReadContext,
   { veScaKey, tableId }: { veScaKey: string; tableId: string }
 ): Promise<boolean> => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const name = {
     type: '0x2::object::ID',
     value: veScaKey,
@@ -274,15 +389,15 @@ export const isVeScaKeyInSubsTableFromOnChain = async (
     queryKey: queryKeys.rpc.getDynamicFieldObject({
       parentId: tableId,
       name,
-      node: onchain.url,
+      node: grpc.url,
     }),
     queryFn: async () => {
       try {
-        const { dynamicField } = await onchain.client.getDynamicField({
+        const { dynamicField } = await grpc.client.getDynamicField({
           parentId: tableId,
           name: encodeDynamicFieldNameForV2(name),
         });
-        return await onchain.getObject({
+        return await grpc.getObject({
           objectId: dynamicField.fieldId,
           include: { json: true },
         });
@@ -302,7 +417,7 @@ export const getVeScaTreasuryInfoFromOnChain = async (
   ctx: VeScaTreasuryContext
 ) => {
   const {
-    onchain,
+    grpc,
     metadata: { addresses },
     fetchWithCache,
   } = ctx;
@@ -316,9 +431,9 @@ export const getVeScaTreasuryInfoFromOnChain = async (
   const treasuryObject = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject({
       ...fetchOptions,
-      node: onchain.url,
+      node: grpc.url,
     }),
-    queryFn: () => onchain.getObject(fetchOptions),
+    queryFn: () => grpc.getObject(fetchOptions),
   });
 
   const fields = parseObjectAs<VeScaTreasuryFields>(treasuryObject.object);

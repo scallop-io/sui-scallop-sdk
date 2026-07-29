@@ -2822,7 +2822,7 @@ export const WHITELIST = {
   wormhole: ['wusdc', 'wusdt', 'weth', 'wbtc', 'wapt', 'wsol'],
   oracles: ['pyth', 'supra', 'switchboard'],
   pythEndpoints: [
-    'https://hermes.pyth.network',
+    'https://pyth.dourolabs.app/hermes',
     'https://scallop.rpc.p2p.world',
   ],
   createdAt: '2025-03-11T20:50:11.000Z',

@@ -25,6 +25,51 @@ describe('RateLimiter', () => {
     expect(end - start).toBeLessThan(10);
   });
 
+  // `tokensPerSecond: Infinity` is how callers say "throttling happens
+  // elsewhere, don't rate limit". It used to deadlock: an infinite refillRate
+  // makes two same-millisecond refills compute `0 * Infinity === NaN`, NaN is
+  // absorbing through `Math.min`, so `tokens >= 1` never held again and
+  // `acquireToken` spun forever on `setTimeout(fn, NaN)`. A burst of reads
+  // (a dashboard refresh) hit the same-millisecond case reliably and every
+  // dependent query hung with no error.
+  it('never blocks when capacity is Infinity, even for a same-tick burst', async () => {
+    const limiter = new RateLimiter(Infinity);
+
+    // All in one tick, so multiple refills land in the same millisecond.
+    const results = await Promise.all(
+      Array.from({ length: 200 }, (_, i) => limiter.execute(async () => i))
+    );
+
+    expect(results).toHaveLength(200);
+    expect(results[199]).toBe(199);
+  });
+
+  // A FINITE capacity below 1 slips past the `unlimited` check but can never hand out
+  // a token, so `acquireToken` never resolves:
+  //   0    -> Math.ceil(1/0) === Infinity, a setTimeout delay clamped to ~1ms: spins
+  //   -1   -> negative delay, coerced to 0: spins
+  //   0.5  -> the wait is finite and correct, but `refill` caps tokens at `capacity`,
+  //           so the bucket never reaches the whole token required: loops forever
+  // A library that silently hangs every read leaves nothing to debug, so construction
+  // must reject these rather than accept them.
+  it.each([0, -1, 0.5, 0.999])(
+    'rejects capacity %s at construction instead of hanging',
+    (capacity) => {
+      expect(() => new RateLimiter(capacity)).toThrow(/capacity must be >= 1/);
+    }
+  );
+
+  it('accepts the smallest usable capacity of exactly 1', async () => {
+    // intent: the guard must not over-reject the boundary — 1 token/s is valid.
+    const limiter = new RateLimiter(1);
+    await expect(limiter.acquireToken()).resolves.toBeUndefined();
+  });
+
+  it('never blocks when capacity is not a number', async () => {
+    const limiter = new RateLimiter(NaN);
+    await expect(limiter.execute(async () => 'ok')).resolves.toBe('ok');
+  });
+
   it('waits for a token when none are available', async () => {
     const capacity = 3;
     const limiter = new RateLimiter(capacity);

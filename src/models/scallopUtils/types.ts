@@ -1,25 +1,27 @@
+import { GrpcDataSource } from 'src/datasources/grpc.js';
+import { ClientWithCoreMethods } from 'src/datasources/types.js';
 import { Logger } from 'src/logger/Logger.js';
-import { ClientWithCoreApi, SuiClientTypes } from '@mysten/sui/client';
-import { ScallopConstantsConstructorParams } from '../scallopConstants/types.js';
-import ScallopConstants from '../scallopConstants/index.js';
-import ScallopAddress from '../scallopAddress/index.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
 import { ScallopBaseInterface } from '../interface.js';
+import ScallopAddress from '../scallopAddress/index.js';
+import ScallopConstants from '../scallopConstants/index.js';
+import { ScallopConstantsConstructorParams } from '../scallopConstants/types.js';
 
-export type ScallopUtilsConstructorParams = {
+type ScallopUtilsBaseParams = {
   walletAddress: string;
   scallopConstants?: ScallopConstants;
   logger?: Logger;
-  suiClient?: ClientWithCoreApi;
-  tokensPerSecond?: number;
-} & {
-  network: SuiClientTypes.Network;
-  fullnodeUrl: string;
+  coreClient: ClientWithCoreMethods;
 } & ScallopConstantsConstructorParams;
+
+// Kept as a TOP-LEVEL distributive union (not `base & (Grpc | Graphql)`) so the
+// mutually-exclusive `readTransport` transport guard survives the `Omit` /
+// intersections in the builder → client → Scallop param chain. See
+// `DistributiveMerge`.
+export type ScallopUtilsConstructorParams = ScallopUtilsBaseParams;
 
 export interface ScallopUtilsInterface extends ScallopBaseInterface {
   address: ScallopAddress;
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
 }
 
 export type CoinWrappedType =

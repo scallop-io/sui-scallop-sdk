@@ -18,13 +18,20 @@ const createScallopUtilsWithCoins = (
   const utils = new ScallopUtils({
     walletAddress: '0xowner',
     scallopConstants: { queryClient: {} },
-    // New-gen transport methods live on `suiClient.core`; the on-chain datasource
-    // wraps `suiClient.core` (see wiring/datasources.ts).
-    suiClient: { core: { listCoins } },
+    // ScallopUtils now receives the resolved Core read client directly as
+    // `coreClient` (selection happens upstream in ScallopQuery). `selectCoins`
+    // reads `this.client.listCoins`.
+    coreClient: { listCoins },
     fullnodeUrl: 'mock://node',
   } as never);
   return { utils, listCoins };
 };
+
+// NOTE: read-transport selection is no longer a ScallopUtils responsibility —
+// it moved to `ScallopQuery.initReadClients` (grpc/graphql client routing),
+// which currently has no dedicated test. The old
+// `describe('ScallopUtils read transport selection')` block was removed here as
+// it asserted the removed `utils.grpc` surface.
 
 describe('ScallopUtils.selectCoins', () => {
   it('selects sorted coins until amount is covered', async () => {
