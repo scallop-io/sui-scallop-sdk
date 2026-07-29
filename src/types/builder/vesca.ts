@@ -1,13 +1,8 @@
 import { SuiTxBlock as SuiKitTxBlock, SuiObjectArg } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import { ScallopBuilder } from 'src/models';
-
-export type VescaIds = {
-  pkgId: string;
-  table: string;
-  treasury: string;
-  config: string;
-};
+import type { MoveCallContext } from 'src/txBuilders/context.js';
+import type { VeScaActionContext } from 'src/txBuilders/vesca/quick.js';
+import type { SuiObjectData } from '../sui.js';
 
 export type VeScaNormalMethods = {
   lockSca: (
@@ -26,11 +21,19 @@ export type VeScaNormalMethods = {
   ) => void;
   redeemSca: (veScaKey: SuiObjectArg) => TransactionResult;
   mintEmptyVeSca: () => TransactionResult;
+  splitVeSca: (
+    veScaKey: SuiObjectArg,
+    splitAmount: string
+  ) => TransactionResult;
+  mergeVeSca: (
+    targetVeScaKey: SuiObjectArg,
+    sourceVeScaKey: SuiObjectArg
+  ) => void;
 };
 
-export type RedeemScaQuickReturnType<T extends boolean> = T extends true
+export type QuickMethodReturnType<T extends boolean> = T extends true
   ? void
-  : TransactionResult | undefined;
+  : TransactionResult;
 
 export type VeScaQuickMethods = {
   /**
@@ -49,31 +52,41 @@ export type VeScaQuickMethods = {
    * @param lockPeriodInDays
    * @param autoCheck
    */
-  lockScaQuick(
-    amountOrCoin?: SuiObjectArg | number,
-    lockPeriodInDays?: number,
-    autoCheck?: boolean
-  ): Promise<void>;
-  extendLockPeriodQuick: (
-    lockPeriodInDays: number,
-    veScaKey?: SuiObjectArg,
-    autoCheck?: boolean
-  ) => Promise<void>;
-  extendLockAmountQuick: (
-    scaAmount: number,
-    veScaKey?: SuiObjectArg,
-    autoCheck?: boolean
-  ) => Promise<void>;
-  renewExpiredVeScaQuick: (
-    scaAmount: number,
-    lockPeriodInDays: number,
-    veScaKey?: SuiObjectArg,
-    autoCheck?: boolean
-  ) => Promise<void>;
-  redeemScaQuick: <T extends boolean>(
-    veSCaKey?: SuiObjectArg,
-    transferSca?: T
-  ) => Promise<RedeemScaQuickReturnType<T>>;
+  lockScaQuick(params: {
+    amountOrCoin?: SuiObjectArg | number;
+    lockPeriodInDays?: number;
+    autoCheck?: boolean;
+    veScaKey?: SuiObjectData | string;
+  }): Promise<void>;
+  extendLockPeriodQuick: (params: {
+    lockPeriodInDays: number;
+    autoCheck?: boolean;
+    veScaKey?: SuiObjectData | string;
+  }) => Promise<void>;
+  extendLockAmountQuick: (params: {
+    scaAmount: number;
+    autoCheck?: boolean;
+    veScaKey?: SuiObjectData | string;
+  }) => Promise<void>;
+  renewExpiredVeScaQuick: (params: {
+    scaAmount: number;
+    lockPeriodInDays: number;
+    autoCheck?: boolean;
+    veScaKey?: SuiObjectData | string;
+  }) => Promise<void>;
+  redeemScaQuick: <T extends boolean>(params: {
+    veScaKey?: SuiObjectData | string;
+    transferSca?: T;
+  }) => Promise<QuickMethodReturnType<T> | undefined>;
+  splitVeScaQuick: <T extends boolean>(params: {
+    splitAmount: string;
+    veScaKey: string;
+    transferVeScaKey?: T;
+  }) => Promise<QuickMethodReturnType<T> | undefined>;
+  mergeVeScaQuick: (params: {
+    targetVeScaKey: string;
+    sourceVeScaKey: string;
+  }) => Promise<void>;
 };
 
 export type SuiTxBlockWithVeScaNormalMethods = SuiKitTxBlock &
@@ -82,11 +95,11 @@ export type SuiTxBlockWithVeScaNormalMethods = SuiKitTxBlock &
 export type VeScaTxBlock = SuiTxBlockWithVeScaNormalMethods & VeScaQuickMethods;
 
 export type GenerateVeScaNormalMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: MoveCallContext;
   txBlock: SuiKitTxBlock;
 }) => VeScaNormalMethods;
 
 export type GenerateVeScaQuickMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: VeScaActionContext;
   txBlock: SuiTxBlockWithVeScaNormalMethods;
 }) => VeScaQuickMethods;

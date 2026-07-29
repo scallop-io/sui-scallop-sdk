@@ -5,7 +5,8 @@ node_modules/
 
 # build / generate output
 dist/
-docs/
+docs/*
+!docs/*.md
 
 #misc
 .DS_Store
@@ -33,3 +34,14 @@ logs/
 
 # vscode settings
 settings.json
+misc/*
+
+# sui logs
+sui.log.*
+
+# claude settings
+.claude/
+coverage/
+
+CLAUDE.md
+PLAN.md

@@ -1,276 +1,266 @@
 # Use ScallopQuery
 
-## Core query
+## Core Query
 
-- Get asset or collateral pool data from market.
+- Get market pools and collaterals.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // Get both asset and collateral pools data from market. Use inspectTxn call to obtain the data provided in the scallop contract query module.
-  const marketData = await scallopQuery.queryMarket();
-
-  // Get multiple asset pools data. To obtain all market pools at once, it is recommended to use the `queryMarket` method to reduce time consumption.
   const marketPools = await scallopQuery.getMarketPools(['sui', 'wusdc']);
-
-  // Get asset pool data separately.
   const suiMarketPool = await scallopQuery.getMarketPool('sui');
-
-  // Get multiple collateral pools data. To obtain all market pools at once, it is recommended to use the `queryMarket` method to reduce time consumption.
   const marketCollaterals = await scallopQuery.getMarketCollaterals([
     'sui',
     'wusdc',
   ]);
-
-  // Get collateral pool data separately.
   const suiMarketCollateral = await scallopQuery.getMarketCollateral('sui');
-
-  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
 
-- Get obligation data.
+- Get obligations and obligation details.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // Get all obligation key and id from owner.
   const obligations = await scallopQuery.getObligations();
-
-  // Use obligation id to get obligation data..
   const obligationData = await scallopQuery.queryObligation(obligations[0].id);
-
-  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
 
-- Get coin and market coin amount for owner. We also provide the way obtain coin price.
+- Get wallet balances and Pyth prices.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // Get all coin amount from owner.
   const coinAmounts = await scallopQuery.getCoinAmounts();
-
-  // Get specific coin amount from owner.
   const coinAmount = await scallopQuery.getCoinAmount('sui');
 
-  // Get all market coin amount from owner.
   const marketCoinAmounts = await scallopQuery.getMarketCoinAmounts();
-
-  // Get specific market coin amount from owner.
   const marketCoinAmount = await scallopQuery.getMarketCoinAmount('ssui');
 
-  // Get specific asset coin price.
   const usdcPrice = await scallopQuery.getPriceFromPyth('wusdc');
-
-  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
+  const prices = await scallopQuery.getPricesFromPyth(['sui', 'wusdc']); // Record<string, number>
   ```
 
-- Get Prices of all Supported Asset Coins
-
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
-
-  const assetCoinsPrices = await scallopQuery.getPricesFromPyth(); // return Record<SupportAssetCoins, number>
-  ```
-
-## Spool query
+## Spool Query
 
 - Get spool data.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // Get all spools data.
   const spools = await scallopQuery.getSpools();
-
-  // Get multiple spools data.
-  const spools = await scallopQuery.getSpools(['ssui', 'swusdc']);
-
-  // Get spool data separately.
+  const selectedSpools = await scallopQuery.getSpools(['ssui', 'swusdc']);
   const ssuiSpool = await scallopQuery.getSpool('ssui');
-
-  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
 
-- Stale methods, directly obtain the data of object fields.
+- Legacy stake/reward object-level methods (still available).
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // Get stake account for all spools.
   const allStakeAccounts = await scallopQuery.getAllStakeAccounts();
-
-  // Get stake accounts for specific spool.
   const stakeAccounts = await scallopQuery.getStakeAccounts('ssui');
-
-  // Get multiple stake pools data.
   const stakePools = await scallopQuery.getStakePools(['ssui', 'swusdc']);
-
-  // Get stake pool data separately.
-  const suiStakePool = await scallopQuery.getStakePool('ssui');
-
-  // Get multiple reward pools data.
+  const stakePool = await scallopQuery.getStakePool('ssui');
   const rewardPools = await scallopQuery.getStakeRewardPools([
     'ssui',
     'swusdc',
   ]);
-
-  // Get reward pool data separately.
   const rewardPool = await scallopQuery.getStakeRewardPool('ssui');
-
-  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
 
 ## Borrow Incentive Query
 
-- Get All Borrow Incentive Pools
+- Get borrow incentive pools.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
-
-  const borrowIncentivePools = await scallopQuery.getBorrowIncentivePools();
-  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
+  const pools = await scallopQuery.getBorrowIncentivePools();
   ```
 
-## Portfolio query
+- Get borrow incentive accounts for an obligation.
 
-- Get user lending information include spool information.
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const obligationId = '0x...';
+  const incentiveAccounts =
+    await scallopQuery.getBorrowIncentiveAccounts(obligationId);
+  ```
+
+## Lending, Obligation, TVL
+
+- Get lending info.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // Get multiple lending information from owner.
   const lendings = await scallopQuery.getLendings(['sui', 'wusdc']);
-
-  // Get lending information separately.
   const lending = await scallopQuery.getLending('sui');
-
-  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
 
-- Get user obligation account information include collateral and borrowing information.
+- Get obligation account data.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // Get all obligation accounts information.
   const obligationAccounts = await scallopQuery.getObligationAccounts();
-
-  // Get obligation account information separately.
   const obligations = await scallopQuery.getObligations();
   const obligationAccount = await scallopQuery.getObligationAccount(
     obligations[0].id
   );
-
-  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
 
-- Get Scallop total value locked information.
+- Get the on-chain names registered for an address's obligations.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // Get tvl that including total supply value and total borrow value.
+  // Map of obligation id to its registered name (unnamed obligations are omitted).
+  const obligationNames = await scallopQuery.getObligationNames();
+  ```
+
+- Get TVL.
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
   const tvl = await scallopQuery.getTvl();
-
-  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
   ```
 
-## VeSCA query
+## VeSCA Query
 
-- Get veSCA treasury information
+- Get veSCA treasury.
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+  const treasury = await scallopQuery.getVeScaTreasuryInfo();
+  ```
+
+- Get binded obligation from a veSCA key.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  const totalStakeVeSca = await scallopQuery.getVeScaTreasuryInfo(); // return string
-  ```
-
-- Get Binded Obligation ID from a veSCA key if it exists
-
-  ```typescript
-  const scallopQuery = await scallopSDK.createScallopQuery();
-
-  // get binded veScaKey
   const veScaKey = '0x...';
-  const obligationId = await scallopQuery.getBindedVeScaKey(veScaKey); // return type string or null
+  const binded = await scallopQuery.getBindedObligation(veScaKey);
+  // binded: { obligationId: string; obligationKey: string } | null
   ```
 
-- Get Binded veSCA Key from an Obligation ID if it exists
+- Get binded veSCA key from an obligation id.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  // get binded veScaKey
   const obligationId = '0x...';
-  const veScaKey = await scallopQuery.getBindedVeScaKey(obligationId); // return type string or null
+  const veScaKey = await scallopQuery.getBindedVeScaKey(obligationId); // string | null
   ```
 
-## Referral Query
-
-- Get Referrer veSCA key from a referee wallet address if exists
+- Get referral binding.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
-  const refereeAdress = '0x...';
+  const refereeAddress = '0x...';
   const referrerVeScaKey =
-    await scallopSDK.getVeScaKeyIdFromReferralBindings(refereeAddress); // return string or null
+    await scallopQuery.getVeScaKeyIdFromReferralBindings(refereeAddress); // string | null
   ```
 
-## veSCA Loyalty Program
-
-- Get user veSCA loyalty program informations
+- Get loyalty program info.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
   const loyaltyProgramInfos = await scallopQuery.getLoyaltyProgramInfos();
-  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
+  const veScaLoyaltyInfos = await scallopQuery.getVeScaLoyaltyProgramInfos();
   ```
 
-## New SCoin Query
+## sCoin Query
 
-- Get sCoin total supply
+- Get sCoin supply and balances.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
-  const sCoinName = 'ssui';
-  const sCoinTotalSupply = await scallopQuery.getSCoinTotalSupply(sCoinName);
+  const sender = '0x...';
+
+  const sCoinTotalSupply = await scallopQuery.getSCoinTotalSupply('ssui');
+  const sCoinAmounts = await scallopQuery.getSCoinAmounts(
+    ['ssui', 'swusdc'],
+    sender
+  );
+  const sCoinAmount = await scallopQuery.getSCoinAmount('ssui', sender);
   ```
 
-- Get sCoins amount in wallet
+- Get sCoin swap rate.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
-  const sCoinNames = ['ssui', 'swusdc'];
-  const sCoinAmounts = await scallopQuery.getSCoinAmounts(sCoinNames, sender);
+  const rate = await scallopQuery.getSCoinSwapRate('ssui', 'swusdc');
   ```
 
-## Flashloan Fee
+## Limits and Isolation
 
-- Get flashloan fee
+- Get pool limits.
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  const supplyLimit = await scallopQuery.getPoolSupplyLimit('sui');
+  const borrowLimit = await scallopQuery.getPoolBorrowLimit('sui');
+  ```
+
+- Get isolated assets and check isolated status.
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  const isolatedAssets = await scallopQuery.getIsolatedAssets(); // default: indexer-backed
+  const isolatedAssetsOnChain = await scallopQuery.getIsolatedAssets(true); // force on-chain
+
+  const isIsolated = await scallopQuery.isIsolatedAsset('deep');
+  const isIsolatedOnChain = await scallopQuery.isIsolatedAsset('deep', true);
+  ```
+
+## Oracle and Price Policies
+
+- Get flashloan fees and all coin prices.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
 
   const flashloanFees = await scallopQuery.getFlashLoanFees();
-  // For the return type, please refer to the type definition of the source code, which is located in the project `src/types/query` folder location.
+  const allCoinPrices = await scallopQuery.getAllCoinPrices();
   ```
 
-## Isolated Assets
-
-- Get isolated assets
+- Get xOracle policy objects and oracle mapping.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
-  const isolatedAssets = await scallopQuery.getIsolatedAssets(); // returns string[];
+
+  const policies = await scallopQuery.getPriceUpdatePolicies();
+  // { primary: SuiObjectResponse | null, secondary: SuiObjectResponse | null }
+
+  const oracles = await scallopQuery.getAssetOracles();
+  /**
+   * {
+   *   sui: { primary: ['pyth', ...], secondary: ['supra', ...] },
+   *   wusdc: { primary: [...], secondary: [...] }
+   * }
+   */
   ```
 
-- Check if an asset is isolated
+- Get Switchboard on-demand aggregator object ids.
 
   ```typescript
   const scallopQuery = await scallopSDK.createScallopQuery();
-  const isolatedAssetName = ''; // TODO: fill with isolatedAsset
-  const isIsolated = await scallopQuery.isIsolatedAsset(isolatedAssetName); // returns boolean
+  const aggObjectIds =
+    await scallopQuery.getSwitchboardOnDemandAggregatorObjectIds(['sui']);
+  ```
+
+## Portfolio
+
+- Get user portfolio by wallet address.
+
+  ```typescript
+  const scallopQuery = await scallopSDK.createScallopQuery();
+
+  const walletAddress = '0x...';
+  const portfolio = await scallopQuery.getUserPortfolio({ walletAddress });
   ```

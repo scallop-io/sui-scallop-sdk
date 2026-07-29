@@ -1,0 +1,317 @@
+import { newScallopTxBlock } from '../../txBuilders/index.js';
+import { SuiKit, SuiTransactionBlockResponse } from '@scallop-io/sui-kit';
+import type {
+  Transaction,
+  TransactionObjectArgument,
+} from '@mysten/sui/transactions';
+import type {
+  SuiAmountsArg,
+  SuiTxBlock as SuiKitTxBlock,
+  SuiObjectArg,
+  SuiTxArg,
+  SuiVecTxArg,
+} from '@scallop-io/sui-kit';
+import type { ScallopTxBlock } from '../../types/index.js';
+import { ScallopBuilderInterface } from '../interface.js';
+import {
+  SuiKitTransactionExecutor,
+  TransactionExecutor,
+} from '../transactionExecutor.js';
+import ScallopQuery from '../scallopQuery/index.js';
+import { ScallopBuilderConstructorParams } from './types.js';
+
+/**
+ * @descriptionr
+ * It provides methods for operating the transaction block, making it more convenient to organize transaction combinations.
+ *
+ * @example
+ * ```typescript
+ * const scallopBuilder = new ScallopBuilder(<parameters>);
+ * await scallopBuilder.init();
+ * const txBlock = scallopBuilder.<builder functions>();
+ * ```
+ */
+class ScallopBuilder implements ScallopBuilderInterface {
+  public readonly query: ScallopQuery;
+  public readonly usePythPullModel: boolean;
+  public readonly useOnChainXOracleList: boolean;
+  public readonly sponsoredFeeds: string[];
+  public readonly suiKit: SuiKit;
+  public readonly pythEndpoints: string[];
+
+  public constructor({
+    usePythPullModel = true,
+    useOnChainXOracleList = true,
+    sponsoredFeeds = [],
+    pythEndpoints = [],
+    query,
+    ...scallopQueryArgs
+  }: ScallopBuilderConstructorParams) {
+    this.suiKit = new SuiKit({
+      ...scallopQueryArgs,
+      fullnodeUrls: [scallopQueryArgs.fullnodeUrl],
+    });
+    this.query =
+      query ??
+      new ScallopQuery({
+        ...scallopQueryArgs,
+        walletAddress:
+          scallopQueryArgs.walletAddress ?? this.suiKit.currentAddress,
+      });
+    this.usePythPullModel = usePythPullModel;
+    this.useOnChainXOracleList = useOnChainXOracleList;
+    this.sponsoredFeeds = sponsoredFeeds;
+    this.pythEndpoints = pythEndpoints;
+  }
+
+  /**
+   * The SDK-agnostic write-path signer/executor, memoised. Built from the raw
+   * `SuiKit`; all write callers go through this rather than touching the SDK
+   * directly, so the underlying SDK can be swapped in one place.
+   */
+  private _executor?: TransactionExecutor;
+  get executor(): TransactionExecutor {
+    return (this._executor ??= new SuiKitTransactionExecutor(this.suiKit));
+  }
+
+  get utils() {
+    return this.query.utils;
+  }
+
+  get constants() {
+    return this.utils.constants;
+  }
+
+  get walletAddress() {
+    return this.utils.walletAddress;
+  }
+
+  get onchain() {
+    return this.utils.onchain;
+  }
+
+  get address() {
+    return this.utils.address;
+  }
+
+  /**
+   * Request the scallop API to initialize data.
+   *
+   * @param force - Whether to force initialization.
+   */
+  async init(force: boolean = false) {
+    await this.query.init(force);
+  }
+
+  /**
+   * Create a scallop txBlock instance that enhances transaction block.
+   *
+   * @param txBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
+   * @return Scallop txBlock.
+   */
+  createTxBlock(txBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction) {
+    return newScallopTxBlock(this, txBlock);
+  }
+
+  /**
+   * Specifying the sender's amount of coins to get coins args from transaction result.
+   *
+   * @param txBlock - Scallop txBlock or txBlock created by SuiKit .
+   * @param assetCoinName - Specific support asset coin name.
+   * @param amount - Amount of coins to be selected.
+   * @param sender - Sender address.
+   * @param isSponsored - Whether the transaction is a sponsored transaction.
+   * @return Take coin and left coin.
+   */
+  async selectCoin(
+    txBlock: ScallopTxBlock | SuiKitTxBlock,
+    assetCoinName: string,
+    amount: number,
+    sender: string = this.walletAddress,
+    isSponsored: boolean = false
+  ) {
+    if (assetCoinName === 'sui' && !isSponsored) {
+      const [takeCoin] = txBlock.splitSUIFromGas([amount]);
+      return { takeCoin };
+    } else {
+      const coinType = this.utils.parseCoinType(assetCoinName);
+      const coins = await this.utils.selectCoins({
+        amount,
+        coinType,
+        ownerAddress: sender,
+      });
+      const totalAmount = coins.reduce((prev, coin) => {
+        prev += Number(coin.balance);
+        return prev;
+      }, 0);
+      const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
+
+      return { takeCoin, leftCoin, totalAmount };
+    }
+  }
+
+  /**
+   * Specifying the sender's amount of market coins to get coins args from transaction result.
+   *
+   * @param txBlock - Scallop txBlock or txBlock created by SuiKit .
+   * @param marketCoinName - Specific support market coin name.
+   * @param amount - Amount of coins to be selected.
+   * @param sender - Sender address.
+   * @return Take coin and left coin.
+   */
+  async selectMarketCoin(
+    txBlock: ScallopTxBlock | SuiKitTxBlock,
+    marketCoinName: string,
+    amount: number,
+    sender: string = this.walletAddress
+  ) {
+    const marketCoinType = this.utils.parseMarketCoinType(marketCoinName);
+    const coins = await this.utils.selectCoins({
+      amount,
+      coinType: marketCoinType,
+      ownerAddress: sender,
+    });
+    const totalAmount = coins.reduce((prev, coin) => {
+      prev += Number(coin.balance);
+      return prev;
+    }, 0);
+    const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
+      coins,
+      Math.min(amount, totalAmount)
+    );
+    return { takeCoin, leftCoin, totalAmount };
+  }
+
+  /**
+   * Specifying the sender's amount of sCoins to get coins args from transaction result.
+   *
+   * @param txBlock - Scallop txBlock or txBlock created by SuiKit .
+   * @param sCoinName - Specific support sCoin name.
+   * @param amount - Amount of coins to be selected.
+   * @param sender - Sender address.
+   * @return Take coin and left coin.
+   */
+  async selectSCoin(
+    txBlock: ScallopTxBlock | SuiKitTxBlock,
+    sCoinName: string,
+    amount: number,
+    sender: string = this.walletAddress
+  ) {
+    const sCoinType = this.utils.parseSCoinType(sCoinName);
+    const coins = await this.utils.selectCoins({
+      amount,
+      coinType: sCoinType,
+      ownerAddress: sender,
+    });
+    const totalAmount = coins.reduce((prev, coin) => {
+      prev += Number(coin.balance);
+      return prev;
+    }, 0);
+    const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
+      coins,
+      Math.min(totalAmount, amount)
+    );
+    return {
+      takeCoin,
+      leftCoin,
+      totalAmount,
+    };
+  }
+
+  /**
+   * Select sCoin or market coin automatically. Prioritize sCoin first
+   */
+  async selectSCoinOrMarketCoin(
+    txBlock: ScallopTxBlock | SuiKitTxBlock,
+    sCoinName: string,
+    amount: number,
+    sender: string = this.walletAddress
+  ) {
+    let totalAmount = amount;
+    const result = {
+      sCoins: [] as TransactionObjectArgument[],
+      marketCoins: [] as TransactionObjectArgument[],
+      leftCoins: [] as TransactionObjectArgument[],
+    };
+    try {
+      // try sCoin first
+      const {
+        leftCoin,
+        takeCoin,
+        totalAmount: sCoinAmount,
+      } = await this.selectSCoin(txBlock, sCoinName, totalAmount, sender);
+      result.leftCoins.push(leftCoin);
+      result.sCoins.push(takeCoin);
+      totalAmount -= sCoinAmount;
+
+      if (totalAmount > 0) {
+        // sCoin is not enough, try market coin
+        const { leftCoin, takeCoin: marketCoin } = await this.selectMarketCoin(
+          txBlock,
+          sCoinName,
+          amount,
+          sender
+        );
+        txBlock.transferObjects([leftCoin], sender);
+        result.marketCoins.push(marketCoin);
+      }
+    } catch (_e) {
+      // no sCoin, try market coin
+      const { takeCoin: marketCoin, leftCoin } = await this.selectMarketCoin(
+        txBlock,
+        sCoinName,
+        amount,
+        sender
+      );
+      result.leftCoins.push(leftCoin);
+      result.marketCoins.push(marketCoin);
+    }
+
+    txBlock.transferObjects(result.leftCoins, sender);
+
+    // merge sCoins and marketCoins
+    const mergedMarketCoins =
+      result.marketCoins.length > 0
+        ? result.marketCoins.length > 1
+          ? txBlock.mergeCoins(
+              result.marketCoins[0],
+              result.marketCoins.slice(1)
+            )
+          : result.marketCoins[0]
+        : undefined;
+    const mergedSCoins =
+      result.sCoins.length > 0
+        ? result.sCoins.length > 1
+          ? txBlock.mergeCoins(result.sCoins[0], result.sCoins.slice(1))
+          : result.sCoins[0]
+        : undefined;
+    return {
+      sCoin: mergedSCoins,
+      marketCoin: mergedMarketCoins,
+    };
+  }
+
+  /**
+   * Execute Scallop txBlock using the `signAndSendTxn` methods in suikit.
+   *
+   * @param txBlock - Scallop txBlock, txBlock created by SuiKit, or original transaction block.
+   */
+  async signAndSendTxBlock(
+    txBlock: ScallopTxBlock | SuiKitTxBlock | Transaction
+  ) {
+    return (await this.executor.signAndSendTxn(
+      txBlock
+    )) as SuiTransactionBlockResponse;
+  }
+
+  public moveCall(
+    txb: ScallopTxBlock | SuiKitTxBlock,
+    target: string,
+    args?: (SuiTxArg | SuiVecTxArg | SuiObjectArg | SuiAmountsArg)[],
+    typeArgs?: string[]
+  ) {
+    return txb.moveCall(target, args as any, typeArgs);
+  }
+}
+
+export default ScallopBuilder;

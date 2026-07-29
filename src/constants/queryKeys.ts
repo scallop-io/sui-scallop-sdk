@@ -1,108 +1,84 @@
-import type {
-  GetDynamicFieldObjectParams,
-  GetDynamicFieldsParams,
-  GetOwnedObjectsParams,
-  SuiObjectData,
-  SuiObjectDataOptions,
-} from '@mysten/sui/client';
-import type { SuiObjectArg } from '@scallop-io/sui-kit';
+import { QueryKeys } from 'src/types/constant/queryKeys.js';
 
 export const queryKeys = {
   api: {
-    getAddresses: (addressesId?: string) => [
+    getAddresses: (props?: QueryKeys.API.GetAddresses) => [
       'api',
       'getAddresses',
-      { addressesId },
+      props,
     ],
-    getMarket: () => ['api', 'getMarket'],
+    getWhiteList: () => ['api', 'getWhiteList'],
+    getPoolAddresses: () => ['api', 'getPoolAddresses'],
+    getMarkets: () => ['api', 'getMarkets'],
     getSpools: () => ['api', 'getSpools'],
-    getBorrowIncentivePool: () => ['api', 'getBorrowIncentivePools'],
     getTotalValueLocked: () => ['api', 'getTotalValueLocked'],
   },
 
   rpc: {
-    getInspectTxn: (
-      queryTarget?: string,
-      args?: SuiObjectArg[],
-      typeArgs?: any[]
-    ) => [
+    getInspectTxn: (props?: QueryKeys.RPC.GetInspectTxn) => [
       'rpc',
       'getInspectTxn',
-      {
-        queryTarget,
-        args: JSON.stringify(args),
-        typeArgs: !typeArgs ? undefined : JSON.stringify(typeArgs),
-      },
+      props,
     ],
-    getObject: (
-      objectId?: string,
-      walletAddress?: string,
-      options?: SuiObjectDataOptions
-    ) => ['rpc', 'getObject', { walletAddress, options, objectId }],
-    getObjects: (
-      objectIds?: string[],
-      walletAddress?: string,
-      options?: SuiObjectDataOptions
-    ) => [
+    getObject: (props?: QueryKeys.RPC.GetObject) => ['rpc', 'getObject', props],
+    getObjects: (props?: QueryKeys.RPC.GetObjects) => [
       'rpc',
       'getObjects',
-      {
-        walletAddress,
-        options,
-        objectIds: JSON.stringify(objectIds ?? []),
-      },
+      props,
     ],
-    getOwnedObjects: (input?: Partial<GetOwnedObjectsParams>) => [
+    getSharedObject: (props?: QueryKeys.RPC.GetSharedObject) => [
+      'rpc',
+      'getSharedObject',
+      props,
+    ],
+    getOwnedObjects: (props?: QueryKeys.RPC.GetOwnedObjects) => [
       'rpc',
       'getOwnedObjects',
-      {
-        walletAddress: input?.owner,
-        cursor: input?.cursor ?? undefined,
-        options: input?.options ?? undefined,
-        filter: JSON.stringify(input?.filter ?? undefined),
-        limit: input?.limit ?? undefined,
-      },
+      props,
     ],
-    getDynamicFields: (input?: Partial<GetDynamicFieldsParams>) => [
+    getDynamicFields: (props?: QueryKeys.RPC.GetDynamicFields) => [
       'rpc',
       'getDynamicFields',
-      {
-        parentId: input?.parentId,
-        cursor: input?.cursor ?? undefined,
-        limit: input?.limit ?? undefined,
-      },
+      props,
     ],
-    getDynamicFieldObject: (input?: Partial<GetDynamicFieldObjectParams>) => [
+    getDynamicFieldObject: (props?: QueryKeys.RPC.GetDynamicFieldObject) => [
       'rpc',
       'getDynamicFieldObject',
-      {
-        parentId: input?.parentId,
-        name: JSON.stringify(input?.name ?? undefined),
-      },
+      props,
     ],
     getTotalVeScaTreasuryAmount: (
-      refreshArgs?: any[],
-      vescaAmountArgs?: (string | SuiObjectData)[]
+      props?: QueryKeys.RPC.getTotalVeScaTreasuryAmount
     ) => [
       'rpc',
       'getTotalVeScaTreasuryAmount',
       {
-        refreshArgs: JSON.stringify(refreshArgs),
-        vescaAmountArgs: JSON.stringify(vescaAmountArgs),
+        ...props,
+        refreshArgs: props?.refreshArgs
+          ? JSON.stringify(props?.refreshArgs)
+          : undefined,
+        veScaAmountArgs: props?.veScaAmountArgs
+          ? JSON.stringify(props?.veScaAmountArgs)
+          : undefined,
       },
     ],
 
-    getAllCoinBalances: (owner?: string) => [
+    getCoinBalance: (props?: QueryKeys.RPC.GetCoinBalance) => [
+      'rpc',
+      'getCoinBalance',
+      props,
+    ],
+    getAllCoinBalances: (props?: QueryKeys.RPC.GetAllCoinBalances) => [
       'rpc',
       'getAllCoinBalances',
-      { owner },
+      props,
     ],
   },
   oracle: {
-    getPythLatestPriceFeed: (pythPriceId?: string) => [
+    getPythLatestPriceFeeds: (endpoint?: string, priceIds?: string[]) => [
       'oracle',
-      'getPythPriceId',
-      { pythPriceId },
+      'getPythPriceIds',
+      priceIds,
+      endpoint,
     ],
   },
 };

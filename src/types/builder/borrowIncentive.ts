@@ -3,11 +3,8 @@ import type {
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import type { ScallopBuilder } from '../../models';
-import type {
-  SupportBorrowIncentiveCoins,
-  SupportBorrowIncentiveRewardCoins,
-} from '../constant';
+import type { MoveCallContext } from 'src/txBuilders/context.js';
+import type { BorrowIncentiveActionContext } from 'src/txBuilders/borrowIncentive/quick.js';
 
 export type BorrowIncentiveIds = {
   borrowIncentivePkg: string;
@@ -35,31 +32,29 @@ export type BorrowIncentiveNormalMethods = {
   claimBorrowIncentive: (
     obligation: SuiObjectArg,
     obligationKey: SuiObjectArg,
-    coinName: SupportBorrowIncentiveCoins,
-    rewardType: SupportBorrowIncentiveRewardCoins
+    rewardType: string
   ) => TransactionResult;
   deactivateBoost: (obligation: SuiObjectArg, veScaKey: SuiObjectArg) => void;
 };
 
 export type BorrowIncentiveQuickMethods = {
   stakeObligationQuick(
-    obligation?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligation?: string,
+    obligationKey?: string
   ): Promise<void>;
   stakeObligationWithVeScaQuick(
-    obligation?: SuiObjectArg,
-    obligationKey?: SuiObjectArg,
-    veScaKey?: SuiObjectArg
+    obligation?: string,
+    obligationKey?: string,
+    veScaKey?: string
   ): Promise<void>;
   unstakeObligationQuick(
-    obligation?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    obligation?: string,
+    obligationKey?: string
   ): Promise<void>;
   claimBorrowIncentiveQuick(
-    coinName: SupportBorrowIncentiveCoins,
-    rewardType: SupportBorrowIncentiveRewardCoins,
-    obligation?: SuiObjectArg,
-    obligationKey?: SuiObjectArg
+    rewardType: string,
+    obligation?: string,
+    obligationKey?: string
   ): Promise<TransactionResult>;
 };
 
@@ -70,11 +65,11 @@ export type BorrowIncentiveTxBlock =
   SuiTxBlockWithBorrowIncentiveNormalMethods & BorrowIncentiveQuickMethods;
 
 export type GenerateBorrowIncentiveNormalMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: MoveCallContext;
   txBlock: SuiKitTxBlock;
 }) => BorrowIncentiveNormalMethods;
 
 export type GenerateBorrowIncentiveQuickMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: BorrowIncentiveActionContext;
   txBlock: SuiTxBlockWithBorrowIncentiveNormalMethods;
 }) => BorrowIncentiveQuickMethods;

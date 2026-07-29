@@ -3,12 +3,29 @@ import {
   SuiTxBlock as SuiKitTxBlock,
   TransactionResult,
 } from '@scallop-io/sui-kit';
-import { SupportSCoin } from '../constant';
-import { ScallopBuilder } from 'src/models';
-import { BaseScallopTxBlock } from '.';
+import { ScallopBuilder } from 'src/models/index.js';
+import { BaseScallopTxBlock } from './index.js';
+import type { MoveCallContext } from 'src/txBuilders/context.js';
 
 export type sCoinPkgIds = {
   pkgId: string;
+};
+
+/**
+ * The explicit orchestration toolkit an sCoin quick method needs.
+ *
+ * @description
+ * Narrow context injected into {@link generateSCoinQuickMethod}. Built once from
+ * `builder` in the factory and passed (instead of `builder`) into the quick
+ * generator. Method signatures are taken via indexed-access types so they stay
+ * in sync with `ScallopBuilder`.
+ */
+export type SCoinActionContext = {
+  utils: ScallopBuilder['utils'];
+  coins: {
+    selectMarketCoin: ScallopBuilder['selectMarketCoin'];
+    selectSCoin: ScallopBuilder['selectSCoin'];
+  };
 };
 
 export type sCoinNormalMethods = {
@@ -19,7 +36,7 @@ export type sCoinNormalMethods = {
    * @returns
    */
   mintSCoin: (
-    marketCoinName: SupportSCoin,
+    marketCoinName: string,
     marketCoin: SuiObjectArg
   ) => TransactionResult;
   /**
@@ -28,19 +45,16 @@ export type sCoinNormalMethods = {
    * @param sCoin
    * @returns
    */
-  burnSCoin: (
-    sCoinName: SupportSCoin,
-    sCoin: SuiObjectArg
-  ) => TransactionResult; // returns marketCoin
+  burnSCoin: (sCoinName: string, sCoin: SuiObjectArg) => TransactionResult; // returns marketCoin
 };
 
 export type sCoinQuickMethods = {
   mintSCoinQuick: (
-    marketCoinName: SupportSCoin,
+    marketCoinName: string,
     amount: number
   ) => Promise<TransactionResult>;
   burnSCoinQuick: (
-    sCoinName: SupportSCoin,
+    sCoinName: string,
     amount: number
   ) => Promise<TransactionResult>;
 };
@@ -51,11 +65,11 @@ export type SuiTxBlockWithSCoinNormalMethods = SuiKitTxBlock &
 export type SCoinTxBlock = SuiTxBlockWithSCoinNormalMethods & sCoinQuickMethods;
 
 export type GenerateSCoinNormalMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: MoveCallContext;
   txBlock: SuiKitTxBlock;
 }) => sCoinNormalMethods;
 
 export type GenerateSCoinQuickMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: SCoinActionContext;
   txBlock: SuiTxBlockWithSCoinNormalMethods;
 }) => sCoinQuickMethods;

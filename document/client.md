@@ -2,27 +2,27 @@
 
 ## Query Method
 
-Methods for quering on-chain data related to spool and lending contract.
-
-The query methods in the client have been migrated to the query instance. These methods may be removed from the client in the future.
+The query methods have been removed from the client and now live on the query instance, reachable via `client.query`. See [query.md](./query.md) for the full surface.
 
 - Get On-chain Data
 
   ```typescript
-  // Query market data.
-  const marketData = await client.queryMarket();
-  // Get obligations data.
-  const obligationsData = await client.getObligations();
-  // Get obligation data.
-  const obligationData = await client.queryObligation();
+  // The query instance is exposed on the client.
+  const query = client.query;
+
+  // Query market pools / collaterals.
+  const marketPools = await query.getMarketPools(['sui', 'wusdc']);
+  // Get obligation data (requires obligation id).
+  const obligationsData = await query.getObligations();
+  const obligationData = await query.queryObligation(obligationsData[0].id);
   // Get all stake accounts data.
-  const allStakeAccountsData = await client.getAllStakeAccounts();
+  const allStakeAccountsData = await query.getAllStakeAccounts();
   // Get stake accounts data.
-  const stakeAccountsData = await client.getStakeAccounts('ssui');
+  const stakeAccountsData = await query.getStakeAccounts('ssui');
   // Get stake pool data.
-  const stakePoolData = await client.getStakePool('ssui');
+  const stakePoolData = await query.getStakePool('ssui');
   // Get reward pool data.
-  const rewardPoolData = await client.getStakeRewardPool('ssui');
+  const rewardPoolData = await query.getStakeRewardPool('ssui');
   ```
 
 ## Core Interaction Method
@@ -70,18 +70,13 @@ Methods for interacting with the lending contract.
   );
   ```
 
-- Deposit Asset.
+- Supply Asset.
 
   ```typescript
-  // By default, the client's wallet address is used as the owner for deposit.
-  const depositResult = await client.deposit('sui', 2 * 10 ** 8);
-  // You can specify owner address then deposit.
-  const depositResult = await client.deposit(
-    'sui',
-    2 * 10 ** 8,
-    true,
-    '0x....'
-  );
+  // By default, the client's wallet address is used as the owner for supply.
+  const supplyResult = await client.supply('sui', 2 * 10 ** 8);
+  // You can specify owner address then supply.
+  const supplyResult = await client.supply('sui', 2 * 10 ** 8, true, '0x....');
   ```
 
 - Withdraw Asset.
@@ -159,15 +154,85 @@ Methods for interacting with the spool contract.
 - Unstake Market Coin.
 
   ```typescript
-  // Untake to specific spool, currently support ssui, swusdc, and swusdt
+  // Unstake from specific spool, currently support ssui, swusdc, and swusdt
   const unstakeResult = await client.unstake('ssui', 10 ** 8);
   ```
 
-- Cliam Reward Coin.
+- Claim Reward Coin.
 
   ```typescript
   // Claim from the corresponding reward pool of specific spool.
   const claimResult = await client.claim('ssui');
+  ```
+
+## Referral Interaction Method
+
+Methods for interacting with the referral contract, reachable via `client.referralService`.
+
+- Bind a wallet to a referrer's veSCA key.
+
+  ```typescript
+  // Binds the signer to the referrer identified by their veSCA key id.
+  const bindResult = await client.referralService.bindToReferral(veScaKeyId);
+  ```
+
+- Claim referral revenue.
+
+  ```typescript
+  // Claims accrued referral revenue for the given veSCA key.
+  // When coinNames is omitted, it defaults to the lending whitelist.
+  const claimResult = await client.referralService.claimReferralRevenue(
+    veScaKey,
+    ['sui', 'wusdc']
+  );
+  ```
+
+- Burn a referral ticket.
+
+  ```typescript
+  // Burns a referral ticket for the given pool coin.
+  const burnResult = await client.referralService.burnReferralTicket(
+    ticket,
+    'sui'
+  );
+  ```
+
+## Borrow Incentive Method
+
+Methods for interacting with the borrow incentive contract.
+
+- Stake / unstake an obligation to earn borrow incentives.
+
+  ```typescript
+  // Requires the obligation id and key.
+  const obligationsData = await client.query.getObligations();
+  const stakeResult = await client.stakeObligation(
+    obligationsData[0].id,
+    obligationsData[0].keyId
+  );
+  // Unstake it again.
+  const unstakeResult = await client.unstakeObligation(
+    obligationsData[0].id,
+    obligationsData[0].keyId
+  );
+  ```
+
+- Claim borrow incentive rewards.
+
+  ```typescript
+  // Claims every reward coin with an available claim amount on the obligation.
+  const obligationsData = await client.query.getObligations();
+  const claimBorrowIncentiveResult = await client.claimBorrowIncentive(
+    obligationsData[0].id,
+    obligationsData[0].keyId
+  );
+  ```
+
+- Claim all unlocked SCA from expired veSCA accounts.
+
+  ```typescript
+  // Claim unlocked SCA from all of the sender's veSCA accounts.
+  const claimAllUnlockedScaResult = await client.claimAllUnlockedSca();
   ```
 
 ## New sCoin Package Migration Method
