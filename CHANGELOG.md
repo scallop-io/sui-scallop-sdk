@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.1.0...v5.2.0) (2026-07-29)
+
+### Added
+
+- Export `ScallopPythClient` from the package root ([bdb6b5e](https://github.com/scallop-io/sui-scallop-sdk/commit/bdb6b5ede8d80691117f3bfd3dddb5813d417f3f))
+
+### Changed
+
+- Pinned the `@scallop-io/sui-kit` peer dependency to `~2.2.0` (previously `>=2.2.0`) ([ee16c44](https://github.com/scallop-io/sui-scallop-sdk/commit/ee16c4447c589bfc47d1dd59dac55fa2a5daa53e))
+
+### Fixed
+
+- Coin selection (`selectCoin`/`selectMarketCoin`/`selectSCoin`, used by supply/borrow/repay/liquidate/collateral/veSCA/spool/sCoin quick methods) now uses `coinWithBalance` instead of manually splitting take/left coins from pinned coin objects — avoids version-mismatch errors when the coin index lags the object store ([ee16c44](https://github.com/scallop-io/sui-scallop-sdk/commit/ee16c4447c589bfc47d1dd59dac55fa2a5daa53e))
+
 ## [5.1.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.0.0...v5.1.0) (2026-07-26)
 
 ### Changed
