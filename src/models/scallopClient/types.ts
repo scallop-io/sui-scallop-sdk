@@ -3,11 +3,17 @@ import ScallopBuilder from '../scallopBuilder/index.js';
 import { ScallopBuilderConstructorParams } from '../scallopBuilder/types.js';
 import { Transaction, TransactionResult } from '@mysten/sui/transactions';
 import { DefaultTxInclude } from '../transactionExecutor.js';
+import type { DistributiveMerge } from 'src/types/utils.js';
 
-export type ScallopClientConstructorParams = {
-  networkType?: SuiClientTypes.Network;
-  builder?: ScallopBuilder;
-} & ScallopBuilderConstructorParams;
+// `DistributiveMerge` keeps the `readTransport` transport union at the top level
+// so its guard survives up to `new Scallop(...)`. See `src/types/utils.ts`.
+export type ScallopClientConstructorParams = DistributiveMerge<
+  ScallopBuilderConstructorParams,
+  {
+    networkType?: SuiClientTypes.Network;
+    builder?: ScallopBuilder;
+  }
+>;
 
 export type ScallopClientFnReturnType<
   T extends boolean,

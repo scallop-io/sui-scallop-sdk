@@ -7,18 +7,18 @@ vi.mock('src/repositories/poolAddresses/helpers.js', () => ({
 
 import * as helpers from 'src/repositories/poolAddresses/helpers.js';
 import { PoolAddressesRepository } from 'src/repositories/poolAddresses/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { ApiDataSource } from 'src/datasources/api.js';
 import type { PoolAddressesRepoMetadata } from 'src/repositories/poolAddresses/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const api = { get: vi.fn() } as unknown as ApiDataSource;
 const metadata = { tag: 'META' } as unknown as PoolAddressesRepoMetadata;
 const logger = { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() };
 
 const makeRepo = () =>
   new PoolAddressesRepository({
-    onchain,
+    grpc: onchain,
     api,
     metadata,
     logger: logger as never,
@@ -53,7 +53,7 @@ describe('PoolAddressesRepository', () => {
     // the API datasource.
     const ctx = vi.mocked(helpers.getPoolAddressesFromOnChain).mock.calls[0][0];
     expect(ctx.metadata).toBe(metadata);
-    expect(ctx.onchain).toBe(onchain);
+    expect(ctx.grpc).toBe(onchain);
   });
 
   it("'api-first' falls back to onchain when the api throws", async () => {

@@ -38,8 +38,7 @@ export type LiveConstantsSourceDeps = {
 
 /**
  * Live adapter over `ScallopAddress` + its cached axios client. Holds the
- * try/catch → `defaultValues` fallback that used to live inline in
- * `ScallopConstants.readWhiteList` / `readPoolAddresses`.
+ * try/catch → `defaultValues` fallback for `readWhiteList` / `readPoolAddresses`.
  */
 export const createLiveConstantsSource = ({
   address,
@@ -50,6 +49,21 @@ export const createLiveConstantsSource = ({
     const addresses = address.getAddresses(network);
     if (!addresses || Object.keys(addresses).length === 0 || force) {
       await address.read(addressId);
+      return;
+    }
+
+    // Addresses seeded from `defaultValues` are complete enough to build on, but
+    // they are a bundled snapshot — contract addresses move on protocol upgrades.
+    // Serve the seed immediately and reconcile behind it: awaiting here would put
+    // a full API round trip in front of every on-chain read, which is the whole
+    // reason a caller bothers to supply `defaultValues`. `read()` mutates the same
+    // address map in place, so later `get()` calls pick up the refreshed values.
+    if (address.isSeeded(network)) {
+      void address.read(addressId).catch((e) => {
+        logger.warn('background address refresh failed; using default values', {
+          message: (e as Error)?.message,
+        });
+      });
     }
   },
 

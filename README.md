@@ -21,7 +21,7 @@ Current package: `@scallop-io/sui-scallop-sdk` v4.x. ESM package, Node `>=22`, p
 ## Install
 
 ```bash
-pnpm add @scallop-io/sui-scallop-sdk @mysten/sui
+pnpm add @scallop-io/sui-scallop-sdk @mysten/sui @tanstack/query-core
 ```
 
 ## Public Entry Points
@@ -86,6 +86,8 @@ Important v4 details:
 
 Mainnet example:
 
+### gRPC
+
 ```ts
 import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
@@ -94,7 +96,7 @@ const sdk = new Scallop({
   network: 'mainnet',
   fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
   secretKey: process.env.SECRET_KEY,
-  pythEndpoints: ['https://hermes.pyth.network'],
+  pythEndpoints: ['https://pyth.dourolabs.app/hermes'],
 });
 
 const client = await sdk.createScallopClient();
@@ -112,12 +114,30 @@ const sdk = new Scallop({
   network: 'mainnet',
   fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
   walletAddress: '0x...',
-  pythEndpoints: ['https://hermes.pyth.network'],
+  pythEndpoints: ['https://pyth.dourolabs.app/hermes'],
 });
 
 const query = await sdk.createScallopQuery();
 const pools = await query.getMarketPools();
 ```
+
+### GraphQL
+
+`readTransport: 'graphql'` does **not** replace gRPC — Core reads and **all writes still go over gRPC**. `fullnodeUrl` (a gRPC fullnode) is optional here and defaults to the mainnet fullnode; set it to point Core reads and writes at your own node. The flag only makes balance reads and the heavy dynamic-field repos prefer native GraphQL queries. Point GraphQL at its own endpoint with `graphqlUrl` (defaults to mainnet), or inject a preconfigured `graphqlClient`:
+
+```ts
+const sdk = new Scallop({
+  addressId: '695fcdc084f790c04eb068dc',
+  network: 'mainnet',
+  readTransport: 'graphql',
+  fullnodeUrl: 'https://fullnode.mainnet.sui.io:443', // gRPC node for Core reads + writes (optional; defaults to mainnet)
+  graphqlUrl: 'https://graphql.mainnet.sui.io/graphql', // GraphQL endpoint (optional; defaults to mainnet)
+  walletAddress: '0x...',
+  pythEndpoints: ['https://pyth.dourolabs.app/hermes'],
+});
+```
+
+The transport options are mutually exclusive at the type level: with `readTransport: 'grpc'` (or omitted — grpc is the default) `graphqlUrl` / `graphqlClient` are rejected, and with `readTransport: 'graphql'` an injected gRPC `suiClient` is rejected.
 
 Manual construction is supported. Call `.init()` before use:
 
@@ -146,8 +166,12 @@ Common required options:
 
 Common optional options:
 
-- `pythEndpoints`: Pyth Hermes endpoints for price-update flows.
-- `queryClient` / `queryClientConfig`: custom `@tanstack/query-core` cache.
+- `readTransport`: read transport, `'grpc'` (default) or `'graphql'`. **The Core read path and all writes always use gRPC** (via `fullnodeUrl`, which defaults to mainnet) regardless of this setting. `'graphql'` only makes the GraphQL-capable reads prefer GraphQL: balance reads via `GraphQLDataSource`, plus some heavy dynamic-field reads (e.g. pool addresses, xOracle, veSCA) that use single nested GraphQL queries instead of the gRPC multi-call fan-out. The transport is selected strictly — there is **no automatic fallback** between GraphQL and gRPC, so a failing read on the selected transport propagates its error (fail-loud) rather than silently degrading.
+- `graphqlUrl` / `graphqlClient`: Sui GraphQL endpoint / preconfigured `SuiGraphQLClient`. **Only accepted with `readTransport: 'graphql'`** (rejected at the type level otherwise); `graphqlClient` takes precedence over `graphqlUrl`, and the endpoint defaults to mainnet when neither is given.
+- `pythEndpoints`: Pyth Hermes endpoints for price-update flows. Default `https://pyth.dourolabs.app/hermes`.
+- `pythApiKey`: Pyth (Hermes) API access token. The hosted Pyth endpoint now requires a key. When set, Pyth coin prices are read **directly from the Pyth API** (sent as the Hermes `accessToken`); when omitted, prices are read from the **Scallop indexer** instead. Either way, `getPythCoinPrice(s)` falls back to on-chain feed objects if the API source fails.
+- `queryClient` / `queryClientConfig`: custom `@tanstack/query-core` cache. Wallet-balance reads are memoised through this cache with a **5s TTL** (`staleTime`/`gcTime`). On the gRPC transport, coin-amount readers share one `listBalances` snapshot per node + address, so a balance read within ~5s of a supply/withdraw can return the pre-write amount. If you need read-your-write freshness right after a mutation, invalidate the `getAllCoinBalances` (and per-coin `getCoinBalance`) query-key prefixes on your `queryClient`, or shorten the TTL via `queryClientConfig`.
+- `priceTimeout`: cache lifetime (ms) for the full Pyth price-feed list. Default `5_000`. Within this window, single/subset price reads are served from one cached full-list fetch instead of re-hitting the Pyth API; a longer value cuts API traffic at the cost of price staleness.
 - `logger`: SDK logger. Default is silent `noopLogger`; pass `consoleLogger` to opt into console output.
 - `strictInit`: when `true`, `init()` throws `ScallopConfigError` if required config is missing.
 - `tokensPerSecond`: RPC read rate limit.
@@ -354,7 +378,7 @@ Integration/query/full test runs require local environment variables such as `SE
 
 ## More Docs
 
-- Contributor architecture: [`docs/SDK_STRUCTURE.md`](docs/SDK_STRUCTURE.md)
+- Contributor architecture: [`llm-docs/SDK_STRUCTURE.md`](llm-docs/SDK_STRUCTURE.md)
 - Client guide: [`document/client.md`](document/client.md)
 - Query guide: [`document/query.md`](document/query.md)
 - Address guide: [`document/address.md`](document/address.md)

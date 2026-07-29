@@ -78,8 +78,8 @@ class ScallopClient implements ScallopClientInterface {
     return this.builder.suiKit;
   }
 
-  get onchain() {
-    return this.utils.onchain;
+  get coreClient() {
+    return this.query.coreClient;
   }
 
   get executor() {

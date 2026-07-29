@@ -2,6 +2,81 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.1.0...v5.2.0) (2026-07-29)
+
+### Added
+
+- Export `ScallopPythClient` from the package root ([bdb6b5e](https://github.com/scallop-io/sui-scallop-sdk/commit/bdb6b5ede8d80691117f3bfd3dddb5813d417f3f))
+
+### Changed
+
+- Pinned the `@scallop-io/sui-kit` peer dependency to `~2.2.0` (previously `>=2.2.0`) ([ee16c44](https://github.com/scallop-io/sui-scallop-sdk/commit/ee16c4447c589bfc47d1dd59dac55fa2a5daa53e))
+
+### Fixed
+
+- Coin selection (`selectCoin`/`selectMarketCoin`/`selectSCoin`, used by supply/borrow/repay/liquidate/collateral/veSCA/spool/sCoin quick methods) now uses `coinWithBalance` instead of manually splitting take/left coins from pinned coin objects — avoids version-mismatch errors when the coin index lags the object store ([ee16c44](https://github.com/scallop-io/sui-scallop-sdk/commit/ee16c4447c589bfc47d1dd59dac55fa2a5daa53e))
+
+## [5.1.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.0.0...v5.1.0) (2026-07-26)
+
+### Changed
+
+- Bumped the minimum `@tanstack/query-core` peer dependency to `>=5.95.2` (was `>=5.59.16`) ([0ad1378](https://github.com/scallop-io/sui-scallop-sdk/commit/0ad137842a492f18eb4e2245f2c8fced683308c3))
+- On-chain object-read coalescing now merges same-tick reads whose `include` selection is a subset of another pending request's into one shared `getObjects` call, instead of issuing a separate call per distinct selection ([998ad50](https://github.com/scallop-io/sui-scallop-sdk/commit/998ad50104862cb2cd91f04bebb23df98da49126))
+- Dynamic-field value reads now route through the shared object-read coalescer instead of each issuing its own single-object request ([157c285](https://github.com/scallop-io/sui-scallop-sdk/commit/157c285fca427c28ef5971ad78fb899a81db96c1))
+
+### Fixed
+
+- `RateLimiter` no longer hangs indefinitely on a non-finite (`Infinity`/`NaN`) or sub-1 capacity — non-finite capacities correctly disable throttling, and sub-1 finite capacities now throw at construction instead of silently deadlocking every read ([38f0888](https://github.com/scallop-io/sui-scallop-sdk/commit/38f0888b4c19f27961dc92741f47e0650799a8ae))
+- `ScallopAddress` / `ScallopConstants` now honor a `defaultValues.addresses` seed synchronously and refresh it in the background, instead of ignoring it and blocking every read on a network refetch ([fcf1338](https://github.com/scallop-io/sui-scallop-sdk/commit/fcf1338a52a2b57daabf066f710f75492474b0f1))
+
+## [5.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.4.0...v5.0.0) (2026-07-25)
+
+### Added
+
+- Switchable read transport — `ScallopQuery` / `ScallopBuilder` accept `readTransport: 'grpc' | 'graphql'` plus `graphqlUrl` / `graphqlClient`, routing Core reads (balances, and dynamic-field-heavy repos like `poolAddresses` / `flashloan` / `obligation`) over native Sui GraphQL when enabled ([630c2b0](https://github.com/scallop-io/sui-scallop-sdk/commit/630c2b026d6fa47cd9f626f046768d3b48095f50), [7d2283a](https://github.com/scallop-io/sui-scallop-sdk/commit/7d2283a520a2c1af8d62bfef84a4799b1a79930b), [a1f8a5d](https://github.com/scallop-io/sui-scallop-sdk/commit/a1f8a5d46aea67202817e2a2035642259531cecf))
+- Request-coalescing on-chain object reads — same-tick `getObject` calls sharing an `include` selection are batched into a single `getObjects` call ([09c8ea2](https://github.com/scallop-io/sui-scallop-sdk/commit/09c8ea23c1e7d85eb3f50ba6f012a02635303c31))
+- `OnChainDataSource` — a shared `{ client, url, getObject }` shape both the gRPC and GraphQL datasources implement, unifying on-chain reads across transports ([8ae45b6](https://github.com/scallop-io/sui-scallop-sdk/commit/8ae45b63ea8b2f2790ac320fe5c027703ae9a213))
+
+### Changed
+
+- **BREAKING:** Replaced the single on-chain datasource with split gRPC + GraphQL read transports ([8dedca8](https://github.com/scallop-io/sui-scallop-sdk/commit/8dedca8740616b3c1fe590f6a406841063e9aef4))
+- **BREAKING:** `ScallopQuery.grpc` / `ScallopClient.grpc` / `ScallopBuilder.grpc` renamed to `coreClient` ([981c558](https://github.com/scallop-io/sui-scallop-sdk/commit/981c558def5ab5dc4632d9a96329237cb523e491))
+- **BREAKING:** `GrpcDataSource.client` is now typed as the full `SuiGrpcClient` (previously a narrower `ClientWithCoreMethods`) ([8ae45b6](https://github.com/scallop-io/sui-scallop-sdk/commit/8ae45b63ea8b2f2790ac320fe5c027703ae9a213))
+- **BREAKING:** Bumped the minimum `@mysten/sui` peer dependency to `>=2.22.0` ([64e2313](https://github.com/scallop-io/sui-scallop-sdk/commit/64e2313ef2176697fff64f67dc712bbf9d7d880a))
+- `ScallopAddress.get()` is now generic over the dotted path, returning the precise leaf/sub-object type instead of `any` ([1e5ded6](https://github.com/scallop-io/sui-scallop-sdk/commit/1e5ded6d6423a19191b5b6daca33846c220eec7e))
+
+### Deprecated
+
+- `pythEndpoints: string[]` on `ScallopBuilder` / `ScallopQuery` / `PriceRepository` is deprecated in favor of a single `pythEndpoint: string` (the first entry is still used as the default) ([c1b0d9d](https://github.com/scallop-io/sui-scallop-sdk/commit/c1b0d9d4718f50a6bfafe67071a64908f19287b5))
+
+### Removed
+
+- **BREAKING:** `GraphQLDataSource.listDynamicFieldsWithValues` (custom hand-written query) — superseded by Core's own include-capable `listDynamicFields` (`include: { value: true }`), supported natively by both transports ([8ae45b6](https://github.com/scallop-io/sui-scallop-sdk/commit/8ae45b63ea8b2f2790ac320fe5c027703ae9a213))
+
+### Fixed
+
+- `buildObligationMetadata` now nests `registryTableId` under `obligationNaming` correctly instead of assigning the bare string, fixing the obligation naming-registry lookup ([6d29a70](https://github.com/scallop-io/sui-scallop-sdk/commit/6d29a704a1916b382a8dc79b2a2ddc2258815856))
+- Guarded against a missing coin address entry when mapping indexer Pyth prices, and corrected an error message that mislabeled Scallop Indexer failures as Pyth API failures ([f764a2d](https://github.com/scallop-io/sui-scallop-sdk/commit/f764a2d6b6da6d6c4765c6522b4333b21205db27))
+
+## [4.4.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.3.0...v4.4.0) (2026-07-20)
+
+### Added
+
+- GraphQL-backed coin balance reads — new `getCoinBalances` on `ScallopQuery`, plus `graphqlUrl` / `graphqlClient` / `priceTimeout` constructor options and a cached Pyth price-feed universe on `ScallopConstants` ([3306f86](https://github.com/scallop-io/sui-scallop-sdk/commit/3306f8636cfb189bcc780ac72e3289765f3de77f))
+- Keyless indexer Pyth price path — prices resolve from the Scallop indexer (or Pyth Hermes when `pythApiKey` is set) with a per-coin on-chain fallback, plus new `pythApiKey` / `pythEndpoints` builder options ([2074619](https://github.com/scallop-io/sui-scallop-sdk/commit/20746197d0fce905bfb37937417fa0f1dda1d9be))
+- `onchain` datasource accessor on `ScallopQuery` ([ebb6564](https://github.com/scallop-io/sui-scallop-sdk/commit/ebb65649793e3cba73280d1b57e3f2b014b1b673))
+
+### Changed
+
+- Moved `@scallop-io/sui-kit` and `@tanstack/query-core` to peer dependencies and bumped `@mysten/sui` to `>=2.20` — consumers must now provide these packages themselves ([56f02dc](https://github.com/scallop-io/sui-scallop-sdk/commit/56f02dc29f5365da175c2433ad090df44453cb73))
+- Batched per-obligation `devInspect` reads into a single `simulateTransaction` for obligation and borrow-incentive queries ([c917263](https://github.com/scallop-io/sui-scallop-sdk/commit/c917263f44fa14ca579a5c6575b170687b1614a2))
+- Promoted GraphQL balance reads to a first-class, self-caching `GraphQLDataSource` (owns `multiGetBalances`); removed the disabled GraphQL→gRPC balance fallback and the redundant raw GraphQL client handoff to `coinBalance` ([952cc3f](https://github.com/scallop-io/sui-scallop-sdk/commit/952cc3f4d664e013d306cbf1ff265c2754b61710))
+- Refactored on-chain oracle `set_price` updates into a per-provider rule registry (Pyth / Supra / Switchboard) and upgraded `@pythnetwork/pyth-sui-js` `3.0.0` → `4.0.0` ([8c2f80d](https://github.com/scallop-io/sui-scallop-sdk/commit/8c2f80dbf85c66a563267ef1d137dda663e79a2f))
+
+### Fixed
+
+- Builder now passes unpinned coin objectIds so object versions resolve at build time ([be544db](https://github.com/scallop-io/sui-scallop-sdk/commit/be544db459f30312f8937706a48a1d959a800dcc))
+
 ## [4.3.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v4.2.0...v4.3.0) (2026-07-06)
 
 ### Added
@@ -41,9 +116,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [4.0.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v3.0.2...v4.0.0) (2026-05-27)
 
-This release lands the full structural refactor of the SDK toward a **datasources → repositories → services → facade** internal architecture, while preserving the public method surface of `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, and `ScallopUtils`. See [`docs/SDK_STRUCTURE.md`](docs/SDK_STRUCTURE.md) for a 5-minute tour of the new layout. Commit SHAs are added at release tagging time.
+This release lands the full structural refactor of the SDK toward a **datasources → repositories → services → facade** internal architecture, while preserving the public method surface of `Scallop`, `ScallopClient`, `ScallopBuilder`, `ScallopQuery`, and `ScallopUtils`. See [`llm-docs/SDK_STRUCTURE.md`](llm-docs/SDK_STRUCTURE.md) for a 5-minute tour of the new layout. Commit SHAs are added at release tagging time.
 
-**Upgrading from v3?** See [`docs/V3_TO_V4.md`](docs/V3_TO_V4.md) for the migration guide with step-by-step diffs.
+**Upgrading from v3?** See [`llm-docs/V3_TO_V4.md`](llm-docs/V3_TO_V4.md) for the migration guide with step-by-step diffs.
 
 **TL;DR for upgraders:** if you were only consuming `Scallop`/`ScallopClient`/`ScallopBuilder`/`ScallopQuery` methods, your code keeps working. The breaking changes only bite if you (a) inherited from `ScallopConstants`, (b) used `instanceof ScallopAddress` against a `ScallopConstants` instance, (c) mutated `constants.whitelist` or `constants.poolAddresses` directly, (d) imported from non-public type paths, (e) relied on the SDK bundling `@mysten/sui` (now a peer dependency — install `@mysten/sui@^2` yourself), or (f) used `Scallop.createScallopIndexer()`, `ScallopSuiKit`, or `ScallopAxios` (all removed).
 
@@ -60,14 +135,14 @@ This release lands the full structural refactor of the SDK toward a **datasource
 - **Forwarders preserved on `ScallopConstants`** for back-compat: `get`, `set`, `getAddresses`, `setAddresses`, `getId`, `getAllAddresses`, `switchCurrentAddresses`, `queryClient`, `axiosClient`, `axiosInstance`, `scallopAxios`. So `constants.get('core.market')`, `constants.getAddresses()`, `constants.queryClient`, etc. all still work.
 - `ScallopConstantsParams` accepts a new optional `scallopAddress?: ScallopAddress` field for injecting a pre-built address adapter (useful for tests).
 
-→ See [`docs/V3_TO_V4.md` § B1](docs/V3_TO_V4.md#b1--scallopconstants-no-longer-extends-scallopaddress) for diffs covering `instanceof` checks, subclass refactors, and the new `scallopAddress` injection.
+→ See [`llm-docs/V3_TO_V4.md` § B1](llm-docs/V3_TO_V4.md#b1--scallopconstants-no-longer-extends-scallopaddress) for diffs covering `instanceof` checks, subclass refactors, and the new `scallopAddress` injection.
 
 #### B2 — `whitelist` and `poolAddresses` are now frozen immutable snapshots
 
 - Previously: `Proxy` getters that fell back to `DEFAULT_WHITELIST` on missing keys, and allowed mutation through `Set.add` / `Set.delete` (which silently affected the singleton state).
 - Now: plain frozen objects populated during `init()`. Every whitelist key is always present (missing entries default to empty `Set`s). Calling `.add()` / `.delete()` / `.clear()` throws `TypeError: Cannot mutate readonly ScallopConstants whitelist`.
 
-→ See [`docs/V3_TO_V4.md` § B2](docs/V3_TO_V4.md#b2--whitelist--pooladdresses-are-now-frozen-immutable-snapshots) for the `forceWhitelistInterface` / `forcePoolAddressInterface` recipe.
+→ See [`llm-docs/V3_TO_V4.md` § B2](llm-docs/V3_TO_V4.md#b2--whitelist--pooladdresses-are-now-frozen-immutable-snapshots) for the `forceWhitelistInterface` / `forcePoolAddressInterface` recipe.
 
 #### B3 — Minimum Node 22
 
@@ -88,7 +163,7 @@ If you import from the root `@scallop-io/sui-scallop-sdk` package, nothing chang
 - **You must install `@mysten/sui@^2` in your own project.** npm 7+ and Bun auto-install peers; pnpm and yarn may require it explicitly.
 - A wide `^2.0.0` range lets it dedup with whatever `@mysten/sui` your app (and `@scallop-io/sui-kit`, which also depends on `^2.0.0`) already resolves.
 
-→ See [`docs/V3_TO_V4.md` § B5](docs/V3_TO_V4.md#b5--mystensui-is-now-a-peer-dependency).
+→ See [`llm-docs/V3_TO_V4.md` § B5](llm-docs/V3_TO_V4.md#b5--mystensui-is-now-a-peer-dependency).
 
 #### B6 — Transport models removed (`ScallopIndexer`, `ScallopSuiKit`, `ScallopAxios`)
 
@@ -100,7 +175,7 @@ The three legacy transport models were replaced by a small `src/datasources/` la
 
 The typed `ScallopIndexerError` is unaffected (only the `ScallopIndexer` model is gone). Public read/write methods on the five facades are unchanged.
 
-→ See [`docs/V3_TO_V4.md` § B6](docs/V3_TO_V4.md#b6--transport-reshaped-scallopindexer-scallopsuikit-scallopaxios-removed).
+→ See [`llm-docs/V3_TO_V4.md` § B6](llm-docs/V3_TO_V4.md#b6--transport-reshaped-scallopindexer-scallopsuikit-scallopaxios-removed).
 
 ---
 
@@ -336,10 +411,10 @@ On-chain object reads are chunked at 50 ids per call (`partitionArray`), and ind
 
 ### Documentation
 
-- New [`docs/SDK_STRUCTURE.md`](docs/SDK_STRUCTURE.md) — 5-minute developer onboarding tour with layer diagrams, directory map, read-path/write-path traces, cross-cutting concerns (errors, logger, config, `parseObjectAs` gotcha, caching), subpath-export table, "where does new code go?" decision table.
-- Migration guides — [`docs/V3_TO_V4.md`](docs/V3_TO_V4.md), [`docs/V2_TO_V4.md`](docs/V2_TO_V4.md), [`docs/V1_TO_V4.md`](docs/V1_TO_V4.md) — step-by-step upgrade diffs from each prior major line.
+- New [`llm-docs/SDK_STRUCTURE.md`](llm-docs/SDK_STRUCTURE.md) — 5-minute developer onboarding tour with layer diagrams, directory map, read-path/write-path traces, cross-cutting concerns (errors, logger, config, `parseObjectAs` gotcha, caching), subpath-export table, "where does new code go?" decision table.
+- Migration guides — [`llm-docs/V3_TO_V4.md`](llm-docs/V3_TO_V4.md), [`llm-docs/V2_TO_V4.md`](llm-docs/V2_TO_V4.md), [`llm-docs/V1_TO_V4.md`](llm-docs/V1_TO_V4.md) — step-by-step upgrade diffs from each prior major line.
 - [`src/repositories/CLAUDE.md`](src/repositories/CLAUDE.md) — contributor guide for the read layer.
-- [`AGENTS.md`](AGENTS.md) and [`.claude/CLAUDE.md`](.claude/CLAUDE.md) refreshed for v4 — new commands, v4 breaking-change callouts, datasources/repositories/services/errors/logger/subpath sections, "where does new code go?" tables, link-throughs to `docs/SDK_STRUCTURE.md`.
+- [`AGENTS.md`](AGENTS.md) and [`.claude/CLAUDE.md`](.claude/CLAUDE.md) refreshed for v4 — new commands, v4 breaking-change callouts, datasources/repositories/services/errors/logger/subpath sections, "where does new code go?" tables, link-throughs to `llm-docs/SDK_STRUCTURE.md`.
 
 ---
 

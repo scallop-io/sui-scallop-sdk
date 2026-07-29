@@ -1,3 +1,11 @@
+import { describe, it } from 'vitest';
+
+// The suite below is disabled (fully commented). This placeholder keeps vitest
+// from failing collection with "No test suite found in file".
+describe.skip('Test Scallop Client (disabled)', () => {
+  it('placeholder', () => {});
+});
+
 // import { BigNumber } from 'bignumber.js';
 // import { describe, it, expect, beforeAll } from 'vitest';
 // import type { Transaction } from '@scallop-io/sui-kit';

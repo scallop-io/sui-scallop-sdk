@@ -1,5 +1,5 @@
 import type { IndexerDataSource } from 'src/datasources/indexer.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { PoolAddress } from 'src/types/constant/index.js';
 import type { SuiObjectData } from 'src/types/index.js';
 import type { CoinPrices, OptionalKeys } from 'src/types/utils.js';
@@ -32,13 +32,13 @@ export type SpoolMetadata = {
 
 export type SpoolRepoContext = BaseContext & {
   indexer: IndexerDataSource;
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: SpoolMetadata;
 };
 
 export type SpoolRepoParams = BaseRepoParams & {
   indexer: IndexerDataSource;
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: SpoolMetadata;
 };
 
@@ -51,7 +51,7 @@ export type SpoolIndexerContext = Pick<
 /** Minimal context for on-chain spool reads (no indexer). */
 export type SpoolOnChainContext = Pick<
   SpoolRepoContext,
-  'onchain' | 'fetchWithCache' | 'metadata'
+  'grpc' | 'fetchWithCache' | 'metadata'
 >;
 
 export type SpoolReadArgs = {

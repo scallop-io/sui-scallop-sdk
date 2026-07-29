@@ -1,5 +1,5 @@
 import { AddressesInterface } from 'src/types/address.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { BaseContext, BaseRepoParams } from '../types.js';
 
 type VeScaKeys = 'tableId';
@@ -19,23 +19,23 @@ export type VeScaLoyaltyProgramRepoMetadata = {
 };
 
 export type QueryRewardPoolContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
 };
 
 export type QueryUserRewardContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: {
     addresses: VeScaLoyaltyProgramAddresses<'veScaRewardTableId'>;
   };
 };
 
 export type VeScaLoyaltyProgramRepoContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: VeScaLoyaltyProgramRepoMetadata;
 };
 
 export type VeScaLoyaltyProgramRepoParams = BaseRepoParams & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: VeScaLoyaltyProgramRepoMetadata;
 };
 

@@ -5,6 +5,7 @@ import { noopLogger, type Logger } from 'src/logger/index.js';
 import { AddressApiRepository } from 'src/repositories/addressApi/index.js';
 import {
   AddressesInterface,
+  AddressPathValue,
   AddressStringPath,
   ScallopAddressConstructorParams,
 } from './types.js';
@@ -22,30 +23,60 @@ class ScallopAddress {
     AddressesInterface
   >();
 
+  /**
+   * Networks whose addresses came from `defaultValues` rather than the API.
+   *
+   * Seeded addresses are usable immediately but NOT authoritative — contract
+   * addresses change on protocol upgrades, so a bundled snapshot must never be
+   * the last word. `ensureAddresses` uses this to serve the seed without blocking
+   * while refreshing in the background, and `read()` clears the marks once real
+   * addresses land. Contrast `forceAddressesInterface`, which is authoritative by
+   * definition and so is never marked (and never refreshed).
+   */
+  private readonly seededNetworks = new Set<SuiClientTypes.Network>();
+
   constructor({
     addressId,
-    url = API_BASE_URL,
+    apiDataSourceUrl = API_BASE_URL,
     timeout,
     httpClient,
     network = 'mainnet',
     logger = noopLogger,
     forceAddressesInterface,
+    defaultValues,
   }: ScallopAddressConstructorParams) {
-    this.url = url;
+    this.url = apiDataSourceUrl;
     this.addressId = addressId;
     this.network = network;
     this.logger = logger;
     this.addressApiRepo = new AddressApiRepository({
-      api: new ApiDataSource({ url, timeout, httpClient }),
+      api: new ApiDataSource({ url: apiDataSourceUrl, timeout, httpClient }),
     });
+
+    // Seed before forcing so a force interface always wins for the same network.
+    if (defaultValues?.addresses) {
+      this.initializeForcedAddresses(defaultValues.addresses, { seeded: true });
+    }
 
     if (forceAddressesInterface) {
       this.initializeForcedAddresses(forceAddressesInterface);
     }
   }
 
+  /**
+   * Whether `network`'s addresses are still the un-refreshed `defaultValues`
+   * seed. Lets callers distinguish "must fetch before proceeding" from "may
+   * proceed now and refresh in the background".
+   */
+  public isSeeded(network: SuiClientTypes.Network = this.network): boolean {
+    return this.seededNetworks.has(network);
+  }
+
   private initializeForcedAddresses(
-    forcedAddresses: Partial<Record<SuiClientTypes.Network, AddressesInterface>>
+    forcedAddresses: Partial<
+      Record<SuiClientTypes.Network, AddressesInterface>
+    >,
+    { seeded = false }: { seeded?: boolean } = {}
   ): void {
     const validNetworks: SuiClientTypes.Network[] = [
       'localnet',
@@ -65,6 +96,13 @@ class ScallopAddress {
       if (validNetworks.includes(network as SuiClientTypes.Network)) {
         const typedNetwork = network as SuiClientTypes.Network;
         this.addressMap.set(typedNetwork, addresses);
+
+        if (seeded) {
+          this.seededNetworks.add(typedNetwork);
+        } else {
+          // A force interface supersedes any seed for this network.
+          this.seededNetworks.delete(typedNetwork);
+        }
 
         if (typedNetwork === this.network) {
           this.currentAddresses = addresses;
@@ -92,6 +130,9 @@ class ScallopAddress {
         if (network === this.network) this.currentAddresses = addresses;
 
         this.addressMap.set(network, addresses);
+        // These are authoritative now, so the network no longer counts as seeded
+        // and will not be refreshed again by `ensureAddresses`.
+        this.seededNetworks.delete(network);
       }
     }
     if (this.addressId !== response.id) {
@@ -108,7 +149,16 @@ class ScallopAddress {
    * @param path - The path of the address to get.
    * @return The address at the provided path.
    */
-  public get(path: AddressStringPath) {
+  // Generic over the specific `path` so the return type is the precise value at
+  // that path (a leaf `string`, or a sub-object) instead of `any`. This is what
+  // makes a structural misuse — e.g. dropping a leaf string into a metadata field
+  // typed as `{ registryTableId: string }` — a compile error rather than a silent
+  // runtime `undefined`. The `any`/cast inside is confined to the dynamic dotted
+  // traversal, which no static type can express; only the *return* is recovered.
+  public get<P extends AddressStringPath>(
+    path: P
+  ): AddressPathValue<AddressesInterface, P> {
+    type Value = AddressPathValue<AddressesInterface, P>;
     if (this.currentAddresses) {
       const value = path
         .split('.')
@@ -117,11 +167,11 @@ class ScallopAddress {
             typeof nestedAddressObj === 'object'
               ? nestedAddressObj[key]
               : nestedAddressObj,
-          this.currentAddresses
+          this.currentAddresses as any
         );
-      return value || undefined;
+      return (value || undefined) as Value;
     } else {
-      return undefined;
+      return undefined as Value;
     }
   }
 

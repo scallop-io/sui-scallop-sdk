@@ -1,6 +1,6 @@
 import { AddressesInterface } from 'src/types/address.js';
 import { BaseContext, BaseRepoParams } from '../types.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 
 type ReferralAddresses<
   T extends keyof AddressesInterface['referral'] =
@@ -14,11 +14,11 @@ export type ReferralRepoMetadata = {
 };
 
 export type ReferralRepoContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: ReferralRepoMetadata;
 };
 export type ReferralRepoParams = BaseRepoParams & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: ReferralRepoMetadata;
 };
 
@@ -28,6 +28,6 @@ export type ReferralRepoParams = BaseRepoParams & {
  * `fetchWithCache` fields it forwards to `getDynamicFieldOrNull`.
  */
 export type ReferralBindingContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: { addresses: ReferralAddresses<'bindingTableId'> };
 };

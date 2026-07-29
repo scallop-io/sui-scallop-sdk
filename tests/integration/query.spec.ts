@@ -7,6 +7,7 @@ import { parseObjectAs } from 'src/utils/object.js';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { z as zod } from 'zod';
 import { scallopSDK } from '../scallopSdk.js';
+import { collectRpcStats, resetRpcStats } from 'src/datasources/rpcStats.js';
 
 const ENABLE_LOG = false;
 // let obligationId: string | null;
@@ -302,7 +303,7 @@ describe('Test Query Borrow Incentive Contract On Chain Data', () => {
 
 describe('Test Portfolio Query', () => {
   it('Should get user lendings data', async () => {
-    const lendings = await scallopQuery.getLendings(['sui', 'wusdc']);
+    const lendings = await scallopQuery.getLendings(['sui', 'usdc']);
 
     if (ENABLE_LOG) {
       console.info('User lendings:', lendings);
@@ -491,7 +492,7 @@ describe('Test Loyalty Program Query', () => {
     // Fetch the raw user-reward dynamic-field object via the native core client
     // (the SDK now reads on-chain through @mysten/sui's CoreClient, not SuiKit's
     // legacy query wrappers).
-    const core = scallopQuery.onchain.client;
+    const core = scallopQuery.coreClient;
     let rawObject: SuiObjectData | null = null;
     try {
       const { dynamicField } = await core.getDynamicField({
@@ -651,7 +652,7 @@ describe('Test All Coin Prices Query', () => {
 });
 
 describe('Test Address Query', () => {
-  it.skip('Should get pool Addresses', async () => {
+  it('Should get pool Addresses', async () => {
     const poolAddresses = await scallopQuery.getPoolAddresses();
     if (ENABLE_LOG) {
       console.info('Pool addresses:', poolAddresses);
@@ -728,5 +729,43 @@ describe('Test Get User Portfolio', () => {
 
     expect(portfolio).toBeTruthy();
     expect(portfolio.totalSupplyValue > 0).toBe(true);
+  });
+
+  it('emits a bounded per-transport RPC baseline for a cold portfolio read', async () => {
+    // intent: a checked-in attribution baseline — wrap ONE cold getUserPortfolio
+    // in a scoped collector and assert the per-transport request volume stays
+    // within an upper bound. This is the regression gate for the optimization
+    // plan: request counts should trend DOWN across phases, never silently up.
+    // Bounds are generous and tolerant of data-dependent pagination — they catch
+    // a regression (a duplicated scan re-appearing), not exact counts.
+    resetRpcStats();
+    const { result: portfolio, stats } = await collectRpcStats(() =>
+      scallopQuery.getUserPortfolio()
+    );
+
+    const perTransport = [...stats.entries()]
+      .sort((a, b) => b[1].calls - a[1].calls)
+      .map(([m, s]) => `${m}=${s.calls}(x${s.cardinality})`)
+      .join(' ');
+    if (ENABLE_LOG) {
+      console.info(`[portfolio rpc baseline] ${perTransport}`);
+    }
+
+    const totalCalls = [...stats.values()].reduce((a, s) => a + s.calls, 0);
+    expect(portfolio).toBeTruthy();
+    // Upper bound only: the pre-optimization cold flow issued ~48 POSTs; keep a
+    // ceiling well above steady state so genuine reductions pass and a doubled
+    // balance/owned-object scan trips it.
+    expect(totalCalls).toBeLessThanOrEqual(60);
+    // Balances must not be scanned per amount-family: after Phase 1 the shared
+    // snapshot means at most a couple of listBalances pages, not six.
+    const listBalances = stats.get('onchain:listBalances')?.calls ?? 0;
+    expect(listBalances).toBeLessThanOrEqual(4);
+    // Owned-object enumeration: the portfolio has exactly three type-filtered
+    // scans (obligation keys / spool stake accounts / veSca keys). Each pages by
+    // 50, so a low single-obligation wallet stays well under this bound; a
+    // regressed duplicate scan (identical-input read re-issued) trips it.
+    const listOwnedObjects = stats.get('onchain:listOwnedObjects')?.calls ?? 0;
+    expect(listOwnedObjects).toBeLessThanOrEqual(9);
   });
 });

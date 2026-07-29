@@ -16,7 +16,7 @@ import type {
   StakePool,
   StakeRewardPool,
 } from './types.js';
-import type { OnChainReadContext } from '../utils.js';
+import type { GrpcReadContext } from '../utils.js';
 import {
   calculateSpoolData,
   calculateSpoolRewardPoolData,
@@ -274,10 +274,10 @@ export const getSpoolRewardPoolsFromOnChain = async (
 };
 
 const queryStakeAccounts = async (
-  ctx: OnChainReadContext,
+  ctx: GrpcReadContext,
   { address, stakeAccountType }: { address: string; stakeAccountType: string }
 ) => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
 
   let hasNextPage = false;
   let nextCursor: string | null | undefined = null;
@@ -296,8 +296,13 @@ const queryStakeAccounts = async (
     };
     const response =
       await fetchWithCache<SuiClientTypes.ListOwnedObjectsResponse>({
-        queryKey: queryKeys.rpc.getOwnedObjects(input),
-        queryFn: () => onchain.client.listOwnedObjects(input),
+        // Namespace by node so reads against different fullnodes sharing one
+        // QueryClient can't collide (matches the veSca owned-object key shape).
+        queryKey: queryKeys.rpc.getOwnedObjects({
+          ...input,
+          node: grpc.url,
+        }),
+        queryFn: () => grpc.client.listOwnedObjects(input),
       });
 
     if (response.objects) {
@@ -316,7 +321,7 @@ const queryStakeAccounts = async (
 };
 
 const queryRequiredSpoolObjects = async (
-  { onchain, metadata, fetchWithCache }: SpoolOnChainContext,
+  { grpc, metadata, fetchWithCache }: SpoolOnChainContext,
   stakeCoinNames: string[]
 ): Promise<RequiredSpoolObjects> => {
   const keyTypes = ['spool', 'spoolReward', 'sCoinTreasury'] as const;
@@ -335,10 +340,10 @@ const queryRequiredSpoolObjects = async (
     const response = await fetchWithCache({
       queryKey: queryKeys.rpc.getObjects({
         objectIds: batch,
-        node: onchain.url,
+        node: grpc.url,
       }),
       queryFn: () =>
-        onchain.client.getObjects({
+        grpc.client.getObjects({
           objectIds: batch,
           include: { json: true },
         }),
@@ -377,7 +382,7 @@ export const queryStakeRewardPool = async (
     stakeCoinName: string;
   }
 ): Promise<StakeRewardPool | undefined> => {
-  const { metadata, onchain, fetchWithCache } = ctx;
+  const { metadata, grpc, fetchWithCache } = ctx;
 
   const poolId = metadata.addresses.spools[stakeCoinName]?.rewardPoolId;
   if (!poolId) return undefined;
@@ -388,11 +393,11 @@ export const queryStakeRewardPool = async (
   const stakeRewardPoolObjectResponse = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject({
       objectId: poolId,
-      node: onchain.url,
+      node: grpc.url,
       include: fetchOptions,
     }),
     queryFn: () =>
-      onchain.getObject({
+      grpc.getObject({
         objectId: poolId,
         include: fetchOptions,
       }),
@@ -424,7 +429,7 @@ export const getStakePoolFromOnChain = async (
   ctx: SpoolOnChainContext,
   stakeCoinName: string
 ): Promise<StakePool | undefined> => {
-  const { onchain, fetchWithCache, metadata } = ctx;
+  const { grpc, fetchWithCache, metadata } = ctx;
   const poolId = metadata.addresses.spools[stakeCoinName]?.id;
   if (!poolId) return undefined;
 
@@ -432,10 +437,10 @@ export const getStakePoolFromOnChain = async (
   const response = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject({
       objectId: poolId,
-      node: onchain.url,
+      node: grpc.url,
       include,
     }),
-    queryFn: () => onchain.getObject({ objectId: poolId, include }),
+    queryFn: () => grpc.getObject({ objectId: poolId, include }),
   });
 
   const object = response.object;
