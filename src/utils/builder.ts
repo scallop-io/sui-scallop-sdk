@@ -1,12 +1,24 @@
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
+import type { TransactionCommand } from 'src/types/index.js';
 import {
   UNLOCK_ROUND_DURATION,
   MAX_LOCK_DURATION,
   MAX_LOCK_ROUNDS,
   MIN_INITIAL_LOCK_AMOUNT,
   MIN_TOP_UP_AMOUNT,
-} from '../constants';
+} from 'src/constants/index.js';
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
+
+/**
+ * Get MoveCall target string (package::module::function) from a MoveCall command.
+ *
+ * @param cmd - MoveCall transaction command.
+ * @return Fully qualified target string.
+ */
+export const getMoveCallTarget = (
+  cmd: Extract<TransactionCommand, { $kind: 'MoveCall' }>
+): string =>
+  `${cmd.MoveCall.package}::${cmd.MoveCall.module}::${cmd.MoveCall.function}`;
 
 /**
  * Check and get the sender from the transaction block.
@@ -15,7 +27,7 @@ import type { SuiObjectArg } from '@scallop-io/sui-kit';
  * @return Sender of transaction.
  */
 export const requireSender = (txBlock: SuiKitTxBlock) => {
-  const sender = txBlock.blockData.sender;
+  const sender = txBlock.getData().sender;
   if (!sender) {
     throw new Error('Sender is required');
   }

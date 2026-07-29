@@ -4,108 +4,366 @@
   </a>
 </p>
 <p align="center">
-    <a style="padding-right: 5px;" href="https://github.com/scallop-io/sui-scallop-sdk/releases">
-        <img alt="GitHub release" src="https://img.shields.io/github/v/release/scallop-io/sui-scallop-sdk?display_name=tag">
-    </a>
-    <a href="https://github.com/scallop-io/sui-scallop-sdk/blob/main/LICENSE">
-        <img alt="GitHub licence" src="https://img.shields.io/github/license/scallop-io/sui-scallop-sdk?logoColor=blue">
-    </a>
+  <a style="padding-right: 5px;" href="https://github.com/scallop-io/sui-scallop-sdk/releases">
+    <img alt="GitHub release" src="https://img.shields.io/github/v/release/scallop-io/sui-scallop-sdk?display_name=tag">
+  </a>
+  <a href="https://github.com/scallop-io/sui-scallop-sdk/blob/main/LICENSE">
+    <img alt="GitHub licence" src="https://img.shields.io/github/license/scallop-io/sui-scallop-sdk?logoColor=blue">
+  </a>
 </p>
 
-# The Typescript SDK for interacting with the Scallop lending protocol on the SUI network
+# Scallop TypeScript SDK
 
-## Description
+TypeScript SDK for integrating with the Scallop lending protocol on Sui.
 
-This SDK is used to interact with [sui-lending-protocol](https://github.com/scallop-io/sui-lending-protocol) and is written based on another sui-integrated tool, [sui-kit](https://github.com/scallop-io/sui-kit). It consists of seven main functional models, here's a brief introduction to each of them:
+Current package: `@scallop-io/sui-scallop-sdk` v4.x. ESM package, Node `>=22`, peer dependency `@mysten/sui@^2.0.0`.
 
-- **Scallop**: Provide an entry to quickly create an instance (client, address, query, builder, utils) and complete initialization at the same time.
+## Install
 
-- **ScallopClient**: Helps users encapsulate basic operations for interacting with the contract. Once the instance is created, it can be called directly for use.
+```bash
+pnpm add @scallop-io/sui-scallop-sdk @mysten/sui
+```
 
-- **ScallopAddress**: Used to manage the addresses of the lending contract. It's prepackaged into the client and provides the addresses of mainly production environment for customers to query addresses, usually used in conjunction with the builder.
+## Public Entry Points
 
-- **ScallopQuery**: Used to encapsulate all methods for querying on-chain data of the scallop contract. More useful information will be provided here in the future, such as lending, collateral, or borrowing portfolios.
+Root export:
 
-- **ScallopBuilder**: Used for more detailed organization of the lending protocol's transaction blocks. You can build your own transaction combinations according to your needs by this model.
+```ts
+import {
+  Scallop,
+  ScallopClient,
+  ScallopBuilder,
+  ScallopQuery,
+  ScallopUtils,
+  ScallopConstants,
+  ScallopAddress,
+} from '@scallop-io/sui-scallop-sdk';
+```
 
-- **ScallopUtils**: Used to encapsulate some useful methods that will be used when interacting with the scallop contract.
+Subpath exports:
 
-- **ScallopIndexer**: It is used to query the on-chain index data through the SDK API. It is mainly used in query instances, effectively reducing the number of RPC requests..
+```ts
+import { ScallopClient } from '@scallop-io/sui-scallop-sdk/client';
+import { ScallopBuilder } from '@scallop-io/sui-scallop-sdk/builder';
+import { ScallopQuery } from '@scallop-io/sui-scallop-sdk/query';
+import type { ScallopTxBlock } from '@scallop-io/sui-scallop-sdk/types';
+import { ScallopError } from '@scallop-io/sui-scallop-sdk/errors';
+import { consoleLogger } from '@scallop-io/sui-scallop-sdk/logger';
+```
 
-## Pre-requisites
+Supported subpaths:
 
-- Installation:
-  ```bash
-  pnpm install @scallop-io/sui-scallop-sdk
-  ```
-- Create an instance:
+- `@scallop-io/sui-scallop-sdk`
+- `@scallop-io/sui-scallop-sdk/client`
+- `@scallop-io/sui-scallop-sdk/query`
+- `@scallop-io/sui-scallop-sdk/builder`
+- `@scallop-io/sui-scallop-sdk/errors`
+- `@scallop-io/sui-scallop-sdk/logger`
+- `@scallop-io/sui-scallop-sdk/types`
 
-  > **Note**: Currently, this SDK only supports the mainnet network. When you use the testnet network, it will give errors because there is no address package ID for the testnet.
+## Main Models
 
-  ```typescript
-  // Create an instance quickly through the`Scallop` class to construct other models.
-  const scallopSDK = new Scallop({
-      networkType: 'mainnet',
-      ...
-  });
+`Scallop` is the convenience factory. It owns one initialized `ScallopClient` and exposes factory methods for the other facades.
 
-  const scallopAddress = await scallopSDK.getScallopAddress(...);
-  const scallopQuery = await scallopSDK.createScallopQuery(...);
-  const scallopBuilder = await scallopSDK.createScallopBuilder(...);
-  const scallopUtils = await scallopSDK.createScallopUtils(...);
-  const scallopClient = await scallopSDK.createScallopClient(...);
-  const scallopIndexer = await scallopSDK.createScallopIndexer();
+```text
+Scallop
+  -> ScallopClient        write facade; signs/sends user actions
+      -> ScallopBuilder   tx-block builder; owns SuiKit + TransactionExecutor
+          -> ScallopQuery read facade; delegates to repositories
+              -> ScallopUtils
+                  -> ScallopConstants
+                      -> ScallopAddress
+```
 
-  // Or, you can choose to import the class directly to create an instance.
-  import {
-    ScallopAddress,
-    ScallopBuilder,
-    ScallopQuery,
-    ScallopUtils,
-    ScallopIndexer,
-    ScallopClient,
-  } from '@scallop-io/sui-scallop-sdk'
+Important v4 details:
 
-  const scallopAddress = new ScallopAddress(...);
-  const ScallopQuery = new ScallopQuery(...);
-  const ScallopBuilder = new ScallopBuilder(...);
-  const ScallopUtils = new ScallopUtils(...);
-  const scallopClient = new ScallopClient(...);
-  const ScallopIndexer = new ScallopIndexer();
-  // Remember to initialize the instance before using it
-  await scallopAddress.read();
-  await ScallopQuery.init();
-  await ScallopBuilder.init();
-  await ScallopUtils.init();
-  await scallopClient.init();
-  ```
+- `ScallopIndexer` model was removed. Query/indexer access is internal to repositories.
+- `ScallopConstants` composes `ScallopAddress`; use `constants.address` for the address adapter.
+- Back-compatible address forwarders remain on constants: `get`, `set`, `getAddresses`, `setAddresses`, `getId`, `getAllAddresses`, `switchCurrentAddresses`.
+- Write-path signer/executor lives on `builder.executor`; raw SuiKit lives on `builder.suiKit`.
 
-## Quick Guide for each model
+## Create SDK
 
-Below we will give a brief introduction to these instances respectively, and introduce the functions through test codes.
+Mainnet example:
 
-- [Use Scallop Client](./document/client.md)
-- [Use Scallop Query](./document/query.md)
-- [Use Scallop Address](./document/address.md)
-- [Use Scallop Builder](./document/builder.md)
-- [Use Scallop Utils](./document/utils.md)
-- [Use Scallop Indexer](./document/indexer.md)
+```ts
+import { Scallop } from '@scallop-io/sui-scallop-sdk';
 
-For the original codes, please refer to `test` folder.
+const sdk = new Scallop({
+  addressId: '695fcdc084f790c04eb068dc',
+  network: 'mainnet',
+  fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
+  secretKey: process.env.SECRET_KEY,
+  pythEndpoints: ['https://hermes.pyth.network'],
+});
 
-You need to set up the `.env` file before testing. (Reference `.env.example`)
+const client = await sdk.createScallopClient();
+const query = await sdk.createScallopQuery();
+const builder = await sdk.createScallopBuilder();
+const utils = await sdk.createScallopUtils();
+const constants = await sdk.getScallopConstants();
+```
 
-- Run the test
+Read-only example:
 
-  ```bash
-  pnpm run test:unit test/index.spec.ts
-  pnpm run test:unit test/address.spec.ts
-  pnpm run test:unit test/builder.spec.ts
-  pnpm run test:unit test/query.spec.ts
-  pnpm run test:unit test/utils.spec.ts
-  pnpm run test:unit test/indexer.spec.ts
-  ```
+```ts
+const sdk = new Scallop({
+  addressId: '695fcdc084f790c04eb068dc',
+  network: 'mainnet',
+  fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
+  walletAddress: '0x...',
+  pythEndpoints: ['https://hermes.pyth.network'],
+});
+
+const query = await sdk.createScallopQuery();
+const pools = await query.getMarketPools();
+```
+
+Manual construction is supported. Call `.init()` before use:
+
+```ts
+import { ScallopQuery } from '@scallop-io/sui-scallop-sdk/query';
+
+const query = new ScallopQuery({
+  addressId: '695fcdc084f790c04eb068dc',
+  network: 'mainnet',
+  fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
+  walletAddress: '0x...',
+});
+
+await query.init();
+```
+
+## Constructor Options
+
+Common required options:
+
+- `addressId`: Scallop API address config id.
+- `network`: Sui network, usually `'mainnet'`.
+- `fullnodeUrl`: Sui RPC URL.
+- `walletAddress`: required for read-only/wallet-scoped queries when no signer is supplied.
+- `secretKey` or `mnemonics`: required for signing via `ScallopClient`.
+
+Common optional options:
+
+- `pythEndpoints`: Pyth Hermes endpoints for price-update flows.
+- `queryClient` / `queryClientConfig`: custom `@tanstack/query-core` cache.
+- `logger`: SDK logger. Default is silent `noopLogger`; pass `consoleLogger` to opt into console output.
+- `strictInit`: when `true`, `init()` throws `ScallopConfigError` if required config is missing.
+- `tokensPerSecond`: RPC read rate limit.
+- `usePythPullModel`, `useOnChainXOracleList`, `sponsoredFeeds`: tx-builder oracle behavior.
+
+### Overriding the underlying clients
+
+The SDK builds its own transport clients by default, but you can inject your own:
+
+- `suiClient` (`ClientWithCoreApi` from `@mysten/sui`): overrides the Sui RPC client used for on-chain reads. When omitted, the SDK builds a `SuiGrpcClient` from `network` + `fullnodeUrl`. Accepted by `ScallopUtils` / `ScallopQuery` / `ScallopBuilder` / `ScallopClient` / `Scallop`.
+- `httpClient` (`AxiosInstance`): overrides the HTTP client used for Scallop API / address-config fetches. When omitted, the SDK creates an Axios instance from the API `url` + `timeout`. Accepted anywhere `ScallopAddress` config flows (`Scallop`, `ScallopConstants`, `ScallopAddress`).
+- `client` (`ScallopClient`): only on the top-level `Scallop` constructor — reuse an already-built `ScallopClient` instead of constructing a new one. Unrelated to the two transport clients above.
+
+```ts
+import { Scallop } from '@scallop-io/sui-scallop-sdk';
+import { SuiClient } from '@mysten/sui/client';
+import axios from 'axios';
+
+const sdk = new Scallop({
+  addressId: '695fcdc084f790c04eb068dc',
+  network: 'mainnet',
+  fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
+  walletAddress: '0x...',
+  suiClient: new SuiClient({ url: 'https://fullnode.mainnet.sui.io:443' }), // custom Sui RPC client
+  httpClient: axios.create({ timeout: 15_000 }), // custom HTTP client for API/address fetches
+});
+```
+
+> Note: prior to v4.3.0 these were all named `client` and collided into an unusable intersection type. Use `suiClient` / `httpClient` (and the top-level `client`) on v4.3.0+.
+
+## Query Examples
+
+```ts
+const marketPools = await query.getMarketPools();
+const suiPool = await query.getMarketPool('sui');
+const collaterals = await query.getMarketCollaterals();
+
+const obligations = await query.getObligations('0xOwner');
+const obligation = await query.queryObligation('0xObligationId');
+const portfolio = await query.getUserPortfolio({ walletAddress: '0xOwner' });
+
+const prices = await query.getPythCoinPrices({ coinNames: ['sui', 'usdc'] });
+const allPrices = await query.getAllCoinPrices();
+
+const stakeAccounts = await query.getAllStakeAccounts('0xOwner');
+const tvl = await query.getTvl();
+```
+
+Read source selection is available on supported facade methods via legacy-compatible flags:
+
+```ts
+await query.getMarketPools(undefined, { source: 'rpc' }); // on-chain RPC
+await query.getMarketPools(undefined, { source: 'indexer' }); // API/indexer only
+await query.getMarketPools(undefined, { source: 'indexer-first' }); // API/indexer with RPC fallback
+await query.getMarketPools(undefined, { indexer: true }); // same as indexer-first
+```
+
+Repository internals normalize those values to `onchain`, `api`, or `api-first`.
+
+## Client Examples
+
+`ScallopClient` methods sign and execute by default. Pass `false` where supported to receive an unsigned transaction instead.
+
+```ts
+const result = await client.openObligation();
+
+await client.supply('sui', 1_000_000_000);
+await client.depositCollateral('sui', 1_000_000_000);
+await client.withdraw('sui', 1_000_000_000);
+await client.withdrawCollateral('sui', 1_000_000_000);
+
+await client.borrow(
+  'usdc',
+  1_000_000,
+  true,
+  '0xObligationId',
+  '0xObligationKey'
+);
+await client.repay(
+  'usdc',
+  1_000_000,
+  true,
+  '0xObligationId',
+  '0xObligationKey'
+);
+
+const tx = await client.supply('sui', 1_000_000_000, false);
+```
+
+Other write helpers include:
+
+- lending: `supply`, `withdraw`, `flashLoan`
+- collateral: `depositCollateral`, `withdrawCollateral`
+- borrow: `openObligation`, `borrow`, `repay`
+- spool: `createStakeAccount`, `stake`, `unstake`, `claim`, `supplyAndStake`, `unstakeAndWithdraw`
+- veSCA / incentives: `stakeObligation`, `unstakeObligation`, `claimBorrowIncentive`, `claimAllUnlockedSca`
+- migration/test helpers: `migrateAllMarketCoin`, `mintTestCoin`
+
+## Transaction Builder
+
+Use `ScallopBuilder` for custom transaction composition.
+
+```ts
+const tx = builder.createTxBlock();
+
+await tx.supplyQuick('sui', 1_000_000_000);
+await tx.depositCollateralQuick('sui', 1_000_000_000);
+
+const result = await builder.executor.signAndSendTxn(tx);
+```
+
+`ScallopTxBlock` exposes both flat methods and module-grouped methods. References are identity-equal:
+
+```ts
+tx.supplyQuick === tx.core.supplyQuick; // true
+tx.stake === tx.spool.stake; // true
+```
+
+Modules:
+
+- `tx.core`: lending, collateral, borrow, liquidations, flash loans
+- `tx.spool`: staking market coins
+- `tx.vesca`: veSCA lock/split/merge/redeem flows
+- `tx.borrowIncentive`: obligation staking and incentive claims
+- `tx.referral`: referral binding/revenue flows
+- `tx.loyalty`: loyalty reward claims
+- `tx.sCoin`: sCoin mint/burn
+
+Method conventions:
+
+- normal methods are synchronous Move-call wrappers and return `TransactionResult`.
+- `*Quick` methods are async helpers that fetch required coins/objects/oracle updates, call normal methods, and return leftovers where needed.
+- canonical lending names are `supply` / `supplyQuick` / `depositCollateral` / `depositCollateralQuick`.
+- legacy `deposit*` and `addCollateral*` names are deprecated.
+
+## Constants And Addresses
+
+```ts
+const constants = await sdk.getScallopConstants();
+
+const corePackage = constants.get('core.packages.protocol.id');
+const allAddresses = constants.getAddresses();
+
+const addressAdapter = constants.address;
+const addressId = addressAdapter.addressId;
+```
+
+`constants.whitelist` and `constants.poolAddresses` are frozen snapshots after `init()`.
+
+## Errors And Logging
+
+SDK internals throw typed errors:
+
+- `ScallopRpcError`: Sui RPC / gRPC failures
+- `ScallopIndexerError`: Scallop API/indexer HTTP failures
+- `ScallopParseError`: invalid or unexpected payload
+- `ScallopConfigError`: config validation failure
+- `ScallopTransactionBuildError`: tx construction failure
+
+```ts
+import { ScallopError } from '@scallop-io/sui-scallop-sdk/errors';
+import { consoleLogger } from '@scallop-io/sui-scallop-sdk/logger';
+
+const sdk = new Scallop({
+  addressId: '695fcdc084f790c04eb068dc',
+  network: 'mainnet',
+  fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
+  walletAddress: '0x...',
+  logger: consoleLogger,
+});
+
+try {
+  await query.getMarketPools();
+} catch (error) {
+  if (error instanceof ScallopError) {
+    // error.cause and error.context are available where provided
+  }
+}
+```
+
+## Local Development
+
+```bash
+pnpm install
+pnpm run build
+pnpm run test:typecheck
+pnpm run test:unit
+```
+
+Useful scripts:
+
+```bash
+pnpm run build             # production build
+pnpm run build:dev         # development build
+pnpm run test:typecheck    # TypeScript checks for tests
+pnpm run test:no-console   # no console.* in SDK internals
+pnpm run test:unit         # network-free unit tests
+pnpm run test:integration  # integration tests; needs network + local env setup
+pnpm run lint:fix
+pnpm run format:fix
+```
+
+Integration/query/full test runs require local environment variables such as `SECRET_KEY`. Do not commit secrets.
+
+## More Docs
+
+- Contributor architecture: [`docs/SDK_STRUCTURE.md`](docs/SDK_STRUCTURE.md)
+- Client guide: [`document/client.md`](document/client.md)
+- Query guide: [`document/query.md`](document/query.md)
+- Address guide: [`document/address.md`](document/address.md)
+- Builder guide: [`document/builder.md`](document/builder.md)
+- Utils guide: [`document/utils.md`](document/utils.md)
+- Constants guide: [`document/constants.md`](document/constants.md)
 
 ## License
 
-[APACHE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
+[Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/scallop-io/sui-scallop-sdk)

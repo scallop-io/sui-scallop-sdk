@@ -1,2 +1,0 @@
-export const DEFAULT_TOKENS_PER_INTERVAL = 50;
-export const DEFAULT_INTERVAL_IN_MS = 300;

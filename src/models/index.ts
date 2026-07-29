@@ -1,8 +1,9 @@
-export * from './scallop';
-export * from './scallopAddress';
-export * from './scallopClient';
-export * from './scallopBuilder';
-export * from './scallopQuery';
-export * from './scallopUtils';
-export * from './scallopIndexer';
-export * from './scallopCache';
+export { default as Scallop } from './scallop.js';
+export { default as ScallopClient } from './scallopClient/index.js';
+export { default as ScallopBuilder } from './scallopBuilder/index.js';
+export { default as ScallopAddress } from './scallopAddress/index.js';
+export { default as ScallopConstants } from './scallopConstants/index.js';
+export { default as ScallopQuery } from './scallopQuery/index.js';
+export { default as ScallopUtils } from './scallopUtils/index.js';
+export { SuiKitTransactionExecutor } from './transactionExecutor.js';
+export type { TransactionExecutor } from './transactionExecutor.js';

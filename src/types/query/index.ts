@@ -1,7 +1,6 @@
-export type * from './core';
-export type * from './spool';
-export type * from './borrowIncentive';
-export type * from './portfolio';
-export type * from './vesca';
-export type * from './loyaltyProgram';
-export type * from './sCoin';
+// Genuine query-layer types only — cross-domain assembly results and misc
+// query shapes that no single repository owns. Repo-owned result types live in
+// `src/types/repositories/`.
+export type * from './core.js';
+export type * from './portfolio.js';
+export type * from './sCoin.js';

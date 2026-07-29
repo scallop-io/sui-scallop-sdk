@@ -1,6 +1,7 @@
-import BigNumber from 'bignumber.js';
-import { normalizeStructTag, parseStructTag } from '@mysten/sui/utils';
-import type { ScallopUtils } from '../models';
+import { BigNumber } from 'bignumber.js';
+import { normalizeStructTag } from '@mysten/sui/utils';
+import { parseMoveTypeName } from 'src/mappers/index.js';
+import type { ScallopUtils } from '../models/index.js';
 import type {
   OriginMarketPoolData,
   ParsedMarketPoolData,
@@ -8,25 +9,18 @@ import type {
   OriginMarketCollateralData,
   ParsedMarketCollateralData,
   CalculatedMarketCollateralData,
-  OriginSpoolData,
-  ParsedSpoolData,
-  CalculatedSpoolData,
-  OriginSpoolRewardPoolData,
-  ParsedSpoolRewardPoolData,
-  CalculatedSpoolRewardPoolData,
   OriginBorrowIncentivePoolData,
   ParsedBorrowIncentivePoolData,
   OriginBorrowIncentiveAccountData,
   ParsedBorrowIncentiveAccountData,
-  SupportPoolCoins,
-  SupportCollateralCoins,
   OriginBorrowIncentivePoolPointData,
   ParsedBorrowIncentivePoolPointData,
   CalculatedBorrowIncentivePoolPointData,
   OriginBorrowIncentiveAccountPoolData,
   ParsedBorrowIncentiveAccountPoolData,
-  SupportBorrowIncentiveRewardCoins,
-} from '../types';
+} from '../types/internal/index.js';
+
+export { parseMoveTypeName };
 
 /**
  *  Parse origin market pool data to a more readable format.
@@ -38,7 +32,7 @@ export const parseOriginMarketPoolData = (
   originMarketPoolData: OriginMarketPoolData
 ): ParsedMarketPoolData => {
   return {
-    coinType: normalizeStructTag(originMarketPoolData.type.name),
+    coinType: normalizeStructTag(originMarketPoolData.type),
     // Parse origin data required for basic calculations.
     maxBorrowRate: Number(originMarketPoolData.maxBorrowRate.value) / 2 ** 32,
     borrowRate: Number(originMarketPoolData.interestRate.value) / 2 ** 32,
@@ -62,6 +56,9 @@ export const parseOriginMarketPoolData = (
     highKink: Number(originMarketPoolData.highKink.value) / 2 ** 32,
     midKink: Number(originMarketPoolData.midKink.value) / 2 ** 32,
     minBorrowAmount: Number(originMarketPoolData.minBorrowAmount),
+    isIsolated: originMarketPoolData.isIsolated,
+    supplyLimit: Number(originMarketPoolData.supplyLimit),
+    borrowLimit: Number(originMarketPoolData.borrowLimit),
   };
 };
 
@@ -69,10 +66,13 @@ export const calculateMarketPoolData = (
   utils: ScallopUtils,
   parsedMarketPoolData: ParsedMarketPoolData
 ): CalculatedMarketPoolData => {
-  const poolCoinName = utils.parseCoinNameFromType<SupportPoolCoins>(
+  const poolCoinName = utils.parseCoinNameFromType(
     parsedMarketPoolData.coinType
   );
+
   const coinDecimal = utils.getCoinDecimal(poolCoinName);
+  if (coinDecimal === undefined)
+    throw new Error(`Coin decimal not found for ${poolCoinName}`);
 
   const borrowYearFactor = 24 * 365 * 3600;
 
@@ -142,6 +142,7 @@ export const calculateMarketPoolData = (
     borrowApyOnHighKink: utils.parseAprToApy(borrowAprOnHighKink),
     borrowAprOnMidKink,
     borrowApyOnMidKink: utils.parseAprToApy(borrowAprOnMidKink),
+    coinDecimal,
     maxBorrowApr,
     maxBorrowApy: utils.parseAprToApy(maxBorrowApr),
     borrowApr: Math.min(borrowApr, maxBorrowApr),
@@ -161,6 +162,13 @@ export const calculateMarketPoolData = (
     supplyApr: supplyApr.toNumber(),
     supplyApy: utils.parseAprToApy(supplyApr.toNumber()),
     conversionRate: conversionRate.toNumber(),
+    isIsolated: parsedMarketPoolData.isIsolated,
+    maxSupplyCoin: BigNumber(parsedMarketPoolData.supplyLimit)
+      .shiftedBy(-coinDecimal)
+      .toNumber(),
+    maxBorrowCoin: BigNumber(parsedMarketPoolData.borrowLimit)
+      .shiftedBy(-coinDecimal)
+      .toNumber(),
   };
 };
 
@@ -175,15 +183,16 @@ export const parseOriginMarketCollateralData = (
 ): ParsedMarketCollateralData => {
   const divisor = 2 ** 32;
   return {
-    coinType: normalizeStructTag(originMarketCollateralData.type.name),
+    coinType: normalizeStructTag(originMarketCollateralData.type),
+    isIsolated: originMarketCollateralData.isIsolated,
     collateralFactor:
       Number(originMarketCollateralData.collateralFactor.value) / divisor,
     liquidationFactor:
       Number(originMarketCollateralData.liquidationFactor.value) / divisor,
     liquidationDiscount:
       Number(originMarketCollateralData.liquidationDiscount.value) / divisor,
-    liquidationPanelty:
-      Number(originMarketCollateralData.liquidationPanelty.value) / divisor,
+    liquidationPenalty:
+      Number(originMarketCollateralData.liquidationPenalty.value) / divisor,
     liquidationReserveFactor:
       Number(originMarketCollateralData.liquidationReserveFactor.value) /
       divisor,
@@ -198,11 +207,12 @@ export const calculateMarketCollateralData = (
   utils: ScallopUtils,
   parsedMarketCollateralData: ParsedMarketCollateralData
 ): CalculatedMarketCollateralData => {
-  const collateralCoinName =
-    utils.parseCoinNameFromType<SupportCollateralCoins>(
-      parsedMarketCollateralData.coinType
-    );
+  const collateralCoinName = utils.parseCoinNameFromType(
+    parsedMarketCollateralData.coinType
+  );
   const coinDecimal = utils.getCoinDecimal(collateralCoinName);
+  if (coinDecimal === undefined)
+    throw new Error(`Coin decimal not found for ${collateralCoinName}`);
 
   const maxCollateralCoin = BigNumber(
     parsedMarketCollateralData.maxCollateralAmount
@@ -212,6 +222,8 @@ export const calculateMarketCollateralData = (
   ).shiftedBy(-1 * coinDecimal);
 
   return {
+    coinDecimal,
+    isIsolated: parsedMarketCollateralData.isIsolated,
     maxDepositAmount: parsedMarketCollateralData.maxCollateralAmount,
     maxDepositCoin: maxCollateralCoin.toNumber(),
     depositAmount: parsedMarketCollateralData.totalCollateralAmount,
@@ -219,187 +231,11 @@ export const calculateMarketCollateralData = (
   };
 };
 
-/**
- *  Parse origin spool data to a more readable format.
- *
- * @param originSpoolData - Origin spool data
- * @return Parsed spool data
- */
-export const parseOriginSpoolData = (
-  originSpoolData: OriginSpoolData
-): ParsedSpoolData => {
-  return {
-    stakeType: normalizeStructTag(originSpoolData.stakeType.fields.name),
-    maxPoint: Number(originSpoolData.maxDistributedPoint),
-    distributedPoint: Number(originSpoolData.distributedPoint),
-    pointPerPeriod: Number(originSpoolData.distributedPointPerPeriod),
-    period: Number(originSpoolData.pointDistributionTime),
-    maxStake: Number(originSpoolData.maxStake),
-    staked: Number(originSpoolData.stakes),
-    index: Number(originSpoolData.index),
-    createdAt: Number(originSpoolData.createdAt),
-    lastUpdate: Number(originSpoolData.lastUpdate),
-  };
-};
-
-export const calculateSpoolData = (
-  parsedSpoolData: ParsedSpoolData,
-  stakeMarketCoinPrice: number,
-  stakeMarketCoinDecimal: number
-): CalculatedSpoolData => {
-  const baseIndexRate = 1_000_000_000;
-
-  const distributedPointPerSec = BigNumber(
-    parsedSpoolData.pointPerPeriod
-  ).dividedBy(parsedSpoolData.period);
-
-  const pointPerSec = BigNumber(parsedSpoolData.pointPerPeriod).dividedBy(
-    parsedSpoolData.period
-  );
-  const remainingPeriod = pointPerSec.gt(0)
-    ? BigNumber(parsedSpoolData.maxPoint)
-        .minus(parsedSpoolData.distributedPoint)
-        .dividedBy(pointPerSec)
-    : BigNumber(0);
-  const startDate = parsedSpoolData.createdAt;
-  const endDate = remainingPeriod
-    .plus(parsedSpoolData.lastUpdate)
-    .integerValue()
-    .toNumber();
-
-  const timeDelta = BigNumber(
-    Math.floor(new Date().getTime() / 1000) - parsedSpoolData.lastUpdate
-  )
-    .dividedBy(parsedSpoolData.period)
-    .toFixed(0);
-  const remainingPoints = BigNumber(parsedSpoolData.maxPoint).minus(
-    parsedSpoolData.distributedPoint
-  );
-  const accumulatedPoints = BigNumber.minimum(
-    BigNumber(timeDelta).multipliedBy(parsedSpoolData.pointPerPeriod),
-    remainingPoints
-  );
-
-  const currentPointIndex = BigNumber(parsedSpoolData.index).plus(
-    accumulatedPoints.dividedBy(parsedSpoolData.staked).isFinite()
-      ? BigNumber(baseIndexRate)
-          .multipliedBy(accumulatedPoints)
-          .dividedBy(parsedSpoolData.staked)
-      : 0
-  );
-  const currentTotalDistributedPoint = BigNumber(
-    parsedSpoolData.distributedPoint
-  ).plus(accumulatedPoints);
-
-  const stakedAmount = BigNumber(parsedSpoolData.staked);
-  const stakedCoin = stakedAmount.shiftedBy(-1 * stakeMarketCoinDecimal);
-  const stakedValue = stakedCoin.multipliedBy(stakeMarketCoinPrice);
-
-  return {
-    distributedPointPerSec: distributedPointPerSec.toNumber(),
-    accumulatedPoints: accumulatedPoints.toNumber(),
-    currentPointIndex: currentPointIndex.toNumber(),
-    currentTotalDistributedPoint: currentTotalDistributedPoint.toNumber(),
-    startDate: new Date(startDate * 1000),
-    endDate: new Date(endDate * 1000),
-    stakedAmount: stakedAmount.toNumber(),
-    stakedCoin: stakedCoin.toNumber(),
-    stakedValue: stakedValue.toNumber(),
-  };
-};
-
-/**
- *  Parse origin spool reward pool data to a more readable format.
- *
- * @param originRewardPoolData - Origin reward pool data
- * @return Parsed spool reward pool data
- */
-export const parseOriginSpoolRewardPoolData = (
-  originSpoolRewardPoolData: OriginSpoolRewardPoolData
-): ParsedSpoolRewardPoolData => {
-  return {
-    claimedRewards: Number(originSpoolRewardPoolData.claimed_rewards),
-    exchangeRateDenominator: Number(
-      originSpoolRewardPoolData.exchange_rate_denominator
-    ),
-    exchangeRateNumerator: Number(
-      originSpoolRewardPoolData.exchange_rate_numerator
-    ),
-    rewards: Number(originSpoolRewardPoolData.rewards),
-    spoolId: String(originSpoolRewardPoolData.spool_id),
-  };
-};
-
-export const calculateSpoolRewardPoolData = (
-  parsedSpoolData: ParsedSpoolData,
-  parsedSpoolRewardPoolData: ParsedSpoolRewardPoolData,
-  calculatedSpoolData: CalculatedSpoolData,
-  rewardCoinPrice: number,
-  rewardCoinDecimal: number
-): CalculatedSpoolRewardPoolData => {
-  const rateYearFactor = 365 * 24 * 60 * 60;
-
-  const rewardPerSec = BigNumber(calculatedSpoolData.distributedPointPerSec)
-    .multipliedBy(parsedSpoolRewardPoolData.exchangeRateNumerator)
-    .dividedBy(parsedSpoolRewardPoolData.exchangeRateDenominator);
-  const totalRewardAmount = BigNumber(parsedSpoolData.maxPoint)
-    .multipliedBy(parsedSpoolRewardPoolData.exchangeRateNumerator)
-    .dividedBy(parsedSpoolRewardPoolData.exchangeRateDenominator);
-  const totalRewardCoin = totalRewardAmount.shiftedBy(-1 * rewardCoinDecimal);
-  const totalRewardValue = totalRewardCoin.multipliedBy(rewardCoinPrice);
-  const remaindRewardAmount = BigNumber(parsedSpoolRewardPoolData.rewards);
-  const remaindRewardCoin = remaindRewardAmount.shiftedBy(
-    -1 * rewardCoinDecimal
-  );
-  const remaindRewardValue = remaindRewardCoin.multipliedBy(rewardCoinPrice);
-  const claimedRewardAmount = BigNumber(
-    parsedSpoolRewardPoolData.claimedRewards
-  );
-  const claimedRewardCoin = claimedRewardAmount.shiftedBy(
-    -1 * rewardCoinDecimal
-  );
-  const claimedRewardValue = claimedRewardCoin.multipliedBy(rewardCoinPrice);
-
-  const rewardValueForYear = BigNumber(rewardPerSec)
-    .shiftedBy(-1 * rewardCoinDecimal)
-    .multipliedBy(rateYearFactor)
-    .multipliedBy(rewardCoinPrice);
-
-  let rewardRate = rewardValueForYear
-    .dividedBy(calculatedSpoolData.stakedValue)
-    .isFinite()
-    ? rewardValueForYear.dividedBy(calculatedSpoolData.stakedValue).toNumber()
-    : Infinity;
-
-  if (
-    parsedSpoolData.maxPoint <= parsedSpoolData.distributedPoint ||
-    parsedSpoolData.pointPerPeriod === 0
-  ) {
-    rewardRate = Infinity;
-  }
-
-  return {
-    rewardApr: rewardRate,
-    totalRewardAmount: totalRewardAmount.toNumber(),
-    totalRewardCoin: totalRewardCoin.toNumber(),
-    totalRewardValue: totalRewardValue.toNumber(),
-    remaindRewardAmount: remaindRewardAmount.toNumber(),
-    remaindRewardCoin: remaindRewardCoin.toNumber(),
-    remaindRewardValue: remaindRewardValue.toNumber(),
-    claimedRewardAmount: claimedRewardAmount.toNumber(),
-    claimedRewardCoin: claimedRewardCoin.toNumber(),
-    claimedRewardValue: claimedRewardValue.toNumber(),
-    rewardPerSec: rewardPerSec.toNumber(),
-  };
-};
-
 export const parseOriginBorrowIncentivesPoolPointData = (
   originBorrowIncentivePoolPointData: OriginBorrowIncentivePoolPointData
 ): ParsedBorrowIncentivePoolPointData => {
   return {
-    pointType: normalizeStructTag(
-      originBorrowIncentivePoolPointData.point_type.name
-    ),
+    pointType: parseMoveTypeName(originBorrowIncentivePoolPointData.point_type),
     distributedPointPerPeriod: Number(
       originBorrowIncentivePoolPointData.distributed_point_per_period
     ),
@@ -423,26 +259,23 @@ export const parseOriginBorrowIncentivesPoolPointData = (
  * @return Parsed borrow incentive pool data
  */
 export const parseOriginBorrowIncentivePoolData = (
+  utils: ScallopUtils,
   originBorrowIncentivePoolData: OriginBorrowIncentivePoolData
 ): ParsedBorrowIncentivePoolData => {
   return {
-    poolType: normalizeStructTag(originBorrowIncentivePoolData.pool_type.name),
+    poolType: parseMoveTypeName(originBorrowIncentivePoolData.pool_type),
     minStakes: Number(originBorrowIncentivePoolData.min_stakes),
     maxStakes: Number(originBorrowIncentivePoolData.max_stakes),
     staked: Number(originBorrowIncentivePoolData.stakes),
     poolPoints: originBorrowIncentivePoolData.points.reduce(
       (acc, point) => {
         const parsed = parseOriginBorrowIncentivesPoolPointData(point);
-        const name = parseStructTag(
-          parsed.pointType
-        ).name.toLowerCase() as SupportBorrowIncentiveRewardCoins;
+        const name = utils.parseCoinNameFromType(parsed.pointType) as string;
+
         acc[name] = parsed;
         return acc;
       },
-      {} as Record<
-        SupportBorrowIncentiveRewardCoins,
-        ParsedBorrowIncentivePoolPointData
-      >
+      {} as Record<string, ParsedBorrowIncentivePoolPointData>
     ),
   };
 };
@@ -512,22 +345,17 @@ export const calculateBorrowIncentivePoolPointData = (
     .multipliedBy(rewardCoinPrice);
 
   const weightScale = BigNumber(1_000_000_000_000);
+  const rewardScale = BigNumber(
+    parsedBorrowIncentivePoolPointData.baseWeight
+  ).dividedBy(weightScale);
 
   const rewardRate =
     rewardValueForYear
-      .multipliedBy(
-        BigNumber(parsedBorrowIncentivePoolPointData.baseWeight).dividedBy(
-          weightScale
-        )
-      )
+      .multipliedBy(rewardScale)
       .dividedBy(weightedStakedValue)
       .isFinite() && parsedBorrowIncentivePoolPointData.points > 0
       ? rewardValueForYear
-          .multipliedBy(
-            BigNumber(parsedBorrowIncentivePoolPointData.baseWeight).dividedBy(
-              weightScale
-            )
-          )
+          .multipliedBy(rewardScale)
           .dividedBy(weightedStakedValue)
           .toNumber()
       : Infinity;
@@ -546,99 +374,12 @@ export const calculateBorrowIncentivePoolPointData = (
   };
 };
 
-// /**
-//  *  Parse origin borrow incentive reward pool data to a more readable format.
-//  *
-//  * @param originBorrowIncentiveRewardPoolData - Origin borrow incentive reward pool data
-//  * @return Parsed borrow incentive reward pool data
-//  */
-// export const parseOriginBorrowIncentiveRewardPoolData = (
-//   originBorrowIncentiveRewardPoolData: OriginBorrowIncentiveRewardPoolData
-// ): ParsedBorrowIncentiveRewardPoolData => {
-//   return {
-//     rewardType: normalizeStructTag(
-//       originBorrowIncentiveRewardPoolData.reward_type.name
-//     ),
-//     claimedRewards: Number(originBorrowIncentiveRewardPoolData.claimed_rewards),
-//     exchangeRateNumerator: Number(
-//       originBorrowIncentiveRewardPoolData.exchange_rate_numerator
-//     ),
-//     exchangeRateDenominator: Number(
-//       originBorrowIncentiveRewardPoolData.exchange_rate_denominator
-//     ),
-//     remainingRewards: Number(
-//       originBorrowIncentiveRewardPoolData.remaining_reward
-//     ),
-//   };
-// };
-
-// export const calculateBorrowIncentiveRewardPoolData = (
-//   parsedBorrowIncentivePoolData: ParsedBorrowIncentivePoolData,
-//   parsedBorrowIncentiveRewardPoolData: ParsedBorrowIncentiveRewardPoolData,
-//   calculatedBorrowIncentivePoolData: CalculatedBorrowIncentivePoolData,
-//   rewardCoinPrice: number,
-//   rewardCoinDecimal: number
-// ): CalculatedBorrowIncentiveRewardPoolData => {
-//   const rateYearFactor = 365 * 24 * 60 * 60;
-
-//   const rewardPerSec = BigNumber(
-//     calculatedBorrowIncentivePoolData.distributedPointPerSec
-//   )
-//     .multipliedBy(parsedBorrowIncentiveRewardPoolData.exchangeRateNumerator)
-//     .dividedBy(parsedBorrowIncentiveRewardPoolData.exchangeRateDenominator);
-//   const totalRewardAmount = BigNumber(parsedBorrowIncentivePoolData.maxPoint)
-//     .multipliedBy(parsedBorrowIncentiveRewardPoolData.exchangeRateNumerator)
-//     .dividedBy(parsedBorrowIncentiveRewardPoolData.exchangeRateDenominator);
-//   const totalRewardCoin = totalRewardAmount.shiftedBy(-1 * rewardCoinDecimal);
-//   const totalRewardValue = totalRewardCoin.multipliedBy(rewardCoinPrice);
-//   const remaindRewardAmount = BigNumber(
-//     parsedBorrowIncentiveRewardPoolData.remainingRewards
-//   );
-//   const remaindRewardCoin = remaindRewardAmount.shiftedBy(
-//     -1 * rewardCoinDecimal
-//   );
-//   const remaindRewardValue = remaindRewardCoin.multipliedBy(rewardCoinPrice);
-//   const claimedRewardAmount = BigNumber(
-//     parsedBorrowIncentiveRewardPoolData.claimedRewards
-//   );
-//   const claimedRewardCoin = claimedRewardAmount.shiftedBy(
-//     -1 * rewardCoinDecimal
-//   );
-//   const claimedRewardValue = claimedRewardCoin.multipliedBy(rewardCoinPrice);
-
-//   const rewardValueForYear = BigNumber(rewardPerSec)
-//     .shiftedBy(-1 * rewardCoinDecimal)
-//     .multipliedBy(rateYearFactor)
-//     .multipliedBy(rewardCoinPrice);
-//   const rewardRate = rewardValueForYear
-//     .dividedBy(calculatedBorrowIncentivePoolData.stakedValue)
-//     .isFinite()
-//     ? rewardValueForYear
-//         .dividedBy(calculatedBorrowIncentivePoolData.stakedValue)
-//         .toNumber()
-//     : Infinity;
-
-//   return {
-//     rewardApr: rewardRate,
-//     totalRewardAmount: totalRewardAmount.toNumber(),
-//     totalRewardCoin: totalRewardCoin.toNumber(),
-//     totalRewardValue: totalRewardValue.toNumber(),
-//     remaindRewardAmount: remaindRewardAmount.toNumber(),
-//     remaindRewardCoin: remaindRewardCoin.toNumber(),
-//     remaindRewardValue: remaindRewardValue.toNumber(),
-//     claimedRewardAmount: claimedRewardAmount.toNumber(),
-//     claimedRewardCoin: claimedRewardCoin.toNumber(),
-//     claimedRewardValue: claimedRewardValue.toNumber(),
-//     rewardPerSec: rewardPerSec.toNumber(),
-//   };
-// };
-
 export const parseOriginBorrowIncentiveAccountPoolPointData = (
   originBorrowIncentiveAccountPoolPointData: OriginBorrowIncentiveAccountPoolData
 ): ParsedBorrowIncentiveAccountPoolData => {
   return {
-    pointType: normalizeStructTag(
-      originBorrowIncentiveAccountPoolPointData.point_type.name
+    pointType: parseMoveTypeName(
+      originBorrowIncentiveAccountPoolPointData.point_type
     ),
     weightedAmount: Number(
       originBorrowIncentiveAccountPoolPointData.weighted_amount
@@ -656,26 +397,20 @@ export const parseOriginBorrowIncentiveAccountPoolPointData = (
  * @return Parsed borrow incentive account data
  */
 export const parseOriginBorrowIncentiveAccountData = (
+  utils: ScallopUtils,
   originBorrowIncentiveAccountData: OriginBorrowIncentiveAccountData
 ): ParsedBorrowIncentiveAccountData => {
   return {
-    poolType: normalizeStructTag(
-      originBorrowIncentiveAccountData.pool_type.name
-    ),
+    poolType: parseMoveTypeName(originBorrowIncentiveAccountData.pool_type),
     debtAmount: Number(originBorrowIncentiveAccountData.debt_amount),
     pointList: originBorrowIncentiveAccountData.points_list.reduce(
       (acc, point) => {
         const parsed = parseOriginBorrowIncentiveAccountPoolPointData(point);
-        const name = parseStructTag(
-          parsed.pointType
-        ).name.toLowerCase() as SupportBorrowIncentiveRewardCoins;
+        const name = utils.parseCoinNameFromType(parsed.pointType);
         acc[name] = parsed;
         return acc;
       },
-      {} as Record<
-        SupportBorrowIncentiveRewardCoins,
-        ParsedBorrowIncentiveAccountPoolData
-      >
+      {} as Record<string, ParsedBorrowIncentiveAccountPoolData>
     ),
   };
 };

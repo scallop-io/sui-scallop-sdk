@@ -1,45 +1,63 @@
-name: Publish package to GitHub Packages
+name: Publish package to npm Packages
 
 on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write # REQUIRED for npm OIDC Trusted Publishing
+
 jobs:
   release:
-    runs-on: ubuntu-20.04
-    permissions: 
-      contents: read
-      packages: write 
+    runs-on: ubuntu-22.04
+    environment: npm-publish # must match Trusted Publisher config on npmjs.com
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v6.0.2
+
+      - uses: pnpm/action-setup@v6.0.8
         with:
-          version: 9.12.3
-      - uses: actions/setup-node@v3.6.0
+          version: 10.32.1
+
+      - uses: actions/setup-node@v6.4.0
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
           scope: '@scallop-io'
-      - run: |
-          pnpm install --frozen-lockfile
-          pnpm run build
+
+      - name: Upgrade npm for OIDC support
+        run: npm install -g npm@11.14.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Determine npm tag
+        id: npm_tag
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-      - run: pnpm publish --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-      - uses: actions/setup-node@v3.6.0
-        with:
-          node-version: '18'
-      - run: |
-          pnpm install --frozen-lockfile
-          pnpm run build
-      - uses: actions/setup-node@v3.6.0
-        with:
-          node-version: '18'
-          cache: 'pnpm'
-          registry-url: 'https://npm.pkg.github.com'
-      - run: pnpm publish --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ github.ref_name }}
+        run: |
+          if [[ "$REF" == *"alpha."* ]]; then
+            echo "tag=alpha" >> $GITHUB_ENV
+          elif [[ "$REF" == *"rc."* ]]; then
+            echo "tag=rc" >> $GITHUB_ENV
+          else
+            # The release webhook payload has no reliable make_latest field,
+            # so ask the API which release is currently marked "latest".
+            LATEST=$(gh api "repos/${{ github.repository }}/releases/latest" --jq .tag_name)
+            if [[ "$REF" == "$LATEST" ]]; then
+              echo "tag=latest" >> $GITHUB_ENV
+            else
+              echo "tag=legacy" >> $GITHUB_ENV
+            fi
+          fi
+
+      # Publish to npmjs.com via OIDC — use npm (not pnpm) for OIDC token exchange
+      - name: Publish to npmjs.com (OIDC)
+        run: npm publish --tag ${{ env.tag }} --access public --ignore-scripts

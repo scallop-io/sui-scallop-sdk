@@ -1,28 +1,5 @@
-import { SuiKit } from '@scallop-io/sui-kit';
-import { ScallopAddress } from './scallopAddress';
-import { ScallopClient } from './scallopClient';
-import { ScallopBuilder } from './scallopBuilder';
-import { ScallopQuery } from './scallopQuery';
-import { ScallopUtils } from './scallopUtils';
-import { ADDRESSES_ID } from '../constants';
-import type {
-  ScallopBuilderParams,
-  ScallopClientParams,
-  ScallopParams,
-  ScallopQueryParams,
-  ScallopUtilsParams,
-} from '../types/';
-import { ScallopIndexer } from './scallopIndexer';
-import { ScallopCache } from './scallopCache';
-import { QueryClientConfig } from '@tanstack/query-core';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache';
-import { TokenBucket } from 'src/utils';
-import {
-  DEFAULT_INTERVAL_IN_MS,
-  DEFAULT_TOKENS_PER_INTERVAL,
-} from 'src/constants/tokenBucket';
-import type { QueryClient } from '@tanstack/query-core';
-
+import ScallopClient from './scallopClient/index.js';
+import { ScallopClientConstructorParams } from './scallopClient/types.js';
 /**
  * @argument params - The parameters for the Scallop instance.
  * @argument cacheOptions - The cache options for the QueryClient.
@@ -33,56 +10,37 @@ import type { QueryClient } from '@tanstack/query-core';
  * @example
  * ```typescript
  * const sdk = new Scallop(<parameters>);
- * const scallopAddress = await sdk.getScallopAddress();
+ * const scallopConstants = await sdk.getScallopConstants();
  * const scallopBuilder = await sdk.createScallopBuilder();
  * const scallopClient = await sdk.createScallopClient();
- * const scallopIndexer= await sdk.createScallopIndexer();
- * const scallopUtils= await sdk.createScallopUtils();
+ * const scallopUtils = await sdk.createScallopUtils();
  * ```
  */
-export class Scallop {
-  public params: ScallopParams;
-  public suiKit: SuiKit;
-  public cache: ScallopCache;
 
-  private address: ScallopAddress;
+export type ScallopConstructorParams = {
+  client?: ScallopClient;
+} & ScallopClientConstructorParams;
+class Scallop {
+  public readonly client: ScallopClient;
+  public constructor({
+    client,
+    ...scallopClientArgs
+  }: ScallopConstructorParams) {
+    this.client = client ?? new ScallopClient(scallopClientArgs);
+  }
 
-  public constructor(
-    params: ScallopParams,
-    cacheOptions?: QueryClientConfig,
-    tokenBucket?: TokenBucket,
-    queryClient?: QueryClient
-  ) {
-    this.params = params;
-    this.suiKit = new SuiKit(params);
-    this.cache = new ScallopCache(
-      this.suiKit,
-      params.walletAddress,
-      cacheOptions ?? DEFAULT_CACHE_OPTIONS,
-      tokenBucket ??
-        new TokenBucket(DEFAULT_TOKENS_PER_INTERVAL, DEFAULT_INTERVAL_IN_MS),
-      queryClient
-    );
-    this.address = new ScallopAddress(
-      {
-        id: params?.addressesId || ADDRESSES_ID,
-        network: params?.networkType,
-        forceInterface: params?.forceAddressesInterface,
-      },
-      { cache: this.cache }
-    );
+  async init(force: boolean = false) {
+    await this.client.init(force);
   }
 
   /**
-   * Get a scallop address instance that already has read addresses.
+   * Create a scallop client instance that already has initial data.
    *
-   * @param id - The API id of the addresses.
-   * @return Scallop Address.
+   * @return Scallop Client.
    */
-  public async getScallopAddress(id?: string) {
-    await this.address.read(id);
-
-    return this.address;
+  async createScallopClient() {
+    await this.init();
+    return this.client;
   }
 
   /**
@@ -90,36 +48,9 @@ export class Scallop {
    *
    * @return Scallop Builder.
    */
-  public async createScallopBuilder(params?: ScallopBuilderParams) {
-    if (!this.address.getAddresses()) await this.address.read();
-    const builderParams = {
-      ...this.params,
-      ...params,
-    };
-    const scallopBuilder = new ScallopBuilder(builderParams, {
-      query: await this.createScallopQuery(builderParams),
-    });
-
-    return scallopBuilder;
-  }
-
-  /**
-   * Create a scallop client instance that already has initial data.
-   *
-   * @param walletAddress - When user cannot provide a secret key or mnemonic, the scallop client cannot directly derive the address of the transaction the user wants to sign. This argument specifies the wallet address for signing the transaction.
-   * @return Scallop Client.
-   */
-  public async createScallopClient(params?: ScallopClientParams) {
-    if (!this.address.getAddresses()) await this.address.read();
-    const clientParams = {
-      ...this.params,
-      ...params,
-    };
-    const scallopClient = new ScallopClient(clientParams, {
-      builder: await this.createScallopBuilder(clientParams),
-    });
-
-    return scallopClient;
+  async createScallopBuilder() {
+    await this.init();
+    return this.client.builder;
   }
 
   /**
@@ -127,30 +58,9 @@ export class Scallop {
    *
    * @return Scallop Query.
    */
-  public async createScallopQuery(params?: ScallopQueryParams) {
-    if (!this.address.getAddresses()) await this.address.read();
-    const queryParams = {
-      ...this.params,
-      ...params,
-    };
-    const scallopQuery = new ScallopQuery(queryParams, {
-      utils: await this.createScallopUtils(queryParams),
-    });
-
-    return scallopQuery;
-  }
-
-  /**
-   * Create a scallop indexer instance.
-   *
-   * @return Scallop Indexer.
-   */
-  public async createScallopIndexer() {
-    const scallopIndexer = new ScallopIndexer(this.params, {
-      cache: this.cache,
-    });
-
-    return scallopIndexer;
+  async createScallopQuery() {
+    await this.init();
+    return this.client.query;
   }
 
   /**
@@ -158,18 +68,19 @@ export class Scallop {
    *
    * @return Scallop Utils.
    */
-  public async createScallopUtils(params?: ScallopUtilsParams) {
-    if (!this.address.getAddresses()) await this.address.read();
-    const scallopUtils = new ScallopUtils(
-      {
-        ...this.params,
-        ...params,
-      },
-      {
-        address: this.address,
-      }
-    );
+  async createScallopUtils() {
+    await this.init();
+    return this.client.utils;
+  }
 
-    return scallopUtils;
+  /**
+   * Get a scallop constants instance that already has initial data.
+   * @returns Scallop Constants
+   */
+  async getScallopConstants() {
+    await this.init();
+    return this.client.constants;
   }
 }
+
+export default Scallop;

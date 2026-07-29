@@ -1,4 +1,8 @@
-# Use Scallop Address
+# Use Scallop Address (DEPRECATED)
+
+> **Note:** This class is deprecated. Please use `ScallopConstants` instead, which exposes all `ScallopAddress` methods and properties via forwarders. See [constants.md](./constants.md) for usage.
+
+#### `ScallopConstants` composes `ScallopAddress` (accessible via `constants.address`). All `ScallopAddress` methods are forwarded on `ScallopConstants` for back-compat, but `constants instanceof ScallopAddress` is `false` — use `constants.address instanceof ScallopAddress` instead.
 
 ## Read Addresses
 
@@ -6,7 +10,7 @@ General Users will basically only use the `read`, `switchCurrentAddresses`, `get
 
 ```typescript
 const scallopAddress = new ScallopAddress({
-  id: TEST_ADDRESSES_ID,
+  addressId: TEST_ADDRESSES_ID,
   network: NETWORK,
 });
 
@@ -32,7 +36,7 @@ The rest of the features are for Scallop administrators to use, and require a se
 
 ```typescript
   const scallopAddress = new ScallopAddress({
-    id: TEST_ADDRESSES_ID,
+    addressId: TEST_ADDRESSES_ID,
     auth: process.env.API_KEY,
     network: NETWORK,
   });

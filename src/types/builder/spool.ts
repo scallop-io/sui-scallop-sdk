@@ -4,48 +4,65 @@ import type {
   SuiObjectArg,
 } from '@scallop-io/sui-kit';
 import type { TransactionResult } from '@mysten/sui/transactions';
-import type { ScallopBuilder } from '../../models';
-import type { SupportStakeMarketCoins } from '../constant';
-import { SuiTxBlockWithSCoin } from '.';
+import type { ScallopBuilder } from '../../models/index.js';
+import type { MoveCallContext } from '../../txBuilders/context.js';
+import { SuiTxBlockWithSCoin } from './index.js';
 
 export type SpoolIds = {
   spoolPkg: string;
 };
 
+/**
+ * The explicit orchestration toolkit a spool quick method needs.
+ *
+ * @description
+ * Narrow context injected into {@link GenerateSpoolQuickMethod}. Built once from
+ * `builder` in the factory and passed (instead of `builder`) into the quick
+ * generator. Method signatures are taken via indexed-access types so they stay
+ * in sync with `ScallopBuilder`.
+ */
+export type SpoolActionContext = {
+  reads: {
+    getAllStakeAccounts: ScallopBuilder['query']['getAllStakeAccounts'];
+  };
+  coins: {
+    selectMarketCoin: ScallopBuilder['selectMarketCoin'];
+    selectSCoin: ScallopBuilder['selectSCoin'];
+  };
+};
+
 export type SpoolNormalMethods = {
-  createStakeAccount: (
-    stakeMarketCoinName: SupportStakeMarketCoins
-  ) => TransactionResult;
+  createStakeAccount: (stakeMarketCoinName: string) => TransactionResult;
   stake: (
     stakeAccount: SuiAddressArg,
     coin: SuiObjectArg,
-    stakeMarketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: string
   ) => void;
   unstake: (
     stakeAccount: SuiAddressArg,
     amount: number,
-    stakeMarketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: string
   ) => TransactionResult;
   claim: (
     stakeAccount: SuiAddressArg,
-    stakeMarketCoinName: SupportStakeMarketCoins
+    stakeMarketCoinName: string
   ) => TransactionResult;
 };
 
 export type SpoolQuickMethods = {
   stakeQuick(
     amountOrMarketCoin: SuiObjectArg | number,
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     stakeAccountId?: SuiAddressArg
   ): Promise<void>;
   unstakeQuick(
     amount: number,
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     stakeAccountId?: SuiAddressArg,
     returnSCoin?: boolean
   ): Promise<TransactionResult | undefined>;
   claimQuick(
-    stakeMarketCoinName: SupportStakeMarketCoins,
+    stakeMarketCoinName: string,
     stakeAccountId?: SuiAddressArg
   ): Promise<TransactionResult[]>;
 };
@@ -57,11 +74,11 @@ export type SuiTxBlockWithSpoolNormalMethods = SuiKitTxBlock &
 export type SpoolTxBlock = SuiTxBlockWithSpoolNormalMethods & SpoolQuickMethods;
 
 export type GenerateSpoolNormalMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: MoveCallContext;
   txBlock: SuiKitTxBlock;
 }) => SpoolNormalMethods;
 
 export type GenerateSpoolQuickMethod = (params: {
-  builder: ScallopBuilder;
+  ctx: SpoolActionContext;
   txBlock: SuiTxBlockWithSpoolNormalMethods;
 }) => SpoolQuickMethods;
