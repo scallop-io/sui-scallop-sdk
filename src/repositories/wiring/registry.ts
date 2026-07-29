@@ -1,12 +1,34 @@
-import type ScallopUtils from 'src/models/scallopUtils/index.js';
-import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
-import type { Logger } from 'src/logger/index.js';
-import { createApiDataSource, createIndexerDataSource } from './datasources.js';
+import { ClientWithCoreApi } from '@mysten/sui/client';
+import { SuiGraphQLClient } from '@mysten/sui/graphql';
+import { getJsonRpcFullnodeUrl } from '@mysten/sui/jsonRpc';
+import { QueryClient } from '@tanstack/query-core';
+import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache.js';
+import { noopLogger } from 'src/logger/index.js';
+import { ScallopQueryBaseParams } from 'src/models/scallopQuery/types.js';
+import { BorrowIncentiveRepository } from '../borrowIncentive/index.js';
+import { CoinBalanceRepository } from '../coinBalance/index.js';
+import { FlashloanRepository } from '../flashloan/index.js';
+import { IsolatedAssetsRepository } from '../isolatedAssets/index.js';
+import { LoyaltyProgramRepository } from '../loyaltyProgram/index.js';
+import { MarketRepository } from '../market/index.js';
+import { ObligationRepository } from '../obligation/index.js';
+import { PoolAddressesRepository } from '../poolAddresses/index.js';
+import { PriceRepository } from '../price/index.js';
+import { ReferralRepository } from '../referral/index.js';
+import { SpoolRepository } from '../spool/index.js';
+import { VeScaRepository } from '../veSca/index.js';
+import { VeScaLoyaltyProgramRepository } from '../veScaLoyaltyProgram/index.js';
+import { XOracleRepository } from '../xOracle/index.js';
+import {
+  createApiDataSource,
+  createGraphQLDataSource,
+  createGrpcDataSource,
+  createIndexerDataSource,
+  MAINNET_GRAPHQL_URL,
+} from './datasources.js';
+import { DEFAULT_GRAPHQL_MAX_OBJECTS_PER_BATCH } from 'src/datasources/grpc.js';
 import {
   buildBorrowIncentiveMetadata,
-  buildReferralMetadata,
-  buildPriceMetadata,
-  buildPoolAddressesMetadata,
   buildCoinBalanceMetadata,
   buildFlashloanMetadata,
   buildIsolatedAssetsMetadata,
@@ -14,40 +36,34 @@ import {
   buildMarketAddresses,
   buildMarketMetadata,
   buildObligationMetadata,
+  buildPoolAddressesMetadata,
+  buildPriceMetadata,
+  buildReferralMetadata,
   buildSpoolMetadata,
   buildVeScaLoyaltyProgramMetadata,
   buildVeScaMetadata,
   buildXOracleMetadata,
 } from './metadata.js';
-import { MarketRepository } from '../market/index.js';
-import { CoinBalanceRepository } from '../coinBalance/index.js';
-import { FlashloanRepository } from '../flashloan/index.js';
-import { ObligationRepository } from '../obligation/index.js';
-import { BorrowIncentiveRepository } from '../borrowIncentive/index.js';
-import { IsolatedAssetsRepository } from '../isolatedAssets/index.js';
-import { VeScaRepository } from '../veSca/index.js';
-import { LoyaltyProgramRepository } from '../loyaltyProgram/index.js';
-import { XOracleRepository } from '../xOracle/index.js';
-import { SpoolRepository } from '../spool/index.js';
-import { VeScaLoyaltyProgramRepository } from '../veScaLoyaltyProgram/index.js';
-import { ReferralRepository } from '../referral/index.js';
-import { PoolAddressesRepository } from '../poolAddresses/index.js';
-import { PriceRepository } from '../price/index.js';
-import { DEFAULT_CACHE_OPTIONS } from 'src/constants/cache.js';
+import { ScallopUtils } from 'src/models/index.js';
 
 /**
  * Inputs the registry needs. `ScallopUtils` is the single hub — it exposes
- * `onchain`, `queryClient`, `logger`, `address`, and `constants`, so the
- * registry can derive every datasource + metadata bundle
- * from it.
+ * `queryClient`, `logger`, `address`, and `constants`, so the registry can
+ * derive every datasource + metadata bundle from it.
+ *
+ * `core` is the transport-selected Core read client — a `SuiGrpcClient` on
+ * the `'grpc'` transport, a `SuiGraphQLClient` on `'graphql'` (see
+ * `ScallopQuery.initReadClients`). Both satisfy `ClientWithCoreApi`
+ * (`.core: CoreClient`, the full `TransportMethods` surface), which is all
+ * `createGrpcDataSource` needs — the Core datasource is transport-agnostic.
  */
 export type RepositoryDeps = {
+  core: ClientWithCoreApi;
+  fullnodeUrl?: string;
+  graphql: SuiGraphQLClient;
+  graphqlUrl?: string;
   utils: ScallopUtils;
-  queryClient?: QueryClient; // Optional override for the utils query client
-  queryClientConfig?: QueryClientConfig; // Optional override for the utils query client config
-  /** Override the indexer base URL; defaults to the Scallop indexer. */
-  indexerUrl?: string;
-};
+} & ScallopQueryBaseParams;
 
 /**
  * The set of wired domain repositories. Every domain below is wired into the
@@ -76,14 +92,66 @@ export interface Repositories {
  * metadata is built at most once per domain.
  */
 export const createRepositories = (deps: RepositoryDeps): Repositories => {
-  const { utils, indexerUrl, queryClientConfig = DEFAULT_CACHE_OPTIONS } = deps;
+  const {
+    core,
+    fullnodeUrl,
+    graphql,
+    graphqlUrl,
+    logger = noopLogger,
+    indexerUrl,
+    objectBatchWindowMs,
+    priceTimeout,
+    pythApiKey,
+    pythEndpoint,
+    queryClientConfig = DEFAULT_CACHE_OPTIONS,
+    readTransport,
+    tokensPerSecond,
+    utils,
+  } = deps;
 
-  const onchain = utils.onchain;
   const indexer = createIndexerDataSource(indexerUrl);
   const queryClient: QueryClient =
     deps.queryClient ?? new QueryClient(queryClientConfig);
-  const logger: Logger = utils.logger;
-  const base = { onchain, queryClient, logger };
+  // On the graphql transport `core` is the GraphQL client (see
+  // `ScallopQuery.initReadClients`), so the Core datasource's cache-key
+  // namespace must be the GraphQL endpoint, not a gRPC fullnode string — two
+  // callers on different `graphqlUrl`s but the same default `fullnodeUrl`
+  // would otherwise collide on the same cache keys. `maxObjectsPerBatch` caps
+  // `getObjects` batches under GraphQL's ~5000-byte query-payload limit; gRPC
+  // keeps its native 50-id limit (cap omitted).
+  const grpcSource = createGrpcDataSource(
+    core,
+    readTransport === 'graphql'
+      ? (graphqlUrl ?? MAINNET_GRAPHQL_URL)
+      : (fullnodeUrl ?? getJsonRpcFullnodeUrl('mainnet')),
+    {
+      tokensPerSecond,
+      objectBatchWindowMs,
+      maxObjectsPerBatch:
+        readTransport === 'graphql'
+          ? DEFAULT_GRAPHQL_MAX_OBJECTS_PER_BATCH
+          : undefined,
+    }
+  );
+  const base = { grpc: grpcSource, queryClient, logger };
+  // Whether the heavy dynamic-field repos should prefer native nested GraphQL
+  // queries (with gRPC fallback) over the Core multi-call fan-out. Only on when
+  // the GraphQL read transport is selected.
+  const preferGraphql = readTransport === 'graphql';
+  // GraphQL-backed, self-caching datasource. Owns `multiGetBalances` (the gRPC
+  // balance service flaps; GraphQL is stable) plus the Tier-2 native nested
+  // queries used when `preferGraphql`. Pass an explicit client or url to
+  // override; both default to mainnet.
+  const graphqlSource = createGraphQLDataSource({
+    client: graphql,
+    url: graphqlUrl ?? MAINNET_GRAPHQL_URL,
+    queryClient,
+    logger,
+    // Forward the caller's throughput cap so GraphQL balance reads are throttled
+    // under the SAME policy as the gRPC transport. Omitted → both fall back
+    // to the shared RateLimiter default (10/s).
+    tokensPerSecond,
+  });
 
   let market: MarketRepository | undefined;
   let coinBalance: CoinBalanceRepository | undefined;
@@ -112,18 +180,24 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
     get coinBalance() {
       return (coinBalance ??= new CoinBalanceRepository({
         ...base,
+        balanceSource: graphqlSource,
+        preferGraphql,
         metadata: buildCoinBalanceMetadata(utils),
       }));
     },
     get flashloan() {
       return (flashloan ??= new FlashloanRepository({
         ...base,
+        graphql: graphqlSource,
+        preferGraphql,
         metadata: buildFlashloanMetadata(utils),
       }));
     },
     get obligation() {
       return (obligation ??= new ObligationRepository({
         ...base,
+        graphql: graphqlSource,
+        preferGraphql,
         metadata: buildObligationMetadata(utils),
       }));
     },
@@ -142,6 +216,7 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
     get veSca() {
       return (veSca ??= new VeScaRepository({
         ...base,
+        preferGraphql,
         metadata: buildVeScaMetadata(utils),
       }));
     },
@@ -181,12 +256,17 @@ export const createRepositories = (deps: RepositoryDeps): Repositories => {
         ...base,
         indexer,
         metadata: buildPriceMetadata(utils),
+        priceTimeout,
+        pythApiKey,
+        pythEndpoint,
       }));
     },
     get poolAddresses() {
       return (poolAddresses ??= new PoolAddressesRepository({
         ...base,
         api: createApiDataSource(),
+        graphql: graphqlSource,
+        preferGraphql,
         metadata: buildPoolAddressesMetadata(utils),
       }));
     },

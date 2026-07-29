@@ -24,7 +24,7 @@ const queryUserRewardAmount = async (
   veScaKey: string
 ) => {
   const {
-    onchain,
+    grpc,
     metadata: { addresses },
     fetchWithCache,
   } = ctx;
@@ -42,9 +42,9 @@ const queryUserRewardAmount = async (
   } = await fetchWithCache({
     queryKey: queryKeys.rpc.getDynamicFieldObject({
       ...fetchOptions,
-      node: onchain.url,
+      node: grpc.url,
     }),
-    queryFn: () => onchain.client.getDynamicField(fetchOptions),
+    queryFn: () => grpc.client.getDynamicField(fetchOptions),
   });
 
   return BigNumber(UserRewardBcs.parse(value.bcs)).shiftedBy(-9).toNumber();
@@ -54,7 +54,7 @@ const queryRewardPool = async (
   ctx: QueryRewardPoolContext,
   rewardPoolId: string
 ) => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
 
   // Fetch the rewardPool object
   const fetchOptions: SuiClientTypes.GetObjectOptions<{ json: true }> = {
@@ -67,9 +67,9 @@ const queryRewardPool = async (
   const { object: rewardPoolObject } = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject({
       ...fetchOptions,
-      node: onchain.url,
+      node: grpc.url,
     }),
-    queryFn: () => onchain.getObject(fetchOptions),
+    queryFn: () => grpc.getObject(fetchOptions),
   });
 
   if (!rewardPoolObject) {

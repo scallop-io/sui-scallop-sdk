@@ -6,13 +6,13 @@ vi.mock('src/repositories/referral/helper.js', () => ({
 
 import * as helpers from 'src/repositories/referral/helper.js';
 import { ReferralRepository } from 'src/repositories/referral/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { ReferralRepoMetadata } from 'src/repositories/referral/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const metadata = { tag: 'META' } as unknown as ReferralRepoMetadata;
 
-const makeRepo = () => new ReferralRepository({ onchain, metadata });
+const makeRepo = () => new ReferralRepository({ grpc: onchain, metadata });
 
 beforeEach(() => vi.clearAllMocks());
 

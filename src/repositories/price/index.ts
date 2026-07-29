@@ -8,15 +8,20 @@
  */
 
 import { IndexerDataSource } from 'src/datasources/indexer.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { BaseRepository } from '../base.js';
 import { QuerySource, runWithDataSourceFallback } from '../utils.js';
-import { DEFAULT_PYTH_URL } from './const.js';
+import {
+  DEFAULT_PRICE_TIMEOUT,
+  DEFAULT_PYTH_URL,
+  LEGACY_PYTH_HERMES_ENDPOINT,
+} from './const.js';
 import {
   getPricesFromIndexer,
   getPythFeedObjectFromOnChain,
   getPythFeedObjectsFromOnChain,
-  getPythPricesFromApi,
+  getPythPricesFromPythApi,
+  getPythPricesFromIndexerApi,
   getPythPricesFromOnChain,
 } from './helpers.js';
 import {
@@ -32,32 +37,56 @@ export class PriceRepository extends BaseRepository<
 > {
   private readonly config: PriceApiConfig;
   private readonly indexer: IndexerDataSource;
-  private readonly onchain: OnChainDataSource;
+  private readonly grpc: GrpcDataSource;
+  private readonly priceTimeout: number;
+  private readonly pythApiKey?: string;
+  private readonly pythEndpoint: string;
 
   constructor({
     pythPriceServiceConfig,
     indexer,
-    onchain,
+    grpc,
+    priceTimeout,
+    pythApiKey,
+    pythEndpoints,
+    pythEndpoint = pythEndpoints?.[0] ?? DEFAULT_PYTH_URL,
     ...params
   }: PriceRepositoryParams) {
     super(params);
-    this.config = pythPriceServiceConfig ?? {
-      endpoint: DEFAULT_PYTH_URL,
+    this.pythApiKey = pythApiKey;
+    this.pythEndpoint = pythEndpoint;
+    // Default the price-read endpoint to the builder's first configured
+    // `pythEndpoints` entry, falling back to DEFAULT_PYTH_URL. An explicit
+    // `pythPriceServiceConfig` still takes precedence over both.
+    const config = pythPriceServiceConfig ?? {
+      endpoint: this.pythEndpoint,
       config: {
         timeout: 4_000,
         httpRetries: 1,
       },
     };
+    // Authenticate direct Pyth (Hermes) reads with the access token when given.
+    this.config = pythApiKey
+      ? { ...config, config: { ...config.config, accessToken: pythApiKey } }
+      : config;
     this.indexer = indexer;
-    this.onchain = onchain;
+    this.grpc = grpc;
+    this.priceTimeout = priceTimeout ?? DEFAULT_PRICE_TIMEOUT;
+  }
+
+  /** The indexer datasource, exposed for the pyth oracle rule's keyless path. */
+  get indexerDataSource(): IndexerDataSource {
+    return this.indexer;
   }
 
   get context() {
     return {
       ...this.baseContext,
-      onchain: this.onchain,
+      grpc: this.grpc,
       indexer: this.indexer,
       pythPriceServiceConfig: this.config,
+      priceTimeout: this.priceTimeout,
+      pythApiKey: this.pythApiKey,
     };
   }
 
@@ -72,9 +101,41 @@ export class PriceRepository extends BaseRepository<
       source,
       label: 'PriceRepository.getPriceFromPyth',
       logger: this.logger,
-      api: () => getPythPricesFromApi(this.context, coinNames),
+      api: () => this.getPricesFromApi(coinNames),
       onchain: () => getPythPricesFromOnChain(this.context, coinNames),
     });
+  }
+
+  /**
+   * API price read with a per-coin on-chain fallback: read from Pyth directly
+   * (when an API key is set) or the Scallop indexer, then re-fetch any coin the
+   * API returned as `0` (missing) from its on-chain feed object. The on-chain
+   * enrichment is best-effort — if it fails, the API result (with `0`s) stands.
+   */
+  private async getPricesFromApi(coinNames: string[]) {
+    const prices =
+      this.pythEndpoint === LEGACY_PYTH_HERMES_ENDPOINT || !!this.pythApiKey
+        ? await getPythPricesFromPythApi(this.context, coinNames)
+        : await getPythPricesFromIndexerApi(this.context, coinNames);
+
+    const missing = coinNames.filter((coinName) => !prices[coinName]);
+    if (missing.length === 0) return prices;
+
+    try {
+      const onChainPrices = await getPythPricesFromOnChain(
+        this.context,
+        missing
+      );
+      for (const coinName of missing) {
+        if (onChainPrices[coinName]) prices[coinName] = onChainPrices[coinName];
+      }
+    } catch (e) {
+      this.logger.warn('on-chain fallback for missing pyth prices failed', {
+        missing,
+        message: (e as Error)?.message,
+      });
+    }
+    return prices;
   }
 
   getPythFeedObject(feedObjectId: string) {

@@ -1,4 +1,3 @@
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
 import ScallopAddress from './scallopAddress/index.js';
 import ScallopBuilder from './scallopBuilder/index.js';
 import ScallopQuery from './scallopQuery/index.js';
@@ -12,7 +11,6 @@ export interface ScallopBaseInterface {
 
 interface ScallopUtilsInterface extends ScallopBaseInterface {
   address: ScallopAddress;
-  onchain: OnChainDataSource;
 }
 
 interface ScallopQueryInterface extends ScallopUtilsInterface {
@@ -29,8 +27,8 @@ interface ScallopClientInterface extends ScallopBuilderInterface {
 }
 
 export type {
-  ScallopUtilsInterface,
-  ScallopQueryInterface,
   ScallopBuilderInterface,
   ScallopClientInterface,
+  ScallopQueryInterface,
+  ScallopUtilsInterface,
 };

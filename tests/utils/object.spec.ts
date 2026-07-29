@@ -44,7 +44,7 @@ const createTxMock = () => {
 // `url` (used in the cache key) and fetchWithCache is a pass-through that just
 // runs the queryFn so the underlying getObject mock is still exercised.
 const createDeps = (getObject: ReturnType<typeof vi.fn>) => ({
-  onchain: { getObject, url: 'http://localhost' },
+  grpc: { getObject, url: 'http://localhost' },
   fetchWithCache: (opts: { queryFn: () => unknown }) => opts.queryFn(),
 });
 

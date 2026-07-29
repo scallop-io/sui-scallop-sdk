@@ -32,13 +32,27 @@ export namespace QueryKeys {
       objectId?: string;
       include?: SuiObjectDataOptions;
     };
-    export type GetSharedObject = BaseType & {
-      objectId?: string;
+    export type GetObjects = BaseType & {
+      objectIds?: string[];
+      include?: SuiObjectDataOptions;
     };
-    export type GetObjects = BaseType & SuiClientTypes.GetObjectsOptions;
     export type GetOwnedObjects = BaseType &
       Partial<SuiClientTypes.ListOwnedObjectsOptions>;
     export type GetDynamicFields = BaseType & Partial<GetDynamicFieldsParams>;
+    // Native GraphQL dynamic-field read that returns names + inline values in one
+    // paged query (Tier-2 optimization). Distinct cache entity from the
+    // value-less `GetDynamicFields`, so it gets its own key.
+    export type GetDynamicFieldsWithValues = BaseType & {
+      parentId?: string;
+      includeValue?: boolean;
+    };
+    // Native GraphQL aliased-batch dynamic-field read: N specific fields by name
+    // in one query (Tier-2, for owner-key → global-table lookups). `names` is the
+    // ordered list of base64 name bcs, so the cache key is order-sensitive.
+    export type GetMultiDynamicFields = BaseType & {
+      parentId?: string;
+      names?: string[];
+    };
     export type GetDynamicFieldObject = BaseType &
       Partial<GetDynamicFieldObjectParams>;
     export type getTotalVeScaTreasuryAmount = BaseType & {
@@ -57,6 +71,10 @@ export namespace QueryKeys {
     };
     export type GetAllCoinBalances = BaseType & {
       activeAddress?: string;
+    };
+    export type GetCoinBalancesByTypes = BaseType & {
+      address?: string;
+      coinTypes?: string[];
     };
     export type GetNormalizedMoveFunction = BaseType & {
       target?: string;

@@ -6,13 +6,14 @@ vi.mock('src/repositories/veScaLoyaltyProgram/helpers.js', () => ({
 
 import * as helpers from 'src/repositories/veScaLoyaltyProgram/helpers.js';
 import { VeScaLoyaltyProgramRepository } from 'src/repositories/veScaLoyaltyProgram/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { VeScaLoyaltyProgramRepoMetadata } from 'src/repositories/veScaLoyaltyProgram/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const metadata = { tag: 'META' } as unknown as VeScaLoyaltyProgramRepoMetadata;
 
-const makeRepo = () => new VeScaLoyaltyProgramRepository({ onchain, metadata });
+const makeRepo = () =>
+  new VeScaLoyaltyProgramRepository({ grpc: onchain, metadata });
 
 beforeEach(() => vi.clearAllMocks());
 

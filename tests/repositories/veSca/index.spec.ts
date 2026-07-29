@@ -8,13 +8,13 @@ vi.mock('src/repositories/veSca/helpers.js', () => ({
 
 import * as helpers from 'src/repositories/veSca/helpers.js';
 import { VeScaRepository } from 'src/repositories/veSca/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { VeScaRepoMetadata } from 'src/repositories/veSca/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const metadata = { tag: 'META' } as unknown as VeScaRepoMetadata;
 
-const makeRepo = () => new VeScaRepository({ onchain, metadata });
+const makeRepo = () => new VeScaRepository({ grpc: onchain, metadata });
 
 beforeEach(() => vi.clearAllMocks());
 

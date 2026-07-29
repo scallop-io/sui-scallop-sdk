@@ -12,17 +12,22 @@ vi.mock('src/repositories/spool/helpers.js', () => ({
 
 import * as helpers from 'src/repositories/spool/helpers.js';
 import { SpoolRepository } from 'src/repositories/spool/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { IndexerDataSource } from 'src/datasources/indexer.js';
 import type { SpoolMetadata } from 'src/repositories/spool/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
 const indexer = {} as unknown as IndexerDataSource;
 const metadata = { tag: 'META' } as unknown as SpoolMetadata;
 const logger = { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() };
 
 const makeRepo = () =>
-  new SpoolRepository({ onchain, indexer, metadata, logger: logger as never });
+  new SpoolRepository({
+    grpc: onchain,
+    indexer,
+    metadata,
+    logger: logger as never,
+  });
 
 beforeEach(() => vi.clearAllMocks());
 

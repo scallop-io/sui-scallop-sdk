@@ -22,3 +22,28 @@ export const PriceFeedObjectSchema = z.object({
     }),
   }),
 });
+
+const PriceSchema = z.object({
+  feed_id: z.string(),
+  price: z.string(),
+  conf: z.string(),
+  expo: z.number(),
+  publish_time: z.number(),
+  received_at: z.number(),
+});
+
+export const IndexerApiResponse = z.object({
+  prices: z.record(z.string(), PriceSchema),
+  data: z
+    .object({
+      encoding: z.string(),
+      data: z.array(z.string()),
+    })
+    .transform((data) => ({
+      encoding: data.encoding,
+      data: data.data[0], // For now the response only contains one element
+    })),
+  updatedAt: z.number(),
+});
+
+export type IndexerApiResponseType = z.infer<typeof IndexerApiResponse>;

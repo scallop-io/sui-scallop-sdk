@@ -25,7 +25,7 @@ type TxResult = SuiClientTypes.TransactionResult<DefaultTxInclude>;
  * SDK is a one-class change.
  *
  * Reads do NOT belong here — they flow through `repositories/` →
- * `OnChainDataSource`. Dry-run (`inspectTxn`) stays on the raw `SuiKit` (exposed
+ * `GrpcDataSource`. Dry-run (`inspectTxn`) stays on the raw `SuiKit` (exposed
  * via the model `suiKit` getters) until a write-path consumer needs it abstracted.
  */
 export interface TransactionExecutor {

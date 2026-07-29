@@ -1,4 +1,5 @@
 import { SuiTxBlock } from '@scallop-io/sui-kit';
+import { coinWithBalance } from '@mysten/sui/transactions';
 import { SCA_COIN_TYPE } from 'src/constants/index.js';
 import {
   requireSender,
@@ -149,17 +150,11 @@ export const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
         undefined;
       const transferObjects = [];
       if (amountOrCoin !== undefined && typeof amountOrCoin === 'number') {
-        const coins = await ctx.utils.selectCoins({
-          amount: amountOrCoin,
-          coinType: SCA_COIN_TYPE,
-          ownerAddress: sender,
+        const takeCoin = coinWithBalance({
+          type: SCA_COIN_TYPE,
+          balance: amountOrCoin,
         });
-        const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-          coins,
-          amountOrCoin
-        );
         scaCoin = takeCoin;
-        transferObjects.push(leftCoin);
       } else {
         // With amountOrCoin is SuiObjectArg, we cannot validate the minimum sca amount for locking and topup
         scaCoin = amountOrCoin;
@@ -221,24 +216,18 @@ export const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
       veScaKey,
       autoCheck = true,
     }) => {
-      const sender = requireSender(txBlock);
+      // const sender = requireSender(txBlock);
       const veSca = await requireVeSca(ctx, txBlock, veScaKey);
 
       if (autoCheck) checkExtendLockAmount(scaAmount, veSca?.unlockAt);
 
       if (veSca) {
-        const scaCoins = await ctx.utils.selectCoins({
-          amount: scaAmount,
-          coinType: SCA_COIN_TYPE,
-          ownerAddress: sender,
+        const takeCoin = coinWithBalance({
+          type: SCA_COIN_TYPE,
+          balance: scaAmount,
         });
-        const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-          scaCoins,
-          scaAmount
-        );
 
         txBlock.extendLockAmount(veSca.keyId, takeCoin);
-        txBlock.transferObjects([leftCoin], sender);
       }
     },
     renewExpiredVeScaQuick: async ({
@@ -263,16 +252,10 @@ export const generateQuickVeScaMethod: GenerateVeScaQuickMethod = ({
           const unlockedSca = txBlock.redeemSca(veSca.keyId);
           transferObjects.push(unlockedSca);
         }
-        const scaCoins = await ctx.utils.selectCoins({
-          amount: scaAmount,
-          coinType: SCA_COIN_TYPE,
-          ownerAddress: sender,
+        const takeCoin = coinWithBalance({
+          type: SCA_COIN_TYPE,
+          balance: scaAmount,
         });
-        const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-          scaCoins,
-          scaAmount
-        );
-        transferObjects.push(leftCoin);
 
         txBlock.renewExpiredVeSca(veSca.keyId, takeCoin, newUnlockAt);
         txBlock.transferObjects(transferObjects, sender);

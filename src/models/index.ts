@@ -6,4 +6,5 @@ export { default as ScallopConstants } from './scallopConstants/index.js';
 export { default as ScallopQuery } from './scallopQuery/index.js';
 export { default as ScallopUtils } from './scallopUtils/index.js';
 export { SuiKitTransactionExecutor } from './transactionExecutor.js';
+export { ScallopPythClient } from './scallopPythClient.js';
 export type { TransactionExecutor } from './transactionExecutor.js';

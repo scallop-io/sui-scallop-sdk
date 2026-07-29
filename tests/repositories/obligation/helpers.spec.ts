@@ -17,7 +17,7 @@ const makeCtx = (fetchResult: unknown, reject = false) => {
     : vi.fn().mockResolvedValue(fetchResult);
   return {
     ctx: {
-      onchain: { url: 'mock://node', getObject: vi.fn() },
+      grpc: { url: 'mock://node', getObject: vi.fn() },
       fetchWithCache,
     } as never,
     fetchWithCache,
@@ -51,14 +51,14 @@ describe('getObligationLockedFromOnChain', () => {
 describe('getObligationObjectsFromOnChain', () => {
   const ctxWith = (objects: unknown[]) =>
     ({
-      onchain: { url: 'mock://node', client: {} },
+      grpc: { url: 'mock://node', client: {} },
       fetchWithCache: vi.fn().mockResolvedValue({ objects }),
     }) as never;
 
   it('returns [] without fetching when ids is empty', async () => {
     // intent: avoid a pointless RPC round-trip for an empty obligation set
     const fetchWithCache = vi.fn();
-    const ctx = { onchain: { url: 'x', client: {} }, fetchWithCache } as never;
+    const ctx = { grpc: { url: 'x', client: {} }, fetchWithCache } as never;
     expect(await getObligationObjectsFromOnChain(ctx, [])).toEqual([]);
     expect(fetchWithCache).not.toHaveBeenCalled();
   });
@@ -105,7 +105,7 @@ describe('getObligationNamesFromOnChain', () => {
       fetchWithCache.mockImplementationOnce(async () => f())
     );
     return {
-      onchain: { url: 'mock://node', client: {} },
+      grpc: { url: 'mock://node', client: {} },
       fetchWithCache,
       metadata: {
         addresses: {

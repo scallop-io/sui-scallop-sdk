@@ -1,6 +1,6 @@
 import type { CoinPrices, OptionalKeys } from 'src/types/utils.js';
 import type { AddressesInterface } from 'src/types/address.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
 import type { BaseContext, BaseRepoParams } from '../types.js';
 
 export interface BorrowIncentiveAccountKey {
@@ -160,18 +160,18 @@ export type BorrowIncentiveReadArgs = {
 };
 
 export type BorrowIncentiveRepoContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: BorrowIncentiveMetadata;
 };
 
 // On-chain pool/account reads: never touch the indexer (this domain has none).
 export type BorrowIncentiveOnChainContext = Pick<
   BorrowIncentiveRepoContext,
-  'onchain' | 'metadata' | 'fetchWithCache' | 'logger'
+  'grpc' | 'metadata' | 'fetchWithCache' | 'logger'
 >;
 
 export type GetBindedVeScaKeyContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: {
     addresses: BorrowIncentiveAddresses<'object' | 'incentiveAccounts'> & {
       core: { object: string };
@@ -180,7 +180,7 @@ export type GetBindedVeScaKeyContext = BaseContext & {
 };
 
 export type GetBindedObligationContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: {
     addresses: BorrowIncentiveAddresses<'object' | 'incentivePools'> & {
       vesca: { object: string };
@@ -189,6 +189,6 @@ export type GetBindedObligationContext = BaseContext & {
 };
 
 export type BorrowIncentiveRepoParams = BaseRepoParams & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: BorrowIncentiveMetadata;
 };

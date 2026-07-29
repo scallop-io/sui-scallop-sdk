@@ -24,12 +24,10 @@ const makeCtx = (accounts: Record<string, unknown[]>) => ({
   reads: { getAllStakeAccounts: vi.fn(async () => accounts) },
   coins: {
     selectMarketCoin: vi.fn(async () => ({
-      leftCoin: 'left',
       takeCoin: 'take',
       totalAmount: 1_000_000,
     })),
     selectSCoin: vi.fn(async () => ({
-      leftCoin: 'left',
       takeCoin: 'take',
       totalAmount: 0,
     })),
@@ -77,7 +75,6 @@ describe('spool quick methods', () => {
 
       expect(ctx.coins.selectMarketCoin).toHaveBeenCalled();
       expect(tx.stake).toHaveBeenCalledWith('A1', 'take', 'ssui');
-      expect(tx.transferObjects).toHaveBeenCalledWith(['left'], SENDER);
     });
   });
 

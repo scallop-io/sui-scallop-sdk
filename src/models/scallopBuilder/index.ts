@@ -18,8 +18,10 @@ import {
   TransactionExecutor,
 } from '../transactionExecutor.js';
 import ScallopQuery from '../scallopQuery/index.js';
+import type { ScallopQueryConstructorParams } from '../scallopQuery/types.js';
 import { ScallopBuilderConstructorParams } from './types.js';
-
+import { DEFAULT_PYTH_URL } from 'src/repositories/price/const.js';
+import { coinWithBalance } from '@mysten/sui/transactions';
 /**
  * @descriptionr
  * It provides methods for operating the transaction block, making it more convenient to organize transaction combinations.
@@ -37,31 +39,41 @@ class ScallopBuilder implements ScallopBuilderInterface {
   public readonly useOnChainXOracleList: boolean;
   public readonly sponsoredFeeds: string[];
   public readonly suiKit: SuiKit;
-  public readonly pythEndpoints: string[];
+  public readonly pythEndpoint: string;
+  /** Pyth (Hermes) API access token, forwarded to the pyth oracle rule. */
+  public readonly pythApiKey?: string;
 
   public constructor({
     usePythPullModel = true,
     useOnChainXOracleList = true,
     sponsoredFeeds = [],
-    pythEndpoints = [],
     query,
+    pythEndpoints,
+    pythEndpoint = pythEndpoints?.[0] ?? DEFAULT_PYTH_URL,
     ...scallopQueryArgs
   }: ScallopBuilderConstructorParams) {
+    this.pythEndpoint = pythEndpoint;
     this.suiKit = new SuiKit({
       ...scallopQueryArgs,
-      fullnodeUrls: [scallopQueryArgs.fullnodeUrl],
+      ...(scallopQueryArgs.fullnodeUrl
+        ? { fullnodeUrls: [scallopQueryArgs.fullnodeUrl] }
+        : {}),
     });
     this.query =
       query ??
+      // Cast: object spread widens the `readTransport` discriminant, so TS can no
+      // longer prove the `SuiGrpcTransport | SuiGraphqlTransport` union here even
+      // though the incoming params were validated at the public entry point.
       new ScallopQuery({
         ...scallopQueryArgs,
+        pythEndpoint,
         walletAddress:
           scallopQueryArgs.walletAddress ?? this.suiKit.currentAddress,
-      });
+      } as ScallopQueryConstructorParams);
     this.usePythPullModel = usePythPullModel;
     this.useOnChainXOracleList = useOnChainXOracleList;
     this.sponsoredFeeds = sponsoredFeeds;
-    this.pythEndpoints = pythEndpoints;
+    this.pythApiKey = scallopQueryArgs.pythApiKey;
   }
 
   /**
@@ -86,8 +98,8 @@ class ScallopBuilder implements ScallopBuilderInterface {
     return this.utils.walletAddress;
   }
 
-  get onchain() {
-    return this.utils.onchain;
+  get coreClient() {
+    return this.query.coreClient;
   }
 
   get address() {
@@ -124,29 +136,20 @@ class ScallopBuilder implements ScallopBuilderInterface {
    * @return Take coin and left coin.
    */
   async selectCoin(
-    txBlock: ScallopTxBlock | SuiKitTxBlock,
+    _txBlock: ScallopTxBlock | SuiKitTxBlock,
     assetCoinName: string,
     amount: number,
-    sender: string = this.walletAddress,
+    _sender: string = this.walletAddress,
     isSponsored: boolean = false
   ) {
     if (assetCoinName === 'sui' && !isSponsored) {
-      const [takeCoin] = txBlock.splitSUIFromGas([amount]);
-      return { takeCoin };
+      return {
+        takeCoin: coinWithBalance({ balance: amount, useGasCoin: true }),
+      };
     } else {
       const coinType = this.utils.parseCoinType(assetCoinName);
-      const coins = await this.utils.selectCoins({
-        amount,
-        coinType,
-        ownerAddress: sender,
-      });
-      const totalAmount = coins.reduce((prev, coin) => {
-        prev += Number(coin.balance);
-        return prev;
-      }, 0);
-      const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(coins, amount);
 
-      return { takeCoin, leftCoin, totalAmount };
+      return { takeCoin: coinWithBalance({ type: coinType, balance: amount }) };
     }
   }
 
@@ -160,26 +163,20 @@ class ScallopBuilder implements ScallopBuilderInterface {
    * @return Take coin and left coin.
    */
   async selectMarketCoin(
-    txBlock: ScallopTxBlock | SuiKitTxBlock,
+    _txBlock: ScallopTxBlock | SuiKitTxBlock,
     marketCoinName: string,
     amount: number,
     sender: string = this.walletAddress
   ) {
     const marketCoinType = this.utils.parseMarketCoinType(marketCoinName);
-    const coins = await this.utils.selectCoins({
-      amount,
+    const { balance } = await this.utils.client.getBalance({
+      owner: sender,
       coinType: marketCoinType,
-      ownerAddress: sender,
     });
-    const totalAmount = coins.reduce((prev, coin) => {
-      prev += Number(coin.balance);
-      return prev;
-    }, 0);
-    const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-      coins,
-      Math.min(amount, totalAmount)
-    );
-    return { takeCoin, leftCoin, totalAmount };
+    return {
+      takeCoin: coinWithBalance({ type: marketCoinType, balance: amount }),
+      totalAmount: +balance,
+    };
   }
 
   /**
@@ -192,29 +189,19 @@ class ScallopBuilder implements ScallopBuilderInterface {
    * @return Take coin and left coin.
    */
   async selectSCoin(
-    txBlock: ScallopTxBlock | SuiKitTxBlock,
+    _txBlock: ScallopTxBlock | SuiKitTxBlock,
     sCoinName: string,
     amount: number,
     sender: string = this.walletAddress
   ) {
     const sCoinType = this.utils.parseSCoinType(sCoinName);
-    const coins = await this.utils.selectCoins({
-      amount,
+    const { balance } = await this.utils.client.getBalance({
+      owner: sender,
       coinType: sCoinType,
-      ownerAddress: sender,
     });
-    const totalAmount = coins.reduce((prev, coin) => {
-      prev += Number(coin.balance);
-      return prev;
-    }, 0);
-    const [takeCoin, leftCoin] = txBlock.takeAmountFromCoins(
-      coins,
-      Math.min(totalAmount, amount)
-    );
     return {
-      takeCoin,
-      leftCoin,
-      totalAmount,
+      takeCoin: coinWithBalance({ type: sCoinType, balance: amount }),
+      totalAmount: +balance,
     };
   }
 
@@ -231,43 +218,38 @@ class ScallopBuilder implements ScallopBuilderInterface {
     const result = {
       sCoins: [] as TransactionObjectArgument[],
       marketCoins: [] as TransactionObjectArgument[],
-      leftCoins: [] as TransactionObjectArgument[],
     };
     try {
       // try sCoin first
-      const {
-        leftCoin,
-        takeCoin,
-        totalAmount: sCoinAmount,
-      } = await this.selectSCoin(txBlock, sCoinName, totalAmount, sender);
-      result.leftCoins.push(leftCoin);
+      const { takeCoin, totalAmount: sCoinAmount } = await this.selectSCoin(
+        txBlock,
+        sCoinName,
+        totalAmount,
+        sender
+      );
       result.sCoins.push(takeCoin);
       totalAmount -= sCoinAmount;
 
       if (totalAmount > 0) {
         // sCoin is not enough, try market coin
-        const { leftCoin, takeCoin: marketCoin } = await this.selectMarketCoin(
+        const { takeCoin: marketCoin } = await this.selectMarketCoin(
           txBlock,
           sCoinName,
           amount,
           sender
         );
-        txBlock.transferObjects([leftCoin], sender);
         result.marketCoins.push(marketCoin);
       }
     } catch (_e) {
       // no sCoin, try market coin
-      const { takeCoin: marketCoin, leftCoin } = await this.selectMarketCoin(
+      const { takeCoin: marketCoin } = await this.selectMarketCoin(
         txBlock,
         sCoinName,
         amount,
         sender
       );
-      result.leftCoins.push(leftCoin);
       result.marketCoins.push(marketCoin);
     }
-
-    txBlock.transferObjects(result.leftCoins, sender);
 
     // merge sCoins and marketCoins
     const mergedMarketCoins =

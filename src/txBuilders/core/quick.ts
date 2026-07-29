@@ -73,7 +73,7 @@ export const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationId
       );
 
-      const { takeCoin, leftCoin } = await ctx.coins.selectCoin(
+      const { takeCoin } = await ctx.coins.selectCoin(
         txBlock,
         collateralCoinName,
         amount,
@@ -81,9 +81,6 @@ export const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         isSponsoredTx
       );
 
-      if (leftCoin) {
-        txBlock.transferObjects([leftCoin], sender);
-      }
       txBlock.depositCollateral(obligationArg, takeCoin, collateralCoinName);
     },
     takeCollateralQuick: async (
@@ -121,16 +118,13 @@ export const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       isSponsoredTx = false
     ) => {
       const sender = requireSender(txBlock);
-      const { leftCoin, takeCoin } = await ctx.coins.selectCoin(
+      const { takeCoin } = await ctx.coins.selectCoin(
         txBlock,
         poolCoinName,
         amount,
         sender,
         isSponsoredTx
       );
-      if (leftCoin) {
-        txBlock.transferObjects([leftCoin], sender);
-      }
       const marketCoinDeposit = txBlock.supply(takeCoin, poolCoinName);
 
       // convert to sCoin
@@ -239,14 +233,13 @@ export const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
         obligationId
       );
 
-      const { leftCoin, takeCoin } = await ctx.coins.selectCoin(
+      const { takeCoin } = await ctx.coins.selectCoin(
         txBlock,
         poolCoinName,
         amount,
         sender,
         isSponsoredTx
       );
-      if (leftCoin) txBlock.transferObjects([leftCoin], sender);
       return txBlock.repay(obligationInfo.obligationId, takeCoin, poolCoinName);
     },
     updateAssetPricesQuick: async (assetCoinNames, updateOracleOptions) => {
@@ -276,17 +269,13 @@ export const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       );
 
       // Select coins for liquidation
-      const { takeCoin, leftCoin } = await ctx.coins.selectCoin(
+      const { takeCoin } = await ctx.coins.selectCoin(
         txBlock,
         debtCoinName,
         amount,
         sender,
         updateOracleOptions?.isSponsoredTx ?? false
       );
-
-      if (leftCoin) {
-        txBlock.transferObjects([leftCoin], sender);
-      }
 
       // Convert obligation to SharedObjectRef format
       const obligationSharedObject =

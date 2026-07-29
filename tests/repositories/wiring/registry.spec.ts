@@ -21,7 +21,7 @@ import type ScallopUtils from 'src/models/scallopUtils/index.js';
 // invoked at construction time).
 const emptySet = new Set<string>();
 const fakeUtils = {
-  onchain: {
+  grpc: {
     url: 'mock://node',
     client: {},
   },
@@ -57,9 +57,26 @@ const fakeUtils = {
   },
 } as unknown as ScallopUtils;
 
+// Core (gRPC) + GraphQL clients are separate registry deps now. The registry
+// builds its datasources from these at construction; the fakes only need the
+// shape the datasource factories touch eagerly (`core.core`). GrpcDataSource's
+// constructor asserts `core.core` exposes every CORE_METHOD, so stub them.
+const fakeCoreClient = {
+  getObjects: () => {},
+  listOwnedObjects: () => {},
+  listCoins: () => {},
+  listDynamicFields: () => {},
+  getDynamicField: () => {},
+};
+const fakeDeps = {
+  utils: fakeUtils,
+  core: { core: fakeCoreClient },
+  graphql: {},
+} as unknown as Parameters<typeof createRepositories>[0];
+
 describe('createRepositories', () => {
   it('builds each wired domain repository from ScallopUtils', () => {
-    const repos = createRepositories({ utils: fakeUtils });
+    const repos = createRepositories(fakeDeps);
     expect(repos.market).toBeInstanceOf(MarketRepository);
     expect(repos.coinBalance).toBeInstanceOf(CoinBalanceRepository);
     expect(repos.flashloan).toBeInstanceOf(FlashloanRepository);
@@ -80,7 +97,7 @@ describe('createRepositories', () => {
 
   it('memoises each repository (lazy getter returns the same instance)', () => {
     // intent: repeated facade reads must not rebuild metadata/datasources each call
-    const repos = createRepositories({ utils: fakeUtils });
+    const repos = createRepositories(fakeDeps);
     expect(repos.market).toBe(repos.market);
     expect(repos.coinBalance).toBe(repos.coinBalance);
     expect(repos.flashloan).toBe(repos.flashloan);
@@ -88,7 +105,7 @@ describe('createRepositories', () => {
 
   it('drops undefined entries when projecting coinTypeToCoinNameMap', () => {
     // intent: flashloan metadata must not carry undefined coin names into the Map
-    const repos = createRepositories({ utils: fakeUtils });
+    const repos = createRepositories(fakeDeps);
     expect(repos.flashloan).toBeInstanceOf(FlashloanRepository);
   });
 });

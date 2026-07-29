@@ -33,7 +33,7 @@ const makeCtx = () => ({
     getObligationCoinNames: vi.fn(async () => ['usdc']),
   },
   coins: {
-    selectCoin: vi.fn(async () => ({ takeCoin: 'take', leftCoin: 'left' })),
+    selectCoin: vi.fn(async () => ({ takeCoin: 'take' })),
     selectSCoinOrMarketCoin: vi.fn(async () => ({
       sCoin: 'sc',
       marketCoin: undefined as unknown,
@@ -66,7 +66,6 @@ describe('core quick methods', () => {
         SENDER,
         false
       );
-      expect(tx.transferObjects).toHaveBeenCalledWith(['left'], SENDER);
       expect(tx.supply).toHaveBeenCalledWith('take', 'sui');
       // returnSCoin defaults to true → mints with the market-coin name
       expect(tx.mintSCoin).toHaveBeenCalledWith('ssui', { tag: 'marketCoin' });
@@ -86,7 +85,6 @@ describe('core quick methods', () => {
       const ctx = makeCtx();
       ctx.coins.selectCoin.mockResolvedValue({
         takeCoin: 'take',
-        leftCoin: undefined,
       } as never);
       const tx = makeTxBlock();
       await make(ctx, tx).supplyQuick(1000, 'sui');
@@ -203,7 +201,6 @@ describe('core quick methods', () => {
         SENDER,
         false
       );
-      expect(tx.transferObjects).toHaveBeenCalledWith(['left'], SENDER);
       expect(tx.repay).toHaveBeenCalledWith('OBID', 'take', 'sui');
     });
   });
@@ -292,7 +289,6 @@ describe('core quick methods', () => {
         SENDER,
         false
       );
-      expect(tx.transferObjects).toHaveBeenCalledWith(['left'], SENDER);
       // string obligation id is wrapped via txBlock.object(...)
       expect(tx.object).toHaveBeenCalledWith('OBID');
       expect(tx.liquidate).toHaveBeenCalledWith(

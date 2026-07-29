@@ -7,7 +7,7 @@ import type { BaseContext, BaseRepoParams } from './types.js';
 export abstract class BaseRepository<Context, Metadata = unknown> {
   protected readonly queryClient: QueryClient;
   protected readonly logger: Logger;
-  // protected readonly onchain: OnChainDataSource;
+  // protected readonly grpc: GrpcDataSource;
   protected readonly metadata: Metadata;
   protected readonly fetchWithCache: FetchWithCache;
 

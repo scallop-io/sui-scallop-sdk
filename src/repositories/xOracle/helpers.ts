@@ -11,7 +11,12 @@ import { queryKeys } from 'src/constants/queryKeys.js';
 import { bcs } from '@mysten/sui/bcs';
 import { prepend0x } from './utils.js';
 import { PricePolicyRulesVecSet } from './bcs.js';
-import { getDynamicFieldOrNull, logError } from '../utils.js';
+import {
+  getDynamicFieldOrNull,
+  getDynamicFieldValueBcsOrNull,
+  logError,
+  type DynamicFieldsWithValuePage,
+} from '../utils.js';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 import { ScallopParseError, ScallopRpcError } from 'src/errors/index.js';
 
@@ -21,7 +26,7 @@ const queryUpdatePolicyRules = async (
   ctx: XOracleUpdatePolicyRulesContext,
   vecSetId: string
 ): Promise<Record<string, SupportedOracle[]>> => {
-  const { onchain, fetchWithCache, metadata } = ctx;
+  const { grpc, fetchWithCache, metadata } = ctx;
   const { addresses, parseCoinNameFromType } = metadata;
   const limit = 50;
 
@@ -49,9 +54,9 @@ const queryUpdatePolicyRules = async (
     const { dynamicFields, cursor, hasNextPage } = await fetchWithCache({
       queryKey: queryKeys.rpc.getDynamicFields({
         ...fetchOptions,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.client.listDynamicFields(fetchOptions),
+      queryFn: () => grpc.client.listDynamicFields(fetchOptions),
     });
 
     nextCursor = cursor;
@@ -115,11 +120,9 @@ export const getAssetOraclesFromOnChain = async (
 };
 
 /**
- * Primary/secondary price-update-policy dynamic fields.
- *
- * NOTE: the return shape changed from the legacy `getPriceUpdatePolicies`
- * (which leaked `SuiObjectResponse`). This returns the new-gen client's
- * dynamic-field result (or `null` when the policy rules key isn't present).
+ * Primary/secondary price-update-policy dynamic fields. Returns the gRPC
+ * client's dynamic-field result (or `null` when the policy rules key isn't
+ * present).
  */
 export const getPriceUpdatePoliciesFromOnChain = async (
   ctx: XOraclePriceUpdatePolicyContext
@@ -220,14 +223,14 @@ export const getOnDemandAggObjectIdsFromOnChain = async (
           })
         );
       }
-      const result = await getDynamicFieldOrNull(ctx, {
+      const valueBcs = await getDynamicFieldValueBcsOrNull(ctx, {
         parentId: registryTableId,
         name: encodeDynamicFieldNameForV2({
           type: '0x1::type_name::TypeName',
           value: { name: coinType.slice(2) },
         }),
       });
-      if (!result) {
+      if (!valueBcs) {
         throw logError(
           ctx.logger,
           new ScallopRpcError(`No on-demand aggregator found for ${coinType}`, {
@@ -237,7 +240,7 @@ export const getOnDemandAggObjectIdsFromOnChain = async (
       }
       // The registry value is the aggregator object id (an address).
       // UNVERIFIED: confirm the bcs shape against a live registry entry.
-      registeredAggs[idx] = bcs.Address.parse(result.dynamicField.value.bcs);
+      registeredAggs[idx] = bcs.Address.parse(valueBcs);
     })
   );
 
@@ -264,31 +267,31 @@ const querySwitchboardRegistryAggs = async (
   registryTableId: string,
   missingCoinTypes: ReadonlyMap<string, { idx: number; coinName: string }>
 ): Promise<Record<string, string>> => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const result: Record<string, string> = {};
   let cursor: string | null | undefined = null;
   let hasNextPage = false;
 
   do {
-    const options: SuiClientTypes.ListDynamicFieldsOptions = {
+    const options: SuiClientTypes.ListDynamicFieldsOptions & {
+      include: { value: true };
+    } = {
       parentId: registryTableId,
       cursor,
       limit: 50,
-      // @ts-ignore - Supported on grpc implementation
       include: { value: true },
     };
-    const resp = await fetchWithCache({
+    const resp: DynamicFieldsWithValuePage = await fetchWithCache({
       queryKey: queryKeys.rpc.getDynamicFields({
         ...options,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.client.listDynamicFields(options),
+      queryFn: () => grpc.client.listDynamicFields<{ value: true }>(options),
     });
 
     for (const field of resp.dynamicFields) {
       const coinTypeKey = parseRegistryCoinTypeKey(field);
       if (!coinTypeKey || !missingCoinTypes.has(coinTypeKey)) continue;
-      // @ts-ignore - value is supported on grpc implementation
       const valueBcs = field.value?.bcs;
       if (valueBcs) {
         result[coinTypeKey] = bcs.Address.parse(valueBcs);

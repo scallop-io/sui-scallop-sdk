@@ -43,7 +43,7 @@ export type LoadConstantsStateOptions = {
     forcePoolAddressInterface?: Record<string, PoolAddress>;
     forceWhitelistInterface?: Whitelist | Record<string, unknown>;
   };
-  /** Previously-held state — lets the loader short-circuit when already initialized. */
+  /** Existing state — lets the loader short-circuit when already initialized. */
   current: Pick<ConstantsState, 'whitelist' | 'poolAddresses'>;
   parseToOldMarketCoin: (coinType: string) => string;
 };
