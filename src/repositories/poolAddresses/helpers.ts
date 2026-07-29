@@ -3,11 +3,16 @@ import { bcs } from '@mysten/sui/bcs';
 import {
   PoolAddress,
   PoolAddressesApiContext,
+  PoolAddressesGraphQLContext,
   PoolAddressesOnChainContext,
 } from './types.js';
 import { queryKeys } from 'src/constants/queryKeys.js';
 import { MarketObjectJsonSchema } from './schema.js';
-import { logError } from '../utils.js';
+import {
+  logError,
+  listDynamicFieldsWithValues,
+  type DynamicFieldWithValue,
+} from '../utils.js';
 import { ScallopParseError, ScallopRpcError } from 'src/errors/index.js';
 import {
   ADDRESS_TYPE,
@@ -79,7 +84,7 @@ const queryDynamicValueObjectIds = async (
     coinTypeKeys: ReadonlySet<string>;
   }
 ): Promise<Record<string, string>> => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const result: Record<string, string> = {};
   let cursor: string | null | undefined = null;
   let hasNextPage = false;
@@ -93,9 +98,9 @@ const queryDynamicValueObjectIds = async (
     const resp = await fetchWithCache({
       queryKey: queryKeys.rpc.getDynamicFields({
         ...options,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.client.listDynamicFields(options),
+      queryFn: () => grpc.client.listDynamicFields(options),
     });
 
     for (const field of resp.dynamicFields) {
@@ -117,7 +122,7 @@ const queryDynamicValueObjects = async (
   ctx: PoolAddressesOnChainContext,
   requests: Record<string, Record<string, string>>
 ): Promise<Record<string, Record<string, DynamicValueObject | undefined>>> => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const objectIds = [
     ...new Set(Object.values(requests).flatMap((ids) => Object.values(ids))),
   ];
@@ -127,10 +132,10 @@ const queryDynamicValueObjects = async (
     const { objects } = await fetchWithCache({
       queryKey: queryKeys.rpc.getObjects({
         objectIds: batch,
-        node: onchain.url,
+        node: grpc.url,
       }),
       queryFn: () =>
-        onchain.client.getObjects({
+        grpc.client.getObjects({
           objectIds: batch,
           include: { json: true },
         }),
@@ -168,7 +173,7 @@ const queryFlashloanFeeObjectIds = async (
   coinTypes: Set<string>,
   flashLoanFeesTableId: string
 ): Promise<Record<string, string>> => {
-  const { onchain, fetchWithCache } = ctx;
+  const { grpc, fetchWithCache } = ctx;
   const result: Record<string, string> = {};
 
   let cursor: string | null | undefined = null;
@@ -183,9 +188,9 @@ const queryFlashloanFeeObjectIds = async (
     const resp = await fetchWithCache({
       queryKey: queryKeys.rpc.getDynamicFields({
         ...options,
-        node: onchain.url,
+        node: grpc.url,
       }),
-      queryFn: () => onchain.client.listDynamicFields(options),
+      queryFn: () => grpc.client.listDynamicFields(options),
     });
     if (!resp) break;
 
@@ -207,28 +212,19 @@ const queryFlashloanFeeObjectIds = async (
 };
 
 /**
- * Rebuild the full pool-address map from on-chain data. The coin config
- * (coinType / symbol / decimals / pyth / spool / sCoin) comes from the injected
- * `metadata.addresses`; the per-pool object ids are resolved from the market's
- * sub-tables. Optionally filtered to `poolNames`.
+ * Fetch + parse the market object and pull out the sub-table parent ids that
+ * every per-pool resolution walks. Shared by the on-chain and GraphQL rebuild
+ * paths so they agree on the same table ids. The market read itself is
+ * transport-agnostic (`grpc.getObject` works over gRPC or GraphQL Core).
  */
-export const getPoolAddressesFromOnChain = async (
-  ctx: PoolAddressesOnChainContext,
-  {
-    poolNames = [],
-  }: {
-    poolNames?: string[];
-  }
-): Promise<Record<string, PoolAddress>> => {
+const fetchMarketSubTables = async (ctx: PoolAddressesOnChainContext) => {
   const {
-    onchain,
+    grpc,
     fetchWithCache,
     metadata: { addresses },
   } = ctx;
-  const { core, spool, scoin } = addresses;
-  const { market, coins } = core;
+  const { market } = addresses.core;
 
-  // 1. Market object → sub-table parent ids (incl. the flashloan-fee table).
   const marketFetchOptions: SuiClientTypes.GetObjectOptions<{ json: true }> = {
     objectId: market,
     include: { json: true },
@@ -236,9 +232,9 @@ export const getPoolAddressesFromOnChain = async (
   const { object } = await fetchWithCache({
     queryKey: queryKeys.rpc.getObject({
       ...marketFetchOptions,
-      node: onchain.url,
+      node: grpc.url,
     }),
-    queryFn: () => onchain.getObject(marketFetchOptions),
+    queryFn: () => grpc.getObject(marketFetchOptions),
   });
 
   const parsed = MarketObjectJsonSchema.safeParse(object?.json);
@@ -255,15 +251,27 @@ export const getPoolAddressesFromOnChain = async (
     );
   }
   const marketFields = parsed.data;
+  return {
+    market,
+    balanceSheetParentId: marketFields.vault.balance_sheets.table.id,
+    collateralStatsParentId: marketFields.collateral_stats.table.id,
+    borrowDynamicsParentId: marketFields.borrow_dynamics.table.id,
+    interestModelParentId: marketFields.interest_models.table.id,
+    riskModelParentId: marketFields.risk_models.table.id,
+    flashLoanFeesTableId: marketFields.vault.flash_loan_fees.table.id,
+  };
+};
 
-  const balanceSheetParentId = marketFields.vault.balance_sheets.table.id;
-  const collateralStatsParentId = marketFields.collateral_stats.table.id;
-  const borrowDynamicsParentId = marketFields.borrow_dynamics.table.id;
-  const interestModelParentId = marketFields.interest_models.table.id;
-  const riskModelParentId = marketFields.risk_models.table.id;
-  const flashLoanFeesTableId = marketFields.vault.flash_loan_fees.table.id;
-
-  // 2. coinName → config pairs from the address config, filtered by poolNames.
+/**
+ * Filter the address-config coins by `poolNames` into resolvable
+ * `[coinName, cfg]` pairs. Shared by both rebuild paths. Throws when nothing
+ * matches (empty config or the filter excluded everything).
+ */
+const resolveCoinPairs = (
+  ctx: PoolAddressesOnChainContext,
+  coins: PoolAddressesOnChainContext['metadata']['addresses']['core']['coins'],
+  poolNames: string[]
+) => {
   const poolNameSet = new Set(poolNames);
   const coinPairs = Object.entries(coins).filter(
     (entry): entry is [string, NonNullable<(typeof entry)[1]>] => {
@@ -281,6 +289,41 @@ export const getPoolAddressesFromOnChain = async (
       )
     );
   }
+  return coinPairs;
+};
+
+/**
+ * Rebuild the full pool-address map from on-chain data. The coin config
+ * (coinType / symbol / decimals / pyth / spool / sCoin) comes from the injected
+ * `metadata.addresses`; the per-pool object ids are resolved from the market's
+ * sub-tables. Optionally filtered to `poolNames`.
+ */
+export const getPoolAddressesFromOnChain = async (
+  ctx: PoolAddressesOnChainContext,
+  {
+    poolNames = [],
+  }: {
+    poolNames?: string[];
+  }
+): Promise<Record<string, PoolAddress>> => {
+  const {
+    metadata: { addresses },
+  } = ctx;
+  const { core, spool, scoin } = addresses;
+  const { market, coins } = core;
+
+  // 1. Market object → sub-table parent ids (incl. the flashloan-fee table).
+  const {
+    balanceSheetParentId,
+    collateralStatsParentId,
+    borrowDynamicsParentId,
+    interestModelParentId,
+    riskModelParentId,
+    flashLoanFeesTableId,
+  } = await fetchMarketSubTables(ctx);
+
+  // 2. coinName → config pairs from the address config, filtered by poolNames.
+  const coinPairs = resolveCoinPairs(ctx, coins, poolNames);
 
   // 3. One scan of the flashloan-fee table for all requested coins.
   const flashloanFeeObjectIds = await queryFlashloanFeeObjectIds(
@@ -404,6 +447,156 @@ export const getPoolAddressesFromOnChain = async (
       borrowLimitKey: borrowLimit?.objectId ?? '',
       isolatedAssetKey: isolatedJson?.id ?? '',
       isIsolated: isolatedJson?.value ?? false,
+      spool: spoolPool?.id ?? '',
+      spoolReward: spoolPool?.rewardPoolId ?? '',
+      spoolName: sCoinName,
+      sCoinName,
+      sCoinType: sCoin?.coinType ?? '',
+      sCoinTreasury: sCoin?.treasury ?? '',
+      sCoinMetadataId: sCoin?.metaData ?? '',
+      sCoinSymbol: sCoin?.symbol ?? '',
+      pythFeed: pyth?.feed ?? '',
+      pythFeedObjectId: pyth?.feedObject ?? '',
+      flashloanFeeObject: flashloanFeeObjectIds[coinType] ?? '',
+    };
+  }
+
+  return results;
+};
+
+/**
+ * Native-GraphQL twin of {@link getPoolAddressesFromOnChain}. Where the on-chain
+ * path issues ~11 paged `listDynamicFields` scans + a batched `getObjects` for
+ * the values, this issues one `listDynamicFieldsWithValues` scan per source
+ * table (the four market-keyed reads — borrowFee / supplyLimit / borrowLimit /
+ * isolatedAsset — collapse into a single scan of the market object) and reads
+ * each value inline, so no separate object fetch is needed. Output is identical
+ * to the on-chain rebuild.
+ */
+export const getPoolAddressesFromGraphQL = async (
+  ctx: PoolAddressesGraphQLContext,
+  {
+    poolNames = [],
+  }: {
+    poolNames?: string[];
+  }
+): Promise<Record<string, PoolAddress>> => {
+  const {
+    metadata: { addresses },
+  } = ctx;
+  const { core, spool, scoin } = addresses;
+  const { market, coins } = core;
+
+  const {
+    balanceSheetParentId,
+    collateralStatsParentId,
+    borrowDynamicsParentId,
+    interestModelParentId,
+    riskModelParentId,
+    flashLoanFeesTableId,
+  } = await fetchMarketSubTables(ctx);
+
+  const coinPairs = resolveCoinPairs(ctx, coins, poolNames);
+  const coinTypeKeys = new Set(
+    coinPairs.map(([, cfg]) => cfg.coinType.slice(2))
+  );
+  const coinTypesFull = new Set(coinPairs.map(([, cfg]) => cfg.coinType));
+
+  const [
+    balanceSheetFields,
+    collateralFields,
+    borrowDynFields,
+    interestFields,
+    riskFields,
+    marketDynFields,
+    flashloanFields,
+  ] = await Promise.all([
+    listDynamicFieldsWithValues(ctx, balanceSheetParentId),
+    listDynamicFieldsWithValues(ctx, collateralStatsParentId),
+    listDynamicFieldsWithValues(ctx, borrowDynamicsParentId),
+    listDynamicFieldsWithValues(ctx, interestModelParentId),
+    listDynamicFieldsWithValues(ctx, riskModelParentId),
+    // One scan of the market covers borrowFee / supplyLimit / borrowLimit /
+    // isolatedAsset (all keyed directly on the market object).
+    listDynamicFieldsWithValues(ctx, market),
+    listDynamicFieldsWithValues(ctx, flashLoanFeesTableId),
+  ]);
+
+  // coinTypeKey → dynamic-field object id, for fields of a given name type.
+  const idsByType = (
+    fields: DynamicFieldWithValue[],
+    type: string
+  ): Record<string, string> => {
+    const out: Record<string, string> = {};
+    for (const field of fields) {
+      if (field.name.type !== type) continue;
+      const key = parseDynamicFieldCoinTypeKey(field);
+      if (key && coinTypeKeys.has(key)) out[key] = field.fieldId;
+    }
+    return out;
+  };
+
+  const lendingPool = idsByType(balanceSheetFields, ADDRESS_TYPE);
+  const collateralPool = idsByType(collateralFields, ADDRESS_TYPE);
+  const borrowDynamic = idsByType(borrowDynFields, ADDRESS_TYPE);
+  const interestModel = idsByType(interestFields, ADDRESS_TYPE);
+  const riskModel = idsByType(riskFields, ADDRESS_TYPE);
+  const borrowFee = idsByType(marketDynFields, BORROW_FEE_TYPE);
+  const supplyLimit = idsByType(marketDynFields, SUPPLY_LIMIT_TYPE);
+  const borrowLimit = idsByType(marketDynFields, BORROW_LIMIT_TYPE);
+
+  // isolatedAsset: field id is the isolatedAssetKey; the inline value is the
+  // `isIsolated` boolean (on-chain reads the same value off the Field object).
+  const isolatedAssetKey: Record<string, string> = {};
+  const isIsolated: Record<string, boolean> = {};
+  for (const field of marketDynFields) {
+    if (field.name.type !== ISOLATED_ASSET_KEY) continue;
+    const key = parseDynamicFieldCoinTypeKey(field);
+    if (key && coinTypeKeys.has(key)) {
+      isolatedAssetKey[key] = field.fieldId;
+      // Inline value is a bare `bool` MoveValue (see isolatedAssets/bcs.ts),
+      // parsed from BCS — the same flag the on-chain path reads off the Field.
+      isIsolated[key] = bcs.bool().parse(field.value.bcs);
+    }
+  }
+
+  // flashloan-fee table is keyed by `TypeName`; map full (0x-prefixed) coinType
+  // → fee object id.
+  const flashloanFeeObjectIds: Record<string, string> = {};
+  for (const field of flashloanFields) {
+    const key = parseDynamicFieldCoinTypeKey(field);
+    if (!key) continue;
+    const assetType = `0x${key}`;
+    if (coinTypesFull.has(assetType)) {
+      flashloanFeeObjectIds[assetType] = field.fieldId;
+    }
+  }
+
+  const results: Record<string, PoolAddress> = {};
+  for (const [coinName, cfg] of coinPairs) {
+    const { coinType } = cfg;
+    const coinTypeKey = coinType.slice(2);
+    const sCoinName = `s${coinName}`;
+    const spoolPool = spool.pools[sCoinName];
+    const sCoin = scoin.coins[sCoinName];
+    const pyth = cfg.oracle?.pyth;
+
+    results[coinName] = {
+      coinName,
+      symbol: cfg.symbol,
+      coinType,
+      coinMetadataId: cfg.metaData,
+      decimals: cfg.decimals,
+      lendingPoolAddress: lendingPool[coinTypeKey] ?? '',
+      collateralPoolAddress: collateralPool[coinTypeKey] ?? '',
+      borrowDynamic: borrowDynamic[coinTypeKey] ?? '',
+      interestModel: interestModel[coinTypeKey] ?? '',
+      riskModel: riskModel[coinTypeKey],
+      borrowFeeKey: borrowFee[coinTypeKey] ?? '',
+      supplyLimitKey: supplyLimit[coinTypeKey] ?? '',
+      borrowLimitKey: borrowLimit[coinTypeKey] ?? '',
+      isolatedAssetKey: isolatedAssetKey[coinTypeKey] ?? '',
+      isIsolated: isIsolated[coinTypeKey] ?? false,
       spool: spoolPool?.id ?? '',
       spoolReward: spoolPool?.rewardPoolId ?? '',
       spoolName: sCoinName,

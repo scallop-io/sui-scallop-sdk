@@ -20,7 +20,7 @@ export type ScallopAddressConstructorParams = {
   logger?: Logger;
   queryClient?: QueryClient;
   queryClientConfig?: QueryClientConfig;
-} & ApiDataSourceParams;
+} & Omit<ApiDataSourceParams, 'url'> & { apiDataSourceUrl?: string };
 
 export type ScallopAddressInterface = {
   api: ApiDataSource;
@@ -215,3 +215,21 @@ export type AddressStringPath = Join<
   AddressPathsProps<AddressesInterface>,
   '.'
 >;
+
+/**
+ * The value at a dotted `AddressStringPath` in `T` — the counterpart to
+ * `AddressStringPath`, recovering the precise leaf type (`string`) or sub-object
+ * that `ScallopAddress.get(path)` returns. Used to type `get()` so a structural
+ * misuse (e.g. assigning a leaf string into a field expecting a nested object)
+ * is a compile error instead of being erased by an `any` return.
+ */
+export type AddressPathValue<
+  T,
+  P extends string,
+> = P extends `${infer K}.${infer Rest}`
+  ? K extends keyof T
+    ? AddressPathValue<T[K], Rest>
+    : never
+  : P extends keyof T
+    ? T[P]
+    : never;

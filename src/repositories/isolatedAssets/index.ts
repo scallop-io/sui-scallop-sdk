@@ -1,4 +1,4 @@
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { BaseRepository } from '../base.js';
 import { QuerySource, runWithDataSourceFallback } from '../utils.js';
 import {
@@ -15,18 +15,18 @@ export class IsolatedAssetsRepository extends BaseRepository<
   IsolatedAssetsRepoContext,
   IsolatedAssetsMetadata
 > {
-  private readonly onchain: OnChainDataSource;
+  private readonly grpc: GrpcDataSource;
 
   constructor(params: IsolatedAssetsRepoParams) {
-    const { onchain, ...rest } = params;
+    const { grpc, ...rest } = params;
     super(rest);
-    this.onchain = onchain;
+    this.grpc = grpc;
   }
 
   get context() {
     return {
       ...this.baseContext,
-      onchain: this.onchain,
+      grpc: this.grpc,
     };
   }
 

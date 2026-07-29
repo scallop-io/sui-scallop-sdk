@@ -1,5 +1,5 @@
 import { BaseContext, BaseRepoParams } from '../types.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
 import { SUPPORTED_ORACLES } from './const.js';
 
 export type SupportedOracle = (typeof SUPPORTED_ORACLES)[number];
@@ -30,12 +30,12 @@ export type XOracleMetadata = {
 };
 
 export type XOracleRepoContext = BaseContext & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: XOracleMetadata;
 };
 
 export type XOracleRepoParams = BaseRepoParams & {
-  onchain: OnChainDataSource;
+  grpc: GrpcDataSource;
   metadata: XOracleMetadata;
 };
 
@@ -45,7 +45,7 @@ export type XOracleRepoParams = BaseRepoParams & {
  */
 export type XOracleUpdatePolicyRulesContext = Pick<
   XOracleRepoContext,
-  'onchain' | 'fetchWithCache' | 'logger'
+  'grpc' | 'fetchWithCache' | 'logger'
 > & {
   metadata: Pick<XOracleMetadata, 'addresses' | 'parseCoinNameFromType'>;
 };
@@ -65,11 +65,11 @@ export type XOracleAssetOraclesContext = XOracleUpdatePolicyRulesContext & {
 /**
  * Reads the price-update-policy dynamic fields. Needs only the policy object
  * ids from `addresses`; the dynamic-field reads go through
- * `getDynamicFieldOrNull` (hence the `onchain`/`fetchWithCache` slice).
+ * `getDynamicFieldOrNull` (hence the `grpc`/`fetchWithCache` slice).
  */
 export type XOraclePriceUpdatePolicyContext = Pick<
   XOracleRepoContext,
-  'onchain' | 'fetchWithCache'
+  'grpc' | 'fetchWithCache'
 > & {
   metadata: Pick<XOracleMetadata, 'addresses'>;
 };
@@ -81,7 +81,7 @@ export type XOraclePriceUpdatePolicyContext = Pick<
  */
 export type XOracleOnDemandAggContext = Pick<
   XOracleRepoContext,
-  'onchain' | 'fetchWithCache' | 'logger'
+  'grpc' | 'fetchWithCache' | 'logger'
 > & {
   metadata: Pick<
     XOracleMetadata,
@@ -92,5 +92,5 @@ export type XOracleOnDemandAggContext = Pick<
 /** Paginated scan of the switchboard registry table. On-chain reads only. */
 export type XOracleSwitchboardRegistryContext = Pick<
   XOracleRepoContext,
-  'onchain' | 'fetchWithCache'
+  'grpc' | 'fetchWithCache'
 >;

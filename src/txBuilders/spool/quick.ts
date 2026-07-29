@@ -86,7 +86,7 @@ const stakeHelper = async (
   isSCoin: boolean = false
 ) => {
   try {
-    const { takeCoin, leftCoin, totalAmount } = isSCoin
+    const { takeCoin, totalAmount } = isSCoin
       ? await ctx.coins.selectSCoin(txBlock, coinName, amount, sender)
       : await ctx.coins.selectMarketCoin(txBlock, coinName, amount, sender);
     if (isSCoin) {
@@ -95,7 +95,6 @@ const stakeHelper = async (
     } else {
       txBlock.stake(stakeAccount, takeCoin, coinName);
     }
-    txBlock.transferObjects([leftCoin], sender);
     return totalAmount;
   } catch (_e) {
     return 0;

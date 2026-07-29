@@ -70,10 +70,9 @@ describe('sCoin quick methods', () => {
   const makeCtx = () => ({
     coins: {
       selectMarketCoin: vi.fn(async () => ({
-        leftCoin: 'left',
         takeCoin: 'take',
       })),
-      selectSCoin: vi.fn(async () => ({ leftCoin: 'left', takeCoin: 'take' })),
+      selectSCoin: vi.fn(async () => ({ takeCoin: 'take' })),
     },
   });
 
@@ -94,7 +93,6 @@ describe('sCoin quick methods', () => {
       100,
       SENDER
     );
-    expect(tx.transferObjects).toHaveBeenCalledWith(['left'], SENDER);
     expect(tx.mintSCoin).toHaveBeenCalledWith('ssui', 'take');
     expect(out).toBe('minted');
   });
@@ -105,7 +103,6 @@ describe('sCoin quick methods', () => {
     const out = await make(ctx, tx).burnSCoinQuick('ssui', 100);
 
     expect(ctx.coins.selectSCoin).toHaveBeenCalledWith(tx, 'ssui', 100, SENDER);
-    expect(tx.transferObjects).toHaveBeenCalledWith(['left'], SENDER);
     expect(tx.burnSCoin).toHaveBeenCalledWith('ssui', 'take');
     expect(out).toBe('burned');
   });

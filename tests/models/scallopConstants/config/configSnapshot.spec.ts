@@ -32,7 +32,7 @@ const populatedWhitelist = {
   scoin: new Set(['ssui']),
   spool: new Set(['ssui']),
   oracles: new Set(['pyth']),
-  pythEndpoints: new Set(['https://hermes.pyth.network']),
+  pythEndpoints: new Set(['https://pyth.dourolabs.app/hermes']),
 };
 
 const createSnapshot = (

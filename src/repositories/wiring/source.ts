@@ -53,9 +53,8 @@ const LEGACY_SOURCE: Record<
 
 /**
  * Map a legacy `QueryOptions` ({ source?: 'rpc' | 'indexer' | 'indexer-first',
- * indexer? }) to the repos' `QuerySource`. Mirrors the old `resolveQuerySource`:
- * an explicit legacy `source` wins; else `indexer` → 'api-first', otherwise
- * 'onchain' (the old default was 'rpc').
+ * indexer? }) to the repos' `QuerySource`: an explicit legacy `source` wins;
+ * else `indexer` → 'api-first', otherwise 'onchain'.
  */
 export const fromQueryOptions = (options?: QueryOptions): QuerySource => {
   if (options?.source) return LEGACY_SOURCE[options.source];

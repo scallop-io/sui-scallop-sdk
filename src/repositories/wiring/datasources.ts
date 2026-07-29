@@ -1,8 +1,18 @@
 import { ClientWithCoreApi } from '@mysten/sui/client';
+import { SuiGraphQLClient } from '@mysten/sui/graphql';
+import type { QueryClient } from '@tanstack/query-core';
+import type { Logger } from 'src/logger/index.js';
 import { API_BASE_URL, SDK_API_BASE_URL } from 'src/constants/api.js';
 import { ApiDataSource } from 'src/datasources/api.js';
 import { IndexerDataSource } from 'src/datasources/indexer.js';
-import { OnChainDataSource } from 'src/datasources/onchain.js';
+import { GrpcDataSource } from 'src/datasources/grpc.js';
+import type { SuiGrpcClient } from '@mysten/sui/grpc';
+import {
+  GraphQLDataSource,
+  MAINNET_GRAPHQL_URL,
+} from 'src/datasources/graphql/index.js';
+
+export { MAINNET_GRAPHQL_URL };
 
 /**
  * The on-chain datasource is the only repo datasource that needs to be instantiated with a client,
@@ -10,19 +20,46 @@ import { OnChainDataSource } from 'src/datasources/onchain.js';
  * are just thin wrappers around fetch, so they don't need a client and can be instantiated with
  * just a URL (which defaults to the appropriate base URL if not provided).
  */
-export const createOnChainDataSource = (
+export const createGrpcDataSource = (
   client: ClientWithCoreApi,
   url: string, // for cache keys
-  options?: { tokensPerSecond?: number }
-): OnChainDataSource =>
-  new OnChainDataSource({
-    // new-gen transport methods (getObjects/simulateTransaction/…) live on `.core`
-    client: client.core,
+  options?: {
+    tokensPerSecond?: number;
+    objectBatchWindowMs?: number | null;
+    maxObjectsPerBatch?: number;
+  }
+): GrpcDataSource =>
+  new GrpcDataSource({
+    // transport methods (getObjects/simulateTransaction/…) live on `.core`.
+    // `.core.listDynamicFields` is typed metadata-only but forwards `options`
+    // (incl. `include: { value: true }`) to the underlying include-capable
+    // client method on both transports, so we assert the richer
+    // `SuiGrpcClient` shape here — the single place that assertion lives.
+    client: client.core as unknown as SuiGrpcClient,
     url,
-    // The datasource is now the single rate-limit point for every repo read
-    // (the old ScallopSuiKit query path is gone).
+    // The datasource is the single rate-limit point for every repo read.
     tokensPerSecond: options?.tokensPerSecond,
+    objectBatchWindowMs: options?.objectBatchWindowMs,
+    // Set (to a sub-50 cap) only for the GraphQL transport, whose query-payload
+    // limit rejects large multiGetObjects requests.
+    maxObjectsPerBatch: options?.maxObjectsPerBatch,
   });
+
+/**
+ * GraphQL-backed balance datasource. Owns the typed GraphQL queries with no gRPC
+ * transport-method equivalent (currently `multiGetBalances`) and self-caches
+ * every read. Used only where the GraphQL balance service is more stable than
+ * gRPC (currently `coinBalance`). Pass a prebuilt `client` to fully override
+ * transport, or `url` to point at a non-default endpoint; both default to
+ * mainnet. `queryClient` backs the datasource's own read cache.
+ */
+export const createGraphQLDataSource = (opts: {
+  client?: SuiGraphQLClient;
+  url?: string;
+  queryClient: QueryClient;
+  logger?: Logger;
+  tokensPerSecond?: number;
+}): GraphQLDataSource => new GraphQLDataSource(opts);
 
 /**
  * The indexer base URL defaults to `SDK_API_BASE_URL` inside `IndexerDataSource`.

@@ -9,7 +9,7 @@ import type {
 } from 'src/types/index.js';
 import { generateCoreNormalMethod } from './moveCalls.js';
 import { generateCoreQuickMethod } from './quick.js';
-import { updateOracles } from '../oracles/index.js';
+import { updateOracles, type OracleActionContext } from './oracles/index.js';
 import { getObligationCoinNames } from '../utils.js';
 import type { CoreActionContext, MoveCallContext } from '../context.js';
 
@@ -42,6 +42,35 @@ export const newCoreTxBlock = (
     utils: builder.utils,
   };
 
+  const oracleContext: OracleActionContext = {
+    ruleContext: {
+      address: builder.address,
+      moveCall: builder.moveCall.bind(builder),
+      logger: builder.utils.logger,
+      suiKit: builder.suiKit,
+      pythEndpoint: builder.pythEndpoint,
+      pythApiKey: builder.pythApiKey,
+      // Lazy: only the keyless Pyth pull path reads this, so defer resolution to
+      // call time (mirrors `getAssetOracles`) instead of touching `query.repos`
+      // at tx-block construction.
+      get indexer() {
+        return builder.query.repos.price.indexerDataSource;
+      },
+    },
+    address: builder.address,
+    moveCall: builder.moveCall.bind(builder),
+    parseCoinType: (assetCoinName) =>
+      builder.utils.parseCoinType(assetCoinName),
+    getAssetOracles: () => builder.query.getAssetOracles(),
+    logger: builder.utils.logger,
+    defaults: {
+      lendingWhitelist: [...builder.constants.whitelist.lending],
+      usePythPullModel: builder.usePythPullModel,
+      useOnChainXOracleList: builder.useOnChainXOracleList,
+      sponsoredFeeds: builder.sponsoredFeeds,
+    },
+  };
+
   const actionContext: CoreActionContext = {
     reads: {
       getObligations: (ownerAddress) =>
@@ -56,7 +85,7 @@ export const newCoreTxBlock = (
     },
     oracles: {
       updateOracles: (txBlock, assetCoinNames, options) =>
-        updateOracles(builder, txBlock, assetCoinNames, options),
+        updateOracles(oracleContext, txBlock, assetCoinNames, options),
     },
     utils: {
       parseMarketCoinName: (coinName) =>

@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('src/repositories/coinBalance/helpers.js', () => ({
   getCoinAmountFromOnChain: vi.fn(),
   getCoinAmountsFromOnChain: vi.fn(),
+  getCoinBalancesFromGraphQL: vi.fn(),
   getSCoinAmountsFromOnChain: vi.fn(),
   getSCoinAmountFromOnChain: vi.fn(),
   querySCoinTotalSupplyFromOnChain: vi.fn(),
@@ -14,28 +15,64 @@ vi.mock('src/repositories/coinBalance/helpers.js', () => ({
 
 import * as helpers from 'src/repositories/coinBalance/helpers.js';
 import { CoinBalanceRepository } from 'src/repositories/coinBalance/index.js';
-import type { OnChainDataSource } from 'src/datasources/onchain.js';
+import type { GrpcDataSource } from 'src/datasources/grpc.js';
+import type { GraphQLDataSource } from 'src/datasources/graphql/index.js';
 import type { CoinBalanceMetadata } from 'src/repositories/coinBalance/types.js';
 
-const onchain = { url: 'mock://node' } as unknown as OnChainDataSource;
+const onchain = { url: 'mock://node' } as unknown as GrpcDataSource;
+const balanceSource = {
+  url: 'mock://graphql',
+  multiGetBalances: vi.fn(),
+} as unknown as GraphQLDataSource;
 const metadata = { tag: 'META' } as unknown as CoinBalanceMetadata;
 
-const makeRepo = () => new CoinBalanceRepository({ onchain, metadata });
+const makeRepo = (preferGraphql = true) =>
+  new CoinBalanceRepository({
+    grpc: onchain,
+    balanceSource,
+    metadata,
+    preferGraphql,
+  });
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
 describe('CoinBalanceRepository', () => {
-  it('exposes the injected metadata and base datasource on its context', () => {
-    // intent: a CoinBalanceRepoParams guarantees metadata; the getter must surface it (regression for the `?? {}` bug)
+  it('exposes the injected metadata and balance datasource on its context', () => {
+    // intent: a CoinBalanceRepoParams guarantees metadata; the getter must surface it (regression for the `?? {}` bug).
+    // getCoinAmounts now reads via multiGetBalances, so it needs metadata + balanceSource.
     vi.mocked(helpers.getCoinAmountsFromOnChain).mockResolvedValue({} as never);
     makeRepo().getCoinAmounts({ address: '0xA' });
 
     const ctx = vi.mocked(helpers.getCoinAmountsFromOnChain).mock.calls[0][0];
     expect(ctx.metadata).toBe(metadata);
-    expect(ctx.onchain).toBe(onchain);
-    expect(typeof ctx.fetchWithCache).toBe('function');
+    expect(ctx.balanceSource).toBe(balanceSource);
+  });
+
+  it('forwards preferGraphql onto the context so balances follow the read transport', () => {
+    // intent: on the gRPC transport (preferGraphql=false) balances must read the
+    // fullnode, not the lagging GraphQL indexer — the fix for stale post-write balances.
+    vi.mocked(helpers.getCoinAmountsFromOnChain).mockResolvedValue({} as never);
+    makeRepo(false).getCoinAmounts({ address: '0xA' });
+
+    const ctx = vi.mocked(helpers.getCoinAmountsFromOnChain).mock.calls[0][0];
+    expect(ctx.preferGraphql).toBe(false);
+  });
+
+  it('getCoinBalances delegates to the GraphQL helper with { coinTypes, address } and the balance datasource', () => {
+    vi.mocked(helpers.getCoinBalancesFromGraphQL).mockResolvedValue(
+      {} as never
+    );
+    makeRepo().getCoinBalances({
+      coinTypes: ['0x2::sui::SUI'],
+      address: '0xA',
+    });
+
+    const [ctx, args] = vi.mocked(helpers.getCoinBalancesFromGraphQL).mock
+      .calls[0];
+    expect(ctx.balanceSource).toBe(balanceSource);
+    expect(args).toEqual({ coinTypes: ['0x2::sui::SUI'], address: '0xA' });
   });
 
   it('getCoinAmounts delegates with { coinNames, address }', () => {
