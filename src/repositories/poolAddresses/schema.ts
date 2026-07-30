@@ -9,7 +9,7 @@ const AcTableSchema = z.object({
 
 const BagSchema = z.object({
   id: z.string(),
-  size: z.string(),
+  bag: z.object({ id: z.string(), size: z.string() }),
 });
 
 export const MarketObjectJsonSchema = z.object({

@@ -242,6 +242,18 @@ export const generateCoreQuickMethod: GenerateCoreQuickMethod = ({
       );
       return txBlock.repay(obligationInfo.obligationId, takeCoin, poolCoinName);
     },
+    // @TODO: Temporary code, will be removed once those unsupported price feeds
+    // are supported in the new Pyth Core.
+    legacyUpdateAssetPricesQuick: async (
+      assetCoinNames,
+      updateOracleOptions
+    ) => {
+      return await ctx.oracles.legacyUpdateOracles(
+        txBlock,
+        assetCoinNames,
+        updateOracleOptions
+      );
+    },
     updateAssetPricesQuick: async (assetCoinNames, updateOracleOptions) => {
       return await ctx.oracles.updateOracles(
         txBlock,

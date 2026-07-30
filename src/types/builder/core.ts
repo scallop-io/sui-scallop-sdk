@@ -161,6 +161,17 @@ export type CoreQuickMethods = {
     obligationId?: SuiObjectArg,
     isSponsoredTx?: boolean
   ) => Promise<void>;
+  // @TODO: Temporary code, will be removed once those unsupported price feeds
+  // are supported in the new Pyth Core.
+  legacyUpdateAssetPricesQuick: (
+    assetCoinNames?: string[],
+    updateOracleOptions?: {
+      usePythPullModel?: boolean;
+      useOnChainXOracleList?: boolean;
+      sponsoredFeeds?: string[];
+      isSponsoredTx?: boolean;
+    }
+  ) => Promise<void>;
   updateAssetPricesQuick: (
     assetCoinNames?: string[],
     updateOracleOptions?: {
