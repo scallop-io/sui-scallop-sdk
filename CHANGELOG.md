@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.2.2...v5.2.3) (2026-07-31)
+
+### Fixed
+
+- The legacy price-update path (`legacyUpdateAssetPricesQuick` / `legacyUpdateOracles`) did not override `core.packages.pyth`, so it called the current Pyth adapter package against the legacy Pyth state objects — the legacy address map now patches the adapter package too ([bb96368](https://github.com/scallop-io/sui-scallop-sdk/commit/bb96368bceab472f86abe37be4d5359a83403fd8))
+
 ## [5.2.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.2.1...v5.2.2) (2026-07-31)
 
 ### Added
