@@ -46,7 +46,7 @@ Methods for interacting with the lending contract.
     10 ** 8
   );
   // Manually obtain obligation id and specify account to deposit collateral.
-  const obligationsData = await client.getObligations();
+  const obligationsData = await client.query.getObligations();
   const depositCollateralResult = await client.depositCollateral(
     'sui',
     10 ** 8,
@@ -60,7 +60,7 @@ Methods for interacting with the lending contract.
   ```typescript
   // Withdrawing collateral requires specifying obligation id and key.
   // Manually obtain obligation id and specify account to withdraw collateral.
-  const obligationsData = await client.getObligations();
+  const obligationsData = await client.query.getObligations();
   const withdrawCollateralResult = await client.withdrawCollateral(
     'sui',
     10 ** 8,
@@ -98,7 +98,7 @@ Methods for interacting with the lending contract.
   ```typescript
   // Borrowing asset requires specifying obligation id and key.
   // Manually obtain obligation id and specify account to borrow asset.
-  const obligationsData = await client.getObligations();
+  const obligationsData = await client.query.getObligations();
   const borrowResult = await client.borrow(
     'sui',
     3 * 10 ** 8,
@@ -112,7 +112,7 @@ Methods for interacting with the lending contract.
 
   ```typescript
   // Manually obtain obligation id and specify account to repay asset.
-  const obligationsData = await client.getObligations();
+  const obligationsData = await client.query.getObligations();
   const repayResult = await client.repay(
     'sui',
     3 * 10 ** 8,
@@ -242,6 +242,6 @@ Methods for migrating to the new sCoin package
 - Migrate all old market coin (including stakes inside spool and mini wallet)
 
 ```typescript
-// Migrate all old market coin into new sCoin. Pass `false` as parameter to return the txBlock
-const txBlock = await client.migrateAllMarketCoin(false);
+// Migrate all old market coin into new sCoin. Pass `false` as the second parameter to return the txBlock
+const txBlock = await client.migrateAllMarketCoin(true, false);
 ```

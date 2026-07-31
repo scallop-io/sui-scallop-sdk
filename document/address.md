@@ -2,7 +2,7 @@
 
 > **Note:** This class is deprecated. Please use `ScallopConstants` instead, which exposes all `ScallopAddress` methods and properties via forwarders. See [constants.md](./constants.md) for usage.
 
-#### `ScallopConstants` composes `ScallopAddress` (accessible via `constants.address`). All `ScallopAddress` methods are forwarded on `ScallopConstants` for back-compat, but `constants instanceof ScallopAddress` is `false` — use `constants.address instanceof ScallopAddress` instead.
+#### `ScallopConstants` composes `ScallopAddress` (accessible via `constants.address`). Only `get`, `set`, `getAddresses`, `getAllAddresses`, and `switchCurrentAddresses` are forwarded on `ScallopConstants` for back-compat (`read` and `isSeeded` must be called on `constants.address`), and `constants instanceof ScallopAddress` is `false` — use `constants.address instanceof ScallopAddress` instead.
 
 ## Read Addresses
 
@@ -18,6 +18,10 @@ const scallopAddress = new ScallopAddress({
 await scallopAddress.read();
 // Get the address in the nested address structure through the dot symbol.
 const address = scallopAddress.get('core.coins.usdc.id');
+// Set the address in the nested address structure through the dot symbol.
+scallopAddress.set('core.coins.usdc.id', '0x...');
+// Check whether addresses have been loaded for the current or specified network.
+const isSeeded = scallopAddress.isSeeded();
 // Get current addresses or specific network addresses of lending protocol.
 const addresses = scallopAddress.getAddresses();
 // Get all network addresses of lending protocol.
@@ -26,25 +30,6 @@ const allAddresses = scallopAddress.getAllAddresses();
 const currentAddresses = scallopAddress.switchCurrentAddresses('testnet');
 ```
 
-Scallop currently maintains this addresses id `6462a088a7ace142bb6d7e9b` for use in the production environment.
+Scallop currently maintains this addresses id `695fcdc084f790c04eb068dc` for use in the production environment.
 
 Of course, you can also directly use the [sui-scallop-api](https://github.com/scallop-io/sui-scallop-api) project to directly request addresses.
-
-## Write Addresses
-
-The rest of the features are for Scallop administrators to use, and require a set of API authentication keys to use the create, update, and delete address functions.
-
-```typescript
-  const scallopAddress = new ScallopAddress({
-    addressId: TEST_ADDRESSES_ID,
-    auth: process.env.API_KEY,
-    network: NETWORK,
-  });
-
-  // create addresses.
-  const addresses = await scallopAddress.create({...});
-  // Update addresses by id.
-  const allAddresses = await scallopAddress.update({...});
-  // delete addresses by id.
-  const allAddresses = await scallopAddress.delete(id);
-```

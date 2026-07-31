@@ -16,12 +16,12 @@
 
 TypeScript SDK for integrating with the Scallop lending protocol on Sui.
 
-Current package: `@scallop-io/sui-scallop-sdk` v4.x. ESM package, Node `>=22`, peer dependency `@mysten/sui@^2.0.0`.
+Current package: `@scallop-io/sui-scallop-sdk` v5.x. ESM package, Node `>=22`, peer dependencies `@mysten/sui@>=2.22.0`, `@scallop-io/sui-kit@~2.2.0`, `@tanstack/query-core@>=5.95.2`.
 
 ## Install
 
 ```bash
-pnpm add @scallop-io/sui-scallop-sdk @mysten/sui @tanstack/query-core
+pnpm add @scallop-io/sui-scallop-sdk @mysten/sui @scallop-io/sui-kit @tanstack/query-core
 ```
 
 ## Public Entry Points
@@ -75,11 +75,11 @@ Scallop
                       -> ScallopAddress
 ```
 
-Important v4 details:
+Important details:
 
 - `ScallopIndexer` model was removed. Query/indexer access is internal to repositories.
 - `ScallopConstants` composes `ScallopAddress`; use `constants.address` for the address adapter.
-- Back-compatible address forwarders remain on constants: `get`, `set`, `getAddresses`, `setAddresses`, `getId`, `getAllAddresses`, `switchCurrentAddresses`.
+- Back-compatible address forwarders remain on constants: `get`, `set`, `getAddresses`, `getAllAddresses`, `switchCurrentAddresses`. `read` and `isSeeded` are not forwarded — call them on `constants.address`.
 - Write-path signer/executor lives on `builder.executor`; raw SuiKit lives on `builder.suiKit`.
 
 ## Create SDK
@@ -366,12 +366,16 @@ Useful scripts:
 ```bash
 pnpm run build             # production build
 pnpm run build:dev         # development build
+pnpm run test              # typecheck + all tests
 pnpm run test:typecheck    # TypeScript checks for tests
 pnpm run test:no-console   # no console.* in SDK internals
 pnpm run test:unit         # network-free unit tests
+pnpm run test:repo         # repository unit tests only
 pnpm run test:integration  # integration tests; needs network + local env setup
+pnpm run test:watch        # watch mode
 pnpm run lint:fix
 pnpm run format:fix
+pnpm run doc               # generate typedoc output into docs/
 ```
 
 Integration/query/full test runs require local environment variables such as `SECRET_KEY`. Do not commit secrets.

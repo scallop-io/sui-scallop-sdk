@@ -24,6 +24,13 @@
   const isNotMarket = scallopUtils.isMarketCoin('sui'); // false
   ```
 
+- Check if a coin is a LayerZero asset.
+
+  ```typescript
+  const scallopUtils = await scallopSDK.createScallopUtils();
+  const isLayerZero = scallopUtils.isLayerZeroAsset('wusdc');
+  ```
+
 ## Some common conversion methods for coin name supported by Scallop
 
 - It can parse to the symbol from coin and market coin (sCoin) name.
@@ -170,34 +177,23 @@
   const suiMarketCoinType = await scallopUtils.parseMarketCoinType('ssui');
 
   // Supports conversion from coin and market coin types.
-  const suiCoinObjectIds = await scallopUtils.selectCoins(
-    1000000000,
-    suiCoinType
-  );
-  const suiMarketCoinObjectIds = await scallopUtils.selectCoins(
-    1,
-    suiMarketCoinType
-  );
-  ```
-
-- It can getting all asset coin names from obligation account.
-
-  ```typescript
-  const scallopUtils = await scallopSDK.createScallopUtils();
-
-  const obligations = await client.getObligations();
-  const assetCoinNames = await scallopUtils.getObligationCoinNames(
-    obligations[0].id
-  );
+  const suiCoinObjectIds = await scallopUtils.selectCoins({
+    amount: 1000000000,
+    coinType: suiCoinType,
+  });
+  const suiMarketCoinObjectIds = await scallopUtils.selectCoins({
+    amount: 1,
+    coinType: suiMarketCoinType,
+  });
   ```
 
 - It can getting all asset coin prices.
 
   ```typescript
-  const scallopUtils = await scallopSDK.createScallopUtils();
-
-  const coinPrices = await scallopUtils.getCoinPrices();
-  const usdcCoinPrice = (await scallopUtils.getCoinPrices(['wusdc']))['wusdc'];
+  const coinPrices = await scallopQuery.getAllCoinPrices();
+  const usdcCoinPrice = (
+    await scallopQuery.getPythCoinPrices({ coinNames: ['wusdc'] })
+  )['wusdc'];
   ```
 
 - Get coin decimal for a specific coin.
@@ -258,7 +254,7 @@
 - Parse object json safely (including dynamic field unwrapping).
 
   ```typescript
-  import { parseObjectAs } from 'src/utils/index.js';
+  import { parseObjectAs } from 'src/utils/object.js';
 
   const fields = parseObjectAs<{ value: string }>(suiObjectData);
   ```
@@ -266,7 +262,7 @@
 - Extract dynamic field object id + key name with key kind.
 
   ```typescript
-  import { getDfObjectIdAndName } from 'src/utils/index.js';
+  import { getDfObjectIdAndName } from 'src/utils/object.js';
 
   const info = getDfObjectIdAndName(suiObjectData);
   // info: { objectId: string; name: string; nameKind: 'type' | 'id' | 'bytes' | 'string' }
@@ -275,12 +271,13 @@
 - Resolve shared object data from flexible argument types.
 
   ```typescript
-  import { getSharedObjectData } from 'src/utils/index.js';
+  import { getSharedObjectData } from 'src/utils/object.js';
 
-  // First arg is the read data source (`utils.onchain`) plus its cache helper;
+  // First arg is the read data source (the `GrpcDataSource`, exposed as `grpc`)
+  // plus its cache helper;
   // second arg carries the tx, the target `objectId`, and mutability.
   const sharedObject = await getSharedObjectData(
-    { onchain: utils.onchain, fetchWithCache },
+    { grpc, fetchWithCache },
     { tx, objectId, mutable: false }
   );
   ```

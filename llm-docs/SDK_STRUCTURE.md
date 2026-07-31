@@ -30,15 +30,15 @@ Supporting pieces:
 
 - `ScallopConstants` owns protocol config: addresses, pool addresses, whitelist, decimals. It **composes** `ScallopAddress` (`constants.address`) and embeds its config sources + validator under `src/models/scallopConstants/config/`.
 - `ScallopAddress` is the address/HTTP adapter; it reads the Scallop API via `ApiDataSource`.
-- `ScallopUtils` holds the resolved Core read client (`utils.client`, a `ClientWithCoreMethods`) plus `ScallopConstants`. `ScallopQuery` owns the transport-selected Core client (`query.grpc`, a `SuiGrpcClient | SuiGraphQLClient` — a `SuiGrpcClient` on the `'grpc'` transport, a `SuiGraphQLClient` on `'graphql'`); the rate-limited `GrpcDataSource` that wraps it is built inside the repository registry.
+- `ScallopUtils` holds the resolved Core read client (`utils.client`, a `ClientWithCoreMethods`) plus `ScallopConstants`. `ScallopQuery` owns the transport-selected Core client (`query.coreClient`, a `SuiGrpcClient | SuiGraphQLClient` — a `SuiGrpcClient` on the `'grpc'` transport, a `SuiGraphQLClient` on `'graphql'`); the rate-limited `GrpcDataSource` that wraps it is built inside the repository registry.
 - `ScallopBuilder` owns the raw `SuiKit` (`builder.suiKit`) and the write-path `TransactionExecutor` (`builder.executor`, a `SuiKitTransactionExecutor`) — **always gRPC**, independent of `ScallopQuery`'s read transport.
 - `src/datasources/` is the raw transport layer (on-chain RPC, indexer, API, and a Sui GraphQL source for reads with no gRPC equivalent). `ScallopSuiKit` and the `ScallopIndexer` model were both removed.
-- **The Core read path follows the selected transport — both transports are full, correctness-equivalent implementations, not just an optimization.** In `@mysten/sui`, `BaseClient` declares `abstract core: CoreClient`, and `CoreClient` (`@mysten/sui`'s `src/client/core.ts`) `implements SuiClientTypes.TransportMethods` — the full Core API, including `simulateTransaction`. **Both** `SuiGrpcClient` and `SuiGraphQLClient` extend `BaseClient`, so both are `ClientWithCoreApi` and expose an **interchangeable `.core`** (`GrpcCoreClient` vs `GraphQLCoreClient`, each a concrete `CoreClient`). `ScallopQuery.initReadClients` swaps the Core client wholesale per `readTransport`: on `'grpc'` it's a `SuiGrpcClient` built from `fullnodeUrl`; on `'graphql'` it's the `SuiGraphQLClient` itself (built from `graphqlUrl`/`graphqlClient`) — so **every** Core read (`getObjects`, `getDynamicField`, `listOwnedObjects`, `getBalance`, `simulateTransaction`, …) runs over GraphQL end-to-end in graphql mode, no per-repo GraphQL reimplementation needed. The registry's `GrpcDataSource` (wrapping whichever client `query.grpc` holds) is transport-agnostic for exactly this reason (`createGrpcDataSource` wraps `client.core`, not the client directly) — it also caps `getObjects` batches under GraphQL's ~5000-byte query-payload limit (`maxObjectsPerBatch`, only set on `'graphql'`) and namespaces its query-cache keys by the active endpoint (`graphqlUrl` vs `fullnodeUrl`). A separate `GraphQLDataSource` additionally owns GraphQL-**native** primitives with no single-round-trip Core equivalent (`multiGetBalances`, `listDynamicFieldsWithValues`, `multiGetDynamicFields`); `readTransport: 'graphql'` also flips `preferGraphql`, so the Tier-2 dynamic-field walkers (`poolAddresses`, `xOracle`, `veSca` family, `obligation` names, `flashloan`, `borrowIncentive` bindings) prefer those fewer-round-trip native queries over the generic Core path — an **optimization on top of** the full transport switch, not the mechanism providing it. Selection there is strict by transport — no automatic fallback (`runByReadTransport` in `repositories/utils.ts`); a failing native GraphQL query propagates. **Writes are unaffected** — `builder.executor` / `SuiKit` always use gRPC via `fullnodeUrl`, regardless of `ScallopQuery`'s `readTransport`. See [`GRAPHQL_SUPPORT.md`](GRAPHQL_SUPPORT.md) and [`REPO_GRAPHQL_SUPPORT.md`](REPO_GRAPHQL_SUPPORT.md) (implementation plan / rationale).
+- **The Core read path follows the selected transport — both transports are full, correctness-equivalent implementations, not just an optimization.** In `@mysten/sui`, `BaseClient` declares `abstract core: CoreClient`, and `CoreClient` (`@mysten/sui`'s `src/client/core.ts`) `implements SuiClientTypes.TransportMethods` — the full Core API, including `simulateTransaction`. **Both** `SuiGrpcClient` and `SuiGraphQLClient` extend `BaseClient`, so both are `ClientWithCoreApi` and expose an **interchangeable `.core`** (`GrpcCoreClient` vs `GraphQLCoreClient`, each a concrete `CoreClient`). `initReadClients` (module-level in `src/models/scallopQuery/index.ts`) swaps the Core client wholesale per `readTransport`: on `'grpc'` it's a `SuiGrpcClient` built from `fullnodeUrl`; on `'graphql'` it's the `SuiGraphQLClient` itself (built from `graphqlUrl`/`graphqlClient`) — so **every** Core read (`getObjects`, `getDynamicField`, `listOwnedObjects`, `getBalance`, `simulateTransaction`, …) runs over GraphQL end-to-end in graphql mode, no per-repo GraphQL reimplementation needed. The registry's `GrpcDataSource` (wrapping whichever client `query.coreClient` holds) is transport-agnostic for exactly this reason (`createGrpcDataSource` wraps `client.core`, not the client directly) — it also caps `getObjects` batches under GraphQL's ~5000-byte query-payload limit (`maxObjectsPerBatch`, only set on `'graphql'`) and namespaces its query-cache keys by the active endpoint (`graphqlUrl` vs `fullnodeUrl`). A separate `GraphQLDataSource` additionally owns GraphQL-**native** primitives with no single-round-trip Core equivalent (`multiGetBalances`, `multiGetDynamicFields`); `readTransport: 'graphql'` also flips `preferGraphql`, so the Tier-2 dynamic-field walkers (`poolAddresses`, `xOracle`, `veSca` family, `obligation` names, `flashloan`, `borrowIncentive` bindings) prefer those fewer-round-trip native queries over the generic Core path — an **optimization on top of** the full transport switch, not the mechanism providing it. Selection there is strict by transport — no automatic fallback (`runByReadTransport` in `repositories/utils.ts`); a failing native GraphQL query propagates. **Writes are unaffected** — `builder.executor` / `SuiKit` always use gRPC via `fullnodeUrl`, regardless of `ScallopQuery`'s `readTransport`. See [`GRAPHQL_SUPPORT.md`](GRAPHQL_SUPPORT.md) (shipped behavior in §1–§7, design rationale in §8).
 - `src/mappers/` is now just `moveTypeMapper` (gRPC vs JSON-RPC `TypeName` differences); per-domain payload parsing lives inside each repository.
 - `src/services/query/portfolioCalculations.ts` holds pure math extracted from portfolio queries.
 - `src/errors/`, `src/logger/`, `src/types/public`, and `src/types/internal` are cross-cutting support layers.
 
-The read path is now fully on the repository layer — the old `src/queries/*` files and the facade-adapter repositories are gone, and `ScallopQuery` delegates every domain to `repos.<domain>`. The **write / transaction** surface on `Scallop` / `ScallopClient` / `ScallopBuilder` is preserved across the v4 refactor; several **read** methods on `ScallopClient`, `ScallopQuery`, and `ScallopUtils` were renamed or relocated (see [`V3_TO_V4.md` §B7–B9](V3_TO_V4.md#b7--scallopclient-read-methods-moved-to-clientquery)).
+The read path is now fully on the repository layer — the old `src/queries/*` files and the facade-adapter repositories are gone, and `ScallopQuery` delegates every domain to `repos.<domain>`. The **write / transaction** surface on `Scallop` / `ScallopClient` / `ScallopBuilder` is preserved across the v4 refactor; several **read** methods on `ScallopClient`, `ScallopQuery`, and `ScallopUtils` were renamed or relocated (see [`../CHANGELOG.md`](../CHANGELOG.md) for the v4.0.0 BREAKING CHANGES).
 
 ---
 
@@ -50,7 +50,7 @@ These are the names you import. They form a dependency chain — each holds a re
 Scallop
   └── ScallopClient        // write facade: signs & sends transactions, high-level user actions
         └── ScallopBuilder // owns raw SuiKit + TransactionExecutor; composes ScallopTxBlocks
-              └── ScallopQuery  // read facade — owns query.grpc (transport-selected Core client); delegates to the repository registry
+              └── ScallopQuery  // read facade — owns query.coreClient (transport-selected Core client); delegates to the repository registry
                     └── ScallopUtils  // type lookups, coin metadata; holds utils.client (resolved Core read client)
                           └── ScallopConstants    // pool addresses, whitelist, decimals
                                 └── ScallopAddress // address registry + HTTP (ApiDataSource)
@@ -66,7 +66,7 @@ ScallopBuilder
 
 **Init:** every model exposes `.init()`. You don't usually call it yourself — `Scallop.createScallopClient()` / `createScallopBuilder()` / `createScallopQuery()` / `createScallopUtils()` handle it.
 
-**Parent accessors:** each model exposes its dependencies as getters (`client.builder`, `builder.query`, `query.utils`, `utils.constants`, `constants.address`). `ScallopClient` also forwards `suiKit` / `executor` to the builder and `grpc` to the query that own them. This makes the chain navigable without re-instantiating anything.
+**Parent accessors:** each model exposes its dependencies as getters (`client.builder`, `builder.query`, `query.utils`, `utils.constants`, `constants.address`). `ScallopClient` also forwards `suiKit` / `executor` to the builder and `coreClient` to the query that own them. This makes the chain navigable without re-instantiating anything.
 
 > ⚠️ **v4 change:** `ScallopConstants` used to _extend_ `ScallopAddress`. As of v4 it **composes** it — reach the address adapter via `constants.address`. Most call sites are unaffected because `constants.get(...)`, `constants.getAddresses(...)`, etc. still work via forwarders.
 
@@ -90,6 +90,7 @@ src/
 │   ├── scallopConstants/    # protocol config
 │   │   └── config/          # ScallopConfig, snapshot, ConfigValidator, *ConfigSource
 │   ├── scallopAddress/      # address registry + HTTP (reads API via ApiDataSource)
+│   ├── scallopPythClient.ts # ScallopPythClient — sponsored Pyth base-update-fee path
 │   ├── suiKit.ts            # newSuiKit() factory
 │   ├── transactionExecutor.ts  # SuiKitTransactionExecutor (CoreClient-style write path)
 │   └── interface.ts
@@ -113,8 +114,12 @@ src/
 │   ├── rateLimiter.ts       # token-bucket throttle (single point for all on-chain reads)
 │   ├── api.ts               # ApiDataSource — Scallop API (axios)
 │   ├── indexer.ts           # IndexerDataSource extends ApiDataSource (indexer base url)
-│   └── graphql.ts           # GraphQLDataSource — Sui GraphQL, self-caching; balance reads
-│                            #   with no gRPC equivalent (multiGetBalances → coinBalance)
+│   ├── onchain.ts           # OnChainDataSource + CORE_METHODS re-export
+│   ├── types.ts             # CORE_METHODS, ClientWithCoreMethods
+│   ├── rpcStats.ts          # RPC call counters
+│   └── graphql/             # GraphQLDataSource — Sui GraphQL, self-caching; balance reads
+│       │                    #   with no gRPC equivalent (multiGetBalances → coinBalance)
+│       └── index.ts, queries.ts, types.ts
 │
 ├── repositories/            # ⭐ The read layer — one folder per domain
 │   ├── base.ts              # BaseRepository (fetchWithCache, baseContext, metadata generic)
@@ -123,7 +128,7 @@ src/
 │   ├── utils.ts             # runWithDataSourceFallback, logError, getDynamicField* helpers
 │   ├── market/ obligation/ spool/ price/ borrowIncentive/ coinBalance/
 │   ├── flashloan/ isolatedAssets/ xOracle/ veSca/ loyaltyProgram/
-│   ├── veScaLoyaltyProgram/ referral/ poolAddresses/
+│   ├── veScaLoyaltyProgram/ referral/ poolAddresses/ addressApi/
 │   │       each domain: index.ts + helpers.ts + types.ts (+ utils/schema/bcs/const/mapper as needed)
 │   └── wiring/              # registry.ts, datasources.ts, metadata.ts, source.ts
 │
@@ -153,14 +158,14 @@ src/
 ├── types/                   # ⭐ Public vs internal type boundary
 │   ├── public/              # The semver-governed type surface
 │   ├── internal/            # DTOs / transport types — NOT re-exported from root
-│   ├── builder/, query/, constant/  # Canonical type defs
+│   ├── builder/, query/, constant/, repositories/  # Canonical type defs
 │   ├── address.ts, sui.ts, utils.ts
 │   └── index.ts             # Delegates to ./public
 │
 ├── utils/
-│   ├── core.ts              # parseObjectAs<T> (see gotcha in §7)
-│   ├── vesca.ts             # partitionArray (chunk ids for getObjects ≤ 50/call), ...
-│   ├── url.ts, math.ts, ...
+│   ├── object.ts            # parseObjectAs<T> (see gotcha in §7), getSharedObjectData, ...
+│   ├── array.ts             # partitionArray (chunk ids for getObjects ≤ 50/call)
+│   ├── builder.ts, cache.ts, dynamicField.ts, query.ts, url.ts, vesca.ts
 │
 └── constants/               # queryKeys, cache, rpc, API base url, ...
 ```
@@ -190,7 +195,7 @@ Property lookup falls through from outermost (core) to innermost (obligationNami
 
 **Per-domain folder layout (v4 builders refactor).** Each domain lives in `src/txBuilders/<domain>/` (`core`, `spool`, `vesca`, `borrowIncentive`, `referral`, `sCoin`, `loyaltyProgram`, `obligationNaming`) split into `moveCalls.ts` (normal, pure construction), `quick.ts` (orchestration), and `index.ts` (the `new<Domain>TxBlock` factory). The factory builds two **narrow injected contexts** once — `MoveCallContext` (address reads + `moveCall` + parse helpers, no I/O) for `moveCalls.ts`, and a domain `*ActionContext` (`reads` / `coins` / `oracles` / parse `utils`) for `quick.ts` — instead of passing the whole `ScallopBuilder`. Contexts are defined in [src/txBuilders/context.ts](../src/txBuilders/context.ts); `manifest.ts` / `modules.ts` / `verify.ts` / `index.ts` stay at the `txBuilders/` root. (`obligationNaming` is **normal-only** — `moveCalls.ts` + `index.ts`, no `quick.ts`; its factory builds only a `MoveCallContext`.)
 
-**v4 added an explicit module view.** Alongside the flat methods, `tx.core`, `tx.spool`, `tx.vesca`, `tx.borrowIncentive`, `tx.referral`, `tx.loyalty`, `tx.scoin`, `tx.obligationNaming` expose the same functions grouped by domain. Function references match exactly (`tx.supplyQuick === tx.core.supplyQuick`). The grouping is declared in [src/txBuilders/manifest.ts](../src/txBuilders/manifest.ts), assembled in [src/txBuilders/modules.ts](../src/txBuilders/modules.ts), and verified at runtime by [src/txBuilders/verify.ts](../src/txBuilders/verify.ts).
+**v4 added an explicit module view.** Alongside the flat methods, `tx.core`, `tx.spool`, `tx.vesca`, `tx.borrowIncentive`, `tx.referral`, `tx.loyalty`, `tx.sCoin`, `tx.obligationNaming` expose the same functions grouped by domain. Function references match exactly (`tx.supplyQuick === tx.core.supplyQuick`). The grouping is declared in [src/txBuilders/manifest.ts](../src/txBuilders/manifest.ts), assembled in [src/txBuilders/modules.ts](../src/txBuilders/modules.ts), and verified at runtime by [src/txBuilders/verify.ts](../src/txBuilders/verify.ts).
 
 **Naming convention for lending:** `supply` / `supplyQuick` / `depositCollateral` / `depositCollateralQuick` are canonical (Aave/Compound aligned). The legacy `deposit` / `depositQuick` / `addCollateral` / `addCollateralQuick` were **removed in v4** (deprecated in v3).
 
@@ -279,7 +284,7 @@ The validation lives in `src/models/scallopConstants/config/ConfigValidator.ts` 
 
 ### `parseObjectAs<T>` gotcha
 
-`src/utils/core.ts:parseObjectAs` unwraps Move object JSON. **When the on-chain JSON has a `value` field, it returns `fields.value` directly (not `{ value: ... }`).** Zod schemas consuming `parseObjectAs` output must match the unwrapped type, not the wrapper. This is the #1 source of "why is my parser empty" confusion.
+`src/utils/object.ts:parseObjectAs` unwraps Move object JSON. **When the on-chain JSON has a `value` field, it returns `fields.value` directly (not `{ value: ... }`).** Zod schemas consuming `parseObjectAs` output must match the unwrapped type, not the wrapper. This is the #1 source of "why is my parser empty" confusion.
 
 ### Query caching
 
@@ -289,7 +294,7 @@ The repository layer uses `@tanstack/query-core`'s `QueryClient` (shared via `sr
 
 ### Batching on-chain object reads
 
-`grpc.client.getObjects` accepts at most 50 ids per call. Helpers that fan out over many objects chunk the id list with `partitionArray(ids, 50)` (`src/utils/vesca.ts`) — see `price/`, `market/`, `spool/`, `poolAddresses/`.
+`grpc.client.getObjects` accepts at most 50 ids per call. Helpers that fan out over many objects chunk the id list with `partitionArray(ids, 50)` (`src/utils/array.ts`) — see `price/`, `market/`, `spool/`, `poolAddresses/`.
 
 ---
 
@@ -319,24 +324,28 @@ Specs live under `tests/`, mirroring the `src/` tree (e.g. `tests/repositories/<
 tests/
 ├── repositories/<domain>/  # per-domain read-layer specs
 ├── models/, txBuilders/, datasources/, services/, utils/   # mirror src/
+├── types/                  # type-level specs
 ├── integration/            # mainnet dry-run specs (need .env)
 ├── scallopSdk.ts           # shared integration SDK fixture (forced-address overrides)
 ├── mocks.ts                # shared fakes for unit specs
 ├── subpathExports.spec.ts  # smoke test for every entry point
+├── configSources.spec.ts   # ConfigSource seam specs
+├── strictInit.spec.ts      # strictInit validation specs
 └── noConsole.spec.ts       # CI gate: blocks new console.* in SDK internals
 ```
 
 `vitest.config.ts` defines two **projects**: `unit` (`tests/**/*.spec.ts` minus `tests/integration/**`, network-free) and `integration` (`tests/integration/**`, needs `.env`).
 
-| Script                          | What it runs                          | Needs network? |
-| ------------------------------- | ------------------------------------- | -------------- |
-| `pnpm test:typecheck`           | `tsc -p ./tests`                      | No             |
-| `pnpm test:no-console`          | Just the no-console gate              | No             |
-| `pnpm test:unit`                | All `unit`-project specs              | **No**         |
-| `pnpm test:query`               | Indexer/RPC query test (integration)  | Yes            |
-| `pnpm test:integration`         | Mainnet dry-run tests                 | Yes            |
-| `pnpm test`                     | `test:typecheck` + all tests          | Yes            |
-| CI (`.github/workflows/ci.yml`) | typecheck → no-console → unit → build | No             |
+| Script                          | What it runs                           | Needs network? |
+| ------------------------------- | -------------------------------------- | -------------- |
+| `pnpm test:typecheck`           | `tsc -p ./tests`                       | No             |
+| `pnpm test:no-console`          | Just the no-console gate               | No             |
+| `pnpm test:unit`                | All `unit`-project specs               | **No**         |
+| `pnpm test:repo`                | Repository specs in the `unit` project | **No**         |
+| `pnpm test:query`               | Indexer/RPC query test (integration)   | Yes            |
+| `pnpm test:integration`         | Mainnet dry-run tests                  | Yes            |
+| `pnpm test`                     | `test:typecheck` + all tests           | Yes            |
+| CI (`.github/workflows/ci.yml`) | typecheck → no-console → unit → build  | No             |
 
 Integration tests need a `.env` with `SECRET_KEY` (see `.env.example`). They use `inspectTxn` / `devInspectTxn` (dry-run, no broadcast); only tests that explicitly call `signAndSendTxn` submit transactions. Unit specs must stay self-contained (build their own fakes) — never import `scallopSdk.ts`.
 
@@ -364,8 +373,6 @@ Then run `pnpm run test:typecheck && pnpm run test:unit && pnpm run build` befor
 
 ## 11. Further reading
 
-- [`V3_TO_V4.md`](V3_TO_V4.md) — upgrade guide with step-by-step v3 → v4 diffs
-- [`V2_TO_V4.md`](V2_TO_V4.md) — upgrade guide with step-by-step v2 → v4 diffs
-- [`../CHANGELOG.md`](../CHANGELOG.md) — v4.0.0 BREAKING CHANGES + Added sections
-- [`../CLAUDE.md`](../CLAUDE.md) — coding conventions for AI assistants
+- [`GRAPHQL_SUPPORT.md`](GRAPHQL_SUPPORT.md) — GraphQL read transport: config, scope, per-repo behavior
+- [`../CHANGELOG.md`](../CHANGELOG.md) — upgrade history, incl. v4.0.0 BREAKING CHANGES + Added sections
 - `node_modules/@mysten/*/docs/llms-index.md` — Sui SDK reference (read indexes first)

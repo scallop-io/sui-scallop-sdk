@@ -36,8 +36,10 @@
   const marketCoinAmounts = await scallopQuery.getMarketCoinAmounts();
   const marketCoinAmount = await scallopQuery.getMarketCoinAmount('ssui');
 
-  const usdcPrice = await scallopQuery.getPriceFromPyth('wusdc');
-  const prices = await scallopQuery.getPricesFromPyth(['sui', 'wusdc']); // Record<string, number>
+  const usdcPrice = await scallopQuery.getPythCoinPrice('wusdc');
+  const prices = await scallopQuery.getPythCoinPrices({
+    coinNames: ['sui', 'wusdc'],
+  }); // Record<string, number>
   ```
 
 ## Spool Query
@@ -235,7 +237,7 @@
   const scallopQuery = await scallopSDK.createScallopQuery();
 
   const policies = await scallopQuery.getPriceUpdatePolicies();
-  // { primary: SuiObjectResponse | null, secondary: SuiObjectResponse | null }
+  // { primary: dynamic-field result | null, secondary: dynamic-field result | null }
 
   const oracles = await scallopQuery.getAssetOracles();
   /**
