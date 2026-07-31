@@ -83,7 +83,7 @@ export class PythOracleRule extends BaseOracleRule {
       const response = await pythClient.getPriceFeedsUpdateData(priceIds);
       await pushUpdate(response);
     } catch (e) {
-      logger.warn('pyth price-feed update failed', {
+      logger.error('pyth price-feed update failed', {
         message: (e as Error)?.message,
       });
     }
