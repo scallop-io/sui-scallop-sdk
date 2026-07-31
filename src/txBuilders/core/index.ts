@@ -64,6 +64,17 @@ const LEGACY_COIN = {
   },
 };
 
+// Patch core.packages.pyth
+const LEGACY_PYTH_ADAPTER_PACKAGE = {
+  pyth: {
+    id: '0x71fddacc6ecf164bd8f6c081092beeef20945c5da2c74e0b9f3e1d3c7003fadd',
+    object:
+      '0x71fddacc6ecf164bd8f6c081092beeef20945c5da2c74e0b9f3e1d3c7003fadd',
+    upgradeCap:
+      '0xb1f167889643ff766df31745b6e93b92462d8165b0a4f1b095499e15180370f7',
+  },
+};
+
 /**
  * Create an enhanced transaction block instance for interaction with core modules of the Scallop contract.
  *
@@ -101,6 +112,7 @@ export const newCoreTxBlock = (
         'core.packages.xOracle': LEGACY_X_ORACLE.xOracle,
         'core.oracles.pyth': LEGACY_PYTH_ORACLE.pyth,
         'core.coins.sca': LEGACY_COIN.sca,
+        'core.packages.pyth': LEGACY_PYTH_ADAPTER_PACKAGE.pyth,
       };
       for (const [prefix, value] of Object.entries(overrides)) {
         if (path === prefix || path.startsWith(`${prefix}.`)) {
