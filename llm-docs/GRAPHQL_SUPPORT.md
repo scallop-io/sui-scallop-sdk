@@ -7,6 +7,8 @@ the per-domain query optimizations that GraphQL enables. Companion to
 > **Status:** opt-in, full read-transport parity. Default transport stays gRPC.
 > `tests/integration/query-graphql.spec.ts` (the `graphQLScallopSDK` fixture) runs the
 > same read suite as `query.spec.ts` end-to-end against mainnet on the graphql transport.
+> §1–§7 document the shipped behavior; [§8](#8-design-rationale--why-transport-parity-is-free)
+> is the design rationale (why this was a wiring change, not 30 hand-written queries).
 
 ---
 
@@ -31,7 +33,7 @@ const sdk = new Scallop({
   not the mechanism providing it.
 - `graphqlUrl` / `graphqlClient` — GraphQL endpoint / preconfigured client. On the
   graphql transport this backs **both** the Core read path and `GraphQLDataSource` (the
-  native-primitives datasource: `multiGetBalances` and the dynamic-field walkers).
+  native-primitives datasource: `multiGetBalances` and `multiGetDynamicFields`).
 - **Precedence (Core client):** on `'grpc'`, an explicit `suiClient` wins (used as-is),
   else a `SuiGrpcClient` is built from `fullnodeUrl`. On `'graphql'`, an explicit
   `graphqlClient` wins, else a `SuiGraphQLClient` is built from `graphqlUrl`.
@@ -49,17 +51,16 @@ is historical); `GraphQLDataSource` is native-primitive-only:
 - **`GrpcDataSource`** ([`src/datasources/grpc.ts`](../src/datasources/grpc.ts)) — the
   Core-API read path (`getObjects`, `getDynamicField`, `listDynamicFields`,
   `listOwnedObjects`, `getBalance`, `simulateTransaction`, …). It wraps whichever client
-  `ScallopQuery.initReadClients` selected for `readTransport` — a `SuiGrpcClient.core` on
+  `initReadClients` selected for `readTransport` — a `SuiGrpcClient.core` on
   `'grpc'`, a `SuiGraphQLClient.core` on `'graphql'` — because both satisfy
   `ClientWithCoreApi` and implement the same `TransportMethods` contract (see
-  [`SDK_STRUCTURE.md` §1](./SDK_STRUCTURE.md) and
-  [`REPO_GRAPHQL_SUPPORT.md`](./REPO_GRAPHQL_SUPPORT.md)). On `'graphql'` it also caps
+  [`SDK_STRUCTURE.md` §1](./SDK_STRUCTURE.md) and §8). On `'graphql'` it also caps
   `getObjects` batches at `DEFAULT_GRAPHQL_MAX_OBJECTS_PER_BATCH` (25) to stay under the
   ~5000-byte query-payload limit (see §3a), and its cache keys are namespaced by
   `graphqlUrl` instead of `fullnodeUrl`.
 - **`GraphQLDataSource`** ([`src/datasources/graphql/`](../src/datasources/graphql/)) —
   GraphQL-**native** primitives the generic Core path can't express in one round trip
-  (`multiGetBalances`, `listDynamicFieldsWithValues`, `multiGetDynamicFields`).
+  (`multiGetBalances`, `multiGetDynamicFields`).
 
 `readTransport: 'graphql'` routes **every** Core read over GraphQL end-to-end — this is a
 full transport switch, not an opportunistic optimization. `preferGraphql` is a second,
@@ -72,11 +73,11 @@ readTransport: 'grpc'     Core reads → GrpcDataSource (gRPC)     ; native read
 readTransport: 'graphql'  Core reads → GrpcDataSource (GraphQL)  ; native reads → GraphQLDataSource
 ```
 
-On `readTransport: 'graphql'`, `ScallopQuery.initReadClients` swaps the Core read client
-to the `SuiGraphQLClient` (see [`REPO_GRAPHQL_SUPPORT.md`](./REPO_GRAPHQL_SUPPORT.md)), so
+On `readTransport: 'graphql'`, `initReadClients` swaps the Core read client
+to the `SuiGraphQLClient` (see §8), so
 every Core read runs over GraphQL. The ~5000-byte payload cap is handled by
 `maxObjectsPerBatch` (§3a). Verified end-to-end: the full mainnet read suite
-(`query-graphql.spec.ts`, 56 tests) passes against the GraphQL-backed Core client.
+(`query-graphql.spec.ts`) passes against the GraphQL-backed Core client.
 
 ---
 
@@ -89,7 +90,7 @@ GraphQL behaves differently from gRPC in two ways the SDK had to absorb:
 The Sui GraphQL endpoint rejects a query whose payload exceeds **~5000 bytes**. This
 cap is now purely a `GraphQLDataSource` concern: its own native queries
 (`multiGetBalances`, and the `getObjects`-style value fetches behind
-`listDynamicFieldsWithValues` / `multiGetDynamicFields`) **chunk** their input arrays
+`multiGetDynamicFields`) **chunk** their input arrays
 into sub-batches that stay under the limit and merge the results (per-object `Error`s
 preserved).
 
@@ -98,7 +99,7 @@ The Core read path **is** affected when it's GraphQL-backed: on the `'grpc'` tra
 no payload limit); on `'graphql'` the registry passes
 `maxObjectsPerBatch: DEFAULT_GRAPHQL_MAX_OBJECTS_PER_BATCH` (25), so oversized `getObjects`
 requests are transparently split into ordered sub-batches and merged (see
-[`GrpcDataSource.withObjectBatchLimit`](../src/datasources/grpc.ts)).
+[`withObjectBatchLimit`](../src/datasources/grpc.ts)).
 
 ### 3b. Rate limiting
 
@@ -124,11 +125,10 @@ Two reusable methods on `GraphQLDataSource`
 ([`src/datasources/graphql/`](../src/datasources/graphql/)), both self-caching and
 rate-limited, that gRPC's Core API can't express in one round trip:
 
-| Method                                     | What it does                                                                                                                                       | gRPC equivalent                                                               |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `listDynamicFieldsWithValues(parentId)`    | Pages a table returning each field's **name + value inline**; derives `fieldId` via `deriveDynamicFieldID` (matches Core).                         | `listDynamicFields` (metadata only) **+** a separate `getObjects` for values. |
-| `multiGetDynamicFields(parentId, names[])` | Fetches **N specific fields by name** in one aliased query (`f0: dynamicField(name:…) f1: …`), chunked, aligned to input order (missing → `null`). | N separate `getDynamicField` calls.                                           |
-| `multiGetBalances(address, coinTypes[])`   | Balances for a known set of coin types (chunked ≤15/query under the payload cap, merged).                                                          | No multi-coin balance call.                                                   |
+| Method                                     | What it does                                                                                                                                       | gRPC equivalent                     |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `multiGetDynamicFields(parentId, names[])` | Fetches **N specific fields by name** in one aliased query (`f0: dynamicField(name:…) f1: …`), chunked, aligned to input order (missing → `null`). | N separate `getDynamicField` calls. |
+| `multiGetBalances(address, coinTypes[])`   | Balances for a known set of coin types (chunked ≤15/query under the payload cap, merged).                                                          | No multi-coin balance call.         |
 
 Selection of which path runs is centralized in
 [`src/repositories/utils.ts`](../src/repositories/utils.ts):
@@ -214,13 +214,78 @@ cursor.
   (`VeScaBcs`, the per-domain `TypeName`/coin-type parsers) so output equals the gRPC
   path. veSca even shares a pure `computeVeSca` between both paths.
 - **Validation:** unit tests mock each native method; `tests/integration/query-graphql.spec.ts`
-  (the `graphQLScallopSDK` fixture, `readTransport: 'graphql'`) runs the full read suite —
-  56/56 against mainnet, exercising every Core read (incl. `simulateTransaction`-backed
+  (the `graphQLScallopSDK` fixture, `readTransport: 'graphql'`) runs the full read suite
+  against mainnet, exercising every Core read (incl. `simulateTransaction`-backed
   reads) over the GraphQL-backed Core client.
 
-## 8. Known follow-ups
+---
 
-_(none open)_
+## 8. Design rationale — why transport parity is free
+
+The goal was to make GraphQL a **complete alternate read transport**, so `readTransport`
+selects the read layer wholesale and a deployment with no gRPC egress can run 100% over
+GraphQL. That landed as a wiring change rather than 30 hand-written GraphQL queries, for
+one reason: in `@mysten/sui`, **both** transport clients already implement the entire Core
+API.
+
+- `class SuiGrpcClient extends BaseClient implements SuiClientTypes.TransportMethods` → `core: GrpcCoreClient`
+- `class SuiGraphQLClient extends BaseClient implements SuiClientTypes.TransportMethods` → `core: GraphQLCoreClient`
+
+`GraphQLCoreClient` implements — **at runtime**, verified in
+`node_modules/@mysten/sui/dist/graphql/core.mjs` — `getObjects`, `getObject`,
+`listOwnedObjects`, `listCoins`, `getBalance`, `listBalances`, `getDynamicField`,
+`listDynamicFields`, `getCoinMetadata`, `getTransaction`, `getReferenceGasPrice`,
+`getProtocolConfig`, `getCurrentSystemState`, `getMoveFunction`, `getChainIdentifier`,
+`defaultNameServiceName`, **and `simulateTransaction`** (it runs the GraphQL
+`simulateTransaction` query and does the BCS resolution internally). That is exactly the
+`CORE_METHODS` set in [`../src/datasources/types.ts`](../src/datasources/types.ts).
+
+**Consequence:** correctness parity across transports is free. Every repo read that goes
+through the Core datasource works over GraphQL simply by backing that datasource with
+`graphqlClient.core` instead of a gRPC client — no per-read GraphQL port, and no
+`dryRunTransactionBlock` decoder, since `simulateTransaction` is already a Core method on
+the GraphQL client. The infra was designed for this: `createGrpcDataSource` already took a
+`maxObjectsPerBatch` cap documented as _"Set (to a sub-50 cap) only for the GraphQL
+transport, whose query-payload limit rejects large multiGetObjects requests."_ — that path
+just wasn't wired. GraphQL's **only** differentiator is that a few reads have a
+fewer-call variant via query flexibility (the `GraphQLDataSource` native primitives, §4),
+which is why those stay an optimization layer rather than a correctness requirement.
+
+**Scope:** the on-chain read path **and** simulation (both Core methods → free). Writes /
+signing are always gRPC (`SuiKit` / `builder.executor`). Indexer/API (`api` / `api-first`)
+reads are a separate axis — GraphQL only ever replaces the on-chain leg.
+
+### Fail-loud, reframed
+
+An earlier design framed fail-loud around per-read GraphQL ports ("throw when a read has
+no GraphQL implementation"). With the client-swap approach that mostly dissolves: in
+graphql mode the Core client _is_ GraphQL, so every Core read runs over GraphQL by
+construction and there is nothing to silently fall back to. The residual concern is
+narrower — a repo calling a Core method `GraphQLCoreClient` doesn't implement. Two
+mitigations: the method won't exist on the GraphQL core client, so it surfaces as a clear
+runtime `TypeError`; and `runByReadTransport` keeps its strict-by-transport behavior for
+the optimization layer (§4), where a failing native GraphQL query propagates rather than
+silently degrading to gRPC. An audit of `CORE_METHODS` against `GraphQLCoreClient` shows
+full coverage, including `simulateTransaction`.
+
+### Verified before shipping
+
+- **Method coverage.** Every `CORE_METHODS` entry audited against `graphql/core.mjs`,
+  including the specific option shapes the repos pass (`include: { json: true }` vs `bcs`).
+- **Payload cap.** `maxObjectsPerBatch` is set on the GraphQL-backed Core datasource, so
+  `getObjects` / `listOwnedObjects` batches stay under the ~5000-byte query limit (§3a).
+- **Rate limiting.** The graphql-backed Core path is neither double-limited nor unlimited;
+  both datasources share the resolved `tokensPerSecond` (§3b).
+- **`json` vs `bcs` fidelity.** Repo parsers (`parseObjectAs`, per-domain `utils.ts`)
+  consume the same `json` shape on both transports, validated against real objects —
+  including the nested Move struct / `TypeName` differences `moveTypeMapper` handles.
+- **Writes stay gRPC.** Unchanged write/executor path.
+
+## 9. Known follow-ups
+
+- **Native-query optimizations are opportunistic.** Extending the `GraphQLDataSource`
+  optimization layer (§4–§5) where profiling shows the generic Core path is call-heavy is
+  ongoing, pure perf work — not a correctness gap.
 
 ### Resolved
 
