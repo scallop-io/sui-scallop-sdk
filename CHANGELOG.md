@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.2.1...v5.2.2) (2026-07-31)
+
+### Added
+
+- `legacyUpdateAssetPricesQuick` (tx builder) and `legacyUpdateOracles` (oracle context) — a temporary price-update path against the legacy xOracle + Pyth deployment, for price feeds the new Pyth Core does not yet support. Will be removed once those feeds are supported ([6730c78](https://github.com/scallop-io/sui-scallop-sdk/commit/6730c7805173f125d835f16fa817fb1b9d8298ea))
+
+### Changed
+
+- Pyth price-feed update failures now log at `error` instead of `warn` ([4c692c2](https://github.com/scallop-io/sui-scallop-sdk/commit/4c692c2cfb6039298a8b6e229afeed3ed3de01a6), [23f86d9](https://github.com/scallop-io/sui-scallop-sdk/commit/23f86d90614802e42e3ed92048ee70eca6ad8cf0))
+- xOracle price-update move calls now resolve the xOracle package and object from the address registry, and reference the clock via the transaction block's own clock helper instead of a hand-built shared-object ref ([6730c78](https://github.com/scallop-io/sui-scallop-sdk/commit/6730c7805173f125d835f16fa817fb1b9d8298ea))
+
+### Fixed
+
+- Fetching Pyth price-feed update data through the Scallop indexer threw `TypeError: data.data.replace is not a function` — the indexer returns `data.data` as an array of hex strings, not a single string ([4c692c2](https://github.com/scallop-io/sui-scallop-sdk/commit/4c692c2cfb6039298a8b6e229afeed3ed3de01a6), [23f86d9](https://github.com/scallop-io/sui-scallop-sdk/commit/23f86d90614802e42e3ed92048ee70eca6ad8cf0))
+- The `poolAddresses` market-object schema expected a flat `size` field, but the on-chain `AcTable` nests it under `bag` — causing a parse failure on the market object ([6730c78](https://github.com/scallop-io/sui-scallop-sdk/commit/6730c7805173f125d835f16fa817fb1b9d8298ea))
+
 ## [5.2.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.1.0...v5.2.0) (2026-07-29)
 
 ### Added
