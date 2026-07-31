@@ -67,9 +67,9 @@ const LEGACY_COIN = {
 // Patch core.packages.pyth
 const LEGACY_PYTH_ADAPTER_PACKAGE = {
   pyth: {
-    id: '0x71fddacc6ecf164bd8f6c081092beeef20945c5da2c74e0b9f3e1d3c7003fadd',
+    id: '0x1cf913c825c202cbbb71c378edccb9c04723fa07a73b88677b2ef89c6e203a85',
     object:
-      '0x71fddacc6ecf164bd8f6c081092beeef20945c5da2c74e0b9f3e1d3c7003fadd',
+      '0x1cf913c825c202cbbb71c378edccb9c04723fa07a73b88677b2ef89c6e203a85',
     upgradeCap:
       '0xb1f167889643ff766df31745b6e93b92462d8165b0a4f1b095499e15180370f7',
   },
