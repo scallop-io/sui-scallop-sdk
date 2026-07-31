@@ -40,9 +40,9 @@ await scallopConstants.init();
 const scallopConstants = new ScallopConstants({
   addressId: '695fcdc084f790c04eb068dc',
   defaultValues: {
-    poolAddresses: [DEFAULT_POOL_ADDRESSES],
-    whitelist: [DEFAULT_WHITELIST],
-    addresses: [DEFAULT_ADDRESSES],
+    poolAddresses: DEFAULT_POOL_ADDRESSES,
+    whitelist: DEFAULT_WHITELIST,
+    addresses: { mainnet: DEFAULT_ADDRESSES },
   },
 });
 
@@ -62,7 +62,7 @@ const packagesWhitelist = scallopConstants.whitelist.packages;
 - Get Pool Addresses
 
 ```typescript
-const poolAddresses = scallopConstants.poolAddresses; // Record<poolName, PoolAddress>
+const poolAddresses = scallopConstants.poolAddresses; // Readonly<Record<poolName, PoolAddress | undefined>>
 ```
 
 - Get coin decimals by coin name

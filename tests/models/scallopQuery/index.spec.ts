@@ -29,7 +29,7 @@ describe('ScallopQuery Core read-client wiring', () => {
     // Both `SuiGrpcClient` and `SuiGraphQLClient` implement the full Core
     // `TransportMethods` surface via `.core` (`ClientWithCoreApi`), so on the
     // graphql transport the Core read path is backed by the GraphQL client
-    // itself, not a separate gRPC client (see llm-docs/REPO_GRAPHQL_SUPPORT.md).
+    // itself, not a separate gRPC client (see llm-docs/GRAPHQL_SUPPORT.md §8).
     const query = new ScallopQuery({
       ...baseParams,
       readTransport: 'graphql',

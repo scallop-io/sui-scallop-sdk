@@ -34,7 +34,7 @@ type SuiGrpcTransport = {
  * `SuiGrpcClient` and `SuiGraphQLClient` satisfy `ClientWithCoreApi` and
  * implement the same Core `TransportMethods` (incl. `simulateTransaction`), so
  * swapping the Core client swaps the whole read path, no per-repo GraphQL
- * queries required (see `llm-docs/REPO_GRAPHQL_SUPPORT.md`). `preferGraphql`
+ * queries required (see `llm-docs/GRAPHQL_SUPPORT.md` §8). `preferGraphql`
  * additionally makes the Tier-2 dynamic-field repos (pool addresses, xOracle,
  * veSCA, …) prefer their native fewer-round-trip GraphQL queries over the
  * generic Core path — an optimization, not a correctness requirement.

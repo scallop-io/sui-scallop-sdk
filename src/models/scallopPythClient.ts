@@ -92,7 +92,7 @@ export class ScallopPythClient extends SuiPythClient {
       const { data } = await response.json();
       return [
         Buffer.from(
-          data.data.replace(/^0x/, ''),
+          data.data[0].replace(/^0x/, ''),
           data.encoding as BufferEncoding
         ),
       ];

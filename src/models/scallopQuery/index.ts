@@ -53,7 +53,7 @@ const initReadClients = (args: ScallopQueryConstructorParams) => {
     // `simulateTransaction`. In graphql mode the Core read path is therefore
     // backed by the GraphQL client itself, not a separate gRPC client — full
     // read-transport switchability, not just the opportunistic native-query
-    // optimization. See llm-docs/REPO_GRAPHQL_SUPPORT.md.
+    // optimization. See llm-docs/GRAPHQL_SUPPORT.md §8.
     const graphqlClient =
       args.graphqlClient ??
       new SuiGraphQLClient({

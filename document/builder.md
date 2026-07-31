@@ -4,9 +4,10 @@
 
 ```typescript
 const scallopSDK = new Scallop({
-  addressId: '675c65cd301dd817ea262e76',
+  addressId: '695fcdc084f790c04eb068dc',
   secretKey: process.env.SECRET_KEY,
-  networkType: NETWORK,
+  network: 'mainnet',
+  fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
 });
 const scallopBuilder = await scallopSDK.createScallopBuilder();
 
@@ -164,7 +165,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
 
 ## Organize transactions that interact with spool contract
 
-- Create stake account (To interact with scoin pool, it's required).
+- Create stake account (To interact with spool, it's required).
 
   ```typescript
   const scallopTxBlock = scallopBuilder.createTxBlock();
@@ -200,8 +201,8 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   const scallopTxBlock = scallopBuilder.createTxBlock();
   // Sender is required to invoke "claimQuick".
   scallopTxBlock.setSender(sender);
-  const rewardCoin = await scallopTxBlock.claimQuick('ssui');
-  scallopTxBlock.transferObjects([rewardCoin], sender);
+  const rewardCoins = await scallopTxBlock.claimQuick('ssui');
+  scallopTxBlock.transferObjects(rewardCoins, sender);
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
@@ -219,7 +220,10 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
   */
   const scaAmount = 10e9; // minimum lock amount is 10 SCA
   const lockPeriodInDays = 1;
-  await scallopTxBlock.lockScaQuick(scaAmount, lockPeriodInDays);
+  await scallopTxBlock.lockScaQuick({
+    amountOrCoin: scaAmount,
+    lockPeriodInDays,
+  });
   await scallopBuilder.signAndSendTxBlock(scallopTxBlock);
   ```
 
@@ -301,7 +305,7 @@ const scallopTxBlock = scallopBuilder.createTxBlock();
 
   ```typescript
   const veScaKey = ... // objectId
-  const splitAmount = 10 ** 9; // split amount 1 SCA
+  const splitAmount = '1000000000'; // split amount 1 SCA
 
   // set third param to true to transfer the splitted veScaKey to sender
   await scallopTxBlock.splitVeScaQuick({ splitAmount, veScaKey, transferVeScaKey: true });
