@@ -44,6 +44,18 @@ export type CoreActionContext = {
     selectSCoinOrMarketCoin: ScallopBuilder['selectSCoinOrMarketCoin'];
   };
   oracles: {
+    // @TODO: Temporary code, will be removed once those unsupported price feeds
+    // are supported in the new Pyth Core.
+    legacyUpdateOracles: (
+      txBlock: SuiKitTxBlock,
+      assetCoinNames?: string[],
+      options?: {
+        usePythPullModel?: boolean;
+        useOnChainXOracleList?: boolean;
+        sponsoredFeeds?: string[];
+        isSponsoredTx?: boolean;
+      }
+    ) => Promise<void>;
     updateOracles: (
       txBlock: SuiKitTxBlock,
       assetCoinNames?: string[],

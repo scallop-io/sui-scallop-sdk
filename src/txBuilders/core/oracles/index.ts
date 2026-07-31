@@ -1,12 +1,11 @@
-import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import type { TransactionArgument } from '@mysten/sui/transactions';
 import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
+import { xOracleList as X_ORACLE_LIST } from 'src/constants/index.js';
+import { Logger } from 'src/logger/Logger.js';
 import type { ScallopAddress, ScallopBuilder } from 'src/models/index.js';
 import type { SupportOracleType, xOracleRuleType } from 'src/types/index.js';
-import { xOracleList as X_ORACLE_LIST } from 'src/constants/index.js';
-import type { OracleRuleContext } from './rules/types.js';
 import { buildOracleRuleRegistry } from './rules/registry.js';
-import { Logger } from 'src/logger/Logger.js';
+import type { OracleRuleContext } from './rules/types.js';
 
 /**
  * The toolkit `updateOracles` needs, and nothing more. Built once from `builder`
@@ -40,37 +39,30 @@ export type UpdateOraclesOptions = {
 const priceUpdateRequest = (
   ctx: OracleActionContext,
   txBlock: SuiKitTxBlock,
-  packageId: string,
-  xOracleId: string,
   coinType: string
-): TransactionArgument =>
-  ctx.moveCall(
+): TransactionArgument => {
+  return ctx.moveCall(
     txBlock,
-    `${packageId}::x_oracle::price_update_request`,
-    [xOracleId],
+    `${ctx.address.get('core.packages.xOracle.id')}::x_oracle::price_update_request`,
+    [ctx.address.get('core.oracles.xOracle')],
     [coinType]
   ) as unknown as TransactionArgument;
+};
 
 /** xOracle `confirm_price_update_request` — closes the hot potato. */
 const confirmPriceUpdateRequest = (
   ctx: OracleActionContext,
   txBlock: SuiKitTxBlock,
-  packageId: string,
-  xOracleId: string,
   request: TransactionArgument,
   coinType: string
 ): void => {
   ctx.moveCall(
     txBlock,
-    `${packageId}::x_oracle::confirm_price_update_request`,
+    `${ctx.address.get('core.packages.xOracle.id')}::x_oracle::confirm_price_update_request`,
     [
-      xOracleId,
+      ctx.address.get('core.oracles.xOracle'),
       request,
-      txBlock.sharedObjectRef({
-        objectId: SUI_CLOCK_OBJECT_ID,
-        mutable: false,
-        initialSharedVersion: '1',
-      }),
+      txBlock.txBlock.object.clock(),
     ],
     [coinType]
   );
@@ -146,9 +138,6 @@ export const updateOracles = async (
     });
   }
 
-  const xOraclePackageId = ctx.address.get('core.packages.xOracle.id');
-  const xOracleId = ctx.address.get('core.oracles.xOracle');
-
   for (const coin of updateAssetCoinNames) {
     const rules = xOracleList[coin];
     if (!rules) {
@@ -158,13 +147,7 @@ export const updateOracles = async (
       continue;
     }
     const coinType = ctx.parseCoinType(coin);
-    const request = priceUpdateRequest(
-      ctx,
-      txBlock,
-      xOraclePackageId,
-      xOracleId,
-      coinType
-    );
+    const request = priceUpdateRequest(ctx, txBlock, coinType);
     (['primary', 'secondary'] as xOracleRuleType[]).forEach((ruleType) => {
       for (const provider of rules[ruleType]) {
         registry.get(provider)?.setPrice({
@@ -176,13 +159,6 @@ export const updateOracles = async (
         });
       }
     });
-    confirmPriceUpdateRequest(
-      ctx,
-      txBlock,
-      xOraclePackageId,
-      xOracleId,
-      request,
-      coinType
-    );
+    confirmPriceUpdateRequest(ctx, txBlock, request, coinType);
   }
 };
