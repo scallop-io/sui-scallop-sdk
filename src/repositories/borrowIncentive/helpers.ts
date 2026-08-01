@@ -95,7 +95,6 @@ export const getBorrowIncentivePoolsFromOnChain = async (
   ];
 
   const borrowIncentivePools: BorrowIncentivePools = {};
-
   for (const pool of borrowIncentivePoolsData?.incentive_pools ?? []) {
     const borrowIncentivePoolPoints: OptionalKeys<
       Record<string, BorrowIncentivePoolPoints>
@@ -105,7 +104,7 @@ export const getBorrowIncentivePoolsFromOnChain = async (
       pool
     );
 
-    const poolCoinType = pool.pool_type;
+    const poolCoinType = parsedBorrowIncentivePoolData.poolType;
     const poolCoinName = metadata.parseCoinNameFromType(poolCoinType);
     const poolCoinPrice = coinPrices[poolCoinName] ?? 0;
     const poolCoinDecimal = metadata.getCoinDecimal(poolCoinName);
@@ -160,20 +159,18 @@ export const getBorrowIncentivePoolsFromOnChain = async (
       const isExhausted =
         poolPoint.points <= calculatedPoolPoint.accumulatedPoints;
 
-      if (poolPoint.points > calculatedPoolPoint.accumulatedPoints) {
-        borrowIncentivePoolPoints[coinName] = {
-          symbol,
-          coinName: rewardCoinName,
-          coinType: rewardCoinType,
-          coinDecimal: rewardCoinDecimal,
-          coinPrice: rewardCoinPrice,
-          points: poolPoint.points,
-          distributedPoint: poolPoint.distributedPoint,
-          weightedAmount: poolPoint.weightedAmount,
-          ...calculatedPoolPoint,
-          ...(isExhausted ? { rewardApr: 0 } : {}),
-        };
-      }
+      borrowIncentivePoolPoints[coinName] = {
+        symbol,
+        coinName: rewardCoinName,
+        coinType: rewardCoinType,
+        coinDecimal: rewardCoinDecimal,
+        coinPrice: rewardCoinPrice,
+        points: poolPoint.points,
+        distributedPoint: poolPoint.distributedPoint,
+        weightedAmount: poolPoint.weightedAmount,
+        ...calculatedPoolPoint,
+        ...(isExhausted ? { rewardApr: 0 } : {}),
+      };
     }
 
     const stakedAmount = BigNumber(parsedBorrowIncentivePoolData.staked);

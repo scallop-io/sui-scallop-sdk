@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.2.4...v5.2.5) (2026-08-01)
+
+### Fixed
+
+- The borrow-incentive pool query used the raw on-chain `pool_type` field (which can be an object) instead of the parsed pool type, and silently dropped point updates once a reward campaign was exhausted instead of still emitting the accrued points with a zeroed APR ([c5d68c0](https://github.com/scallop-io/sui-scallop-sdk/commit/c5d68c08584a814158e1266939643c0e8237f9e3))
+
 ## [5.2.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.2.2...v5.2.3) (2026-07-31)
 
 ### Fixed
