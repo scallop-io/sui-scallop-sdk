@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import ScallopConstants from 'src/models/scallopConstants/index.js';
 import { ScallopConfigError } from 'src/errors/index.js';
-import { ADDRESS_INTERFACE, POOL_ADDRESSES, WHITELIST } from './mocks.js';
+import { ADDRESSES, POOL_ADDRESSES, WHITELIST } from './mocks.js';
 
 const queryClientConfig = {
   defaultOptions: {
@@ -14,7 +14,7 @@ describe('ScallopConstants strict-init', () => {
     const constants = new ScallopConstants({
       addressId: '695fcdc084f790c04eb068dc',
       network: 'mainnet',
-      forceAddressesInterface: ADDRESS_INTERFACE,
+      forceAddressesInterface: ADDRESSES,
       forcePoolAddressInterface: POOL_ADDRESSES,
       forceWhitelistInterface: WHITELIST,
       strictInit: true,
@@ -30,7 +30,7 @@ describe('ScallopConstants strict-init', () => {
     const constants = new ScallopConstants({
       addressId: '695fcdc084f790c04eb068dc',
       network: 'mainnet',
-      forceAddressesInterface: ADDRESS_INTERFACE,
+      forceAddressesInterface: ADDRESSES,
       forcePoolAddressInterface: POOL_ADDRESSES,
       forceWhitelistInterface: WHITELIST,
       queryClientConfig,
@@ -51,9 +51,9 @@ describe('ScallopConstants strict-init', () => {
   it('init() throws ScallopConfigError when a required core path is empty', async () => {
     const brokenAddresses = {
       mainnet: {
-        ...ADDRESS_INTERFACE.mainnet,
+        ...ADDRESSES.mainnet,
         core: {
-          ...ADDRESS_INTERFACE.mainnet.core,
+          ...ADDRESSES.mainnet.core,
           market: '',
         },
       },
@@ -86,9 +86,9 @@ describe('ScallopConstants strict-init', () => {
   it('init() does not throw on incomplete config when strictInit is false', async () => {
     const brokenAddresses = {
       mainnet: {
-        ...ADDRESS_INTERFACE.mainnet,
+        ...ADDRESSES.mainnet,
         core: {
-          ...ADDRESS_INTERFACE.mainnet.core,
+          ...ADDRESSES.mainnet.core,
           market: '',
         },
       },
