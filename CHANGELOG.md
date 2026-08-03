@@ -15,7 +15,6 @@ All notable changes to this project will be documented in this file. See [standa
 
 - `getLendings` had no price fallback: any coin Pyth returned as missing or `0` stayed `0`, zeroing that pool's supplied and borrowed values. Missing prices are now backfilled from the indexer ([403eb5d](https://github.com/scallop-io/sui-scallop-sdk/commit/403eb5d125b61799ecedee45c9366b226c2aee2f))
 - Indexer price-fallback failures in `getSCoinSwapRate` were swallowed silently; they now surface through the SDK logger as a warning ([403eb5d](https://github.com/scallop-io/sui-scallop-sdk/commit/403eb5d125b61799ecedee45c9366b226c2aee2f))
-- `parseSCoinType('scasui')` returned `''` instead of the sCoin type. The `/pool/whitelist` endpoint lists that pool's coin name (`scasui`) in its `scoin` set, while the pool addresses, `scoin.coins.*` addresses, and derived `sCoinTypes` all use the real sCoin name `sscasui`. The whitelist is now reconciled against the authoritative `sCoinName` on load — a compatibility shim to be removed once the endpoint is corrected ([274a883](https://github.com/scallop-io/sui-scallop-sdk/commit/274a883afd2bd3f0c15eaf14161aa604f8a7c31b))
 
 ## [5.2.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.2.4...v5.2.5) (2026-08-01)
 
