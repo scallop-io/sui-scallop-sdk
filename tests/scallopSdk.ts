@@ -12,8 +12,6 @@ export const scallopSDK = new Scallop({
   forceAddressesInterface: ADDRESSES,
   forcePoolAddressInterface: POOL_ADDRESSES,
   forceWhitelistInterface: WHITELIST,
-  // pythEndpoints: ['https://pyth.dourolabs.app/hermes'],
-  pythEndpoints: ['https://hermes.pyth.network'],
   fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
   readTransport: 'grpc',
   queryClientConfig: {
@@ -33,7 +31,6 @@ export const graphQLScallopSDK = new Scallop({
   forceAddressesInterface: ADDRESSES,
   forcePoolAddressInterface: POOL_ADDRESSES,
   forceWhitelistInterface: WHITELIST,
-  pythEndpoints: ['https://hermes.pyth.network'],
   readTransport: 'graphql',
   fullnodeUrl: 'https://fullnode.mainnet.sui.io:443',
   graphqlUrl: 'https://graphql.mainnet.sui.io/graphql',
