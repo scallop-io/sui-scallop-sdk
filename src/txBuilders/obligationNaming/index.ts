@@ -1,6 +1,7 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models/index.js';
+import type { ReadTransport } from 'src/models/index.js';
 import { ObligationNamingTxBlock, ScallopTxBlock } from 'src/types/index.js';
 import { generateObligationNamingNormalMethod } from './moveCalls.js';
 import type { MoveCallContext } from '../context.js';
@@ -13,7 +14,7 @@ import type { MoveCallContext } from '../context.js';
  * @return Scallop obligation naming txBlock.
  */
 export const newObligationNamingTxBlock = (
-  builder: ScallopBuilder,
+  builder: ScallopBuilder<ReadTransport>,
   initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ) => {
   const txBlock =

@@ -4,7 +4,7 @@ import { newCoreTxBlock } from './core/index.js';
 import { newSpoolTxBlock } from './spool/index.js';
 import { newBorrowIncentiveTxBlock } from './borrowIncentive/index.js';
 import { newVeScaTxBlock } from './vesca/index.js';
-import type { ScallopBuilder } from 'src/models/index.js';
+import type { ReadTransport, ScallopBuilder } from 'src/models/index.js';
 import type { ScallopTxBlock, ScallopTxBlockModules } from 'src/types/index.js';
 import { newReferralTxBlock } from './referral/index.js';
 import { newLoyaltyProgramTxBlock } from './loyaltyProgram/index.js';
@@ -27,7 +27,7 @@ import { buildTxBlockModules, TX_BLOCK_MODULE_KEYS } from './modules.js';
  * @return ScallopTxBlock.
  */
 export const newScallopTxBlock = (
-  builder: ScallopBuilder,
+  builder: ScallopBuilder<ReadTransport>,
   initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ): ScallopTxBlock => {
   const obligationNamingTxBlock = newObligationNamingTxBlock(
@@ -68,6 +68,7 @@ export const newScallopTxBlock = (
 
   const modules = buildTxBlockModules(composed);
   const moduleKeySet = new Set<PropertyKey>(TX_BLOCK_MODULE_KEYS);
+  composed.setSenderIfNotSet(builder.walletAddress);
 
   return new Proxy(composed, {
     get: (target, prop) => {

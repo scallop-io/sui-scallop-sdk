@@ -1,6 +1,9 @@
 import { SuiKitParams } from '@scallop-io/sui-kit';
 import ScallopQuery from '../scallopQuery/index.js';
-import { ScallopQueryConstructorParams } from '../scallopQuery/types.js';
+import type {
+  ReadTransport,
+  ScallopQueryConstructorParams,
+} from '../scallopQuery/types.js';
 import type { DistributiveOmit, DistributiveMerge } from 'src/types/utils.js';
 
 // `DistributiveOmit` (not plain `Omit`) is load-bearing: plain `Omit` over the
@@ -12,7 +15,7 @@ import type { DistributiveOmit, DistributiveMerge } from 'src/types/utils.js';
 type ScallopBuilderBaseParams = DistributiveMerge<
   DistributiveOmit<ScallopQueryConstructorParams, 'walletAddress'>,
   {
-    query?: ScallopQuery;
+    query?: ScallopQuery<ReadTransport>;
     usePythPullModel?: boolean;
     sponsoredFeeds?: string[];
     useOnChainXOracleList?: boolean;
@@ -21,7 +24,7 @@ type ScallopBuilderBaseParams = DistributiveMerge<
 
 type ScallopBuilderWithQuery = DistributiveMerge<
   ScallopBuilderBaseParams,
-  { query: ScallopQuery; walletAddress?: string }
+  { query: ScallopQuery<ReadTransport>; walletAddress?: string }
 >;
 
 type ScallopBuilderWithWalletAddress = DistributiveMerge<
@@ -44,3 +47,14 @@ export type ScallopBuilderConstructorParams =
   | ScallopBuilderWithWalletAddress
   | ScallopBuilderWithSecretKey
   | ScallopBuilderWithMnemonics;
+
+/**
+ * Builder params carrying the `readTransport` inference site (see
+ * `ScallopQueryParamsFor`). An injected `query` is a second site, so
+ * `new ScallopBuilder({ query: graphqlQuery })` infers `'graphql'` too.
+ */
+export type ScallopBuilderParamsFor<T extends ReadTransport> =
+  DistributiveMerge<
+    ScallopBuilderConstructorParams,
+    { readTransport?: T; query?: ScallopQuery<T> }
+  >;

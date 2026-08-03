@@ -35,7 +35,12 @@ import {
 } from 'src/types/index.js';
 import { ScallopQueryInterface } from '../interface.js';
 import ScallopUtils from '../scallopUtils/index.js';
-import { ScallopQueryConstructorParams } from './types.js';
+import {
+  type CoreClientFor,
+  type ReadTransport,
+  ScallopQueryConstructorParams,
+  type ScallopQueryParamsFor,
+} from './types.js';
 import { pickRecord } from './utils.js';
 
 export type {
@@ -80,14 +85,25 @@ const initReadClients = (args: ScallopQueryConstructorParams) => {
   }
 };
 
-class ScallopQuery implements ScallopQueryInterface {
+/**
+ * `T` is inferred from the `readTransport` literal passed to the constructor
+ * (omitted ⇒ `'grpc'`, the runtime default), so `coreClient` comes back as the
+ * concrete client for the selected transport instead of the union. Annotating a
+ * transport-agnostic reference needs the explicit `ScallopQuery<ReadTransport>`.
+ */
+class ScallopQuery<
+  T extends ReadTransport = 'grpc',
+> implements ScallopQueryInterface {
   public readonly utils: ScallopUtils;
   public readonly repos: Repositories;
-  public readonly coreClient: SuiGrpcClient | SuiGraphQLClient;
+  public readonly coreClient: CoreClientFor<T>;
 
-  constructor({ utils, ...args }: ScallopQueryConstructorParams) {
+  constructor({ utils, ...args }: ScallopQueryParamsFor<T>) {
     const { core, graphql } = initReadClients(args);
-    this.coreClient = core;
+    // Cast: `initReadClients` picks the client from the runtime `readTransport`,
+    // which is the same value `T` was inferred from — a correspondence the
+    // compiler cannot follow through the branch.
+    this.coreClient = core as CoreClientFor<T>;
     this.utils =
       utils ??
       new ScallopUtils({

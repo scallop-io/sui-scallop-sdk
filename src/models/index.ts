@@ -8,3 +8,4 @@ export { default as ScallopUtils } from './scallopUtils/index.js';
 export { SuiKitTransactionExecutor } from './transactionExecutor.js';
 export { ScallopPythClient } from './scallopPythClient.js';
 export type { TransactionExecutor } from './transactionExecutor.js';
+export type { ReadTransport } from './scallopQuery/types.js';

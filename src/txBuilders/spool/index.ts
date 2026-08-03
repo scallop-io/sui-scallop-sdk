@@ -2,7 +2,7 @@ import { Transaction } from '@mysten/sui/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { generateSpoolNormalMethod } from './moveCalls.js';
 import { generateSpoolQuickMethod } from './quick.js';
-import type { ScallopBuilder } from 'src/models/index.js';
+import type { ReadTransport, ScallopBuilder } from 'src/models/index.js';
 import type {
   SuiTxBlockWithSpoolNormalMethods,
   SpoolTxBlock,
@@ -20,7 +20,7 @@ import type { MoveCallContext } from '../context.js';
  * @return Scallop spool txBlock.
  */
 export const newSpoolTxBlock = (
-  builder: ScallopBuilder,
+  builder: ScallopBuilder<ReadTransport>,
   initTxBlock?:
     | ScallopTxBlock
     | SuiKitTxBlock

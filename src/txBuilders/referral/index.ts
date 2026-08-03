@@ -1,4 +1,5 @@
 import { ScallopBuilder } from 'src/models/index.js';
+import type { ReadTransport } from 'src/models/index.js';
 import { ScallopTxBlock } from 'src/types/index.js';
 import { SuiTxBlock as SuiKitTxBlock, Transaction } from '@scallop-io/sui-kit';
 import {
@@ -20,7 +21,7 @@ import type { MoveCallContext } from '../context.js';
  * @return Scallop referral txBlock.
  */
 export const newReferralTxBlock = (
-  builder: ScallopBuilder,
+  builder: ScallopBuilder<ReadTransport>,
   initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ) => {
   const txBlock =
