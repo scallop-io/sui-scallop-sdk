@@ -1,6 +1,7 @@
 import { SuiClientTypes } from '@mysten/sui/client';
 import ScallopBuilder from '../scallopBuilder/index.js';
 import { ScallopBuilderConstructorParams } from '../scallopBuilder/types.js';
+import type { ReadTransport } from '../scallopQuery/types.js';
 import { Transaction, TransactionResult } from '@mysten/sui/transactions';
 import { DefaultTxInclude } from '../transactionExecutor.js';
 import type { DistributiveMerge } from 'src/types/utils.js';
@@ -11,8 +12,17 @@ export type ScallopClientConstructorParams = DistributiveMerge<
   ScallopBuilderConstructorParams,
   {
     networkType?: SuiClientTypes.Network;
-    builder?: ScallopBuilder;
+    builder?: ScallopBuilder<ReadTransport>;
   }
+>;
+
+/**
+ * Client params carrying the `readTransport` inference site (see
+ * `ScallopQueryParamsFor`). An injected `builder` narrows `T` as well.
+ */
+export type ScallopClientParamsFor<T extends ReadTransport> = DistributiveMerge<
+  ScallopClientConstructorParams,
+  { readTransport?: T; builder?: ScallopBuilder<T> }
 >;
 
 export type ScallopClientFnReturnType<

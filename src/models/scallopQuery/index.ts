@@ -35,7 +35,12 @@ import {
 } from 'src/types/index.js';
 import { ScallopQueryInterface } from '../interface.js';
 import ScallopUtils from '../scallopUtils/index.js';
-import { ScallopQueryConstructorParams } from './types.js';
+import {
+  type CoreClientFor,
+  type ReadTransport,
+  ScallopQueryConstructorParams,
+  type ScallopQueryParamsFor,
+} from './types.js';
 import { pickRecord } from './utils.js';
 
 export type {
@@ -80,14 +85,25 @@ const initReadClients = (args: ScallopQueryConstructorParams) => {
   }
 };
 
-class ScallopQuery implements ScallopQueryInterface {
+/**
+ * `T` is inferred from the `readTransport` literal passed to the constructor
+ * (omitted ⇒ `'grpc'`, the runtime default), so `coreClient` comes back as the
+ * concrete client for the selected transport instead of the union. Annotating a
+ * transport-agnostic reference needs the explicit `ScallopQuery<ReadTransport>`.
+ */
+class ScallopQuery<
+  T extends ReadTransport = 'grpc',
+> implements ScallopQueryInterface {
   public readonly utils: ScallopUtils;
   public readonly repos: Repositories;
-  public readonly coreClient: SuiGrpcClient | SuiGraphQLClient;
+  public readonly coreClient: CoreClientFor<T>;
 
-  constructor({ utils, ...args }: ScallopQueryConstructorParams) {
+  constructor({ utils, ...args }: ScallopQueryParamsFor<T>) {
     const { core, graphql } = initReadClients(args);
-    this.coreClient = core;
+    // Cast: `initReadClients` picks the client from the runtime `readTransport`,
+    // which is the same value `T` was inferred from — a correspondence the
+    // compiler cannot follow through the branch.
+    this.coreClient = core as CoreClientFor<T>;
     this.utils =
       utils ??
       new ScallopUtils({
@@ -555,15 +571,21 @@ class ScallopQuery implements ScallopQueryInterface {
     return this.repos.spool.getSpoolRewardPool(stakeMarketCoinName);
   }
 
+  /**
+   * The coin set the price getters default to when no `coinNames` is given:
+   * every lending and collateral coin in the whitelist, deduplicated.
+   */
+  private defaultPriceCoinNames() {
+    return Array.from(
+      new Set([
+        ...this.constants.whitelist.lending,
+        ...this.constants.whitelist.collateral,
+      ]).values()
+    );
+  }
+
   async getPythCoinPrices(args?: { coinNames?: string[] }) {
-    const coinNames =
-      args?.coinNames ??
-      Array.from(
-        new Set([
-          ...this.constants.whitelist.lending,
-          ...this.constants.whitelist.collateral,
-        ]).values()
-      );
+    const coinNames = args?.coinNames ?? this.defaultPriceCoinNames();
 
     return this.repos.price.getPricesFromPyth({
       coinNames,
@@ -577,14 +599,7 @@ class ScallopQuery implements ScallopQueryInterface {
   }
 
   async getIndexerCoinPrices(args?: { coinNames?: string[] }) {
-    const coinNames =
-      args?.coinNames ??
-      Array.from(
-        new Set([
-          ...this.constants.whitelist.lending,
-          ...this.constants.whitelist.collateral,
-        ]).values()
-      );
+    const coinNames = args?.coinNames ?? this.defaultPriceCoinNames();
 
     return this.repos.price.getPricesFromIndexer({
       coinNames,
@@ -594,6 +609,46 @@ class ScallopQuery implements ScallopQueryInterface {
   async getIndexerCoinPrice(coinName: string) {
     const prices = await this.getIndexerCoinPrices({ coinNames: [coinName] });
     return prices[coinName];
+  }
+
+  /**
+   * Get coin prices with source priority.
+   *
+   * @description
+   * When the caller asks for the indexer (`indexer: true`, or the legacy
+   * `source: 'indexer' | 'indexer-first'`), use indexer prices only. Otherwise
+   * prefer Pyth (API, with its own per-coin on-chain fallback baked in), then
+   * fall back to indexer prices for any coin still missing afterwards.
+   *
+   * NOTE: the indexer fallback only covers coins that have a lending pool —
+   * `getPricesFromIndexer` derives prices from the markets payload's `pools`,
+   * so a collateral-only coin that Pyth misses stays missing.
+   */
+  private async getCoinPricesWithFallback(
+    args?: { coinNames?: string[] } & QueryOptions
+  ) {
+    const preferIndexer =
+      args?.indexer ??
+      (args?.source === 'indexer' || args?.source === 'indexer-first');
+    if (preferIndexer) {
+      return this.getIndexerCoinPrices({ coinNames: args?.coinNames });
+    }
+
+    const prices = await this.getPythCoinPrices({ coinNames: args?.coinNames });
+    const coinNames = args?.coinNames ?? this.defaultPriceCoinNames();
+    const missing = coinNames.filter((coinName) => !prices[coinName]);
+    if (missing.length === 0) return prices;
+
+    const indexerPrices = await this.getIndexerCoinPrices({
+      coinNames: missing,
+    }).catch((e) => {
+      this.logger.warn('indexer fallback for missing pyth prices failed', {
+        missing,
+        message: (e as Error)?.message,
+      });
+      return {};
+    });
+    return { ...prices, ...indexerPrices };
   }
 
   /**
@@ -662,7 +717,11 @@ class ScallopQuery implements ScallopQueryInterface {
 
     const coinPrices =
       args?.coinPrices ??
-      (await this.getPythCoinPrices({ coinNames: names })) ??
+      (await this.getCoinPricesWithFallback({
+        coinNames: names,
+        source: args?.source,
+        indexer: args?.indexer,
+      })) ??
       {};
 
     const marketPools =
@@ -1040,7 +1099,7 @@ class ScallopQuery implements ScallopQueryInterface {
    * @return Total value locked.
    */
   async getTvl(args?: QueryOptions) {
-    const coinPrices = await this.getIndexerCoinPrices();
+    const coinPrices = await this.getCoinPricesWithFallback(args);
     return this.repos.market.getTvl({
       source: fromQueryOptions(args),
       coinPrices,
@@ -1218,16 +1277,9 @@ class ScallopQuery implements ScallopQueryInterface {
     const sCoinAToARate = fromPool.conversionRate;
     const bToSCoinBRate = 1 / toPool.conversionRate;
 
-    let prices = await this.getPythCoinPrices();
-    if (
-      !prices[fromCoinName] ||
-      !prices[toCoinName] ||
-      prices[fromCoinName] === 0 ||
-      prices[toCoinName] === 0
-    ) {
-      const indexerPrices = await this.getIndexerCoinPrices().catch(() => ({}));
-      prices = { ...prices, ...indexerPrices };
-    }
+    const prices = await this.getCoinPricesWithFallback({
+      coinNames: [fromCoinName, toCoinName],
+    });
     if (!prices[fromCoinName] || !prices[toCoinName]) {
       throw new ScallopParseError('Failed to fetch the coin prices');
     }
@@ -1310,10 +1362,7 @@ class ScallopQuery implements ScallopQueryInterface {
   }) {
     const indexer = args?.indexer ?? false;
     const coinPrices =
-      args?.coinPrices ??
-      (indexer
-        ? await this.getIndexerCoinPrices()
-        : await this.getPythCoinPrices());
+      args?.coinPrices ?? (await this.getCoinPricesWithFallback({ indexer }));
     const marketPools =
       args?.marketPools ??
       (await this.getMarketPools(undefined, { coinPrices, indexer })).pools;

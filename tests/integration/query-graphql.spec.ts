@@ -16,7 +16,7 @@ const VE_SCA_KEY =
 const obligationId =
   '0x98bcdfb4bf5ced4ebe8a490f9dc19f67ecf9bbe2a76b71d8400e344306deed42';
 // make sure you test with an account that has binded obligationId to a veScaKey
-let scallopQuery: ScallopQuery;
+let scallopQuery: ScallopQuery<'graphql'>;
 let sender: string;
 
 beforeAll(async () => {

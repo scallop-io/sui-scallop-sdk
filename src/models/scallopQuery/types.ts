@@ -6,6 +6,20 @@ import type { DistributiveMerge } from 'src/types/utils.js';
 import ScallopUtils from '../scallopUtils/index.js';
 import { Logger } from 'src/logger/Logger.js';
 
+/** The read transports `readTransport` may select. */
+export type ReadTransport = 'grpc' | 'graphql';
+
+/**
+ * The Core client backing a given read transport. Callers that construct with a
+ * literal `readTransport` (or omit it, i.e. gRPC) get the concrete client back
+ * from `coreClient`; when the transport is only known as the full union — e.g.
+ * params built dynamically — this distributes and degrades to the union, which
+ * is exactly the pre-generic behavior.
+ */
+export type CoreClientFor<T extends ReadTransport> = T extends 'graphql'
+  ? SuiGraphQLClient
+  : SuiGrpcClient;
+
 /**
  * gRPC read transport (the default). Core reads and **all writes** go over gRPC
  * via `fullnodeUrl` (or an injected `suiClient`). `readTransport` may be omitted
@@ -96,4 +110,15 @@ export type ScallopQueryConstructorParams = DistributiveMerge<
   ScallopQueryBaseParams &
     Omit<ScallopUtilsConstructorParams, 'coreClient'> &
     Partial<Pick<ScallopUtilsConstructorParams, 'coreClient'>>
+>;
+
+/**
+ * `ScallopQueryConstructorParams` carrying the inference site that recovers the
+ * `readTransport` literal as `T`. Merged distributively — a plain `params & {…}`
+ * intersection is not assignable to the distributed form, so every position that
+ * names these params must go through this alias to stay compatible.
+ */
+export type ScallopQueryParamsFor<T extends ReadTransport> = DistributiveMerge<
+  ScallopQueryConstructorParams,
+  { readTransport?: T }
 >;

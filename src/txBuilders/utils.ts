@@ -1,9 +1,10 @@
 import { SuiObjectArg } from '@scallop-io/sui-kit';
 import { ScallopParseError } from 'src/errors/ScallopParseError.js';
 import ScallopBuilder from 'src/models/scallopBuilder/index.js';
+import type { ReadTransport } from 'src/models/scallopQuery/types.js';
 
 export const getObligationCoinNames = async (
-  builder: ScallopBuilder,
+  builder: ScallopBuilder<ReadTransport>,
   obligationId: SuiObjectArg
 ) => {
   const id =

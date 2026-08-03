@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.2.5...v5.2.6) (2026-08-03)
+
+### Changed
+
+- **Breaking (types only):** `ScallopQuery`, `ScallopBuilder`, `ScallopClient`, and `Scallop` are now generic over the read transport and default to `'grpc'`, so `coreClient` resolves to the concrete `SuiGrpcClient` or `SuiGraphQLClient` for the configured `readTransport` instead of the union of both. This makes generic-signature Core methods such as `simulateTransaction` callable without narrowing. Runtime behavior is unchanged; code that annotates a GraphQL instance with a bare `ScallopQuery` / `ScallopBuilder` / `ScallopClient` must now write `ScallopQuery<'graphql'>` or the transport-agnostic `ScallopQuery<ReadTransport>` (`ReadTransport` is exported from the package root) ([4e83cee](https://github.com/scallop-io/sui-scallop-sdk/commit/4e83cee065927844c9816f154128458f4225bc29))
+
+- `getTvl` now prices the TVL calculation from Pyth (with the built-in per-coin on-chain fallback, then the indexer for anything still missing) instead of always reading indexer prices — reported TVL values may differ from previous releases. Passing `indexer: true` (or `source: 'indexer'` / `'indexer-first'`) still reads indexer prices only ([403eb5d](https://github.com/scallop-io/sui-scallop-sdk/commit/403eb5d125b61799ecedee45c9366b226c2aee2f))
+- `getAllCoinPrices`, `getLendings`, and `getSCoinSwapRate` now resolve coin prices through one shared chain — Pyth API, then the on-chain feed, then the indexer — and honor the legacy `source: 'indexer' | 'indexer-first'` option, which previously left price reads on Pyth while routing market data to the indexer ([403eb5d](https://github.com/scallop-io/sui-scallop-sdk/commit/403eb5d125b61799ecedee45c9366b226c2aee2f))
+
+### Fixed
+
+- `getLendings` had no price fallback: any coin Pyth returned as missing or `0` stayed `0`, zeroing that pool's supplied and borrowed values. Missing prices are now backfilled from the indexer ([403eb5d](https://github.com/scallop-io/sui-scallop-sdk/commit/403eb5d125b61799ecedee45c9366b226c2aee2f))
+- Indexer price-fallback failures in `getSCoinSwapRate` were swallowed silently; they now surface through the SDK logger as a warning ([403eb5d](https://github.com/scallop-io/sui-scallop-sdk/commit/403eb5d125b61799ecedee45c9366b226c2aee2f))
+
 ## [5.2.5](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.2.4...v5.2.5) (2026-08-01)
 
 ### Fixed

@@ -1,5 +1,9 @@
 import ScallopClient from './scallopClient/index.js';
-import { ScallopClientConstructorParams } from './scallopClient/types.js';
+import {
+  ScallopClientConstructorParams,
+  type ScallopClientParamsFor,
+} from './scallopClient/types.js';
+import type { ReadTransport } from './scallopQuery/types.js';
 import type { DistributiveMerge } from 'src/types/utils.js';
 /**
  * @argument params - The parameters for the Scallop instance.
@@ -24,16 +28,29 @@ import type { DistributiveMerge } from 'src/types/utils.js';
 export type ScallopConstructorParams = DistributiveMerge<
   ScallopClientConstructorParams,
   {
-    client?: ScallopClient;
+    client?: ScallopClient<ReadTransport>;
   }
 >;
-class Scallop {
-  public readonly client: ScallopClient;
-  public constructor({
-    client,
-    ...scallopClientArgs
-  }: ScallopConstructorParams) {
-    this.client = client ?? new ScallopClient(scallopClientArgs);
+
+/** `ScallopConstructorParams` carrying the `readTransport` inference site. */
+type ScallopParamsFor<T extends ReadTransport> = DistributiveMerge<
+  ScallopConstructorParams,
+  { readTransport?: T; client?: ScallopClient<T> }
+>;
+
+/**
+ * `T` is inferred from `readTransport` (omitted ⇒ `'grpc'`), so everything the
+ * factory methods hand back — down to `coreClient` — is typed for the transport
+ * this instance was configured with.
+ */
+class Scallop<T extends ReadTransport = 'grpc'> {
+  public readonly client: ScallopClient<T>;
+  public constructor({ client, ...scallopClientArgs }: ScallopParamsFor<T>) {
+    // Cast: the object rest above widens the `readTransport` discriminant — see
+    // the matching note in `ScallopClient`.
+    this.client =
+      client ??
+      new ScallopClient(scallopClientArgs as ScallopClientParamsFor<T>);
   }
 
   async init(force: boolean = false) {

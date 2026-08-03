@@ -1,6 +1,6 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import type { ScallopBuilder } from 'src/models/index.js';
+import type { ReadTransport, ScallopBuilder } from 'src/models/index.js';
 import type {
   SuiTxBlockWithCoreNormalMethods,
   CoreTxBlock,
@@ -83,7 +83,7 @@ const LEGACY_PYTH_ADAPTER_PACKAGE = {
  * @return Scallop core txBlock.
  */
 export const newCoreTxBlock = (
-  builder: ScallopBuilder,
+  builder: ScallopBuilder<ReadTransport>,
   initTxBlock?:
     | ScallopTxBlock
     | SuiKitTxBlock

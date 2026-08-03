@@ -31,11 +31,20 @@ import type {
   ObligationAccount,
 } from 'src/types/index.js';
 
-/** Awaited return type of a `ScallopQuery` method, with `undefined` stripped. */
+/**
+ * Awaited return type of a `ScallopQuery` method, with `undefined` stripped.
+ * `Extract` (not a bare `ScallopQuery[M]`) because `ScallopQuery` is generic
+ * over its read transport: the indexed access stays deferred, so the outer
+ * `extends` check no longer proves callability to `ReturnType`.
+ */
 type Result<M extends keyof ScallopQuery> = ScallopQuery[M] extends (
   ...args: never[]
 ) => unknown
-  ? NonNullable<Awaited<ReturnType<ScallopQuery[M]>>>
+  ? NonNullable<
+      Awaited<
+        ReturnType<Extract<ScallopQuery[M], (...args: never[]) => unknown>>
+      >
+    >
   : never;
 
 // These are compile-time assertions; the bodies are erased at runtime. They are

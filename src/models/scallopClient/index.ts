@@ -15,9 +15,11 @@ import {
 import type { ScallopTxBlock } from '../../types/index.js';
 import { ScallopClientInterface } from '../interface.js';
 import ScallopBuilder from '../scallopBuilder/index.js';
+import type { ReadTransport } from '../scallopQuery/types.js';
+import type { ScallopBuilderParamsFor } from '../scallopBuilder/types.js';
 import {
-  ScallopClientConstructorParams,
   ScallopClientFnReturnType,
+  type ScallopClientParamsFor,
   ScallopClientVeScaReturnType,
 } from './types.js';
 
@@ -33,8 +35,10 @@ import {
  * await scallopClient.<client async functions>();
  * ```
  */
-class ScallopClient implements ScallopClientInterface {
-  public readonly builder: ScallopBuilder;
+class ScallopClient<
+  T extends ReadTransport = 'grpc',
+> implements ScallopClientInterface {
+  public readonly builder: ScallopBuilder<T>;
   public readonly collateralService: CollateralService;
   public readonly lendingService: LendingService;
   public readonly borrowService: BorrowService;
@@ -47,8 +51,13 @@ class ScallopClient implements ScallopClientInterface {
     builder,
     networkType,
     ...scallopBuilderArgs
-  }: ScallopClientConstructorParams) {
-    this.builder = builder ?? new ScallopBuilder(scallopBuilderArgs);
+  }: ScallopClientParamsFor<T>) {
+    // Cast: the object rest above widens the `readTransport` discriminant, so
+    // TS can no longer match the params against the transport union even though
+    // `T` was inferred from that same literal. Same reason as `ScallopQuery`.
+    this.builder =
+      builder ??
+      new ScallopBuilder(scallopBuilderArgs as ScallopBuilderParamsFor<T>);
     this.collateralService = new CollateralService(this);
     this.lendingService = new LendingService(this);
     this.borrowService = new BorrowService(this);

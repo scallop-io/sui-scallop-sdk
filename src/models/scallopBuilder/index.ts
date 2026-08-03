@@ -18,8 +18,11 @@ import {
   TransactionExecutor,
 } from '../transactionExecutor.js';
 import ScallopQuery from '../scallopQuery/index.js';
-import type { ScallopQueryConstructorParams } from '../scallopQuery/types.js';
-import { ScallopBuilderConstructorParams } from './types.js';
+import type {
+  ReadTransport,
+  ScallopQueryParamsFor,
+} from '../scallopQuery/types.js';
+import type { ScallopBuilderParamsFor } from './types.js';
 import { DEFAULT_PYTH_URL } from 'src/repositories/price/const.js';
 import { coinWithBalance } from '@mysten/sui/transactions';
 /**
@@ -33,8 +36,10 @@ import { coinWithBalance } from '@mysten/sui/transactions';
  * const txBlock = scallopBuilder.<builder functions>();
  * ```
  */
-class ScallopBuilder implements ScallopBuilderInterface {
-  public readonly query: ScallopQuery;
+class ScallopBuilder<
+  T extends ReadTransport = 'grpc',
+> implements ScallopBuilderInterface {
+  public readonly query: ScallopQuery<T>;
   public readonly usePythPullModel: boolean;
   public readonly useOnChainXOracleList: boolean;
   public readonly sponsoredFeeds: string[];
@@ -51,7 +56,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
     pythEndpoints,
     pythEndpoint = pythEndpoints?.[0] ?? DEFAULT_PYTH_URL,
     ...scallopQueryArgs
-  }: ScallopBuilderConstructorParams) {
+  }: ScallopBuilderParamsFor<T>) {
     this.pythEndpoint = pythEndpoint;
     this.suiKit = new SuiKit({
       ...scallopQueryArgs,
@@ -69,7 +74,7 @@ class ScallopBuilder implements ScallopBuilderInterface {
         pythEndpoint,
         walletAddress:
           scallopQueryArgs.walletAddress ?? this.suiKit.currentAddress,
-      } as ScallopQueryConstructorParams);
+      } as ScallopQueryParamsFor<T>);
     this.usePythPullModel = usePythPullModel;
     this.useOnChainXOracleList = useOnChainXOracleList;
     this.sponsoredFeeds = sponsoredFeeds;

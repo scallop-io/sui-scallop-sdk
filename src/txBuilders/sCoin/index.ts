@@ -1,5 +1,6 @@
 import { Transaction, SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models/index.js';
+import type { ReadTransport } from 'src/models/index.js';
 import {
   BaseScallopTxBlock,
   SCoinTxBlock,
@@ -12,7 +13,7 @@ import type { MoveCallContext } from '../context.js';
 import type { SCoinActionContext } from 'src/types/index.js';
 
 export const newSCoinTxBlock = (
-  builder: ScallopBuilder,
+  builder: ScallopBuilder<ReadTransport>,
   initTxBlock?:
     | ScallopTxBlock
     | SuiKitTxBlock

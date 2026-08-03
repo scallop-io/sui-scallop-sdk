@@ -1,6 +1,6 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import type { ScallopBuilder } from 'src/models/index.js';
+import type { ReadTransport, ScallopBuilder } from 'src/models/index.js';
 import type {
   SuiTxBlockWithBorrowIncentiveNormalMethods,
   BorrowIncentiveTxBlock,
@@ -21,7 +21,7 @@ import type { MoveCallContext } from '../context.js';
  * @return Scallop borrow incentive txBlock.
  */
 export const newBorrowIncentiveTxBlock = (
-  builder: ScallopBuilder,
+  builder: ScallopBuilder<ReadTransport>,
   initTxBlock?: ScallopTxBlock | SuiKitTxBlock | Transaction
 ) => {
   const txBlock =

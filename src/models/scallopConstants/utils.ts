@@ -56,6 +56,30 @@ const parseWhitelistParams = (
   return freezeWhitelist(merged);
 };
 
+/**
+ * Compatibility shim for bad `/pool/whitelist` data — NOT a general rule.
+ *
+ * The endpoint currently returns the pool's *coin* name in the `scoin` set for
+ * `scasui`, whose sCoin is really `sscasui`. Everything else — pool addresses,
+ * `scoin.coins.*` addresses, the derived `sCoinTypes` — already says `sscasui`,
+ * so the whitelist is the single wrong copy and `parseSCoinType('scasui')`
+ * misses. Rewrite those entries from the authoritative `sCoinName` on the pool
+ * address so the whitelist agrees with the rest of the snapshot.
+ *
+ * Delete this once `/pool/whitelist` emits `sscasui`; it exists only to keep
+ * the SDK working against the endpoint as it is deployed today.
+ */
+const normalizeSCoinWhitelist = (
+  whitelist: Whitelist,
+  poolAddresses: Record<string, PoolAddress | undefined>
+): Whitelist => {
+  const scoin = [...whitelist.scoin].map(
+    (name) => poolAddresses[name]?.sCoinName ?? name
+  );
+  if (scoin.every((name) => whitelist.scoin.has(name))) return whitelist;
+  return freezeWhitelist({ ...whitelist, scoin: new Set(scoin) });
+};
+
 const isEmptyObject = (obj: object) => {
   return Object.keys(obj).length === 0;
 };
@@ -65,5 +89,6 @@ export {
   freezeWhitelist,
   freezePoolAddresses,
   parseWhitelistParams,
+  normalizeSCoinWhitelist,
   isEmptyObject,
 };
