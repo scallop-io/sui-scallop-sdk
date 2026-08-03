@@ -6,6 +6,7 @@ import type { Whitelist } from './types.js';
 import {
   freezePoolAddresses,
   freezeWhitelist,
+  normalizeSCoinWhitelist,
   parseWhitelistParams,
 } from './utils.js';
 
@@ -110,11 +111,21 @@ export const loadConstantsState = async ({
     whitelist = parseWhitelistParams(overrides.forceWhitelistInterface);
   }
 
-  const derive = () =>
-    deriveConstants({ poolAddresses, whitelist, parseToOldMarketCoin });
+  const finalize = (): ConstantsState => {
+    const normalized = normalizeSCoinWhitelist(whitelist, poolAddresses);
+    return {
+      whitelist: normalized,
+      poolAddresses,
+      derived: deriveConstants({
+        poolAddresses,
+        whitelist: normalized,
+        parseToOldMarketCoin,
+      }),
+    };
+  };
 
   if (isInitialized(source, network, whitelist, poolAddresses) && !force) {
-    return { whitelist, poolAddresses, derived: derive() };
+    return finalize();
   }
 
   const [whitelistResponse, poolAddressesResponse] = await Promise.all([
@@ -131,5 +142,5 @@ export const loadConstantsState = async ({
     );
   }
 
-  return { whitelist, poolAddresses, derived: derive() };
+  return finalize();
 };
