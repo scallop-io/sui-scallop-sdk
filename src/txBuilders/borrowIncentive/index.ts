@@ -1,6 +1,7 @@
 import { Transaction } from '@mysten/sui/transactions';
 import { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
-import type { ReadTransport, ScallopBuilder } from 'src/models/index.js';
+import type { ReadTransport } from 'src/models/scallopQuery/types.js';
+import type { ScallopBuilder } from 'src/models/index.js';
 import type {
   SuiTxBlockWithBorrowIncentiveNormalMethods,
   BorrowIncentiveTxBlock,

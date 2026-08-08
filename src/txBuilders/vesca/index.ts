@@ -1,6 +1,6 @@
 import { Transaction, SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { ScallopBuilder } from 'src/models/index.js';
-import type { ReadTransport } from 'src/models/index.js';
+import type { ReadTransport } from 'src/models/scallopQuery/types.js';
 import { generateNormalVeScaMethod } from './moveCalls.js';
 import { generateQuickVeScaMethod, type VeScaActionContext } from './quick.js';
 import type {
