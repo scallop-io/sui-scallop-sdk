@@ -1,5 +1,5 @@
 import { ScallopBuilder } from 'src/models/index.js';
-import type { ReadTransport } from 'src/models/index.js';
+import type { ReadTransport } from 'src/models/scallopQuery/types.js';
 import { ScallopTxBlock } from 'src/types/index.js';
 import { SuiTxBlock as SuiKitTxBlock, Transaction } from '@scallop-io/sui-kit';
 import {

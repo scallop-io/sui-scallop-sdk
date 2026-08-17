@@ -224,6 +224,10 @@ export const EMPTY_ADDRESSES: AddressesInterface = {
         wormhole: '',
         wormholeState: '',
       },
+      custom: {
+        registry: '',
+        registryCap: '',
+      },
     },
     packages: {
       coinDecimalsRegistry: {

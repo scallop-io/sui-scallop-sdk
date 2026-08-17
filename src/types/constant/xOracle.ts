@@ -1,4 +1,9 @@
-export const _SUPPORT_ORACLES = ['supra', 'switchboard', 'pyth'] as const;
+export const _SUPPORT_ORACLES = [
+  'supra',
+  'switchboard',
+  'pyth',
+  'custom',
+] as const;
 export type SupportOracleType = (typeof _SUPPORT_ORACLES)[number];
 
 export type xOracleRules = {

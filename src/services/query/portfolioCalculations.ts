@@ -544,7 +544,7 @@ export const calculateObligationSummary = (
   let risk = input.totalRequiredCollateralValue.isZero()
     ? // No collateral + non-zero debt => bad-debt situation, capped below.
       input.totalBorrowedValueWithWeight.isGreaterThan(0)
-      ? BigNumber(100)
+      ? BigNumber(1)
       : BigNumber(0)
     : input.totalBorrowedValueWithWeight.dividedBy(
         input.totalRequiredCollateralValue

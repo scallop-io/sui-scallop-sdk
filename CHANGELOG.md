@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.3.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.2.6...v5.3.0) (2026-08-18)
+
+### Added
+
+- New `custom` xOracle provider. `SupportOracleType` now includes `'custom'`, and `updateOracles` routes such coins through `CustomOracleRule`, which reads a single authorized on-chain price registry (`core.oracles.custom.registry`) via `core.packages.customOracle.id` rather than per-coin feed metadata. When those addresses are unconfigured the rule throws a typed `ScallopTransactionBuildError` naming the missing path instead of building an invalid Move call. `AddressesInterface` gains `core.oracles.custom` (`registry`, `registryCap`) ([ae9b25a](https://github.com/scallop-io/sui-scallop-sdk/commit/ae9b25a7f212ec4a485659b227cbba529425f399))
+- xOracle price-feed entries for `wal`, `haedal`, `hawal`, `wwal`, `xbtc`, `zwbtc`, `suiusde`, `usdsui`, `xaum`, and `scasui`, all resolving through Pyth ([ae9b25a](https://github.com/scallop-io/sui-scallop-sdk/commit/ae9b25a7f212ec4a485659b227cbba529425f399))
+
+### Changed
+
+- `sca` now resolves its primary price through the `custom` oracle instead of Pyth. SCA price updates require `core.packages.customOracle.id` and `core.oracles.custom.registry` to be populated by the address API; until then `updateOracles` for SCA throws `ScallopTransactionBuildError` ([ae9b25a](https://github.com/scallop-io/sui-scallop-sdk/commit/ae9b25a7f212ec4a485659b227cbba529425f399))
+
 ## [5.2.6](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.2.5...v5.2.6) (2026-08-03)
 
 ### Changed

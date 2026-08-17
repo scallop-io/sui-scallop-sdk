@@ -694,6 +694,10 @@ export const ADDRESSES = {
           wormholeState:
             '0xdbca52b9fb4f712e25f61f974586d93ac541bcf8389564f0323bb07215168b5c',
         },
+        custom: {
+          registry: '',
+          registryCap: '',
+        },
       },
       packages: {
         coinDecimalsRegistry: {
