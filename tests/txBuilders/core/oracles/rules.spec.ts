@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PythOracleRule } from 'src/txBuilders/core/oracles/rules/pyth.js';
 import { SupraOracleRule } from 'src/txBuilders/core/oracles/rules/supra.js';
 import { SwitchboardOracleRule } from 'src/txBuilders/core/oracles/rules/switchboard.js';
+import { CustomOracleRule } from 'src/txBuilders/core/oracles/rules/custom.js';
 import { buildOracleRuleRegistry } from 'src/txBuilders/core/oracles/rules/registry.js';
+import { ScallopTransactionBuildError } from 'src/errors/index.js';
 import type { OracleRuleContext } from 'src/txBuilders/core/oracles/rules/types.js';
 
 // address.get echoes the path so assertions can prove which address each rule
@@ -85,15 +87,43 @@ describe('oracle rule strategies', () => {
     );
   });
 
-  it('registry exposes exactly the three providers keyed by oracle type', () => {
+  it('Custom: set_price_as_<ruleType> with only the global registry', () => {
+    // intent: the custom rule is coin-agnostic — it must NOT read any
+    // `core.coins.*` feed metadata, only the one authorized registry.
+    const { ctx, moveCall } = makeCtx();
+    call(new CustomOracleRule(ctx));
+    expect(moveCall).toHaveBeenCalledWith(
+      txBlock,
+      'core.packages.customOracle.id::rule::set_price_as_primary',
+      ['REQ', 'core.oracles.custom.registry', 'CLOCK'],
+      ['0x2::sui::SUI']
+    );
+  });
+
+  it('Custom: throws a typed build error when its addresses are unconfigured', () => {
+    // intent: `address.get` yields undefined for a missing path; without this
+    // guard an unconfigured deployment silently builds `undefined::rule::...`.
+    const { ctx, moveCall } = makeCtx();
+    (ctx as { address: { get: (p: string) => unknown } }).address = {
+      get: () => undefined,
+    };
+    expect(() => call(new CustomOracleRule(ctx))).toThrow(
+      ScallopTransactionBuildError
+    );
+    expect(moveCall).not.toHaveBeenCalled();
+  });
+
+  it('registry exposes exactly the four providers keyed by oracle type', () => {
     const { ctx } = makeCtx();
     const registry = buildOracleRuleRegistry(ctx);
     expect([...registry.keys()].sort()).toEqual([
+      'custom',
       'pyth',
       'supra',
       'switchboard',
     ]);
     expect(registry.get('pyth')?.type).toBe('pyth');
     expect(registry.get('switchboard')?.type).toBe('switchboard');
+    expect(registry.get('custom')?.type).toBe('custom');
   });
 });

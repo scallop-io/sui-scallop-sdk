@@ -3,6 +3,7 @@ import type { OracleRule, OracleRuleContext } from './types.js';
 import { PythOracleRule } from './pyth.js';
 import { SupraOracleRule } from './supra.js';
 import { SwitchboardOracleRule } from './switchboard.js';
+import { CustomOracleRule } from './custom.js';
 
 /**
  * Build the provider registry keyed by {@link SupportOracleType}. Adding a new
@@ -16,4 +17,5 @@ export const buildOracleRuleRegistry = (
     ['pyth', new PythOracleRule(ctx)],
     ['supra', new SupraOracleRule(ctx)],
     ['switchboard', new SwitchboardOracleRule(ctx)],
+    ['custom', new CustomOracleRule(ctx)],
   ]);

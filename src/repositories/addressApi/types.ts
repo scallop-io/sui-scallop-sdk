@@ -39,8 +39,13 @@ export interface AddressesInterface {
           coinType: string;
           symbol: string;
           decimals: number;
+          // `custom` carries no per-coin feed metadata (the rule reads one global
+          // registry), so it is optional-undefined rather than a required key.
           oracle: {
-            [K in SupportOracleType]: K extends (typeof _SUPPORT_ORACLES)[0]
+            [K in Exclude<
+              SupportOracleType,
+              (typeof _SUPPORT_ORACLES)[3]
+            >]: K extends (typeof _SUPPORT_ORACLES)[0]
               ? string
               : K extends (typeof _SUPPORT_ORACLES)[1]
                 ? string
@@ -50,6 +55,8 @@ export interface AddressesInterface {
                       feedObject: string;
                     }
                   : never;
+          } & {
+            [K in (typeof _SUPPORT_ORACLES)[3]]?: undefined;
           };
         }
       >
@@ -76,7 +83,12 @@ export interface AddressesInterface {
                 wormhole: string;
                 wormholeState: string;
               }
-            : never;
+            : K extends (typeof _SUPPORT_ORACLES)[3]
+              ? {
+                  registry: string;
+                  registryCap: string;
+                }
+              : never;
     } & {
       xOracle: string;
       xOracleCap: string;
