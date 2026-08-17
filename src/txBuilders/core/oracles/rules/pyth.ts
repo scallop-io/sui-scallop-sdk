@@ -1,6 +1,6 @@
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
 import { PYTH_SPONSOR } from 'src/constants/index.js';
-import type { SupportOracleType } from 'src/types/index.js';
+import type { SupportedOracleType } from 'src/types/index.js';
 import {
   BaseOracleRule,
   type PrepareParams,
@@ -14,7 +14,7 @@ import { ScallopPythClient } from 'src/models/scallopPythClient.js';
  * pre-tx step: fetch VAAs and push feed updates on-chain before `set_price`.
  */
 export class PythOracleRule extends BaseOracleRule {
-  readonly type: SupportOracleType = 'pyth';
+  readonly type: SupportedOracleType = 'pyth';
 
   protected packageId(): string {
     return this.ctx.address.get('core.packages.pyth.id');

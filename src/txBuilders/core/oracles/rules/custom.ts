@@ -1,13 +1,13 @@
 import { SuiObjectArg } from '@scallop-io/sui-kit';
 import { ScallopTransactionBuildError } from 'src/errors/index.js';
 import { BaseOracleRule } from './types.js';
-import { SupportOracleType } from 'src/types/index.js';
+import { SupportedOracleType } from 'src/types/index.js';
 
 /**
  * Special oracle rule for authorized coin types.
  */
 export class CustomOracleRule extends BaseOracleRule {
-  readonly type: SupportOracleType = 'custom';
+  readonly type: SupportedOracleType = 'custom';
 
   /**
    * `address.get` resolves a missing path to `undefined`, which would otherwise

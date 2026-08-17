@@ -1,9 +1,6 @@
 import { SuiClientTypes } from '@mysten/sui/client';
 import { Logger } from 'src/logger/Logger.js';
-import {
-  _SUPPORT_ORACLES,
-  SupportOracleType,
-} from 'src/types/constant/xOracle.js';
+import { SupportedOracleType } from 'src/types/constant/xOracle.js';
 import { ApiDataSource, ApiDataSourceParams } from 'src/datasources/api.js';
 import { QueryClient, QueryClientConfig } from '@tanstack/query-core';
 
@@ -56,40 +53,37 @@ export interface AddressesInterface {
           // `custom` carries no per-coin feed metadata (the rule reads one global
           // registry), so it is optional-undefined rather than a required key.
           oracle: {
-            [K in Exclude<
-              SupportOracleType,
-              (typeof _SUPPORT_ORACLES)[3]
-            >]: K extends (typeof _SUPPORT_ORACLES)[0]
+            [K in Exclude<SupportedOracleType, 'custom'>]: K extends 'supra'
               ? string
-              : K extends (typeof _SUPPORT_ORACLES)[1]
+              : K extends 'switchboard'
                 ? string
-                : K extends (typeof _SUPPORT_ORACLES)[2]
+                : K extends 'pyth'
                   ? {
                       feed: string;
                       feedObject: string;
                     }
                   : never;
           } & {
-            [K in (typeof _SUPPORT_ORACLES)[3]]?: undefined;
+            custom?: undefined;
           };
         }
       >
     >;
     oracles: {
-      [K in SupportOracleType]: K extends (typeof _SUPPORT_ORACLES)[0]
+      [K in SupportedOracleType]: K extends 'supra'
         ? {
             registry: string;
             registryCap: string;
             holder: string;
           }
-        : K extends (typeof _SUPPORT_ORACLES)[1]
+        : K extends 'switchboard'
           ? {
               registry: string;
               registryCap: string;
               registryTableId: string;
               state: string;
             }
-          : K extends (typeof _SUPPORT_ORACLES)[2]
+          : K extends 'pyth'
             ? {
                 registry: string;
                 registryCap: string;
@@ -97,7 +91,7 @@ export interface AddressesInterface {
                 wormhole: string;
                 wormholeState: string;
               }
-            : K extends (typeof _SUPPORT_ORACLES)[3]
+            : K extends 'custom'
               ? {
                   registry: string;
                   registryCap: string;

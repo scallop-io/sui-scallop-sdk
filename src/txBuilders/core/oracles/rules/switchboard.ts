@@ -1,5 +1,5 @@
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
-import type { SupportOracleType, xOracleRuleType } from 'src/types/index.js';
+import type { SupportedOracleType, xOracleRuleType } from 'src/types/index.js';
 import { BaseOracleRule, type SetPriceParams } from './types.js';
 
 /**
@@ -8,7 +8,7 @@ import { BaseOracleRule, type SetPriceParams } from './types.js';
  * aggregator + registry object.
  */
 export class SwitchboardOracleRule extends BaseOracleRule {
-  readonly type: SupportOracleType = 'switchboard';
+  readonly type: SupportedOracleType = 'switchboard';
 
   protected packageId(): string {
     return this.ctx.address.get('core.packages.switchboard.id');

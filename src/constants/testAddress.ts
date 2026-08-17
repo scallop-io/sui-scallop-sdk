@@ -242,6 +242,11 @@ export const TEST_ADDRESSES: AddressesInterface = {
         id: '',
         upgradeCap: '',
       },
+      customOracle: {
+        id: '',
+        object: '',
+        upgradeCap: '',
+      },
     },
   },
   spool: {

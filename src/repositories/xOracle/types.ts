@@ -1,10 +1,8 @@
+import { SupportedOracleType } from 'src/types/constant/xOracle.js';
 import { BaseContext, BaseRepoParams } from '../types.js';
 import { GrpcDataSource } from 'src/datasources/grpc.js';
-import { SUPPORTED_ORACLES } from './const.js';
 
-export type SupportedOracle = (typeof SUPPORTED_ORACLES)[number];
-
-type SupportedOracleAddresses = Record<SupportedOracle, { object: string }>;
+type SupportedOracleAddresses = Record<SupportedOracleType, { object: string }>;
 type XOracleAddresses = {
   /** `core.packages.xOracle.object` — used to build the policy-rules key type. */
   xOracleObject: string;

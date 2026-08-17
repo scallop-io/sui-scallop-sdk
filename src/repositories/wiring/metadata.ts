@@ -16,8 +16,8 @@ import type { LoyaltyProgramRepoMetadata } from '../loyaltyProgram/types.js';
 import type { VeScaLoyaltyProgramRepoMetadata } from '../veScaLoyaltyProgram/types.js';
 import type { XOracleMetadata } from '../xOracle/types.js';
 import type { SpoolMetadata } from '../spool/types.js';
-import { SUPPORTED_ORACLES } from '../xOracle/const.js';
 import { ScallopConfigError } from 'src/errors/index.js';
+import { SUPPORTED_ORACLES } from 'src/types/constant/xOracle.js';
 
 /**
  * The ONE seam between the SDK models (`ScallopUtils` / `ScallopConstants`) and
@@ -261,7 +261,11 @@ export const buildXOracleMetadata = (utils: ScallopUtils): XOracleMetadata => ({
     ...SUPPORTED_ORACLES.reduce(
       (acc, oracle) => {
         acc[oracle] = {
-          object: utils.address.get(`core.packages.${oracle}.object`),
+          object: utils.address.get(
+            oracle === 'custom'
+              ? `core.packages.customOracle.object`
+              : `core.packages.${oracle}.object`
+          ),
         };
         return acc;
       },

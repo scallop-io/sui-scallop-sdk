@@ -1,14 +1,17 @@
-export const _SUPPORT_ORACLES = [
+export const SUPPORTED_ORACLES = [
   'supra',
   'switchboard',
   'pyth',
   'custom',
 ] as const;
-export type SupportOracleType = (typeof _SUPPORT_ORACLES)[number];
+export type SupportedOracleType = (typeof SUPPORTED_ORACLES)[number];
+
+/** @deprecated Renamed to {@link SupportedOracleType}. Kept for back-compat; removed in the next major. */
+export type SupportOracleType = SupportedOracleType;
 
 export type xOracleRules = {
-  primary: SupportOracleType[];
-  secondary: SupportOracleType[];
+  primary: SupportedOracleType[];
+  secondary: SupportedOracleType[];
 };
 export type xOracleRuleType = keyof xOracleRules;
 

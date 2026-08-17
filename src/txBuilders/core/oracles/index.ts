@@ -3,7 +3,7 @@ import type { SuiTxBlock as SuiKitTxBlock } from '@scallop-io/sui-kit';
 import { xOracleList as X_ORACLE_LIST } from 'src/constants/index.js';
 import { Logger } from 'src/logger/Logger.js';
 import type { ScallopAddress, ScallopBuilder } from 'src/models/index.js';
-import type { SupportOracleType, xOracleRuleType } from 'src/types/index.js';
+import type { SupportedOracleType, xOracleRuleType } from 'src/types/index.js';
 import { buildOracleRuleRegistry } from './rules/registry.js';
 import type { OracleRuleContext } from './rules/types.js';
 
@@ -116,7 +116,7 @@ export const updateOracles = async (
   const updateAssetCoinNames = [...new Set(assetCoinNames)];
 
   // Group coins by provider so each provider's off-chain prep runs once.
-  const providerCoins = new Map<SupportOracleType, string[]>();
+  const providerCoins = new Map<SupportedOracleType, string[]>();
   for (const coin of updateAssetCoinNames) {
     const rules = xOracleList[coin];
     if (!rules) continue;

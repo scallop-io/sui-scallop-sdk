@@ -1,6 +1,5 @@
 import { SuiClientTypes } from '@mysten/sui/client';
 import {
-  SupportedOracle,
   XOracleAssetOraclesContext,
   XOracleOnDemandAggContext,
   XOraclePriceUpdatePolicyContext,
@@ -19,27 +18,29 @@ import {
 } from '../utils.js';
 import { encodeDynamicFieldNameForV2 } from 'src/utils/dynamicField.js';
 import { ScallopParseError, ScallopRpcError } from 'src/errors/index.js';
+import { SupportedOracleType } from 'src/types/constant/xOracle.js';
 
 const SWITCHBOARD_REGISTRY_SCAN_THRESHOLD = 3;
 
 const queryUpdatePolicyRules = async (
   ctx: XOracleUpdatePolicyRulesContext,
   vecSetId: string
-): Promise<Record<string, SupportedOracle[]>> => {
+): Promise<Record<string, SupportedOracleType[]>> => {
   const { grpc, fetchWithCache, metadata } = ctx;
   const { addresses, parseCoinNameFromType } = metadata;
   const limit = 50;
 
-  const ruleTypeNameToOracleType: Record<string, SupportedOracle> = {
+  const ruleTypeNameToOracleType: Record<string, SupportedOracleType> = {
     [`${addresses.pyth.object}::rule::Rule`]: 'pyth',
     [`${addresses.supra.object}::rule::Rule`]: 'supra',
     [`${addresses.switchboard.object}::rule::Rule`]: 'switchboard',
+    [`${addresses.custom.object}::rule::Rule`]: 'custom',
   };
 
   let nextCursor = null;
   let nextPage = true;
 
-  const results: Record<string, SupportedOracle[]> = {};
+  const results: Record<string, SupportedOracleType[]> = {};
 
   do {
     const fetchOptions: SuiClientTypes.ListDynamicFieldsOptions = {
@@ -114,7 +115,7 @@ export const getAssetOraclesFromOnChain = async (
     },
     {} as Record<
       string,
-      { primary: SupportedOracle[]; secondary: SupportedOracle[] }
+      { primary: SupportedOracleType[]; secondary: SupportedOracleType[] }
     >
   );
 };

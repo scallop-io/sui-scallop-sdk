@@ -761,6 +761,11 @@ export const ADDRESSES = {
           id: '',
           upgradeCap: '',
         },
+        customOracle: {
+          id: '',
+          object: '',
+          upgradeCap: '',
+        },
       },
     },
     spool: {
