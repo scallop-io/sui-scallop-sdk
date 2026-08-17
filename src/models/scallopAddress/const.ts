@@ -269,6 +269,11 @@ export const EMPTY_ADDRESSES: AddressesInterface = {
         upgradeCap: '',
       },
       testCoin: { id: '', upgradeCap: '' },
+      customOracle: {
+        id: '',
+        object: '',
+        upgradeCap: '',
+      },
     },
   },
   spool: {

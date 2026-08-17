@@ -1,5 +1,5 @@
 import type { SuiObjectArg } from '@scallop-io/sui-kit';
-import type { SupportOracleType } from 'src/types/index.js';
+import type { SupportedOracleType } from 'src/types/index.js';
 import { BaseOracleRule, type SetPriceParams } from './types.js';
 
 /**
@@ -7,7 +7,7 @@ import { BaseOracleRule, type SetPriceParams } from './types.js';
  * holder + registry object.
  */
 export class SupraOracleRule extends BaseOracleRule {
-  readonly type: SupportOracleType = 'supra';
+  readonly type: SupportedOracleType = 'supra';
 
   protected packageId(): string {
     return this.ctx.address.get('core.packages.supra.id');

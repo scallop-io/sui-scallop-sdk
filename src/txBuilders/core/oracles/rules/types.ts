@@ -7,7 +7,7 @@ import type {
 import { Logger } from 'src/logger/Logger.js';
 import type { IndexerDataSource } from 'src/datasources/indexer.js';
 import type { ScallopAddress, ScallopBuilder } from 'src/models/index.js';
-import type { SupportOracleType, xOracleRuleType } from 'src/types/index.js';
+import type { SupportedOracleType, xOracleRuleType } from 'src/types/index.js';
 
 /**
  * Everything a single oracle rule needs, and nothing more.
@@ -61,7 +61,7 @@ export type PrepareParams = {
  * dumping every provider's ids into one call.
  */
 export interface OracleRule {
-  readonly type: SupportOracleType;
+  readonly type: SupportedOracleType;
 
   /**
    * Optional off-chain pre-tx step: populate on-chain price data before the
@@ -80,7 +80,7 @@ export interface OracleRule {
  * template that frames every call as `[request, ...providerArgs, clock]`.
  */
 export abstract class BaseOracleRule implements OracleRule {
-  abstract readonly type: SupportOracleType;
+  abstract readonly type: SupportedOracleType;
 
   constructor(protected readonly ctx: OracleRuleContext) {}
 
