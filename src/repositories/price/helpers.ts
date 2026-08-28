@@ -12,6 +12,7 @@ import { partitionArray } from 'src/utils/array.js';
 import { MarketCollateral, MarketPool } from '../market/types.js';
 import { logError, type GrpcReadContext } from '../utils.js';
 import {
+  CoingeckoPriceResponse,
   IndexerApiResponse,
   IndexerApiResponseType,
   PriceFeedObjectSchema,
@@ -20,8 +21,38 @@ import {
   PriceApiContext,
   PriceIndexerContext,
   PriceOnChainContext,
+  PriceRepositoryMetadata,
 } from './types.js';
 import { calculatePrice } from './utils.js';
+import { COINGECKO_IDS, COINGECKO_PRICE_PATH } from './const.js';
+
+/**
+ * The pyth feed config for a coin, or `undefined` when the coin no longer routes
+ * through pyth. `core.coins.*.oracle.pyth` can outlive an oracle migration (SCA
+ * moved to the custom oracle but kept its stale feed/feedObject), so every pyth
+ * read must go through this instead of reading `oracle.pyth` directly.
+ */
+const pythOracleOf = (
+  { addresses, nonPythCoinNames }: PriceRepositoryMetadata,
+  coinName: string
+) =>
+  nonPythCoinNames.has(coinName)
+    ? undefined
+    : addresses.coins[coinName]?.oracle?.pyth;
+
+/**
+ * Every pyth feed id still in use, sorted. Fetching the FULL universe (not just
+ * the requested coins) is what lets every single/subset read share one cache
+ * entry keyed on the same stable feed set.
+ */
+const allPythFeedIds = (metadata: PriceRepositoryMetadata) =>
+  Array.from(
+    new Set(
+      Object.keys(metadata.addresses.coins)
+        .map((coinName) => pythOracleOf(metadata, coinName)?.feed)
+        .filter((feed): feed is string => !!feed)
+    )
+  ).sort();
 
 export const getPythPricesFromPythApi = async (
   ctx: PriceApiContext,
@@ -30,23 +61,15 @@ export const getPythPricesFromPythApi = async (
   const {
     logger,
     fetchWithCache,
-    metadata: { addresses },
+    metadata,
     pythPriceServiceConfig: { endpoint, config },
     priceTimeout,
   } = ctx;
 
-  // Fetch the FULL universe of configured feeds — not just the requested
-  // coins' feeds — so every single/subset read shares one cache entry keyed on
-  // the same stable feed set. This is what collapses the duplicate-request
-  // spam: a `getPythCoinPrice('sui')` and a full `getPythCoinPrices()` resolve
-  // from the same cached fetch within `priceTimeout`.
-  const allFeedIds = Array.from(
-    new Set(
-      Object.values(addresses.coins)
-        .map((coin) => coin?.oracle?.pyth?.feed)
-        .filter((feed): feed is string => !!feed)
-    )
-  ).sort();
+  // Collapses duplicate-request spam: a `getPythCoinPrice('sui')` and a full
+  // `getPythCoinPrices()` resolve from the same cached fetch within
+  // `priceTimeout`.
+  const allFeedIds = allPythFeedIds(metadata);
 
   // Feed the network fetch through the cache: the HTTP call now lives INSIDE
   // `queryFn`, so TanStack Query provides in-flight dedup + `priceTimeout` TTL.
@@ -90,7 +113,7 @@ export const getPythPricesFromPythApi = async (
   // rather than throwing.
   const prices: Record<string, number> = {};
   for (const coinName of coinNames) {
-    const feedId = addresses.coins[coinName]?.oracle?.pyth?.feed;
+    const feedId = pythOracleOf(metadata, coinName)?.feed;
     prices[coinName] =
       (feedId !== undefined ? priceByFeedId[feedId] : undefined) ?? 0;
   }
@@ -101,21 +124,10 @@ export const getPythPricesFromIndexerApi = async (
   ctx: PriceApiContext,
   coinNames: string[]
 ) => {
-  const {
-    logger,
-    indexer,
-    fetchWithCache,
-    priceTimeout,
-    metadata: { addresses },
-  } = ctx;
+  const { logger, indexer, fetchWithCache, priceTimeout, metadata } = ctx;
+  const { addresses } = metadata;
 
-  const allFeedIds = Array.from(
-    new Set(
-      Object.values(addresses.coins)
-        .map((coin) => coin?.oracle?.pyth?.feed)
-        .filter((feed): feed is string => !!feed)
-    )
-  ).sort();
+  const allFeedIds = allPythFeedIds(metadata);
 
   // Fetch prices from indexer (keyed by coinType, covering the full universe)
   const path = '/api/price/pyth';
@@ -134,9 +146,13 @@ export const getPythPricesFromIndexerApi = async (
       });
 
     // Map the prices to the requested coin names, defaulting to 0 if the coin
-    // has no pool coinType or the indexer didn't return a feed for it.
+    // has no pool coinType or the indexer didn't return a feed for it. This
+    // payload is keyed by coinType, so a coin that migrated off pyth would
+    // still match by coinType — gate on `pythOracleOf` to keep it excluded.
     return coinNames.reduce<Record<string, number>>((acc, coinName) => {
-      const coinType = addresses.coins[coinName]?.coinType;
+      const coinType = pythOracleOf(metadata, coinName)
+        ? addresses.coins[coinName]?.coinType
+        : undefined;
       const feed = coinType ? priceByCoinType[coinType] : undefined;
       acc[coinName] = feed
         ? BigNumber(feed.price).shiftedBy(feed.expo).toNumber()
@@ -208,11 +224,7 @@ export const getPythPricesFromOnChain = async (
   ctx: PriceOnChainContext,
   coinNames: string[]
 ) => {
-  const {
-    grpc,
-    fetchWithCache,
-    metadata: { addresses },
-  } = ctx;
+  const { grpc, fetchWithCache, metadata } = ctx;
 
   // Multiple coins can share the same feed object — dedupe before fetching.
   // A coin without a configured pyth feed object maps to an empty/undefined
@@ -220,7 +232,7 @@ export const getPythPricesFromOnChain = async (
   const feedObjectByCoin = new Map<string, string | undefined>(
     coinNames.map((coinName) => [
       coinName,
-      addresses.coins[coinName]?.oracle?.pyth?.feedObject,
+      pythOracleOf(metadata, coinName)?.feedObject,
     ])
   );
   const feedObjectIds = Array.from(new Set(feedObjectByCoin.values())).filter(
@@ -310,13 +322,67 @@ export const getPricesFromIndexer = async (
     queryFn: () => indexer.get(path),
   });
 
-  return resp.pools.reduce(
-    (acc, pool) => {
-      if (coinNames.includes(pool.coinName)) {
-        acc[pool.coinName] = pool.coinPrice;
+  // Seed every requested coin at 0 so the result is DENSE. The markets payload
+  // only carries lending pools, so a collateral-only coin has no entry — callers
+  // must read 0 rather than `undefined`, which would turn into NaN downstream.
+  const prices = Object.fromEntries(
+    coinNames.map((coinName) => [coinName, 0])
+  ) as Record<string, number>;
+  for (const pool of resp.pools) {
+    if (pool.coinName in prices) prices[pool.coinName] = pool.coinPrice;
+  }
+  return prices;
+};
+
+/**
+ * Prices for coins whose xOracle rule routes away from pyth (SCA -> custom
+ * oracle), read from the indexer's CoinGecko passthrough. There is no batch
+ * endpoint, so each id is fetched and cached on its own.
+ *
+ * Best-effort per coin: a coin with no configured CoinGecko id, or whose fetch
+ * fails, resolves to 0 and is logged. Throwing here would take out the whole
+ * price read for one unavailable coin.
+ */
+export const getCoingeckoPrices = async (
+  ctx: PriceApiContext,
+  coinNames: string[]
+): Promise<Record<string, number>> => {
+  const { indexer, fetchWithCache, priceTimeout, logger } = ctx;
+
+  const entries = await Promise.all(
+    coinNames.map(async (coinName): Promise<[string, number]> => {
+      const coingeckoId = COINGECKO_IDS[coinName];
+      if (!coingeckoId) {
+        logger?.warn('no CoinGecko id configured for non-pyth coin', {
+          coinName,
+        });
+        return [coinName, 0];
       }
-      return acc;
-    },
-    {} as Record<string, number>
+      try {
+        const { usd } = await fetchWithCache({
+          queryKey: queryKeys.oracle.getCoingeckoPrice(
+            indexer.url,
+            coingeckoId
+          ),
+          staleTime: priceTimeout,
+          gcTime: priceTimeout,
+          queryFn: async () =>
+            CoingeckoPriceResponse.parse(
+              await indexer.get(
+                `${COINGECKO_PRICE_PATH}?id=${encodeURIComponent(coingeckoId)}`
+              )
+            ),
+        });
+        return [coinName, usd];
+      } catch (e) {
+        logger?.warn('CoinGecko price read failed', {
+          coinName,
+          coingeckoId,
+          message: (e as Error)?.message,
+        });
+        return [coinName, 0];
+      }
+    })
   );
+  return Object.fromEntries(entries);
 };

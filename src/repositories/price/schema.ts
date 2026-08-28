@@ -47,3 +47,8 @@ export const IndexerApiResponse = z.object({
 });
 
 export type IndexerApiResponseType = z.infer<typeof IndexerApiResponse>;
+
+/** `/api/price/coingecko?id=<id>` -> `{ "usd": 0.123 }`. */
+export const CoingeckoPriceResponse = z.object({
+  usd: z.number(),
+});
