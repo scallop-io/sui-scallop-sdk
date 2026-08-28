@@ -157,14 +157,20 @@ describe('Test Query Scallop Contract On Chain Data', () => {
   });
 
   it('Should get pyth prices for multiple assets', async () => {
-    const prices = await scallopQuery.getPythCoinPrices({
-      coinNames: ['sui', 'wusdc'],
-    });
+    // `getPythCoinPrices` is internal now — the public surface is the per-coin
+    // read, so exercise that for each asset.
+    const prices = Object.fromEntries(
+      await Promise.all(
+        ['sui', 'wusdc'].map(async (coinName) => [
+          coinName,
+          await scallopQuery.getPythCoinPrice(coinName),
+        ])
+      )
+    );
 
     if (ENABLE_LOG) {
       console.info('Pyth prices:', prices);
     }
-    expect(prices).toBeTruthy();
     expect(prices['sui']).toBeGreaterThan(0);
     expect(prices['wusdc']).toBeGreaterThan(0);
   });

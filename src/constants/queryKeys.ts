@@ -91,5 +91,13 @@ export const queryKeys = {
       sortedFeedIds,
       endpoint,
     ],
+    // One entry per CoinGecko id — unlike Pyth there is no batch endpoint, so
+    // each id is fetched (and cached) on its own.
+    getCoingeckoPrice: (endpoint: string, coingeckoId: string) => [
+      'oracle',
+      'getCoingeckoPrice',
+      coingeckoId,
+      endpoint,
+    ],
   },
 };

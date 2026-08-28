@@ -16,6 +16,14 @@ export type CoinsAddresses = {
 
 export type PriceRepositoryMetadata = {
   addresses: CoinsAddresses;
+  /**
+   * Coins whose xOracle rules explicitly route somewhere other than pyth (e.g.
+   * SCA, now priced by the custom oracle). Their `core.coins.*.oracle.pyth`
+   * entry may still be present but is stale, so every pyth read must skip them.
+   * A coin absent from the xOracle list is NOT listed here — it keeps whatever
+   * feed its address config carries.
+   */
+  nonPythCoinNames: ReadonlySet<string>;
   pythApiKey?: string;
 };
 

@@ -615,40 +615,59 @@ class ScallopQuery<
    * Get coin prices with source priority.
    *
    * @description
-   * When the caller asks for the indexer (`indexer: true`, or the legacy
-   * `source: 'indexer' | 'indexer-first'`), use indexer prices only. Otherwise
-   * prefer Pyth (API, with its own per-coin on-chain fallback baked in), then
-   * fall back to indexer prices for any coin still missing afterwards.
+   * The indexer is the DEFAULT source: it prices every coin from the markets
+   * payload regardless of which oracle backs it, so it stays correct across
+   * oracle migrations (SCA moved from pyth to the custom oracle). Oracle prices
+   * are used when the caller opts out explicitly (`indexer: false`, or the
+   * legacy `source: 'rpc'`).
    *
-   * NOTE: the indexer fallback only covers coins that have a lending pool —
-   * `getPricesFromIndexer` derives prices from the markets payload's `pools`,
-   * so a collateral-only coin that Pyth misses stays missing.
+   * Either direction fills what the other misses, so neither source is a single
+   * point of failure: the indexer only covers coins with a LENDING POOL (its
+   * prices come from the markets payload's `pools`, so a collateral-only coin
+   * reads 0), and the oracle path misses coins with no configured feed.
    */
-  private async getCoinPricesWithFallback(
+  async getCoinPricesWithFallback(
     args?: { coinNames?: string[] } & QueryOptions
   ) {
-    const preferIndexer =
-      args?.indexer ??
-      (args?.source === 'indexer' || args?.source === 'indexer-first');
-    if (preferIndexer) {
-      return this.getIndexerCoinPrices({ coinNames: args?.coinNames });
-    }
-
-    const prices = await this.getPythCoinPrices({ coinNames: args?.coinNames });
     const coinNames = args?.coinNames ?? this.defaultPriceCoinNames();
+    const preferIndexer = args?.indexer ?? args?.source !== 'rpc';
+
+    const [primary, fallback] = preferIndexer
+      ? ([
+          () => this.getIndexerCoinPrices({ coinNames }),
+          (missing: string[]) => this.getPythCoinPrices({ coinNames: missing }),
+        ] as const)
+      : ([
+          () => this.getPythCoinPrices({ coinNames }),
+          (missing: string[]) =>
+            this.getIndexerCoinPrices({ coinNames: missing }),
+        ] as const);
+
+    // A primary failure is not fatal — fall through to the other source for the
+    // full set rather than propagating and leaving the caller with no prices.
+    const prices = await primary().catch((e) => {
+      this.logger.warn('primary coin-price source failed; using fallback', {
+        preferIndexer,
+        message: (e as Error)?.message,
+      });
+      return {} as Record<string, number>;
+    });
+
     const missing = coinNames.filter((coinName) => !prices[coinName]);
     if (missing.length === 0) return prices;
 
-    const indexerPrices = await this.getIndexerCoinPrices({
-      coinNames: missing,
-    }).catch((e) => {
-      this.logger.warn('indexer fallback for missing pyth prices failed', {
+    const fallbackPrices = await fallback(missing).catch((e) => {
+      this.logger.warn('fallback coin-price source failed', {
         missing,
         message: (e as Error)?.message,
       });
-      return {};
+      return {} as Record<string, number>;
     });
-    return { ...prices, ...indexerPrices };
+    // Only overwrite coins the primary left unpriced.
+    for (const coinName of missing) {
+      if (fallbackPrices[coinName]) prices[coinName] = fallbackPrices[coinName];
+    }
+    return prices;
   }
 
   /**

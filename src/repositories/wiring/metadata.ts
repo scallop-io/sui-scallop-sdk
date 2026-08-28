@@ -18,6 +18,7 @@ import type { XOracleMetadata } from '../xOracle/types.js';
 import type { SpoolMetadata } from '../spool/types.js';
 import { ScallopConfigError } from 'src/errors/index.js';
 import { SUPPORTED_ORACLES } from 'src/types/constant/xOracle.js';
+import { xOracleList } from 'src/constants/index.js';
 
 /**
  * The ONE seam between the SDK models (`ScallopUtils` / `ScallopConstants`) and
@@ -157,7 +158,27 @@ export const buildPriceMetadata = (
         entry[1] !== undefined
     )
   );
-  return { addresses: { coins } };
+  // A coin routed away from pyth (SCA -> custom oracle) can still carry a stale
+  // `oracle.pyth` feed/feedObject in the address map. Derive the exclusion set
+  // from the xOracle rules so pyth reads skip it; coins with no rule entry are
+  // left alone.
+  //
+  // NOTE: this reads the STATIC `xOracleList`, not the on-chain rule list that
+  // `updateOracles({ useOnChainXOracleList: true })` can fetch. Repository
+  // metadata is built synchronously at construction, so an async on-chain read
+  // is not available here. Consequence: when a coin migrates oracles on chain,
+  // `xOracleList` must be updated in the same release or price reads keep using
+  // the stale feed — the exact failure this set exists to prevent. Keep
+  // `xOracleList` and the on-chain policy in lockstep.
+  const nonPythCoinNames = new Set(
+    Object.entries(xOracleList)
+      .filter(
+        ([, rules]) =>
+          !rules.primary.includes('pyth') && !rules.secondary.includes('pyth')
+      )
+      .map(([coinName]) => coinName)
+  );
+  return { addresses: { coins }, nonPythCoinNames };
 };
 
 export const buildPoolAddressesMetadata = (

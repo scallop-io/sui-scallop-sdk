@@ -17,6 +17,7 @@ import {
   LEGACY_PYTH_HERMES_ENDPOINT,
 } from './const.js';
 import {
+  getCoingeckoPrices,
   getPricesFromIndexer,
   getPythFeedObjectFromOnChain,
   getPythFeedObjectsFromOnChain,
@@ -90,20 +91,46 @@ export class PriceRepository extends BaseRepository<
     };
   }
 
-  getPricesFromPyth({
+  /**
+   * Oracle prices for the given coins.
+   *
+   * @description
+   * Despite the name, this is the ORACLE price read, not a pyth-only one: coins
+   * whose xOracle rule routes away from pyth (SCA -> custom oracle) are split
+   * out and priced from their own source (CoinGecko via the indexer), because
+   * their `core.coins.*.oracle.pyth` feed is stale. The two halves are fetched
+   * concurrently and merged.
+   */
+  async getPricesFromPyth({
     coinNames,
     source = 'api-first',
   }: {
     coinNames: string[];
     source?: QuerySource;
   }) {
-    return runWithDataSourceFallback({
-      source,
-      label: 'PriceRepository.getPriceFromPyth',
-      logger: this.logger,
-      api: () => this.getPricesFromApi(coinNames),
-      onchain: () => getPythPricesFromOnChain(this.context, coinNames),
-    });
+    const { nonPythCoinNames } = this.metadata;
+    const pythCoinNames = coinNames.filter(
+      (coinName) => !nonPythCoinNames.has(coinName)
+    );
+    const nonPyth = coinNames.filter((coinName) =>
+      nonPythCoinNames.has(coinName)
+    );
+
+    const empty: Record<string, number> = {};
+    const [pythPrices, nonPythPrices] = await Promise.all([
+      pythCoinNames.length === 0
+        ? empty
+        : runWithDataSourceFallback({
+            source,
+            label: 'PriceRepository.getPriceFromPyth',
+            logger: this.logger,
+            api: () => this.getPricesFromApi(pythCoinNames),
+            onchain: () =>
+              getPythPricesFromOnChain(this.context, pythCoinNames),
+          }),
+      nonPyth.length === 0 ? empty : getCoingeckoPrices(this.context, nonPyth),
+    ]);
+    return { ...pythPrices, ...nonPythPrices };
   }
 
   /**
