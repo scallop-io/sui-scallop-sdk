@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.4.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.3.0...v5.4.0) (2026-08-28)
+
+### Added
+
+- `sca` is now priced from the indexer's CoinGecko passthrough (`/api/price/coingecko?id=scallop-2`) instead of Pyth, matching its migration to the `custom` oracle. Coins whose xOracle rules route away from Pyth are split out of the Pyth read and fetched from their own source; a coin with no configured CoinGecko id, or whose read fails, resolves to `0` rather than throwing ([f4b527a](https://github.com/scallop-io/sui-scallop-sdk/commit/f4b527ad24dd89adf308db866dd5a29b01e9857d))
+
+### Changed
+
+- `getCoinPricesWithFallback` now defaults to indexer prices, and the two price sources fall back to each other — a failure or a gap in either is filled by the other, so neither is a single point of failure. Affects `getLendings`, `getAllCoinPrices`, `getTvl`, and portfolio reads; reported values may differ from previous releases where the indexer and Pyth disagree. Pass `indexer: false` (or the legacy `source: 'rpc'`) to prefer oracle prices ([f4b527a](https://github.com/scallop-io/sui-scallop-sdk/commit/f4b527ad24dd89adf308db866dd5a29b01e9857d))
+
+### Fixed
+
+- Coins moved off Pyth no longer return a stale Pyth price. A coin's `core.coins.*.oracle.pyth` feed can outlive an oracle migration, so all three read paths — the Pyth API, the indexer Pyth passthrough (keyed by `coinType`), and the on-chain feed object — now skip coins whose xOracle rules no longer list Pyth. NOTE: this exclusion is derived from the static `xOracleList`, so an on-chain oracle migration needs a matching SDK release or prices go stale again ([f4b527a](https://github.com/scallop-io/sui-scallop-sdk/commit/f4b527ad24dd89adf308db866dd5a29b01e9857d))
+- Indexer coin prices are returned as a dense record, zeroing coins with no lending pool instead of omitting them, so downstream arithmetic yields `0` rather than `NaN` ([f4b527a](https://github.com/scallop-io/sui-scallop-sdk/commit/f4b527ad24dd89adf308db866dd5a29b01e9857d))
+
 ## [5.3.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.2.6...v5.3.0) (2026-08-18)
 
 ### Added
