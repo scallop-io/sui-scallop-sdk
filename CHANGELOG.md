@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.4.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.4.0...v5.4.1) (2026-10-02)
+
+### Fixed
+
+- Indexer prices (`getPricesFromIndexer`, the default source for `getCoinPricesWithFallback`) no longer return the stale on-chain oracle value for coins moved off Pyth (`sca`). These coins now use their CoinGecko price, the same as the Pyth path. If the CoinGecko read fails, the indexer value is kept ([9ac5549](https://github.com/scallop-io/sui-scallop-sdk/commit/9ac55494542f0f59aa25a270b6b2329b683ed0c5))
+
 ## [5.4.0](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.3.0...v5.4.0) (2026-08-28)
 
 ### Added

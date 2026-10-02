@@ -111,6 +111,50 @@ describe('PriceRepository', () => {
       expect(helpers.getPythPricesFromIndexerApi).not.toHaveBeenCalled();
       expect(helpers.getPythPricesFromOnChain).not.toHaveBeenCalled();
     });
+
+    it('overrides the indexer markets price with CoinGecko', async () => {
+      // intent: the indexer markets payload prices SCA from the on-chain
+      // oracle, so lending/TVL values built on it would be wrong.
+      vi.mocked(helpers.getPricesFromIndexer).mockResolvedValue({
+        sui: 2.5,
+        sca: 0.1,
+      } as never);
+      vi.mocked(helpers.getCoingeckoPrices).mockResolvedValue({
+        sca: 0.5,
+      } as never);
+
+      const res = await makeRepo().getPricesFromIndexer({
+        coinNames: ['sui', 'sca'],
+      });
+
+      expect(res).toEqual({ sui: 2.5, sca: 0.5 });
+      expect(vi.mocked(helpers.getCoingeckoPrices).mock.calls[0][1]).toEqual([
+        'sca',
+      ]);
+    });
+
+    it('keeps the indexer price when the CoinGecko read fails', async () => {
+      vi.mocked(helpers.getPricesFromIndexer).mockResolvedValue({
+        sca: 0.1,
+      } as never);
+      vi.mocked(helpers.getCoingeckoPrices).mockResolvedValue({
+        sca: 0,
+      } as never);
+
+      const res = await makeRepo().getPricesFromIndexer({ coinNames: ['sca'] });
+
+      expect(res).toEqual({ sca: 0.1 });
+    });
+
+    it('skips CoinGecko when no requested coin is off pyth', async () => {
+      vi.mocked(helpers.getPricesFromIndexer).mockResolvedValue({
+        sui: 2.5,
+      } as never);
+
+      await makeRepo().getPricesFromIndexer({ coinNames: ['sui'] });
+
+      expect(helpers.getCoingeckoPrices).not.toHaveBeenCalled();
+    });
   });
 
   describe('api source selection by pythApiKey', () => {
