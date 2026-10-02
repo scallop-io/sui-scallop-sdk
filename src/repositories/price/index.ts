@@ -173,7 +173,29 @@ export class PriceRepository extends BaseRepository<
     return getPythFeedObjectsFromOnChain(this.context, feedObjectIds);
   }
 
-  getPricesFromIndexer(args: { coinNames: string[] }) {
-    return getPricesFromIndexer(this.context, args);
+  /**
+   * Indexer (markets payload) prices for the given coins.
+   *
+   * @description
+   * The markets payload prices coins routed off pyth (SCA) from the on-chain
+   * oracle value, which is not the price we use for them. Those coins are
+   * overridden with their CoinGecko price, same as `getPricesFromPyth`. If the
+   * CoinGecko read fails (0), the indexer value is kept.
+   */
+  async getPricesFromIndexer({ coinNames }: { coinNames: string[] }) {
+    const nonPyth = coinNames.filter((coinName) =>
+      this.metadata.nonPythCoinNames.has(coinName)
+    );
+    const [prices, coingeckoPrices] = await Promise.all([
+      getPricesFromIndexer(this.context, { coinNames }),
+      nonPyth.length === 0
+        ? ({} as Record<string, number>)
+        : getCoingeckoPrices(this.context, nonPyth),
+    ]);
+    for (const coinName of nonPyth) {
+      if (coingeckoPrices[coinName])
+        prices[coinName] = coingeckoPrices[coinName];
+    }
+    return prices;
   }
 }
