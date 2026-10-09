@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.4.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.4.1...v5.4.2) (2026-10-09)
+
+### Fixed
+
+- Coin selection for sCoin and market coin (`selectSCoin`, `selectMarketCoin`, `selectSCoinOrMarketCoin`) now reads the wallet balance correctly. It was previously treated as `NaN`, so the market coin top-up in `withdrawQuick` and the sCoin fallback in `stakeQuick` were skipped. Requests are capped at the owned balance, and a zero balance throws `ScallopTransactionBuildError` ("No sCoin balance…" or "No market coin balance…") so callers can fall back to the other coin source. `migrateAllMarketCoin` now skips coins with no market coin balance instead of failing the whole migration ([d347743](https://github.com/scallop-io/sui-scallop-sdk/commit/d34774313095d37a4438db58fd98212909407930))
+
 ## [5.4.1](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.4.0...v5.4.1) (2026-10-02)
 
 ### Fixed

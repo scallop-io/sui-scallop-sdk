@@ -76,6 +76,43 @@ describe('spool quick methods', () => {
       expect(ctx.coins.selectMarketCoin).toHaveBeenCalled();
       expect(tx.stake).toHaveBeenCalledWith('A1', 'take', 'ssui');
     });
+
+    it('stakes the shortfall from sCoin when market coin balance is short', async () => {
+      // Relies on a numeric `totalAmount`; a NaN one skipped the sCoin top-up.
+      const ctx = makeCtx({ ssui: [{ id: 'A1' }] });
+      ctx.coins.selectMarketCoin.mockResolvedValue({
+        takeCoin: 'take',
+        totalAmount: 40,
+      });
+      const tx = makeTxBlock();
+      await make(ctx, tx).stakeQuick(100, 'ssui', 'A1');
+
+      expect(ctx.coins.selectSCoin).toHaveBeenCalledWith(
+        tx,
+        'ssui',
+        60,
+        SENDER
+      );
+      expect(tx.burnSCoin).toHaveBeenCalledWith('ssui', 'take');
+      expect(tx.stake).toHaveBeenCalledTimes(2);
+    });
+
+    it('still stakes sCoin when there is no market coin (selection throws)', async () => {
+      const ctx = makeCtx({ ssui: [{ id: 'A1' }] });
+      ctx.coins.selectMarketCoin.mockRejectedValue(
+        new Error('No market coin balance for ssui')
+      );
+      const tx = makeTxBlock();
+      await make(ctx, tx).stakeQuick(100, 'ssui', 'A1');
+
+      expect(ctx.coins.selectSCoin).toHaveBeenCalledWith(
+        tx,
+        'ssui',
+        100,
+        SENDER
+      );
+      expect(tx.stake).toHaveBeenCalledWith('A1', 'marketFromBurn', 'ssui');
+    });
   });
 
   describe('unstakeQuick', () => {
