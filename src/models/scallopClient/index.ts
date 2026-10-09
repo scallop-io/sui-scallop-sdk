@@ -712,8 +712,7 @@ class ScallopClient<
       } catch (e: any) {
         // Ignore
         const errMsg = e.toString() as String;
-        if (!errMsg.includes('No valid coins found for the transaction'))
-          throw e;
+        if (!errMsg.includes('No market coin balance')) throw e;
       }
 
       // if market coin found, mint sCoin

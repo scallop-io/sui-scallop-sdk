@@ -25,6 +25,7 @@ import type {
 import type { ScallopBuilderParamsFor } from './types.js';
 import { DEFAULT_PYTH_URL } from 'src/repositories/price/const.js';
 import { coinWithBalance } from '@mysten/sui/transactions';
+import { ScallopTransactionBuildError } from 'src/errors/index.js';
 /**
  * @descriptionr
  * It provides methods for operating the transaction block, making it more convenient to organize transaction combinations.
@@ -178,9 +179,22 @@ class ScallopBuilder<
       owner: sender,
       coinType: marketCoinType,
     });
+
+    // Throw on empty balance so callers know to fall back to the other coin
+    // source; `coinWithBalance` itself would only fail at execution.
+    const totalAmount = Number(balance.balance);
+    if (totalAmount === 0) {
+      throw new ScallopTransactionBuildError(
+        `No market coin balance for ${marketCoinName}`
+      );
+    }
+
     return {
-      takeCoin: coinWithBalance({ type: marketCoinType, balance: amount }),
-      totalAmount: +balance,
+      takeCoin: coinWithBalance({
+        type: marketCoinType,
+        balance: Math.min(amount, totalAmount),
+      }),
+      totalAmount,
     };
   }
 
@@ -204,9 +218,22 @@ class ScallopBuilder<
       owner: sender,
       coinType: sCoinType,
     });
+
+    // Throw on empty balance so callers know to fall back to the other coin
+    // source; `coinWithBalance` itself would only fail at execution.
+    const totalAmount = Number(balance.balance);
+    if (totalAmount === 0) {
+      throw new ScallopTransactionBuildError(
+        `No sCoin balance for ${sCoinName}`
+      );
+    }
+
     return {
-      takeCoin: coinWithBalance({ type: sCoinType, balance: amount }),
-      totalAmount: +balance,
+      takeCoin: coinWithBalance({
+        type: sCoinType,
+        balance: Math.min(amount, totalAmount),
+      }),
+      totalAmount,
     };
   }
 
@@ -240,7 +267,7 @@ class ScallopBuilder<
         const { takeCoin: marketCoin } = await this.selectMarketCoin(
           txBlock,
           sCoinName,
-          amount,
+          totalAmount,
           sender
         );
         result.marketCoins.push(marketCoin);
