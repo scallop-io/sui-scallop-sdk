@@ -22,12 +22,15 @@ const SENDER = '0xSENDER';
 const S_COIN_TYPE = '0x1::scallop_sui::SCALLOP_SUI';
 const MARKET_COIN_TYPE = '0x1::reserve::MarketCoin<0x2::sui::SUI>';
 
-const makeBuilder = (balances: Record<string, string>) => {
+// An `Error` value makes `getBalance` reject for that coin type (e.g. RPC down).
+const makeBuilder = (balances: Record<string, string | Error>) => {
   const getBalance = vi.fn(
-    async ({ coinType }: { owner: string; coinType: string }) => ({
+    async ({ coinType }: { owner: string; coinType: string }) => {
+      const balance = balances[coinType] ?? '0';
+      if (balance instanceof Error) throw balance;
       // Mirrors the Core client shape: balance is an object, not a number.
-      balance: { coinType, balance: balances[coinType] ?? '0' },
-    })
+      return { balance: { coinType, balance } };
+    }
   );
   const builder = Object.create(ScallopBuilder.prototype) as ScallopBuilder;
   // Bypass the constructor (SuiKit + ScallopQuery need network); only `utils`
@@ -151,12 +154,62 @@ describe('ScallopBuilder coin selection', () => {
       });
     });
 
+    it('uses the partial sCoin when sCoin is short and there is no market coin', async () => {
+      // The market coin "no balance" throw must not discard sCoin already
+      // selected, otherwise a user holding some sCoin cannot withdraw it.
+      const { builder } = makeBuilder({ [S_COIN_TYPE]: '30' });
+      const result = await builder.selectSCoinOrMarketCoin(
+        txBlock(),
+        'ssui',
+        100,
+        SENDER
+      );
+
+      expect(result.sCoin).toEqual({
+        intent: { type: S_COIN_TYPE, balance: 30 },
+      });
+      expect(result.marketCoin).toBeUndefined();
+    });
+
     it('throws when neither sCoin nor market coin has a balance', async () => {
       const { builder } = makeBuilder({});
+      const err = await builder
+        .selectSCoinOrMarketCoin(txBlock(), 'ssui', 100, SENDER)
+        .catch((e: unknown) => e);
+
+      expect(err).toBeInstanceOf(ScallopTransactionBuildError);
+      expect(err).toHaveProperty(
+        'message',
+        'No sCoin or market coin balance for ssui'
+      );
+      expect((err as Error).cause).toBeInstanceOf(ScallopTransactionBuildError);
+    });
+
+    // A failed lookup is not "no balance": falling back would build a
+    // withdraw from the wrong source or a short amount without telling anyone.
+    it('propagates an sCoin lookup failure instead of falling back to market coin', async () => {
+      const rpcError = new Error('rpc down');
+      const { builder, getBalance } = makeBuilder({
+        [S_COIN_TYPE]: rpcError,
+        [MARKET_COIN_TYPE]: '500',
+      });
 
       await expect(
         builder.selectSCoinOrMarketCoin(txBlock(), 'ssui', 100, SENDER)
-      ).rejects.toBeInstanceOf(ScallopTransactionBuildError);
+      ).rejects.toBe(rpcError);
+      expect(getBalance).toHaveBeenCalledTimes(1);
+    });
+
+    it('propagates a market coin lookup failure even with partial sCoin', async () => {
+      const rpcError = new Error('rpc down');
+      const { builder } = makeBuilder({
+        [S_COIN_TYPE]: '30',
+        [MARKET_COIN_TYPE]: rpcError,
+      });
+
+      await expect(
+        builder.selectSCoinOrMarketCoin(txBlock(), 'ssui', 100, SENDER)
+      ).rejects.toBe(rpcError);
     });
   });
 });
