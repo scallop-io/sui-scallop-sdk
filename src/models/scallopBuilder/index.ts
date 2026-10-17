@@ -261,9 +261,14 @@ class ScallopBuilder<
       );
       result.sCoins.push(takeCoin);
       totalAmount -= sCoinAmount;
+    } catch (e) {
+      // no sCoin, fall through to market coin for the full amount
+      if (!(e instanceof ScallopTransactionBuildError)) throw e;
+    }
 
-      if (totalAmount > 0) {
-        // sCoin is not enough, try market coin
+    if (totalAmount > 0) {
+      // no or not enough sCoin, try market coin
+      try {
         const { takeCoin: marketCoin } = await this.selectMarketCoin(
           txBlock,
           sCoinName,
@@ -271,16 +276,16 @@ class ScallopBuilder<
           sender
         );
         result.marketCoins.push(marketCoin);
+      } catch (e) {
+        // partial sCoin is still usable, so only fail when nothing was found
+        if (!(e instanceof ScallopTransactionBuildError)) throw e;
+        if (result.sCoins.length === 0) {
+          throw new ScallopTransactionBuildError(
+            `No sCoin or market coin balance for ${sCoinName}`,
+            { cause: e }
+          );
+        }
       }
-    } catch (_e) {
-      // no sCoin, try market coin
-      const { takeCoin: marketCoin } = await this.selectMarketCoin(
-        txBlock,
-        sCoinName,
-        amount,
-        sender
-      );
-      result.marketCoins.push(marketCoin);
     }
 
     // merge sCoins and marketCoins
