@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.4.3](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.4.2...v5.4.3) (2026-10-18)
+
+### Fixed
+
+- `selectSCoinOrMarketCoin` (used by `withdrawQuick`) now falls back to market coin only when the sCoin balance is zero. Other errors, such as an RPC failure, are thrown instead of silently switching coin source. When sCoin covers only part of the amount and there is no market coin, the partial sCoin is used instead of throwing. If both balances are zero, the "No sCoin or market coin balance" error keeps the original error as `cause` ([a64821d](https://github.com/scallop-io/sui-scallop-sdk/commit/a64821d67762789582c26dc6a6a0fefd35717b4e))
+
 ## [5.4.2](https://github.com/scallop-io/sui-scallop-sdk/compare/v5.4.1...v5.4.2) (2026-10-09)
 
 ### Fixed
